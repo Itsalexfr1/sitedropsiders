@@ -381,6 +381,9 @@ export function NewsCreate() {
     });
     const [duoModal, setDuoModal] = useState({ show: false, url1: '', url2: '', widgetIndex: undefined as number | undefined, widgetId: undefined as string | undefined, aspectRatio: '3/4' });
     const [isLoading, setIsLoading] = useState(isEditing && !editingItem);
+    const [suggestedTitles, setSuggestedTitles] = useState<string[]>([]);
+    const [videoStartTime, setVideoStartTime] = useState<number>(0);
+    const [videoAutoplay, setVideoAutoplay] = useState<boolean>(false);
 
     // Fetch item if missing from state but ID is present
     useEffect(() => {
@@ -1336,7 +1339,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
                 }
                 // For Interview Video, we ALWAYS show the video regardless of the toggle
                 const videoHtml = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
-  <iframe src="https://www.youtube.com/embed/${youtubeId}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
+  <iframe src="https://www.youtube.com/embed/${youtubeId}?start=${videoStartTime || 0}&autoplay=${videoAutoplay ? 1 : 0}" class="absolute inset-0 w-full h-full" allowfullscreen allow="autoplay; encrypted-media"></iframe>
 </div>`;
 
                 finalContent = `<div class="article-section">
@@ -1365,7 +1368,7 @@ ${generateSocialsHtml()}
                     } else if (q.type === 'video') {
                         return `<div class="article-section interview-video-block" data-media-url="${q.mediaUrl}">
 <div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
-  <iframe src="https://www.youtube.com/embed/${q.mediaUrl}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
+  <iframe src="https://www.youtube.com/embed/${q.mediaUrl}?start=0&autoplay=0" class="absolute inset-0 w-full h-full" allowfullscreen allow="autoplay; encrypted-media"></iframe>
 </div>
 </div>`;
                     }
@@ -1951,23 +1954,97 @@ ${generateSocialsHtml()}
                                             exit={{ opacity: 0, height: 0 }}
                                             className="space-y-4"
                                         >
-                                            <input
-                                                type="text"
-                                                value={youtubeId}
-                                                onChange={(e) => {
-                                                    let val = e.target.value;
-                                                    if (val.includes('youtube.com/watch?v=')) {
-                                                        val = val.split('v=')[1].split('&')[0];
-                                                    } else if (val.includes('youtu.be/')) {
-                                                        val = val.split('youtu.be/')[1].split('?')[0];
-                                                    } else if (val.includes('youtube.com/embed/')) {
-                                                        val = val.split('youtube.com/embed/')[1].split('?')[0];
-                                                    }
-                                                    setYoutubeId(val);
-                                                }}
-                                                className="w-full bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
-                                                placeholder="ID ou URL YouTube"
-                                            />
+                                            <div className="flex gap-2">
+                                                <input
+                                                    type="text"
+                                                    value={youtubeId}
+                                                    onChange={async (e) => {
+                                                        let val = e.target.value;
+                                                        if (val.includes('youtube.com/watch?v=')) {
+                                                            val = val.split('v=')[1].split('&')[0];
+                                                        } else if (val.includes('youtu.be/')) {
+                                                            val = val.split('youtu.be/')[1].split('?')[0];
+                                                        } else if (val.includes('youtube.com/embed/')) {
+                                                            val = val.split('youtube.com/embed/')[1].split('?')[0];
+                                                        }
+                                                        setYoutubeId(val);
+
+                                                        // Auto-fetch info
+                                                        if (val.length === 11) {
+                                                            try {
+                                                                const resp = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${val}`);
+                                                                const data = await resp.json();
+                                                                if (data.title) {
+                                                                    const clean = data.title
+                                                                        .replace(/\(Official Video\)/gi, '')
+                                                                        .replace(/\[Official Video\]/gi, '')
+                                                                        .replace(/\(Official Music Video\)/gi, '')
+                                                                        .replace(/\[Official Music Video\]/gi, '')
+                                                                        .replace(/Official Video/gi, '')
+                                                                        .replace(/Official Music Video/gi, '')
+                                                                        .replace(/\(Original Mix\)/gi, '')
+                                                                        .replace(/\[Original Mix\]/gi, '')
+                                                                        .replace(/Original Mix/gi, '')
+                                                                        .trim();
+
+                                                                    const suggestions = [clean];
+                                                                    if (clean.includes(' - ')) {
+                                                                        const parts = clean.split(' - ');
+                                                                        if (parts.length === 2) {
+                                                                            suggestions.push(`${parts[1].trim()} - ${parts[0].trim()}`);
+                                                                            suggestions.push(clean.toUpperCase());
+                                                                        }
+                                                                    } else {
+                                                                        suggestions.push(clean.toUpperCase());
+                                                                        suggestions.push(clean + " - EXCLUSIVE");
+                                                                    }
+                                                                    setSuggestedTitles(suggestions.slice(0, 3));
+                                                                    if (!title) setTitle(clean);
+                                                                }
+                                                            } catch (err) {
+                                                                console.error("YT Fetch error", err);
+                                                            }
+                                                        }
+                                                    }}
+                                                    className="flex-1 bg-black/20 border border-white/10 rounded-lg p-3 text-white focus:border-neon-cyan outline-none"
+                                                    placeholder="ID ou URL YouTube"
+                                                />
+                                                <div className="flex gap-1 items-center">
+                                                    <StyledCheckbox
+                                                        checked={videoAutoplay}
+                                                        onChange={setVideoAutoplay}
+                                                        label="Autoplay"
+                                                        colorClass="neon-green"
+                                                    />
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setVideoStartTime(90); setVideoAutoplay(true); }}
+                                                        className={`px-3 py-2 rounded-lg border text-[8px] font-bold uppercase transition-all ${videoStartTime === 90 ? 'bg-neon-red border-neon-red text-white' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                                    >1:30</button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => { setVideoStartTime(105); setVideoAutoplay(true); }}
+                                                        className={`px-3 py-2 rounded-lg border text-[8px] font-bold uppercase transition-all ${videoStartTime === 105 ? 'bg-neon-red border-neon-red text-white' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                                    >1:45</button>
+                                                </div>
+                                            </div>
+
+                                            {suggestedTitles.length > 0 && (
+                                                <div className="flex flex-wrap gap-2 pt-2">
+                                                    <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest w-full">Suggestions de Titre :</span>
+                                                    {suggestedTitles.map((st, i) => (
+                                                        <button
+                                                            key={i}
+                                                            type="button"
+                                                            onClick={() => setTitle(st)}
+                                                            className="px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[9px] font-bold text-gray-400 hover:text-neon-cyan hover:border-neon-cyan transition-all"
+                                                        >
+                                                            {st}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+
                                             {!(type === 'Interview' && interviewSubtype === 'video') && (
                                                 <p className="text-[10px] text-gray-500 italic">S'affichera tout en bas de l'article</p>
                                             )}
@@ -2686,11 +2763,37 @@ ${generateSocialsHtml()}
                                                         <input
                                                             type="text"
                                                             value={q.mediaUrl}
-                                                            onChange={(e) => {
+                                                            onChange={async (e) => {
                                                                 let val = e.target.value;
                                                                 if (val.includes('youtube.com/watch?v=')) val = val.split('v=')[1].split('&')[0];
                                                                 else if (val.includes('youtu.be/')) val = val.split('youtu.be/')[1].split('?')[0];
                                                                 setInterviewQuestions(interviewQuestions.map(item => item.id === q.id ? { ...item, mediaUrl: val } : item));
+
+                                                                // Auto-fetch question if video
+                                                                if (val.length === 11) {
+                                                                    try {
+                                                                        const resp = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${val}`);
+                                                                        const data = await resp.json();
+                                                                        if (data.title) {
+                                                                            const clean = data.title
+                                                                                .replace(/\(Official Video\)/gi, '')
+                                                                                .replace(/\[Official Video\]/gi, '')
+                                                                                .replace(/\(Official Music Video\)/gi, '')
+                                                                                .replace(/\[Official Music Video\]/gi, '')
+                                                                                .replace(/Official Video/gi, '')
+                                                                                .replace(/Official Music Video/gi, '')
+                                                                                .replace(/\(Original Mix\)/gi, '')
+                                                                                .replace(/\[Original Mix\]/gi, '')
+                                                                                .replace(/Original Mix/gi, '')
+                                                                                .trim();
+
+                                                                            // For specific interview block, we can set it as question if empty
+                                                                            setInterviewQuestions(interviewQuestions.map(item =>
+                                                                                item.id === q.id && !item.question ? { ...item, mediaUrl: val, question: clean } : (item.id === q.id ? { ...item, mediaUrl: val } : item)
+                                                                            ));
+                                                                        }
+                                                                    } catch (e) { }
+                                                                }
                                                             }}
                                                             className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs outline-none focus:border-red-600"
                                                             placeholder="Ex: dQw4w9WgXcQ"
