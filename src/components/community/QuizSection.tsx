@@ -36,9 +36,8 @@ export function QuizSection() {
     const { language } = useLanguage();
     const [activeTab, setActiveTab] = useState<'play' | 'submit'>('play');
     const [gameState, setGameState] = useState<'selection' | 'playing' | 'results'>('selection');
-    const [selectedMode, setSelectedMode] = useState<QuizType | 'BOTH'>('QCM');
+    const [selectedMode, setSelectedMode] = useState<QuizType | 'ALL'>('ALL');
     const [selectedLength, setSelectedLength] = useState<GameLength>(5);
-    const [selectedTheme, setSelectedTheme] = useState('ALL');
 
     const [quizzes, setQuizzes] = useState<Quiz[]>([]);
     const [gameQuizzes, setGameQuizzes] = useState<Quiz[]>([]);
@@ -177,16 +176,8 @@ export function QuizSection() {
         }
 
         let filtered = quizzes;
-        if (selectedMode !== 'BOTH') {
+        if (selectedMode !== 'ALL') {
             filtered = filtered.filter(q => q.type === selectedMode);
-        }
-
-        if (selectedTheme !== 'ALL') {
-            if (selectedTheme === 'Blind Test') {
-                filtered = filtered.filter(q => q.type === 'BLIND_TEST');
-            } else {
-                filtered = filtered.filter(q => q.category?.toUpperCase() === selectedTheme.toUpperCase());
-            }
         }
 
         if (filtered.length === 0) {
