@@ -5229,7 +5229,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                             if (!text) return null;
                                                                                             const urlRegex = /(https?:\/\/[^\s]+)/g;
                                                                                             const parts = text.split(urlRegex);
-                                                                                            return parts.map((part, i) => {
+                                                                                            return parts.map((part: string, i: number) => {
                                                                                                 if (part.match(urlRegex)) {
                                                                                                     if (part.includes("#clip-")) {
                                                                                                         const cId = part.split("#clip-")[1];
