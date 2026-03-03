@@ -60,7 +60,7 @@ export function MobileNavbar() {
     return (
         <>
             {/* Bottom Bar */}
-            <div className="md:hidden fixed bottom-0 left-0 right-0 z-[110] px-4 pb-6 pt-2 pointer-events-none">
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] px-4 pb-6 pt-2 pointer-events-none">
                 <motion.div
                     initial={{ y: 100 }}
                     animate={{ y: 0 }}
@@ -121,7 +121,8 @@ export function MobileNavbar() {
             {/* Expanded Menu Modal */}
             <AnimatePresence>
                 {isMenuOpen && (
-                    <div className="fixed inset-0 z-[120] md:hidden">
+                    <div className="fixed inset-0 z-[120] lg:hidden">
+
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}

@@ -201,11 +201,12 @@ export function Navbar() {
                     </div>
 
                     {/* Desktop Navigation */}
-                    <div className="hidden md:flex items-center gap-1">
+                    <div className="hidden lg:flex items-center gap-1">
                         {navItems.map((item) => (
                             <NavItem key={item.path} item={item} isActive={location.pathname === item.path} />
                         ))}
                     </div>
+
 
                     {/* Right Side Actions */}
                     <div className="flex items-center gap-2">

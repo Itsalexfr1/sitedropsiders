@@ -40,7 +40,8 @@ export function Layout({ children }: LayoutProps) {
         (bannerEnabled ? 'pt-[112px]' : (isHome ? 'pt-0' : 'pt-20'));
 
     return (
-        <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white pb-32 md:pb-0">
+        <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white pb-32 lg:pb-0">
+
             {/* Background Effects - Hidden on mobile for performance */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden hidden md:block">
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-neon-red/10 rounded-full blur-[100px]" />
