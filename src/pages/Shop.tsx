@@ -244,7 +244,7 @@ export function Shop() {
                         <p className="text-gray-400">Revenez bientôt pour nos nouveautés.</p>
                     </div>
                 ) : (
-                    <div className={`grid ${isMini ? 'grid-cols-4 gap-2 md:gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'}`}>
+                    <div className={`grid ${isMini ? 'grid-cols-3 sm:grid-cols-4 gap-2 md:gap-4' : 'grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8'}`}>
                         <AnimatePresence mode="popLayout">
                             {filteredProducts.map((product) => (
                                 <ProductCard
@@ -342,7 +342,7 @@ function ProductCard({ product, onBuy, isMini = false }: { product: any, onBuy: 
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
             transition={{ duration: 0.4, ease: "easeOut" }}
-            className={`bg-white/5 border border-white/10 rounded-[32px] overflow-hidden group hover:border-white/20 transition-all duration-500 h-full flex flex-col ${isMini ? 'pb-4' : 'pb-8'}`}
+            className={`bg-white/5 border border-white/10 rounded-[24px] md:rounded-[32px] overflow-hidden group hover:border-white/20 transition-all duration-500 h-full flex flex-col ${isMini ? 'pb-2 md:pb-4' : 'pb-4 md:pb-8'}`}
             onMouseEnter={() => !selectedColor && setShowBack(true)}
             onMouseLeave={() => setShowBack(false)}
         >
@@ -371,7 +371,7 @@ function ProductCard({ product, onBuy, isMini = false }: { product: any, onBuy: 
                 />
             </div>
 
-            <div className={`flex flex-col flex-1 h-full ${isMini ? 'px-4' : 'px-8'}`}>
+            <div className={`flex flex-col flex-1 h-full ${isMini ? 'px-2 md:px-4' : 'px-3 md:px-8'}`}>
                 {hasBackImage && !isZooming && (
                     <div className={`flex gap-2 justify-center ${isMini ? 'mb-3' : 'mb-6'}`}>
                         <button
@@ -380,7 +380,7 @@ function ProductCard({ product, onBuy, isMini = false }: { product: any, onBuy: 
                                 e.preventDefault();
                                 setShowBack(false);
                             }}
-                            className={`flex-1 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${!showBack ? 'bg-white text-black border-white shadow-lg shadow-white/10' : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'}`}
+                            className={`flex-1 px-2 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${!showBack ? 'bg-white text-black border-white shadow-lg shadow-white/10' : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'}`}
                         >
                             Face
                         </button>
@@ -390,14 +390,14 @@ function ProductCard({ product, onBuy, isMini = false }: { product: any, onBuy: 
                                 e.preventDefault();
                                 setShowBack(true);
                             }}
-                            className={`flex-1 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${showBack ? 'bg-white text-black border-white shadow-lg shadow-white/10' : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'}`}
+                            className={`flex-1 px-2 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${showBack ? 'bg-white text-black border-white shadow-lg shadow-white/10' : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'}`}
                         >
                             Dos
                         </button>
                     </div>
                 )}
                 <div className={isMini ? 'mb-2' : 'mb-4'}>
-                    <h3 className={`${isMini ? 'text-sm' : 'text-2xl'} font-bold text-white leading-tight`}>
+                    <h3 className={`${isMini ? 'text-[10px] md:text-sm' : 'text-xs md:text-2xl'} font-bold text-white leading-tight`}>
                         {product.name}
                     </h3>
                 </div>
@@ -429,7 +429,7 @@ function ProductCard({ product, onBuy, isMini = false }: { product: any, onBuy: 
                     )}
 
                     <div className="flex flex-col items-end flex-shrink-0">
-                        <span className={`text-neon-red font-display font-black italic ${isMini ? 'text-lg' : 'text-2xl'}`}>{product.price}€</span>
+                        <span className={`text-neon-red font-display font-black italic ${isMini ? 'text-sm md:text-lg' : 'text-base md:text-2xl'}`}>{product.price}€</span>
                         {!isMini && <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">+ frais de port</span>}
                     </div>
                 </div>
