@@ -397,6 +397,8 @@ export default {
             path === '/api/photos/pending' ||
             path === '/api/photos/delete' ||
             path === '/api/shop/delete' ||
+            path === '/api/quiz/update' ||
+            path === '/api/quiz/submit' ||
             path === '/api/dashboard-actions/update' ||
             path.startsWith('/api/editors') ||
             path === '/api/auth/revoke-all' ||
