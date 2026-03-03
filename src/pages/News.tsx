@@ -270,17 +270,17 @@ export function News() {
                                                 )}
                                             </button>
                                         )}
-                                        <Link to={getArticleLink(item)}>
-                                            <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center">
+                                        <Link to={getArticleLink(item)} className="flex flex-row md:flex-col h-24 md:h-auto overflow-hidden">
+                                            <div className="w-32 md:w-full md:h-64 overflow-hidden bg-black/40 shrink-0">
                                                 <img
                                                     src={item.image}
                                                     alt={item.title}
                                                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                                                 />
                                             </div>
-                                            <div className="p-6">
-                                                <div className="flex justify-between items-center mb-3">
-                                                    <span className={`text-xs font-bold px-2 py-1 rounded-full border ${item.isFocus
+                                            <div className="p-3 md:p-6 flex flex-col justify-center flex-1 min-w-0">
+                                                <div className="flex justify-between items-center mb-1.5 md:mb-3">
+                                                    <span className={`text-[6px] md:text-xs font-bold px-1.5 py-0.5 rounded-full border ${item.isFocus
                                                         ? 'text-yellow-400 border-yellow-400/30'
                                                         : (item.category || '').toLowerCase() === 'musique'
                                                             ? 'text-neon-green border-neon-green/30'
@@ -289,19 +289,18 @@ export function News() {
                                                         {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
                                                     </span>
                                                     <div className="flex flex-col items-end">
-                                                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{item.date}</span>
-                                                        <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em] mt-0.5">{item.author || 'Alex'}</span>
+                                                        <span className="text-[6px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest">{item.date}</span>
+                                                        <span className="text-[6px] md:text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em] mt-0.1 md:mt-0.5">{item.author || 'Alex'}</span>
                                                     </div>
                                                 </div>
                                                 <h2
-                                                    className="text-[8px] md:text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors"
+                                                    className="text-[7px] md:text-xl font-bold text-white mb-1.5 md:mb-3 group-hover:text-neon-red transition-colors line-clamp-3 uppercase italic"
                                                     dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
                                                 />
                                                 <p
                                                     className="hidden md:block text-gray-400 text-sm line-clamp-3"
                                                     dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
                                                 />
-
                                             </div>
                                         </Link>
                                     </motion.article>
