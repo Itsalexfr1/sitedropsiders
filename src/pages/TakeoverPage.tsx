@@ -208,11 +208,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [bpm, setBpm] = useState(128);
     const [_showDropsShop] = useState(false);
     const [_isListeningForDrops, _setIsListeningForDrops] = useState(true);
-    const [activeChatTab, setActiveChatTab] = useState<'chat' | 'shop' | 'drops-shop' | 'leaderboard' | 'audio' | 'hype' | 'clips'>('chat');
+    const [activeChatTab, setActiveChatTab] = useState<'chat' | 'shop' | 'drops-shop' | 'leaderboard' | 'audio' | 'shazam' | 'clips'>('chat');
     const [chatCountryFilter, setChatCountryFilter] = useState('ALL');
     const [forceScroll, setForceScroll] = useState(false);
     const isFirstJoinFetch = useRef(true);
     const [isFullScreen, setIsFullScreen] = useState(false);
+    const [shazamHistory, setShazamHistory] = useState<any[]>([]);
 
     const [displayTitle, setDisplayTitle] = useState(settings.title || 'LIVE TAKEOVER');
     const [_totalWatchTime, setTotalWatchTime] = useState(0);
@@ -1318,6 +1319,24 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         };
     }, []);
 
+    const fetchShazamHistory = useCallback(async () => {
+        try {
+            const res = await fetch('/api/shazam/history');
+            if (res.ok) {
+                const data = await res.json();
+                setShazamHistory(data);
+            }
+        } catch (e) {
+            console.error('Failed to fetch shazam history', e);
+        }
+    }, []);
+
+    useEffect(() => {
+        fetchShazamHistory();
+        const interval = setInterval(fetchShazamHistory, 30000); // 30s
+        return () => clearInterval(interval);
+    }, [fetchShazamHistory]);
+
     useEffect(() => {
         // Fetch Latest News
         fetch('/api/news')
@@ -1828,6 +1847,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         };
                         setShazamResult(newShazam);
                         setShowShazamNotify(true);
+                        setActiveChatTab('shazam');
+
+                        // Save to history (everyone)
+                        fetch('/api/shazam/history', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                ...newShazam,
+                                user: pseudo || 'Anonyme',
+                                playedBy: fluxCurrentArtist.artist || 'Inconnu'
+                            })
+                        }).then(() => fetchShazamHistory());
 
                         // If moderator, save globally
                         if (hasModPowers) {
@@ -2515,7 +2546,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                         <div ref={videoPlayerRef} className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
                             <div className="absolute inset-0 z-0">
-                                <div className={`grid ${playersOption === 4 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-1'} h-full gap-0.5 bg-black`}>
+                                <div className={`grid ${playersOption === 4 ? (getVisiblePlayers().length > 2 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-2 grid-rows-1') : 'grid-cols-1'} h-full gap-0.5 bg-black`}>
                                     {getVisiblePlayers().map((item, idx) => (
                                         item && (
                                             <iframe
@@ -4461,7 +4492,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         </button>
                                                     );
                                                 })}
-                                                {channelItems.length >= 4 && (
+                                                {channelItems.length >= 2 && (
                                                     <button
                                                         onClick={() => setPlayersOption(playersOption === 4 ? 1 : 4)}
                                                         className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-1 min-w-[70px] ${playersOption === 4 ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(189,0,255,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
@@ -4476,7 +4507,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/10 rounded-xl mb-0 mx-4 mt-3 relative z-20 shrink-0">
                                             {[
                                                 { id: 'chat', icon: MessageSquare, label: 'Chat' },
-                                                { id: 'hype', icon: Activity, label: 'Hype' },
+                                                { id: 'shazam', icon: Headphones, label: 'Shazam' },
                                                 { id: 'audio', icon: Mic, label: 'Audio' },
                                                 { id: 'shop', icon: ShoppingBag, label: 'Shop' },
                                                 { id: 'leaderboard', icon: Trophy, label: 'Top' },
@@ -4706,69 +4737,141 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             ))}
                                                         </div>
                                                     </motion.div>
-                                                ) : activeChatTab === 'hype' ? (
+                                                ) : activeChatTab === 'shazam' ? (
                                                     <motion.div
-                                                        key="hype-view"
+                                                        key="shazam-view"
                                                         initial={{ x: 50, opacity: 0 }}
                                                         animate={{ x: 0, opacity: 1 }}
                                                         exit={{ x: -50, opacity: 0 }}
                                                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
                                                         className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24"
                                                     >
-                                                        {/* Hype Energy Full Page View */}
-                                                        <div className="bg-gradient-to-br from-neon-purple/20 via-black to-neon-red/20 border border-white/10 p-8 rounded-3xl relative overflow-hidden group">
+                                                        <div className="bg-gradient-to-br from-neon-cyan/20 via-black to-neon-purple/20 border border-white/10 p-8 rounded-3xl relative overflow-hidden group">
                                                             <div className="absolute inset-0 bg-aurora opacity-10 pointer-events-none" />
                                                             <div className="relative flex flex-col items-center text-center">
-                                                                <div className={`w-20 h-20 rounded-full border-2 ${isOverdrive ? 'border-neon-red animate-pulse shadow-[0_0_50px_#ff0033]' : 'border-neon-purple shadow-[0_0_30px_#bc13fe33]'} flex items-center justify-center mb-6`}>
-                                                                    <Activity className={`w-10 h-10 ${isOverdrive ? 'text-neon-red' : 'text-neon-purple'}`} />
+                                                                <div className={`w-20 h-20 rounded-full border-2 ${shazamLoading ? 'border-neon-cyan animate-spin shadow-[0_0_50px_#00ffff]' : 'border-neon-purple shadow-[0_0_30px_#bc13fe33]'} flex items-center justify-center mb-6`}>
+                                                                    <Headphones className={`w-10 h-10 ${shazamLoading ? 'text-neon-cyan' : 'text-neon-purple'}`} />
                                                                 </div>
-                                                                <h4 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-2">Hype Energy</h4>
-                                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mb-8">Niveau actuel de l'ambiance</p>
+                                                                <h4 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-2">Shazam Live</h4>
+                                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mb-8">Identifie la musique en direct</p>
 
-                                                                <div className="w-full max-w-sm space-y-6">
-                                                                    <div className="flex items-center justify-between px-2">
-                                                                        <span className="text-[10px] font-black text-white uppercase tracking-widest">Atmosphère</span>
-                                                                        <span className={`text-2xl font-black italic ${isOverdrive ? 'text-neon-red' : 'text-neon-purple'}`}>{hypeLevel}%</span>
-                                                                    </div>
-                                                                    <div className="w-full h-4 bg-white/5 rounded-full overflow-hidden border border-white/10 p-0.5">
-                                                                        <motion.div
-                                                                            className={`h-full rounded-full ${isOverdrive ? 'bg-gradient-to-r from-neon-red via-white to-neon-red' : 'bg-gradient-to-r from-neon-purple to-neon-red'}`}
-                                                                            animate={{ width: `${hypeLevel}%` }}
-                                                                        />
-                                                                    </div>
-                                                                    {isOverdrive && (
-                                                                        <div className="py-2 px-4 bg-neon-red/10 border border-neon-red/30 rounded-xl text-neon-red text-[10px] font-black uppercase tracking-[0.4em] animate-pulse">
-                                                                            OVERDRIVE ACTIF - X2 DROPS
-                                                                        </div>
+                                                                <button
+                                                                    onClick={handleShazam}
+                                                                    disabled={shazamLoading}
+                                                                    className={`w-full max-w-sm py-5 rounded-2xl font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 shadow-lg ${shazamLoading ? 'bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-neon-cyan text-black hover:scale-[1.02] shadow-neon-cyan/20'}`}
+                                                                >
+                                                                    {shazamLoading ? (
+                                                                        <><Loader2 className="w-5 h-5 animate-spin" /> ÉCOUTE EN COURS...</>
+                                                                    ) : (
+                                                                        <><Headphones className="w-5 h-5" /> LANCER SHAZAM</>
                                                                     )}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+
+                                                        {shazamResult ? (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, y: 20 }}
+                                                                animate={{ opacity: 1, y: 0 }}
+                                                                className="p-6 bg-white/[0.04] border border-white/10 rounded-3xl flex flex-col items-center text-center gap-6"
+                                                            >
+                                                                <div className="w-32 h-32 rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
+                                                                    <img src={shazamResult.image} alt="Cover" className="w-full h-full object-cover" />
+                                                                </div>
+                                                                <div>
+                                                                    <h5 className="text-[10px] font-black text-neon-cyan uppercase tracking-widest mb-1">Dernière Musique Trouvée</h5>
+                                                                    <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-1">{shazamResult.title}</h3>
+                                                                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">{shazamResult.artist}</p>
+                                                                </div>
+
+                                                                <div className="flex gap-4 w-full">
+                                                                    {shazamResult.spotify && (
+                                                                        <a
+                                                                            href={shazamResult.spotify}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="flex-1 py-4 bg-[#1DB954] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all flex items-center justify-center gap-2"
+                                                                        >
+                                                                            <span className="text-lg">🎧</span> Spotify
+                                                                        </a>
+                                                                    )}
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setNewMessage(`🎶 Je viens de trouver "${shazamResult.title}" par ${shazamResult.artist} grâce au Shazam ! 🔥`);
+                                                                            setActiveChatTab('chat');
+                                                                        }}
+                                                                        className="flex-1 py-4 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all"
+                                                                    >
+                                                                        Partager
+                                                                    </button>
+                                                                </div>
+                                                            </motion.div>
+                                                        ) : (
+                                                            <div className="p-12 border border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center gap-4 text-gray-600 opacity-40">
+                                                                <Headphones className="w-12 h-12" />
+                                                                <p className="text-[10px] font-black uppercase tracking-widest">Aucune musique identifiée</p>
+                                                            </div>
+                                                        )}
+
+                                                        {shazamHistory.length > 0 && (
+                                                            <div className="space-y-4">
+                                                                <h5 className="text-[10px] font-black text-white uppercase tracking-[0.2em] flex items-center gap-2">
+                                                                    <Clock className="w-3 h-3 text-neon-cyan" /> Historique Communautaire
+                                                                </h5>
+                                                                <div className="space-y-3">
+                                                                    {shazamHistory.map((item, idx) => (
+                                                                        <motion.div
+                                                                            key={idx}
+                                                                            initial={{ opacity: 0, x: 20 }}
+                                                                            animate={{ opacity: 1, x: 0 }}
+                                                                            transition={{ delay: idx * 0.05 }}
+                                                                            className="p-3 bg-white/[0.03] border border-white/5 rounded-2xl flex items-center gap-3 group hover:bg-white/[0.06] hover:border-white/10 transition-all"
+                                                                        >
+                                                                            <img src={item.image} alt="Art" className="w-10 h-10 rounded-lg shadow-lg group-hover:scale-110 transition-transform" />
+                                                                            <div className="flex-1 min-w-0">
+                                                                                <div className="flex items-center justify-between mb-0.5">
+                                                                                    <h6 className="text-[10px] font-black text-white truncate pr-2 uppercase italic">{item.title}</h6>
+                                                                                    <span className="text-[7px] font-bold text-gray-500 uppercase whitespace-nowrap">{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                                                </div>
+                                                                                <p className="text-[8px] font-bold text-gray-400 uppercase truncate">
+                                                                                    {item.artist} <span className="opacity-40 ml-1">• par @{item.user}</span>
+                                                                                </p>
+                                                                                {item.playedBy && item.playedBy !== 'Inconnu' && (
+                                                                                    <div className="flex items-center gap-1 mt-0.5">
+                                                                                        <span className="text-[7px] font-black text-neon-purple uppercase tracking-tight">SET: {item.playedBy}</span>
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                            <div className="flex gap-1">
+                                                                                {item.spotify && (
+                                                                                    <a href={item.spotify} target="_blank" rel="noopener noreferrer" className="w-7 h-7 bg-[#1DB954]/10 hover:bg-[#1DB954] rounded-lg flex items-center justify-center transition-all group/icon">
+                                                                                        <Headphones className="w-3.5 h-3.5 text-[#1DB954] group-hover/icon:text-white" />
+                                                                                    </a>
+                                                                                )}
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        setNewMessage(`🎶 J'adore ce morceau : "${item.title}" par ${item.artist} ! 🔥`);
+                                                                                        setActiveChatTab('chat');
+                                                                                    }}
+                                                                                    className="w-7 h-7 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center transition-all"
+                                                                                >
+                                                                                    <Zap className="w-3.5 h-3.5 text-neon-cyan" />
+                                                                                </button>
+                                                                            </div>
+                                                                        </motion.div>
+                                                                    ))}
                                                                 </div>
                                                             </div>
-                                                        </div>
+                                                        )}
 
-                                                        <div className="grid grid-cols-2 gap-4">
-                                                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center text-center">
-                                                                <Headphones className="w-6 h-6 text-neon-cyan mb-2" />
-                                                                <span className="text-[8px] font-black text-gray-500 uppercase mb-1">BPM Actuel</span>
-                                                                <span className="text-xl font-black text-white italic">{bpm}</span>
-                                                            </div>
-                                                            <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center text-center">
-                                                                <Zap className="w-6 h-6 text-neon-purple mb-2" />
-                                                                <span className="text-[8px] font-black text-gray-500 uppercase mb-1">Score Overdrive</span>
-                                                                <span className="text-xl font-black text-white italic">{(hypeLevel * 1.5).toFixed(0)}</span>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl">
-                                                            <h5 className="text-[9px] font-black text-white uppercase tracking-widest mb-4">Comment augmenter la hype ?</h5>
+                                                        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl opacity-60">
+                                                            <h5 className="text-[9px] font-black text-white uppercase tracking-widest mb-4">Fonctionnement</h5>
                                                             <ul className="space-y-3">
                                                                 <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-neon-purple" /> Envoie des messages dans le chat
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-neon-cyan" /> Clique sur le bouton pour écouter le flux
                                                                 </li>
                                                                 <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-neon-cyan" /> Utilise des émojis et réactions
-                                                                </li>
-                                                                <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-neon-red" /> Crée des clips de tes moments favoris
+                                                                    <div className="w-1.5 h-1.5 rounded-full bg-neon-purple" /> Les résultats sont partagés avec la communauté
                                                                 </li>
                                                             </ul>
                                                         </div>

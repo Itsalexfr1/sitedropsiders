@@ -244,7 +244,7 @@ export function Shop() {
                         <p className="text-gray-400">Revenez bientôt pour nos nouveautés.</p>
                     </div>
                 ) : (
-                    <div className={`grid ${isMini ? 'grid-cols-2 gap-2 md:gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'}`}>
+                    <div className={`grid ${isMini ? 'grid-cols-4 gap-2 md:gap-4' : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'}`}>
                         <AnimatePresence mode="popLayout">
                             {filteredProducts.map((product) => (
                                 <ProductCard

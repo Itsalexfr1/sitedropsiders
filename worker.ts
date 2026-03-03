@@ -117,6 +117,49 @@ export default {
             });
         }
 
+        // --- API: SHAZAM HISTORY ---
+        if (path === '/api/shazam/history' && request.method === 'GET') {
+            const history = await env.CHAT_KV.get('shazam_history') || '[]';
+            return new Response(history, {
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            });
+        }
+
+        if (path === '/api/shazam/history' && request.method === 'POST') {
+            const body = await request.json();
+            const { title, artist, image, spotify, user, playedBy } = body;
+
+            if (title && artist) {
+                const historyStr = await env.CHAT_KV.get('shazam_history') || '[]';
+                let history = [];
+                try {
+                    history = JSON.parse(historyStr);
+                } catch (e) {
+                    history = [];
+                }
+
+                // Add new entry with timestamp
+                const newEntry = {
+                    title,
+                    artist,
+                    image,
+                    spotify,
+                    user: user || 'Anonyme',
+                    playedBy: playedBy || 'Inconnu',
+                    timestamp: new Date().toISOString()
+                };
+
+                // Prepend and limit to 50 items
+                history = [newEntry, ...history].slice(0, 50);
+                await env.CHAT_KV.put('shazam_history', JSON.stringify(history));
+
+                return new Response(JSON.stringify({ success: true }), {
+                    headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+                });
+            }
+            return new Response(JSON.stringify({ error: 'Données manquantes' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+        }
+
         // --- API: DOWNLOADER PROXY ---
         if (path === '/api/downloader-proxy' && request.method === 'POST') {
             const body = await request.json();
