@@ -2006,12 +2006,12 @@ export function AdminDashboard() {
                                     <Link
                                         to="/galerie/create"
                                         onClick={() => setIsGalerieModalOpen(false)}
-                                        className="w-full p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
+                                        className="w-full p-8 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
                                     >
                                         <div className="w-12 h-12 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform flex-shrink-0">
                                             <Plus className="w-6 h-6 text-neon-pink" />
                                         </div>
-                                        <div>
+                                        <div className="text-left">
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel album</h3>
                                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Créer une galerie photo</p>
                                         </div>
@@ -2514,7 +2514,7 @@ export function AdminDashboard() {
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
                                     <button
                                         onClick={() => { setIsNewsModalOpen(true); setIsContenuModalOpen(false); }}
                                         className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"
@@ -2564,6 +2564,19 @@ export function AdminDashboard() {
                                         <div className="text-center">
                                             <h3 className="text-lg font-bold text-white uppercase italic">Récaps</h3>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Reportages</p>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => { setIsQuizModalOpen(true); setIsContenuModalOpen(false); }}
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
+                                    >
+                                        <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
+                                            <Gamepad2 className="w-6 h-6 text-neon-red" />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Quizz</h3>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Jeux & Blind Test</p>
                                         </div>
                                     </button>
                                 </div>
