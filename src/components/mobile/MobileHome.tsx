@@ -11,8 +11,8 @@ export function MobileHome() {
         return [...newsData].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, []);
 
-    const featuredNews = sortedNews.filter(n => n.isFeatured).slice(0, 5);
-    const hotNews = sortedNews.slice(0, 10);
+    const featuredNews = sortedNews.filter(n => n.isFeatured).slice(0, 3);
+    const hotNews = sortedNews.slice(0, 5);
 
     return (
         <div className="flex flex-col gap-8 pb-20 bg-black min-h-screen">
@@ -30,7 +30,7 @@ export function MobileHome() {
                         <Link
                             key={news.id}
                             to={getArticleLink(news)}
-                            className="min-w-[280px] aspect-[4/5] relative rounded-[2.5rem] overflow-hidden snap-center border border-white/10 group shadow-2xl"
+                            className="min-w-[200px] aspect-[4/5] relative rounded-[2rem] overflow-hidden snap-center border border-white/10 group shadow-2xl"
                         >
                             <img src={news.image} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-active:scale-110" alt="" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
@@ -38,7 +38,7 @@ export function MobileHome() {
                                 <span className="px-2 py-1 bg-neon-red text-white text-[8px] font-black uppercase rounded-md mb-2 inline-block">
                                     {news.category}
                                 </span>
-                                <h3 className="text-xl font-display font-black text-white italic leading-tight uppercase line-clamp-2">
+                                <h3 className="text-lg font-display font-black text-white italic leading-tight uppercase line-clamp-2">
                                     {news.title}
                                 </h3>
                             </div>
@@ -88,7 +88,7 @@ export function MobileHome() {
                             to={getArticleLink(news)}
                             className="flex items-center gap-4 p-4 bg-white/5 border border-white/5 rounded-3xl active:bg-white/10 transition-all shadow-lg"
                         >
-                            <div className="w-20 h-20 rounded-2xl overflow-hidden shrink-0">
+                            <div className="w-16 h-16 rounded-2xl overflow-hidden shrink-0">
                                 <img src={news.image} className="w-full h-full object-cover" alt="" />
                             </div>
                             <div className="flex flex-col gap-1 overflow-hidden">
@@ -96,7 +96,7 @@ export function MobileHome() {
                                     <span className="text-[8px] font-black text-neon-red uppercase">{news.category}</span>
                                     <span className="text-[8px] text-gray-500 font-bold uppercase">{news.date}</span>
                                 </div>
-                                <h3 className="text-sm font-black text-white uppercase italic leading-tight line-clamp-2">{news.title}</h3>
+                                <h3 className="text-xs font-black text-white uppercase italic leading-tight line-clamp-2">{news.title}</h3>
                             </div>
                         </Link>
                     ))}
