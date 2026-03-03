@@ -30,15 +30,15 @@ export function MobileHome() {
                         <Link
                             key={news.id}
                             to={getArticleLink(news)}
-                            className="min-w-[100px] aspect-square relative rounded-2xl overflow-hidden snap-center border border-white/10 group shadow-xl"
+                            className="min-w-[150px] aspect-[4/5] relative rounded-2xl overflow-hidden snap-center border border-white/10 group shadow-xl"
                         >
-                            <img src={news.image} className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-active:scale-110" alt="" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent" />
-                            <div className="absolute bottom-0 left-0 right-0 p-2">
-                                <span className="px-1 py-0.5 bg-neon-red text-white text-[6px] font-black uppercase rounded mb-1 inline-block">
+                            <img src={news.image} className="absolute inset-0 w-full h-full object-cover" alt="" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 p-3">
+                                <span className="px-2 py-0.5 bg-neon-red text-white text-[8px] font-black uppercase rounded mb-1.5 inline-block">
                                     {news.category}
                                 </span>
-                                <h3 className="text-[5px] md:text-[11px] font-display font-black text-white italic leading-tight uppercase line-clamp-3">
+                                <h3 className="text-[10px] md:text-[11px] font-display font-black text-white italic leading-tight uppercase line-clamp-3">
                                     {news.title}
                                 </h3>
                             </div>
@@ -60,17 +60,17 @@ export function MobileHome() {
                         <Link
                             key={news.id}
                             to={getArticleLink(news)}
-                            className="flex items-center gap-2 p-1.5 bg-white/5 border border-white/5 rounded-2xl active:bg-white/10 transition-all shadow-md overflow-hidden"
+                            className="flex flex-col bg-white/5 border border-white/5 rounded-2xl active:bg-white/10 transition-all shadow-md overflow-hidden"
                         >
-                            <div className="w-20 h-16 rounded-xl overflow-hidden shrink-0">
+                            <div className="h-32 overflow-hidden shrink-0 bg-black/40">
                                 <img src={news.image} className="w-full h-full object-cover" alt="" />
                             </div>
-                            <div className="flex flex-col gap-0 overflow-hidden flex-1">
-                                <div className="flex items-center gap-1.5">
-                                    <span className="text-[6px] font-black text-neon-red uppercase">{news.category}</span>
-                                    <span className="text-[6px] text-gray-500 font-bold uppercase">{news.date}</span>
+                            <div className="p-3 flex flex-col gap-1.5 flex-1">
+                                <div className="flex items-center justify-between">
+                                    <span className="text-[8px] font-black text-neon-red uppercase">{news.category}</span>
+                                    <span className="text-[8px] text-gray-500 font-bold uppercase">{news.date}</span>
                                 </div>
-                                <h3 className="text-[5px] md:text-[10px] font-black text-white uppercase italic leading-tight line-clamp-2">{news.title}</h3>
+                                <h3 className="text-[10px] font-black text-white uppercase italic leading-tight line-clamp-2">{news.title}</h3>
                             </div>
                         </Link>
                     ))}
