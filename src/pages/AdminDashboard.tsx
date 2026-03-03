@@ -701,9 +701,7 @@ export function AdminDashboard() {
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
 
         // COMMUNAUTÉ & ENGAGEMENT
-        { title: "Communauté", description: "Albums Photos", icon: "ImageIcon", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
-        { title: "Modération", description: "Validation Photos", icon: "CheckCircle2", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "superadmin", baseColor: "green", columns: 1 },
-        { title: "Quizz", description: "Questions & Jeux", icon: "Gamepad2", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 1 },
+        { title: "Communauté", description: "Modération & Jeux", icon: "ImageIcon", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
         { title: "Notifications", description: "Alertes Push", icon: "Bell", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
 
         // SHOP & CONTACT
@@ -1251,18 +1249,10 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'Agenda') {
                                                     e.preventDefault();
                                                     setIsAgendaModalOpen(true);
-                                                } else if (action.title === 'Communauté') {
+                                                } else if (action.title === 'Communauté' || action.title === 'Team') {
                                                     e.preventDefault();
-                                                    setIsGalerieModalOpen(true);
-                                                } else if (action.title === 'Modération') {
-                                                    e.preventDefault();
-                                                    setIsModerationModalOpen(true);
+                                                    setIsTeamModalOpen(true);
                                                 } else if (action.title === 'Shop') {
-                                                    e.preventDefault();
-                                                    setIsShopModalOpen(true);
-                                                } else if (action.title === 'Quizz') {
-                                                    e.preventDefault();
-                                                    setIsQuizModalOpen(true);
                                                 } else if (action.title === 'Team') {
                                                     e.preventDefault();
                                                     setIsTeamModalOpen(true);
@@ -2613,9 +2603,57 @@ export function AdminDashboard() {
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    <Link
-                                        to="/admin/team"
-                                        onClick={() => setIsTeamModalOpen(false)}
+                                    <button
+                                        onClick={() => { setIsGalerieModalOpen(true); setIsTeamModalOpen(false); }}
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
+                                    >
+                                        <div className="w-12 h-12 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform">
+                                            <ImageIcon className="w-6 h-6 text-neon-pink" />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Albums</h3>
+                                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-none mt-1">Galerie Photos</p>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => { setIsModerationModalOpen(true); setIsTeamModalOpen(false); }}
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group relative"
+                                    >
+                                        <div className="w-12 h-12 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform">
+                                            <CheckCircle2 className="w-6 h-6 text-neon-green" />
+                                        </div>
+                                        {pendingPhotosCount > 0 && (
+                                            <div className="absolute top-4 right-8 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,11,62,0.6)]">
+                                                <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
+                                            </div>
+                                        )}
+                                        <div className="text-center">
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Moderation</h3>
+                                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-none mt-1">Photos / Clips</p>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => { setIsQuizModalOpen(true); setIsTeamModalOpen(false); }}
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group relative"
+                                    >
+                                        <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
+                                            <Gamepad2 className="w-6 h-6 text-neon-red" />
+                                        </div>
+                                        {pendingQuizzesCount > 0 && (
+                                            <div className="absolute top-4 right-8 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,11,62,0.6)]">
+                                                <span className="text-[9px] font-black text-white">{pendingQuizzesCount}</span>
+                                            </div>
+                                        )}
+                                        <div className="text-center">
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Quizz</h3>
+                                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest leading-none mt-1">Jeux & Quiz</p>
+                                        </div>
+                                    </button>
+
+                                    <button
+                                        onClick={() => { setIsTeamModalOpen(true); setIsTeamModalOpen(false); }}
                                         className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"
                                     >
                                         <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center border border-neon-blue/30 group-hover:scale-110 transition-transform">
@@ -2625,7 +2663,7 @@ export function AdminDashboard() {
                                             <h3 className="text-lg font-bold text-white uppercase italic">Équipe</h3>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Membres Dropsiders</p>
                                         </div>
-                                    </Link>
+                                    </button>
 
                                     <button
                                         onClick={() => { setIsEditorsModalOpen(true); setIsTeamModalOpen(false); }}
@@ -3983,19 +4021,31 @@ export function AdminDashboard() {
                                         </div>
                                     </div>
 
-                                    <div className="flex bg-black/50 border border-white/10 rounded-2xl p-1 mb-6 shrink-0">
+                                    <div className="flex flex-wrap items-center gap-3 bg-black/50 border border-white/10 rounded-2xl p-1 mb-6 shrink-0">
                                         <button
                                             onClick={() => setQuizTab('active')}
-                                            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${quizTab === 'active' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                            className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${quizTab === 'active' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}
                                         >
                                             Actives ({allActiveQuizzes.length})
                                         </button>
                                         <button
                                             onClick={() => setQuizTab('pending')}
-                                            className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${quizTab === 'pending' ? 'bg-neon-red/10 text-neon-red shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                            className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${quizTab === 'pending' ? 'bg-neon-red/10 text-neon-red shadow-lg' : 'text-gray-500 hover:text-white'}`}
                                         >
                                             En attente ({allPendingQuizzes.length})
                                         </button>
+
+                                        <div className="h-6 w-[1px] bg-white/10 mx-2" />
+
+                                        {['ALL', 'QCM', 'BLIND_TEST', 'IMAGE'].map(filter => (
+                                            <button
+                                                key={filter}
+                                                onClick={() => (window as any)._quizFilter = filter}
+                                                className={`px-4 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all border border-white/5 ${((window as any)._quizFilter || 'ALL') === filter ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 text-gray-500 hover:text-white'}`}
+                                            >
+                                                {filter.replace('_', ' ')}
+                                            </button>
+                                        ))}
                                     </div>
 
                                     <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
@@ -4006,70 +4056,74 @@ export function AdminDashboard() {
                                             </div>
                                         ) : (
                                             <div className="space-y-4">
-                                                {(quizTab === 'active' ? allActiveQuizzes : allPendingQuizzes).length === 0 ? (
+                                                {(quizTab === 'active' ? allActiveQuizzes : allPendingQuizzes)
+                                                    .filter(q => !((window as any)._quizFilter) || (window as any)._quizFilter === 'ALL' || q.type === (window as any)._quizFilter)
+                                                    .length === 0 ? (
                                                     <div className="p-20 bg-white/[0.02] border border-dashed border-white/10 rounded-[2rem] text-center">
                                                         <p className="text-sm text-gray-500 font-bold uppercase tracking-widest italic">Aucune question dans cette liste</p>
                                                     </div>
                                                 ) : (
-                                                    (quizTab === 'active' ? allActiveQuizzes : allPendingQuizzes).map((quiz: any) => (
-                                                        <div
-                                                            key={quiz.id}
-                                                            className="p-6 bg-white/[0.02] border border-white/10 rounded-3xl hover:bg-white/[0.04] transition-all group"
-                                                        >
-                                                            <div className="flex items-start justify-between gap-6">
-                                                                <div className="flex-1">
-                                                                    <div className="flex items-center gap-3 mb-3">
-                                                                        <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[8px] font-black text-neon-red uppercase tracking-widest">
-                                                                            {quiz.category}
-                                                                        </span>
-                                                                        <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[8px] font-black text-gray-400 uppercase tracking-widest">
-                                                                            {quiz.type}
-                                                                        </span>
-                                                                        {quiz.author && (
-                                                                            <span className="text-[9px] font-bold text-gray-500">PAR : {quiz.author.toUpperCase()}</span>
-                                                                        )}
+                                                    (quizTab === 'active' ? allActiveQuizzes : allPendingQuizzes)
+                                                        .filter(q => !((window as any)._quizFilter) || (window as any)._quizFilter === 'ALL' || q.type === (window as any)._quizFilter)
+                                                        .map((quiz: any) => (
+                                                            <div
+                                                                key={quiz.id}
+                                                                className="p-6 bg-white/[0.02] border border-white/10 rounded-3xl hover:bg-white/[0.04] transition-all group"
+                                                            >
+                                                                <div className="flex items-start justify-between gap-6">
+                                                                    <div className="flex-1">
+                                                                        <div className="flex items-center gap-3 mb-3">
+                                                                            <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[8px] font-black text-neon-red uppercase tracking-widest">
+                                                                                {quiz.category}
+                                                                            </span>
+                                                                            <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[8px] font-black text-gray-400 uppercase tracking-widest">
+                                                                                {quiz.type}
+                                                                            </span>
+                                                                            {quiz.author && (
+                                                                                <span className="text-[9px] font-bold text-gray-500">PAR : {quiz.author.toUpperCase()}</span>
+                                                                            )}
+                                                                        </div>
+                                                                        <h4 className="text-lg font-bold text-white mb-4">{quiz.question}</h4>
+                                                                        <div className="grid grid-cols-2 gap-2">
+                                                                            {quiz.options.map((opt: string, idx: number) => (
+                                                                                <div
+                                                                                    key={idx}
+                                                                                    className={`p-3 rounded-xl text-[10px] font-bold border ${opt === quiz.correctAnswer ? 'bg-neon-green/10 border-neon-green/30 text-neon-green' : 'bg-black/40 border-white/5 text-gray-400'}`}
+                                                                                >
+                                                                                    {opt}
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
                                                                     </div>
-                                                                    <h4 className="text-lg font-bold text-white mb-4">{quiz.question}</h4>
-                                                                    <div className="grid grid-cols-2 gap-2">
-                                                                        {quiz.options.map((opt: string, idx: number) => (
-                                                                            <div
-                                                                                key={idx}
-                                                                                className={`p-3 rounded-xl text-[10px] font-bold border ${opt === quiz.correctAnswer ? 'bg-neon-green/10 border-neon-green/30 text-neon-green' : 'bg-black/40 border-white/5 text-gray-400'}`}
-                                                                            >
-                                                                                {opt}
-                                                                            </div>
-                                                                        ))}
-                                                                    </div>
-                                                                </div>
 
-                                                                <div className="flex flex-col gap-2">
-                                                                    {quizTab === 'pending' && (
+                                                                    <div className="flex flex-col gap-2">
+                                                                        {quizTab === 'pending' && (
+                                                                            <button
+                                                                                onClick={() => handleModerateQuiz(quiz.id, 'approve')}
+                                                                                className="p-3 bg-neon-green/20 text-neon-green border border-neon-green/30 rounded-2xl hover:bg-neon-green hover:text-white transition-all shadow-xl shadow-neon-green/10"
+                                                                                title="Approuver"
+                                                                            >
+                                                                                <CheckCircle2 className="w-5 h-5" />
+                                                                            </button>
+                                                                        )}
                                                                         <button
-                                                                            onClick={() => handleModerateQuiz(quiz.id, 'approve')}
-                                                                            className="p-3 bg-neon-green/20 text-neon-green border border-neon-green/30 rounded-2xl hover:bg-neon-green hover:text-white transition-all shadow-xl shadow-neon-green/10"
-                                                                            title="Approuver"
+                                                                            onClick={() => { setQuizToEdit(quiz); setIsEditQuizModalOpen(true); }}
+                                                                            className="p-3 bg-blue-500/20 text-blue-500 border border-blue-500/30 rounded-2xl hover:bg-blue-500 hover:text-white transition-all shadow-xl shadow-blue-500/10"
+                                                                            title="Modifier"
                                                                         >
-                                                                            <CheckCircle2 className="w-5 h-5" />
+                                                                            <Pencil className="w-5 h-5" />
                                                                         </button>
-                                                                    )}
-                                                                    <button
-                                                                        onClick={() => { setQuizToEdit(quiz); setIsEditQuizModalOpen(true); }}
-                                                                        className="p-3 bg-blue-500/20 text-blue-500 border border-blue-500/30 rounded-2xl hover:bg-blue-500 hover:text-white transition-all shadow-xl shadow-blue-500/10"
-                                                                        title="Modifier"
-                                                                    >
-                                                                        <Pencil className="w-5 h-5" />
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleModerateQuiz(quiz.id, 'delete')}
-                                                                        className="p-3 bg-neon-red/20 text-neon-red border border-neon-red/30 rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-xl shadow-neon-red/10"
-                                                                        title="Supprimer"
-                                                                    >
-                                                                        <Trash2 className="w-5 h-5" />
-                                                                    </button>
+                                                                        <button
+                                                                            onClick={() => handleModerateQuiz(quiz.id, 'delete')}
+                                                                            className="p-3 bg-neon-red/20 text-neon-red border border-neon-red/30 rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-xl shadow-neon-red/10"
+                                                                            title="Supprimer"
+                                                                        >
+                                                                            <Trash2 className="w-5 h-5" />
+                                                                        </button>
+                                                                    </div>
                                                                 </div>
                                                             </div>
-                                                        </div>
-                                                    ))
+                                                        ))
                                                 )}
                                             </div>
                                         )}
@@ -4186,35 +4240,30 @@ export function AdminDashboard() {
                                                                     const data = await resp.json();
                                                                     if (data.title) {
                                                                         let cleanTitle = data.title
-                                                                            .replace(/\(Official Video\)/gi, '')
-                                                                            .replace(/\[Official Video\]/gi, '')
-                                                                            .replace(/\(Official Music Video\)/gi, '')
-                                                                            .replace(/\[Official Music Video\]/gi, '')
-                                                                            .replace(/Official Video/gi, '')
-                                                                            .replace(/Official Music Video/gi, '')
-                                                                            .replace(/\(Original Mix\)/gi, '')
-                                                                            .replace(/\[Original Mix\]/gi, '')
-                                                                            .replace(/Original Mix/gi, '')
+                                                                            .replace(/(\[|\()(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix).*?(\]|\))/gi, '')
+                                                                            .replace(/(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix)/gi, '')
+                                                                            .replace(/\s+/g, ' ')
                                                                             .trim();
 
                                                                         // If question is empty or matches generic, fill it
                                                                         if (!quizToEdit.question || quizToEdit.question === 'Blind Test' || quizToEdit.question.includes('?')) {
-                                                                            setQuizToEdit((prev: any) => ({ ...prev, question: cleanTitle, youtubeId: val }));
+                                                                            const autoQuestion = cleanTitle;
+                                                                            setQuizToEdit((prev: any) => ({ ...prev, question: autoQuestion, youtubeId: val }));
                                                                         }
 
                                                                         // Also fill the correct answer if empty
-                                                                        if (!quizToEdit.correctAnswer) {
+                                                                        if (!quizToEdit.correctAnswer || quizToEdit.correctAnswer === '') {
                                                                             setQuizToEdit((prev: any) => ({ ...prev, correctAnswer: cleanTitle }));
-                                                                            if (!quizToEdit.options.includes(cleanTitle)) {
-                                                                                const newOpts = [...quizToEdit.options];
+                                                                            const newOpts = [...quizToEdit.options];
+                                                                            if (!newOpts.includes(cleanTitle)) {
                                                                                 const emptyIdx = newOpts.findIndex(o => !o);
                                                                                 if (emptyIdx !== -1) {
                                                                                     newOpts[emptyIdx] = cleanTitle;
                                                                                 } else {
                                                                                     newOpts[0] = cleanTitle;
                                                                                 }
-                                                                                setQuizToEdit((prev: any) => ({ ...prev, options: newOpts }));
                                                                             }
+                                                                            setQuizToEdit((prev: any) => ({ ...prev, options: newOpts }));
                                                                         }
                                                                     }
                                                                 } catch (err) {
@@ -4334,7 +4383,7 @@ export function AdminDashboard() {
                     onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
                     type={confirmModal.type}
                 />
-            </div>
-        </div>
+            </div >
+        </div >
     );
 }
