@@ -237,10 +237,18 @@ export function Galerie() {
                                                             <video
                                                                 src={clip.url}
                                                                 className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-700"
-                                                                onMouseOver={e => e.currentTarget.play()}
-                                                                onMouseOut={e => { e.currentTarget.pause(); e.currentTarget.currentTime = 0; }}
+                                                                onMouseOver={e => {
+                                                                    if (window.innerWidth > 768) e.currentTarget.play();
+                                                                }}
+                                                                onMouseOut={e => {
+                                                                    if (window.innerWidth > 768) {
+                                                                        e.currentTarget.pause();
+                                                                        e.currentTarget.currentTime = 0;
+                                                                    }
+                                                                }}
                                                                 muted
                                                                 loop
+                                                                playsInline
                                                             />
                                                             <div className="absolute inset-0 bg-gradient-to-t from-black via-transparent to-transparent opacity-60" />
                                                             <div className="absolute top-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full border border-white/10">
@@ -322,7 +330,7 @@ export function Galerie() {
                                                         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent opacity-100 group-hover:opacity-0 transition-opacity duration-500" />
                                                         <div className="absolute inset-0 bg-gradient-to-t from-neon-red/90 via-neon-red/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                                         {(album as any).hoverMedia && (
-                                                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none">
+                                                            <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none hidden md:block">
                                                                 {((album as any).hoverMedia.toLowerCase().endsWith('.mp4') || (album as any).hoverMedia.toLowerCase().endsWith('.webm')) ? (
                                                                     <video
                                                                         src={(album as any).hoverMedia}

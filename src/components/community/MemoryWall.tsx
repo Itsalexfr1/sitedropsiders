@@ -159,7 +159,7 @@ export function MemoryWall({ galerieData }: MemoryWallProps) {
                                     <video
                                         src={pin.url}
                                         className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
-                                        autoPlay
+                                        autoPlay={window.innerWidth > 768}
                                         muted
                                         loop
                                         playsInline

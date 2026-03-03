@@ -138,7 +138,7 @@ export function Home() {
 
 
     return (
-        <div className="space-y-8 pb-12">
+        <div className="space-y-4 md:space-y-8 pb-12">
             {layout
                 .filter(item => item.enabled)
                 .map(item => renderSection(item))

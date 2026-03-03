@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import newsDataStatic from '../../data/news.json';
 import { useHoverSound } from '../../hooks/useHoverSound';
@@ -134,54 +134,55 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                 </Link>
             </div>
 
-            <div className="flex-1 flex flex-col gap-6">
-                <div className="flex flex-col gap-6 md:h-[calc(750px-56px)] relative">
+            <div className="flex-1 flex flex-col gap-4">
+                <div className="flex flex-col gap-4 md:h-[calc(750px-56px)] relative">
+                    {/* First 2 items with rich visuals */}
                     {recentNews.slice(0, 2).map((item, index) => (
-                        <Link to={getArticleLink(item)} key={item.id} className="block group relative flex-1 min-h-[220px] md:min-h-0">
+                        <Link to={getArticleLink(item)} key={item.id} className="block group relative flex-1 min-h-[180px] md:min-h-0">
                             <motion.div
                                 initial={{ opacity: 0, y: 20 }}
                                 animate={{ opacity: 1, y: 0 }}
                                 whileHover={{ scale: 1.02 }}
                                 onMouseEnter={playHoverSound}
                                 transition={{ delay: index * 0.1 }}
-                                className={`h-full relative rounded-3xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-2xl glow-card-${accentColor}`}
+                                className={`h-full relative rounded-2xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-xl glow-card-${accentColor}`}
                             >
-                                <div
-                                    className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none z-[-1]"
-                                    style={{
-                                        background: `radial-gradient(circle at center, ${color}33 0%, transparent 70%)`,
-                                        filter: 'blur(40px)'
-                                    }}
-                                />
                                 <img
                                     src={item.image}
                                     alt=""
                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />
-                                <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/40 to-transparent opacity-80" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" />
 
-                                {/* Content Overlay */}
-                                <div className="absolute inset-x-0 bottom-0 p-6 flex flex-col justify-end">
-                                    <div className="flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-2">
+                                <div className="absolute inset-x-0 bottom-0 p-4 flex flex-col justify-end">
+                                    <div className="flex items-center gap-2 text-[9px] font-bold uppercase tracking-widest text-gray-400 mb-1">
                                         <span style={{ color: color }}>{item.category}</span>
                                         <span>•</span>
                                         <span>{new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' })}</span>
                                     </div>
-                                    <h4 className="text-white font-display font-bold text-sm md:text-lg leading-tight transition-colors group-hover:text-white line-clamp-2 uppercase italic tracking-tight">
+                                    <h4 className="text-white font-display font-bold text-xs md:text-sm leading-tight uppercase italic tracking-tight">
                                         {translatedTitles[item.id] || item.title}
                                     </h4>
-                                </div>
-
-                                <div className="absolute top-4 right-4">
-                                    <div
-                                        className="w-8 h-8 rounded-full flex items-center justify-center bg-black/40 backdrop-blur-md border border-white/10 group-hover:bg-white group-hover:border-white transition-all duration-300"
-                                    >
-                                        <ArrowUpRight className="w-4 h-4 text-white group-hover:text-black transition-colors" />
-                                    </div>
                                 </div>
                             </motion.div>
                         </Link>
                     ))}
+
+                    {/* Next items in a compact list format for mobile */}
+                    <div className="flex flex-col gap-3 mt-2 md:hidden">
+                        {recentNews.slice(2, 6).map((item) => (
+                            <Link to={getArticleLink(item)} key={item.id} className="flex items-center gap-4 p-2 bg-white/5 border border-white/5 rounded-2xl active:bg-white/10 transition-all">
+                                <img src={item.image} className="w-16 h-16 rounded-xl object-cover shrink-0" alt="" />
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-2 text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1">
+                                        <span style={{ color: color }}>{item.category}</span>
+                                        <span>{new Date(item.date).toLocaleDateString()}</span>
+                                    </div>
+                                    <h5 className="text-[11px] font-bold text-white line-clamp-2 leading-tight uppercase italic">{translatedTitles[item.id] || item.title}</h5>
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
                 </div>
             </div>
         </div>

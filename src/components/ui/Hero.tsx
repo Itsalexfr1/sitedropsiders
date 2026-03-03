@@ -4,8 +4,8 @@ export function Hero({ videoId, videoUrl, accentColor = 'cyan', resolvedColor }:
 
     return (
         <section className="relative h-[50vh] md:h-[65vh] min-h-[480px] w-full flex items-center overflow-hidden bg-black">
-            {/* Background Video */}
-            <div className="absolute inset-0 z-0">
+            {/* Background Video - Hidden on mobile for cleaner look and performance */}
+            <div className="absolute inset-0 z-0 hidden md:block">
                 <div className="absolute inset-0 bg-gradient-to-r from-dark-bg/90 via-dark-bg/40 to-transparent z-10" />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-dark-bg z-10" />
                 <div className="absolute inset-0 w-full h-full">

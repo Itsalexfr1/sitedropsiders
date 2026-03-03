@@ -265,13 +265,13 @@ export function Musique() {
                 </div>
 
                 {/* Platform Selector */}
-                <div className="flex flex-wrap justify-center gap-3">
+                <div className="flex flex-wrap justify-center gap-2 md:gap-3">
                     {platforms.map((p) => (
                         <button
                             key={p.id}
                             onClick={() => setActiveTab(p.id)}
                             data-cursor-color={p.color}
-                            className={`group relative flex items-center gap-3 px-8 py-5 rounded-2xl border-2 transition-all duration-500 overflow-hidden ${activeTab === p.id
+                            className={`group relative flex items-center gap-2 md:gap-3 px-4 md:px-8 py-3 md:py-5 rounded-xl md:rounded-2xl border-2 transition-all duration-500 overflow-hidden ${activeTab === p.id
                                 ? 'bg-white text-black border-white shadow-[0_0_40px_rgba(255,255,255,0.2)]'
                                 : 'bg-black/40 border-white/5 text-gray-400 hover:border-white/20 hover:text-white'
                                 }`}
@@ -283,8 +283,8 @@ export function Musique() {
                                     style={{ backgroundColor: p.color }}
                                 />
                             )}
-                            <p.icon className={`w-5 h-5 relative z-10 ${activeTab === p.id ? 'animate-pulse' : ''}`} />
-                            <span className="font-black text-[10px] uppercase tracking-widest relative z-10">{p.name}</span>
+                            <p.icon className={`w-4 h-4 md:w-5 md:h-5 relative z-10 ${activeTab === p.id ? 'animate-pulse' : ''}`} />
+                            <span className="font-black text-[8px] md:text-[10px] uppercase tracking-widest relative z-10">{p.name}</span>
                         </button>
                     ))}
                 </div>
@@ -325,9 +325,9 @@ export function Musique() {
                                             className="flex flex-row items-center cursor-pointer group/track"
                                             onClick={() => handleTrackClick(track)}
                                         >
-                                            <div className="flex items-center gap-6 p-6 flex-1">
+                                            <div className="flex items-center gap-3 md:gap-6 p-3 md:p-6 flex-1">
                                                 <div
-                                                    className={`w-12 h-12 rounded-lg flex items-center justify-center font-black transition-all duration-300 relative ${selectedTrack?.id === track.id
+                                                    className={`w-8 h-8 md:w-12 md:h-12 rounded-lg flex items-center justify-center font-black transition-all duration-300 relative text-xs md:text-base ${selectedTrack?.id === track.id
                                                         ? 'bg-neon-red text-white'
                                                         : 'bg-white/5 text-gray-500 group-hover/track:bg-neon-red/20 group-hover/track:text-neon-red'
                                                         }`}
@@ -336,23 +336,23 @@ export function Musique() {
                                                 </div>
 
                                                 <div className="flex-1 min-w-0">
-                                                    <h3 className="text-lg font-black text-white uppercase italic tracking-tight truncate group-hover/track:text-neon-red transition-colors flex items-center gap-3">
+                                                    <h3 className="text-sm md:text-lg font-black text-white uppercase italic tracking-tight truncate group-hover/track:text-neon-red transition-colors flex items-center gap-2 md:gap-3">
                                                         {track.title}
                                                         {activeTab !== '1001tracklists' && (
                                                             <div className={`flex items-center gap-1 ${selectedTrack?.id === track.id ? 'visible' : 'invisible group-hover/track:visible'}`}>
-                                                                <div className={`w-1.5 h-1.5 rounded-full ${selectedTrack?.id === track.id && isPlaying ? 'bg-neon-green ml-1 animate-pulse' : 'bg-neon-red'}`} />
-                                                                <span className={`text-[9px] font-black tracking-[0.2em] ${selectedTrack?.id === track.id && isPlaying ? 'text-neon-green' : 'text-neon-red'}`}>
+                                                                <div className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${selectedTrack?.id === track.id && isPlaying ? 'bg-neon-green ml-1 animate-pulse' : 'bg-neon-red'}`} />
+                                                                <span className={`text-[7px] md:text-[9px] font-black tracking-[0.2em] ${selectedTrack?.id === track.id && isPlaying ? 'text-neon-green' : 'text-neon-red'}`}>
                                                                     {selectedTrack?.id === track.id && isPlaying ? 'PLAYING' : 'LISTEN'}
                                                                 </span>
                                                             </div>
                                                         )}
                                                     </h3>
-                                                    <div className="flex items-center gap-3 mt-1">
-                                                        <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">
+                                                    <div className="flex items-center gap-2 md:gap-3 mt-0.5 md:mt-1">
+                                                        <span className="text-[8px] md:text-[10px] font-black text-neon-cyan uppercase tracking-widest">
                                                             {track.artist}
                                                         </span>
                                                         <span className="w-1 h-1 rounded-full bg-white/20" />
-                                                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
+                                                        <span className="text-[8px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate">
                                                             {track.label}
                                                         </span>
                                                     </div>
@@ -363,9 +363,9 @@ export function Musique() {
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                     onClick={(e) => e.stopPropagation()}
-                                                    className="p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-neon-red hover:border-neon-red hover:text-white transition-all group/btn"
+                                                    className="p-3 md:p-4 bg-white/5 rounded-xl md:rounded-2xl border border-white/10 hover:bg-neon-red hover:border-neon-red hover:text-white transition-all group/btn"
                                                 >
-                                                    <ExternalLink className="w-5 h-5 group-hover/btn:scale-110 transition-transform" />
+                                                    <ExternalLink className="w-4 h-4 md:w-5 md:h-5 group-hover/btn:scale-110 transition-transform" />
                                                 </a>
                                             </div>
                                         </div>
@@ -376,9 +376,9 @@ export function Musique() {
                                                     initial={{ height: 0, opacity: 0 }}
                                                     animate={{ height: 'auto', opacity: 1 }}
                                                     exit={{ height: 0, opacity: 0 }}
-                                                    className="px-6 pb-6 overflow-hidden"
+                                                    className="px-3 md:px-6 pb-3 md:pb-6 overflow-hidden"
                                                 >
-                                                    <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/40 shadow-xl">
+                                                    <div className="rounded-xl md:rounded-2xl overflow-hidden border border-white/10 bg-black/40 shadow-xl max-w-full md:max-w-4xl mx-auto">
                                                         {track.embedUrl ? (
                                                             <iframe
                                                                 key={track.id}

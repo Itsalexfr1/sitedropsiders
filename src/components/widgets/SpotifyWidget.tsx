@@ -115,9 +115,9 @@ export function SpotifyWidget({
                             transition={{ duration: 0.2, ease: 'easeOut' }}
                             onMouseEnter={() => { hoveredRef.current = playlist.id; }}
                             onMouseLeave={() => { hoveredRef.current = null; }}
-                            className={`flex-none w-[85vw] sm:w-[${itemWidth}] md:w-[${itemWidth}] relative group rounded-[32px] snap-center transition-all duration-500 p-3 bg-white/[0.03] backdrop-blur-md border border-white/10 shadow-2xl`}
+                            className={`flex-none w-[75vw] sm:w-[${itemWidth}] md:w-[${itemWidth}] relative group rounded-[32px] snap-center transition-all duration-500 p-3 bg-white/[0.03] backdrop-blur-md border border-white/10 shadow-2xl`}
                             style={{
-                                width: window.innerWidth > 640 ? itemWidth : '85vw',
+                                width: window.innerWidth > 640 ? itemWidth : '75vw',
                                 borderColor: isPlaying ? playlist.color : 'rgba(255,255,255,0.1)',
                                 boxShadow: isPlaying ? `0 0 40px ${playlist.color}40, inset 0 0 20px ${playlist.color}20` : 'none'
                             }}

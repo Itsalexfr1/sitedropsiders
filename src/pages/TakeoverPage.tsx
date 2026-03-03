@@ -2382,7 +2382,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
             )}
 
-            <div className={`fixed lg:fixed ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'top-[112px] lg:top-[128px]' : 'top-20') : 'top-0'} left-0 right-0 bottom-0 flex flex-col bg-black lg:overflow-hidden overflow-y-auto z-[50] transition-all duration-700 ease-in-out ${isOverdrive ? 'overdrive-active bg-aurora border-[4px] border-neon-red shadow-[inset_0_0_100px_rgba(255,18,65,0.4)]' : ''}`}>
+            <div className={`fixed lg:fixed ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'top-[112px] lg:top-[128px]' : 'top-20') : 'top-0'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-700 ease-in-out ${isOverdrive ? 'overdrive-active bg-aurora border-[4px] border-neon-red shadow-[inset_0_0_100px_rgba(255,18,65,0.4)]' : ''}`}>
                 {/* OFFLINE VIEW FOR NON-ADMINS - FULL PAGE BLANKET */}
                 {(!settings.isOnline && !isServerAdmin && isJoined) && (
                     <div className="fixed inset-0 z-[10000] bg-black flex flex-col items-center justify-center p-6 text-center">
@@ -4185,7 +4185,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     </div >
 
                     {/* Chat Section */}
-                    < div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]" >
+                    <div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-0 lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60_rgba(0,0,0,0.6)]" >
                         {/* MULTIVUE - NEW PERSISTENT TOP POSITION */}
                         {channelItems.length >= 2 && !isFocusMode && (
                             <div className="p-3 border-b border-white/10 bg-black/40 shrink-0 z-30">
@@ -4203,6 +4203,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             !isFocusMode && (
                                 <div className="p-1 lg:p-1 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
                                     <div className="flex-1 flex items-center gap-2">
+                                        {/* Back Button for mobile users since navbar is hidden */}
+                                        <button
+                                            onClick={() => navigate('/')}
+                                            className="lg:hidden p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white transition-all mr-2"
+                                            title="Retour à l'accueil"
+                                        >
+                                            <ArrowLeft className="w-4 h-4" />
+                                        </button>
                                         <div className="w-7 h-7 rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,0,51,0.2)]">
                                             <MessageSquare className="w-2.5 h-2.5 text-neon-red" />
                                         </div>
@@ -5759,10 +5767,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             {quizPopupQuestion?.category ?? quizPopupQuestion?.type ?? 'Quiz'}
                                         </span>
 
-                                        {/* Question */}
-                                        <h3 className="text-[11px] font-black text-white tracking-tight leading-snug">
-                                            {quizPopupQuestion.question}
-                                        </h3>
+                                        {/* Question - Hidden for Image/Blind Test as requested */}
+                                        {quizPopupQuestion.type?.toUpperCase() !== 'IMAGE' && quizPopupQuestion.type?.toUpperCase() !== 'BLIND_TEST' && (
+                                            <h3 className="text-[11px] font-black text-white tracking-tight leading-snug">
+                                                {quizPopupQuestion.question}
+                                            </h3>
+                                        )}
 
                                         {/* Audio for blind test */}
                                         {quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST' && quizPopupQuestion.audioUrl && (

@@ -32,6 +32,7 @@ export function Layout({ children }: LayoutProps) {
         location.pathname.startsWith('/newsletter/admin') ||
         location.pathname.startsWith('/newsletter/studio') ||
         location.pathname.startsWith('/social-studio') ||
+        location.pathname.startsWith('/live') ||
         location.pathname.includes('/create') ||
         isMini;
 
@@ -57,6 +58,9 @@ export function Layout({ children }: LayoutProps) {
             </main>
 
             {!isAdminPage && <Footer />}
+            {!isAdminPage && (
+                <div className="lg:hidden fixed bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-black via-black/95 to-transparent z-[100] pointer-events-none" />
+            )}
             {!isAdminPage && <MobileNavbar />}
         </div>
     );

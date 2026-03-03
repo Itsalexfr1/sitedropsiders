@@ -4126,15 +4126,19 @@ export function AdminDashboard() {
 
                                         <div className="h-6 w-[1px] bg-white/10 mx-2" />
 
-                                        {['ALL', 'QCM', 'BLIND_TEST', 'IMAGE'].map(filter => (
-                                            <button
-                                                key={filter}
-                                                onClick={() => setQuizFilter(filter)}
-                                                className={`px-4 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all border border-white/5 ${quizFilter === filter ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 text-gray-500 hover:text-white'}`}
-                                            >
-                                                {filter.replace('_', ' ')}
-                                            </button>
-                                        ))}
+                                        {['ALL', 'QCM', 'BLIND_TEST', 'IMAGE'].map(filter => {
+                                            const isDisabled = (filter === 'BLIND_TEST' && quizCounts.blindTest < 30) || (filter === 'IMAGE' && quizCounts.image < 30);
+                                            return (
+                                                <button
+                                                    key={filter}
+                                                    onClick={() => !isDisabled && setQuizFilter(filter)}
+                                                    disabled={isDisabled}
+                                                    className={`px-4 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all border border-white/5 ${quizFilter === filter ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 text-gray-500 hover:text-white'} ${isDisabled ? 'opacity-20 grayscale cursor-not-allowed' : ''}`}
+                                                >
+                                                    {filter.replace('_', ' ')}
+                                                </button>
+                                            );
+                                        })}
 
                                         <div className="h-6 w-[1px] bg-white/10 mx-2" />
 
@@ -4314,15 +4318,19 @@ export function AdminDashboard() {
 
                                 {/* TYPE TABS */}
                                 <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-2xl p-1 mb-6">
-                                    {(['QCM', 'BLIND_TEST', 'VIDEO', 'IMAGE'] as const).map(t => (
-                                        <button
-                                            key={t}
-                                            onClick={() => setQuizToEdit({ ...quizToEdit, type: t })}
-                                            className={`flex-1 py-2.5 text-[8px] font-black uppercase tracking-widest rounded-xl transition-all ${quizToEdit.type === t ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20' : 'text-gray-500 hover:text-white'}`}
-                                        >
-                                            {t === 'QCM' ? 'QCM' : t === 'BLIND_TEST' ? 'BLIND TEST' : t === 'VIDEO' ? 'VIDEO' : 'IMAGE'}
-                                        </button>
-                                    ))}
+                                    {(['QCM', 'BLIND_TEST', 'VIDEO', 'IMAGE'] as const).map(t => {
+                                        const isDisabled = (t === 'BLIND_TEST' && quizCounts.blindTest < 30) || (t === 'IMAGE' && quizCounts.image < 30);
+                                        return (
+                                            <button
+                                                key={t}
+                                                onClick={() => !isDisabled && setQuizToEdit({ ...quizToEdit, type: t })}
+                                                disabled={isDisabled}
+                                                className={`flex-1 py-2.5 text-[8px] font-black uppercase tracking-widest rounded-xl transition-all ${quizToEdit.type === t ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20' : 'text-gray-500 hover:text-white'} ${isDisabled ? 'opacity-20 grayscale cursor-not-allowed' : ''}`}
+                                            >
+                                                {t === 'QCM' ? 'QCM' : t === 'BLIND_TEST' ? 'BLIND TEST' : t === 'VIDEO' ? 'VIDEO' : 'IMAGE'}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
 
                                 <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">

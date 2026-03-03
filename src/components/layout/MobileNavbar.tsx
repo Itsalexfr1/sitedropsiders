@@ -60,13 +60,15 @@ export function MobileNavbar() {
     return (
         <>
             {/* Bottom Bar */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] px-4 pb-6 pt-2 pointer-events-none">
+            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] px-4 pb-8 pt-2 pointer-events-none">
                 <motion.div
                     initial={{ y: 100 }}
                     animate={{ y: 0 }}
-                    className="bg-[#0f0f0f]/90 backdrop-blur-2xl border border-white/10 rounded-full h-16 flex items-center justify-around shadow-[0_10px_40px_rgba(0,0,0,0.5)] pointer-events-auto relative overflow-hidden"
+                    className="bg-black/95 backdrop-blur-3xl border border-white/10 rounded-[2rem] h-16 flex items-center justify-around shadow-[0_20px_50px_rgba(0,0,0,0.8)] pointer-events-auto relative overflow-hidden"
                 >
-                    <div className="absolute inset-0 bg-gradient-to-t from-neon-red/5 to-transparent pointer-events-none" />
+                    {/* Active Indicator Glow */}
+                    <div className="absolute inset-x-0 bottom-0 h-[1px] bg-gradient-to-r from-transparent via-neon-red/50 to-transparent opacity-50" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-neon-red/[0.03] to-transparent pointer-events-none" />
 
                     {mainItems.map((item) => {
                         const isActive = location.pathname === item.path && item.path !== '#menu';
@@ -75,11 +77,11 @@ export function MobileNavbar() {
                         const content = (
                             <div className="relative flex flex-col items-center justify-center w-12 h-12 group">
                                 <div className={twMerge(
-                                    "relative p-2 rounded-xl transition-all duration-300",
-                                    isActive ? "bg-neon-red/10 text-neon-red scale-110" : (item.label === 'Plus' && isMenuOpen ? "text-neon-red" : "text-gray-500")
+                                    "relative p-2.5 rounded-2xl transition-all duration-300",
+                                    isActive ? "bg-neon-red/20 text-neon-red scale-110 shadow-[0_0_20px_rgba(255,0,51,0.2)]" : (item.label === 'Plus' && isMenuOpen ? "text-neon-red" : "text-gray-400")
                                 )}>
                                     <Icon className={twMerge(
-                                        "w-6 h-6",
+                                        "w-5 h-5",
                                         item.isLive ? "text-neon-red animate-pulse drop-shadow-[0_0_8px_rgba(255,0,0,0.6)]" : ""
                                     )} />
                                     {item.isLive && (
@@ -89,12 +91,12 @@ export function MobileNavbar() {
                                 {isActive && (
                                     <motion.div
                                         layoutId="mobile-nav-active"
-                                        className="absolute -bottom-1 w-1 h-1 bg-neon-red rounded-full shadow-[0_0_10px_#ff0033]"
+                                        className="absolute -bottom-1 w-1.5 h-1.5 bg-neon-red rounded-full shadow-[0_0_10px_#ff0033]"
                                     />
                                 )}
                                 <span className={twMerge(
-                                    "text-[7px] font-black uppercase tracking-[0.2em] mt-0.5 transition-colors",
-                                    isActive ? "text-neon-red" : "text-gray-600 group-hover:text-white"
+                                    "text-[8px] font-black uppercase tracking-[0.1em] mt-1 transition-colors",
+                                    isActive ? "text-neon-red" : "text-gray-500"
                                 )}>
                                     {item.label}
                                 </span>

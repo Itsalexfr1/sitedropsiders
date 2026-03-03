@@ -56,10 +56,35 @@
     filter: none !important;
   }
 
-  /* Ensure background stays dark initially so it inverts to light */
+  /* --- LIGHT MODE REFINEMENT --- */
   html.light-mode body {
-    background-color: var(--color-dark-bg);
-    color: white;
+    background-color: #ffffff !important;
+    color: #1a1a1a !important;
+  }
+
+  html.light-mode .bg-dark-bg,
+  html.light-mode .bg-dark-bg\/80,
+  html.light-mode .bg-dark-bg\/90,
+  html.light-mode .bg-dark-bg\/98 {
+    background-color: #ffffff !important;
+  }
+
+  html.light-mode .text-white {
+    color: #111111 !important;
+  }
+
+  html.light-mode .text-gray-400 {
+    color: #666666 !important;
+  }
+
+  html.light-mode .border-white\/10,
+  html.light-mode .border-white\/20 {
+    border-color: rgba(0, 0, 0, 0.1) !important;
+  }
+
+  html.light-mode .bg-white\/5,
+  html.light-mode .bg-white\/10 {
+    background-color: rgba(0, 0, 0, 0.05) !important;
   }
 
   /* Make the native calendar picker icon neon yellow */
@@ -626,13 +651,15 @@
   /* This is a major source of lag on mobile devices */
   html.light-mode {
     filter: none !important;
-    background-color: #f0f0f0 !important;
-    color: #1a1a1a !important;
   }
 
-  html.light-mode body {
-    background-color: #f0f0f0 !important;
-    color: #1a1a1a !important;
+  html.light-mode .logo-img {
+    filter: invert(1) !important;
+    /* Invert logo since it's white to make it dark */
+  }
+
+  html.light-mode .navbar-indicator {
+    filter: none !important;
   }
 
   /* Optimize scrolling and touch */

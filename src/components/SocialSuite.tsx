@@ -654,8 +654,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#0a0a0a] w-full lg:max-w-6xl h-full lg:h-[90vh] lg:rounded-[40px] border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col lg:flex-row">
 
                 {/* Preview Section - Moved to top on mobile */}
-                <div className="w-full lg:flex-1 bg-[#020202] py-4 lg:py-6 px-4 flex flex-col items-center justify-center relative overflow-hidden h-[40vh] lg:h-full border-b lg:border-b-0 lg:border-l border-white/10 order-first lg:order-last">
-                    <div className="h-full w-full max-w-[320px] lg:max-w-[450px] relative">
+                <div className="w-full lg:flex-1 bg-[#020202] py-4 lg:py-6 px-4 flex flex-col items-center justify-center relative overflow-hidden h-auto min-h-[40vh] lg:h-full border-b lg:border-b-0 lg:border-l border-white/10 order-first lg:order-last">
+                    <div className="aspect-[9/16] lg:aspect-auto w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[450px] relative">
                         <div className="w-full h-full bg-[#111] rounded-[20px] lg:rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
                             <canvas ref={canvasRef} className="w-full h-full object-contain" />
                         </div>

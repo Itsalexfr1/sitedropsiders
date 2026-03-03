@@ -56,15 +56,16 @@ export function SocialStudioPage() {
 
     return (
         <div className="min-h-screen bg-black">
-            <div className="hidden lg:flex fixed top-8 left-8 z-[210] items-center gap-6">
+            <div className="flex fixed top-4 left-4 lg:top-8 lg:left-8 z-[210] items-center gap-6">
                 <button
                     onClick={() => navigate('/')}
-                    className="p-4 bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/10 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group"
+                    className="p-3 lg:p-4 bg-black/60 lg:bg-white/5 hover:bg-white/10 text-white rounded-2xl border border-white/20 lg:border-white/10 backdrop-blur-3xl lg:backdrop-blur-md transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(0,0,0,0.5)] lg:shadow-none"
                 >
                     <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
-                    RETOUR AU SITE
+                    <span className="hidden sm:inline">RETOUR AU SITE</span>
+                    <span className="sm:hidden">RETOUR</span>
                 </button>
-                <div className="flex items-center gap-3 px-6 py-4 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
+                <div className="hidden lg:flex items-center gap-3 px-6 py-4 bg-white/5 border border-white/10 rounded-2xl backdrop-blur-md">
                     <div className="w-2 h-2 bg-neon-pink rounded-full animate-pulse shadow-[0_0_10px_#ff00ff]" />
                     <span className="text-[10px] font-black text-white uppercase tracking-[0.3em]">STUDIO MODE : ON</span>
                 </div>

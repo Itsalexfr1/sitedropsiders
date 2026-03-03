@@ -8,6 +8,7 @@ import newsData from '../../data/news.json';
 import recapsData from '../../data/recaps.json';
 import agendaData from '../../data/agenda.json';
 import { useLanguage } from '../../context/LanguageContext';
+import { useTheme } from '../../context/ThemeContext';
 
 import { getArticleLink, getRecapLink, getAgendaLink, getGalleryLink } from '../../utils/slugify';
 import { FlagIcon } from '../ui/FlagIcon';
@@ -17,7 +18,7 @@ export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [isSearchOpen, setIsSearchOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
-    const [isDarkMode, setIsDarkMode] = useState(true);
+    const { isDarkMode, toggleTheme } = useTheme();
     const location = useLocation();
     const navigate = useNavigate();
     const playHoverSound = useHoverSound();
@@ -80,11 +81,6 @@ export function Navbar() {
         }] : []),
     ];
 
-    const toggleTheme = () => {
-        setIsDarkMode(!isDarkMode);
-        // Toggle dark mode class on document
-        document.documentElement.classList.toggle('light-mode');
-    };
 
 
     const searchResults = useMemo(() => {
@@ -157,12 +153,12 @@ export function Navbar() {
                                 sessionStorage.setItem('exited_live', 'true');
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                             }}
-                            className="flex items-center group py-2"
+                            className="flex items-center group py-2 lg:relative lg:left-0 absolute left-1/2 -translate-x-1/2 lg:translate-x-0"
                         >
                             <img
                                 src="/Logo.png"
                                 alt="DROPSIDERS"
-                                className="logo-img h-10 md:h-12 w-auto max-w-[150px] md:max-w-none object-contain transition-transform duration-300 group-hover:scale-105"
+                                className="logo-img h-8 md:h-12 w-auto max-w-[120px] md:max-w-none object-contain transition-transform duration-300 group-hover:scale-105"
                             />
                         </Link>
 
