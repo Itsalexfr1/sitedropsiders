@@ -7,7 +7,7 @@ import {
     Facebook, Maximize, Minimize, Video, Heart, User, ArrowRight, Bell,
     Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send, Mail, Mic, Hash, Headphones, Trophy, Crown,
     ChevronUp, ChevronDown, Volume2, PowerOff, BarChart3, ShoppingBag, LogOut, MicOff, CircleStop, Loader2,
-    Star, ShieldCheck
+    Star, ShieldCheck, LayoutGrid
 } from 'lucide-react';
 import { GlitchTransition } from '../components/ui/GlitchTransition';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
@@ -4186,6 +4186,18 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                     {/* Chat Section */}
                     < div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]" >
+                        {/* MULTIVUE - NEW PERSISTENT TOP POSITION */}
+                        {channelItems.length >= 2 && !isFocusMode && (
+                            <div className="p-3 border-b border-white/10 bg-black/40 shrink-0 z-30">
+                                <button
+                                    onClick={() => setPlayersOption(playersOption === 4 ? 1 : 4)}
+                                    className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-3 active:scale-95 ${playersOption === 4 ? 'bg-neon-purple text-white shadow-[0_0_25px_rgba(189,0,255,0.4)] border border-neon-purple/50' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10 hover:border-white-20'}`}
+                                >
+                                    <LayoutGrid className="w-4 h-4" />
+                                    MULTIVUE
+                                </button>
+                            </div>
+                        )}
                         {/* Glossy Header */}
                         {
                             !isFocusMode && (
@@ -4475,14 +4487,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         {/* FLUX SELECTION - PERSISTENT AT TOP OF SIDEBAR */}
                                         <div className="px-4 pt-4 pb-0 shrink-0 z-[60]">
                                             <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 overflow-x-auto no-scrollbar shadow-lg">
-                                                {channelItems.length >= 2 && (
-                                                    <button
-                                                        onClick={() => setPlayersOption(playersOption === 4 ? 1 : 4)}
-                                                        className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[70px] ${playersOption === 4 ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(189,0,255,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-                                                    >
-                                                        MULTIVUE
-                                                    </button>
-                                                )}
                                                 {channelItems.map((item: any, idx) => {
                                                     const isDisabled = settings.disableMainPlayer !== false;
                                                     if (item.isMain && isDisabled && playersOption === 1) return null;
