@@ -2544,7 +2544,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                 <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0 relative">
                     {/* Video Section */}
-                    <div className={`shrink-0 w-[50%] self-center h-[30vh] lg:h-auto lg:w-auto lg:flex-[2] bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden shadow-2xl ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
+                    <div className={`shrink-0 w-full h-[35vh] lg:h-auto lg:w-auto lg:flex-[2] bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden shadow-2xl ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
 
                         <div ref={videoPlayerRef} className="w-full h-full lg:flex-1 relative bg-black group overflow-hidden">
                             <div className="absolute inset-0 z-0">
