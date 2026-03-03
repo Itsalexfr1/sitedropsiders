@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gamepad2, Headphones, Plus, CheckCircle2, XCircle, Trophy, Send, Play, User, Zap, Camera, Upload, Image as ImageIcon } from 'lucide-react';
 import { uploadFile } from '../../utils/uploadService';
@@ -49,6 +49,19 @@ export function QuizSection() {
     const [gamePseudo, setGamePseudo] = useState(localStorage.getItem('user_pseudo') || '');
 
     const [leaderboard, setLeaderboard] = useState<ScoreRecord[]>([]);
+
+    const isAdmin = useMemo(() => {
+        return localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('editeur_auth') === 'true';
+    }, []);
+
+    const quizCounts = useMemo(() => {
+        return {
+            BLIND_TEST: quizzes.filter(q => q.type === 'BLIND_TEST').length,
+            IMAGE: quizzes.filter(q => q.type === 'IMAGE').length
+        };
+    }, [quizzes]);
+
+    const audioRef = React.useRef<HTMLAudioElement>(null);
 
     // Form state
     const [formData, setFormData] = useState({
@@ -130,6 +143,13 @@ export function QuizSection() {
         let filtered = quizzes;
         if (selectedMode !== 'ALL') {
             filtered = filtered.filter(q => q.type === selectedMode);
+        } else if (!isAdmin) {
+            // Visitors: ALL mode filters out 'Soon' categories
+            filtered = filtered.filter(q => {
+                if (q.type === 'BLIND_TEST' && quizCounts.BLIND_TEST < 30) return false;
+                if (q.type === 'IMAGE' && quizCounts.IMAGE < 30) return false;
+                return true;
+            });
         }
 
         if (filtered.length === 0) {
@@ -176,6 +196,12 @@ export function QuizSection() {
     };
 
     const advanceQuiz = () => {
+        // Pause audio if any
+        if (audioRef.current) {
+            audioRef.current.pause();
+            audioRef.current.currentTime = 0;
+        }
+
         if (currentQuizIndex < gameQuizzes.length - 1) {
             setCurrentQuizIndex(currentQuizIndex + 1);
             setSelectedAnswer(null);
@@ -185,6 +211,37 @@ export function QuizSection() {
             finishGame();
         }
     };
+
+    // Robust audio listener
+    useEffect(() => {
+        if (gameState === 'playing' && gameQuizzes[currentQuizIndex]?.type === 'BLIND_TEST' && audioRef.current) {
+            const el = audioRef.current;
+            const startTime = gameQuizzes[currentQuizIndex].startTime || 0;
+
+            const initAudio = () => {
+                el.currentTime = startTime;
+                el.play().catch(e => console.error("Autoplay blocked:", e));
+            };
+
+            const handleTimeUpdate = () => {
+                if (el.currentTime > startTime + 25) { // 25s max to avoid leaking full song
+                    el.pause();
+                }
+            };
+
+            el.addEventListener('loadedmetadata', initAudio);
+            el.addEventListener('timeupdate', handleTimeUpdate);
+
+            // If already loaded
+            if (el.readyState >= 2) initAudio();
+
+            return () => {
+                el.removeEventListener('loadedmetadata', initAudio);
+                el.removeEventListener('timeupdate', handleTimeUpdate);
+                el.pause();
+            };
+        }
+    }, [gameState, currentQuizIndex, gameQuizzes]);
 
     const finishGame = async () => {
         setGameState('results');
@@ -351,15 +408,25 @@ export function QuizSection() {
                                                     { id: 'QCM', label: 'QCM' },
                                                     { id: 'BLIND_TEST', label: 'BLIND TEST' },
                                                     { id: 'IMAGE', label: 'QUIZZ IMAGE' }
-                                                ].map(opt => (
-                                                    <button
-                                                        key={opt.id}
-                                                        onClick={() => setSelectedMode(opt.id as any)}
-                                                        className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
-                                                    >
-                                                        {opt.label}
-                                                    </button>
-                                                ))}
+                                                ].map(opt => {
+                                                    const isSoon = (opt.id === 'BLIND_TEST' && quizCounts.BLIND_TEST < 30) || (opt.id === 'IMAGE' && quizCounts.IMAGE < 30);
+                                                    const isDisabled = isSoon && !isAdmin;
+
+                                                    return (
+                                                        <button
+                                                            key={opt.id}
+                                                            onClick={() => !isDisabled && setSelectedMode(opt.id as any)}
+                                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border relative ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : isDisabled ? 'bg-white/5 text-gray-700 border-white/5 cursor-not-allowed' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
+                                                        >
+                                                            {isSoon && (
+                                                                <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-1.5 py-0.5 bg-black/80 border border-neon-red/30 rounded text-[7px] font-black text-neon-red uppercase tracking-[0.2em] animate-pulse whitespace-nowrap">
+                                                                    SOON ({opt.id === 'BLIND_TEST' ? quizCounts.BLIND_TEST : quizCounts.IMAGE}/30)
+                                                                </div>
+                                                            )}
+                                                            {opt.label}
+                                                        </button>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
 
@@ -475,29 +542,18 @@ export function QuizSection() {
                                                         </div>
                                                     </div>
 
-                                                    {/* Hidden Audio Element */}
+                                                    {/* Audio Element */}
                                                     {gameQuizzes[currentQuizIndex].audioUrl && (
                                                         <audio
-                                                            autoPlay
+                                                            ref={audioRef}
                                                             key={`${gameQuizzes[currentQuizIndex].id}-audio`}
-                                                            ref={(el) => {
-                                                                if (el) {
-                                                                    const start = gameQuizzes[currentQuizIndex].startTime || 0;
-                                                                    el.currentTime = start;
-                                                                    const handleTime = () => {
-                                                                        if (el.currentTime > start + 45) el.pause();
-                                                                    };
-                                                                    el.addEventListener('timeupdate', handleTime);
-                                                                }
-                                                            }}
-                                                        >
-                                                            <source src={gameQuizzes[currentQuizIndex].audioUrl} type="audio/mpeg" />
-                                                        </audio>
+                                                            src={gameQuizzes[currentQuizIndex].audioUrl}
+                                                        />
                                                     )}
                                                 </div>
                                             ) : (
                                                 <div className="w-full h-full relative">
-                                                    {gameQuizzes[currentQuizIndex].imageUrl && (
+                                                    {gameQuizzes[currentQuizIndex].type === 'IMAGE' && gameQuizzes[currentQuizIndex].imageUrl ? (
                                                         <img
                                                             src={gameQuizzes[currentQuizIndex].imageUrl}
                                                             alt="Quiz"
@@ -512,8 +568,7 @@ export function QuizSection() {
                                                                             : `blur(${Math.max(0, questionTimer * 2)}px)`
                                                             }}
                                                         />
-                                                    )}
-                                                    {gameQuizzes[currentQuizIndex].type === 'QCM' && !gameQuizzes[currentQuizIndex].imageUrl && (
+                                                    ) : (
                                                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a]">
                                                             <Gamepad2 className="w-24 h-24 text-white/5 rotate-12" />
                                                         </div>

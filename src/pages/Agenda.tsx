@@ -192,7 +192,13 @@ export function Agenda() {
 
                 return true;
             })
-            .sort((a: any, b: any) => new Date(a.startDate || a.date).getTime() - new Date(b.startDate || b.date).getTime());
+            .sort((a: any, b: any) => {
+                // Priority by day of week if weekly, otherwise by date
+                if (a.isWeekly && b.isWeekly && a.dayOfWeek !== undefined && b.dayOfWeek !== undefined) {
+                    if (a.dayOfWeek !== b.dayOfWeek) return a.dayOfWeek - b.dayOfWeek;
+                }
+                return new Date(a.startDate || a.date).getTime() - new Date(b.startDate || b.date).getTime()
+            });
     }, [activeCategory, selectedMonth, selectedLocation, agendaData]);
 
     const formatMonthName = (monthKey: string) => {

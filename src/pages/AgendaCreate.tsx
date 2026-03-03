@@ -243,6 +243,7 @@ export function AgendaCreate() {
                     date: startDate, // Use startDate as the primary date for sorting
                     startDate,
                     endDate: endDate || startDate,
+                    dayOfWeek: isWeekly ? new Date(startDate).getDay() : undefined, // NEW: Priority for weekly events
                     location: locationInput,
                     country,
                     type,

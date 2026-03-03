@@ -1312,7 +1312,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             }
         }
 
-        if (sendPush === null) {
+        if (!isEditing && sendPush === null) {
             setStatus('error');
             setMessage('Veuillez choisir si vous souhaitez envoyer une notification push.');
             // Scroll to the push section
@@ -3149,44 +3149,46 @@ ${generateSocialsHtml()}
 
                     <div className="pt-6 flex flex-col gap-4">
                         {/* Option Push Notification */}
-                        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 mb-6 relative overflow-hidden group">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-blue opacity-50" />
+                        {!isEditing && (
+                            <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 mb-6 relative overflow-hidden group">
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-blue opacity-50" />
 
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30 shadow-lg shadow-neon-red/5">
-                                    <Bell className="w-6 h-6 text-neon-red animate-pulse" />
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30 shadow-lg shadow-neon-red/5">
+                                        <Bell className="w-6 h-6 text-neon-red animate-pulse" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">NOTIFICATION PUSH</h3>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em]">Envoyer une alerte immédiate aux abonnés ?</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">NOTIFICATION PUSH</h3>
-                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em]">Envoyer une alerte immédiate aux abonnés ?</p>
-                                </div>
-                            </div>
 
-                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <StyledCheckbox
-                                    checked={sendPush === true}
-                                    onChange={(val) => setSendPush(val ? true : null)}
-                                    label="OUI, NOTIFIER"
-                                    sublabel="Alerte immédiate Mobile"
-                                    icon={Bell}
-                                    colorClass="neon-red"
-                                />
-                                <StyledCheckbox
-                                    checked={sendPush === false}
-                                    onChange={(val) => setSendPush(val ? false : null)}
-                                    label="NON, PAS DE PUSH"
-                                    sublabel="Publication silencieuse"
-                                    icon={X}
-                                    colorClass="white"
-                                />
-                            </div>
-                            {sendPush === null && (
-                                <div className="mt-4 flex items-center justify-center gap-2 px-4 py-2 bg-neon-red/10 rounded-lg border border-neon-red/20 animate-pulse">
-                                    <AlertCircle className="w-3.5 h-3.5 text-neon-red" />
-                                    <span className="text-[9px] text-neon-red font-black uppercase tracking-widest">Choix obligatoire avant publication</span>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <StyledCheckbox
+                                        checked={sendPush === true}
+                                        onChange={(val) => setSendPush(val ? true : null)}
+                                        label="OUI, NOTIFIER"
+                                        sublabel="Alerte immédiate Mobile"
+                                        icon={Bell}
+                                        colorClass="neon-red"
+                                    />
+                                    <StyledCheckbox
+                                        checked={sendPush === false}
+                                        onChange={(val) => setSendPush(val ? false : null)}
+                                        label="NON, PAS DE PUSH"
+                                        sublabel="Publication silencieuse"
+                                        icon={X}
+                                        colorClass="white"
+                                    />
                                 </div>
-                            )}
-                        </div>
+                                {sendPush === null && (
+                                    <div className="mt-4 flex items-center justify-center gap-2 px-4 py-2 bg-neon-red/10 rounded-lg border border-neon-red/20 animate-pulse">
+                                        <AlertCircle className="w-3.5 h-3.5 text-neon-red" />
+                                        <span className="text-[9px] text-neon-red font-black uppercase tracking-widest">Choix obligatoire avant publication</span>
+                                    </div>
+                                )}
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <button
