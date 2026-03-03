@@ -160,6 +160,7 @@ function VisitsBarChart({ data }: { data: { label: string; value: number }[] }) 
 
 export function AdminStats() {
     const [loading, setLoading] = useState(true);
+    const [serverStats, setServerStats] = useState<any>(null);
     const [selectedDetail, setSelectedDetail] = useState<null | 'articles' | 'subscribers' | 'content'>(null);
     const [onlineUsers, setOnlineUsers] = useState(0);
     const [selectedCountry, setSelectedCountry] = useState<string | null>(null);
@@ -186,7 +187,21 @@ export function AdminStats() {
     };
 
     useEffect(() => {
-        const timer = setTimeout(() => setLoading(false), 800);
+        const fetchData = async () => {
+            try {
+                const res = await fetch('/api/analytics/stats');
+                if (res.ok) {
+                    const data = await res.json();
+                    setServerStats(data);
+                }
+            } catch (e) {
+                console.error("Failed to fetch server stats", e);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchData();
         const interval = setInterval(() => {
             setOnlineUsers(prev => {
                 const change = Math.random() > 0.8 ? 1 : (Math.random() > 0.8 ? -1 : 0);
@@ -194,13 +209,12 @@ export function AdminStats() {
                 return newValue >= 0 ? newValue : 0;
             });
         }, 10000);
-        return () => { clearTimeout(timer); clearInterval(interval); };
+        return () => { clearInterval(interval); };
     }, []);
 
     const stats = useMemo(() => {
         const isDateInRange = (dateStr: string) => {
             if (!dateRange.start || !dateRange.end) return true;
-            // Handle year-only dates (Galerie)
             if (dateStr.length === 4) {
                 const year = parseInt(dateStr);
                 const startYear = new Date(dateRange.start).getFullYear();
@@ -226,24 +240,33 @@ export function AdminStats() {
 
         const totalContent = actualNewsCount + interviewCount + recapCount + agendaCount + galerieCount;
 
-        const getLocalStorageViews = () => {
-            let total = 0;
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key?.startsWith('dropsiders_views_')) total += parseInt(localStorage.getItem(key) || '0');
-            }
-            return total;
+        // --- REAL SERVER STATS MERGE ---
+        const totalVisitsCount = serverStats?.totalVisits || 0;
+
+        // Map country codes to country names/colors
+        const countryNameMap: Record<string, { name: string, name_fr: string, color: string }> = {
+            'FR': { name: 'France', name_fr: 'France', color: 'bg-neon-red' },
+            'BE': { name: 'Belgium', name_fr: 'Belgique', color: 'bg-white' },
+            'CH': { name: 'Switzerland', name_fr: 'Suisse', color: 'bg-neon-purple' },
+            'US': { name: 'United States of America', name_fr: 'États-Unis', color: 'bg-blue-500' },
+            'GB': { name: 'United Kingdom', name_fr: 'Royaume-Uni', color: 'bg-blue-700' },
+            'DE': { name: 'Germany', name_fr: 'Allemagne', color: 'bg-yellow-600' }
         };
 
-        const realTotalVisits = getLocalStorageViews();
+        const apiCountries = serverStats?.countries || [];
+        const countryStats = apiCountries.map((c: any) => ({
+            code: c.code,
+            name: countryNameMap[c.code]?.name || c.code,
+            name_fr: countryNameMap[c.code]?.name_fr || c.code,
+            visits: c.visits,
+            percentage: totalVisitsCount > 0 ? Math.round((c.visits / totalVisitsCount) * 100) : 0,
+            color: countryNameMap[c.code]?.color || 'bg-gray-500'
+        })).sort((a: any, b: any) => b.visits - a.visits).slice(0, 5);
 
-        const countryStats = [
-            { code: 'FR', name: 'France', name_fr: 'France', visits: realTotalVisits, percentage: realTotalVisits > 0 ? 100 : 0, color: 'bg-neon-red' },
-            { code: 'BE', name: 'Belgium', name_fr: 'Belgique', visits: 0, percentage: 0, color: 'bg-white' },
-            { code: 'CH', name: 'Switzerland', name_fr: 'Suisse', visits: 0, percentage: 0, color: 'bg-neon-purple' },
-            { code: 'US', name: 'United States of America', name_fr: 'États-Unis', visits: 0, percentage: 0, color: 'bg-blue-500' },
-            { code: 'OTHER', name: 'Others', name_fr: 'Autres', visits: 0, percentage: 0, color: 'bg-gray-500' }
-        ];
+        // Fallback if no server data
+        if (countryStats.length === 0) {
+            countryStats.push({ code: 'FR', name: 'France', name_fr: 'France', visits: totalVisitsCount, percentage: 100, color: 'bg-neon-red' });
+        }
 
         const allItems = [
             ...news.map(n => ({ ...n, type: n.category })),
@@ -252,39 +275,29 @@ export function AdminStats() {
             ...galerie.map(g => ({ ...g, type: 'Galerie', image: g.cover }))
         ];
 
-        const topArticles = allItems
-            .map(item => {
-                const viewsKey = `dropsiders_views_${item.id}`;
-                const views = parseInt(localStorage.getItem(viewsKey) || '0');
-                return { ...item, views };
-            })
-            .filter(item => item.views > 0)
-            .sort((a, b) => b.views - a.views)
-            .slice(0, 15);
+        // Map server top articles to actual item data
+        const apiTop = serverStats?.topArticles || [];
+        const topArticles = apiTop.map((apiItem: any) => {
+            const item = allItems.find(i => String(i.id) === String(apiItem.id));
+            if (!item) return null;
+            return { ...item, views: apiItem.views };
+        }).filter(Boolean).slice(0, 15);
 
-        // Visits data from localStorage (real data per page visit)
-        const now = new Date();
-        const dayData = Array.from({ length: 24 }, (_, h) => ({
-            label: `${h}h`,
-            value: parseInt(localStorage.getItem(`dropsiders_hour_${now.toDateString()}_${h}`) || '0')
-        }));
-        const monthData = Array.from({ length: 30 }, (_, d) => {
-            const date = new Date(now); date.setDate(now.getDate() - (29 - d));
-            const ds = date.toDateString();
-            return { label: `J-${29 - d}`, value: parseInt(localStorage.getItem(`dropsiders_day_${ds}`) || '0') };
-        }).map((d, i) => ({ ...d, label: i % 5 === 0 ? d.label : '' }));
-        const yearData = Array.from({ length: 12 }, (_, m) => {
-            const mNames = ['Jan', 'Fév', 'Mar', 'Avr', 'Mai', 'Juin', 'Juil', 'Aoû', 'Sep', 'Oct', 'Nov', 'Déc'];
-            const year = m <= now.getMonth() ? now.getFullYear() : now.getFullYear() - 1;
-            return { label: mNames[m], value: parseInt(localStorage.getItem(`dropsiders_month_${year}_${m}`) || '0') };
-        });
+        // Timeline data
+        const timeline = serverStats?.timeline || [];
+        const monthData = timeline.map((t: any) => ({
+            label: t.date.split('-').slice(2).join(''), // Just the day
+            value: t.value
+        })).slice(-30);
+
+        const dayData = Array.from({ length: 24 }, (_, h) => ({ label: `${h}h`, value: 0 })); // Placeholder for hourly
 
         return {
             content: { total: totalContent, news: actualNewsCount, interviews: interviewCount, recaps: recapCount, agenda: agendaCount, communaute: galerieCount },
-            community: { subscribers: subCount, subscribersList: subscribers, totalVisits: realTotalVisits.toLocaleString(), countries: countryStats, topArticles },
-            visits: { day: dayData, month: monthData, year: yearData }
+            community: { subscribers: subCount, subscribersList: subscribers, totalVisits: totalVisitsCount.toLocaleString(), countries: countryStats, topArticles },
+            visits: { day: dayData, month: monthData, year: [] }
         };
-    }, []);
+    }, [serverStats, dateRange]);
 
     const pieData = [
         { label: language === 'fr' ? 'Articles News' : 'News', value: stats.content.news, color: 'bg-neon-blue', hex: '#0066ff' },
@@ -564,7 +577,7 @@ export function AdminStats() {
                         <VisitsBarChart data={visitData} />
                         <div className="mt-4 flex items-center gap-2">
                             <span className="relative flex h-2 w-2"><span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-neon-red opacity-75"></span><span className="relative inline-flex rounded-full h-2 w-2 bg-neon-red"></span></span>
-                            <span className="text-[10px] text-gray-600 font-black uppercase tracking-widest">{language === 'fr' ? "Données issues du localStorage. Aucun tracking serveur activé." : "Data from localStorage. No server tracking enabled."}</span>
+                            <span className="text-[10px] text-gray-600 font-black uppercase tracking-widest">{language === 'fr' ? "Données réelles issues du serveur Cloudflare KV." : "Real data powered by Cloudflare KV."}</span>
                         </div>
                     </motion.div>
 

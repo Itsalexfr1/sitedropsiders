@@ -2407,9 +2407,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             <div className="flex flex-col min-w-0 py-0.5">
                                 <div className="flex items-center gap-3">
                                     {settings.isOnline && (
-                                        <div className="flex items-center gap-2 bg-neon-red/10 px-2 py-0.5 rounded-md border border-neon-red/20 shadow-[0_0_10px_rgba(255,0,51,0.2)]">
-                                            <div className="w-1.5 h-1.5 bg-neon-red rounded-full animate-pulse" />
-                                            <span className="text-[10px] font-black text-neon-red uppercase tracking-widest leading-none">
+                                        <div className="flex items-center gap-2 bg-red-600 px-3 py-1 rounded-full shadow-[0_0_15px_rgba(255,0,0,0.4)] border border-white/20">
+                                            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                                            <span className="text-[10px] font-black text-white uppercase tracking-widest leading-none">
                                                 LIVE
                                             </span>
                                         </div>
@@ -2479,43 +2479,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 {/* Live Banner Header - REDUCED SIZE */}
                 {(showTopBanner && !isFocusMode && !isFullScreen && (settings.enabled || settings.isOnline || isServerAdmin)) && (
                     <div className="w-full bg-[#080808] border-b border-white/10 px-6 py-2 flex items-center justify-between z-30 shadow-xl shrink-0">
-                        <div className="flex items-center gap-6 min-w-0 flex-1">
-                            <div className="flex items-center gap-4">
-                                {/* FLUX SELECTION MOVED HERE */}
-                                <div className="flex items-center gap-2 px-3 py-1 bg-red-600/10 border border-red-500/20 rounded-full shrink-0">
-                                    <span className="w-2 h-2 bg-red-500 rounded-full animate-pulse shadow-[0_0_10px_#ef4444]" />
-                                    <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">LIVE</span>
-                                </div>
-
-                                {channelItems.length > 1 && (
-                                    <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 shrink-0">
-                                        {channelItems.map((item: any, idx) => {
-                                            const isDisabled = settings.disableMainPlayer !== false;
-                                            if (item.isMain && isDisabled && playersOption === 1) return null;
-                                            return (
-                                                <button
-                                                    key={idx}
-                                                    onClick={() => {
-                                                        if (activeVideoIndex === idx && playersOption === 1) return;
-                                                        setActiveVideoIndex(idx);
-                                                        setPlayersOption(1);
-                                                    }}
-                                                    className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/10'}`}
-                                                >
-                                                    {item.title}
-                                                </button>
-                                            );
-                                        })}
-                                        {channelItems.length >= 4 && (
-                                            <button
-                                                onClick={() => setPlayersOption(playersOption === 4 ? 1 : 4)}
-                                                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${playersOption === 4 ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(189,0,255,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/10'}`}
-                                            >
-                                                MULTIVUE
-                                            </button>
-                                        )}
-                                    </div>
-                                )}
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2 px-3 py-1.5 bg-red-600 border border-white/10 rounded-full shrink-0 shadow-[0_0_15px_rgba(255,0,0,0.3)]">
+                                <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                                <span className="text-[9px] font-black text-white uppercase tracking-widest">LIVE</span>
                             </div>
                         </div>
 
@@ -2528,9 +2495,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : allActiveUsers.length} SPECTATEURS
                                 </span>
                             </div>
-                            <div className="flex items-center gap-2 px-3 py-1 bg-neon-cyan/10 border border-neon-cyan/20 rounded-md shadow-[0_0_10px_rgba(0,255,204,0.15)]">
-                                <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">EN DIRECT:</span>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-neon-cyan">{fluxCurrentArtist.artist || '---'}</span>
+                            <div className="flex items-center gap-2 px-3 py-1 bg-blue-600/20 border border-blue-500/30 rounded-md shadow-[0_0_15px_rgba(37,99,235,0.2)]">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-blue-400">EN DIRECT:</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-white">{fluxCurrentArtist.artist || '---'}</span>
                             </div>
                         </div>
                     </div>
@@ -4478,8 +4445,39 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     </div>
                                 ) : (
                                     <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
+                                        {/* FLUX SELECTION - PERSISTENT AT TOP OF SIDEBAR */}
+                                        <div className="px-4 pt-4 pb-0 shrink-0 z-[60]">
+                                            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 overflow-x-auto no-scrollbar shadow-lg">
+                                                {channelItems.map((item: any, idx) => {
+                                                    const isDisabled = settings.disableMainPlayer !== false;
+                                                    if (item.isMain && isDisabled && playersOption === 1) return null;
+                                                    return (
+                                                        <button
+                                                            key={idx}
+                                                            onClick={() => {
+                                                                if (activeVideoIndex === idx && playersOption === 1) return;
+                                                                setActiveVideoIndex(idx);
+                                                                setPlayersOption(1);
+                                                            }}
+                                                            className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-1 min-w-[70px] ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                        >
+                                                            {item.title}
+                                                        </button>
+                                                    );
+                                                })}
+                                                {channelItems.length >= 4 && (
+                                                    <button
+                                                        onClick={() => setPlayersOption(playersOption === 4 ? 1 : 4)}
+                                                        className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-1 min-w-[70px] ${playersOption === 4 ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(189,0,255,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                    >
+                                                        MULTIVUE
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+
                                         {/* Tab Switcher - Persistent at Top */}
-                                        <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/10 rounded-xl mb-0 mx-4 mt-4 relative z-20 shrink-0">
+                                        <div className="flex items-center gap-1 p-1 bg-white/[0.02] border border-white/10 rounded-xl mb-0 mx-4 mt-3 relative z-20 shrink-0">
                                             {[
                                                 { id: 'chat', icon: MessageSquare, label: 'Chat' },
                                                 { id: 'hype', icon: Activity, label: 'Hype' },
@@ -5058,7 +5056,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             </div>
                                                         ) : (
                                                             <>
-                                                                {/* Tab Switcher - Logic moved and integrated above AnimatePresence */}
                                                                 {/* Pinned Message */}
                                                                 {settings.pinnedMessage && (
                                                                     <motion.div

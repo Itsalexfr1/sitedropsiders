@@ -29,6 +29,94 @@ export default {
             });
         }
 
+        // --- API: ANALYTICS ---
+        if (path === '/api/analytics/track' && request.method === 'POST') {
+            const country = request.headers.get('cf-ipcountry') || 'FR';
+            let body;
+            try {
+                body = await request.json();
+            } catch (e) {
+                return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
+            }
+            const { id, type } = body;
+
+            if (id && type) {
+                // Increment total visits
+                const totalKey = 'analytics_total_visits';
+                const currentTotal = parseInt(await env.CHAT_KV.get(totalKey) || '0');
+                await env.CHAT_KV.put(totalKey, (currentTotal + 1).toString());
+
+                // Increment page-specific visits
+                const pageKey = `analytics_page_views_${id}`;
+                const currentPageViews = parseInt(await env.CHAT_KV.get(pageKey) || '0');
+                await env.CHAT_KV.put(pageKey, (currentPageViews + 1).toString());
+
+                // Track country stats
+                const countryKey = `analytics_country_${country}`;
+                const currentCountryViews = parseInt(await env.CHAT_KV.get(countryKey) || '0');
+                await env.CHAT_KV.put(countryKey, (currentCountryViews + 1).toString());
+
+                // Daily tracking
+                const now = new Date();
+                const dayKey = `analytics_day_${now.toISOString().split('T')[0]}`;
+                const currentDayViews = parseInt(await env.CHAT_KV.get(dayKey) || '0');
+                await env.CHAT_KV.put(dayKey, (currentDayViews + 1).toString());
+
+                // Monthly tracking
+                const monthKey = `analytics_month_${now.getFullYear()}_${now.getMonth()}`;
+                const currentMonthViews = parseInt(await env.CHAT_KV.get(monthKey) || '0');
+                await env.CHAT_KV.put(monthKey, (currentMonthViews + 1).toString());
+            }
+            return new Response(JSON.stringify({ success: true }), {
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            });
+        }
+
+        if (path === '/api/analytics/stats' && request.method === 'GET') {
+            const totalVisits = await env.CHAT_KV.get('analytics_total_visits') || '0';
+
+            // Countries
+            const countries = [];
+            const countryPrefix = 'analytics_country_';
+            const countryList = await env.CHAT_KV.list({ prefix: countryPrefix });
+            for (const key of countryList.keys) {
+                const code = key.name.replace(countryPrefix, '');
+                const val = await env.CHAT_KV.get(key.name);
+                countries.push({ code, visits: parseInt(val || '0') });
+            }
+
+            // Top Articles
+            const pageViews = [];
+            const pagePrefix = 'analytics_page_views_';
+            const pageList = await env.CHAT_KV.list({ prefix: pagePrefix });
+            for (const key of pageList.keys) {
+                const pageId = key.name.replace(pagePrefix, '');
+                const views = await env.CHAT_KV.get(key.name);
+                pageViews.push({ id: pageId, views: parseInt(views || '0') });
+            }
+            pageViews.sort((a, b) => b.views - a.views);
+
+            // Timeline (Last 30 days)
+            const timeline = [];
+            for (let i = 0; i < 30; i++) {
+                const d = new Date();
+                d.setDate(d.getDate() - i);
+                const ds = d.toISOString().split('T')[0];
+                const val = await env.CHAT_KV.get(`analytics_day_${ds}`) || '0';
+                timeline.push({ date: ds, value: parseInt(val) });
+            }
+            timeline.reverse();
+
+            return new Response(JSON.stringify({
+                totalVisits: parseInt(totalVisits),
+                countries,
+                topArticles: pageViews.slice(0, 50),
+                timeline
+            }), {
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            });
+        }
+
         // --- API: DOWNLOADER PROXY ---
         if (path === '/api/downloader-proxy' && request.method === 'POST') {
             const body = await request.json();
