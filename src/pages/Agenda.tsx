@@ -480,37 +480,37 @@ export function Agenda() {
                                             </div>
                                         )}
                                         <div
-                                            className="flex-1 p-6 cursor-pointer hover:bg-white/10 transition-colors"
+                                            className="flex-1 p-2 md:p-6 cursor-pointer hover:bg-white/10 transition-colors"
                                             onClick={() => toggleEvent(event.id)}
                                         >
-                                            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-                                                <div className="flex items-center gap-6">
+                                            <div className="flex flex-row items-center justify-between gap-2 md:gap-6">
+                                                <div className="flex items-center gap-2 md:gap-6">
                                                     {event.image && (
                                                         <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border border-white/10 hidden sm:block">
                                                             <img src={event.image} alt="" className="w-full h-full object-cover" />
                                                         </div>
                                                     )}
-                                                    <div className="flex-shrink-0 text-center bg-dark-bg border border-white/10 rounded-lg p-3 w-20 min-h-[5.5rem] flex flex-col justify-center">
-                                                        <span className={`block text-[10px] ${styles.text} font-black uppercase mb-1 tracking-tight`}>
+                                                    <div className="flex-shrink-0 text-center bg-dark-bg border border-white/10 rounded-md md:rounded-lg p-1 md:p-3 w-10 md:w-20 min-h-0 md:min-h-[5.5rem] flex flex-col justify-center">
+                                                        <span className={`block text-[6px] md:text-[10px] ${styles.text} font-black uppercase mb-0.5 md:mb-1 tracking-tight`}>
                                                             {event.startDate && event.endDate && event.startDate !== event.endDate ? (
                                                                 <>{new Date(event.startDate).toLocaleString(locale, { weekday: 'short' }).replace('.', '')} - {new Date(event.endDate).toLocaleString(locale, { weekday: 'short' }).replace('.', '')}</>
                                                             ) : (
                                                                 new Date(event.startDate || event.date).toLocaleString(locale, { weekday: 'short' }).replace('.', '')
                                                             )}
                                                         </span>
-                                                        <span className="block text-2xl font-bold text-white leading-none mb-1">
+                                                        <span className="block text-sm md:text-2xl font-bold text-white leading-none mb-0.5 md:mb-1">
                                                             {event.startDate && event.endDate && event.startDate !== event.endDate ? (
-                                                                <span className="text-lg">{new Date(event.startDate).getDate()}-{new Date(event.endDate).getDate()}</span>
+                                                                <span className="text-xs md:text-lg">{new Date(event.startDate).getDate()}-{new Date(event.endDate).getDate()}</span>
                                                             ) : (
                                                                 new Date(event.startDate || event.date).getDate()
                                                             )}
                                                         </span>
-                                                        <span className="block text-[10px] text-gray-400 uppercase leading-tight font-bold">
+                                                        <span className="block text-[6px] md:text-[10px] text-gray-400 uppercase leading-tight font-bold">
                                                             {new Date(event.startDate || event.date).toLocaleString(locale, { month: 'short' }).replace('.', '')}
                                                         </span>
                                                     </div>
                                                     <div>
-                                                        <div className="flex flex-wrap gap-2 mb-2">
+                                                        <div className="hidden md:flex flex-wrap gap-2 mb-2">
                                                             <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${styles.bg} ${styles.text} border ${styles.borderMedium}`}>
                                                                 {event.type}
                                                             </span>
@@ -523,11 +523,11 @@ export function Agenda() {
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <h3 className="text-xl font-bold text-white group-hover:text-neon-red transition-colors">
+                                                        <h3 className="text-[8px] md:text-xl font-bold text-white group-hover:text-neon-red transition-colors leading-none">
                                                             {event.title}
                                                         </h3>
-                                                        <div className="flex items-center gap-2 mt-1 text-sm text-gray-400">
-                                                            <MapPin className="w-4 h-4" />
+                                                        <div className="flex items-center gap-1 mt-0.5 text-[7px] md:text-sm text-gray-400">
+                                                            <MapPin className="w-2 h-2 md:w-4 md:h-4" />
                                                             <span>{event.location}</span>
                                                             <FlagIcon location={event.location} />
                                                         </div>

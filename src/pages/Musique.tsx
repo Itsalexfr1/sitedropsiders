@@ -271,7 +271,7 @@ export function Musique() {
                             key={p.id}
                             onClick={() => setActiveTab(p.id)}
                             data-cursor-color={p.color}
-                            className={`group relative flex items-center gap-2 md:gap-3 px-4 md:px-8 py-3 md:py-5 rounded-xl md:rounded-2xl border-2 transition-all duration-500 overflow-hidden ${activeTab === p.id
+                            className={`group relative flex items-center gap-1 md:gap-3 px-2 md:px-8 py-1.5 md:py-5 rounded-lg md:rounded-2xl border-2 transition-all duration-500 overflow-hidden ${activeTab === p.id
                                 ? 'bg-white text-black border-white shadow-[0_0_40px_rgba(255,255,255,0.2)]'
                                 : 'bg-black/40 border-white/5 text-gray-400 hover:border-white/20 hover:text-white'
                                 }`}
@@ -283,8 +283,8 @@ export function Musique() {
                                     style={{ backgroundColor: p.color }}
                                 />
                             )}
-                            <p.icon className={`w-4 h-4 md:w-5 md:h-5 relative z-10 ${activeTab === p.id ? 'animate-pulse' : ''}`} />
-                            <span className="font-black text-[8px] md:text-[10px] uppercase tracking-widest relative z-10">{p.name}</span>
+                            <p.icon className={`w-3 h-3 md:w-5 md:h-5 relative z-10 ${activeTab === p.id ? 'animate-pulse' : ''}`} />
+                            <span className="font-black text-[6px] md:text-[10px] uppercase tracking-widest relative z-10">{p.name}</span>
                         </button>
                     ))}
                 </div>
