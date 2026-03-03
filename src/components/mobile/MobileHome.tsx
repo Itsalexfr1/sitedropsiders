@@ -38,7 +38,7 @@ export function MobileHome() {
                                 <span className="px-1.5 py-0.5 bg-neon-red text-white text-[7px] font-black uppercase rounded mb-1.5 inline-block">
                                     {news.category}
                                 </span>
-                                <h3 className="text-[0.5px] md:text-[11px] font-display font-black text-white italic leading-tight uppercase line-clamp-3">
+                                <h3 className="text-[5px] md:text-[11px] font-display font-black text-white italic leading-tight uppercase line-clamp-3">
                                     {news.title}
                                 </h3>
                             </div>
@@ -70,7 +70,7 @@ export function MobileHome() {
                                     <span className="text-[7px] font-black text-neon-red uppercase">{news.category}</span>
                                     <span className="text-[7px] text-gray-500 font-bold uppercase">{news.date}</span>
                                 </div>
-                                <h3 className="text-[0.5px] md:text-[10px] font-black text-white uppercase italic leading-snug line-clamp-2">{news.title}</h3>
+                                <h3 className="text-[5px] md:text-[10px] font-black text-white uppercase italic leading-snug line-clamp-2">{news.title}</h3>
                             </div>
                         </Link>
                     ))}

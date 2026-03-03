@@ -4249,10 +4249,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         </button>
                                     </div>
 
-                                    <div className="flex-1 flex items-center justify-end gap-2">
+                                    <div className="hidden lg:flex flex-1 items-center justify-end gap-2">
                                         {hasModPowers && (
                                             <>
-
                                                 <button
                                                     onClick={handleClearChat}
                                                     className="p-2 rounded-lg bg-neon-red/10 text-neon-red border border-neon-red/20 hover:bg-neon-red hover:text-white transition-all shadow-[0_0_10px_rgba(255,18,65,0.2)]"
@@ -4495,8 +4494,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 ) : (
                                     <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
                                         {/* FLUX SELECTION - PERSISTENT AT TOP OF SIDEBAR */}
-                                        <div className="px-1 md:px-4 pt-0.5 md:pt-4 pb-0 shrink-0 z-[60]">
-                                            <div className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-md md:rounded-xl p-0.5 md:p-1 overflow-x-auto no-scrollbar shadow-lg">
+                                        <div className="px-0 md:px-4 pt-0 md:pt-4 pb-0 shrink-0 z-[60]">
+                                            <div className="flex items-center gap-0 bg-white/5 border-b border-white/10 p-0 md:p-1 overflow-x-auto no-scrollbar">
                                                 {channelItems.map((item: any, idx) => {
                                                     const isDisabled = settings.disableMainPlayer !== false;
                                                     if (item.isMain && isDisabled && playersOption === 1) return null;
@@ -5201,89 +5200,82 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         .filter(m => chatCountryFilter === 'ALL' || m.country === chatCountryFilter || (chatCountryFilter === 'OTHER' && !['FR', 'BE', 'CH', 'CA'].includes(m.country)))
                                                                         .map((msg, idx) => {
                                                                             const role = getRole(msg.pseudo);
-                                                                            const isMsgAdmin = role === 'admin';
-                                                                            const isMsgModo = role === 'modo';
-                                                                            const isBot = msg.isBot || msg.pseudo === 'DROPSIDERS BOT';
+                                                                            const isMsgAdmin = role === "admin";
+                                                                            const isMsgModo = role === "modo";
+                                                                            const isBot = msg.isBot || msg.pseudo === "DROPSIDERS BOT";
 
                                                                             return (
                                                                                 <motion.div
                                                                                     key={msg.id || idx}
                                                                                     initial={{ opacity: 0, x: 10 }}
                                                                                     animate={{ opacity: 1, x: 0 }}
-                                                                                    className="group relative min-w-0 overflow-hidden mb-0.5"
+                                                                                    className="group relative min-w-0 overflow-hidden px-1 flex flex-wrap items-baseline gap-x-1 gap-y-0"
                                                                                 >
-                                                                                    <div className="flex items-center gap-1 mb-0 px-1">
-                                                                                        <div className="w-3.5 md:w-4 flex items-center justify-center opacity-80">
-                                                                                            {getCountryFlag(msg.country || 'FR')}
-                                                                                        </div>
-                                                                                        <span
-                                                                                            className="text-[8px] md:text-[8px] lg:text-[12px] font-black uppercase tracking-widest truncate min-w-0"
-                                                                                            style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? '#eab308' : (msg.color || '#9ca3af') }}
-                                                                                        >
-                                                                                            {msg.pseudo}
-                                                                                        </span>
-                                                                                        {isMsgAdmin && <span className="px-1 md:px-2 py-0.5 rounded text-white text-[6px] md:text-[8px] font-black uppercase tracking-widest" style={{ backgroundColor: (localSettings.adminColor || adminColor), boxShadow: `0 0 10px ${(localSettings.adminColor || adminColor)}66` }}>ADMIN</span>}
-                                                                                        <span className="text-[6px] md:text-[8px] lg:text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
+                                                                                    <div className="w-3 md:w-4 flex items-center justify-center opacity-80 shrink-0">
+                                                                                        {getCountryFlag(msg.country || "FR")}
                                                                                     </div>
-                                                                                    <div
-                                                                                        className={`p-0 md:p-2 px-1 md:px-3 rounded-none md:rounded-xl text-[8px] md:text-[10px] lg:text-[11px] font-medium leading-tight md:leading-relaxed break-words relative ${isBot ? '' : isMsgAdmin ? '' : 'text-gray-200'}`}
-                                                                                        style={isBot ? { color: botColor } : isMsgAdmin ? { color: '#ffffff' } : {}}
+                                                                                    <span
+                                                                                        className="text-[8px] md:text-[8px] lg:text-[12px] font-black uppercase tracking-widest flex-shrink-0"
+                                                                                        style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? "#eab308" : (msg.color || "#9ca3af") }}
                                                                                     >
-                                                                                        {/* Message with clickable links */}
-                                                                                        <span className="relative z-10">
-                                                                                            {(() => {
-                                                                                                const text = msg.message;
-                                                                                                if (!text) return null;
-                                                                                                const urlRegex = /(https?:\/\/[^\s]+)/g;
-                                                                                                const parts = text.split(urlRegex);
-                                                                                                return parts.map((part: string, i: number) => {
-                                                                                                    if (part.match(urlRegex)) {
-                                                                                                        // Detect clip link
-                                                                                                        if (part.includes('#clip-')) {
-                                                                                                            const cId = part.split('#clip-')[1];
-                                                                                                            const targetClip = clips.find(c => c.id === cId);
-                                                                                                            return (
-                                                                                                                <button
-                                                                                                                    key={i}
-                                                                                                                    onClick={(e) => {
-                                                                                                                        e.preventDefault();
-                                                                                                                        e.stopPropagation();
-                                                                                                                        if (targetClip) {
-                                                                                                                            setActiveClipToPlay(targetClip);
-                                                                                                                            setShowClipPlayer(true);
-                                                                                                                            setIsMutedGlobal(true);
-                                                                                                                        }
-                                                                                                                    }}
-                                                                                                                    className="text-neon-cyan hover:text-white bg-neon-cyan/10 hover:bg-neon-cyan/30 px-2 py-0.5 rounded-md border border-neon-cyan/30 font-black transition-all flex items-center gap-1.5 inline-flex"
-                                                                                                                >
-                                                                                                                    <Video className="w-3 h-3" /> VOIR LE CLIP
-                                                                                                                </button>
-                                                                                                            );
-                                                                                                        }
+                                                                                        {msg.pseudo}{isMsgAdmin && <span className="ml-1 px-1 rounded text-white text-[6px] font-black uppercase" style={{ backgroundColor: (localSettings.adminColor || adminColor) }}>ADM</span>}:
+                                                                                    </span>
+                                                                                    <span
+                                                                                        className={`text-[8px] md:text-[10px] lg:text-[11px] font-medium leading-[1.1] break-words relative ${isBot ? "" : isMsgAdmin ? "" : "text-gray-200"}`}
+                                                                                        style={isBot ? { color: botColor } : isMsgAdmin ? { color: "#ffffff" } : {}}
+                                                                                    >
+                                                                                        {(() => {
+                                                                                            const text = msg.message;
+                                                                                            if (!text) return null;
+                                                                                            const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                                                                            const parts = text.split(urlRegex);
+                                                                                            return parts.map((part, i) => {
+                                                                                                if (part.match(urlRegex)) {
+                                                                                                    if (part.includes("#clip-")) {
+                                                                                                        const cId = part.split("#clip-")[1];
+                                                                                                        const targetClip = clips.find(c => c.id === cId);
                                                                                                         return (
-                                                                                                            <a
+                                                                                                            <button
                                                                                                                 key={i}
-                                                                                                                href={part}
-                                                                                                                target="_blank"
-                                                                                                                rel="noopener noreferrer"
-                                                                                                                className="text-cyan-400 hover:text-cyan-300 underline decoration-cyan-400/30 hover:decoration-cyan-400 underline-offset-4 font-bold transition-all break-all"
-                                                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                                                onClick={(e) => {
+                                                                                                                    e.preventDefault();
+                                                                                                                    e.stopPropagation();
+                                                                                                                    if (targetClip) {
+                                                                                                                        setActiveClipToPlay(targetClip);
+                                                                                                                        setShowClipPlayer(true);
+                                                                                                                        setIsMutedGlobal(true);
+                                                                                                                    }
+                                                                                                                }}
+                                                                                                                className="text-neon-cyan hover:text-white bg-neon-cyan/10 hover:bg-neon-cyan/30 px-1 py-0 rounded-sm border border-neon-cyan/20 font-black transition-all flex items-center gap-1 inline-flex text-[6px]"
                                                                                                             >
-                                                                                                                {part}
-                                                                                                            </a>
+                                                                                                                <Video className="w-2 h-2" /> CLIP
+                                                                                                            </button>
                                                                                                         );
                                                                                                     }
-                                                                                                    return part;
-                                                                                                });
-                                                                                            })()}
-                                                                                        </span>
-                                                                                        {hasModPowers && (isAdmin || !isMsgAdmin) && (
-                                                                                            <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20">
-                                                                                                <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1 px-1.5 hover:bg-white/10 rounded-lg text-gray-500 hover:text-white transition-all transition-colors"><Pin className="w-3.5 h-3.5" /></button>
-                                                                                                <button onClick={() => handleDelete(msg.id)} className="p-1 px-1.5 hover:bg-neon-red/20 rounded-lg text-gray-500 hover:text-neon-red transition-all transition-colors"><Trash2 className="w-3.5 h-3.5" /></button>
-                                                                                            </div>
-                                                                                        )}
-                                                                                    </div>
+                                                                                                    return (
+                                                                                                        <a
+                                                                                                            key={i}
+                                                                                                            href={part}
+                                                                                                            target="_blank"
+                                                                                                            rel="noopener noreferrer"
+                                                                                                            className="text-cyan-400 hover:text-cyan-300 underline font-bold"
+                                                                                                            onClick={(e) => e.stopPropagation()}
+                                                                                                        >
+                                                                                                            {part.length > 20 ? part.substring(0, 20) + "..." : part}
+                                                                                                        </a>
+                                                                                                    );
+                                                                                                }
+                                                                                                return part;
+                                                                                            });
+                                                                                        })()}
+                                                                                    </span>
+                                                                                    <span className="text-[5px] text-gray-700 font-bold uppercase ml-auto self-center">{msg.time}</span>
+                                                                                    {hasModPowers && (isAdmin || !isMsgAdmin) && (
+                                                                                        <div className="absolute top-0 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20 pointer-events-none md:pointer-events-auto">
+                                                                                            <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-0.5 px-1 hover:bg-white/10 rounded text-gray-500 hover:text-white transition-all pointer-events-auto"><Pin className="w-2.5 h-2.5" /></button>
+                                                                                            <button onClick={() => handleDelete(msg.id)} className="p-0.5 px-1 hover:bg-neon-red/20 rounded text-gray-500 hover:text-neon-red transition-all pointer-events-auto"><Trash2 className="w-2.5 h-2.5" /></button>
+                                                                                        </div>
+                                                                                    )}
                                                                                 </motion.div>
                                                                             );
                                                                         })}
@@ -5291,6 +5283,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                                                 {/* Chat Input Area */}
                                                                 <div className="p-2 md:p-3 lg:p-4 bg-[#0a0a0a] border-t border-white/10 relative lg:sticky bottom-0 z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)] pb-safe">
+
                                                                     <form onSubmit={handleSendMessage} className="relative group/input px-1 md:px-2 py-0.5 md:py-1">
                                                                         <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-xl lg:rounded-2xl transition-all" />
                                                                         <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl lg:rounded-2xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">

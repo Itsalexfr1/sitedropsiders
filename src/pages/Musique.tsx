@@ -311,7 +311,7 @@ export function Musique() {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="grid lg:grid-cols-1 gap-3 px-10 md:px-0"
+                                className="grid lg:grid-cols-1 gap-3 px-[10%] md:px-0"
                             >
                                 {getMockData(activeTab).map((track, i) => (
                                     <motion.div
