@@ -26,10 +26,12 @@ export function Layout({ children }: LayoutProps) {
     }, [location.pathname]);
 
     const isHome = location.pathname === '/';
+    const isMini = new URLSearchParams(location.search).get('mini') === 'true';
     const isAdminPage = location.pathname.startsWith('/admin') ||
         location.pathname.startsWith('/newsletter/admin') ||
         location.pathname.startsWith('/newsletter/studio') ||
-        location.pathname.includes('/create');
+        location.pathname.includes('/create') ||
+        isMini;
 
     const ptClass = isAdminPage ? 'pt-0' :
         (bannerEnabled ? 'pt-[112px]' : (isHome ? 'pt-0' : 'pt-20'));
