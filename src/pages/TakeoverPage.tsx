@@ -4475,6 +4475,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         {/* FLUX SELECTION - PERSISTENT AT TOP OF SIDEBAR */}
                                         <div className="px-4 pt-4 pb-0 shrink-0 z-[60]">
                                             <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 overflow-x-auto no-scrollbar shadow-lg">
+                                                {channelItems.length >= 2 && (
+                                                    <button
+                                                        onClick={() => setPlayersOption(playersOption === 4 ? 1 : 4)}
+                                                        className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[70px] ${playersOption === 4 ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(189,0,255,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                    >
+                                                        MULTIVUE
+                                                    </button>
+                                                )}
                                                 {channelItems.map((item: any, idx) => {
                                                     const isDisabled = settings.disableMainPlayer !== false;
                                                     if (item.isMain && isDisabled && playersOption === 1) return null;
@@ -4486,20 +4494,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 setActiveVideoIndex(idx);
                                                                 setPlayersOption(1);
                                                             }}
-                                                            className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-1 min-w-[70px] ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                            className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[70px] ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
                                                         >
                                                             {item.title}
                                                         </button>
                                                     );
                                                 })}
-                                                {channelItems.length >= 2 && (
-                                                    <button
-                                                        onClick={() => setPlayersOption(playersOption === 4 ? 1 : 4)}
-                                                        className={`px-3 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-1 min-w-[70px] ${playersOption === 4 ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(189,0,255,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-                                                    >
-                                                        MULTIVUE
-                                                    </button>
-                                                )}
                                             </div>
                                         </div>
 
