@@ -10,6 +10,7 @@ import {
     Star, ShieldCheck
 } from 'lucide-react';
 import { GlitchTransition } from '../components/ui/GlitchTransition';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 
 const XIcon = ({ className }: { className?: string }) => (
@@ -125,6 +126,20 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const editeurAuth = localStorage.getItem('editeur_auth') === 'true';
     const isServerAdmin = adminAuth === true || editeurAuth === true;
 
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        onConfirm: () => void;
+        type?: 'danger' | 'warning' | 'info';
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'info'
+    });
+
     const [pseudo, setPseudo] = useState(() => {
         if (adminAuth) return localStorage.getItem('admin_user')?.toUpperCase() || 'ADMIN';
         return localStorage.getItem('chat_pseudo') || '';
@@ -148,6 +163,19 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [clips, setClips] = useState<any[]>([]);
     const [_activeClipPopup, _setActiveClipPopup] = useState<any>(null);
     const [newVideoId, setNewVideoId] = useState('');
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean,
+        title: string,
+        message: string,
+        onConfirm: () => void,
+        type: 'danger' | 'warning' | 'info'
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
     const [showLineup, setShowLineup] = useState(false);
     const [showVideoEdit, setShowVideoEdit] = useState(false);
     const [showClipModal, setShowClipModal] = useState(false);
@@ -1682,7 +1710,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     };
 
     const handleClearChat = async () => {
-        if (!confirm('Voulez-vous vraiment vider le chat ? Cette action est irréversible.')) return;
+        setConfirmModal({
+            isOpen: true,
+            title: 'Vider le chat',
+            message: 'Voulez-vous vraiment vider le chat ? Cette action est irréversible et supprimera TOUS les messages.',
+            type: 'danger',
+            onConfirm: () => performClearChat()
+        });
+    };
+
+    const performClearChat = async () => {
         try {
             const res = await fetch('/api/chat/clear', {
                 method: 'POST',
@@ -1695,6 +1732,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             }
         } catch (e) {
             console.error('Failed to clear chat', e);
+        } finally {
+            setConfirmModal(prev => ({ ...prev, isOpen: false }));
         }
     };
 
@@ -5674,33 +5713,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         )}
 
                                         {/* Actions */}
-                                        <div className="flex gap-2 pt-1">
-                                            <button
-                                                onClick={async () => {
-                                                    setQuizPopupAnswer(null);
-                                                    setQuizPopupLoading(true);
-                                                    try {
-                                                        const res = await fetch('/api/quiz/active');
-                                                        if (res.ok) {
-                                                            const data = await res.json();
-                                                            const valid = Array.isArray(data) ? data.filter((q: any) => q && q.question && Array.isArray(q.options) && q.options.length > 0) : [];
-                                                            if (valid.length > 0) {
-                                                                const filtered = valid.filter((q: any) => q.id !== quizPopupQuestion?.id);
-                                                                const pool = filtered.length > 0 ? filtered : valid;
-                                                                setQuizPopupQuestion(pool[Math.floor(Math.random() * pool.length)]);
-                                                            }
-                                                        }
-                                                    } catch (e) { } finally {
-                                                        setQuizPopupLoading(false);
-                                                    }
-                                                }}
-                                                className="flex-1 py-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-black uppercase tracking-widest text-[9px] rounded-xl hover:bg-yellow-500/20 transition-all active:scale-95"
-                                            >
-                                                🎲 Autre
-                                            </button>
+                                        <div className="pt-1">
                                             <button
                                                 onClick={() => { setShowQuizPopup(false); setQuizPopupAnswer(null); setQuizPopupQuestion(null); }}
-                                                className="flex-1 py-2 bg-white/5 border border-white/10 text-gray-400 font-black uppercase tracking-widest text-[9px] rounded-xl hover:bg-white/10 transition-all active:scale-95"
+                                                className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-white/10 transition-all active:scale-95"
                                             >
                                                 Fermer
                                             </button>
@@ -5913,8 +5929,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
             `}</style>
-
-
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                type={confirmModal.type}
+            />
         </>
     );
 }

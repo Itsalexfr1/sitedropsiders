@@ -30,7 +30,8 @@ export type TranslationKey =
     | 'communaute.blindtest_title' | 'communaute.blindtest_subtitle'
     | 'communaute.guide_title' | 'communaute.guide_subtitle'
     | 'communaute.covoit_title' | 'communaute.covoit_subtitle'
-    | 'communaute.alerts_title' | 'communaute.alerts_subtitle';
+    | 'communaute.alerts_title' | 'communaute.alerts_subtitle'
+    | 'quizz.festival_question' | 'quizz.artist_question';
 
 export const translations: Record<TranslationKey, { fr: string, en: string }> = {
     'article_detail.link_copied': { fr: 'Lien copié !', en: 'Link copied!' },
@@ -316,6 +317,8 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'communaute.guide_subtitle': { fr: 'Les meilleurs conseils de la communauté pour tes festivals.', en: 'The best community tips for your festivals.' },
     'communaute.covoit_title': { fr: 'COVOITURAGE', en: 'CARPOOLING' },
     'communaute.covoit_subtitle': { fr: 'Propose ou trouve un trajet pour ton prochain festival.', en: 'Offer or find a ride for your next festival.' },
-    'communaute.alerts_title': { fr: 'ALERTES LINE-UP', en: 'LINE-UP ALERTS' },
-    'communaute.alerts_subtitle': { fr: 'Ne manque jamais l\'annonce de tes artistes préférés.', en: 'Never miss an announcement for your favorite artists.' }
+    'communaute.alerts_title': { fr: 'Alertes Line-up', en: 'Line-up Alerts' },
+    'communaute.alerts_subtitle': { fr: 'Ne manque jamais l\'annonce de tes artistes préférés.', en: 'Never miss an announcement for your favorite artists.' },
+    'quizz.festival_question': { fr: "DE QUEL FESTIVAL S'AGIT-IL ?", en: "WHICH FESTIVAL IS IT?" },
+    'quizz.artist_question': { fr: "DE QUEL ARTISTE S'AGIT-IL ?", en: "WHICH ARTIST IS IT?" }
 };

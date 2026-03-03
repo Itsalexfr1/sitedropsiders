@@ -1,8 +1,10 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gamepad2, Music2, Plus, CheckCircle2, XCircle, Trophy, Send, Clock, Play, BarChart3, Zap, User } from 'lucide-react';
+import { Gamepad2, Music2, Plus, CheckCircle2, XCircle, Trophy, Send, Play, Youtube, User, Zap, Camera, Upload, Image as ImageIcon } from 'lucide-react';
+import { uploadFile } from '../../utils/uploadService';
+import { useLanguage } from '../../context/LanguageContext';
 
-type QuizType = 'QCM' | 'BLIND_TEST' | 'IMAGE' | 'VIDEO';
+type QuizType = 'QCM' | 'BLIND_TEST' | 'IMAGE';
 type GameLength = 5 | 10 | 20;
 
 interface Quiz {
@@ -14,6 +16,8 @@ interface Quiz {
     category: string;
     audioUrl?: string;
     imageUrl?: string;
+    imageType?: 'FESTIVAL' | 'ARTIST';
+    revealEffect?: 'BLUR' | 'MOSAIC';
     youtubeId?: string;
     author: string;
 }
@@ -28,6 +32,7 @@ interface ScoreRecord {
 }
 
 export function QuizSection() {
+    const { t, language } = useLanguage();
     const [activeTab, setActiveTab] = useState<'play' | 'submit'>('play');
     const [gameState, setGameState] = useState<'selection' | 'playing' | 'results'>('selection');
     const [selectedMode, setSelectedMode] = useState<QuizType | 'BOTH'>('QCM');
@@ -40,8 +45,6 @@ export function QuizSection() {
     const [score, setScore] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const [timer, setTimer] = useState(0);
-    const [isTimerRunning, setIsTimerRunning] = useState(false);
     const [gamePseudo, setGamePseudo] = useState(localStorage.getItem('user_pseudo') || '');
 
     const [leaderboard, setLeaderboard] = useState<ScoreRecord[]>([]);
@@ -50,13 +53,22 @@ export function QuizSection() {
     const [formData, setFormData] = useState({
         type: 'QCM' as QuizType,
         category: 'Festivals',
+        imageType: 'FESTIVAL' as 'FESTIVAL' | 'ARTIST',
+        revealEffect: 'BLUR' as 'BLUR' | 'MOSAIC',
         question: '',
         options: ['', '', '', ''],
         correctAnswer: '',
         audioUrl: '',
+        imageUrl: '',
+        youtubeId: '',
         author: ''
     });
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [showPreview, setShowPreview] = useState(false);
+    const [questionTimer, setQuestionTimer] = useState(15);
+    const [totalGameTime, setTotalGameTime] = useState(0);
+    const [isRevealing, setIsRevealing] = useState(false);
+    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
         fetchQuizzes();
@@ -65,20 +77,72 @@ export function QuizSection() {
 
     useEffect(() => {
         let interval: any;
-        if (isTimerRunning) {
+        if (gameState === 'playing' && !selectedAnswer && !isRevealing) {
             interval = setInterval(() => {
-                setTimer(prev => prev + 0.1);
+                setQuestionTimer(prev => {
+                    if (prev <= 0.1) {
+                        handleAnswer(''); // Auto-submit empty answer on timeout
+                        return 0;
+                    }
+                    return prev - 0.1;
+                });
+                setTotalGameTime(prev => prev + 0.1);
             }, 100);
         }
         return () => clearInterval(interval);
-    }, [isTimerRunning]);
+    }, [gameState, selectedAnswer, isRevealing]);
+
+    useEffect(() => {
+        const fetchYoutubeTitle = async () => {
+            if (formData.type === 'BLIND_TEST' && formData.youtubeId.length === 11) {
+                try {
+                    const res = await fetch(`https://noembed.com/embed?url=https://www.youtube.com/watch?v=${formData.youtubeId}`);
+                    const data = await res.json();
+                    if (data.title) {
+                        // Clean title
+                        let cleanTitle = data.title
+                            .replace(/(\[|\()(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix).*?(\]|\))/gi, '')
+                            .replace(/(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix)/gi, '')
+                            .replace(/\s+/g, ' ')
+                            .trim();
+
+                        // Get 3 distractors from existing quizzes
+                        const blindTestQuizzes = quizzes.filter(q => q.type === 'BLIND_TEST' && q.correctAnswer !== cleanTitle);
+                        let distractors = [...blindTestQuizzes]
+                            .sort(() => Math.random() - 0.5)
+                            .slice(0, 3)
+                            .map(q => q.correctAnswer);
+
+                        // Fill if not enough
+                        while (distractors.length < 3) {
+                            distractors.push("Generic Track " + (distractors.length + 1));
+                        }
+
+                        const allOptions = [cleanTitle, ...distractors].sort(() => Math.random() - 0.5);
+
+                        setFormData(prev => ({
+                            ...prev,
+                            question: prev.question || (language === 'fr' ? "QUI EST L'AUTEUR / QUEL EST LE TITRE ?" : "WHO IS THE ARTIST / WHAT IS THE TITLE?"),
+                            correctAnswer: cleanTitle,
+                            options: allOptions
+                        }));
+                    }
+                } catch (e) {
+                    console.error('Error fetching YT title:', e);
+                }
+            }
+        };
+
+        fetchYoutubeTitle();
+    }, [formData.youtubeId, formData.type]);
 
     const fetchQuizzes = async () => {
+        setLoading(true);
         try {
             const res = await fetch('/api/quiz/active');
             if (res.ok) {
                 const data = await res.json();
-                setQuizzes(data);
+                setQuizzes(Array.isArray(data) ? data : []);
             }
         } catch (e) {
             console.error('Error fetching quizzes:', e);
@@ -92,17 +156,20 @@ export function QuizSection() {
             const res = await fetch('/api/quiz/leaderboard');
             if (res.ok) {
                 const data = await res.json();
-                setLeaderboard(data);
+                setLeaderboard(Array.isArray(data) ? data : []);
             }
         } catch (e) {
-            // Fallback empty leaderboard
             setLeaderboard([]);
         }
     };
 
     const startNewGame = () => {
-        let filtered = quizzes;
+        if (!gamePseudo.trim()) {
+            alert("Veuillez entrer votre prénom / pseudo pour participer !");
+            return;
+        }
 
+        let filtered = quizzes;
         if (selectedMode !== 'BOTH') {
             filtered = filtered.filter(q => q.type === selectedMode);
         }
@@ -110,74 +177,79 @@ export function QuizSection() {
         if (selectedTheme !== 'ALL') {
             if (selectedTheme === 'Blind Test') {
                 filtered = filtered.filter(q => q.type === 'BLIND_TEST');
-            } else if (selectedTheme === 'Images') {
-                filtered = filtered.filter(q => q.type === 'IMAGE');
-            } else if (selectedTheme === 'Videos') {
-                filtered = filtered.filter(q => q.type === 'VIDEO');
-            } else if (selectedTheme === 'Bass Music') {
-                filtered = filtered.filter(q => q.category === 'Bass');
             } else {
                 filtered = filtered.filter(q => q.category === selectedTheme);
             }
         }
 
-        // Shuffle
-        const shuffled = [...filtered].sort(() => Math.random() - 0.5);
-        const selection = shuffled.slice(0, selectedLength);
-
-        if (!gamePseudo.trim()) {
-            alert("Veuillez entrer votre prénom / pseudo pour participer !");
+        if (filtered.length === 0) {
+            alert("Aucune question trouvée pour ces critères !");
             return;
         }
 
         localStorage.setItem('user_pseudo', gamePseudo.trim());
 
+        // Shuffle
+        const shuffled = [...filtered].sort(() => Math.random() - 0.5);
+        const selection = shuffled.slice(0, selectedLength);
+
         setGameQuizzes(selection);
         setCurrentQuizIndex(0);
         setScore(0);
-        setTimer(0);
-        setIsTimerRunning(true);
+        setQuestionTimer(15);
+        setTotalGameTime(0);
         setGameState('playing');
         setSelectedAnswer(null);
+        setIsRevealing(false);
     };
 
     const handleAnswer = (answer: string) => {
-        if (selectedAnswer) return;
+        if (selectedAnswer || isRevealing) return;
 
         setSelectedAnswer(answer);
         const correct = answer === gameQuizzes[currentQuizIndex].correctAnswer;
         if (correct) setScore(score + 1);
 
-        setTimeout(() => {
-            if (currentQuizIndex < gameQuizzes.length - 1) {
-                setCurrentQuizIndex(currentQuizIndex + 1);
-                setSelectedAnswer(null);
-            } else {
-                finishGame();
-            }
-        }, 1000);
+        // Se l'immagine è un artista o se vogliamo comunque una fase di rivelazione
+        const isArtist = gameQuizzes[currentQuizIndex].imageType === 'ARTIST';
+
+        if (isArtist || !answer) {
+            setIsRevealing(true);
+            setTimeout(() => {
+                advanceQuiz();
+            }, 3000);
+        } else {
+            setTimeout(() => {
+                advanceQuiz();
+            }, 1200);
+        }
+    };
+
+    const advanceQuiz = () => {
+        if (currentQuizIndex < gameQuizzes.length - 1) {
+            setCurrentQuizIndex(currentQuizIndex + 1);
+            setSelectedAnswer(null);
+            setIsRevealing(false);
+            setQuestionTimer(15);
+        } else {
+            finishGame();
+        }
     };
 
     const finishGame = async () => {
-        setIsTimerRunning(false);
         setGameState('results');
 
-        const pseudo = gamePseudo.trim() || 'Anonyme';
-        const result: ScoreRecord = {
-            id: Date.now().toString(),
-            pseudo,
-            score,
-            total: gameQuizzes.length,
-            time: Number(timer.toFixed(1)),
-            date: new Date().toISOString()
-        };
-
-        // Post to leaderboard
+        // Save record
         try {
             await fetch('/api/quiz/leaderboard', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(result)
+                body: JSON.stringify({
+                    pseudo: gamePseudo,
+                    score,
+                    total: gameQuizzes.length,
+                    time: totalGameTime
+                })
             });
             fetchLeaderboard();
         } catch (e) { }
@@ -186,24 +258,33 @@ export function QuizSection() {
     const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitStatus('loading');
+
         try {
             const res = await fetch('/api/quiz/submit', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
+
             if (res.ok) {
                 setSubmitStatus('success');
-                setFormData({
-                    type: 'QCM',
-                    category: 'Festivals',
-                    question: '',
-                    options: ['', '', '', ''],
-                    correctAnswer: '',
-                    audioUrl: '',
-                    author: ''
-                });
-                setTimeout(() => setSubmitStatus('idle'), 3000);
+                setTimeout(() => {
+                    setSubmitStatus('idle');
+                    setFormData({
+                        type: 'QCM',
+                        category: 'Festivals',
+                        imageType: 'FESTIVAL',
+                        revealEffect: 'BLUR',
+                        question: '',
+                        options: ['', '', '', ''],
+                        correctAnswer: '',
+                        audioUrl: '',
+                        imageUrl: '',
+                        youtubeId: '',
+                        author: ''
+                    });
+                    setActiveTab('play');
+                }, 2000);
             } else {
                 setSubmitStatus('error');
             }
@@ -213,7 +294,7 @@ export function QuizSection() {
     };
 
     const themes = [
-        'ALL', 'Blind Test', 'Images', 'Videos', 'Techno', 'Bass Music', 'Hardcore', 'Tech House', 'Big Room', 'Trance', 'Hardstyle', 'Afro House', 'Progressive', 'House', 'Festivals', 'DJs', 'Classics', 'Production'
+        'ALL', 'Blind Test', 'Techno', 'Bass Music', 'Hardcore', 'Tech House', 'Big Room', 'Trance', 'Hardstyle', 'Afro House', 'Progressive', 'House', 'Festivals', 'DJs', 'Classics', 'Production'
     ];
 
     if (loading) {
@@ -225,24 +306,37 @@ export function QuizSection() {
     }
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-12">
+            {/* SVG Filter for Mosaic Effect */}
+            <svg className="hidden">
+                <defs>
+                    <filter id="pixelate-mosaic">
+                        <feFlood x="4" y="4" height="2" width="2" />
+                        <feComposite width="10" height="10" />
+                        <feTile result="a" />
+                        <feComposite in="SourceGraphic" in2="a" operator="in" />
+                        <feMorphology operator="dilate" radius="2" />
+                    </filter>
+                </defs>
+            </svg>
+            {/* Tabs */}
             <div className="flex justify-center gap-4">
                 <button
-                    onClick={() => { setActiveTab('play'); setGameState('selection'); }}
-                    className={`px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'play' ? 'bg-white text-black shadow-lg shadow-white/10' : 'bg-white/5 text-white/40 border border-white/10'}`}
+                    onClick={() => setActiveTab('play')}
+                    className={`px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'play' ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20' : 'bg-white/5 text-white/40 border border-white/10'}`}
                 >
-                    JOUER
+                    {t('article_reader.play')}
                 </button>
                 <button
                     onClick={() => setActiveTab('submit')}
                     className={`px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all ${activeTab === 'submit' ? 'bg-white text-black shadow-lg shadow-white/10' : 'bg-white/5 text-white/40 border border-white/10'}`}
                 >
-                    PROPOSER UN QUIZZ
+                    {t('communaute.quizz_submit_title')}
                 </button>
             </div>
 
             {activeTab === 'play' ? (
-                <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto">
+                <div className="flex flex-col lg:flex-row gap-8 max-w-7xl mx-auto px-4">
                     {/* Main Game Area */}
                     <div className="flex-1">
                         <AnimatePresence mode="wait">
@@ -255,7 +349,7 @@ export function QuizSection() {
                                     className="bg-white/5 border border-white/10 rounded-[3rem] p-10 backdrop-blur-3xl overflow-hidden relative h-full"
                                 >
                                     <div className="absolute top-0 right-0 p-8 opacity-5">
-                                        <Zap className="w-32 h-32 text-white" />
+                                        <Gamepad2 className="w-32 h-32 text-white" />
                                     </div>
                                     <h3 className="text-3xl font-display font-black text-white italic uppercase mb-8 flex items-center gap-4">
                                         <Gamepad2 className="w-8 h-8 text-neon-red" />
@@ -263,59 +357,66 @@ export function QuizSection() {
                                     </h3>
 
                                     <div className="space-y-8 relative z-10">
-                                        <div className="bg-neon-red/5 p-6 rounded-3xl border border-neon-red/20 shadow-[0_0_30px_rgba(255,17,17,0.05)]">
-                                            <p className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                                                <User className="w-3 h-3" /> VOTRE PRÉNOM / PSEUDO (OBLIGATOIRE)
-                                            </p>
-                                            <input
-                                                type="text"
-                                                value={gamePseudo}
-                                                onChange={(e) => setGamePseudo(e.target.value)}
-                                                placeholder="EX: ALEX, LEO..."
-                                                className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white font-black uppercase placeholder-white/20 focus:outline-none focus:border-neon-red transition-all"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <p className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em] mb-4">MODE DE JEU</p>
-                                            <div className="flex flex-wrap gap-2 p-1 bg-black/40 rounded-2xl w-fit">
-                                                {(['QCM', 'BLIND_TEST', 'BOTH'] as const).map(mode => (
-                                                    <button
-                                                        key={mode}
-                                                        onClick={() => setSelectedMode(mode)}
-                                                        className={`px-6 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${selectedMode === mode ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
-                                                    >
-                                                        {mode === 'BOTH' ? 'TOUT' : (mode === 'QCM' ? 'QUIZZ' : 'BLIND TEST')}
-                                                    </button>
-                                                ))}
+                                        <div className="space-y-4">
+                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Pseudo / Prénom</label>
+                                            <div className="relative">
+                                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                                                <input
+                                                    type="text"
+                                                    value={gamePseudo}
+                                                    onChange={e => setGamePseudo(e.target.value.toUpperCase())}
+                                                    placeholder="COMMENCE PAR TON NOM..."
+                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-black uppercase tracking-wider focus:outline-none focus:border-neon-red transition-all"
+                                                />
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <p className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em] mb-4">NOMBRE DE QUESTIONS</p>
-                                            <div className="flex gap-2 p-1 bg-black/40 rounded-2xl w-fit">
-                                                {([5, 10, 20] as const).map(len => (
-                                                    <button
-                                                        key={len}
-                                                        onClick={() => setSelectedLength(len)}
-                                                        className={`px-8 py-2 rounded-xl text-[10px] font-black tracking-widest transition-all ${selectedLength === len ? 'bg-white text-black' : 'text-gray-500 hover:text-white'}`}
-                                                    >
-                                                        {len === 5 ? 'COURT (5)' : (len === 10 ? 'MOYEN (10)' : 'LONG (20)')}
-                                                    </button>
-                                                ))}
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                            <div className="space-y-4">
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Mode de Jeu</label>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {[
+                                                        { id: 'QCM', label: 'QCM' },
+                                                        { id: 'BLIND_TEST', label: 'BLIND TEST' },
+                                                        { id: 'BOTH', label: 'MIXTE' }
+                                                    ].map(opt => (
+                                                        <button
+                                                            key={opt.id}
+                                                            onClick={() => setSelectedMode(opt.id as any)}
+                                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
+                                                        >
+                                                            {opt.label}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Nombre de questions</label>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    {[5, 10, 20].map(n => (
+                                                        <button
+                                                            key={n}
+                                                            onClick={() => setSelectedLength(n as GameLength)}
+                                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${selectedLength === n ? 'bg-white text-black border-white shadow-lg' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
+                                                        >
+                                                            {n}
+                                                        </button>
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div>
-                                            <p className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em] mb-4">THÈME</p>
-                                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+                                        <div className="space-y-4">
+                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Thématique</label>
+                                            <div className="flex flex-wrap gap-2">
                                                 {themes.map(t => (
                                                     <button
                                                         key={t}
                                                         onClick={() => setSelectedTheme(t)}
-                                                        className={`px-4 py-2 rounded-xl text-[10px] font-black tracking-widest text-left transition-all ${selectedTheme === t ? 'bg-neon-red text-white' : 'bg-white/5 text-gray-400 hover:text-white border border-white/5'}`}
+                                                        className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${selectedTheme === t ? 'bg-neon-red text-white border-neon-red shadow-lg' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
                                                     >
-                                                        {t.toUpperCase()}
+                                                        {t}
                                                     </button>
                                                 ))}
                                             </div>
@@ -338,72 +439,128 @@ export function QuizSection() {
                                     initial={{ opacity: 0, x: 100 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     exit={{ opacity: 0, x: -100 }}
-                                    className="bg-white/5 border border-white/10 rounded-[3rem] p-10 backdrop-blur-3xl"
+                                    className="bg-white/5 border border-white/10 rounded-[3rem] p-10 backdrop-blur-3xl min-h-[600px] flex flex-col"
                                 >
+                                    {/* Simplified Header: Prenom + Question count */}
                                     <div className="flex justify-between items-center mb-10">
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.4em] mb-2">
-                                                QUESTION {currentQuizIndex + 1} / {gameQuizzes.length}
-                                            </span>
-                                            <h2 className="text-gray-500 text-[10px] font-black uppercase tracking-widest">{gameQuizzes[currentQuizIndex].category}</h2>
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 rounded-full bg-neon-red/20 border border-neon-red/40 flex items-center justify-center font-black text-neon-red text-sm italic">
+                                                {gamePseudo.charAt(0)}
+                                            </div>
+                                            <h2 className="text-white font-black uppercase italic tracking-tighter">
+                                                {gamePseudo} <span className="text-neon-red mx-2">/</span>
+                                                <span className="text-gray-500">QUESTION {currentQuizIndex + 1} SUR {gameQuizzes.length}</span>
+                                            </h2>
                                         </div>
-                                        <div className="flex items-center gap-8">
-                                            <div className="flex items-center gap-3 bg-neon-red/10 px-4 py-2 rounded-2xl border border-neon-red/20 shadow-[0_0_20px_rgba(255,17,17,0.1)]">
-                                                <Clock className="w-5 h-5 text-neon-red" />
-                                                <span className="text-xl font-display font-black text-white tabular-nums">{timer.toFixed(1)}s</span>
+                                        <div className="flex items-center gap-3 bg-neon-red/10 px-4 py-2 rounded-2xl border border-neon-red/20">
+                                            <div className="w-4 h-4 text-neon-red flex items-center justify-center">
+                                                <div className="w-1.5 h-1.5 bg-neon-red rounded-full animate-ping" />
                                             </div>
-                                            <div className="flex items-center gap-3 bg-white/5 px-4 py-2 rounded-2xl border border-white/10">
-                                                <Trophy className="w-5 h-5 text-yellow-500" />
-                                                <span className="text-xl font-display font-black text-white">{score}</span>
-                                            </div>
+                                            <span className="text-base font-display font-black text-white tabular-nums">{questionTimer.toFixed(1)}s</span>
                                         </div>
                                     </div>
 
-                                    <div className="mb-10 text-center">
-                                        <h3 className="text-3xl md:text-4xl font-display font-black text-white uppercase tracking-tighter italic mb-8 leading-tight">
+                                    <div className="mb-10 text-center flex-1 flex flex-col justify-center">
+                                        <div className="mb-4 h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                                            <motion.div
+                                                className="h-full bg-neon-red shadow-[0_0_10px_#ff1241]"
+                                                initial={{ width: '100%' }}
+                                                animate={{ width: `${(questionTimer / 15) * 100}%` }}
+                                                transition={{ duration: 0.1, ease: "linear" }}
+                                            />
+                                        </div>
+                                        <h3 className="text-3xl md:text-4xl font-display font-black text-white uppercase tracking-tighter italic mb-10 leading-tight">
                                             {gameQuizzes[currentQuizIndex].question}
                                         </h3>
 
-                                        {gameQuizzes[currentQuizIndex].type === 'BLIND_TEST' && (
-                                            <div className="mb-8 p-10 bg-black/40 rounded-[2.5rem] border border-white/5 flex flex-col items-center justify-center relative overflow-hidden group">
-                                                <div className="absolute inset-0 bg-gradient-to-br from-neon-red/10 to-transparent"></div>
-                                                <Music2 className="w-16 h-16 text-neon-red animate-bounce relative z-10" />
-                                                <p className="mt-4 text-[10px] font-black text-gray-500 uppercase tracking-widest relative z-10">L'extrait audio est en lecture...</p>
+                                        {/* Visual Hider for Video/Audio */}
+                                        <div className="relative w-full aspect-video rounded-[3rem] overflow-hidden border border-white/10 shadow-2xl group">
+                                            {/* BLIND TEST VISUAL OVERLAY */}
+                                            <div className="absolute inset-0 z-20 pointer-events-none flex flex-col items-center justify-center bg-[#0a0a0a]">
+                                                {/* Animated pulses in background */}
+                                                <div className="absolute inset-0 overflow-hidden">
+                                                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-neon-red/10 rounded-full blur-[120px] animate-pulse" />
+                                                </div>
 
-                                                {gameQuizzes[currentQuizIndex].audioUrl && (
-                                                    <audio autoPlay key={gameQuizzes[currentQuizIndex].id}>
-                                                        <source src={gameQuizzes[currentQuizIndex].audioUrl} type="audio/mpeg" />
-                                                    </audio>
+                                                {/* Text Visual */}
+                                                <motion.div
+                                                    initial={{ scale: 0.9, opacity: 0 }}
+                                                    animate={{ scale: 1, opacity: 1 }}
+                                                    className="relative z-10 text-center"
+                                                >
+                                                    <h4 className="text-7xl md:text-9xl font-display font-black text-white uppercase italic tracking-tighter leading-none mb-4 drop-shadow-[0_0_50px_rgba(255,255,255,0.2)]">
+                                                        BLIND <span className="text-neon-red">TEST</span>
+                                                    </h4>
+                                                    <div className="flex items-center justify-center gap-6 mt-8">
+                                                        <div className="h-[2px] w-20 bg-gradient-to-r from-transparent to-white/20" />
+                                                        <div className="p-4 bg-white/5 rounded-full border border-white/10 backdrop-blur-md animate-bounce">
+                                                            <Music2 className="w-8 h-8 text-neon-red" />
+                                                        </div>
+                                                        <div className="h-[2px] w-20 bg-gradient-to-l from-transparent to-white/20" />
+                                                    </div>
+                                                </motion.div>
+                                            </div>
+
+                                            {/* Background content (Hidden) */}
+                                            <div className="w-full h-full">
+                                                {gameQuizzes[currentQuizIndex].type === 'BLIND_TEST' && (
+                                                    <div className="w-full h-full flex items-center justify-center bg-black">
+                                                        {gameQuizzes[currentQuizIndex].audioUrl && (
+                                                            <audio autoPlay key={`${gameQuizzes[currentQuizIndex].id}-audio`}>
+                                                                <source src={gameQuizzes[currentQuizIndex].audioUrl} type="audio/mpeg" />
+                                                            </audio>
+                                                        )}
+                                                        {gameQuizzes[currentQuizIndex].youtubeId && (
+                                                            <div className="absolute inset-0 pointer-events-none opacity-0">
+                                                                <iframe
+                                                                    width="100%"
+                                                                    height="100%"
+                                                                    src={`https://www.youtube.com/embed/${gameQuizzes[currentQuizIndex].youtubeId}?autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=0&start=${90 + Math.floor(Math.random() * 15)}`}
+                                                                    allow="autoplay"
+                                                                ></iframe>
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+                                                {gameQuizzes[currentQuizIndex].type === 'QCM' && (
+                                                    <div className="w-full h-full bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a] flex items-center justify-center">
+                                                        <Gamepad2 className="w-24 h-24 text-white/5 rotate-12" />
+                                                    </div>
+                                                )}
+                                                {gameQuizzes[currentQuizIndex].imageUrl && (
+                                                    <div className="flex-1 min-h-0 relative rounded-3xl overflow-hidden border border-white/10">
+                                                        {gameQuizzes[currentQuizIndex].imageType === 'ARTIST' ? (
+                                                            <div className="absolute inset-0">
+                                                                <img
+                                                                    src={gameQuizzes[currentQuizIndex].imageUrl}
+                                                                    alt="Quiz"
+                                                                    className="w-full h-full object-cover transition-all duration-300"
+                                                                    style={{
+                                                                        filter: (selectedAnswer || isRevealing)
+                                                                            ? 'none'
+                                                                            : gameQuizzes[currentQuizIndex].revealEffect === 'MOSAIC'
+                                                                                ? `url(#pixelate-mosaic) blur(${Math.max(0, questionTimer / 2)}px)`
+                                                                                : `blur(${Math.max(0, questionTimer * 2)}px)`
+                                                                    }}
+                                                                />
+                                                                {!selectedAnswer && !isRevealing && (
+                                                                    <div className="absolute inset-0 bg-black/20 backdrop-blur-[2px]" />
+                                                                )}
+                                                            </div>
+                                                        ) : (
+                                                            <img
+                                                                src={gameQuizzes[currentQuizIndex].imageUrl}
+                                                                alt="Quiz"
+                                                                className="w-full h-full object-cover"
+                                                            />
+                                                        )}
+                                                    </div>
                                                 )}
                                             </div>
-                                        )}
-
-                                        {gameQuizzes[currentQuizIndex].type === 'IMAGE' && gameQuizzes[currentQuizIndex].imageUrl && (
-                                            <div className="mb-8 rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl max-w-2xl mx-auto">
-                                                <img
-                                                    src={gameQuizzes[currentQuizIndex].imageUrl}
-                                                    alt="Quiz"
-                                                    className="w-full h-auto object-cover max-h-[400px]"
-                                                />
-                                            </div>
-                                        )}
-
-                                        {gameQuizzes[currentQuizIndex].type === 'VIDEO' && gameQuizzes[currentQuizIndex].youtubeId && (
-                                            <div className="mb-8 rounded-[2.5rem] overflow-hidden border border-white/10 shadow-2xl aspect-video max-w-2xl mx-auto">
-                                                <iframe
-                                                    width="100%"
-                                                    height="100%"
-                                                    src={`https://www.youtube.com/embed/${gameQuizzes[currentQuizIndex].youtubeId}?autoplay=1`}
-                                                    title="YouTube video player"
-                                                    frameBorder="0"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                    allowFullScreen
-                                                ></iframe>
-                                            </div>
-                                        )}
+                                        </div>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-auto">
                                         {gameQuizzes[currentQuizIndex].options.map((option, idx) => {
                                             const isSelected = selectedAnswer === option;
                                             const isCorrectOpt = option === gameQuizzes[currentQuizIndex].correctAnswer;
@@ -417,7 +574,7 @@ export function QuizSection() {
 
                                             return (
                                                 <motion.button
-                                                    key={idx}
+                                                    key={`${currentQuizIndex}-${idx}`}
                                                     whileHover={{ scale: selectedAnswer ? 1 : 1.02 }}
                                                     whileTap={{ scale: selectedAnswer ? 1 : 0.98 }}
                                                     onClick={() => handleAnswer(option)}
@@ -449,14 +606,10 @@ export function QuizSection() {
                                     <Trophy className="w-24 h-24 text-yellow-500 mx-auto mb-10 drop-shadow-[0_0_30px_rgba(234,179,8,0.4)]" />
                                     <h2 className="text-4xl md:text-5xl font-display font-black text-white italic uppercase mb-4 tracking-tighter">TERMINE !</h2>
 
-                                    <div className="grid grid-cols-2 gap-4 max-w-md mx-auto mb-10">
-                                        <div className="bg-white/5 p-6 rounded-[2rem] border border-white/10">
-                                            <p className="text-neon-red text-[8px] font-black uppercase mb-1">SCORE</p>
-                                            <p className="text-3xl font-display font-black text-white">{score} / {gameQuizzes.length}</p>
-                                        </div>
-                                        <div className="bg-white/5 p-6 rounded-[2rem] border border-white/10">
-                                            <p className="text-neon-red text-[8px] font-black uppercase mb-1">TEMPS</p>
-                                            <p className="text-3xl font-display font-black text-white tabular-nums">{timer.toFixed(1)}s</p>
+                                    <div className="max-w-md mx-auto mb-10">
+                                        <div className="bg-white/5 p-8 rounded-[2rem] border border-white/10">
+                                            <p className="text-neon-red text-[8px] font-black uppercase mb-1">SCORE FINAL</p>
+                                            <p className="text-5xl font-display font-black text-white">{score} / {gameQuizzes.length}</p>
                                         </div>
                                     </div>
 
@@ -487,43 +640,19 @@ export function QuizSection() {
                                 <h4 className="text-xs font-black text-white uppercase tracking-[0.3em]">CLASSEMENT GLOBAL</h4>
                             </div>
 
-                            <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-2 custom-scrollbar">
-                                {leaderboard.length === 0 ? (
-                                    <div className="py-10 text-center">
-                                        <BarChart3 className="w-8 h-8 text-gray-800 mx-auto mb-4" />
-                                        <p className="text-[10px] font-bold text-gray-600 uppercase">Aucun record</p>
+                            <div className="space-y-4">
+                                {leaderboard.slice(0, 10).map((record, idx) => (
+                                    <div key={record.id || idx} className="flex items-center justify-between group">
+                                        <div className="flex items-center gap-3">
+                                            <span className={`w-6 text-[10px] font-black ${idx < 3 ? 'text-neon-red' : 'text-gray-600'}`}>0{idx + 1}</span>
+                                            <div className="flex flex-col">
+                                                <span className="text-[11px] font-black text-white group-hover:text-neon-red transition-colors">{record.pseudo}</span>
+                                                <span className="text-[8px] text-gray-600 font-bold tracking-widest">{record.score}/{record.total} • {record.time.toFixed(1)}s</span>
+                                            </div>
+                                        </div>
+                                        {idx === 0 && <Zap className="w-3 h-3 text-neon-red animate-pulse" />}
                                     </div>
-                                ) : (
-                                    leaderboard.slice(0, 10).map((res, i) => (
-                                        <motion.div
-                                            key={i}
-                                            initial={{ opacity: 0, x: 20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: i * 0.05 }}
-                                            className={`p-3.5 rounded-2xl border transition-all ${i === 0 ? 'bg-yellow-500/10 border-yellow-500/30 ring-1 ring-yellow-500/20' : (i === 1 ? 'bg-gray-400/10 border-gray-400/30' : (i === 2 ? 'bg-orange-500/10 border-orange-500/30' : 'bg-white/[0.02] border-white/5'))}`}
-                                        >
-                                            <div className="flex justify-between items-center mb-1.5">
-                                                <span className={`text-[9px] font-black uppercase tracking-widest ${i === 0 ? 'text-yellow-500' : (i === 1 ? 'text-gray-400' : (i === 2 ? 'text-orange-500' : 'text-gray-500'))}`}>
-                                                    #{i + 1} • {res.pseudo}
-                                                </span>
-                                                {i < 3 && <Trophy className={`w-3 h-3 ${i === 0 ? 'text-yellow-500' : (i === 1 ? 'text-gray-400' : 'text-orange-500')}`} />}
-                                            </div>
-                                            <div className="flex justify-between items-end">
-                                                <div className="flex flex-col">
-                                                    <span className="text-lg font-display font-black text-white leading-none">{res.score}/{res.total}</span>
-                                                    <span className="text-[7px] text-gray-600 font-bold mt-1 tracking-tighter uppercase">{new Date(res.date).toLocaleDateString()}</span>
-                                                </div>
-                                                <span className="text-[9px] font-black text-gray-400 tabular-nums bg-white/5 px-2 py-1 rounded-lg border border-white/10">{res.time}s</span>
-                                            </div>
-                                        </motion.div>
-                                    ))
-                                )}
-                            </div>
-
-                            <div className="mt-8 pt-8 border-t border-white/5">
-                                <p className="text-[9px] font-bold text-gray-600 uppercase tracking-widest leading-relaxed">
-                                    Les scores sont classés par précision, puis par rapidité de réponse.
-                                </p>
+                                ))}
                             </div>
                         </div>
                     </div>
@@ -549,6 +678,7 @@ export function QuizSection() {
                                 >
                                     <option value="QCM">QUIZZ CLASSIQUE</option>
                                     <option value="BLIND_TEST">BLIND TEST</option>
+                                    <option value="IMAGE">QUIZZ PHOTO</option>
                                 </select>
                             </div>
                             <div>
@@ -558,12 +688,102 @@ export function QuizSection() {
                                     onChange={e => setFormData({ ...formData, category: e.target.value })}
                                     className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white font-bold focus:outline-none focus:border-neon-red transition-all appearance-none"
                                 >
-                                    {themes.filter(t => t !== 'ALL').map(t => (
+                                    {themes.filter(t => t !== 'ALL' && t !== 'Blind Test').map(t => (
                                         <option key={t} value={t}>{t.toUpperCase()}</option>
                                     ))}
                                 </select>
                             </div>
                         </div>
+
+                        {formData.type === 'IMAGE' && (
+                            <div className="space-y-6">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({
+                                            ...formData,
+                                            imageType: 'FESTIVAL',
+                                            question: formData.question || t('quizz.festival_question')
+                                        })}
+                                        className={`p-4 rounded-2xl border font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${formData.imageType === 'FESTIVAL' ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
+                                    >
+                                        <ImageIcon className="w-4 h-4" />
+                                        FESTIVAL (NET)
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({
+                                            ...formData,
+                                            imageType: 'ARTIST',
+                                            question: formData.question || t('quizz.artist_question')
+                                        })}
+                                        className={`p-4 rounded-2xl border font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${formData.imageType === 'ARTIST' ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
+                                    >
+                                        <Camera className="w-4 h-4" />
+                                        ARTISTE (FLOU)
+                                    </button>
+                                </div>
+
+                                <div className="space-y-4">
+                                    <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest">Image du Quizz</label>
+                                    <div className="flex flex-col gap-4">
+                                        <div className="flex gap-4">
+                                            <input
+                                                type="url"
+                                                required
+                                                value={formData.imageUrl}
+                                                onChange={e => setFormData({ ...formData, imageUrl: e.target.value })}
+                                                className="flex-1 bg-black/40 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-neon-red transition-all font-bold placeholder-gray-700"
+                                                placeholder="Lien de l'image (URL)..."
+                                            />
+                                            <div className="relative">
+                                                <input
+                                                    type="file"
+                                                    id="quiz-image-upload"
+                                                    accept="image/*"
+                                                    className="hidden"
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (file) {
+                                                            setUploading(true);
+                                                            try {
+                                                                const url = await uploadFile(file, 'quiz');
+                                                                setFormData({ ...formData, imageUrl: url, revealEffect: Math.random() > 0.5 ? 'BLUR' : 'MOSAIC' });
+                                                            } catch (err) {
+                                                                alert("Erreur lors de l'upload");
+                                                            } finally {
+                                                                setUploading(false);
+                                                            }
+                                                        }
+                                                    }}
+                                                />
+                                                <button
+                                                    type="button"
+                                                    disabled={uploading}
+                                                    onClick={() => document.getElementById('quiz-image-upload')?.click()}
+                                                    className="h-full px-6 bg-white text-black rounded-2xl hover:bg-neon-red hover:text-white transition-all disabled:opacity-50"
+                                                >
+                                                    {uploading ? (
+                                                        <div className="w-5 h-5 border-2 border-black border-t-transparent rounded-full animate-spin" />
+                                                    ) : (
+                                                        <Upload className="w-5 h-5" />
+                                                    )}
+                                                </button>
+                                            </div>
+                                        </div>
+
+                                        {formData.imageUrl && (
+                                            <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 group">
+                                                <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
+                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Aperçu de l'image</p>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         <div>
                             <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-3">Libellé de la question</label>
@@ -607,28 +827,76 @@ export function QuizSection() {
                         </div>
 
                         {formData.type === 'BLIND_TEST' && (
-                            <div>
-                                <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-3">Extrait Audio (Direct Link .mp3)</label>
-                                <input
-                                    type="url"
-                                    value={formData.audioUrl}
-                                    onChange={e => setFormData({ ...formData, audioUrl: e.target.value })}
-                                    className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-neon-red transition-all font-bold"
-                                    placeholder="https://example.com/track.mp3"
-                                />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div>
+                                    <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-3">Extrait Audio (.mp3)</label>
+                                    <input
+                                        type="url"
+                                        value={formData.audioUrl}
+                                        onChange={e => setFormData({ ...formData, audioUrl: e.target.value })}
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-neon-red transition-all font-bold"
+                                        placeholder="https://example.com/track.mp3"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-3">ID Youtube (Optionnel)</label>
+                                    <div className="flex gap-2">
+                                        <div className="relative flex-1">
+                                            <Youtube className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
+                                            <input
+                                                type="text"
+                                                value={formData.youtubeId}
+                                                onChange={e => {
+                                                    setFormData({ ...formData, youtubeId: e.target.value });
+                                                    setShowPreview(false);
+                                                }}
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red transition-all font-bold"
+                                                placeholder="dQw4w9WgXcQ"
+                                            />
+                                        </div>
+                                        {formData.youtubeId && (
+                                            <button
+                                                type="button"
+                                                onClick={() => setShowPreview(!showPreview)}
+                                                className={`px-6 rounded-2xl font-black text-[10px] uppercase transition-all ${showPreview ? 'bg-neon-red text-white' : 'bg-white/5 border border-white/10 text-white hover:bg-white/10'}`}
+                                            >
+                                                {showPreview ? 'FERMER' : 'VERIFIER'}
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
                             </div>
+                        )}
+
+                        {showPreview && formData.youtubeId && (
+                            <motion.div
+                                initial={{ opacity: 0, height: 0 }}
+                                animate={{ opacity: 1, height: 'auto' }}
+                                className="relative aspect-video rounded-3xl overflow-hidden border border-neon-red/30 shadow-lg shadow-neon-red/10"
+                            >
+                                <iframe
+                                    width="100%"
+                                    height="100%"
+                                    src={`https://www.youtube.com/embed/${formData.youtubeId}?autoplay=1&start=90`}
+                                    allow="autoplay"
+                                    className="absolute inset-0"
+                                ></iframe>
+                            </motion.div>
                         )}
 
                         <div>
                             <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-3">Votre Signature</label>
-                            <input
-                                type="text"
-                                required
-                                value={formData.author}
-                                onChange={e => setFormData({ ...formData, author: e.target.value })}
-                                className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-neon-red transition-all font-bold"
-                                placeholder="ALEX / DROPSIDERS..."
-                            />
+                            <div className="relative">
+                                <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.author}
+                                    onChange={e => setFormData({ ...formData, author: e.target.value })}
+                                    className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red transition-all font-bold"
+                                    placeholder="ALEX / DROPSIDERS..."
+                                />
+                            </div>
                         </div>
 
                         <button

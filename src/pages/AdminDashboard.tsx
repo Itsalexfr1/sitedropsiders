@@ -14,6 +14,7 @@ import { getAuthHeaders, apiFetch } from '../utils/auth';
 import { translateText } from '../utils/translate';
 import { SocialSuite } from '../components/SocialSuite';
 import { ModerationModal } from '../components/admin/ModerationModal';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
 
 export function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -130,6 +131,19 @@ export function AdminDashboard() {
     const [isUpdatingTakeover, setIsUpdatingTakeover] = useState(false);
     const [takeoverTab, setTakeoverTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'blocked' | 'access' | 'clips'>('general');
     const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
+    const [confirmModal, setConfirmModal] = useState<{
+        isOpen: boolean,
+        title: string,
+        message: string,
+        onConfirm: () => void,
+        type: 'danger' | 'warning' | 'info'
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        onConfirm: () => { },
+        type: 'danger'
+    });
 
     useEffect(() => {
         if (isClipsModalOpen) {
@@ -202,7 +216,20 @@ export function AdminDashboard() {
     };
 
     const handleModerateQuiz = async (id: string, action: 'approve' | 'delete') => {
-        if (action === 'delete' && !window.confirm("Supprimer définitivement cette question ?")) return;
+        if (action === 'delete') {
+            setConfirmModal({
+                isOpen: true,
+                title: 'Supprimer Quizz',
+                message: 'Voulez-vous vraiment supprimer définitivement cette question ?',
+                type: 'danger',
+                onConfirm: () => performModerateQuiz(id, action)
+            });
+            return;
+        }
+        performModerateQuiz(id, action);
+    };
+
+    const performModerateQuiz = async (id: string, action: 'approve' | 'delete') => {
 
         try {
             const endpoint = action === 'approve' ? '/api/quiz/moderate' : '/api/quiz/delete';
@@ -217,6 +244,8 @@ export function AdminDashboard() {
             }
         } catch (err) {
             console.error("Error moderating quiz:", err);
+        } finally {
+            setConfirmModal(prev => ({ ...prev, isOpen: false }));
         }
     };
 
@@ -530,7 +559,16 @@ export function AdminDashboard() {
     };
 
     const handleDeleteClip = async (id: string) => {
-        if (!window.confirm("Supprimer définitivement cet extrait ?")) return;
+        setConfirmModal({
+            isOpen: true,
+            title: 'Supprimer Extrait',
+            message: 'Supprimer définitivement cet extrait ? Cette action est irréversible.',
+            type: 'danger',
+            onConfirm: () => performDeleteClip(id)
+        });
+    };
+
+    const performDeleteClip = async (id: string) => {
         try {
             const res = await fetch('/api/clips/delete', {
                 method: 'POST',
@@ -542,6 +580,8 @@ export function AdminDashboard() {
             }
         } catch (err) {
             console.error("Error deleting clip:", err);
+        } finally {
+            setConfirmModal(prev => ({ ...prev, isOpen: false }));
         }
     };
 
@@ -1652,7 +1692,7 @@ export function AdminDashboard() {
 
                             <Link
                                 to="/admin/manage?tab=Interviews"
-                                className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group mb-8"
+                                className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group"
                             >
                                 <div className="flex items-center gap-4">
                                     <div className="p-3 bg-gray-500/20 rounded-xl border border-gray-500/30">
@@ -2032,7 +2072,7 @@ export function AdminDashboard() {
                                 <Link
                                     to="/galerie/create"
                                     onClick={() => setIsGalerieModalOpen(false)}
-                                    className="w-full p-8 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
+                                    className="w-full p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
                                 >
                                     <div className="w-12 h-12 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform flex-shrink-0">
                                         <Plus className="w-6 h-6 text-neon-pink" />
@@ -4109,6 +4149,14 @@ export function AdminDashboard() {
                     </div>
                 )}
             </AnimatePresence>
+            <ConfirmModal
+                isOpen={confirmModal.isOpen}
+                title={confirmModal.title}
+                message={confirmModal.message}
+                onConfirm={confirmModal.onConfirm}
+                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                type={confirmModal.type}
+            />
         </div>
     );
 }
