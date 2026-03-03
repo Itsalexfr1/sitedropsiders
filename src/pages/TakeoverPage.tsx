@@ -1516,8 +1516,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             } else if (cmd === '!sondage' && hasModPowers) {
                 setShowPollModal(true);
                 response = "📊 Ouverture du panneau de gestion des sondages...";
-            } else if (cmd === '!quizz' || cmd === '!quiz') {
-                // Fetch a random question from the quiz API and show popup
+            } else if ((cmd === '!quizz' || cmd === '!quiz') && hasModPowers) {
+                // Réservé aux admins et modos — pas de message bot, popup discrète
                 setQuizPopupLoading(true);
                 setQuizPopupAnswer(null);
                 setShowQuizPopup(true);
@@ -1539,7 +1539,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 } finally {
                     setQuizPopupLoading(false);
                 }
-                response = "🎯 Une question de quiz apparaît sur votre écran !";
+                // Pas de response → le bot ne poste rien dans le chat
             } else if (cmd.startsWith('!give') && isAdmin) {
                 const parts = command.split(' ');
                 if (parts.length >= 3) {
@@ -5521,59 +5521,50 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     </motion.div>
                 )}
 
-                {/* === QUIZ POPUP === */}
+                {/* === QUIZ POPUP (petite popup flottante dans le coin du chat) === */}
                 {showQuizPopup && (
                     <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 sm:p-6"
+                        initial={{ opacity: 0, scale: 0.85, y: 20 }}
+                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                        exit={{ opacity: 0, scale: 0.85, y: 20 }}
+                        className="fixed bottom-24 right-4 z-[200] w-full max-w-xs sm:max-w-sm"
                     >
                         <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            className="w-full max-w-lg bg-black/60 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(255,200,18,0.15)]"
+                            className="bg-[#111] border border-yellow-500/30 rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(255,200,18,0.15)]"
                         >
-                            <div className="p-8 space-y-6">
+                            <div className="p-4 space-y-3">
                                 {/* Header */}
                                 <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-yellow-500/10 border border-yellow-500/30 flex items-center justify-center">
-                                            <span className="text-2xl">🎯</span>
-                                        </div>
-                                        <div>
-                                            <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">Question Quiz</h2>
-                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Testez vos connaissances !</p>
-                                        </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-base">🎯</span>
+                                        <h2 className="text-xs font-black text-white uppercase italic tracking-tight">Question Quiz</h2>
                                     </div>
                                     <button
                                         onClick={() => { setShowQuizPopup(false); setQuizPopupAnswer(null); setQuizPopupQuestion(null); }}
-                                        className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                                        className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all"
                                     >
-                                        <X className="w-5 h-5" />
+                                        <X className="w-3 h-3" />
                                     </button>
                                 </div>
 
                                 {/* Content */}
                                 {quizPopupLoading ? (
-                                    <div className="flex justify-center py-10">
-                                        <div className="w-8 h-8 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+                                    <div className="flex justify-center py-4">
+                                        <div className="w-5 h-5 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin" />
                                     </div>
                                 ) : !(quizPopupQuestion != null && quizPopupQuestion.question) ? (
-                                    <div className="py-10 text-center">
-                                        <p className="text-gray-400 font-bold text-sm">Aucune question disponible pour le moment.</p>
+                                    <div className="py-4 text-center">
+                                        <p className="text-gray-400 font-bold text-xs">Aucune question disponible.</p>
                                     </div>
                                 ) : (
-                                    <div className="space-y-5">
+                                    <div className="space-y-3">
                                         {/* Category badge */}
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-[9px] font-black text-yellow-500 uppercase tracking-widest bg-yellow-500/10 border border-yellow-500/20 px-3 py-1 rounded-full">
-                                                {quizPopupQuestion?.category ?? quizPopupQuestion?.type ?? 'Quiz'}
-                                            </span>
-                                        </div>
+                                        <span className="text-[9px] font-black text-yellow-500 uppercase tracking-widest bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded-full">
+                                            {quizPopupQuestion?.category ?? quizPopupQuestion?.type ?? 'Quiz'}
+                                        </span>
 
                                         {/* Question */}
-                                        <h3 className="text-lg font-black text-white tracking-tight leading-snug">
+                                        <h3 className="text-[11px] font-black text-white tracking-tight leading-snug">
                                             {quizPopupQuestion.question}
                                         </h3>
 
@@ -5589,14 +5580,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                         {/* Image */}
                                         {quizPopupQuestion.type === 'IMAGE' && quizPopupQuestion.imageUrl && (
-                                            <div className="rounded-2xl overflow-hidden border border-white/10 max-h-48 flex items-center justify-center">
-                                                <img src={quizPopupQuestion.imageUrl} alt="Quiz" className="w-full h-auto object-cover max-h-48" />
+                                            <div className="rounded-xl overflow-hidden border border-white/10 max-h-32">
+                                                <img src={quizPopupQuestion.imageUrl} alt="Quiz" className="w-full h-auto object-cover max-h-32" />
                                             </div>
                                         )}
 
                                         {/* Video */}
                                         {quizPopupQuestion.type === 'VIDEO' && quizPopupQuestion.youtubeId && (
-                                            <div className="rounded-2xl overflow-hidden border border-white/10 aspect-video">
+                                            <div className="rounded-xl overflow-hidden border border-white/10" style={{ aspectRatio: '16/9' }}>
                                                 <iframe
                                                     width="100%"
                                                     height="100%"
@@ -5611,7 +5602,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                         {/* Answers */}
                                         {Array.isArray(quizPopupQuestion.options) && quizPopupQuestion.options.length > 0 ? (
-                                            <div className="grid grid-cols-1 gap-2">
+                                            <div className="grid grid-cols-1 gap-1.5">
                                                 {quizPopupQuestion.options.map((option, idx) => {
                                                     if (!option) return null;
                                                     const isSelected = quizPopupAnswer === option;
@@ -5633,7 +5624,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 setQuizPopupAnswer(option);
                                                             }}
                                                             disabled={!!quizPopupAnswer}
-                                                            className={`w-full p-4 rounded-2xl border text-left font-black text-xs uppercase tracking-widest transition-all flex items-center justify-between ${cls}`}
+                                                            className={`w-full p-2.5 rounded-xl border text-left font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-between ${cls}`}
                                                         >
                                                             <span className="flex items-center gap-3">
                                                                 <span className="text-[9px] font-black opacity-60">{String.fromCharCode(65 + idx)}.</span>
@@ -5663,7 +5654,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         )}
 
                                         {/* Actions */}
-                                        <div className="flex gap-3 pt-2">
+                                        <div className="flex gap-2 pt-1">
                                             <button
                                                 onClick={async () => {
                                                     setQuizPopupAnswer(null);
@@ -5683,13 +5674,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         setQuizPopupLoading(false);
                                                     }
                                                 }}
-                                                className="flex-1 py-4 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-yellow-500/20 transition-all active:scale-95"
+                                                className="flex-1 py-2 bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-black uppercase tracking-widest text-[9px] rounded-xl hover:bg-yellow-500/20 transition-all active:scale-95"
                                             >
-                                                🎲 Autre question
+                                                🎲 Autre
                                             </button>
                                             <button
                                                 onClick={() => { setShowQuizPopup(false); setQuizPopupAnswer(null); setQuizPopupQuestion(null); }}
-                                                className="flex-1 py-4 bg-white/5 border border-white/10 text-gray-400 font-black uppercase tracking-widest text-[10px] rounded-2xl hover:bg-white/10 transition-all active:scale-95"
+                                                className="flex-1 py-2 bg-white/5 border border-white/10 text-gray-400 font-black uppercase tracking-widest text-[9px] rounded-xl hover:bg-white/10 transition-all active:scale-95"
                                             >
                                                 Fermer
                                             </button>
