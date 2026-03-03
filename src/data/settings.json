@@ -35,7 +35,8 @@
     "botBgColor": "rgba(0, 255, 204, 0.05)",
     "adminColor": "#ff0033",
     "adminBgColor": "rgba(255, 0, 51, 0.05)",
-    "showShop": false
+    "showShop": false,
+    "hypeLimit": 10
   },
   "socials": {
     "instagram": "dropsiders.eu",
