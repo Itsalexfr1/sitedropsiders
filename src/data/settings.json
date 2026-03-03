@@ -34,7 +34,13 @@
     "botColor": "#00ffcc",
     "botBgColor": "rgba(0, 255, 204, 0.05)",
     "adminColor": "#ff0033",
-    "adminBgColor": "rgba(255, 0, 51, 0.05)"
+    "adminBgColor": "rgba(255, 0, 51, 0.05)",
+    "currentShazam": {
+      "title": "8ths",
+      "artist": "deadmau5",
+      "image": "https://i.scdn.co/image/ab67616d0000b27328cebb0d9d6d00975ce292a5",
+      "spotify": "https://open.spotify.com/track/3oLfgPob5XKsY48VB20UZz"
+    }
   },
   "socials": {
     "instagram": "dropsiders.eu",
