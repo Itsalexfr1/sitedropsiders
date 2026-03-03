@@ -826,6 +826,102 @@ export default {
             return new Response(JSON.stringify({ count: 0 }), { status: 200, headers });
         }
 
+        // --- API: ANALYTICS ---
+        if (path === '/api/analytics/track' && request.method === 'POST') {
+            if (!env.CHAT_KV) return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
+
+            try {
+                const body = await request.json();
+                const { id, type } = body;
+                const country = request.headers.get('cf-ipcountry') || 'FR';
+                const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+                const month = today.substring(0, 7); // YYYY-MM
+                const sessionId = request.headers.get('X-Session-ID') || 'unknown';
+
+                // 1. Increment Global Total
+                const totalKey = 'analytics_total_visits';
+                const currentTotal = parseInt(await env.CHAT_KV.get(totalKey) || '0');
+                await env.CHAT_KV.put(totalKey, (currentTotal + 1).toString());
+
+                // 2. Increment Country Stats
+                const countryKey = 'analytics_countries';
+                const countriesRaw = await env.CHAT_KV.get(countryKey);
+                const countries = countriesRaw ? JSON.parse(countriesRaw) : {};
+                countries[country] = (countries[country] || 0) + 1;
+                await env.CHAT_KV.put(countryKey, JSON.stringify(countries));
+
+                // 3. Increment Page Views
+                const pageKey = `analytics_page_${id}`;
+                const currentPageViews = parseInt(await env.CHAT_KV.get(pageKey) || '0');
+                await env.CHAT_KV.put(pageKey, (currentPageViews + 1).toString());
+
+                // 4. Update Daily Timeline
+                const timelineKey = `analytics_timeline_${today}`;
+                const currentTimeline = parseInt(await env.CHAT_KV.get(timelineKey) || '0');
+                await env.CHAT_KV.put(timelineKey, (currentTimeline + 1).toString(), { expirationTtl: 60 * 60 * 24 * 31 });
+
+                // 5. Track Active Session (for online users)
+                const onlineKey = `analytics_online_${sessionId}`;
+                await env.CHAT_KV.put(onlineKey, Date.now().toString(), { expirationTtl: 300 }); // 5 minutes
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (err) {
+                return new Response(JSON.stringify({ error: 'Tracking failed' }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/analytics/stats' && request.method === 'GET') {
+            if (!env.CHAT_KV) return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
+
+            try {
+                // Fetch basic totals
+                const totalVisits = parseInt(await env.CHAT_KV.get('analytics_total_visits') || '0');
+
+                // Fetch country distribution
+                const countriesRaw = await env.CHAT_KV.get('analytics_countries');
+                const countriesMap = countriesRaw ? JSON.parse(countriesRaw) : {};
+                const countries = Object.entries(countriesMap)
+                    .map(([code, visits]) => ({ code, visits }))
+                    .sort((a: any, b: any) => b.visits - a.visits);
+
+                // Online Users Count
+                const onlinePrefix = 'analytics_online_';
+                const { keys: onlineKeys } = await env.CHAT_KV.list({ prefix: onlinePrefix });
+                const onlineUsers = onlineKeys.length;
+
+                // Timeline (last 30 days)
+                const timeline = [];
+                for (let i = 0; i < 30; i++) {
+                    const d = new Date();
+                    d.setDate(d.getDate() - i);
+                    const dateStr = d.toISOString().split('T')[0];
+                    const val = parseInt(await env.CHAT_KV.get(`analytics_timeline_${dateStr}`) || '0');
+                    if (val > 0) timeline.push({ date: dateStr, value: val });
+                }
+                timeline.reverse();
+
+                // Top Articles (this is more complex, we list keys with prefix)
+                const topArticles = [];
+                const { keys: pageKeys } = await env.CHAT_KV.list({ prefix: 'analytics_page_' });
+                for (const key of pageKeys.slice(0, 50)) {
+                    const views = parseInt(await env.CHAT_KV.get(key.name) || '0');
+                    const id = key.name.replace('analytics_page_', '');
+                    topArticles.push({ id, views });
+                }
+                topArticles.sort((a, b) => b.views - a.views);
+
+                return new Response(JSON.stringify({
+                    totalVisits,
+                    countries,
+                    onlineUsers,
+                    timeline,
+                    topArticles: topArticles.slice(0, 10)
+                }), { status: 200, headers });
+            } catch (err) {
+                return new Response(JSON.stringify({ error: 'Stats failed' }), { status: 500, headers });
+            }
+        }
+
 
 
         if (path === '/api/chat/messages' && request.method === 'GET') {
