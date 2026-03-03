@@ -2367,7 +2367,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
             {/* Announcement Banner */}
             {!isFocusMode && !isFullScreen && annBannerEnabled && annBannerText && (
                 <div
-                    className="fixed top-0 left-0 right-0 h-8 lg:h-12 flex items-center overflow-hidden z-[60] border-b border-white/10 shadow-2xl"
+                    className="hidden lg:flex fixed top-0 left-0 right-0 h-12 flex items-center overflow-hidden z-[60] border-b border-white/10 shadow-2xl"
                     style={{ backgroundColor: annBannerBg }}
                 >
                     <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-black/20 to-transparent z-10 pointer-events-none" />
@@ -2384,7 +2384,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
             )}
 
-            <div className={`fixed lg:fixed ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'top-[112px] lg:top-[128px]' : 'top-20') : 'top-0'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-700 ease-in-out ${isOverdrive ? 'overdrive-active bg-aurora border-[4px] border-neon-red shadow-[inset_0_0_100px_rgba(255,18,65,0.4)]' : ''}`}>
+            <div className={`fixed lg:fixed top-0 ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'lg:top-[128px]' : 'lg:top-20') : 'lg:top-0'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-700 ease-in-out ${isOverdrive ? 'overdrive-active bg-aurora border-[4px] border-neon-red shadow-[inset_0_0_100px_rgba(255,18,65,0.4)]' : ''}`}>
                 {/* OFFLINE VIEW FOR NON-ADMINS - FULL PAGE BLANKET */}
                 {(!settings.isOnline && !isServerAdmin && isJoined) && (
                     <div className="fixed inset-0 z-[10000] bg-black flex flex-col items-center justify-center p-6 text-center">
