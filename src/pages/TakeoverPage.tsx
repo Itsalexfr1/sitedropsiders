@@ -4217,7 +4217,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             <MessageSquare className="w-2.5 h-2.5 text-neon-red" />
                                         </div>
                                         <div className="flex flex-col">
-                                            <h2 className="text-[3px] md:text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-none flex items-center gap-1 md:gap-2">
+                                            <h2 className="text-[1.5px] md:text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-none flex items-center gap-1 md:gap-2">
                                                 {activeChatTab === 'chat' ? 'Chat' : activeChatTab === 'shop' ? 'Shop' : activeChatTab === 'drops-shop' ? 'Drops' : activeChatTab === 'shazam' ? 'Shazam' : activeChatTab === 'audio' ? 'Audio' : activeChatTab === 'leaderboard' ? 'Top' : 'Clips'}
                                                 {isSlowMode && <span className="px-1 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[5px] md:text-[7px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">LENT</span>}
                                             </h2>
@@ -5210,9 +5210,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                     key={msg.id || idx}
                                                                                     initial={{ opacity: 0, x: 10 }}
                                                                                     animate={{ opacity: 1, x: 0 }}
-                                                                                    className="group relative min-w-0 overflow-hidden"
+                                                                                    className="group relative min-w-0 overflow-hidden mb-0.5"
                                                                                 >
-                                                                                    <div className="flex items-center gap-1.5 md:gap-2 mb-0.5 md:mb-1 px-1">
+                                                                                    <div className="flex items-center gap-1 mb-0 px-1">
                                                                                         <div className="w-3.5 md:w-4 flex items-center justify-center opacity-80">
                                                                                             {getCountryFlag(msg.country || 'FR')}
                                                                                         </div>
@@ -5226,8 +5226,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                         <span className="text-[6px] md:text-[8px] lg:text-[9px] text-gray-700 font-bold uppercase ml-auto">{msg.time}</span>
                                                                                     </div>
                                                                                     <div
-                                                                                        className={`p-1 md:p-2 px-1.5 md:px-3 rounded-md md:rounded-xl text-[8px] md:text-[10px] lg:text-[11px] font-medium leading-relaxed break-words relative border ${isBot ? '' : isMsgAdmin ? '' : 'bg-white/[0.03] border-white/10 text-gray-200'}`}
-                                                                                        style={isBot ? { backgroundColor: botBgColor, borderColor: `${botColor}40`, color: botColor } : isMsgAdmin ? { backgroundColor: (localSettings.adminBgColor || adminBgColor), borderColor: `${(localSettings.adminColor || adminColor)}40`, color: '#ffffff' } : {}}
+                                                                                        className={`p-0 md:p-2 px-1 md:px-3 rounded-none md:rounded-xl text-[8px] md:text-[10px] lg:text-[11px] font-medium leading-relaxed break-words relative ${isBot ? '' : isMsgAdmin ? '' : 'text-gray-200'}`}
+                                                                                        style={isBot ? { color: botColor } : isMsgAdmin ? { color: '#ffffff' } : {}}
                                                                                     >
                                                                                         {/* Message with clickable links */}
                                                                                         <span className="relative z-10">

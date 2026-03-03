@@ -311,7 +311,7 @@ export function Musique() {
                                 initial={{ opacity: 0, x: 20 }}
                                 animate={{ opacity: 1, x: 0 }}
                                 exit={{ opacity: 0, x: -20 }}
-                                className="grid lg:grid-cols-1 gap-3"
+                                className="grid lg:grid-cols-1 gap-3 px-10 md:px-0"
                             >
                                 {getMockData(activeTab).map((track, i) => (
                                     <motion.div
@@ -325,7 +325,7 @@ export function Musique() {
                                             className="flex flex-row items-center cursor-pointer group/track"
                                             onClick={() => handleTrackClick(track)}
                                         >
-                                            <div className="flex items-center gap-2 md:gap-6 p-2 md:p-6 flex-1">
+                                            <div className="flex items-center gap-2 md:gap-6 p-1 md:p-6 flex-1">
                                                 <div
                                                     className={`w-6 h-6 md:w-12 md:h-12 rounded-md md:rounded-lg flex items-center justify-center font-black transition-all duration-300 relative text-[10px] md:text-base ${selectedTrack?.id === track.id
                                                         ? 'bg-neon-red text-white'
@@ -378,7 +378,7 @@ export function Musique() {
                                                     exit={{ height: 0, opacity: 0 }}
                                                     className="px-3 md:px-6 pb-3 md:pb-6 overflow-hidden"
                                                 >
-                                                    <div className="rounded-xl md:rounded-2xl overflow-hidden border border-white/10 bg-black/40 shadow-xl max-w-full md:max-w-4xl mx-auto">
+                                                    <div className="rounded-xl overflow-hidden border border-white/10 bg-black/40 shadow-xl w-full mx-auto">
                                                         {track.embedUrl ? (
                                                             <iframe
                                                                 key={track.id}
