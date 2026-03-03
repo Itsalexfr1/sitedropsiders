@@ -8,11 +8,19 @@ import { TikTokWidget } from '../components/widgets/TikTokWidget';
 import { SpotifyWidget } from '../components/widgets/SpotifyWidget';
 import { RecapWidget } from '../components/widgets/RecapWidget';
 import { InterviewWidget } from '../components/widgets/InterviewWidget';
+import { MobileHome } from '../components/mobile/MobileHome';
 import layoutData from '../data/home_layout.json';
 
 export function Home() {
     const [layout, setLayout] = useState(layoutData);
     const [socials, setSocials] = useState<any>(null);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 1024);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         const fetchLayout = async () => {
@@ -136,12 +144,15 @@ export function Home() {
         }
     };
 
+    if (isMobile) {
+        return <MobileHome />;
+    }
 
     return (
         <div className="space-y-4 md:space-y-8 pb-12">
             {layout
-                .filter(item => item.enabled)
-                .map(item => renderSection(item))
+                .filter((item: any) => item.enabled)
+                .map((item: any) => renderSection(item))
             }
         </div>
     );

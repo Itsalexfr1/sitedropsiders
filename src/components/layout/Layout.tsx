@@ -1,6 +1,7 @@
 import { AnnouncementBanner } from '../AnnouncementBanner';
 import { Navbar } from './Navbar';
 import { MobileNavbar } from './MobileNavbar';
+import { MobileHeader } from './MobileHeader';
 import { Footer } from './Footer';
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
@@ -12,6 +13,13 @@ interface LayoutProps {
 export function Layout({ children }: LayoutProps) {
     const location = useLocation();
     const [bannerEnabled, setBannerEnabled] = useState(false);
+    const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth < 1024);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     useEffect(() => {
         const checkBanner = async () => {
@@ -38,10 +46,10 @@ export function Layout({ children }: LayoutProps) {
 
 
     const ptClass = isAdminPage ? 'pt-0' :
-        (bannerEnabled ? 'pt-[112px]' : (isHome ? 'pt-0' : 'pt-20'));
+        (bannerEnabled ? 'pt-[112px]' : (isHome ? (isMobile ? 'pt-16' : 'pt-0') : 'pt-20'));
 
     return (
-        <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white pb-32 lg:pb-0">
+        <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white pb-24 lg:pb-0">
 
             {/* Background Effects - Hidden on mobile for performance */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden hidden md:block">
@@ -51,6 +59,7 @@ export function Layout({ children }: LayoutProps) {
             </div>
 
             {!isAdminPage && <Navbar />}
+            {!isAdminPage && <MobileHeader />}
             {!isAdminPage && <AnnouncementBanner />}
 
             <main className={`flex-grow relative ${ptClass}`}>
