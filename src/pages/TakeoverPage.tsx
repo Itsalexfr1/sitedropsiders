@@ -2384,7 +2384,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
             )}
 
-            <div className={`fixed lg:fixed top-0 ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'lg:top-[128px]' : 'lg:top-20') : 'lg:top-0'} left-0 right-0 bottom-0 flex flex-col bg-black overflow-hidden z-[50] transition-all duration-700 ease-in-out ${isOverdrive ? 'overdrive-active bg-aurora border-[4px] border-neon-red shadow-[inset_0_0_100px_rgba(255,18,65,0.4)]' : ''}`}>
+            <div className={`relative lg:fixed top-0 ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'lg:top-[128px]' : 'lg:top-20') : 'lg:top-0'} inset-x-0 lg:bottom-0 min-h-screen lg:min-h-0 flex flex-col bg-black z-[50] pb-20 lg:pb-0 lg:overflow-hidden transition-all duration-700 ease-in-out ${isOverdrive ? 'overdrive-active bg-aurora border-[4px] border-neon-red shadow-[inset_0_0_100px_rgba(255,18,65,0.4)]' : ''}`}>
                 {/* OFFLINE VIEW FOR NON-ADMINS - FULL PAGE BLANKET */}
                 {(!settings.isOnline && !isServerAdmin && isJoined) && (
                     <div className="fixed inset-0 z-[10000] bg-black flex flex-col items-center justify-center p-6 text-center">
@@ -2544,7 +2544,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                 <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0 relative">
                     {/* Video Section */}
-                    <div className={`shrink-0 w-full h-[50vh] lg:h-auto lg:w-auto lg:flex-[2] bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
+                    <div className={`shrink-0 w-[50%] self-center h-[30vh] lg:h-auto lg:w-auto lg:flex-[2] bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden shadow-2xl ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
 
                         <div ref={videoPlayerRef} className="w-full h-full lg:flex-1 relative bg-black group overflow-hidden">
                             <div className="absolute inset-0 z-0">
@@ -5196,7 +5196,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 )}
 
                                                                 {/* Chat Messages */}
-                                                                <div id="chat-messages" className="flex-1 overflow-y-auto p-2 md:p-4 lg:p-5 space-y-1 md:space-y-2 scroll-smooth custom-scrollbar pointer-events-auto">
+                                                                <div id="chat-messages" className="flex-1 overflow-visible lg:overflow-y-auto p-2 md:p-4 lg:p-5 space-y-1 md:space-y-2 scroll-smooth lg:custom-scrollbar pointer-events-auto">
                                                                     {messages
                                                                         .filter(m => chatCountryFilter === 'ALL' || m.country === chatCountryFilter || (chatCountryFilter === 'OTHER' && !['FR', 'BE', 'CH', 'CA'].includes(m.country)))
                                                                         .map((msg, idx) => {
@@ -5290,7 +5290,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
 
                                                                 {/* Chat Input Area */}
-                                                                <div className="p-2 md:p-3 lg:p-4 bg-[#0a0a0a] border-t border-white/10 relative z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)] pb-safe">
+                                                                <div className="p-2 md:p-3 lg:p-4 bg-[#0a0a0a] border-t border-white/10 relative lg:sticky bottom-0 z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)] pb-safe">
                                                                     <form onSubmit={handleSendMessage} className="relative group/input px-1 md:px-2 py-0.5 md:py-1">
                                                                         <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-xl lg:rounded-2xl transition-all" />
                                                                         <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl lg:rounded-2xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
