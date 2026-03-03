@@ -4,7 +4,7 @@
  */
 export const uploadValidation = (file: File): { valid: boolean; error?: string } => {
     if (!file) return { valid: false, error: "Aucun fichier sélectionné." };
-    if (!file.type.startsWith("image/") && !file.type.startsWith("video/")) return { valid: false, error: "Le fichier doit être une image ou une vidéo." };
+    if (!file.type.startsWith("image/") && !file.type.startsWith("video/") && !file.type.startsWith("audio/")) return { valid: false, error: "Le fichier doit être une image, une vidéo ou un fichier audio." };
     if (file.size > 100 * 1024 * 1024) return { valid: false, error: "Le fichier est trop lourd (max 100Mo)." };
     return { valid: true };
 };
@@ -76,10 +76,10 @@ export const uploadFile = async (
     } catch (serverError: any) {
         console.warn('Server upload failed (R2/Internal), switching to client-side fallback (ImgBB)...', serverError);
 
-        // 2. Client-Side Fallback (ImgBB)
+        // 2. Client-Side Fallback (ImgBB) - only for images, ImgBB cannot host audio/video
         const IMGBB_KEY = (window as any).VITE_IMGBB_API_KEY;
 
-        if (IMGBB_KEY) {
+        if (IMGBB_KEY && file.type.startsWith('image/')) {
             return new Promise((resolve, reject) => {
                 const url = `https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`;
                 const formData = new FormData();
@@ -107,6 +107,10 @@ export const uploadFile = async (
                 xhr.onerror = () => reject(new Error("Erreur réseau ImgBB"));
                 xhr.send(formData);
             });
+        }
+
+        if (file.type.startsWith('audio/')) {
+            throw new Error("L'upload audio nécessite le stockage R2. Vérifiez la configuration du serveur.");
         }
 
         throw new Error("Toutes les méthodes d'upload ont échoué (R2 et ImgBB). Vérifiez vos configurations.");

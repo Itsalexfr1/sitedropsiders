@@ -1168,7 +1168,9 @@ export default {
 
                     // Keep original extension
                     const extension = filename.split('.').pop() || 'jpg';
-                    const key = `${hashHex}.${extension}`;
+                    // Store audio files in mp3/ subfolder for organization
+                    const isAudio = type && type.startsWith('audio/');
+                    const key = isAudio ? `mp3/${hashHex}.${extension}` : `${hashHex}.${extension}`;
 
                     await env.R2.put(key, byteArray, {
                         httpMetadata: { contentType: type || 'image/jpeg' }
@@ -2638,10 +2640,13 @@ export default {
         // --- API: QUIZ & BLIND TEST ---
         if (path === '/api/quiz/submit' && request.method === 'POST') {
             const body = await request.json();
-            const { type, question, options, correctAnswer, category, audioUrl, author } = body;
+            const { type, question, options, correctAnswer, category, audioUrl, imageUrl, imageType, revealEffect, youtubeId, spotifyUrl, startTime, author, approved, status: submittedStatus } = body;
             if (!type || !question || !correctAnswer || !category) {
                 return new Response(JSON.stringify({ error: 'Missing mandatory fields' }), { status: 400, headers });
             }
+
+            const isAutoApproved = approved === true;
+            const finalStatus = isAutoApproved ? 'active' : (submittedStatus || 'pending');
 
             const newQuiz = {
                 id: Date.now().toString(),
@@ -2651,15 +2656,28 @@ export default {
                 correctAnswer,
                 category,
                 audioUrl: audioUrl || '',
+                imageUrl: imageUrl || '',
+                imageType: imageType || '',
+                revealEffect: revealEffect || '',
+                youtubeId: youtubeId || '',
+                spotifyUrl: spotifyUrl || '',
+                startTime: startTime || 0,
                 author: author || 'Anonyme',
                 timestamp: new Date().toISOString(),
-                status: 'pending'
+                status: finalStatus
             };
 
-            const pendingRaw = await env.CHAT_KV.get('quiz_pending') || "[]";
-            const pending = JSON.parse(pendingRaw);
-            pending.push(newQuiz);
-            await env.CHAT_KV.put('quiz_pending', JSON.stringify(pending));
+            if (isAutoApproved) {
+                const activeRaw = await env.CHAT_KV.get('quiz_active') || "[]";
+                const active = JSON.parse(activeRaw);
+                active.push(newQuiz);
+                await env.CHAT_KV.put('quiz_active', JSON.stringify(active));
+            } else {
+                const pendingRaw = await env.CHAT_KV.get('quiz_pending') || "[]";
+                const pending = JSON.parse(pendingRaw);
+                pending.push(newQuiz);
+                await env.CHAT_KV.put('quiz_pending', JSON.stringify(pending));
+            }
 
             return new Response(JSON.stringify({ success: true, quiz: newQuiz }), { status: 200, headers });
         }

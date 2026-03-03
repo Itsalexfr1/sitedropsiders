@@ -625,7 +625,7 @@ export function QuizSection() {
                                         <div className="w-full bg-gradient-to-t from-gray-500/20 to-gray-500/40 rounded-t-xl h-24 flex flex-col items-center justify-center p-2 border border-white/10">
                                             <span className="text-[9px] font-black text-white uppercase truncate w-full text-center">{leaderboard[1].pseudo}</span>
                                             <span className="text-[14px] font-black text-gray-300">{leaderboard[1].score}/{leaderboard[1].total}</span>
-                                            <div className="mt-1 px-2 py-0.5 bg-gray-500/20 rounded-full text-[8px] font-black text-gray-400">2ND</div>
+                                            <div className="mt-1 px-2 py-0.5 bg-gray-500/20 rounded-full text-[8px] font-black text-gray-400">2ÈME</div>
                                         </div>
                                     </div>
 
@@ -638,7 +638,7 @@ export function QuizSection() {
                                             <Zap className="w-4 h-4 text-neon-red mb-1 animate-pulse" />
                                             <span className="text-[11px] font-black text-white uppercase truncate w-full text-center">{leaderboard[0].pseudo}</span>
                                             <span className="text-[18px] font-black text-white">{leaderboard[0].score}/{leaderboard[0].total}</span>
-                                            <div className="mt-1 px-3 py-1 bg-neon-red rounded-full text-[10px] font-black text-white shadow-lg uppercase tracking-tighter">WINNER</div>
+                                            <div className="mt-1 px-3 py-1 bg-neon-red rounded-full text-[10px] font-black text-white shadow-lg uppercase tracking-tighter">CHAMPION</div>
                                         </div>
                                     </div>
 
@@ -650,7 +650,7 @@ export function QuizSection() {
                                         <div className="w-full bg-gradient-to-t from-orange-500/30 to-orange-500/10 rounded-t-xl h-20 flex flex-col items-center justify-center p-2 border border-white/10">
                                             <span className="text-[9px] font-black text-white uppercase truncate w-full text-center">{leaderboard[2].pseudo}</span>
                                             <span className="text-[13px] font-black text-orange-400">{leaderboard[2].score}/{leaderboard[2].total}</span>
-                                            <div className="mt-1 px-2 py-0.5 bg-orange-500/20 rounded-full text-[8px] font-black text-orange-400">3RD</div>
+                                            <div className="mt-1 px-2 py-0.5 bg-orange-500/20 rounded-full text-[8px] font-black text-orange-400">3ÈME</div>
                                         </div>
                                     </div>
                                 </div>
