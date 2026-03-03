@@ -11,6 +11,7 @@ export function CommunityTabs({ activeTab, setActiveTab }: CommunityTabsProps) {
     const { t } = useLanguage();
 
     const tabs = [
+        { id: 'WALL', icon: Star, label: t('communaute.tab_wall') },
         { id: 'PHOTOS', icon: Camera, label: t('communaute.tab_photos') },
         { id: 'QUIZZ', icon: Gamepad2, label: t('communaute.tab_quizz') },
         { id: 'AVIS', icon: Star, label: 'Avis & Notes' },

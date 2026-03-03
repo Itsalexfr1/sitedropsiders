@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
     X, Download, Upload, PlusCircle,
     Video, Layout, Smartphone, Image as ImageIcon
 } from 'lucide-react';
-import { Downloader } from '../pages/Downloader';
 
 interface SocialSuiteProps {
     title: string;
@@ -69,7 +68,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const logoRef = useRef<HTMLImageElement | null>(null);
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const [selection, setSelection] = useState({ start: 0, end: 0 });
-    const [showDownloader, setShowDownloader] = useState(false);
 
     const handleTextStyler = (type: 'C' | 'B', value: string) => {
         if (!textAreaRef.current) return;
@@ -702,13 +700,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         </button>
                         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
 
-                        <button
-                            onClick={() => setShowDownloader(true)}
-                            className="w-full py-4 border border-white/10 rounded-2xl flex items-center justify-center gap-2 text-neon-cyan text-[10px] font-black uppercase hover:bg-neon-cyan/10 transition-all bg-white/5"
-                        >
-                            <Download className="w-4 h-4" />
-                            Ouvrir Downloader (Insta/TikTok)
-                        </button>
                     </div>
 
                     {activeTab === 'REEL' && (theme === 'INTRO' || theme === 'TOP 5 STYLES') && (
@@ -871,50 +862,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 </div>
             </motion.div>
 
-            {/* Downloader Popup */}
-            <AnimatePresence>
-                {showDownloader && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[300] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            className="bg-[#0a0a0a] w-full max-w-5xl h-[85vh] rounded-[40px] border border-white/10 shadow-2xl relative overflow-hidden flex flex-col"
-                        >
-                            <div className="p-6 border-b border-white/10 flex items-center justify-between">
-                                <h3 className="text-xl font-black italic text-white uppercase tracking-tighter">Social Downloader</h3>
-                                <button onClick={() => setShowDownloader(false)} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-white transition-all"><X className="w-6 h-6" /></button>
-                            </div>
-                            <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                <Downloader
-                                    isPopup={true}
-                                    onSelect={(url) => {
-                                        const isVideo = url.includes('.mp4') || url.includes('.mov') || url.includes('.webm') || url.includes('tiktok') || url.includes('googlevideo') || url.includes('video');
-                                        if (isVideo) {
-                                            const video = document.createElement('video');
-                                            video.src = url;
-                                            video.muted = true;
-                                            video.loop = true;
-                                            video.crossOrigin = "anonymous";
-                                            video.play().catch(e => console.error("Auto-play failed", e));
-                                            setBgVideo(video);
-                                            setBgImage('');
-                                        } else {
-                                            setBgImage(url);
-                                            setBgVideo(null);
-                                        }
-                                        setShowDownloader(false);
-                                    }}
-                                />
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
         </motion.div>
     );
 }

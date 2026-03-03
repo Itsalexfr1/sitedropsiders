@@ -13,13 +13,14 @@ import { AvisSection } from '../components/community/AvisSection';
 import { GuideSection } from '../components/community/GuideSection';
 import { CovoitSection } from '../components/community/CovoitSection';
 import { AlertsSection } from '../components/community/AlertsSection';
+import { MemoryWall } from '../components/community/MemoryWall';
 
 const ALBUMS_PER_PAGE = 8;
 
 export function Galerie() {
     const { t } = useLanguage();
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'PHOTOS' | 'QUIZZ' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'ALERTS'>('PHOTOS');
+    const [activeTab, setActiveTab] = useState<'WALL' | 'PHOTOS' | 'QUIZZ' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'ALERTS'>('WALL');
     const [activeSegment, setActiveSegment] = useState<'OFFICIAL' | 'COMMUNITY' | 'CLIPS'>('OFFICIAL');
     const [activeCategory, setActiveCategory] = useState('ALL');
     const [currentPage, setCurrentPage] = useState(1);
@@ -138,6 +139,7 @@ export function Galerie() {
 
             <CommunityTabs activeTab={activeTab} setActiveTab={setActiveTab} />
 
+            {activeTab === 'WALL' && <MemoryWall galerieData={galerieData} />}
             {activeTab === 'PHOTOS' && (
                 <>
                     <div className="flex items-center gap-1 p-1 bg-white/5 rounded-2xl w-fit mb-8">

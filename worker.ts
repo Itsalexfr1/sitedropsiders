@@ -2305,7 +2305,7 @@ export default {
         if (path === '/api/photos/submit' && request.method === 'POST') {
             try {
                 const body = await request.json();
-                const { imageUrl, userName, festivalName, instagram, anecdote } = body;
+                const { imageUrl, userName, festivalName, year, instagram, anecdote } = body;
                 if (!imageUrl) return new Response(JSON.stringify({ error: 'Image URL required' }), { status: 400, headers });
 
                 const file = await fetchGitHubFile(PENDING_SUBMISSIONS_PATH) || { content: [], sha: null };
@@ -2316,6 +2316,7 @@ export default {
                     imageUrl,
                     userName: userName || 'Anonyme',
                     festivalName: festivalName || 'Inconnu',
+                    year: year || new Date().getFullYear().toString(),
                     instagram: instagram || '',
                     anecdote: anecdote || '',
                     timestamp: new Date().toISOString(),
@@ -2358,7 +2359,7 @@ export default {
                     const galFile = await fetchGitHubFile(GALERIE_PATH) || { content: [], sha: null };
                     const galleries = Array.isArray(galFile.content) ? galFile.content : [];
 
-                    const year = new Date().getFullYear().toString();
+                    const year = (submission as any).year || new Date().getFullYear().toString();
                     const galleryTitle = `COMMUNAUTÉ @ ${submission.festivalName.toUpperCase()} ${year}`;
                     const galleryId = `${submission.festivalName.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-community-${year}`;
 

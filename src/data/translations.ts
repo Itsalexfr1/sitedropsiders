@@ -25,7 +25,7 @@ export type TranslationKey =
     | 'cookies.title' | 'cookies.desc' | 'cookies.accept' | 'cookies.refuse' | 'cookies.manage'
     | 'article_reader.play' | 'article_reader.stop' | 'article_reader.playing'
     | 'galerie.badge' | 'galerie.filter_by' | 'galerie.view_album' | 'galerie.no_albums' | 'galerie.photos_suffix' | 'galerie.filter_all' | 'galerie.filter_festivals' | 'galerie.filter_clubs' | 'galerie.filter_concerts' | 'galerie.filter_portraits' | 'galerie.filter_others'
-    | 'communaute.tab_photos' | 'communaute.tab_quizz' | 'communaute.tab_guide' | 'communaute.tab_covoit' | 'communaute.tab_alerts'
+    | 'communaute.tab_wall' | 'communaute.tab_photos' | 'communaute.tab_quizz' | 'communaute.tab_guide' | 'communaute.tab_covoit' | 'communaute.tab_alerts'
     | 'communaute.quizz_title' | 'communaute.quizz_subtitle' | 'communaute.quizz_submit_title' | 'communaute.quizz_submit_desc'
     | 'communaute.blindtest_title' | 'communaute.blindtest_subtitle'
     | 'communaute.guide_title' | 'communaute.guide_subtitle'
@@ -302,6 +302,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'galerie.filter_concerts': { fr: 'CONCERTS', en: 'CONCERTS' },
     'galerie.filter_portraits': { fr: 'PORTRAITS', en: 'PORTRAITS' },
     'galerie.filter_others': { fr: 'AUTRES', en: 'OTHERS' },
+    'communaute.tab_wall': { fr: 'Memory Wall 3D', en: '3D Memory Wall' },
     'communaute.tab_photos': { fr: 'Photos & Clips', en: 'Photos & Clips' },
     'communaute.tab_quizz': { fr: 'Quizz & Blind Test', en: 'Quiz & Blind Test' },
     'communaute.tab_guide': { fr: 'Guide & Avis', en: 'Guide & Reviews' },

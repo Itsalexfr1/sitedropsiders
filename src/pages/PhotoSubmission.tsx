@@ -36,6 +36,7 @@ export function PhotoSubmission() {
             const submission = {
                 userName: formData.get('userName') as string,
                 festivalName: formData.get('festivalName') as string,
+                year: formData.get('year') as string,
                 instagram: formData.get('instagram') as string,
                 anecdote: formData.get('anecdote') as string,
                 imageUrl: imageUrl,
@@ -119,6 +120,18 @@ export function PhotoSubmission() {
                                             name="festivalName"
                                             required
                                             placeholder="NOM DU FESTIVAL *"
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xs font-black uppercase tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-neon-red transition-all"
+                                        />
+                                    </div>
+                                    <div className="relative group">
+                                        <input
+                                            type="number"
+                                            name="year"
+                                            required
+                                            min="2000"
+                                            max="2030"
+                                            defaultValue={new Date().getFullYear()}
+                                            placeholder="ANNÉE *"
                                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white text-xs font-black uppercase tracking-widest placeholder:text-gray-600 focus:outline-none focus:border-neon-red transition-all"
                                         />
                                     </div>

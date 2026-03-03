@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import {
     Pencil, List, Instagram, Power, Smile, Activity,
     HelpCircle, Lock, Pin, Music2, Edit2, Plus, Zap, CheckCircle2,
@@ -168,6 +168,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [showVideoEdit, setShowVideoEdit] = useState(false);
     const [showClipModal, setShowClipModal] = useState(false);
     const [playersOption, setPlayersOption] = useState(1);
+    const videoPlayerRef = useRef<HTMLDivElement>(null);
     const [email, setEmail] = useState('');
     const [newsletter, setNewsletter] = useState(true);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -657,7 +658,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 recordedClipsBlobs.current[clipId] = blobUrl;
 
                 const currentVideoId = channelItems[activeVideoIndex]?.id || settings.youtubeId;
-                const artist = fluxCurrentArtist?.artist || settings.currentArtist || "Live";
+                const clipArtist = fluxCurrentArtist?.artist || settings.currentArtist || "Live";
+                const artistPrefix = clipArtist !== "Live" ? `${clipArtist.toUpperCase()} - ` : '';
 
                 // Upload to Cloudinary
                 let remoteUrl = '';
@@ -684,7 +686,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 const newClip = {
                     id: clipId,
                     videoId: currentVideoId,
-                    title: clipTitle ? clipTitle.toUpperCase() : `EXTRAIT - ${artist.toUpperCase()}`,
+                    title: clipTitle ? clipTitle.toUpperCase() : `EXTRAIT - ${artistPrefix}${settings.title?.toUpperCase() || 'LIVE'}`,
                     duration: `0:${clipDuration < 10 ? '0' + clipDuration : clipDuration}`,
                     date: new Date().toLocaleDateString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                     timestamp: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
@@ -808,6 +810,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
         } catch (e: any) {
             console.error('Failed to save announcement banner', e);
         }
+    };
+
+    const getVisiblePlayers = () => {
+        if (playersOption === 4) return channelItems.slice(0, 4);
+        const active = channelItems[activeVideoIndex];
+        if (active) return [active];
+        return channelItems.length > 0 ? [channelItems[0]] : [];
     };
 
     // Sync with props when they change (e.g. from parent polling or settings update)
@@ -2365,7 +2374,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                 {/* Flux Selection & Info Bar - Always visible above video */}
                 {!isFullScreen && (
-                    <div className="w-full bg-[#0a0a0a] border-b border-white/10 px-4 py-2 flex items-center justify-between z-40 relative">
+                    <div className="w-full bg-[#0a0a0a] border-b border-white/10 px-4 py-2 flex flex-col md:flex-row items-center justify-between gap-4 z-40 relative">
                         <div className="flex items-center gap-4 flex-1">
                             {/* Live Badge */}
                             <div className="flex items-center gap-2 px-3 py-1 bg-red-600/10 border border-red-500/20 rounded-full shrink-0">
@@ -2373,52 +2382,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">LIVE</span>
                             </div>
 
-                        </div>
-                    </div>
-                )}
-
-                {/* Live Banner Header - REDUCED SIZE */}
-                {(showTopBanner && !isFocusMode && !isFullScreen && (settings.enabled || settings.isOnline || isServerAdmin)) && (
-                    <div className="w-full bg-[#080808] border-b border-white/10 px-6 py-3 flex items-center justify-between z-30 shadow-xl shrink-0">
-                        <div className="flex items-center gap-6 min-w-0 flex-1">
-                            <div className="flex items-center gap-4">
-                                {/* TITRE A COTE DE LIVE */}
-                                <div className="flex flex-col min-w-0 py-1">
-                                    <div className="flex items-center gap-3">
-                                        {settings.isOnline && (
-                                            <div className="flex items-center gap-2 bg-neon-red/10 px-2 py-1 rounded-md border border-neon-red/20 shadow-[0_0_10px_rgba(255,0,51,0.2)]">
-                                                <div className="w-2 h-2 bg-neon-red rounded-full animate-pulse" />
-                                                <span className="text-[10px] font-black text-neon-red uppercase tracking-widest leading-none">
-                                                    LIVE
-                                                </span>
-                                            </div>
-                                        )}
-                                        <h1 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tighter whitespace-nowrap overflow-visible leading-none mt-1">
-                                            {displayTitle}
-                                        </h1>
-                                    </div>
-
-                                    {/* ARTISTE & VIEWERS EN DESSOUS */}
-                                    <div className="flex items-center gap-3 mt-1.5 ml-1">
-                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/[0.03] border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all"
-                                            onClick={() => setShowUsersPanel(!showUsersPanel)}>
-                                            <Users className="w-3 h-3 text-neon-red" />
-                                            <span className="text-[9px] font-black text-white uppercase tracking-widest">
-                                                {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : allActiveUsers.length}
-                                            </span>
-                                        </div>
-                                        <div className="w-px h-3 bg-white/20" />
-                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-md shadow-[0_0_10px_rgba(0,255,204,0.15)]">
-                                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">NOW:</span>
-                                            <span className="text-[10px] font-black uppercase tracking-widest text-neon-cyan">{fluxCurrentArtist.artist || 'EN DIRECT'}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
                             {/* CHOIX DES FLUX */}
                             {channelItems.length > 1 && (
-                                <div className="hidden lg:flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 shrink-0 ml-4">
+                                <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 shrink-0">
                                     {channelItems.map((item: any, idx) => {
                                         const isDisabled = settings.disableMainPlayer !== false;
                                         if (item.isMain && isDisabled && playersOption === 1) return null;
@@ -2426,53 +2392,63 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             <button
                                                 key={idx}
                                                 onClick={() => {
-                                                    if (activeVideoIndex === idx) return;
+                                                    if (activeVideoIndex === idx && playersOption === 1) return;
                                                     setActiveVideoIndex(idx);
                                                     setPlayersOption(1);
                                                 }}
-                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/10'}`}
+                                                className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/10'}`}
                                             >
                                                 {item.title}
                                             </button>
                                         );
                                     })}
+
+                                    {/* Multivue Toggle */}
+                                    {channelItems.length >= 4 && (
+                                        <button
+                                            onClick={() => setPlayersOption(playersOption === 4 ? 1 : 4)}
+                                            className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${playersOption === 4 ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(189,0,255,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/10'}`}
+                                        >
+                                            MULTIVUE
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </div>
 
                         <div className="flex items-center gap-4">
-                            {/* HYPE & BPM Display */}
-                            <div className="flex items-center gap-4 px-4 border-x border-white/10 mx-2 hidden md:flex">
+                            {/* HYPE & BPM Display - Moved here for persistent visibility */}
+                            <div className="flex items-center gap-4 px-4 border-x border-white/10 mx-2">
                                 <div className="flex flex-col items-center justify-center">
                                     <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1">HYPE</span>
                                     <div className="flex items-center gap-2">
-                                        <div className="w-16 h-1.5 bg-white/5 rounded-full overflow-hidden border border-white/5 shrink-0">
+                                        <div className="w-12 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 shrink-0">
                                             <motion.div
                                                 animate={{ width: `${hypeLevel}%` }}
                                                 className={`h-full ${isOverdrive ? 'bg-neon-red shadow-[0_0_10px_#ff0033]' : 'bg-neon-purple'}`}
                                             />
                                         </div>
-                                        <span className={`text-[10px] font-black w-8 text-right ${isOverdrive ? 'text-neon-red' : 'text-white'}`}>{hypeLevel}%</span>
+                                        <span className={`text-[9px] font-black w-7 text-right ${isOverdrive ? 'text-neon-red' : 'text-white'}`}>{hypeLevel}%</span>
                                     </div>
                                 </div>
 
                                 <div className="flex flex-col items-center justify-center">
                                     <span className="text-[8px] font-black text-gray-600 uppercase tracking-widest mb-1">BPM</span>
-                                    <span className="text-xs font-black text-white italic">{bpm}</span>
+                                    <span className="text-[10px] font-black text-white italic">{bpm}</span>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-2 border-r border-white/10 pr-4 mr-2 hidden sm:flex">
+                            <div className="flex items-center gap-2">
                                 <button
                                     onClick={() => setShowClipModal(!showClipModal)}
-                                    className={`p-2 rounded-lg transition-all ${showClipModal ? 'bg-neon-purple text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                    className={`p-2 rounded-lg transition-all ${showClipModal ? 'bg-neon-purple text-white shadow-[0_0_10px_#bd00ff33]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                                     title="Clips & VOD"
                                 >
                                     <Video className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={() => setShowLineup(!showLineup)}
-                                    className={`p-2 rounded-lg transition-all ${showLineup ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                    className={`p-2 rounded-lg transition-all ${showLineup ? 'bg-neon-red text-white shadow-[0_0_10px_#ff003333]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                                     title="Planning"
                                 >
                                     <List className="w-4 h-4" />
@@ -2480,9 +2456,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             </div>
 
                             <div className="flex items-center gap-1.5 px-2 bg-white/5 border border-white/10 rounded-xl h-8">
-                                <a href={`https://facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="p-1.5 text-gray-500 hover:text-blue-500"><Facebook className="w-3.5 h-3.5" /></a>
-                                <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="p-1.5 text-gray-500 hover:text-white"><XIcon className="w-3.5 h-3.5" /></a>
-                                <a href={`https://snapchat.com/share?url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="p-1.5 text-gray-500 hover:text-yellow-400"><SnapchatIcon className="w-3.5 h-3.5" /></a>
+                                <a href={`https://facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="p-1.5 text-gray-500 hover:text-blue-500 transition-colors"><Facebook className="w-3.5 h-3.5" /></a>
+                                <a href={`https://twitter.com/intent/tweet?url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="p-1.5 text-gray-500 hover:text-white transition-colors"><XIcon className="w-3.5 h-3.5" /></a>
+                                <a href={`https://snapchat.com/share?url=${encodeURIComponent(window.location.href)}`} target="_blank" rel="noreferrer" className="p-1.5 text-gray-500 hover:text-yellow-400 transition-colors"><SnapchatIcon className="w-3.5 h-3.5" /></a>
                             </div>
 
                             <button
@@ -2491,6 +2467,47 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             >
                                 <X className="w-4 h-4" />
                             </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Live Banner Header - REDUCED SIZE */}
+                {(showTopBanner && !isFocusMode && !isFullScreen && (settings.enabled || settings.isOnline || isServerAdmin)) && (
+                    <div className="w-full bg-[#080808] border-b border-white/10 px-6 py-2 flex items-center justify-between z-30 shadow-xl shrink-0">
+                        <div className="flex items-center gap-6 min-w-0 flex-1">
+                            <div className="flex items-center gap-4">
+                                {/* TITRE A COTE DE LIVE */}
+                                <div className="flex flex-col min-w-0 py-0.5">
+                                    <div className="flex items-center gap-3">
+                                        {settings.isOnline && (
+                                            <div className="flex items-center gap-2 bg-neon-red/10 px-2 py-0.5 rounded-md border border-neon-red/20 shadow-[0_0_10px_rgba(255,0,51,0.2)]">
+                                                <div className="w-1.5 h-1.5 bg-neon-red rounded-full animate-pulse" />
+                                                <span className="text-[10px] font-black text-neon-red uppercase tracking-widest leading-none">
+                                                    LIVE
+                                                </span>
+                                            </div>
+                                        )}
+                                        <h1 className="text-xl md:text-2xl font-display font-black text-white uppercase italic tracking-tighter whitespace-nowrap overflow-visible leading-none">
+                                            {displayTitle}
+                                        </h1>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-3">
+                            {/* ARTISTE & VIEWERS DISPLAY */}
+                            <div className="flex items-center gap-2 px-3 py-1 bg-white/[0.03] border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all"
+                                onClick={() => setShowUsersPanel(!showUsersPanel)}>
+                                <Users className="w-3.5 h-3.5 text-neon-red" />
+                                <span className="text-[10px] font-black text-white uppercase tracking-widest">
+                                    {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : allActiveUsers.length} SPECTATEURS
+                                </span>
+                            </div>
+                            <div className="hidden sm:flex items-center gap-2 px-3 py-1 bg-neon-cyan/10 border border-neon-cyan/20 rounded-md shadow-[0_0_10px_rgba(0,255,204,0.15)]">
+                                <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">EN DIRECT:</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-neon-cyan">{fluxCurrentArtist.artist || '---'}</span>
+                            </div>
                         </div>
                     </div>
                 )}
@@ -2509,15 +2526,22 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     {/* Video Section */}
                     <div className={`flex-shrink-0 lg:flex-1 w-full lg:w-auto bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
 
-                        <div className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
+                        <div ref={videoPlayerRef} className="w-full aspect-video lg:aspect-auto lg:flex-1 relative bg-black group overflow-hidden">
                             <div className="absolute inset-0 z-0">
-                                <iframe
-                                    className="w-full h-full border-none"
-                                    src={`https://www.youtube.com/embed/${currentVideoId}?autoplay=1&mute=1&rel=0&modestbranding=1&enablejsapi=1`}
-                                    title={settings.title || 'Live Stream'}
-                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                    allowFullScreen
-                                ></iframe>
+                                <div className={`grid ${playersOption === 4 ? 'grid-cols-2 grid-rows-2' : 'grid-cols-1'} h-full gap-0.5 bg-black`}>
+                                    {getVisiblePlayers().map((item, idx) => (
+                                        item && (
+                                            <iframe
+                                                key={idx}
+                                                className="w-full h-full border-none"
+                                                src={`https://www.youtube.com/embed/${item.id}?autoplay=1&mute=${idx === 0 ? 0 : 1}&rel=0&modestbranding=1&enablejsapi=1`}
+                                                title={item.title}
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowFullScreen
+                                            ></iframe>
+                                        )
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
@@ -5602,11 +5626,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                                         {/* Video / Blind Test Vidéo */}
                                         {(quizPopupQuestion.type?.toUpperCase() === 'VIDEO' || quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST') && quizPopupQuestion.youtubeId && (
-                                            <div className="relative rounded-xl overflow-hidden border border-white/10" style={{ aspectRatio: '16/9' }}>
+                                            <div
+                                                key={quizPopupQuestion.id}
+                                                className="relative rounded-xl overflow-hidden border border-white/10"
+                                                style={{ aspectRatio: '16/9' }}
+                                            >
                                                 <iframe
                                                     width="100%"
                                                     height="100%"
-                                                    src={`https://www.youtube.com/embed/${quizPopupQuestion.youtubeId}?autoplay=1&modestbranding=1&rel=0&iv_load_policy=3&fs=0`}
+                                                    src={`https://www.youtube.com/embed/${quizPopupQuestion.youtubeId}?autoplay=1&mute=0&modestbranding=1&rel=0&iv_load_policy=3&fs=0&enablejsapi=1&start=${quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST' ? (Math.floor(Math.random() * 30) + 60) : 0}`}
                                                     title="YouTube video player"
                                                     frameBorder="0"
                                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"

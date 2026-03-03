@@ -542,7 +542,7 @@ export function QuizSection() {
                                                                 <iframe
                                                                     width="100%"
                                                                     height="100%"
-                                                                    src={`https://www.youtube.com/embed/${gameQuizzes[currentQuizIndex].youtubeId}?autoplay=1&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=0&start=${gameQuizzes[currentQuizIndex].startTime ?? (90 + Math.floor(Math.random() * 15))}`}
+                                                                    src={`https://www.youtube.com/embed/${gameQuizzes[currentQuizIndex].youtubeId}?autoplay=1&mute=0&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=0&enablejsapi=1&start=${gameQuizzes[currentQuizIndex].startTime ?? (90 + Math.floor(Math.random() * 15))}`}
                                                                     allow="autoplay"
                                                                 ></iframe>
                                                             </div>
