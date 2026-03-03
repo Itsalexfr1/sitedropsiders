@@ -2,13 +2,14 @@ import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Pencil, List, Instagram, Power, Smile,
+    Pencil, List, Instagram, Power, Smile, ArrowLeft,
     HelpCircle, Lock, Pin, Edit2, Plus, Zap, CheckCircle2, Activity,
     Facebook, Maximize, Minimize, Video, Heart, User, ArrowRight, Bell,
     Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send, Mail, Mic, Hash, Headphones, Trophy, Crown,
     ChevronUp, ChevronDown, Volume2, PowerOff, BarChart3, ShoppingBag, LogOut, MicOff, CircleStop, Loader2,
     Star, ShieldCheck, LayoutGrid
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { GlitchTransition } from '../components/ui/GlitchTransition';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 
@@ -121,6 +122,7 @@ const StyledCheckbox = ({ checked, onChange, label, sublabel, color = 'red' }: {
 
 export function TakeoverPage({ settings }: TakeoverProps) {
     const { t } = useLanguage();
+    const navigate = useNavigate();
     const [currentTime, setCurrentTime] = useState(new Date());
     const adminAuth = localStorage.getItem('admin_auth') === 'true';
     const editeurAuth = localStorage.getItem('editeur_auth') === 'true';
