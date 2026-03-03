@@ -3118,5 +3118,39 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 269,
+    "title": "Adriatique présent X",
+    "date": "2026-09-17",
+    "startDate": "2026-09-17",
+    "endDate": "2026-09-24",
+    "location": "UNVRS IBIZA",
+    "country": "Espagne",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772565703908-b693deb3-a847-4ade-aaa1-4df6e3786faf.jpeg",
+    "url": "https://www.clubtickets.com/clubbing/unvrs-ibiza/adriatique-presents-x?aff=CT009&ct_key=presale&utm_source=ActiveCampaign&utm_medium=email&utm_content=Adriatique%20Presents%20X%20at%20%5BUNVRS%5D&utm_campaign=UNVRS%20-%20ADRIATIQUE",
+    "genre": "Big Room",
+    "month": "SEPTEMBRE",
+    "isWeekly": true,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
+  },
+  {
+    "id": 270,
+    "title": "Adriatique présent X",
+    "date": "2026-09-24",
+    "startDate": "2026-09-17",
+    "endDate": "2026-09-24",
+    "location": "UNVRS IBIZA",
+    "country": "Espagne",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772565703908-b693deb3-a847-4ade-aaa1-4df6e3786faf.jpeg",
+    "url": "https://www.clubtickets.com/clubbing/unvrs-ibiza/adriatique-presents-x?aff=CT009&ct_key=presale&utm_source=ActiveCampaign&utm_medium=email&utm_content=Adriatique%20Presents%20X%20at%20%5BUNVRS%5D&utm_campaign=UNVRS%20-%20ADRIATIQUE",
+    "genre": "Big Room",
+    "month": "SEPTEMBRE",
+    "isWeekly": true,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
