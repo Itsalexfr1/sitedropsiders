@@ -2399,9 +2399,52 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 <span className="text-[9px] font-black text-red-500 uppercase tracking-widest">LIVE</span>
                             </div>
 
-                            {/* Multi-Video Switcher */}
+                        </div>
+                    </div>
+                )}
+
+                {/* Live Banner Header - REDUCED SIZE */}
+                {(showTopBanner && !isFocusMode && !isFullScreen && (settings.enabled || settings.isOnline || isServerAdmin)) && (
+                    <div className="w-full bg-[#080808] border-b border-white/10 px-6 py-3 flex items-center justify-between z-30 shadow-xl shrink-0">
+                        <div className="flex items-center gap-6 min-w-0 flex-1">
+                            <div className="flex items-center gap-4">
+                                {/* TITRE A COTE DE LIVE */}
+                                <div className="flex flex-col min-w-0 py-1">
+                                    <div className="flex items-center gap-3">
+                                        {settings.isOnline && (
+                                            <div className="flex items-center gap-2 bg-neon-red/10 px-2 py-1 rounded-md border border-neon-red/20 shadow-[0_0_10px_rgba(255,0,51,0.2)]">
+                                                <div className="w-2 h-2 bg-neon-red rounded-full animate-pulse" />
+                                                <span className="text-[10px] font-black text-neon-red uppercase tracking-widest leading-none">
+                                                    LIVE
+                                                </span>
+                                            </div>
+                                        )}
+                                        <h1 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tighter whitespace-nowrap overflow-visible leading-none mt-1">
+                                            {displayTitle}
+                                        </h1>
+                                    </div>
+
+                                    {/* ARTISTE & VIEWERS EN DESSOUS */}
+                                    <div className="flex items-center gap-3 mt-1.5 ml-1">
+                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-white/[0.03] border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all"
+                                            onClick={() => setShowUsersPanel(!showUsersPanel)}>
+                                            <Users className="w-3 h-3 text-neon-red" />
+                                            <span className="text-[9px] font-black text-white uppercase tracking-widest">
+                                                {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : allActiveUsers.length}
+                                            </span>
+                                        </div>
+                                        <div className="w-px h-3 bg-white/20" />
+                                        <div className="flex items-center gap-1.5 px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-md shadow-[0_0_10px_rgba(0,255,204,0.15)]">
+                                            <span className="text-[9px] font-black uppercase tracking-widest text-gray-500">NOW:</span>
+                                            <span className="text-[10px] font-black uppercase tracking-widest text-neon-cyan">{fluxCurrentArtist.artist || 'EN DIRECT'}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* CHOIX DES FLUX */}
                             {channelItems.length > 1 && (
-                                <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 shrink-0">
+                                <div className="hidden lg:flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 shrink-0 ml-4">
                                     {channelItems.map((item: any, idx) => {
                                         const isDisabled = settings.disableMainPlayer !== false;
                                         if (item.isMain && isDisabled && playersOption === 1) return null;
@@ -2413,7 +2456,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     setActiveVideoIndex(idx);
                                                     setPlayersOption(1);
                                                 }}
-                                                className={`px-3 py-1 rounded-lg text-[10px] font-black transition-all ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
+                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/10'}`}
                                             >
                                                 {item.title}
                                             </button>
@@ -2421,52 +2464,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     })}
                                 </div>
                             )}
-
-                        </div>
-
-                        {/* Layout Select (moved from header) */}
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-xl p-1 h-7">
-                                {[1, 2, 3, 4].filter(n => n <= channelItems.length).map(n => (
-                                    <button
-                                        key={n}
-                                        onClick={() => setPlayersOption(n)}
-                                        className={`w-7 h-full rounded-lg flex items-center justify-center text-[10px] font-black transition-all ${playersOption === n ? 'bg-neon-cyan text-black' : 'text-gray-500 hover:text-white'}`}
-                                        title={`Vue ${n} écrans`}
-                                    >
-                                        {n === 1 ? <Maximize className="w-3 h-3" /> : n}
-                                    </button>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Live Banner Header - REDUCED SIZE */}
-                {(showTopBanner && !isFocusMode && !isFullScreen && (settings.enabled || settings.isOnline || isServerAdmin)) && (
-                    <div className="w-full bg-[#080808] border-b border-white/10 px-6 py-3 flex items-center justify-between z-30 shadow-xl shrink-0">
-                        <div className="flex items-center gap-6 min-w-0">
-                            <div className="flex items-center gap-2 px-3 py-1 bg-white/[0.03] border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all"
-                                onClick={() => setShowUsersPanel(!showUsersPanel)}>
-                                <Users className="w-3 h-3 text-neon-red" />
-                                <span className="text-[9px] font-black text-white uppercase tracking-widest">
-                                    {viewersCount > 0 ? viewersCount.toLocaleString('fr-FR') : allActiveUsers.length}
-                                </span>
-                            </div>
-
-                            <div className="flex flex-col min-w-0 py-1 pr-2">
-                                <h1 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tighter whitespace-nowrap overflow-visible">
-                                    {displayTitle}
-                                </h1>
-                                {settings.isOnline && (
-                                    <div className="flex items-center gap-2 mt-0.5">
-                                        <div className="w-1 h-1 bg-neon-cyan rounded-full animate-pulse" />
-                                        <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">
-                                            LIVE NOW: <span className="text-neon-cyan">{fluxCurrentArtist.artist || 'EN DIRECT'}</span>
-                                        </span>
-                                    </div>
-                                )}
-                            </div>
                         </div>
 
                         <div className="flex items-center gap-4">

@@ -706,9 +706,6 @@ export function AdminDashboard() {
     };
 
     const getFallbackActions = () => [
-        // LIVE
-        { title: "LIVE / TAKEOVER", description: "Réglages & Contrôle Live", icon: "Youtube", category: "LIVE", link: "/live", color: "border-neon-red/20 hover:border-neon-red flex-col md:flex-row col-span-1 md:col-span-2", bg: "bg-neon-red/10", permission: "takeover_modo", baseColor: "red", columns: 2 },
-
         // CONTENU & ÉDITORIAL
         { title: "Contenu", description: "News, Musique, Interviews...", icon: "FileText", category: "CONTENU & ÉDITORIAL", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news", baseColor: "cyan", columns: 2 },
         { title: "Agenda", description: "Programmation", icon: "Calendar", category: "CONTENU & ÉDITORIAL", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
@@ -2665,7 +2662,7 @@ export function AdminDashboard() {
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
                                     <button
                                         onClick={() => { setIsGalerieModalOpen(true); setIsCommunauteModalOpen(false); }}
-                                        className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
+                                        className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group lg:col-span-1"
                                     >
                                         <div className="w-16 h-16 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform">
                                             <ImageIcon className="w-8 h-8 text-neon-pink" />
@@ -4225,7 +4222,7 @@ export function AdminDashboard() {
                                 <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">Modifier la Question</h3>
                                 <div className="space-y-4">
                                     <div>
-                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Question</label>
+                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Titre du morceau / Question</label>
                                         <input
                                             type="text"
                                             value={quizToEdit.question}
@@ -4313,10 +4310,13 @@ export function AdminDashboard() {
                                                                     const data = await resp.json();
                                                                     if (data.title) {
                                                                         let cleanTitle = data.title
-                                                                            .replace(/(\[|\()(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix).*?(\]|\))/gi, '')
-                                                                            .replace(/(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix)/gi, '')
+                                                                            .replace(/(\[|\()(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix|Extended Mix|Vocal Mix|Extended Vocal Mix|Radio Edit).*?(\]|\))/gi, '')
+                                                                            .replace(/(Official|OFFICIAL|Music|MUSIC|Lyric|LYRIC|Video|VIDEO|Audio|AUDIO|HD|4K|Clip|CLIP|Official Video|Vidéo officielle|Original Mix|Extended Mix|Vocal Mix|Extended Vocal Mix|Radio Edit)/gi, '')
                                                                             .replace(/\s+/g, ' ')
                                                                             .trim();
+
+                                                                        // Extra fallback for typical parens
+                                                                        cleanTitle = cleanTitle.replace(/\(Extended Vocal Mix\)/gi, '').trim();
 
                                                                         // If question is empty or matches generic, fill it
                                                                         if (!quizToEdit.question || quizToEdit.question === 'Blind Test' || quizToEdit.question.includes('?')) {

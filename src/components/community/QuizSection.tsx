@@ -33,7 +33,7 @@ interface ScoreRecord {
 }
 
 export function QuizSection() {
-    const { t, language } = useLanguage();
+    const { language } = useLanguage();
     const [activeTab, setActiveTab] = useState<'play' | 'submit'>('play');
     const [gameState, setGameState] = useState<'selection' | 'playing' | 'results'>('selection');
     const [selectedMode, setSelectedMode] = useState<QuizType | 'BOTH'>('QCM');
@@ -731,7 +731,18 @@ export function QuizSection() {
                                 <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-3">Type de question</label>
                                 <select
                                     value={formData.type}
-                                    onChange={e => setFormData({ ...formData, type: e.target.value as QuizType })}
+                                    onChange={e => {
+                                        const newType = e.target.value as QuizType;
+                                        let question = formData.question;
+                                        if (newType === 'BLIND_TEST') {
+                                            question = "Arrivera tu a trouver le titre ?";
+                                        } else if (newType === 'IMAGE') {
+                                            question = formData.imageType === 'FESTIVAL'
+                                                ? "Arrivera tu a reconnaitre ce festival ?"
+                                                : "Arrivera tu a reconnaitre cet artiste ?";
+                                        }
+                                        setFormData({ ...formData, type: newType, question });
+                                    }}
                                     className="w-full bg-black/40 border border-white/10 rounded-2xl p-4 text-white font-bold focus:outline-none focus:border-neon-red transition-all appearance-none"
                                 >
                                     <option value="QCM">QUIZZ CLASSIQUE</option>
@@ -761,7 +772,8 @@ export function QuizSection() {
                                         onClick={() => setFormData({
                                             ...formData,
                                             imageType: 'FESTIVAL',
-                                            question: formData.question || t('quizz.festival_question')
+                                            revealEffect: 'BLUR',
+                                            question: "Arrivera tu a reconnaitre ce festival ?"
                                         })}
                                         className={`p-4 rounded-2xl border font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${formData.imageType === 'FESTIVAL' ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
                                     >
@@ -773,7 +785,8 @@ export function QuizSection() {
                                         onClick={() => setFormData({
                                             ...formData,
                                             imageType: 'ARTIST',
-                                            question: formData.question || t('quizz.artist_question')
+                                            revealEffect: 'BLUR',
+                                            question: "Arrivera tu a reconnaitre cet artiste ?"
                                         })}
                                         className={`p-4 rounded-2xl border font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${formData.imageType === 'ARTIST' ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
                                     >
@@ -786,7 +799,7 @@ export function QuizSection() {
                                             ...formData,
                                             imageType: 'ARTIST',
                                             revealEffect: 'SILHOUETTE',
-                                            question: formData.question || "QUI EST CET ARTISTE ?"
+                                            question: "Arrivera tu a reconnaitre cet artiste ?"
                                         })}
                                         className={`p-4 rounded-2xl border font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${formData.revealEffect === 'SILHOUETTE' ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
                                     >
@@ -857,7 +870,7 @@ export function QuizSection() {
                         )}
 
                         <div>
-                            <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-3">Libellé de la question</label>
+                            <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-3">Titre du morceau / Question</label>
                             <input
                                 type="text"
                                 required
