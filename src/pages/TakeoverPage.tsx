@@ -4495,8 +4495,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 ) : (
                                     <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
                                         {/* FLUX SELECTION - PERSISTENT AT TOP OF SIDEBAR */}
-                                        <div className="px-2 md:px-4 pt-2 md:pt-4 pb-0 shrink-0 z-[60]">
-                                            <div className="flex items-center gap-1 bg-white/5 border border-white/10 rounded-lg md:rounded-xl p-0.5 md:p-1 overflow-x-auto no-scrollbar shadow-lg">
+                                        <div className="px-1 md:px-4 pt-1 md:pt-4 pb-0 shrink-0 z-[60]">
+                                            <div className="flex items-center gap-0.5 bg-white/5 border border-white/10 rounded-md md:rounded-xl p-0.5 md:p-1 overflow-x-auto no-scrollbar shadow-lg">
                                                 {channelItems.map((item: any, idx) => {
                                                     const isDisabled = settings.disableMainPlayer !== false;
                                                     if (item.isMain && isDisabled && playersOption === 1) return null;
@@ -4508,7 +4508,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 setActiveVideoIndex(idx);
                                                                 setPlayersOption(1);
                                                             }}
-                                                            className={`px-1.5 md:px-3 py-1 md:py-2 rounded-md md:rounded-lg text-[6px] md:text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[40px] md:min-w-[70px] ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                            className={`px-1 md:px-3 py-0.5 md:py-2 rounded-sm md:rounded-lg text-[4px] md:text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[20px] md:min-w-[70px] leading-none ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
                                                         >
                                                             {item.title}
                                                         </button>
@@ -4518,7 +4518,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         </div>
 
                                         {/* Tab Switcher - Persistent at Top */}
-                                        <div className="flex items-center gap-0.5 md:gap-1 p-0.5 md:p-1 bg-white/[0.02] border border-white/10 rounded-lg md:rounded-xl mb-0 mx-2 md:mx-4 mt-2 md:mt-3 relative z-20 shrink-0 overflow-x-auto no-scrollbar">
+                                        <div className="flex items-center gap-0.5 md:gap-1 p-0.5 md:p-1 bg-white/[0.02] border border-white/10 rounded-md md:rounded-xl mb-0 mx-1 md:mx-4 mt-0.5 md:mt-3 relative z-20 shrink-0 overflow-x-auto no-scrollbar">
                                             {[
                                                 { id: 'chat', icon: MessageSquare, label: 'Chat' },
                                                 { id: 'shazam', icon: Headphones, label: 'Shz' },
@@ -4531,10 +4531,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 <button
                                                     key={tab.id}
                                                     onClick={() => setActiveChatTab(tab.id as any)}
-                                                    className={`flex-1 flex items-center justify-center gap-0.5 md:gap-1.5 py-1 md:py-2 rounded-md md:rounded-lg text-[6px] md:text-[9px] font-black uppercase tracking-widest transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                                    className={`flex-1 flex items-center justify-center gap-0.5 md:gap-1.5 py-0.5 md:py-2 rounded-sm md:rounded-lg text-[4px] md:text-[9px] font-black uppercase tracking-widest transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
                                                 >
-                                                    <tab.icon className="w-2.5 h-2.5 md:w-3.5 md:h-3.5" />
-                                                    <span className="text-[6px] md:text-[9px]">{tab.label.substring(0, 3)}</span>
+                                                    <tab.icon className="w-2 h-2 md:w-3.5 md:h-3.5" />
+                                                    <span className="hidden md:inline text-[4px] md:text-[9px]">{tab.label.substring(0, 3)}</span>
                                                     {activeChatTab === tab.id && (
                                                         <motion.div layoutId="active-chat-tab" className="absolute bottom-0 left-0 right-0 h-0.5 bg-neon-red" />
                                                     )}
