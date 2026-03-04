@@ -27,7 +27,7 @@ export function AgendaCreate() {
     const [type, setType] = useState('Festival'); // Default
     const [imageUrl, setImageUrl] = useState('');
     const [url, setUrl] = useState('');
-    const [genre, setGenre] = useState('Big Room'); // Default
+    const [genre, setGenre] = useState(''); // Empty by default - user must choose
     const [isWeekly, setIsWeekly] = useState(false);
     const [isSoldOut, setIsSoldOut] = useState(false);
     const [isLiveDropsiders, setIsLiveDropsiders] = useState(false);
@@ -288,6 +288,7 @@ export function AgendaCreate() {
                 setCountry('');
                 setImageUrl('');
                 setUrl('');
+                setGenre(''); // Reset genre to empty after each successful add
                 setIsWeekly(false);
                 setIsSoldOut(false);
                 setIsLiveDropsiders(false);
@@ -512,14 +513,16 @@ export function AgendaCreate() {
 
                             {/* Genre */}
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Genre Musical</label>
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Genre Musical <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
                                     <Music className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
                                     <select
                                         value={genre}
                                         onChange={(e) => setGenre(e.target.value)}
-                                        className="w-full bg-gray-900 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all appearance-none"
+                                        required
+                                        className={`w-full bg-gray-900 border rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all appearance-none ${genre === '' ? 'text-gray-500 border-neon-red/40' : 'text-white border-white/10'}`}
                                     >
+                                        <option value="" disabled>-- Choisir un genre --</option>
                                         <option value="Big Room">Big Room</option>
                                         <option value="Tech House">Tech House</option>
                                         <option value="Techno">Techno</option>

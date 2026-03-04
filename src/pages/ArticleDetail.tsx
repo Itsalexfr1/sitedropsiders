@@ -1,5 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import newsData from '../data/news.json';
 import { useLanguage } from '../context/LanguageContext';
 import { extractIdFromSlug } from '../utils/slugify';
@@ -15,12 +15,43 @@ export function ArticleDetail() {
     const articleId = extractIdFromSlug(id || '');
     const article = newsData.find(item => item.id === articleId);
 
+    const [liveContent, setLiveContent] = useState<string | null>(null);
+    const [isLoadingContent, setIsLoadingContent] = useState(true);
+
     useEffect(() => {
         window.scrollTo(0, 0);
         if (article) {
             trackPageView(article.id.toString(), 'article');
         }
     }, [articleId, article]);
+
+    // Fetch live content from API so edits are always reflected without redeploy
+    useEffect(() => {
+        if (!articleId) {
+            setIsLoadingContent(false);
+            return;
+        }
+        setIsLoadingContent(true);
+        const fetchContent = async () => {
+            try {
+                const res = await fetch(`/api/news/content?id=${articleId}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.content) {
+                        setLiveContent(data.content);
+                        setIsLoadingContent(false);
+                        return;
+                    }
+                }
+            } catch (e) {
+                console.warn('[ArticleDetail] API content fetch failed, falling back to static bundle.', e);
+            }
+            // Fallback: use bundled content
+            setLiveContent(null);
+            setIsLoadingContent(false);
+        };
+        fetchContent();
+    }, [articleId]);
 
     if (!article) {
         return (
@@ -48,9 +79,20 @@ export function ArticleDetail() {
     const previousArticle = currentIndex < categoryArticles.length - 1 ? categoryArticles[currentIndex + 1] : null;
     const nextArticle = currentIndex > 0 ? categoryArticles[currentIndex - 1] : null;
 
-    // Get content from separate files
-    const fullContent = getNewsContent(article.id);
-    const rawContent = fullContent || (article as any).content || (article as any).summary || '';
+    // Priority: live API content > bundled content files > article content field > summary
+    const bundledContent = getNewsContent(article.id);
+    const rawContent = liveContent ?? bundledContent ?? (article as any).content ?? (article as any).summary ?? '';
+
+    if (isLoadingContent) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-dark-bg">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-10 h-10 border-4 border-neon-red/20 border-t-neon-red rounded-full animate-spin" />
+                    <p className="text-gray-500 text-xs font-black uppercase tracking-widest">Chargement...</p>
+                </div>
+            </div>
+        );
+    }
 
     return (
         <ArticlePremiumTemplate
