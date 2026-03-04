@@ -3686,5 +3686,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 287,
+    "title": "Verknipt Festival",
+    "date": "2026-06-06",
+    "startDate": "2026-06-06",
+    "endDate": "2026-06-07",
+    "venue": "STRIJKVIERTEL",
+    "location": "UTRECHT",
+    "country": "Pays-Bas",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772633189208-verknipt_festival_2026.png",
+    "url": "https://www.verknipt.org",
+    "genre": "HardTechno",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
