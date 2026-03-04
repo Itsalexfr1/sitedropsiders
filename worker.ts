@@ -189,11 +189,11 @@ export default {
                 'https://api.cobalt.red/'
             ];
 
-            // Shuffle instances slightly to distribute load
-            const shuffled = [...instances].sort(() => Math.random() - 0.5);
+            // Try 5 random instances in parallel to speed up the process
+            const selectedInstances = [...instances].sort(() => Math.random() - 0.5).slice(0, 5);
 
-            for (const instance of shuffled) {
-                try {
+            try {
+                const successResponse = await Promise.any(selectedInstances.map(async (instance) => {
                     const response = await fetch(instance, {
                         method: 'POST',
                         headers: {
@@ -206,7 +206,7 @@ export default {
                             videoQuality: body.videoQuality || '1080',
                             downloadMode: body.downloadMode || 'auto'
                         }),
-                        signal: AbortSignal.timeout(10000)
+                        signal: AbortSignal.timeout(5000) // 5s timeout instead of 10s
                     });
 
                     if (response.ok) {
@@ -215,9 +215,11 @@ export default {
                             return new Response(JSON.stringify(data), { headers });
                         }
                     }
-                } catch (e) {
-                    continue;
-                }
+                    throw new Error("Invalid response");
+                }));
+                return successResponse;
+            } catch (e) {
+                // All parallel attempts failed
             }
 
             // TikWM for TikTok as ultra-robust fallback

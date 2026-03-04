@@ -283,6 +283,7 @@ export function AgendaCreate() {
                 const now = new Date().toISOString().split('T')[0];
                 setStartDate(now);
                 setEndDate(now);
+                setVenue('');
                 setLocationInput('');
                 setCountry('');
                 setImageUrl('');
