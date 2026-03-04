@@ -20,8 +20,9 @@ export function AgendaCreate() {
     const [title, setTitle] = useState('');
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
     const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
-    const [locationInput, setLocationInput] = useState('');
-    const [country, setCountry] = useState('');
+    const [venue, setVenue] = useState(editingItem?.venue || '');
+    const [locationInput, setLocationInput] = useState(editingItem?.location || '');
+    const [country, setCountry] = useState(editingItem?.country || '');
     const [isAutoLocating, setIsAutoLocating] = useState(false);
     const [type, setType] = useState('Festival'); // Default
     const [imageUrl, setImageUrl] = useState('');
@@ -137,8 +138,9 @@ export function AgendaCreate() {
         if (isEditing && editingItem) {
             setTitle(editingItem.title);
             setStartDate(editingItem.startDate || editingItem.date);
-            setEndDate(editingItem.endDate || editingItem.date);
-            setLocationInput(editingItem.location);
+            setEndDate(editingItem.endDate || editingItem.date || new Date().toISOString().split('T')[0]);
+            setVenue(editingItem.venue || '');
+            setLocationInput(editingItem.location || '');
             setCountry(editingItem.country || '');
             setType(editingItem.type || 'Festival');
             setImageUrl(editingItem.image);
@@ -173,7 +175,7 @@ export function AgendaCreate() {
         if (initialDataLoaded.current) {
             setIsDirty(true);
         }
-    }, [title, startDate, endDate, locationInput, country, type, imageUrl, url, genre, isWeekly, isSoldOut, isLiveDropsiders]);
+    }, [title, startDate, endDate, venue, locationInput, country, type, imageUrl, url, genre, isWeekly, isSoldOut, isLiveDropsiders]);
 
     // Autolocation Logic
     useEffect(() => {
@@ -244,6 +246,7 @@ export function AgendaCreate() {
                     startDate,
                     endDate: endDate || startDate,
                     dayOfWeek: isWeekly ? new Date(startDate).getDay() : undefined, // NEW: Priority for weekly events
+                    venue,
                     location: locationInput,
                     country,
                     type,
@@ -403,71 +406,84 @@ export function AgendaCreate() {
                                     />
                                 </div>
                             </div>
+                        </div>
 
-                            {/* Location & Country */}
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lieu <span className="text-neon-red">*</span></label>
-                                    <div className="relative group">
-                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
-                                        <input
-                                            type="text"
-                                            value={locationInput}
-                                            onChange={(e) => setLocationInput(e.target.value.toUpperCase())}
-                                            onFocus={() => locationInput.length >= 1 && setShowSuggestions(true)}
-                                            placeholder="Ex: Ibiza"
-                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all"
-                                            required
-                                        />
-                                        <AnimatePresence>
-                                            {showSuggestions && (
-                                                <motion.div
-                                                    ref={suggestionRef}
-                                                    initial={{ opacity: 0, y: -10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -10 }}
-                                                    className="absolute z-[100] left-0 right-0 top-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl backdrop-blur-xl"
-                                                >
-                                                    {citySuggestions.map((suggestion, idx) => (
-                                                        <button
-                                                            key={idx}
-                                                            type="button"
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation();
-                                                                setLocationInput(suggestion.city);
-                                                                if (suggestion.country) setCountry(suggestion.country);
-                                                                setShowSuggestions(false);
-                                                            }}
-                                                            className="w-full px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 flex justify-between items-center group"
-                                                        >
-                                                            <span className="text-white font-medium group-hover:text-neon-yellow transition-colors">{suggestion.city}</span>
-                                                            {suggestion.country && <span className="text-xs text-gray-500 uppercase italic">{suggestion.country}</span>}
-                                                        </button>
-                                                    ))}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </div>
+                        {/* Location & Country */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lieu <span className="text-neon-red font-normal italic text-xs lowercase ml-2">(ex: Ushuaïa, Amnesia - Optionnel)</span></label>
+                                <div className="relative group">
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
+                                    <input
+                                        type="text"
+                                        value={venue}
+                                        onChange={(e) => setVenue(e.target.value)}
+                                        placeholder="Ex: Ushuaïa"
+                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all"
+                                    />
                                 </div>
-                                <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Pays <span className="text-neon-red">*</span></label>
-                                    <div className="relative group">
-                                        <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
-                                        <input
-                                            type="text"
-                                            value={country}
-                                            onChange={(e) => setCountry(e.target.value.toUpperCase())}
-                                            placeholder="Ex: Espagne"
-                                            required
-                                            className={`w-full bg-black/20 border rounded-xl py-4 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:ring-1 transition-all ${isAutoLocating ? 'border-neon-cyan animate-pulse' : 'border-white/10 focus:border-neon-cyan focus:ring-neon-cyan'}`}
-                                        />
-                                        {isAutoLocating && (
-                                            <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                                                <div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin"></div>
-                                            </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Ville <span className="text-neon-red">*</span></label>
+                                <div className="relative group">
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
+                                    <input
+                                        type="text"
+                                        value={locationInput}
+                                        onChange={(e) => setLocationInput(e.target.value.toUpperCase())}
+                                        onFocus={() => locationInput.length >= 1 && setShowSuggestions(true)}
+                                        placeholder="Ex: Ibiza"
+                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all"
+                                        required
+                                    />
+                                    <AnimatePresence>
+                                        {showSuggestions && (
+                                            <motion.div
+                                                ref={suggestionRef}
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: -10 }}
+                                                className="absolute z-[100] left-0 right-0 top-full mt-2 bg-[#1a1a1a] border border-white/10 rounded-xl overflow-hidden shadow-2xl backdrop-blur-xl"
+                                            >
+                                                {citySuggestions.map((suggestion, idx) => (
+                                                    <button
+                                                        key={idx}
+                                                        type="button"
+                                                        onClick={(e) => {
+                                                            e.preventDefault();
+                                                            e.stopPropagation();
+                                                            setLocationInput(suggestion.city);
+                                                            if (suggestion.country) setCountry(suggestion.country);
+                                                            setShowSuggestions(false);
+                                                        }}
+                                                        className="w-full px-4 py-3 text-left hover:bg-white/5 transition-colors border-b border-white/5 last:border-0 flex justify-between items-center group"
+                                                    >
+                                                        <span className="text-white font-medium group-hover:text-neon-yellow transition-colors">{suggestion.city}</span>
+                                                        {suggestion.country && <span className="text-xs text-gray-500 uppercase italic">{suggestion.country}</span>}
+                                                    </button>
+                                                ))}
+                                            </motion.div>
                                         )}
-                                    </div>
+                                    </AnimatePresence>
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Pays <span className="text-neon-red">*</span></label>
+                                <div className="relative group">
+                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                    <input
+                                        type="text"
+                                        value={country}
+                                        onChange={(e) => setCountry(e.target.value.toUpperCase())}
+                                        placeholder="Ex: Espagne"
+                                        required
+                                        className={`w-full bg-black/20 border rounded-xl py-4 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:ring-1 transition-all ${isAutoLocating ? 'border-neon-cyan animate-pulse' : 'border-white/10 focus:border-neon-cyan focus:ring-neon-cyan'}`}
+                                    />
+                                    {isAutoLocating && (
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                            <div className="w-4 h-4 border-2 border-neon-cyan border-t-transparent rounded-full animate-spin"></div>
+                                        </div>
+                                    )}
                                 </div>
                             </div>
                         </div>

@@ -535,8 +535,8 @@ export function Agenda() {
                                                         </h3>
                                                         <div className="flex items-center gap-1 mt-0.5 text-[7px] md:text-sm text-gray-400">
                                                             <MapPin className="w-2 h-2 md:w-4 md:h-4" />
-                                                            <span>{event.location}</span>
-                                                            <FlagIcon location={event.location} />
+                                                            <span>{event.venue && `${event.venue}, `}{event.location}{event.location && event.country ? ', ' : ''}{event.country}</span>
+                                                            <FlagIcon location={event.country || event.location} />
                                                         </div>
                                                     </div>
                                                 </div>

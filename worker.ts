@@ -1829,7 +1829,7 @@ export default {
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
-                const { id, title, date, startDate, endDate, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek } = body;
+                const { id, title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 const agendaFile = await fetchGitHubFile(FILE_PATH);
@@ -1866,6 +1866,7 @@ export default {
                             date: currentDate.toISOString().split('T')[0],
                             startDate: startDate,
                             endDate: endDate,
+                            venue: venue || existing.venue || '',
                             location: location || existing.location,
                             country: country || existing.country || '',
                             type: type || existing.type,
@@ -1890,6 +1891,7 @@ export default {
                         date: date || existing.date,
                         startDate: startDate || existing.startDate,
                         endDate: endDate || existing.endDate,
+                        venue: venue !== undefined ? venue : existing.venue || '',
                         location: location || existing.location,
                         country: country || existing.country || '',
                         type: type || existing.type,
@@ -1920,7 +1922,7 @@ export default {
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
-                const { title, date, startDate, endDate, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek } = body;
+                const { title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek } = body;
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
                 const agendaFile = await fetchGitHubFile(FILE_PATH) || { content: [], sha: null };
@@ -1943,6 +1945,7 @@ export default {
                             date: currentDate.toISOString().split('T')[0],
                             startDate: startDate,
                             endDate: endDate,
+                            venue: venue || '',
                             location,
                             country: country || '',
                             type,
@@ -1967,6 +1970,7 @@ export default {
                         date: date || startDate,
                         startDate: startDate,
                         endDate: endDate,
+                        venue: venue || '',
                         location,
                         country: country || '',
                         type,

@@ -17,7 +17,9 @@ export function AgendaModal({ isOpen, onClose, onSuccess, editingItem }: AgendaM
     const [title, setTitle] = useState('');
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
     const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+    const [venue, setVenue] = useState('');
     const [locationInput, setLocationInput] = useState('');
+    const [country, setCountry] = useState('');
     const [type, setType] = useState('Festival');
     const [imageUrl, setImageUrl] = useState('');
     const [url, setUrl] = useState('');
@@ -34,7 +36,9 @@ export function AgendaModal({ isOpen, onClose, onSuccess, editingItem }: AgendaM
             setTitle(editingItem.title || '');
             setStartDate(editingItem.startDate || editingItem.date || new Date().toISOString().split('T')[0]);
             setEndDate(editingItem.endDate || editingItem.date || new Date().toISOString().split('T')[0]);
+            setVenue(editingItem.venue || '');
             setLocationInput(editingItem.location || '');
+            setCountry(editingItem.country || '');
             setType(editingItem.type || 'Festival');
             setImageUrl(editingItem.image || '');
             setUrl(editingItem.url || '');
@@ -46,7 +50,9 @@ export function AgendaModal({ isOpen, onClose, onSuccess, editingItem }: AgendaM
             setTitle('');
             setStartDate(new Date().toISOString().split('T')[0]);
             setEndDate(new Date().toISOString().split('T')[0]);
+            setVenue('');
             setLocationInput('');
+            setCountry('');
             setType('Festival');
             setImageUrl('');
             setUrl('');
@@ -75,7 +81,9 @@ export function AgendaModal({ isOpen, onClose, onSuccess, editingItem }: AgendaM
                     date: startDate,
                     startDate,
                     endDate: endDate || startDate,
+                    venue,
                     location: locationInput,
+                    country,
                     type,
                     image: imageUrl,
                     url,
@@ -185,20 +193,47 @@ export function AgendaModal({ isOpen, onClose, onSuccess, editingItem }: AgendaM
                                             type="date"
                                             value={endDate}
                                             onChange={(e) => setEndDate(e.target.value)}
-                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-neon-yellow transition-all"
+                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                         />
                                     </div>
                                 </div>
                                 <div className="space-y-2">
-                                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lieu <span className="text-neon-red">*</span></label>
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Lieu</label>
                                     <div className="relative group">
-                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                        <input
+                                            type="text"
+                                            value={venue}
+                                            onChange={(e) => setVenue(e.target.value)}
+                                            placeholder="Ex: Ushuaïa"
+                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Ville <span className="text-neon-red">*</span></label>
+                                    <div className="relative group">
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                         <input
                                             type="text"
                                             value={locationInput}
                                             onChange={(e) => setLocationInput(e.target.value)}
-                                            placeholder="Ex: Ibiza, Espagne"
-                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-neon-yellow transition-all"
+                                            placeholder="Ex: Ibiza"
+                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
+                                            required
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Pays <span className="text-neon-red">*</span></label>
+                                    <div className="relative group">
+                                        <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                        <input
+                                            type="text"
+                                            value={country}
+                                            onChange={(e) => setCountry(e.target.value)}
+                                            placeholder="Ex: Espagne"
+                                            className="w-full bg-black/20 border border-white/10 rounded-xl py-3 pl-10 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                             required
                                         />
                                     </div>
