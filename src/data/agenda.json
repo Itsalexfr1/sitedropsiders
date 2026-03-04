@@ -3758,5 +3758,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 291,
+    "title": "Dreamfields Festival - The Final Dream",
+    "date": "2026-07-11",
+    "startDate": "2026-07-11",
+    "endDate": "2026-07-12",
+    "venue": "Rhederlaag",
+    "location": "GIESBECK",
+    "country": "PAYS BAS",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772634075248-maxresdefault.jpg",
+    "url": "https://www.dreamfields.nl",
+    "genre": "Multi Styles",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
