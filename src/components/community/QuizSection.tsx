@@ -214,28 +214,35 @@ export function QuizSection() {
     useEffect(() => {
         if (gameState === 'playing' && gameQuizzes[currentQuizIndex]?.type === 'BLIND_TEST' && audioRef.current) {
             const el = audioRef.current;
-            const startTime = gameQuizzes[currentQuizIndex].startTime || 0;
+            const baseStartTime = gameQuizzes[currentQuizIndex].startTime || 0;
+            let actualStartTime = baseStartTime;
+            let timeUpdateHandler: (() => void) | null = null;
 
             const initAudio = () => {
-                el.currentTime = startTime;
-                el.play().catch(e => console.error("Autoplay blocked:", e));
-            };
-
-            const handleTimeUpdate = () => {
-                if (el.currentTime > startTime + 25) { // 25s max to avoid leaking full song
-                    el.pause();
+                if (baseStartTime === 0 && !isNaN(el.duration) && el.duration > 30) {
+                    actualStartTime = (el.duration / 2) - 15;
                 }
+                el.currentTime = actualStartTime;
+                el.play().catch(e => console.error("Autoplay blocked:", e));
+
+                if (timeUpdateHandler) el.removeEventListener('timeupdate', timeUpdateHandler);
+
+                timeUpdateHandler = () => {
+                    if (el.currentTime > actualStartTime + 30) { // 30s max to avoid leaking full song
+                        el.pause();
+                    }
+                };
+                el.addEventListener('timeupdate', timeUpdateHandler);
             };
 
             el.addEventListener('loadedmetadata', initAudio);
-            el.addEventListener('timeupdate', handleTimeUpdate);
 
             // If already loaded
             if (el.readyState >= 2) initAudio();
 
             return () => {
                 el.removeEventListener('loadedmetadata', initAudio);
-                el.removeEventListener('timeupdate', handleTimeUpdate);
+                if (timeUpdateHandler) el.removeEventListener('timeupdate', timeUpdateHandler);
                 el.pause();
             };
         }
@@ -417,14 +424,14 @@ export function QuizSection() {
                                                             key={opt.id}
                                                             disabled={isDisabled}
                                                             onClick={() => setSelectedMode(opt.id as any)}
-                                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border relative ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : isDisabled ? 'opacity-40 grayscale cursor-not-allowed border-white/5' : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/30'}`}
+                                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border relative ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : isDisabled ? 'bg-white/[0.02] text-gray-500 border-white/5 cursor-not-allowed' : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/30'}`}
                                                         >
                                                             {isSoon && (
-                                                                <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-black border border-neon-red/50 rounded text-[7px] font-black text-neon-red uppercase tracking-[0.2em] animate-pulse whitespace-nowrap shadow-[0_0_10px_rgba(255,0,0,0.3)]">
+                                                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-black border border-neon-red rounded text-[8px] font-black text-neon-red uppercase tracking-[0.2em] animate-pulse whitespace-nowrap shadow-[0_0_15px_rgba(255,0,51,0.5)] z-10">
                                                                     SOON
                                                                 </div>
                                                             )}
-                                                            {opt.label}
+                                                            <span className={isDisabled ? 'opacity-40' : ''}>{opt.label}</span>
                                                         </button>
                                                     );
                                                 })}

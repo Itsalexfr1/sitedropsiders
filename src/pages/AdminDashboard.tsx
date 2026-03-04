@@ -16,6 +16,7 @@ import { translateText } from '../utils/translate';
 import { SocialSuite } from '../components/SocialSuite';
 import { ModerationModal } from '../components/admin/ModerationModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { Downloader } from './Downloader';
 
 export function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -51,6 +52,7 @@ export function AdminDashboard() {
     const [isClipsModalOpen, setIsClipsModalOpen] = useState(false);
     const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
     const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+    const [isDownloaderOpen, setIsDownloaderOpen] = useState(false);
     const [pushSubscribersCount, setPushSubscribersCount] = useState<number | null>(null);
     const [socialRecentArticles, setSocialRecentArticles] = useState<any[]>([]);
     const [selectedSocialArticle, setSelectedSocialArticle] = useState<any | null>(null);
@@ -1316,7 +1318,13 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'LIVE / TAKEOVER') {
                                                     // Redirection directe vers le live
                                                     navigate('/live');
-                                                } else if (action.title === 'Notifications') {
+                                                } else if (action.link === 'social-studio') {
+                                                    e.preventDefault();
+                                                    setIsSocialModalOpen(true);
+                                                } else if (action.link === 'downloader') {
+                                                    e.preventDefault();
+                                                    setIsDownloaderOpen(true);
+                                                } else if (action.link === 'push-notifications') {
                                                     e.preventDefault();
                                                     setIsNotificationModalOpen(true);
                                                 } else if (action.title === 'Accueil') {
@@ -1331,9 +1339,6 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'MESSAGERIE & CONTACT') {
                                                     e.preventDefault();
                                                     setIsMessagesModalOpen(true);
-                                                } else if (action.title === 'Social Studio') {
-                                                    e.preventDefault();
-                                                    setIsSocialModalOpen(true);
                                                 }
                                             }}
                                             className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -4048,6 +4053,62 @@ export function AdminDashboard() {
                     isOpen={isModerationModalOpen}
                     onClose={() => setIsModerationModalOpen(false)}
                 />
+
+                {/* Modal Downloader */}
+                <AnimatePresence>
+                    {isDownloaderOpen && (
+                        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsDownloaderOpen(false)}
+                                className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                                className="relative w-full max-w-5xl bg-[#0a0a0a] border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl h-[85vh] flex flex-col"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-blue-500 to-neon-purple" />
+
+                                <div className="p-8 md:p-10 flex flex-col h-full overflow-y-auto custom-scrollbar">
+                                    <div className="flex items-center justify-between mb-8">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-4 bg-neon-cyan/10 rounded-2xl border border-neon-cyan/20">
+                                                <Youtube className="w-8 h-8 text-neon-cyan" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
+                                                    Social <span className="text-neon-cyan">Downloader</span>
+                                                </h2>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1">Instagram • TikTok • YouTube • Twitter</p>
+                                            </div>
+                                        </div>
+                                        <button
+                                            onClick={() => setIsDownloaderOpen(false)}
+                                            className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                        >
+                                            <X className="w-6 h-6" />
+                                        </button>
+                                    </div>
+
+                                    <div className="flex-1">
+                                        <Downloader
+                                            isPopup={true}
+                                            onSelect={(url) => {
+                                                setSelectedSocialArticle({ title: 'Média Téléchargé', image: url });
+                                                setIsDownloaderOpen(false);
+                                                setIsSocialModalOpen(false); // If it came from Social Studio, we replace
+                                            }}
+                                        />
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
 
                 {/* Modal Quizz */}
                 <AnimatePresence>

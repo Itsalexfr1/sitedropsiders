@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Download, Upload, PlusCircle,
     Video, Layout, Smartphone, Image as ImageIcon,
-    Home
+    Home, Link as LinkIcon
 } from 'lucide-react';
+import { Downloader } from '../pages/Downloader';
 
 
 interface SocialSuiteProps {
@@ -49,6 +50,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [isDownloading, setIsDownloading] = useState(false);
     const [isVideoRecording, setIsVideoRecording] = useState(false);
     const [visualsList, setVisualsList] = useState<string[]>([]);
+    const [isDownloaderOpen, setIsDownloaderOpen] = useState(false);
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -719,6 +721,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             <Upload className="w-4 h-4 group-hover:text-neon-red transition-colors" />
                             {bgImage || bgVideo ? 'Modifier le fond' : 'Importer Image/Vidéo'}
                         </button>
+                        <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                            <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />
+                            Télécharger Vidéo/Photo (URL)
+                        </button>
                         <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
 
                     </div>
@@ -881,6 +887,71 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         </div>
                     </div>
                 </div>
+
+                {/* Modal Downloader */}
+                <AnimatePresence>
+                    {isDownloaderOpen && (
+                        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/90 backdrop-blur-2xl">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden h-[80vh] flex flex-col"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-blue-500 to-neon-purple" />
+
+                                <div className="flex justify-between items-start mb-10">
+                                    <div>
+                                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                            Import <span className="text-neon-cyan">Social</span>
+                                        </h2>
+                                        <p className="text-gray-400 font-medium">Copiez un lien Instagram, TikTok ou YouTube</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsDownloaderOpen(false)}
+                                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                    >
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                    <Downloader
+                                        isPopup={true}
+                                        onSelect={(url) => {
+                                            const isVideo = url.includes('.mp4') ||
+                                                url.includes('.mov') ||
+                                                url.includes('.webm') ||
+                                                url.includes('video') ||
+                                                url.includes('googlevideo') ||
+                                                url.includes('play') || // TikWM
+                                                url.includes('tiktok');
+
+                                            if (isVideo) {
+                                                const video = document.createElement('video');
+                                                video.src = url;
+                                                video.crossOrigin = "anonymous";
+                                                video.onloadeddata = () => {
+                                                    setBgVideo(video);
+                                                    setBgImage('');
+                                                };
+                                                video.onerror = () => {
+                                                    // Fallback to image if video fails to load
+                                                    setBgImage(url);
+                                                    setBgVideo(null);
+                                                };
+                                            } else {
+                                                setBgImage(url);
+                                                setBgVideo(null);
+                                            }
+                                            setIsDownloaderOpen(false);
+                                        }}
+                                    />
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
             </motion.div>
 
         </motion.div>

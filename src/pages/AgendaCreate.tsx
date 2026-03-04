@@ -514,6 +514,8 @@ export function AgendaCreate() {
                                         <option value="Hardstyle">Hardstyle</option>
                                         <option value="Drum & Bass">Drum & Bass</option>
                                         <option value="House">House</option>
+                                        <option value="Hardcore">Hardcore</option>
+                                        <option value="HardTechno">HardTechno</option>
                                     </select>
                                 </div>
                             </div>

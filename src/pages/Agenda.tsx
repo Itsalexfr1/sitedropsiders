@@ -138,7 +138,9 @@ export function Agenda() {
         { id: 'HARDMUSIC', label: 'HARDMUSIC' },
         { id: 'TRANCE', label: 'TRANCE' },
         { id: 'PROGRESSIVE HOUSE', label: 'PROGRESSIVE HOUSE' },
-        { id: 'DRUM & BASS', label: 'DRUM & BASS' }
+        { id: 'DRUM & BASS', label: 'DRUM & BASS' },
+        { id: 'HARDCORE', label: 'HARDCORE' },
+        { id: 'HARDTECHNO', label: 'HARDTECHNO' }
     ];
 
     // Filter events by category AND month
@@ -247,11 +249,13 @@ export function Agenda() {
         }
     };
 
-    const getEventStyles = (genre: string) => {
+    const getEventStyles = (genre: string, type: string) => {
         const g = (genre || '').toLowerCase().trim();
+        const t = (type || '').toLowerCase().trim();
         let color = 'cyan';
 
-        if (g.includes('melodic')) color = 'yellow';
+        if (t === 'festival') color = 'red';
+        else if (g.includes('melodic')) color = 'yellow';
         else if (g.includes('techno')) color = 'red';
         else if (g.includes('tech house')) color = 'blue';
         else if (g.includes('big room')) color = 'purple';
@@ -262,21 +266,24 @@ export function Agenda() {
         else if (g.includes('drum') || g.includes('bass')) color = 'purple';
         else if (g.includes('multi styles')) color = 'blue';
         else if (g.includes('hybride')) color = 'red';
+        else if (g.includes('hardcore')) color = 'red';
+        else if (g.includes('hardtechno')) color = 'purple';
 
         const isMulti = g.includes('multi styles');
         const isHybride = g.includes('hybride');
         const isWhite = color === 'white';
+        const isFestival = t === 'festival';
 
         return {
-            text: (isMulti || isHybride) ? 'text-white' : (isWhite ? 'text-white' : `text-neon-${color}`),
-            bg: (isMulti || isHybride) ? 'bg-white/10' : (isWhite ? 'bg-white/10' : `bg-neon-${color}/20`),
-            border: (isMulti || isHybride) ? 'border-transparent' : (isWhite ? 'border-white/20' : `border-neon-${color}/30`),
-            borderStrong: (isMulti || isHybride) ? 'border-white/50' : (isWhite ? 'border-white/50' : `border-neon-${color}`),
-            borderMedium: (isMulti || isHybride) ? 'border-white/30' : (isWhite ? 'border-white/30' : `border-neon-${color}/30`),
-            hoverBorder: (isMulti || isHybride) ? 'hover:border-white/80' : (isWhite ? 'hover:border-white/80' : `hover:border-neon-${color}/50`),
-            hoverText: (isMulti || isHybride) ? 'hover:text-white' : (isWhite ? 'hover:text-white' : `hover:text-neon-${color}`),
-            groupHoverText: (isMulti || isHybride) ? 'group-hover:text-white' : (isWhite ? 'group-hover:text-white' : `group-hover:text-neon-${color}`),
-            shadow: (isMulti || isHybride) ? 'hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]' : `hover:shadow-[0_0_15px_var(--color-neon-${color})]`,
+            text: ((isMulti || isHybride) && !isFestival) ? 'text-white' : (isWhite ? 'text-white' : `text-neon-${color}`),
+            bg: ((isMulti || isHybride) && !isFestival) ? 'bg-white/10' : (isWhite ? 'bg-white/10' : `bg-neon-${color}/20`),
+            border: ((isMulti || isHybride) && !isFestival) ? 'border-transparent' : (isWhite ? 'border-white/20' : `border-neon-${color}/30`),
+            borderStrong: ((isMulti || isHybride) && !isFestival) ? 'border-white/50' : (isWhite ? 'border-white/50' : `border-neon-${color}`),
+            borderMedium: ((isMulti || isHybride) && !isFestival) ? 'border-white/30' : (isWhite ? 'border-white/30' : `border-neon-${color}/30`),
+            hoverBorder: ((isMulti || isHybride) && !isFestival) ? 'hover:border-white/80' : (isWhite ? 'hover:border-white/80' : `hover:border-neon-${color}/50`),
+            hoverText: ((isMulti || isHybride) && !isFestival) ? 'hover:text-white' : (isWhite ? 'hover:text-white' : `hover:text-neon-${color}`),
+            groupHoverText: ((isMulti || isHybride) && !isFestival) ? 'group-hover:text-white' : (isWhite ? 'group-hover:text-white' : `group-hover:text-neon-${color}`),
+            shadow: ((isMulti || isHybride) && !isFestival) ? 'hover:shadow-[0_0_15px_rgba(255,255,255,0.3)]' : `hover:shadow-[0_0_15px_var(--color-neon-${color})]`,
             gradient: isMulti
                 ? 'linear-gradient(to right, #00f0ff, #0070ff, #bd00ff)'
                 : isHybride
@@ -447,7 +454,7 @@ export function Agenda() {
                     {months.length > 0 && filteredEvents.length > 0 ? (
                         filteredEvents.map((event: any, index: number) => {
 
-                            const styles = getEventStyles(event.genre);
+                            const styles = getEventStyles(event.genre, event.type);
                             const isExpanded = expandedEvent === event.id;
                             const isSelected = selectedEvents.has(event.id);
 
@@ -565,9 +572,6 @@ export function Agenda() {
                                                         <h3 className="text-4xl font-display font-black text-white uppercase italic italic tracking-tighter leading-none">
                                                             {event.title}
                                                         </h3>
-                                                        <p className="text-gray-400 leading-relaxed text-lg italic">
-                                                            {event.description || t('agenda.no_desc')}
-                                                        </p>
                                                         <div className="flex flex-wrap gap-4 pt-4">
                                                             <a
                                                                 href={event.url}

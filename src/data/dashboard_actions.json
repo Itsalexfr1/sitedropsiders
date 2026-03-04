@@ -130,6 +130,18 @@
     "color": "border-green-400/20 hover:border-green-400"
   },
   {
+    "title": "Social Downloader",
+    "description": "Instagram, TikTok, YT",
+    "icon": "Youtube",
+    "link": "downloader",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "social_studio",
+    "baseColor": "#00f2ff",
+    "columns": 1,
+    "category": "STUDIO & ANALYTICS"
+  },
+  {
     "title": "Team",
     "description": "Gérer l'équipe (Menu)",
     "icon": "Users",

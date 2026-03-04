@@ -202,24 +202,21 @@ export default {
                             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
                         },
                         body: JSON.stringify({
-                            url: targetUrl,
-                            videoQuality: '1080',
-                            downloadMode: 'auto'
+                            ...body,
+                            videoQuality: body.videoQuality || '1080',
+                            downloadMode: body.downloadMode || 'auto'
                         }),
-                        signal: AbortSignal.timeout(10000) // Increase to 10s timeout
+                        signal: AbortSignal.timeout(10000)
                     });
 
                     if (response.ok) {
-                        const text = await response.text();
-                        if (text.trim().startsWith('{')) {
-                            const data = JSON.parse(text);
-                            if (data.url || data.picker || data.status === 'stream' || data.status === 'redirect' || data.status === 'picker') {
-                                return new Response(JSON.stringify(data), { headers });
-                            }
+                        const data = await response.json();
+                        if (data.url || data.picker || data.status === 'stream' || data.status === 'redirect' || data.status === 'picker') {
+                            return new Response(JSON.stringify(data), { headers });
                         }
                     }
                 } catch (e) {
-                    continue; // Quietly try next instance
+                    continue;
                 }
             }
 
