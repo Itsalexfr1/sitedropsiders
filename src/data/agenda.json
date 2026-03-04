@@ -3650,5 +3650,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 285,
+    "title": "Creamfields",
+    "date": "2026-08-27",
+    "startDate": "2026-08-27",
+    "endDate": "2026-08-30",
+    "venue": "",
+    "location": "DARESBURY",
+    "country": "Royaume-Uni",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772632851660-642817705_1351917203635591_4862403312514678334_n.jpg",
+    "url": "https://creamfields.com",
+    "genre": "Multi Styles",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
