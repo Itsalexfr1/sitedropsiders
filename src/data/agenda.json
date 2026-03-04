@@ -3776,5 +3776,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 292,
+    "title": "Parookaville",
+    "date": "2026-07-17",
+    "startDate": "2026-07-17",
+    "endDate": "2026-07-19",
+    "venue": "",
+    "location": "WEEZE",
+    "country": "Allemagne",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772634127944-parookaville_2026.png",
+    "url": "https://www.parookaville.com/en/tickets",
+    "genre": "Multi Styles",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
