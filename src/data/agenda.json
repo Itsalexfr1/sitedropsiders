@@ -3596,5 +3596,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 282,
+    "title": "Dominator",
+    "date": "2026-07-17",
+    "startDate": "2026-07-17",
+    "endDate": "2026-07-18",
+    "venue": "E3 Strand",
+    "location": "EERSEL",
+    "country": "Pays-Bas",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772632496807-dominator-festival-2026-e3-strand-17-july-2026-1769768802.image.webp",
+    "url": "www.dominatorfestival.com/en",
+    "genre": "Hardcore",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
