@@ -3578,5 +3578,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 281,
+    "title": "Intents Festival",
+    "date": "2026-06-05",
+    "startDate": "2026-06-05",
+    "endDate": "2026-06-07",
+    "venue": "Sportlaan 10 ",
+    "location": "OISTERWIJK ",
+    "country": "Pays-Bas",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772632429666-intents_festival_weekend_2026.png",
+    "url": "https://www.intentsfestival.nl/en/",
+    "genre": "Hardstyle",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
