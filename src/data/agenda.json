@@ -3264,5 +3264,22 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 277,
+    "title": "Day Trip Festival",
+    "date": "2026-06-27",
+    "startDate": "2026-06-27",
+    "endDate": "2026-06-28",
+    "location": "LONG BEACH",
+    "country": "USA",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772627686693-dtf_2026_mk_an_fest_site_mh_1534x1428_r02.jpg",
+    "url": "https://www.daytripfest.com",
+    "genre": "House",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
