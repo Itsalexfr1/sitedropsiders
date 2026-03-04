@@ -3632,5 +3632,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 284,
+    "title": "Hard Bass",
+    "date": "2026-10-10",
+    "startDate": "2026-10-10",
+    "endDate": "2026-03-04",
+    "venue": "Gelredome",
+    "location": "ARNHEM",
+    "country": "Pays-Bas",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772632676122-hardbass_2026.png",
+    "url": "https://www.b2s.nl/en/events/hard-bass/hard-bass-2026/",
+    "genre": "Hardstyle",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
