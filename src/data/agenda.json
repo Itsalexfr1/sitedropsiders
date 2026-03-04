@@ -3281,5 +3281,22 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 278,
+    "title": "Escape Psycho Circus ",
+    "date": "2026-10-30",
+    "startDate": "2026-10-30",
+    "endDate": "2026-10-31",
+    "location": "SAN BERNARDINO",
+    "country": "USA",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772627913911-esc_2026_mk_ps_fs_seo_1200x630_r01.webp",
+    "url": "https://escapehalloween.com",
+    "genre": "Multi Styles",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
