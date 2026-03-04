@@ -3668,5 +3668,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 286,
+    "title": "Amsterdam Dance Event",
+    "date": "2026-10-21",
+    "startDate": "2026-10-21",
+    "endDate": "2026-10-25",
+    "venue": "",
+    "location": "AMSTERDAM",
+    "country": "Pays-Bas",
+    "type": "Events",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772632949616-ADE26-Thumbnail.webp",
+    "url": "https://www.amsterdam-dance-event.nl/en/tickets/",
+    "genre": "Multi Styles",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
