@@ -50,9 +50,7 @@ export function QuizSection() {
 
     const [leaderboard, setLeaderboard] = useState<ScoreRecord[]>([]);
 
-    const isAdmin = useMemo(() => {
-        return localStorage.getItem('admin_auth') === 'true' || localStorage.getItem('editeur_auth') === 'true';
-    }, []);
+
 
     const quizCounts = useMemo(() => {
         return {
@@ -143,7 +141,7 @@ export function QuizSection() {
         let filtered = quizzes;
         if (selectedMode !== 'ALL') {
             filtered = filtered.filter(q => q.type === selectedMode);
-        } else if (!isAdmin) {
+        } else {
             // Visitors: ALL mode filters out 'Soon' categories
             filtered = filtered.filter(q => {
                 if (q.type === 'BLIND_TEST' && quizCounts.BLIND_TEST < 30) return false;
@@ -412,7 +410,7 @@ export function QuizSection() {
                                                     const isBlindTestSoon = quizCounts.BLIND_TEST < 30;
                                                     const isImageSoon = quizCounts.IMAGE < 30;
                                                     const isSoon = (opt.id === 'BLIND_TEST' && isBlindTestSoon) || (opt.id === 'IMAGE' && isImageSoon);
-                                                    const isDisabled = isSoon && !isAdmin;
+                                                    const isDisabled = isSoon;
 
                                                     return (
                                                         <button

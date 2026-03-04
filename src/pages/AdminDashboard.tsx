@@ -2622,9 +2622,7 @@ export function AdminDashboard() {
                                         onClick={() => { setIsQuizModalOpen(true); setIsContenuModalOpen(false); }}
                                         className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group relative"
                                     >
-                                        {(quizCounts.blindTest < 30 || quizCounts.image < 30) && (
-                                            <div className="absolute top-4 right-4 px-2 py-0.5 bg-black/60 border border-neon-red/30 rounded text-[7px] font-black text-neon-red uppercase tracking-widest animate-pulse">SOON</div>
-                                        )}
+
                                         <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
                                             <Gamepad2 className="w-6 h-6 text-neon-red" />
                                         </div>
@@ -4114,26 +4112,20 @@ export function AdminDashboard() {
 
                                         <div className="h-6 w-[1px] bg-white/10 mx-2" />
 
-                                        {(quizCounts.blindTest < 30 || quizCounts.image < 30) && (
-                                            <div className="flex items-center gap-3 px-3 py-2 bg-black/60 border border-neon-red/30 rounded-xl mx-2 shadow-[0_0_15px_rgba(255,0,51,0.1)] group">
-                                                <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.2em] animate-pulse">SOON</span>
-                                                <div className="h-4 w-[1px] bg-white/10" />
-                                                <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">
-                                                    Contenu requis : <span className={quizCounts.blindTest < 30 ? 'text-neon-red' : 'text-neon-green'}>{quizCounts.blindTest}/30 BT</span> • <span className={quizCounts.image < 30 ? 'text-neon-red' : 'text-neon-green'}>{quizCounts.image}/30 Image</span>
-                                                </span>
-                                            </div>
-                                        )}
+                                        <div className="flex items-center gap-3 px-3 py-2 bg-black/60 border border-white/10 rounded-xl mx-2 shadow-xl group">
+                                            <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">
+                                                Progression : <span className={quizCounts.blindTest < 30 ? 'text-neon-red' : 'text-neon-green'}>{quizCounts.blindTest}/30 BT</span> • <span className={quizCounts.image < 30 ? 'text-neon-red' : 'text-neon-green'}>{quizCounts.image}/30 Image</span>
+                                            </span>
+                                        </div>
 
                                         <div className="h-6 w-[1px] bg-white/10 mx-2" />
 
                                         {['ALL', 'QCM', 'BLIND_TEST', 'IMAGE'].map(filter => {
-                                            const isDisabled = (filter === 'BLIND_TEST' && quizCounts.blindTest < 30) || (filter === 'IMAGE' && quizCounts.image < 30);
                                             return (
                                                 <button
                                                     key={filter}
-                                                    onClick={() => !isDisabled && setQuizFilter(filter)}
-                                                    disabled={isDisabled}
-                                                    className={`px-4 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all border border-white/5 ${quizFilter === filter ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 text-gray-500 hover:text-white'} ${isDisabled ? 'opacity-20 grayscale cursor-not-allowed' : ''}`}
+                                                    onClick={() => setQuizFilter(filter)}
+                                                    className={`px-4 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all border border-white/5 ${quizFilter === filter ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 text-gray-500 hover:text-white'}`}
                                                 >
                                                     {filter.replace('_', ' ')}
                                                 </button>
@@ -4288,44 +4280,16 @@ export function AdminDashboard() {
                             >
                                 <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">Modifier la Question</h3>
 
-                                {(quizCounts.blindTest < 30 || quizCounts.image < 30) && (
-                                    <div className="mb-6 p-4 bg-black/60 border border-neon-red/20 rounded-2xl relative overflow-hidden group">
-                                        <div className="absolute inset-0 bg-neon-red/5 opacity-50" />
-                                        <div className="relative flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em] animate-pulse">SOON</span>
-                                                <div className="h-4 w-[1px] bg-white/10" />
-                                                <div className="flex flex-col">
-                                                    <span className="text-[9px] font-black text-white uppercase italic">Contenu manquant</span>
-                                                    <span className="text-[7px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">
-                                                        Besoin de 30 items de chaque type pour activer
-                                                    </span>
-                                                </div>
-                                            </div>
-                                            <div className="flex gap-4">
-                                                <div className="text-right">
-                                                    <p className="text-[7px] text-gray-400 font-bold uppercase">Blind Test</p>
-                                                    <p className={`text-[10px] font-black ${quizCounts.blindTest >= 30 ? 'text-neon-green' : 'text-neon-red'}`}>{quizCounts.blindTest}/30</p>
-                                                </div>
-                                                <div className="text-right">
-                                                    <p className="text-[7px] text-gray-400 font-bold uppercase">Image</p>
-                                                    <p className={`text-[10px] font-black ${quizCounts.image >= 30 ? 'text-neon-green' : 'text-neon-red'}`}>{quizCounts.image}/30</p>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                )}
+
 
                                 {/* TYPE TABS */}
                                 <div className="flex items-center gap-2 bg-black/50 border border-white/10 rounded-2xl p-1 mb-6">
                                     {(['QCM', 'BLIND_TEST', 'VIDEO', 'IMAGE'] as const).map(t => {
-                                        const isDisabled = (t === 'BLIND_TEST' && quizCounts.blindTest < 30) || (t === 'IMAGE' && quizCounts.image < 30);
                                         return (
                                             <button
                                                 key={t}
-                                                onClick={() => !isDisabled && setQuizToEdit({ ...quizToEdit, type: t })}
-                                                disabled={isDisabled}
-                                                className={`flex-1 py-2.5 text-[8px] font-black uppercase tracking-widest rounded-xl transition-all ${quizToEdit.type === t ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20' : 'text-gray-500 hover:text-white'} ${isDisabled ? 'opacity-20 grayscale cursor-not-allowed' : ''}`}
+                                                onClick={() => setQuizToEdit({ ...quizToEdit, type: t })}
+                                                className={`flex-1 py-2.5 text-[8px] font-black uppercase tracking-widest rounded-xl transition-all ${quizToEdit.type === t ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20' : 'text-gray-500 hover:text-white'}`}
                                             >
                                                 {t === 'QCM' ? 'QCM' : t === 'BLIND_TEST' ? 'BLIND TEST' : t === 'VIDEO' ? 'VIDEO' : 'IMAGE'}
                                             </button>
