@@ -3812,5 +3812,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 294,
+    "title": "Transmission Netherland ",
+    "date": "2026-11-28",
+    "startDate": "2026-11-28",
+    "endDate": "2026-03-04",
+    "venue": "Gelredome",
+    "location": "ARNHEM",
+    "country": "Pays-Bas",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772634307615-transmission_netherland_2026.png",
+    "url": "https://transmissionfestival.com/events/tmnl26/",
+    "genre": "Trance",
+    "month": "NOVEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
