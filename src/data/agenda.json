@@ -3740,5 +3740,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 290,
+    "title": "So W'happy Festival",
+    "date": "2026-07-10",
+    "startDate": "2026-07-10",
+    "endDate": "2026-07-12",
+    "venue": "Chemin d'Howardries",
+    "location": "RONGY",
+    "country": "Belgique",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772633903409-so_w_happy_weekend_2026.png",
+    "url": "https://so-whappy.com",
+    "genre": "Multi Styles",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
