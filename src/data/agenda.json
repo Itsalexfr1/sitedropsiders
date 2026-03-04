@@ -3794,5 +3794,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 293,
+    "title": "Medusa Festival",
+    "date": "2026-08-13",
+    "startDate": "2026-08-13",
+    "endDate": "2026-08-17",
+    "venue": "",
+    "location": "CULLERA",
+    "country": "Espagne",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772634219070-MEDUSA2026-v2.webp",
+    "url": "https://www.medusasunbeach.com",
+    "genre": "Multi Styles",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
