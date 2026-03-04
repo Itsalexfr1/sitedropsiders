@@ -3242,5 +3242,22 @@
     "dayOfWeek": 1,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 276,
+    "title": "Peggy Gou présent Midnight Lobster Club",
+    "date": "2026-06-12",
+    "startDate": "2026-06-12",
+    "endDate": "2026-03-04",
+    "location": "UNVRS IBIZA",
+    "country": "Espagne",
+    "type": "Events",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772627398643-097f7838-0a06-4b63-90e0-a5383a2d3481--2026_UNVRS_PEGGY GOU_MIDNIGHT LOBSTER CLUB_ANNOUNCEMENT_SQUARE1080x1080.webp",
+    "url": "https://www.unvrs.com/events/2026/peggy-gou/12-06-2026",
+    "genre": "House",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
