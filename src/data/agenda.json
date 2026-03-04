@@ -45,7 +45,8 @@
     "month": "MARS",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": true
+    "isLiveDropsiders": true,
+    "venue": "Bayfront Park"
   },
   {
     "id": 4,
