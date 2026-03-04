@@ -3722,5 +3722,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 289,
+    "title": "Rampage 2026",
+    "date": "2026-03-06",
+    "startDate": "2026-03-06",
+    "endDate": "2026-03-07",
+    "venue": "Sportpaleis - Afas Dome",
+    "location": "ANVERS",
+    "country": "Belgique",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772633771229-584535396_18551617150019449_3405228549223671971_n-819x1024.jpg",
+    "url": "https://www.rampage-weekend.eu",
+    "genre": "Drum & Bass",
+    "month": "MARS",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
