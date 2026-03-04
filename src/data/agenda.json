@@ -3830,5 +3830,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 295,
+    "title": "Reverze 2027",
+    "date": "2027-02-26",
+    "startDate": "2027-02-26",
+    "endDate": "2027-02-27",
+    "venue": "Afas Dome & Loto Arena",
+    "location": "ANVERS",
+    "country": "Belgique",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772634392868-reverze_weekend_2027.png",
+    "url": "https://www.reverze.be",
+    "genre": "Hardstyle",
+    "month": "FÉVRIER",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
