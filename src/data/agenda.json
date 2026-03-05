@@ -3848,5 +3848,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 296,
+    "title": "Amsterdam Music Festival (AMF)",
+    "date": "2026-10-24",
+    "startDate": "2026-10-24",
+    "endDate": "2026-03-05",
+    "venue": "Johan Cruijff Arena",
+    "location": "AMSTERDAM",
+    "country": "Pays-Bas",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772712667001-16VZhTUGGFdm.jpg",
+    "url": "https://amf-festival.com",
+    "genre": "Multi Styles",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
