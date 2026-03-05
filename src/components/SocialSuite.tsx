@@ -531,7 +531,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.save();
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'bottom';
-                ctx.font = '900 italic 40px "Inter", sans-serif'; // Légèrement plus petit que le swipe
+                ctx.font = '900 italic 24px "Inter", sans-serif'; // Réduit de 40% (40px -> 24px)
                 ctx.fillStyle = '#fff';
                 ctx.shadowColor = 'rgba(0,0,0,0.8)';
                 ctx.shadowBlur = 10;
