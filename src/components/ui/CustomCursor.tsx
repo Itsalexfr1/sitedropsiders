@@ -6,7 +6,6 @@ export function CustomCursor() {
     const [hoverColor, setHoverColor] = useState('#FF1241'); // Default neon-red
     const [isPressed, setIsPressed] = useState(false);
     const [isMobile, setIsMobile] = useState(false);
-    const [isTouchActive, setIsTouchActive] = useState(false);
 
     const cursorX = useMotionValue(-100);
     const cursorY = useMotionValue(-100);
@@ -20,7 +19,12 @@ export function CustomCursor() {
         checkMobile();
         window.addEventListener('resize', checkMobile);
 
-        // Hide native cursor globally
+        if (window.innerWidth < 768) {
+            setIsMobile(true);
+            return () => window.removeEventListener('resize', checkMobile);
+        }
+
+        // Hide native cursor globally (Desktop only)
         document.body.style.cursor = 'none';
         const style = document.createElement('style');
         style.innerHTML = `
@@ -53,55 +57,32 @@ export function CustomCursor() {
             } else setIsHovering(false);
         };
 
-        const handleTouchMove = (e: TouchEvent) => {
-            setIsTouchActive(true);
-            if (e.touches[0]) {
-                const x = e.touches[0].clientX;
-                const y = e.touches[0].clientY;
-                cursorX.set(x);
-                cursorY.set(y);
-
-                const target = document.elementFromPoint(x, y) as HTMLElement;
-                const clickableElement = target?.closest('a, button, [role="button"], .cursor-pointer') as HTMLElement;
-                setIsHovering(!!clickableElement);
-            }
-        };
-
-        const handleTouchEnd = () => {
-            setIsTouchActive(false);
-            setIsHovering(false);
-        };
-
         const handleMouseDown = () => setIsPressed(true);
         const handleMouseUp = () => setIsPressed(false);
 
         window.addEventListener('mousemove', moveCursor);
         window.addEventListener('mousedown', handleMouseDown);
         window.addEventListener('mouseup', handleMouseUp);
-        window.addEventListener('touchstart', handleTouchMove);
-        window.addEventListener('touchmove', handleTouchMove);
-        window.addEventListener('touchend', handleTouchEnd);
 
         return () => {
             window.removeEventListener('mousemove', moveCursor);
             window.removeEventListener('mousedown', handleMouseDown);
             window.removeEventListener('mouseup', handleMouseUp);
-            window.removeEventListener('touchstart', handleTouchMove);
-            window.removeEventListener('touchmove', handleTouchMove);
-            window.removeEventListener('touchend', handleTouchEnd);
             window.removeEventListener('resize', checkMobile);
             document.body.style.cursor = 'auto';
             if (document.head.contains(style)) document.head.removeChild(style);
         };
     }, [cursorX, cursorY]);
 
+    if (isMobile) return null;
+
     return (
         <motion.div
             className="fixed top-0 left-0 w-8 h-8 pointer-events-none z-[10000]"
             initial={{ opacity: 0 }}
             animate={{
-                opacity: (isMobile && !isTouchActive) ? 0 : 1,
-                scale: isMobile ? 0.7 : 1
+                opacity: 1,
+                scale: 1
             }}
             style={{
                 x: springX,
@@ -112,7 +93,7 @@ export function CustomCursor() {
         >
             <motion.div
                 animate={{
-                    scale: isPressed ? 0.8 : isHovering ? (isMobile ? 1.4 : 2) : 1,
+                    scale: isPressed ? 0.8 : isHovering ? 2 : 1,
                     rotate: 360,
                     opacity: 1
                 }}
