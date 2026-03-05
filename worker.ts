@@ -359,6 +359,35 @@ export default {
 
             if (!response.ok) {
                 const errText = await response.text();
+                // On 409 conflict (SHA mismatch due to concurrent commits), fetch the latest SHA and retry once
+                if (response.status === 409) {
+                    console.warn(`SHA conflict for ${filePath}, fetching fresh SHA and retrying...`);
+                    try {
+                        const metaRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`, {
+                            headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' }
+                        });
+                        if (metaRes.ok) {
+                            const metaData = await metaRes.json();
+                            const freshSha = metaData.sha;
+                            if (freshSha && freshSha !== sha) {
+                                const retryResponse = await fetch(putUrl, {
+                                    method: 'PUT',
+                                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ message: message + ' [retry]', content: encodedContent, sha: freshSha })
+                                });
+                                if (retryResponse.ok) {
+                                    console.log(`SHA conflict resolved for ${filePath}, saved successfully on retry.`);
+                                    return { ok: true };
+                                }
+                                const retryErr = await retryResponse.text();
+                                console.error(`GitHub Save Retry Error (${filePath}): ${retryResponse.status} ${retryErr}`);
+                                return { ok: false, status: retryResponse.status, error: retryErr };
+                            }
+                        }
+                    } catch (retryEx) {
+                        console.error(`SHA conflict retry exception for ${filePath}:`, retryEx);
+                    }
+                }
                 console.error(`GitHub Save Error (${filePath}): ${response.status} ${errText}`);
                 return { ok: false, status: response.status, error: errText };
             }
