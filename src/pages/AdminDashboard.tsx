@@ -1106,60 +1106,63 @@ export function AdminDashboard() {
                                 </button>
                             )}
                         </div>
-                        <div className="flex overflow-x-auto pb-4 md:pb-0 md:flex-wrap items-center gap-4 no-scrollbar -mx-4 px-4 md:mx-0 md:px-0 scroll-smooth">
+                        <div className="flex flex-wrap items-center gap-2">
                             <button
                                 onClick={fetchActions}
-                                className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-full text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all flex items-center gap-2"
+                                className="w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl md:rounded-full text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all gap-2"
                                 title="Rafraîchir les données"
                             >
-                                <RefreshCw className="w-4 h-4" />
-                                Actualiser
+                                <RefreshCw className="w-4 h-4 md:w-4 md:h-4" />
+                                <span className="hidden md:inline">Actualiser</span>
                             </button>
                             {/* Boutons Admin : Bandeau et Takeover */}
                             {(isAdminAcc || storedPermissions.includes('takeover_modo')) && (
                                 <>
                                     <button
                                         onClick={() => setIsBannerModalOpen(true)}
-                                        className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${bannerState.enabled ? 'bg-neon-orange/10 border-neon-orange/40 text-neon-orange hover:bg-neon-orange hover:text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                        title="Bandeau"
+                                        className={`w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center rounded-xl md:rounded-full text-xs font-black uppercase tracking-widest transition-all gap-2 border ${bannerState.enabled ? 'bg-neon-orange/10 border-neon-orange/40 text-neon-orange hover:bg-neon-orange hover:text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
                                     >
                                         <Megaphone className="w-4 h-4" />
-                                        Bandeau
+                                        <span className="hidden md:inline">Bandeau</span>
                                     </button>
                                     <button
                                         onClick={() => setIsClipsModalOpen(true)}
-                                        className="px-6 py-2 bg-white/5 border border-white/10 rounded-full text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white hover:border-neon-cyan transition-all flex items-center gap-2"
+                                        title="Gestion Clips"
+                                        className="w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center bg-white/5 border border-white/10 rounded-xl md:rounded-full text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white hover:border-neon-cyan transition-all gap-2"
                                     >
                                         <Video className="w-4 h-4" />
-                                        Gestion Clips
+                                        <span className="hidden md:inline">Clips</span>
                                     </button>
                                     <Link
                                         to="/live"
-                                        className={`px-6 py-2 rounded-full text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2 border ${takeoverState.enabled ? 'bg-neon-red/10 border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                        title="Accès Live"
+                                        className={`w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center rounded-xl md:rounded-full text-xs font-black uppercase tracking-widest transition-all gap-2 border ${takeoverState.enabled ? 'bg-neon-red/10 border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
                                     >
                                         <Youtube className="w-4 h-4" />
-                                        Accès Live
+                                        <span className="hidden md:inline">Live</span>
                                     </Link>
 
                                     {/* Live Status Controls */}
-                                    <div className="flex bg-black/40 border border-white/10 rounded-full p-1 ml-2">
+                                    <div className="flex bg-black/40 border border-white/10 rounded-xl md:rounded-full p-1 w-full md:w-auto md:ml-2 mt-2 md:mt-0 justify-between md:justify-start">
                                         <button
                                             onClick={() => updateLiveStatus('off')}
                                             disabled={isUpdatingTakeover}
-                                            className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'off' || !takeoverState.enabled ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-gray-500 hover:text-white'}`}
+                                            className={`flex-1 md:flex-none px-4 py-2 md:py-1.5 rounded-lg md:rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'off' || !takeoverState.enabled ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-gray-500 hover:text-white'}`}
                                         >
                                             OFF
                                         </button>
                                         <button
                                             onClick={() => updateLiveStatus('edit')}
                                             disabled={isUpdatingTakeover}
-                                            className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'edit' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-white'}`}
+                                            className={`flex-1 md:flex-none px-4 py-2 md:py-1.5 rounded-lg md:rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'edit' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-white'}`}
                                         >
-                                            À‰DITION
+                                            ÉDIT
                                         </button>
                                         <button
                                             onClick={() => updateLiveStatus('live')}
                                             disabled={isUpdatingTakeover}
-                                            className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'live' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20 animate-pulse' : 'text-gray-500 hover:text-white'}`}
+                                            className={`flex-1 md:flex-none px-4 py-2 md:py-1.5 rounded-lg md:rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'live' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20 animate-pulse' : 'text-gray-500 hover:text-white'}`}
                                         >
                                             ON AIR
                                         </button>
