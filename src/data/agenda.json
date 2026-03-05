@@ -3323,7 +3323,7 @@
     "title": "RÜFÜS DU SOL",
     "date": "2026-05-09",
     "startDate": "2026-05-09",
-    "endDate": "2026-02-27",
+    "endDate": "2026-05-09",
     "location": "ADIDAS ARENA PARIS",
     "country": "France",
     "type": "Events",
@@ -3333,7 +3333,8 @@
     "month": "MAI",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "venue": ""
   },
   {
     "id": 267,
