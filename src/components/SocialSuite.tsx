@@ -735,9 +735,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             const a = document.createElement('a');
             a.href = url;
             a.download = `dropsiders-${theme.replace(/ /g, '-')}-${Date.now()}.${extension}`;
+            document.body.appendChild(a);
             a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 2000);
             setIsVideoRecording(false);
-            setActivePanel(null); // Close panel to reveal result
+            setActivePanel(null);
         };
         recorder.start();
 
@@ -781,21 +784,43 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
     const downloadSingle = () => {
         if (!canvasRef.current) return;
+        setIsDownloading(true);
         try {
-            setIsDownloading(true);
-            const dataUrl = canvasRef.current.toDataURL('image/png');
-            if (!dataUrl || dataUrl === 'data:,') throw new Error('Empty canvas');
-            const a = document.createElement('a');
-            a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
-            a.href = dataUrl;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setActivePanel(null); // Close any open panel to reveal result
+            // Use toBlob (more reliable, avoids CORS taint issues)
+            canvasRef.current.toBlob((blob) => {
+                if (!blob) {
+                    // Fallback: toDataURL
+                    try {
+                        const dataUrl = canvasRef.current!.toDataURL('image/png');
+                        if (!dataUrl || dataUrl === 'data:,') throw new Error('Empty canvas');
+                        const a = document.createElement('a');
+                        a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
+                        a.href = dataUrl;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    } catch (err) {
+                        console.error('Export fallback failed:', err);
+                        alert("Erreur d'exportation. Vérifiez que les images utilisées sont accessibles (pas de blocage CORS).");
+                    } finally {
+                        setTimeout(() => setIsDownloading(false), 1000);
+                    }
+                    return;
+                }
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
+                a.href = url;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                setTimeout(() => URL.revokeObjectURL(url), 2000);
+                setActivePanel(null);
+                setTimeout(() => setIsDownloading(false), 1000);
+            }, 'image/png');
         } catch (err) {
             console.error('Export failed:', err);
-            alert("Erreur d'exportation : Assurez-vous que les images importées proviennent d'une source autorisée.");
-        } finally {
+            alert("Erreur d'exportation inattendue.");
             setTimeout(() => setIsDownloading(false), 1000);
         }
     };
