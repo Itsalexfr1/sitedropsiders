@@ -42,6 +42,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>('PUBLICATION');
     const [theme, setTheme] = useState<ThemeType>('NEWS');
     const [showSwipe, setShowSwipe] = useState(false);
+    const [showArticleLink, setShowArticleLink] = useState(false);
     const [customText, setCustomText] = useState(title || '');
     const [bgImage, setBgImage] = useState<string>(imageUrl);
     const [bgVideo, setBgVideo] = useState<HTMLVideoElement | null>(null);
@@ -526,6 +527,18 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.restore();
             }
 
+            if (showArticleLink) {
+                ctx.save();
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'bottom';
+                ctx.font = '900 italic 40px "Inter", sans-serif'; // Légèrement plus petit que le swipe
+                ctx.fillStyle = '#fff';
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 10;
+                ctx.fillText('ARTICLE COMPLET À LIRE SUR DROPSIDERS.FR', 40, canvas.height - 10);
+                ctx.restore();
+            }
+
         } catch (e) { console.error(e); }
     };
 
@@ -862,14 +875,33 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     </div>
 
                     <div className="space-y-4 mt-auto pb-8">
-                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowSwipe(!showSwipe)}>
-                            <div className="flex items-center gap-3"><Layout className="w-4 h-4 text-gray-500" /><span className="text-[10px] font-black text-white uppercase">Afficher Swipe</span></div>
-                            <div className={`w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center ${showSwipe ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,18,65,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
-                                {showSwipe && (
-                                    <motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
-                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                    </motion.svg>
-                                )}
+                        <div className="flex gap-2">
+                            <div className="flex-1 p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowArticleLink(!showArticleLink)}>
+                                <div className="flex items-center gap-2">
+                                    <LinkIcon className="w-3.5 h-3.5 text-gray-500" />
+                                    <span className="text-[9px] font-black text-white uppercase whitespace-nowrap">Lien Article</span>
+                                </div>
+                                <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showArticleLink ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
+                                    {showArticleLink && (
+                                        <motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                        </motion.svg>
+                                    )}
+                                </div>
+                            </div>
+
+                            <div className="flex-1 p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowSwipe(!showSwipe)}>
+                                <div className="flex items-center gap-2">
+                                    <Layout className="w-3.5 h-3.5 text-gray-500" />
+                                    <span className="text-[9px] font-black text-white uppercase">Swipe</span>
+                                </div>
+                                <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showSwipe ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,18,65,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
+                                    {showSwipe && (
+                                        <motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                        </motion.svg>
+                                    )}
+                                </div>
                             </div>
                         </div>
                         <div className="space-y-2">
