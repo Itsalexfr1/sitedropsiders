@@ -1,54 +1,66 @@
-import { useEffect } from 'react';
+import { useEffect, Suspense, lazy } from 'react';
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import { Layout } from './components/layout/Layout';
-import { Home } from './pages/Home';
-import { News } from './pages/News';
-import { Agenda } from './pages/Agenda';
-import { Recap } from './pages/Recap';
-import { Interviews } from './pages/Interviews';
-import { Team } from './pages/Team';
-import { Shop } from './pages/Shop';
-import { Galerie } from './pages/Galerie';
-import { Musique } from './pages/Musique';
-import { AlbumDetail } from './pages/AlbumDetail';
-import { ArticleDetail } from './pages/ArticleDetail';
-import { RecapDetail } from './pages/RecapDetail';
-import { LivePage } from './pages/LivePage';
-import { PrivacyPolicy } from './pages/PrivacyPolicy';
-import { TermsOfService } from './pages/TermsOfService';
-import { CookiesPolicy } from './pages/CookiesPolicy';
-import { MentionsLegales } from './pages/MentionsLegales';
-import { Newsletter } from './pages/Newsletter';
-import { Unsubscribe } from './pages/Unsubscribe';
-import { ClipsPage } from './pages/ClipsPage';
-import { RecapCreate } from './pages/RecapCreate';
-import { AgendaCreate } from './pages/AgendaCreate';
-import { GalerieCreate } from './pages/GalerieCreate';
-import { AdminDashboard } from './pages/AdminDashboard';
-import { NewsletterAdmin } from './pages/NewsletterAdmin';
-import { NewsletterComposer } from './pages/NewsletterComposer';
-import { NewsCreate } from './pages/NewsCreate';
-import { AdminManage } from './pages/AdminManage';
-import { AdminTeam } from './pages/AdminTeam';
-import { AdminEditors } from './pages/AdminEditors';
-import { AdminStats } from './pages/AdminStats';
-import { AdminSpotify } from './pages/AdminSpotify';
-import { AdminShop } from './pages/AdminShop';
-import KitMedia from './pages/KitMedia';
-import { AdminHome } from './pages/AdminHome';
-import { AdminSettings } from './pages/AdminSettings';
-import { AdminMessages } from './pages/AdminMessages';
-import { AdminBanner } from './pages/AdminBanner';
-import { Contact } from './pages/Contact';
-import { PhotoSubmission } from './pages/PhotoSubmission';
-import { SocialStudioPage } from './pages/SocialStudioPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
-
 import { CookieConsent } from './components/ui/CookieConsent';
 import { GoogleAdSense } from './components/analytics/GoogleAdSense';
 import { ScrollToTop } from './components/utils/ScrollToTop';
 import { NotificationPrompt } from './components/NotificationPrompt';
 import { CustomCursor } from './components/ui/CustomCursor';
+
+// Lazy load pages for better mobile performance
+const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
+const News = lazy(() => import('./pages/News').then(m => ({ default: m.News })));
+const Agenda = lazy(() => import('./pages/Agenda').then(m => ({ default: m.Agenda })));
+const Recap = lazy(() => import('./pages/Recap').then(m => ({ default: m.Recap })));
+const Interviews = lazy(() => import('./pages/Interviews').then(m => ({ default: m.Interviews })));
+const Team = lazy(() => import('./pages/Team').then(m => ({ default: m.Team })));
+const Shop = lazy(() => import('./pages/Shop').then(m => ({ default: m.Shop })));
+const Galerie = lazy(() => import('./pages/Galerie').then(m => ({ default: m.Galerie })));
+const Musique = lazy(() => import('./pages/Musique').then(m => ({ default: m.Musique })));
+const AlbumDetail = lazy(() => import('./pages/AlbumDetail').then(m => ({ default: m.AlbumDetail })));
+const ArticleDetail = lazy(() => import('./pages/ArticleDetail').then(m => ({ default: m.ArticleDetail })));
+const RecapDetail = lazy(() => import('./pages/RecapDetail').then(m => ({ default: m.RecapDetail })));
+const LivePage = lazy(() => import('./pages/LivePage').then(m => ({ default: m.LivePage })));
+const PrivacyPolicy = lazy(() => import('./pages/PrivacyPolicy').then(m => ({ default: m.PrivacyPolicy })));
+const TermsOfService = lazy(() => import('./pages/TermsOfService').then(m => ({ default: m.TermsOfService })));
+const CookiesPolicy = lazy(() => import('./pages/CookiesPolicy').then(m => ({ default: m.CookiesPolicy })));
+const MentionsLegales = lazy(() => import('./pages/MentionsLegales').then(m => ({ default: m.MentionsLegales })));
+const Newsletter = lazy(() => import('./pages/Newsletter').then(m => ({ default: m.Newsletter })));
+const Unsubscribe = lazy(() => import('./pages/Unsubscribe').then(m => ({ default: m.Unsubscribe })));
+const ClipsPage = lazy(() => import('./pages/ClipsPage').then(m => ({ default: m.ClipsPage })));
+const RecapCreate = lazy(() => import('./pages/RecapCreate').then(m => ({ default: m.RecapCreate })));
+const AgendaCreate = lazy(() => import('./pages/AgendaCreate').then(m => ({ default: m.AgendaCreate })));
+const GalerieCreate = lazy(() => import('./pages/GalerieCreate').then(m => ({ default: m.GalerieCreate })));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const NewsletterAdmin = lazy(() => import('./pages/NewsletterAdmin').then(m => ({ default: m.NewsletterAdmin })));
+const NewsletterComposer = lazy(() => import('./pages/NewsletterComposer').then(m => ({ default: m.NewsletterComposer })));
+const NewsCreate = lazy(() => import('./pages/NewsCreate').then(m => ({ default: m.NewsCreate })));
+const AdminManage = lazy(() => import('./pages/AdminManage').then(m => ({ default: m.AdminManage })));
+const AdminTeam = lazy(() => import('./pages/AdminTeam').then(m => ({ default: m.AdminTeam })));
+const AdminEditors = lazy(() => import('./pages/AdminEditors').then(m => ({ default: m.AdminEditors })));
+const AdminStats = lazy(() => import('./pages/AdminStats').then(m => ({ default: m.AdminStats })));
+const AdminSpotify = lazy(() => import('./pages/AdminSpotify').then(m => ({ default: m.AdminSpotify })));
+const AdminShop = lazy(() => import('./pages/AdminShop').then(m => ({ default: m.AdminShop })));
+const KitMedia = lazy(() => import('./pages/KitMedia'));
+const AdminHome = lazy(() => import('./pages/AdminHome').then(m => ({ default: m.AdminHome })));
+const AdminSettings = lazy(() => import('./pages/AdminSettings').then(m => ({ default: m.AdminSettings })));
+const AdminMessages = lazy(() => import('./pages/AdminMessages').then(m => ({ default: m.AdminMessages })));
+const AdminBanner = lazy(() => import('./pages/AdminBanner').then(m => ({ default: m.AdminBanner })));
+const Contact = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
+const PhotoSubmission = lazy(() => import('./pages/PhotoSubmission').then(m => ({ default: m.PhotoSubmission })));
+const SocialStudioPage = lazy(() => import('./pages/SocialStudioPage').then(m => ({ default: m.SocialStudioPage })));
+
+function LoadingPage() {
+  return (
+    <div className="fixed inset-0 bg-dark-bg flex items-center justify-center z-[500]">
+      <div className="flex flex-col items-center gap-4">
+        <div className="w-12 h-12 border-4 border-neon-red/20 border-t-neon-red rounded-full animate-spin shadow-[0_0_20px_rgba(255,0,51,0.2)]" />
+        <span className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em] animate-pulse">Chargement</span>
+      </div>
+    </div>
+  );
+}
 
 function Root() {
   return (
@@ -57,7 +69,9 @@ function Root() {
       <GoogleAdSense />
       <CustomCursor />
       <Layout>
-        <Outlet />
+        <Suspense fallback={<LoadingPage />}>
+          <Outlet />
+        </Suspense>
       </Layout>
       <CookieConsent />
       <NotificationPrompt />

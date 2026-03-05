@@ -22,14 +22,22 @@
     color: white;
     font-family: var(--font-sans);
     overflow-x: hidden;
+    /* Optimize touch and scrolling */
+    -webkit-tap-highlight-color: transparent;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    scroll-behavior: smooth;
   }
 
   a {
     @apply transition-colors duration-300;
+    touch-action: manipulation;
+    /* Removes 300ms click delay on mobile */
   }
 
-  a:hover {
-    color: var(--color-neon-red) !important;
+  button {
+    touch-action: manipulation;
+    cursor: pointer;
   }
 
   /* Light Mode */
@@ -746,11 +754,16 @@
   section {
     padding-top: 3rem !important;
     padding-bottom: 3rem !important;
+    content-visibility: auto;
+    /* Browser optimizes rendering of off-screen sections */
+    contain-intrinsic-size: 0 500px;
   }
 
-  /* Bottom spacing for main content */
-  body {
-    padding-bottom: 80px !important;
+  /* GPU Acceleration for main components */
+  .layout-main,
+  canvas,
+  .fixed {
+    will-change: transform;
   }
 }
 
