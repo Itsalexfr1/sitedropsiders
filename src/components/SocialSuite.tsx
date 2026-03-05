@@ -1004,12 +1004,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ══════════════════════════════════════════════════════════ */
                 <motion.div
                     drag="y"
-                    dragConstraints={{ top: 0, bottom: 0 }}
-                    dragElastic={{ top: 0, bottom: 0.5 }}
+                    dragConstraints={{ top: 0, bottom: 300 }}
+                    dragElastic={{ top: 0.1, bottom: 0.8 }}
                     onDragEnd={(_, info) => {
-                        if (info.offset.y > 100) onClose();
+                        if (info.offset.y > 150) onClose();
                     }}
-                    className="relative w-full h-full bg-black">
+                    className="relative w-full h-full bg-black flex flex-col overflow-hidden">
 
                     {/* Format selection modal (mobile only) */}
                     <AnimatePresence>
@@ -1056,11 +1056,16 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         <canvas ref={canvasRef} className="max-w-full max-h-full object-contain" style={{ borderRadius: '10px', boxShadow: '0 0 60px rgba(0,0,0,0.9)' }} />
                     </div>
 
-                    {/* Top bar */}
-                    <div className="absolute top-0 inset-x-0 flex items-center justify-between px-4 pt-4 pb-3 z-20" style={{ background: 'linear-gradient(180deg,rgba(0,0,0,0.7) 0%,transparent 100%)' }}>
-                        <button onClick={onClose} className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all"><X className="w-5 h-5" /></button>
-                        <span className="text-[11px] font-black text-white/50 uppercase tracking-widest italic">SOCIAL STUDIO</span>
-                        <button onClick={() => window.location.href = '/'} className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all"><Home className="w-5 h-5" /></button>
+                    {/* Swipe Indicator (top handle) */}
+                    <div className="absolute top-2 inset-x-0 flex justify-center z-50 pointer-events-none">
+                        <div className="w-12 h-1.5 rounded-full bg-white/20 shadow-lg" />
+                    </div>
+
+                    {/* Top bar (Header also acts as drag handle) */}
+                    <div className="absolute top-0 inset-x-0 flex items-center justify-between px-4 pt-5 pb-3 z-20" style={{ background: 'linear-gradient(180deg,rgba(0,0,0,0.8) 0%,transparent 100%)' }}>
+                        <button onClick={onClose} className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95"><X className="w-5 h-5" /></button>
+                        <span className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] italic">SOCIAL STUDIO</span>
+                        <button onClick={() => window.location.href = '/'} className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95"><Home className="w-5 h-5" /></button>
                     </div>
 
                     {/* Contextual panels (slide up) */}
