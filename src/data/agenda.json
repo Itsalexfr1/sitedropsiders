@@ -3549,7 +3549,7 @@
     "title": "Timewarp Germany",
     "date": "2026-03-21",
     "startDate": "2026-03-21",
-    "endDate": "2026-03-04",
+    "endDate": "2026-03-21",
     "location": "MANNHEIM",
     "country": "Allemagne",
     "type": "Festival",
@@ -3559,7 +3559,8 @@
     "month": "MARS",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "venue": ""
   },
   {
     "id": 280,
