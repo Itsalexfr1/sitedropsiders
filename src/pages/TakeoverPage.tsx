@@ -4221,11 +4221,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             !isFocusMode && (
                                 <div className="p-1 md:p-2 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
                                     <div className="flex-1 flex items-center gap-1.5 md:gap-2">
-                                        {/* Back Button for mobile users since navbar is hidden */}
+                                        {/* Back Button for mobile users */}
                                         <button
-                                            onClick={() => navigate('/')}
+                                            onClick={() => {
+                                                if (activeChatTab !== 'chat') {
+                                                    setActiveChatTab('chat');
+                                                } else {
+                                                    navigate('/');
+                                                }
+                                            }}
                                             className="lg:hidden p-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white transition-all mr-1 md:mr-2"
-                                            title="Retour à l'accueil"
+                                            title={activeChatTab !== 'chat' ? "Retour au Chat" : "Retour à l'accueil"}
                                         >
                                             <ArrowLeft className="w-3.5 h-3.5" />
                                         </button>
@@ -4589,16 +4595,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             </div>
                                         </div>
 
-                                        {/* Tab Switcher - Persistent at Top - Hidden on mobile */}
-                                        <div className="hidden lg:flex items-center gap-0.5 md:gap-1 p-0 md:p-1 bg-white/[0.02] border border-white/10 rounded-md md:rounded-xl mb-0 mx-1 md:mx-4 mt-0.5 md:mt-3 relative z-20 shrink-0 overflow-x-auto no-scrollbar">
+                                        {/* Tab Switcher - Persistent at Top */}
+                                        <div className="flex items-center gap-0.5 md:gap-1 p-0 md:p-1 bg-white/[0.02] border border-white/10 rounded-md md:rounded-xl mb-0 mx-1 md:mx-4 mt-0.5 md:mt-3 relative z-20 shrink-0 overflow-x-auto no-scrollbar">
                                             {[
                                                 { id: 'chat', icon: MessageSquare, label: 'Chat', mobileVisible: true },
-                                                { id: 'shazam', icon: Headphones, label: 'Shz', mobileVisible: false },
-                                                { id: 'audio', icon: Mic, label: 'Aud', mobileVisible: false },
-                                                { id: 'shop', icon: ShoppingBag, label: 'Shop', mobileVisible: false },
-                                                { id: 'leaderboard', icon: Trophy, label: 'Top', mobileVisible: false },
-                                                { id: 'clips', icon: Video, label: 'Clips', mobileVisible: false },
-                                                ...(activeChatTab === 'drops-shop' ? [{ id: 'drops-shop', icon: Zap, label: 'Drops', mobileVisible: false }] : [])
+                                                { id: 'shazam', icon: Headphones, label: 'Shz', mobileVisible: true },
+                                                { id: 'audio', icon: Mic, label: 'Aud', mobileVisible: true },
+                                                { id: 'shop', icon: ShoppingBag, label: 'Shop', mobileVisible: true },
+                                                { id: 'leaderboard', icon: Trophy, label: 'Top', mobileVisible: true },
+                                                { id: 'clips', icon: Video, label: 'Clips', mobileVisible: true },
+                                                ...(activeChatTab === 'drops-shop' ? [{ id: 'drops-shop', icon: Zap, label: 'Drops', mobileVisible: true }] : [])
                                             ].map(tab => (
                                                 <button
                                                     key={tab.id}
@@ -4865,26 +4871,26 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                             else if (info.offset.x < -100) handleSwipeTabs('left');
                                                         }}
                                                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                        className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24 touch-pan-y"
+                                                        className="flex-1 overflow-y-auto p-2 lg:p-6 custom-scrollbar space-y-4 lg:space-y-6 touch-pan-y"
                                                     >
-                                                        <div className="bg-gradient-to-br from-neon-cyan/20 via-black to-neon-purple/20 border border-white/10 p-8 rounded-3xl relative overflow-hidden group">
+                                                        <div className="bg-gradient-to-br from-neon-cyan/20 via-black to-neon-purple/20 border border-white/10 p-4 lg:p-8 rounded-2xl lg:rounded-3xl relative overflow-hidden group">
                                                             <div className="absolute inset-0 bg-aurora opacity-10 pointer-events-none" />
                                                             <div className="relative flex flex-col items-center text-center">
-                                                                <div className={`w-20 h-20 rounded-full border-2 ${shazamLoading ? 'border-neon-cyan animate-spin shadow-[0_0_50px_#00ffff]' : 'border-neon-purple shadow-[0_0_30px_#bc13fe33]'} flex items-center justify-center mb-6`}>
-                                                                    <Headphones className={`w-10 h-10 ${shazamLoading ? 'text-neon-cyan' : 'text-neon-purple'}`} />
+                                                                <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-full border-2 ${shazamLoading ? 'border-neon-cyan animate-spin shadow-[0_0_50px_#00ffff]' : 'border-neon-purple shadow-[0_0_30px_#bc13fe33]'} flex items-center justify-center mb-4 lg:mb-6`}>
+                                                                    <Headphones className={`w-6 h-6 lg:w-10 lg:h-10 ${shazamLoading ? 'text-neon-cyan' : 'text-neon-purple'}`} />
                                                                 </div>
-                                                                <h4 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-2">Shazam Live</h4>
-                                                                <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mb-8">Identifie la musique en direct</p>
+                                                                <h4 className="text-2xl lg:text-4xl font-black text-white uppercase italic tracking-tighter mb-1 lg:mb-2">Shazam Live</h4>
+                                                                <p className="text-[8px] lg:text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mb-6 lg:mb-8">Identifie la musique en direct</p>
 
                                                                 <button
                                                                     onClick={handleShazam}
                                                                     disabled={shazamLoading}
-                                                                    className={`w-full max-w-sm py-5 rounded-2xl font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-3 shadow-lg ${shazamLoading ? 'bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-neon-cyan text-black hover:scale-[1.02] shadow-neon-cyan/20'}`}
+                                                                    className={`w-full max-w-sm py-3 lg:py-5 rounded-xl lg:rounded-2xl text-[10px] lg:text-base font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-2 lg:gap-3 shadow-lg ${shazamLoading ? 'bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-neon-cyan text-black hover:scale-[1.02] shadow-neon-cyan/20'}`}
                                                                 >
                                                                     {shazamLoading ? (
-                                                                        <><Loader2 className="w-5 h-5 animate-spin" /> ÉCOUTE EN COURS...</>
+                                                                        <><Loader2 className="w-4 h-4 lg:w-5 lg:h-5 animate-spin" /> ÉCOUTE...</>
                                                                     ) : (
-                                                                        <><Headphones className="w-5 h-5" /> LANCER SHAZAM</>
+                                                                        <><Headphones className="w-4 h-4 lg:w-5 lg:h-5" /> SHAZAM</>
                                                                     )}
                                                                 </button>
                                                             </div>
@@ -5453,772 +5459,744 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                 )}
                                             </AnimatePresence>
 
-                                            {/* FLOATING MOBILE BOTTOM NAV */}
-                                            {!isFocusMode && (
-                                                <div className="lg:hidden h-14 bg-black/40 backdrop-blur-2xl border-t border-white/10 flex items-center justify-around px-2 relative z-50 shrink-0 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
-                                                    {[
-                                                        { id: 'chat', icon: MessageSquare, label: 'Chat' },
-                                                        { id: 'shazam', icon: Headphones, label: 'Shz' },
-                                                        { id: 'leaderboard', icon: Trophy, label: 'Top' },
-                                                        { id: 'shop', icon: ShoppingBag, label: 'Shop' },
-                                                        { id: 'clips', icon: Video, label: 'Clips' }
-                                                    ].map(tab => (
-                                                        <button
-                                                            key={tab.id}
-                                                            onClick={() => setActiveChatTab(tab.id as any)}
-                                                            className={`flex flex-col items-center justify-center gap-1 min-w-[50px] transition-all relative py-1 ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white'}`}
-                                                        >
-                                                            {activeChatTab === tab.id && (
-                                                                <motion.div
-                                                                    layoutId="mobile-tab-indicator"
-                                                                    className="absolute -top-[1.5px] left-0 right-0 h-[2px] bg-neon-red shadow-[0_0_10px_rgba(255,18,65,0.8)]"
-                                                                />
-                                                            )}
-                                                            <tab.icon className={`w-4 h-4 transition-transform ${activeChatTab === tab.id ? 'scale-110' : 'scale-90 group-active:scale-75'}`} />
-                                                            <span className={`text-[8px] font-black uppercase tracking-widest ${activeChatTab === tab.id ? 'opacity-100' : 'opacity-40'}`}>{tab.label}</span>
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            )}
                                         </div>
+                                    </div>
+                                )}
+                                {!isFocusMode && (
+                                    <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
+                                        <button
+                                            onClick={() => setShowUsersPanel(!showUsersPanel)}
+                                            className="absolute right-0 w-8 h-16 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-xl flex items-center justify-center transition-all group z-[100]"
+                                        >
+                                            <div className={`w-2 h-2 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
+                                        </button>
+                                    </div>
+                                )}
+
+                                <AnimatePresence>
+                                    {!isFocusMode && showUsersPanel && (
+                                        <motion.div
+                                            initial={{ width: 0, opacity: 0 }}
+                                            animate={{ width: 200, opacity: 1 }}
+                                            exit={{ width: 0, opacity: 0 }}
+                                            className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
+                                        >
+                                            <div className="w-[200px] flex flex-col h-full">
+                                                <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
+                                                    <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                        <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
+                                                    </h2>
+                                                    <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
+                                                </div>
+                                                <div className="flex-1 overflow-y-auto">
+                                                    <div className="p-3 space-y-2">
+                                                        {allActiveUsers.map(u => {
+                                                            const role = getRole(u.pseudo);
+                                                            const isUserAdmin = role === 'admin';
+                                                            const isUserModo = role === 'modo';
+                                                            const isExpanded = expandedUserId === u.pseudo;
+
+                                                            return (
+                                                                <div key={u.pseudo} className="flex flex-col bg-white/[0.02] hover:bg-white/5 rounded-lg transition-colors border border-white/5">
+                                                                    <div
+                                                                        onClick={() => setExpandedUserId(isExpanded ? null : u.pseudo)}
+                                                                        className="flex items-center justify-between group p-2 cursor-pointer select-none"
+                                                                    >
+                                                                        <div className="flex items-center gap-2 truncate">
+                                                                            <div className="w-4 flex items-center justify-center">
+                                                                                {getCountryFlag(u.country)}
+                                                                            </div>
+                                                                            <span className={`text-xs font-bold uppercase truncate max-w-[100px] sm:max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
+                                                                                {u.pseudo}
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            {(isUserAdmin || isUserModo) && (
+                                                                                <span className="text-[10px] bg-white/10 px-1 py-0.5 rounded text-white font-bold opacity-60 flex items-center gap-1">
+                                                                                    {isUserAdmin && <Zap className="w-3 h-3 text-neon-red" />}
+                                                                                    {isUserModo && !isUserAdmin && <Shield className="w-3 h-3 text-yellow-500" />}
+                                                                                </span>
+                                                                            )}
+                                                                            {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
+                                                                                <button
+                                                                                    onClick={(e) => { e.stopPropagation(); handlePromote(u.pseudo); }}
+                                                                                    className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
+                                                                                    title="Promouvoir Modérateur Chat"
+                                                                                >
+                                                                                    <Shield className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <AnimatePresence>
+                                                                        {isExpanded && (
+                                                                            <motion.div
+                                                                                initial={{ height: 0, opacity: 0 }}
+                                                                                animate={{ height: 'auto', opacity: 1 }}
+                                                                                exit={{ height: 0, opacity: 0 }}
+                                                                                className="overflow-hidden border-t border-white/5"
+                                                                            >
+                                                                                <div className="p-3 space-y-3 bg-black/40">
+                                                                                    <div className="space-y-1.5">
+                                                                                        <div className="flex items-center justify-between text-[10px]">
+                                                                                            <span className="text-gray-500 font-bold uppercase tracking-widest">Pays</span>
+                                                                                            <span className="text-gray-300 font-bold">{u.country} {getCountryFlag(u.country)}</span>
+                                                                                        </div>
+                                                                                        <div className="flex items-center justify-between text-[10px]">
+                                                                                            <span className="text-gray-500 font-bold uppercase tracking-widest">Email</span>
+                                                                                            <span className="text-gray-400 font-italic">Non disponible</span>
+                                                                                        </div>
+                                                                                    </div>
+
+                                                                                    {isAdmin && pseudo !== u.pseudo && (
+                                                                                        <button
+                                                                                            onClick={(e) => { e.stopPropagation(); handleGiveDrops(u.pseudo); }}
+                                                                                            className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-neon-purple/10 hover:bg-neon-purple/20 text-neon-purple border border-neon-purple/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                                                                        >
+                                                                                            <Zap className="w-3.5 h-3.5" />
+                                                                                            Donner DROPS
+                                                                                        </button>
+                                                                                    )}
+
+                                                                                    {isAdmin && isUserModo && pseudo !== u.pseudo && (
+                                                                                        <button
+                                                                                            onClick={(e) => { e.stopPropagation(); handleDemote(u.pseudo); }}
+                                                                                            className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border border-yellow-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                                                                        >
+                                                                                            <Shield className="w-3.5 h-3.5" />
+                                                                                            Retirer MODO
+                                                                                        </button>
+                                                                                    )}
+                                                                                </div>
+                                                                            </motion.div>
+                                                                        )}
+                                                                    </AnimatePresence>
+                                                                </div>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
+                            </div>
+                        </div >
+                    </div >
+                </div >
+
+                {/* Ticker Banner */}
+                {
+                    !isFocusMode && !isFullScreen && showTickerBanner && (
+                        <div
+                            className="w-full h-12 shrink-0 hidden lg:flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
+                            style={{ backgroundColor: tickerBgColor }}
+                            onMouseEnter={() => {
+                                const ticker = document.getElementById('ticker-animate-container');
+                                if (ticker) ticker.style.animationPlayState = 'paused';
+                            }}
+                            onMouseLeave={() => {
+                                const ticker = document.getElementById('ticker-animate-container');
+                                if (ticker) ticker.style.animationPlayState = 'running';
+                            }}
+                        >
+                            <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
+                            <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
+
+                            <div id="ticker-animate-container" className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
+                                {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
+                                    <a
+                                        key={`${news.id}-${i}`}
+                                        href={`/news/${news.id}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="flex items-center mx-8 shrink-0 hover:scale-105 transition-transform group"
+                                        style={{ color: tickerTextColor }}
+                                    >
+                                        <span className="text-[10px] font-black uppercase tracking-[0.3em]">{news.title}</span>
+                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-8" />
+                                    </a>
+                                ))}
+
+                                {tickerType === 'planning' && (() => {
+                                    const activeItems = currentFluxLineup.filter(item => !item.isPast);
+                                    return activeItems.concat(activeItems).map((item, i) => (
+                                        <div key={i} className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
+                                            <span className="text-[10px] font-black uppercase italic tracking-[0.2em]">{item.time} - {item.artist}</span>
+                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                        </div>
+                                    ));
+                                })()}
+
+                                {tickerType === 'custom' && Array(10).fill(0).map((_, i) => (
+                                    tickerLink ? (
+                                        <a key={i} href={tickerLink} target="_blank" rel="noopener noreferrer" className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
+                                            <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                        </a>
+                                    ) : (
+                                        <div key={i} className="flex items-center mx-12 shrink-0" style={{ color: tickerTextColor }}>
+                                            <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
+                                            <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
+                                        </div>
+                                    )
+                                ))}
+
+                                {tickerType === 'news' && latestNews.length === 0 && (
+                                    <div className="text-[10px] font-black uppercase italic tracking-[0.3em] text-white/80 mx-10 animate-pulse">
+                                        CHARGEMENT DU FIL D'ACTUALITÉ...
                                     </div>
                                 )}
                             </div>
-                            {!isFocusMode && (
-                                <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
+                        </div>
+                    )
+                }
+
+                {/* CLIP PLAYER POPUP */}
+                <AnimatePresence>
+                    {showClipPlayer && activeClipToPlay && (
+                        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 lg:p-12">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => {
+                                    setShowClipPlayer(false);
+                                    setIsMutedGlobal(false);
+                                    setActiveClipToPlay(null);
+                                }}
+                                className="absolute inset-0 bg-black/95 backdrop-blur-2xl"
+                            />
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                                animate={{ scale: 1, opacity: 1, y: 0 }}
+                                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                                className="relative w-full max-w-5xl aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)]"
+                            >
+                                <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-20">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
+                                            <Video className="w-6 h-6 text-neon-cyan" />
+                                        </div>
+                                        <div className="flex flex-col">
+                                            <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-none">{activeClipToPlay.title}</h3>
+                                            <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest mt-1">LECTURE DU CLIP ({activeClipToPlay.duration})</span>
+                                        </div>
+                                    </div>
                                     <button
-                                        onClick={() => setShowUsersPanel(!showUsersPanel)}
-                                        className="absolute right-0 w-8 h-16 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-xl flex items-center justify-center transition-all group z-[100]"
+                                        onClick={() => {
+                                            setShowClipPlayer(false);
+                                            setIsMutedGlobal(false);
+                                            setActiveClipToPlay(null);
+                                        }}
+                                        className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white transition-all group active:scale-95"
                                     >
-                                        <div className={`w-2 h-2 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
+                                        <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
                                     </button>
                                 </div>
-                            )}
-
-                            <AnimatePresence>
-                                {!isFocusMode && showUsersPanel && (
-                                    <motion.div
-                                        initial={{ width: 0, opacity: 0 }}
-                                        animate={{ width: 200, opacity: 1 }}
-                                        exit={{ width: 0, opacity: 0 }}
-                                        className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
-                                    >
-                                        <div className="w-[200px] flex flex-col h-full">
-                                            <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
-                                                <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                    <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
-                                                </h2>
-                                                <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
-                                            </div>
-                                            <div className="flex-1 overflow-y-auto">
-                                                <div className="p-3 space-y-2">
-                                                    {allActiveUsers.map(u => {
-                                                        const role = getRole(u.pseudo);
-                                                        const isUserAdmin = role === 'admin';
-                                                        const isUserModo = role === 'modo';
-                                                        const isExpanded = expandedUserId === u.pseudo;
-
-                                                        return (
-                                                            <div key={u.pseudo} className="flex flex-col bg-white/[0.02] hover:bg-white/5 rounded-lg transition-colors border border-white/5">
-                                                                <div
-                                                                    onClick={() => setExpandedUserId(isExpanded ? null : u.pseudo)}
-                                                                    className="flex items-center justify-between group p-2 cursor-pointer select-none"
-                                                                >
-                                                                    <div className="flex items-center gap-2 truncate">
-                                                                        <div className="w-4 flex items-center justify-center">
-                                                                            {getCountryFlag(u.country)}
-                                                                        </div>
-                                                                        <span className={`text-xs font-bold uppercase truncate max-w-[100px] sm:max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
-                                                                            {u.pseudo}
-                                                                        </span>
-                                                                    </div>
-                                                                    <div className="flex items-center gap-2">
-                                                                        {(isUserAdmin || isUserModo) && (
-                                                                            <span className="text-[10px] bg-white/10 px-1 py-0.5 rounded text-white font-bold opacity-60 flex items-center gap-1">
-                                                                                {isUserAdmin && <Zap className="w-3 h-3 text-neon-red" />}
-                                                                                {isUserModo && !isUserAdmin && <Shield className="w-3 h-3 text-yellow-500" />}
-                                                                            </span>
-                                                                        )}
-                                                                        {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
-                                                                            <button
-                                                                                onClick={(e) => { e.stopPropagation(); handlePromote(u.pseudo); }}
-                                                                                className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
-                                                                                title="Promouvoir Modérateur Chat"
-                                                                            >
-                                                                                <Shield className="w-3.5 h-3.5" />
-                                                                            </button>
-                                                                        )}
-                                                                    </div>
-                                                                </div>
-
-                                                                <AnimatePresence>
-                                                                    {isExpanded && (
-                                                                        <motion.div
-                                                                            initial={{ height: 0, opacity: 0 }}
-                                                                            animate={{ height: 'auto', opacity: 1 }}
-                                                                            exit={{ height: 0, opacity: 0 }}
-                                                                            className="overflow-hidden border-t border-white/5"
-                                                                        >
-                                                                            <div className="p-3 space-y-3 bg-black/40">
-                                                                                <div className="space-y-1.5">
-                                                                                    <div className="flex items-center justify-between text-[10px]">
-                                                                                        <span className="text-gray-500 font-bold uppercase tracking-widest">Pays</span>
-                                                                                        <span className="text-gray-300 font-bold">{u.country} {getCountryFlag(u.country)}</span>
-                                                                                    </div>
-                                                                                    <div className="flex items-center justify-between text-[10px]">
-                                                                                        <span className="text-gray-500 font-bold uppercase tracking-widest">Email</span>
-                                                                                        <span className="text-gray-400 font-italic">Non disponible</span>
-                                                                                    </div>
-                                                                                </div>
-
-                                                                                {isAdmin && pseudo !== u.pseudo && (
-                                                                                    <button
-                                                                                        onClick={(e) => { e.stopPropagation(); handleGiveDrops(u.pseudo); }}
-                                                                                        className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-neon-purple/10 hover:bg-neon-purple/20 text-neon-purple border border-neon-purple/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
-                                                                                    >
-                                                                                        <Zap className="w-3.5 h-3.5" />
-                                                                                        Donner DROPS
-                                                                                    </button>
-                                                                                )}
-
-                                                                                {isAdmin && isUserModo && pseudo !== u.pseudo && (
-                                                                                    <button
-                                                                                        onClick={(e) => { e.stopPropagation(); handleDemote(u.pseudo); }}
-                                                                                        className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border border-yellow-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
-                                                                                    >
-                                                                                        <Shield className="w-3.5 h-3.5" />
-                                                                                        Retirer MODO
-                                                                                    </button>
-                                                                                )}
-                                                                            </div>
-                                                                        </motion.div>
-                                                                    )}
-                                                                </AnimatePresence>
-                                                            </div>
-                                                        );
-                                                    })}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </motion.div>
-                                )}
-                            </AnimatePresence>
-                        </div>
-                    </div >
-                </div >
-            </div >
-
-            {/* Ticker Banner */}
-            {
-                !isFocusMode && !isFullScreen && showTickerBanner && (
-                    <div
-                        className="w-full h-12 shrink-0 hidden lg:flex items-center overflow-hidden border-t border-white/20 relative z-30 shadow-[0_-10px_30px_rgba(0,0,0,0.3)] group/ticker"
-                        style={{ backgroundColor: tickerBgColor }}
-                        onMouseEnter={() => {
-                            const ticker = document.getElementById('ticker-animate-container');
-                            if (ticker) ticker.style.animationPlayState = 'paused';
-                        }}
-                        onMouseLeave={() => {
-                            const ticker = document.getElementById('ticker-animate-container');
-                            if (ticker) ticker.style.animationPlayState = 'running';
-                        }}
-                    >
-                        <div className="absolute left-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to right, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
-                        <div className="absolute right-0 top-0 bottom-0 w-32 z-10 pointer-events-none" style={{ background: `linear-gradient(to left, ${tickerBgColor}, ${tickerBgColor}cc, transparent)` }} />
-
-                        <div id="ticker-animate-container" className="flex items-center absolute whitespace-nowrap animate-ticker py-2">
-                            {tickerType === 'news' && (latestNews.length > 0 ? latestNews.concat(latestNews) : []).map((news, i) => (
-                                <a
-                                    key={`${news.id}-${i}`}
-                                    href={`/news/${news.id}`}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="flex items-center mx-8 shrink-0 hover:scale-105 transition-transform group"
-                                    style={{ color: tickerTextColor }}
-                                >
-                                    <span className="text-[10px] font-black uppercase tracking-[0.3em]">{news.title}</span>
-                                    <div className="w-2 h-2 rounded-full bg-white/30 ml-8" />
-                                </a>
-                            ))}
-
-                            {tickerType === 'planning' && (() => {
-                                const activeItems = currentFluxLineup.filter(item => !item.isPast);
-                                return activeItems.concat(activeItems).map((item, i) => (
-                                    <div key={i} className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
-                                        <span className="text-[10px] font-black uppercase italic tracking-[0.2em]">{item.time} - {item.artist}</span>
-                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                                    </div>
-                                ));
-                            })()}
-
-                            {tickerType === 'custom' && Array(10).fill(0).map((_, i) => (
-                                tickerLink ? (
-                                    <a key={i} href={tickerLink} target="_blank" rel="noopener noreferrer" className="flex items-center mx-12 shrink-0 hover:scale-105 transition-transform" style={{ color: tickerTextColor }}>
-                                        <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
-                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                                    </a>
-                                ) : (
-                                    <div key={i} className="flex items-center mx-12 shrink-0" style={{ color: tickerTextColor }}>
-                                        <span className="text-[12px] font-black uppercase italic tracking-[0.2em]">{tickerText || 'VOTRE TEXTE ICI'}</span>
-                                        <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                                    </div>
-                                )
-                            ))}
-
-                            {tickerType === 'news' && latestNews.length === 0 && (
-                                <div className="text-[10px] font-black uppercase italic tracking-[0.3em] text-white/80 mx-10 animate-pulse">
-                                    CHARGEMENT DU FIL D'ACTUALITÉ...
+                                <div className="w-full h-full bg-black flex items-center justify-center">
+                                    {activeClipToPlay.isLocal ? (
+                                        <video
+                                            src={activeClipToPlay.url}
+                                            controls
+                                            autoPlay
+                                            className="w-full h-full object-contain"
+                                        />
+                                    ) : (
+                                        <iframe
+                                            className="w-full h-full"
+                                            src={`https://www.youtube.com/embed/${activeClipToPlay.videoId || activeClipToPlay.channelId || settings.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1&enablejsapi=1`}
+                                            title="Clip Player"
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        ></iframe>
+                                    )}
                                 </div>
-                            )}
+                                <div className="absolute bottom-0 left-0 right-0 p-8 flex items-center justify-center bg-gradient-to-t from-black/80 to-transparent">
+                                    <div className="flex items-center gap-4">
+                                        <button
+                                            onClick={() => {
+                                                const shareText = `Regardez ce clip sur Dropsiders ! ${window.location.href}`;
+                                                if (navigator.share) {
+                                                    navigator.share({ title: 'Clip Dropsiders', text: shareText, url: window.location.href });
+                                                } else {
+                                                    navigator.clipboard.writeText(shareText);
+                                                    alert("Lien copié !");
+                                                }
+                                            }}
+                                            className="px-8 py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl"
+                                        >
+                                            Partager le clip
+                                        </button>
+                                        <button
+                                            onClick={() => handleDownloadClip(activeClipToPlay)}
+                                            className="px-8 py-3 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/30 transition-all active:scale-95"
+                                        >
+                                            Télécharger (HD)
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
                         </div>
-                    </div>
-                )
-            }
+                    )}
+                </AnimatePresence>
 
-            {/* CLIP PLAYER POPUP */}
-            <AnimatePresence>
-                {showClipPlayer && activeClipToPlay && (
-                    <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 lg:p-12">
+                {/* Shazam Instructions Modal */}
+                <AnimatePresence>
+                    {showShazamInfo && (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
-                            onClick={() => {
-                                setShowClipPlayer(false);
-                                setIsMutedGlobal(false);
-                                setActiveClipToPlay(null);
-                            }}
-                            className="absolute inset-0 bg-black/95 backdrop-blur-2xl"
-                        />
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="relative w-full max-w-5xl aspect-video bg-black rounded-[2rem] overflow-hidden border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.8)]"
+                            className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
+                            onClick={() => setShowShazamInfo(false)}
                         >
-                            <div className="absolute top-0 left-0 right-0 p-6 flex items-center justify-between bg-gradient-to-b from-black/80 to-transparent z-20">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 rounded-2xl bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
-                                        <Video className="w-6 h-6 text-neon-cyan" />
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <h3 className="text-lg font-black text-white uppercase italic tracking-tighter leading-none">{activeClipToPlay.title}</h3>
-                                        <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest mt-1">LECTURE DU CLIP ({activeClipToPlay.duration})</span>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => {
-                                        setShowClipPlayer(false);
-                                        setIsMutedGlobal(false);
-                                        setActiveClipToPlay(null);
-                                    }}
-                                    className="w-10 h-10 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 flex items-center justify-center text-white transition-all group active:scale-95"
-                                >
-                                    <X className="w-5 h-5 group-hover:rotate-90 transition-transform" />
-                                </button>
-                            </div>
-                            <div className="w-full h-full bg-black flex items-center justify-center">
-                                {activeClipToPlay.isLocal ? (
-                                    <video
-                                        src={activeClipToPlay.url}
-                                        controls
-                                        autoPlay
-                                        className="w-full h-full object-contain"
-                                    />
-                                ) : (
-                                    <iframe
-                                        className="w-full h-full"
-                                        src={`https://www.youtube.com/embed/${activeClipToPlay.videoId || activeClipToPlay.channelId || settings.youtubeId}?autoplay=1&mute=0&rel=0&modestbranding=1&enablejsapi=1`}
-                                        title="Clip Player"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                    ></iframe>
-                                )}
-                            </div>
-                            <div className="absolute bottom-0 left-0 right-0 p-8 flex items-center justify-center bg-gradient-to-t from-black/80 to-transparent">
-                                <div className="flex items-center gap-4">
-                                    <button
-                                        onClick={() => {
-                                            const shareText = `Regardez ce clip sur Dropsiders ! ${window.location.href}`;
-                                            if (navigator.share) {
-                                                navigator.share({ title: 'Clip Dropsiders', text: shareText, url: window.location.href });
-                                            } else {
-                                                navigator.clipboard.writeText(shareText);
-                                                alert("Lien copié !");
-                                            }
-                                        }}
-                                        className="px-8 py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl"
-                                    >
-                                        Partager le clip
-                                    </button>
-                                    <button
-                                        onClick={() => handleDownloadClip(activeClipToPlay)}
-                                        className="px-8 py-3 bg-neon-cyan/20 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan/30 transition-all active:scale-95"
-                                    >
-                                        Télécharger (HD)
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0, y: 30 }}
+                                animate={{ scale: 1, opacity: 1, y: 0 }}
+                                exit={{ scale: 0.9, opacity: 0, y: 30 }}
+                                className="w-full max-w-lg bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_120px_rgba(0,255,255,0.15)] relative"
+                                onClick={e => e.stopPropagation()}
+                            >
+                                {/* Decorative elements */}
+                                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
+                                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
 
-            {/* Shazam Instructions Modal */}
-            <AnimatePresence>
-                {showShazamInfo && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
-                        onClick={() => setShowShazamInfo(false)}
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0, y: 30 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 30 }}
-                            className="w-full max-w-lg bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_120px_rgba(0,255,255,0.15)] relative"
-                            onClick={e => e.stopPropagation()}
-                        >
-                            {/* Decorative elements */}
-                            <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
-                            <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
+                                <div className="relative p-10 lg:p-14 text-center space-y-10">
+                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none" />
 
-                            <div className="relative p-10 lg:p-14 text-center space-y-10">
-                                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none" />
-
-                                <div className="relative flex flex-col items-center">
-                                    <div className="relative group">
-                                        <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full group-hover:bg-neon-cyan/30 transition-all duration-700" />
-                                        <div className="w-28 h-28 bg-black/40 border border-neon-cyan/30 rounded-full flex items-center justify-center relative z-10 shadow-[0_0_40px_rgba(0,255,255,0.1)] group-hover:border-neon-cyan/60 transition-all duration-500">
-                                            <Headphones className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
+                                    <div className="relative flex flex-col items-center">
+                                        <div className="relative group">
+                                            <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full group-hover:bg-neon-cyan/30 transition-all duration-700" />
+                                            <div className="w-28 h-28 bg-black/40 border border-neon-cyan/30 rounded-full flex items-center justify-center relative z-10 shadow-[0_0_40px_rgba(0,255,255,0.1)] group-hover:border-neon-cyan/60 transition-all duration-500">
+                                                <Headphones className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
+                                            </div>
+                                            <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#050505] border border-white/10 rounded-full flex items-center justify-center z-20">
+                                                <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
+                                            </div>
                                         </div>
-                                        <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#050505] border border-white/10 rounded-full flex items-center justify-center z-20">
-                                            <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
-                                        </div>
-                                    </div>
 
-                                    <div className="mt-8">
-                                        <h3 className="text-3xl lg:text-4xl font-black text-white uppercase italic tracking-tighter leading-none">
-                                            Identifier le <span className="text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.4)]">Son</span>
-                                        </h3>
-                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-3 opacity-60">Technologie Dropsiders Shazam</p>
-                                    </div>
-                                </div>
-
-                                <div className="space-y-3 text-left relative z-10">
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.1 }}
-                                        className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
-                                    >
-                                        <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">1</div>
-                                        <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
-                                            Cliquez sur <span className="text-neon-cyan font-black">"DÉMARRER L'ÉCOUTE"</span>
-                                        </p>
-                                    </motion.div>
-
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.2 }}
-                                        className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
-                                    >
-                                        <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">2</div>
-                                        <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
-                                            Sélectionnez <span className="text-white font-black">"ONGLET CHROME"</span> et <span className="text-white font-black">"DROPSIDERS LIVE"</span>
-                                        </p>
-                                    </motion.div>
-
-                                    <motion.div
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ delay: 0.3 }}
-                                        className="flex items-center gap-5 p-5 bg-neon-red/10 hover:bg-neon-red/15 backdrop-blur-md rounded-[1.5rem] border border-neon-red/20 group transition-all duration-300"
-                                    >
-                                        <div className="w-10 h-10 rounded-2xl bg-neon-red text-white text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,0,51,0.3)] group-hover:scale-110 transition-transform">!</div>
-                                        <p className="text-[12px] text-white font-black uppercase leading-relaxed tracking-wider">
-                                            Activez impérativement <span className="underline decoration-2 underline-offset-4 decoration-white/30">"PARTAGER L'AUDIO"</span>
-                                        </p>
-                                    </motion.div>
-                                </div>
-
-                                <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                                    <button
-                                        onClick={() => { setShowShazamInfo(false); handleShazam(); }}
-                                        className="flex-1 py-5 bg-neon-cyan hover:bg-neon-cyan/90 text-black text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-[0_15px_30px_rgba(0,255,255,0.2)]"
-                                    >
-                                        Démarrer
-                                    </button>
-                                    <button
-                                        onClick={() => setShowShazamInfo(false)}
-                                        className="px-10 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl active:scale-95 transition-all"
-                                    >
-                                        Annuler
-                                    </button>
-                                </div>
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
-
-                {/* === QUIZ POPUP (petite popup flottante dans le coin du chat) === */}
-                {showQuizPopup && (
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.85, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.85, y: 20 }}
-                        className="fixed bottom-24 right-4 z-[200] w-full max-w-xs sm:max-w-sm"
-                    >
-                        <motion.div
-                            className="bg-[#111] border border-yellow-500/30 rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(255,200,18,0.15)]"
-                        >
-                            <div className="p-4 space-y-3">
-                                {/* Header */}
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-base">🎯</span>
-                                        <h2 className="text-xs font-black text-white uppercase italic tracking-tight">Question Quiz</h2>
-                                    </div>
-                                    <button
-                                        onClick={() => { setShowQuizPopup(false); setQuizPopupAnswer(null); setQuizPopupQuestion(null); }}
-                                        className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all"
-                                    >
-                                        <X className="w-3 h-3" />
-                                    </button>
-                                </div>
-
-                                {/* Content */}
-                                {quizPopupLoading ? (
-                                    <div className="flex justify-center py-4">
-                                        <div className="w-5 h-5 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin" />
-                                    </div>
-                                ) : !(quizPopupQuestion != null && quizPopupQuestion.question) ? (
-                                    <div className="py-4 text-center">
-                                        <p className="text-gray-400 font-bold text-xs">Aucune question disponible.</p>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {/* Category badge */}
-                                        <span className="text-[9px] font-black text-yellow-500 uppercase tracking-widest bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded-full">
-                                            {quizPopupQuestion?.category ?? quizPopupQuestion?.type ?? 'Quiz'}
-                                        </span>
-
-                                        {/* Question - Hidden for Image/Blind Test as requested */}
-                                        {quizPopupQuestion.type?.toUpperCase() !== 'IMAGE' && quizPopupQuestion.type?.toUpperCase() !== 'BLIND_TEST' && (
-                                            <h3 className="text-[11px] font-black text-white tracking-tight leading-snug">
-                                                {quizPopupQuestion.question}
+                                        <div className="mt-8">
+                                            <h3 className="text-3xl lg:text-4xl font-black text-white uppercase italic tracking-tighter leading-none">
+                                                Identifier le <span className="text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.4)]">Son</span>
                                             </h3>
-                                        )}
-
-                                        {/* Audio for blind test */}
-                                        {quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST' && quizPopupQuestion.audioUrl && (
-                                            <div className="p-4 bg-black/40 border border-white/5 rounded-2xl flex items-center gap-3">
-                                                <span className="text-2xl">🎵</span>
-                                                <audio autoPlay controls className="flex-1 h-8 opacity-80">
-                                                    <source src={quizPopupQuestion.audioUrl} type="audio/mpeg" />
-                                                </audio>
-                                            </div>
-                                        )}
-
-                                        {/* Image */}
-                                        {quizPopupQuestion.type?.toUpperCase() === 'IMAGE' && quizPopupQuestion.imageUrl && (
-                                            <div className="rounded-xl overflow-hidden border border-white/10 max-h-32">
-                                                <img src={quizPopupQuestion.imageUrl} alt="Quiz" className="w-full h-auto object-cover max-h-32" />
-                                            </div>
-                                        )}
-
-                                        {/* Direct MP3 Audio (Most reliable) */}
-                                        {quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST' && quizPopupQuestion.audioUrl && (
-                                            <div className="hidden">
-                                                <audio
-                                                    autoPlay
-                                                    src={quizPopupQuestion.audioUrl}
-                                                    ref={(el) => {
-                                                        if (el) {
-                                                            el.volume = isMutedGlobal ? 0 : 0.5;
-                                                            if (quizPopupQuestion.startTime) {
-                                                                el.currentTime = quizPopupQuestion.startTime;
-                                                            }
-                                                            // Limit to 45 seconds of playback
-                                                            const maxDuration = 45;
-                                                            const start = quizPopupQuestion.startTime || 0;
-                                                            const handleTime = () => {
-                                                                if (el.currentTime > start + maxDuration) el.pause();
-                                                            };
-                                                            el.addEventListener('timeupdate', handleTime);
-                                                        }
-                                                    }}
-                                                />
-                                            </div>
-                                        )}
-
-
-                                        {/* Blind Test Animation (Visualizer) - Premium Style */}
-                                        {quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST' && (
-                                            <div className="relative h-44 bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden flex items-center justify-center group">
-                                                {/* Deep Ambient Glow */}
-                                                <div className="absolute inset-0 bg-gradient-to-t from-neon-red/10 via-transparent to-neon-cyan/5" />
-                                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,242,255,0.05)_0%,transparent_70%)]" />
-
-                                                {/* Animated Bars (Refined) */}
-                                                <div className="flex items-end gap-1.5 h-24 px-12 relative z-10">
-                                                    {[...Array(24)].map((_, i) => (
-                                                        <motion.div
-                                                            key={i}
-                                                            animate={{
-                                                                height: [15, 25 + Math.random() * 55, 15],
-                                                                backgroundColor: i % 2 === 0 ? '#ff0033' : '#00f2ff'
-                                                            }}
-                                                            transition={{
-                                                                duration: 0.4 + Math.random() * 0.8,
-                                                                repeat: Infinity,
-                                                                ease: "easeInOut",
-                                                                delay: i * 0.03
-                                                            }}
-                                                            className="w-1.5 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.5)]"
-                                                        />
-                                                    ))}
-                                                </div>
-
-                                                {/* Center Icon & Glow */}
-                                                <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-                                                    <div className="relative">
-                                                        <div className="absolute inset-0 bg-neon-cyan/20 blur-2xl rounded-full scale-150 animate-pulse" />
-                                                        <Headphones className="w-12 h-12 text-white/20 rotate-12 relative z-20" />
-                                                    </div>
-                                                </div>
-
-                                                {/* Scanning Line */}
-                                                <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-[10%] w-full animate-scan" style={{ top: '-100%' }} />
-
-                                                {/* Premium Badge */}
-                                                <div className="absolute top-4 left-4">
-                                                    <div className="flex items-center gap-2 px-3 py-1 bg-black/60 border border-white/10 rounded-full backdrop-blur-md">
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-neon-red shadow-[0_0_8px_#ff0033]" />
-                                                        <span className="text-[7px] font-black text-white uppercase tracking-[0.2em] font-display italic">PREMIUM AUDIO</span>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Answers */}
-                                        {Array.isArray(quizPopupQuestion.options) && quizPopupQuestion.options.length > 0 ? (
-                                            <div className="grid grid-cols-1 gap-1.5">
-                                                {quizPopupQuestion.options.map((option, idx) => {
-                                                    if (!option) return null;
-                                                    const isSelected = quizPopupAnswer === option;
-                                                    const isCorrect = option === quizPopupQuestion.correctAnswer;
-                                                    let cls = "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/30 cursor-pointer";
-                                                    if (quizPopupAnswer) {
-                                                        if (isSelected && isCorrect) cls = "bg-green-500/20 border-green-500 text-green-400 shadow-[0_0_20px_rgba(34,197,94,0.2)]";
-                                                        else if (isSelected && !isCorrect) cls = "bg-red-500/20 border-red-500 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.2)]";
-                                                        else if (!isSelected && isCorrect) cls = "bg-green-500/10 border-green-500/40 text-green-500";
-                                                        else cls = "opacity-40 bg-white/5 border-white/5 text-gray-600";
-                                                    }
-                                                    return (
-                                                        <motion.button
-                                                            key={idx}
-                                                            whileHover={{ scale: quizPopupAnswer ? 1 : 1.02 }}
-                                                            whileTap={{ scale: quizPopupAnswer ? 1 : 0.98 }}
-                                                            onClick={() => {
-                                                                if (quizPopupAnswer) return;
-                                                                setQuizPopupAnswer(option);
-                                                            }}
-                                                            disabled={!!quizPopupAnswer}
-                                                            className={`w-full p-2.5 rounded-xl border text-left font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-between ${cls}`}
-                                                        >
-                                                            <span className="flex items-center gap-3">
-                                                                <span className="text-[9px] font-black opacity-60">{String.fromCharCode(65 + idx)}.</span>
-                                                                {option}
-                                                            </span>
-                                                            {quizPopupAnswer && isCorrect && <span className="text-base">✅</span>}
-                                                            {isSelected && !isCorrect && <span className="text-base">❌</span>}
-                                                        </motion.button>
-                                                    );
-                                                })}
-                                            </div>
-                                        ) : (
-                                            <p className="text-gray-500 text-xs font-bold text-center py-4">Aucune option de réponse disponible pour cette question.</p>
-                                        )}
-
-                                        {/* Result message */}
-                                        {quizPopupAnswer && quizPopupQuestion.correctAnswer && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 10 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                className={`p-4 rounded-2xl text-center font-black text-sm uppercase tracking-wider ${quizPopupAnswer === quizPopupQuestion.correctAnswer ? 'bg-green-500/10 border border-green-500/30 text-green-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'}`}
-                                            >
-                                                {quizPopupAnswer === quizPopupQuestion.correctAnswer
-                                                    ? '🏆 Bravo ! Bonne réponse !'
-                                                    : `😅 Raté ! La bonne réponse était : ${quizPopupQuestion.correctAnswer}`}
-                                            </motion.div>
-                                        )}
-
-                                        {/* Actions */}
-                                        <div className="pt-1">
-                                            <button
-                                                onClick={() => { setShowQuizPopup(false); setQuizPopupAnswer(null); setQuizPopupQuestion(null); }}
-                                                className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-white/10 transition-all active:scale-95"
-                                            >
-                                                Fermer
-                                            </button>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-3 opacity-60">Technologie Dropsiders Shazam</p>
                                         </div>
                                     </div>
-                                )}
-                            </div>
-                        </motion.div>
-                    </motion.div>
-                )}
 
-                {showPollModal && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 sm:p-6"
-                    >
-                        <motion.div
-                            initial={{ scale: 0.9, y: 20 }}
-                            animate={{ scale: 1, y: 0 }}
-                            className="w-full max-w-lg bg-black/60 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(255,18,65,0.15)]"
-                        >
-                            <div className="p-8 space-y-8">
-                                <div className="flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-neon-red/10 border border-neon-red/30 flex items-center justify-center">
-                                            <BarChart3 className="w-6 h-6 text-neon-red shadow-[0_0_10px_#ff1241]" />
-                                        </div>
-                                        <div>
-                                            <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">Gestion du Sondage</h2>
-                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Créez et contrôlez les votes en direct</p>
-                                        </div>
+                                    <div className="space-y-3 text-left relative z-10">
+                                        <motion.div
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.1 }}
+                                            className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                                        >
+                                            <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">1</div>
+                                            <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                                Cliquez sur <span className="text-neon-cyan font-black">"DÉMARRER L'ÉCOUTE"</span>
+                                            </p>
+                                        </motion.div>
+
+                                        <motion.div
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.2 }}
+                                            className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                                        >
+                                            <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">2</div>
+                                            <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                                Sélectionnez <span className="text-white font-black">"ONGLET CHROME"</span> et <span className="text-white font-black">"DROPSIDERS LIVE"</span>
+                                            </p>
+                                        </motion.div>
+
+                                        <motion.div
+                                            initial={{ opacity: 0, x: -10 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 0.3 }}
+                                            className="flex items-center gap-5 p-5 bg-neon-red/10 hover:bg-neon-red/15 backdrop-blur-md rounded-[1.5rem] border border-neon-red/20 group transition-all duration-300"
+                                        >
+                                            <div className="w-10 h-10 rounded-2xl bg-neon-red text-white text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,0,51,0.3)] group-hover:scale-110 transition-transform">!</div>
+                                            <p className="text-[12px] text-white font-black uppercase leading-relaxed tracking-wider">
+                                                Activez impérativement <span className="underline decoration-2 underline-offset-4 decoration-white/30">"PARTAGER L'AUDIO"</span>
+                                            </p>
+                                        </motion.div>
                                     </div>
-                                    <button
-                                        onClick={() => setShowPollModal(false)}
-                                        className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all"
-                                    >
-                                        <X className="w-5 h-5" />
-                                    </button>
+
+                                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                                        <button
+                                            onClick={() => { setShowShazamInfo(false); handleShazam(); }}
+                                            className="flex-1 py-5 bg-neon-cyan hover:bg-neon-cyan/90 text-black text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-[0_15px_30px_rgba(0,255,255,0.2)]"
+                                        >
+                                            Démarrer
+                                        </button>
+                                        <button
+                                            onClick={() => setShowShazamInfo(false)}
+                                            className="px-10 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl active:scale-95 transition-all"
+                                        >
+                                            Annuler
+                                        </button>
+                                    </div>
                                 </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
 
-                                {activePoll ? (
-                                    <div className="space-y-6">
-                                        <div className="p-6 bg-white/5 border border-neon-red/20 rounded-3xl space-y-4">
-                                            <div className="flex items-center gap-2">
-                                                <div className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
-                                                <span className="text-[10px] font-black text-neon-red uppercase tracking-widest">Sondage Actif</span>
-                                            </div>
-                                            <h3 className="text-lg font-black text-white tracking-tight leading-snug">{activePoll.question}</h3>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                {activePoll.options.map((opt, i) => (
-                                                    <div key={i} className="p-3 bg-black/40 border border-white/5 rounded-2xl">
-                                                        <div className="flex justify-between items-center mb-1">
-                                                            <span className="text-[9px] font-black text-gray-500 uppercase">{i + 1}. {opt}</span>
+                    {/* === QUIZ POPUP (petite popup flottante dans le coin du chat) === */}
+                    {showQuizPopup && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.85, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.85, y: 20 }}
+                            className="fixed bottom-24 right-4 z-[200] w-full max-w-xs sm:max-w-sm"
+                        >
+                            <motion.div
+                                className="bg-[#111] border border-yellow-500/30 rounded-2xl overflow-hidden shadow-[0_0_40px_rgba(255,200,18,0.15)]"
+                            >
+                                <div className="p-4 space-y-3">
+                                    {/* Header */}
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-base">🎯</span>
+                                            <h2 className="text-xs font-black text-white uppercase italic tracking-tight">Question Quiz</h2>
+                                        </div>
+                                        <button
+                                            onClick={() => { setShowQuizPopup(false); setQuizPopupAnswer(null); setQuizPopupQuestion(null); }}
+                                            className="w-6 h-6 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all"
+                                        >
+                                            <X className="w-3 h-3" />
+                                        </button>
+                                    </div>
+
+                                    {/* Content */}
+                                    {quizPopupLoading ? (
+                                        <div className="flex justify-center py-4">
+                                            <div className="w-5 h-5 border-2 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+                                        </div>
+                                    ) : !(quizPopupQuestion != null && quizPopupQuestion.question) ? (
+                                        <div className="py-4 text-center">
+                                            <p className="text-gray-400 font-bold text-xs">Aucune question disponible.</p>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-3">
+                                            {/* Category badge */}
+                                            <span className="text-[9px] font-black text-yellow-500 uppercase tracking-widest bg-yellow-500/10 border border-yellow-500/20 px-2 py-0.5 rounded-full">
+                                                {quizPopupQuestion?.category ?? quizPopupQuestion?.type ?? 'Quiz'}
+                                            </span>
+
+                                            {/* Question - Hidden for Image/Blind Test as requested */}
+                                            {quizPopupQuestion.type?.toUpperCase() !== 'IMAGE' && quizPopupQuestion.type?.toUpperCase() !== 'BLIND_TEST' && (
+                                                <h3 className="text-[11px] font-black text-white tracking-tight leading-snug">
+                                                    {quizPopupQuestion.question}
+                                                </h3>
+                                            )}
+
+                                            {/* Audio for blind test */}
+                                            {quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST' && quizPopupQuestion.audioUrl && (
+                                                <div className="p-4 bg-black/40 border border-white/5 rounded-2xl flex items-center gap-3">
+                                                    <span className="text-2xl">🎵</span>
+                                                    <audio autoPlay controls className="flex-1 h-8 opacity-80">
+                                                        <source src={quizPopupQuestion.audioUrl} type="audio/mpeg" />
+                                                    </audio>
+                                                </div>
+                                            )}
+
+                                            {/* Image */}
+                                            {quizPopupQuestion.type?.toUpperCase() === 'IMAGE' && quizPopupQuestion.imageUrl && (
+                                                <div className="rounded-xl overflow-hidden border border-white/10 max-h-32">
+                                                    <img src={quizPopupQuestion.imageUrl} alt="Quiz" className="w-full h-auto object-cover max-h-32" />
+                                                </div>
+                                            )}
+
+                                            {/* Direct MP3 Audio (Most reliable) */}
+                                            {quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST' && quizPopupQuestion.audioUrl && (
+                                                <div className="hidden">
+                                                    <audio
+                                                        autoPlay
+                                                        src={quizPopupQuestion.audioUrl}
+                                                        ref={(el) => {
+                                                            if (el) {
+                                                                el.volume = isMutedGlobal ? 0 : 0.5;
+                                                                if (quizPopupQuestion.startTime) {
+                                                                    el.currentTime = quizPopupQuestion.startTime;
+                                                                }
+                                                                // Limit to 45 seconds of playback
+                                                                const maxDuration = 45;
+                                                                const start = quizPopupQuestion.startTime || 0;
+                                                                const handleTime = () => {
+                                                                    if (el.currentTime > start + maxDuration) el.pause();
+                                                                };
+                                                                el.addEventListener('timeupdate', handleTime);
+                                                            }
+                                                        }}
+                                                    />
+                                                </div>
+                                            )}
+
+
+                                            {/* Blind Test Animation (Visualizer) - Premium Style */}
+                                            {quizPopupQuestion.type?.toUpperCase() === 'BLIND_TEST' && (
+                                                <div className="relative h-44 bg-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden flex items-center justify-center group">
+                                                    {/* Deep Ambient Glow */}
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-neon-red/10 via-transparent to-neon-cyan/5" />
+                                                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(0,242,255,0.05)_0%,transparent_70%)]" />
+
+                                                    {/* Animated Bars (Refined) */}
+                                                    <div className="flex items-end gap-1.5 h-24 px-12 relative z-10">
+                                                        {[...Array(24)].map((_, i) => (
+                                                            <motion.div
+                                                                key={i}
+                                                                animate={{
+                                                                    height: [15, 25 + Math.random() * 55, 15],
+                                                                    backgroundColor: i % 2 === 0 ? '#ff0033' : '#00f2ff'
+                                                                }}
+                                                                transition={{
+                                                                    duration: 0.4 + Math.random() * 0.8,
+                                                                    repeat: Infinity,
+                                                                    ease: "easeInOut",
+                                                                    delay: i * 0.03
+                                                                }}
+                                                                className="w-1.5 rounded-full shadow-[0_0_15px_rgba(0,0,0,0.5)]"
+                                                            />
+                                                        ))}
+                                                    </div>
+
+                                                    {/* Center Icon & Glow */}
+                                                    <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                                                        <div className="relative">
+                                                            <div className="absolute inset-0 bg-neon-cyan/20 blur-2xl rounded-full scale-150 animate-pulse" />
+                                                            <Headphones className="w-12 h-12 text-white/20 rotate-12 relative z-20" />
                                                         </div>
                                                     </div>
-                                                ))}
+
+                                                    {/* Scanning Line */}
+                                                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-white/5 to-transparent h-[10%] w-full animate-scan" style={{ top: '-100%' }} />
+
+                                                    {/* Premium Badge */}
+                                                    <div className="absolute top-4 left-4">
+                                                        <div className="flex items-center gap-2 px-3 py-1 bg-black/60 border border-white/10 rounded-full backdrop-blur-md">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-neon-red shadow-[0_0_8px_#ff0033]" />
+                                                            <span className="text-[7px] font-black text-white uppercase tracking-[0.2em] font-display italic">PREMIUM AUDIO</span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Answers */}
+                                            {Array.isArray(quizPopupQuestion.options) && quizPopupQuestion.options.length > 0 ? (
+                                                <div className="grid grid-cols-1 gap-1.5">
+                                                    {quizPopupQuestion.options.map((option, idx) => {
+                                                        if (!option) return null;
+                                                        const isSelected = quizPopupAnswer === option;
+                                                        const isCorrect = option === quizPopupQuestion.correctAnswer;
+                                                        let cls = "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/30 cursor-pointer";
+                                                        if (quizPopupAnswer) {
+                                                            if (isSelected && isCorrect) cls = "bg-green-500/20 border-green-500 text-green-400 shadow-[0_0_20px_rgba(34,197,94,0.2)]";
+                                                            else if (isSelected && !isCorrect) cls = "bg-red-500/20 border-red-500 text-red-400 shadow-[0_0_20px_rgba(239,68,68,0.2)]";
+                                                            else if (!isSelected && isCorrect) cls = "bg-green-500/10 border-green-500/40 text-green-500";
+                                                            else cls = "opacity-40 bg-white/5 border-white/5 text-gray-600";
+                                                        }
+                                                        return (
+                                                            <motion.button
+                                                                key={idx}
+                                                                whileHover={{ scale: quizPopupAnswer ? 1 : 1.02 }}
+                                                                whileTap={{ scale: quizPopupAnswer ? 1 : 0.98 }}
+                                                                onClick={() => {
+                                                                    if (quizPopupAnswer) return;
+                                                                    setQuizPopupAnswer(option);
+                                                                }}
+                                                                disabled={!!quizPopupAnswer}
+                                                                className={`w-full p-2.5 rounded-xl border text-left font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-between ${cls}`}
+                                                            >
+                                                                <span className="flex items-center gap-3">
+                                                                    <span className="text-[9px] font-black opacity-60">{String.fromCharCode(65 + idx)}.</span>
+                                                                    {option}
+                                                                </span>
+                                                                {quizPopupAnswer && isCorrect && <span className="text-base">✅</span>}
+                                                                {isSelected && !isCorrect && <span className="text-base">❌</span>}
+                                                            </motion.button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            ) : (
+                                                <p className="text-gray-500 text-xs font-bold text-center py-4">Aucune option de réponse disponible pour cette question.</p>
+                                            )}
+
+                                            {/* Result message */}
+                                            {quizPopupAnswer && quizPopupQuestion.correctAnswer && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, y: 10 }}
+                                                    animate={{ opacity: 1, y: 0 }}
+                                                    className={`p-4 rounded-2xl text-center font-black text-sm uppercase tracking-wider ${quizPopupAnswer === quizPopupQuestion.correctAnswer ? 'bg-green-500/10 border border-green-500/30 text-green-400' : 'bg-red-500/10 border border-red-500/30 text-red-400'}`}
+                                                >
+                                                    {quizPopupAnswer === quizPopupQuestion.correctAnswer
+                                                        ? '🏆 Bravo ! Bonne réponse !'
+                                                        : `😅 Raté ! La bonne réponse était : ${quizPopupQuestion.correctAnswer}`}
+                                                </motion.div>
+                                            )}
+
+                                            {/* Actions */}
+                                            <div className="pt-1">
+                                                <button
+                                                    onClick={() => { setShowQuizPopup(false); setQuizPopupAnswer(null); setQuizPopupQuestion(null); }}
+                                                    className="w-full py-3 bg-white/5 border border-white/10 text-gray-400 font-black uppercase tracking-widest text-[10px] rounded-xl hover:bg-white/10 transition-all active:scale-95"
+                                                >
+                                                    Fermer
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        </motion.div>
+                    )}
+
+                    {showPollModal && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-xl p-4 sm:p-6"
+                        >
+                            <motion.div
+                                initial={{ scale: 0.9, y: 20 }}
+                                animate={{ scale: 1, y: 0 }}
+                                className="w-full max-w-lg bg-black/60 border border-white/10 rounded-[2.5rem] overflow-hidden shadow-[0_0_100px_rgba(255,18,65,0.15)]"
+                            >
+                                <div className="p-8 space-y-8">
+                                    <div className="flex items-center justify-between">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-neon-red/10 border border-neon-red/30 flex items-center justify-center">
+                                                <BarChart3 className="w-6 h-6 text-neon-red shadow-[0_0_10px_#ff1241]" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">Gestion du Sondage</h2>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Créez et contrôlez les votes en direct</p>
                                             </div>
                                         </div>
                                         <button
-                                            onClick={() => { handleStopPoll(); setShowPollModal(false); }}
-                                            className="w-full py-5 bg-neon-red text-white font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center gap-3"
+                                            onClick={() => setShowPollModal(false)}
+                                            className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-gray-400 hover:text-white hover:bg-white/10 transition-all"
                                         >
-                                            <Trash2 className="w-5 h-5" /> ARRÊTER LE SONDAGE
+                                            <X className="w-5 h-5" />
                                         </button>
                                     </div>
-                                ) : (
-                                    <div className="space-y-6">
-                                        <div className="space-y-4">
-                                            <div>
-                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Question du sondage</label>
-                                                <input
-                                                    type="text"
-                                                    value={pollQuestion}
-                                                    onChange={(e) => setPollQuestion(e.target.value)}
-                                                    placeholder="VOTRE QUESTION ICI..."
-                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-700"
-                                                />
-                                            </div>
-                                            <div className="space-y-3">
-                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Options de réponse</label>
-                                                {pollOptions.map((opt, i) => (
-                                                    <div key={i} className="relative flex items-center">
-                                                        <div className="absolute left-6 text-[10px] font-black text-neon-red">{i + 1}</div>
-                                                        <input
-                                                            type="text"
-                                                            value={opt}
-                                                            onChange={(e) => {
-                                                                const newOpts = [...pollOptions];
-                                                                newOpts[i] = e.target.value;
-                                                                setPollOptions(newOpts);
-                                                            }}
-                                                            placeholder={`OPTION ${i + 1}...`}
-                                                            className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-xs font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-700"
-                                                        />
-                                                        {pollOptions.length > 2 && (
-                                                            <button
-                                                                onClick={() => setPollOptions(pollOptions.filter((_, idx) => idx !== i))}
-                                                                className="absolute right-4 text-gray-600 hover:text-neon-red transition-colors"
-                                                            >
-                                                                <X className="w-4 h-4" />
-                                                            </button>
-                                                        )}
-                                                    </div>
-                                                ))}
-                                                {pollOptions.length < 5 && (
-                                                    <button
-                                                        onClick={() => setPollOptions([...pollOptions, ""])}
-                                                        className="flex items-center gap-2 text-[9px] font-black text-neon-cyan uppercase tracking-widest ml-4 hover:translate-x-1 transition-transform"
-                                                    >
-                                                        <Plus className="w-4 h-4" /> Ajouter une option
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <div>
-                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Durée du sondage</label>
-                                                <div className="grid grid-cols-4 gap-2 px-2">
-                                                    {['1', '3', '5', 'custom'].map(d => (
-                                                        <button
-                                                            key={d}
-                                                            type="button"
-                                                            onClick={() => setPollDuration(d)}
-                                                            className={`py-2 rounded-xl text-[10px] font-black uppercase transition-all border ${pollDuration === d ? 'bg-neon-cyan text-black border-neon-cyan' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
-                                                        >
-                                                            {d === 'custom' ? 'Perso' : `${d} Min`}
-                                                        </button>
+
+                                    {activePoll ? (
+                                        <div className="space-y-6">
+                                            <div className="p-6 bg-white/5 border border-neon-red/20 rounded-3xl space-y-4">
+                                                <div className="flex items-center gap-2">
+                                                    <div className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
+                                                    <span className="text-[10px] font-black text-neon-red uppercase tracking-widest">Sondage Actif</span>
+                                                </div>
+                                                <h3 className="text-lg font-black text-white tracking-tight leading-snug">{activePoll.question}</h3>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    {activePoll.options.map((opt, i) => (
+                                                        <div key={i} className="p-3 bg-black/40 border border-white/5 rounded-2xl">
+                                                            <div className="flex justify-between items-center mb-1">
+                                                                <span className="text-[9px] font-black text-gray-500 uppercase">{i + 1}. {opt}</span>
+                                                            </div>
+                                                        </div>
                                                     ))}
                                                 </div>
-                                                {pollDuration === 'custom' && (
-                                                    <div className="mt-3 px-2">
-                                                        <input
-                                                            type="number"
-                                                            min="1"
-                                                            value={customPollDuration}
-                                                            onChange={e => setCustomPollDuration(parseInt(e.target.value) || 1)}
-                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-black text-white outline-none focus:border-neon-cyan"
-                                                        />
-                                                    </div>
-                                                )}
                                             </div>
+                                            <button
+                                                onClick={() => { handleStopPoll(); setShowPollModal(false); }}
+                                                className="w-full py-5 bg-neon-red text-white font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center gap-3"
+                                            >
+                                                <Trash2 className="w-5 h-5" /> ARRÊTER LE SONDAGE
+                                            </button>
                                         </div>
-                                        <button
-                                            onClick={() => { handleStartPoll(); setShowPollModal(false); }}
-                                            className="w-full py-5 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-cyan/20 flex items-center justify-center gap-3"
-                                        >
-                                            <Zap className="w-5 h-5 group-hover:rotate-90 transition-transform" /> LANCER LE SONDAGE
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                                    ) : (
+                                        <div className="space-y-6">
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Question du sondage</label>
+                                                    <input
+                                                        type="text"
+                                                        value={pollQuestion}
+                                                        onChange={(e) => setPollQuestion(e.target.value)}
+                                                        placeholder="VOTRE QUESTION ICI..."
+                                                        className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-700"
+                                                    />
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Options de réponse</label>
+                                                    {pollOptions.map((opt, i) => (
+                                                        <div key={i} className="relative flex items-center">
+                                                            <div className="absolute left-6 text-[10px] font-black text-neon-red">{i + 1}</div>
+                                                            <input
+                                                                type="text"
+                                                                value={opt}
+                                                                onChange={(e) => {
+                                                                    const newOpts = [...pollOptions];
+                                                                    newOpts[i] = e.target.value;
+                                                                    setPollOptions(newOpts);
+                                                                }}
+                                                                placeholder={`OPTION ${i + 1}...`}
+                                                                className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-6 py-4 text-xs font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-700"
+                                                            />
+                                                            {pollOptions.length > 2 && (
+                                                                <button
+                                                                    onClick={() => setPollOptions(pollOptions.filter((_, idx) => idx !== i))}
+                                                                    className="absolute right-4 text-gray-600 hover:text-neon-red transition-colors"
+                                                                >
+                                                                    <X className="w-4 h-4" />
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                    {pollOptions.length < 5 && (
+                                                        <button
+                                                            onClick={() => setPollOptions([...pollOptions, ""])}
+                                                            className="flex items-center gap-2 text-[9px] font-black text-neon-cyan uppercase tracking-widest ml-4 hover:translate-x-1 transition-transform"
+                                                        >
+                                                            <Plus className="w-4 h-4" /> Ajouter une option
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Durée du sondage</label>
+                                                    <div className="grid grid-cols-4 gap-2 px-2">
+                                                        {['1', '3', '5', 'custom'].map(d => (
+                                                            <button
+                                                                key={d}
+                                                                type="button"
+                                                                onClick={() => setPollDuration(d)}
+                                                                className={`py-2 rounded-xl text-[10px] font-black uppercase transition-all border ${pollDuration === d ? 'bg-neon-cyan text-black border-neon-cyan' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
+                                                            >
+                                                                {d === 'custom' ? 'Perso' : `${d} Min`}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    {pollDuration === 'custom' && (
+                                                        <div className="mt-3 px-2">
+                                                            <input
+                                                                type="number"
+                                                                min="1"
+                                                                value={customPollDuration}
+                                                                onChange={e => setCustomPollDuration(parseInt(e.target.value) || 1)}
+                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-black text-white outline-none focus:border-neon-cyan"
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => { handleStartPoll(); setShowPollModal(false); }}
+                                                className="w-full py-5 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-cyan/20 flex items-center justify-center gap-3"
+                                            >
+                                                <Zap className="w-5 h-5 group-hover:rotate-90 transition-transform" /> LANCER LE SONDAGE
+                                            </button>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
                         </motion.div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    )}
+                </AnimatePresence>
 
-            <style>{`
+                <style>{`
                 @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
                 .animate-ticker { animation: ticker 120s linear infinite; width: max-content; }
                 .animate-ticker:hover, #ticker-animate-container:hover { animation-play-state: paused !important; }
@@ -6274,16 +6252,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
                 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
             `}</style>
-            <ConfirmModal
-                isOpen={confirmModal.isOpen}
-                title={confirmModal.title}
-                message={confirmModal.message}
-                onConfirm={confirmModal.onConfirm}
-                onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-                type={confirmModal.type}
-            />
-        </>
-    );
+                <ConfirmModal
+                    isOpen={confirmModal.isOpen}
+                    title={confirmModal.title}
+                    message={confirmModal.message}
+                    onConfirm={confirmModal.onConfirm}
+                    onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                    type={confirmModal.type}
+                />
+            </>
+            );
 }
 
-export default TakeoverPage;
+            export default TakeoverPage;

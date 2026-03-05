@@ -272,67 +272,64 @@ export function Interviews() {
                                 x: { type: "spring", stiffness: 300, damping: 30 },
                                 opacity: { duration: 0.2 }
                             }}
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+                            className="flex overflow-x-auto pb-8 md:pb-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 no-scrollbar snap-x snap-mandatory"
                         >
                             {currentArticles.length > 0 ? (
                                 currentArticles.map((item: any) => (
                                     <motion.article
                                         key={item.id}
                                         onMouseEnter={playHoverSound}
-                                        className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 hover:shadow-[0_0_30px_rgba(255,17,17,0.3)] transition-all duration-300 relative flex flex-col"
+                                        className="group relative rounded-[2rem] overflow-hidden transition-all duration-500 w-[85vw] flex-shrink-0 snap-center aspect-square md:aspect-auto md:w-auto md:flex-shrink-1 md:bg-dark-card md:border md:border-white/5 md:rounded-3xl hover:border-neon-purple/50 hover:shadow-[0_0_40px_rgba(189,0,255,0.2)] md:flex md:flex-col"
                                     >
                                         {isAdmin && (
                                             <button
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    handleEdit(item);
-                                                }}
+                                                onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEdit(item); }}
                                                 disabled={loadingEditId === item.id}
-                                                className="absolute top-4 right-4 z-20 p-2 bg-black/60 backdrop-blur-md rounded-full border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-50 disabled:cursor-wait"
+                                                className="absolute top-4 right-4 z-20 p-2.5 bg-black/60 backdrop-blur-md rounded-2xl border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-50 disabled:cursor-wait"
                                                 title="Modifier"
                                             >
-                                                {loadingEditId === item.id ? (
-                                                    <Loader2 className="w-3 h-3 animate-spin" />
-                                                ) : (
-                                                    <Edit2 className="w-3 h-3" />
-                                                )}
+                                                {loadingEditId === item.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Edit2 className="w-4 h-4" />}
                                             </button>
                                         )}
-                                        <Link to={getArticleLink(item)} className="flex-1 flex flex-row md:flex-col h-24 md:h-auto overflow-hidden">
-                                            <div className="w-32 md:w-full md:h-64 overflow-hidden bg-black/40 shrink-0">
-                                                <img
-                                                    src={item.image}
-                                                    alt={item.title}
-                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                />
+                                        <Link to={getArticleLink(item)} className="absolute inset-0 md:static block w-full h-full">
+                                            {/* Mobile: full-cover card */}
+                                            <div className="absolute inset-0 md:hidden">
+                                                <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
+                                                <div className="absolute inset-0 p-6 flex flex-col justify-end text-left z-10">
+                                                    <div className="flex items-center justify-between mb-3">
+                                                        <span className={`text-[10px] font-black px-3 py-1.5 rounded-xl border backdrop-blur-md ${getThemeDetails(item).color} bg-black/40`}>
+                                                            {getThemeDetails(item).label}
+                                                        </span>
+                                                        <span className="text-white/60 text-[10px] font-black uppercase tracking-widest">{item.date}</span>
+                                                    </div>
+                                                    <h2 className="text-2xl sm:text-3xl font-display font-black text-white italic uppercase leading-tight tracking-tight line-clamp-4 drop-shadow-lg"
+                                                        dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
+                                                    />
+                                                </div>
                                             </div>
-
-                                            <div className="p-3 md:p-6 flex flex-col justify-center flex-1 min-w-0">
-                                                <div className="flex justify-between items-center mb-1.5 md:mb-3">
-                                                    <span className={`text-[6px] md:text-[10px] font-black tracking-widest border px-1.5 py-0.5 rounded-full uppercase ${getThemeDetails(item).color}`}>
-                                                        {getThemeDetails(item).label}
-                                                    </span>
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-[6px] md:text-[10px] text-gray-500 font-bold uppercase tracking-widest">{item.date}</span>
-                                                        <span className="text-[6px] md:text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em] mt-0.1 md:mt-0.5">{item.author || 'Alex'}</span>
+                                            {/* Desktop: standard card */}
+                                            <div className="hidden md:flex flex-col h-full overflow-hidden">
+                                                <div className="h-64 overflow-hidden bg-black/40 relative">
+                                                    <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                                </div>
+                                                <div className="p-6 flex flex-col flex-1 relative z-10">
+                                                    <div className="flex justify-between items-center mb-3">
+                                                        <span className={`text-[9px] font-black tracking-widest border px-2 py-1 rounded-full uppercase ${getThemeDetails(item).color}`}>
+                                                            {getThemeDetails(item).label}
+                                                        </span>
+                                                        <span className="text-[9px] text-gray-500 font-bold uppercase">{item.date}</span>
+                                                    </div>
+                                                    <h2 className="text-xl font-display font-black text-white mb-3 group-hover:text-neon-purple transition-colors line-clamp-2 uppercase italic leading-tight h-12"
+                                                        dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
+                                                    />
+                                                    <p className="text-gray-400 text-sm line-clamp-3"
+                                                        dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
+                                                    />
+                                                    <div className="mt-auto pt-4 flex items-center justify-between border-t border-white/5">
+                                                        <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em]">{item.author || 'Alex'}</span>
                                                     </div>
                                                 </div>
-
-                                                <h2 className="text-[7px] md:text-xl font-bold text-white mb-1.5 md:mb-3 group-hover:text-neon-red transition-colors line-clamp-2 uppercase italic"
-                                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
-                                                />
-
-                                                {(() => {
-                                                    const rawSummary = translatedSummaries[item.id] || item.summary || '';
-                                                    const cleanSummary = rawSummary.replace(/SUIVEZ\s+[^.]*?(website|instagram|tiktok|youtube|facebook|spotify|soundcloud|beatport|x\b)[^.]*/gi, '').trim();
-                                                    const displaySummary = cleanSummary && !cleanSummary.startsWith("TITRE DE L'ARTICLE") ? cleanSummary : '';
-                                                    return displaySummary ? (
-                                                        <p className="hidden md:block text-gray-400 text-sm line-clamp-3"
-                                                            dangerouslySetInnerHTML={{ __html: standardizeContent(displaySummary) }}
-                                                        />
-                                                    ) : null;
-                                                })()}
                                             </div>
                                         </Link>
                                     </motion.article>

@@ -75,7 +75,10 @@ export function SocialStudioPage() {
             <SocialSuite
                 title="NEWS DROPSIDERS"
                 imageUrl=""
-                onClose={() => navigate('/admin')}
+                onClose={() => {
+                    window.close();
+                    navigate('/admin');
+                }}
             />
 
             {/* Landing UI if SocialSuite is closed or as a background */}

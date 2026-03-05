@@ -37,21 +37,25 @@ export function MobileNavbar() {
         { icon: Home, label: 'Accueil', path: '/' },
         { icon: Newspaper, label: 'Actu', path: '/news' },
         {
+            icon: Users,
+            label: 'Communaute',
+            path: '/communaute',
+            isCenter: true,
+            color: 'neon-pink'
+        },
+        {
             icon: Video,
             label: 'LIVE',
             path: '/live',
-            isCenter: true,
             isLive: takeoverEnabled && takeoverStatus === 'live',
             color: 'neon-red'
         },
-        { icon: Calendar, label: 'Agenda', path: '/agenda' },
-        { icon: ShoppingBag, label: 'Shop', path: '/shop' }
+        { icon: Calendar, label: 'Agenda', path: '/agenda' }
     ];
 
     const menuItems = [
         { icon: Music, label: t('nav.music'), path: '/musique', color: 'text-neon-green' },
         { icon: Newspaper, label: t('nav.recaps'), path: '/recaps', color: 'text-neon-purple' },
-        { icon: Users, label: t('nav.communaute'), path: '/communaute', color: 'text-neon-pink' },
         { icon: Info, label: t('nav.interviews'), path: '/interviews', color: 'text-neon-blue' },
         { icon: Users, label: t('nav.team'), path: '/team', color: 'text-neon-yellow' },
         { icon: ShoppingBag, label: t('nav.shop'), path: '/shop', color: 'text-neon-red' },
@@ -78,16 +82,9 @@ export function MobileNavbar() {
                                     to={item.path}
                                     className="relative flex items-center justify-center -mt-10"
                                 >
-                                    <div className={`w-16 h-16 rounded-full flex items-center justify-center relative transition-all ${item.isLive ? 'bg-neon-red shadow-[0_0_30px_rgba(255,0,51,0.6)] animate-pulse' : 'bg-white/5 border border-white/10 backdrop-blur-xl'}`}>
-                                        <Icon className={`w-7 h-7 ${item.isLive ? 'text-white' : 'text-gray-400'}`} />
-                                        {item.isLive && (
-                                            <span className="absolute -top-1 -right-1 flex h-4 w-4">
-                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                                                <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
-                                            </span>
-                                        )}
+                                    <div className="w-16 h-16 rounded-full flex items-center justify-center relative transition-all bg-neon-pink shadow-[0_0_30px_rgba(255,105,180,0.6)] animate-pulse">
+                                        <Icon className="w-7 h-7 text-white" />
                                     </div>
-                                    <span className="absolute -bottom-6 text-[9px] font-black text-neon-red uppercase tracking-widest">LIVE</span>
                                 </Link>
                             );
                         }
@@ -96,7 +93,7 @@ export function MobileNavbar() {
                             <Link
                                 key={item.label}
                                 to={item.path}
-                                className={`flex flex-col items-center justify-center gap-1 transition-all relative py-1 min-w-[50px] ${isActive ? 'text-white' : 'text-gray-500'}`}
+                                className={`flex flex-col items-center justify-center transition-all relative py-1 min-w-[50px] ${isActive ? 'text-white' : 'text-gray-500'}`}
                             >
                                 {isActive && (
                                     <motion.div
@@ -104,8 +101,7 @@ export function MobileNavbar() {
                                         className="absolute -top-[17px] w-8 h-[2px] bg-neon-red shadow-[0_0_10px_rgba(255,18,65,0.8)]"
                                     />
                                 )}
-                                <Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110 text-neon-red' : 'scale-95 group-active:scale-75'}`} />
-                                <span className={`text-[8px] font-black uppercase tracking-wider ${isActive ? 'opacity-100 text-neon-red' : 'opacity-40'}`}>{item.label}</span>
+                                <Icon className={`w-6 h-6 transition-transform ${isActive ? 'scale-110 text-neon-red' : 'scale-95 group-active:scale-75'}`} />
                             </Link>
                         );
                     })}

@@ -737,6 +737,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             a.download = `dropsiders-${theme.replace(/ /g, '-')}-${Date.now()}.${extension}`;
             a.click();
             setIsVideoRecording(false);
+            setActivePanel(null); // Close panel to reveal result
         };
         recorder.start();
 
@@ -784,13 +785,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             setIsDownloading(true);
             const dataUrl = canvasRef.current.toDataURL('image/png');
             if (!dataUrl || dataUrl === 'data:,') throw new Error('Empty canvas');
-
             const a = document.createElement('a');
             a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
             a.href = dataUrl;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
+            setActivePanel(null); // Close any open panel to reveal result
         } catch (err) {
             console.error('Export failed:', err);
             alert("Erreur d'exportation : Assurez-vous que les images importées proviennent d'une source autorisée.");
@@ -1107,8 +1108,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         )}
                     </AnimatePresence>
 
-                    {/* Full-screen canvas */}
-                    <div className="absolute inset-0 flex items-center justify-center bg-black" style={{ paddingBottom: '130px' }}>
+                    {/* Full-screen canvas — click to close any open panel */}
+                    <div
+                        className="absolute inset-0 flex items-center justify-center bg-black"
+                        style={{ paddingBottom: '130px' }}
+                        onClick={() => { if (activePanel) setActivePanel(null); }}
+                    >
                         <canvas ref={canvasRef} className="max-w-full max-h-full object-contain" style={{ borderRadius: '10px', boxShadow: '0 0 60px rgba(0,0,0,0.9)' }} />
                     </div>
 
@@ -1121,7 +1126,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                     {/* Top bar (Header) */}
                     <div className="absolute top-0 inset-x-0 flex items-center justify-between px-4 pt-5 pb-3 z-20 pointer-events-none" style={{ background: 'linear-gradient(180deg,rgba(0,0,0,0.8) 0%,transparent 100%)' }}>
-                        <button onClick={() => { if (activePanel) setActivePanel(null); }} className={`p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95 pointer-events-auto ${!activePanel ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} disabled={!activePanel}><X className="w-5 h-5" /></button>
+                        <button
+                            onClick={() => { if (activePanel) setActivePanel(null); }}
+                            className={`p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95 pointer-events-auto ${!activePanel ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
                         <span className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] italic">SOCIAL STUDIO</span>
                         <button onClick={onClose} className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95 pointer-events-auto"><Home className="w-5 h-5" /></button>
                     </div>

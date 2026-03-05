@@ -1397,7 +1397,7 @@ export function AdminDashboard() {
                                             <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">
                                                 {action.title}
                                             </h3>
-                                            <p className="text-gray-400 font-medium">
+                                            <p className="hidden md:block text-gray-400 font-medium">
                                                 {action.description}
                                             </p>
                                         </Link>

@@ -270,69 +270,61 @@ export function Recap() {
                                             <h2 className="text-3xl font-display font-black text-white italic tracking-tighter shrink-0">{group.year}</h2>
                                             <div className="h-px bg-white/10 flex-1" />
                                         </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                        <div className="flex overflow-x-auto pb-8 md:pb-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 no-scrollbar snap-x snap-mandatory">
                                             {group.items.map((item: any) => (
                                                 <motion.article
                                                     key={item.id}
                                                     onMouseEnter={playHoverSound}
-                                                    className="group bg-dark-bg border border-white/10 rounded-2xl overflow-hidden hover:border-neon-red/50 hover:shadow-[0_0_30px_rgba(255,17,17,0.3)] transition-all duration-300 relative flex flex-col"
+                                                    className="group relative rounded-[2rem] overflow-hidden transition-all duration-500 w-[85vw] flex-shrink-0 snap-center aspect-square md:aspect-auto md:w-auto md:flex-shrink-1 md:bg-dark-card md:border md:border-white/5 md:rounded-3xl hover:border-neon-red/50 hover:shadow-[0_0_40px_rgba(255,0,51,0.2)] md:flex md:flex-col"
                                                 >
                                                     {isAdmin && (
                                                         <button
-                                                            onClick={(e) => {
-                                                                e.preventDefault();
-                                                                e.stopPropagation();
-                                                                handleEdit(item);
-                                                            }}
+                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEdit(item); }}
                                                             disabled={loadingEditId === item.id}
-                                                            className="absolute top-4 right-4 z-20 p-2 bg-black/60 backdrop-blur-md rounded-full border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-50 disabled:cursor-wait"
+                                                            className="absolute top-4 right-4 z-20 p-2.5 bg-black/60 backdrop-blur-md rounded-2xl border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-50 disabled:cursor-wait"
                                                             title="Modifier"
                                                         >
-                                                            {loadingEditId === item.id ? (
-                                                                <Loader2 className="w-3 h-3 animate-spin" />
-                                                            ) : (
-                                                                <Edit2 className="w-3 h-3" />
-                                                            )}
+                                                            {loadingEditId === item.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Edit2 className="w-4 h-4" />}
                                                         </button>
                                                     )}
-                                                    <Link to={getRecapLink(item)} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="flex-1 flex flex-col">
-                                                        <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center relative">
-                                                            <img
-                                                                src={item.coverImage || item.image}
-                                                                alt={item.title}
-                                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                            />
-                                                            <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent" />
-                                                            {item.festival && (
-                                                                <div className="absolute top-4 left-4 px-3 py-1 bg-neon-red/90 backdrop-blur-sm rounded-full">
-                                                                    <span className="text-[10px] font-black tracking-widest text-white uppercase">{item.festival}</span>
+                                                    <Link to={getRecapLink(item)} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="absolute inset-0 md:static block w-full h-full">
+                                                        {/* Mobile: full-cover card */}
+                                                        <div className="absolute inset-0 md:hidden">
+                                                            <img src={item.coverImage || item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                                            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
+                                                            <div className="absolute inset-0 p-6 flex flex-col justify-end text-left z-10">
+                                                                <div className="flex items-center gap-2 mb-3">
+                                                                    {item.festival && <span className="text-[10px] font-black px-3 py-1.5 rounded-xl bg-neon-red/80 text-white backdrop-blur-md">{item.festival}</span>}
+                                                                    {item.location && <span className="text-[10px] font-bold px-2 py-1 rounded-xl bg-white/10 text-white border border-white/20">{item.location}</span>}
                                                                 </div>
-                                                            )}
-                                                            {item.location && (
-                                                                <div className="absolute top-4 right-4 px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center gap-2">
-                                                                    <span className="text-[10px] font-bold tracking-wider text-white uppercase">{item.location}</span>
-                                                                    <FlagIcon location={item.location} className="w-3.5 h-2.5" />
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                        <div className="p-6 flex flex-col flex-1">
-                                                            <div className="flex justify-between items-center mb-3">
-                                                                <span className="text-[10px] font-black tracking-widest text-neon-red border border-neon-red/30 px-3 py-1 rounded-full uppercase">{t('home.recap_badge')}</span>
-                                                                <div className="flex flex-col items-end">
-                                                                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">
-                                                                        {new Date(item.date).toLocaleDateString(locale, { year: 'numeric', month: 'short' })}
-                                                                    </span>
-                                                                    <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em] mt-0.5">{item.author || 'Alex'}</span>
-                                                                </div>
+                                                                <h2 className="text-2xl sm:text-3xl font-display font-black text-white italic uppercase leading-tight tracking-tight line-clamp-4 drop-shadow-lg"
+                                                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
+                                                                />
                                                             </div>
-                                                            <h2
-                                                                className="text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors line-clamp-2"
-                                                                dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
-                                                            />
-                                                            <p
-                                                                className="text-gray-400 text-sm line-clamp-3"
-                                                                dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
-                                                            />
+                                                        </div>
+                                                        {/* Desktop: standard card */}
+                                                        <div className="hidden md:flex flex-col h-full overflow-hidden">
+                                                            <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center relative">
+                                                                <img src={item.coverImage || item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                                                <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent" />
+                                                                {item.festival && <div className="absolute top-4 left-4 px-3 py-1 bg-neon-red/90 backdrop-blur-sm rounded-full"><span className="text-[10px] font-black tracking-widest text-white uppercase">{item.festival}</span></div>}
+                                                                {item.location && <div className="absolute top-4 right-4 px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center gap-2"><span className="text-[10px] font-bold tracking-wider text-white uppercase">{item.location}</span><FlagIcon location={item.location} className="w-3.5 h-2.5" /></div>}
+                                                            </div>
+                                                            <div className="p-6 flex flex-col flex-1">
+                                                                <div className="flex justify-between items-center mb-3">
+                                                                    <span className="text-[10px] font-black tracking-widest text-neon-red border border-neon-red/30 px-3 py-1 rounded-full uppercase">{t('home.recap_badge')}</span>
+                                                                    <div className="flex flex-col items-end">
+                                                                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{new Date(item.date).toLocaleDateString(locale, { year: 'numeric', month: 'short' })}</span>
+                                                                        <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em] mt-0.5">{item.author || 'Alex'}</span>
+                                                                    </div>
+                                                                </div>
+                                                                <h2 className="text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors line-clamp-2"
+                                                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
+                                                                />
+                                                                <p className="text-gray-400 text-sm line-clamp-3"
+                                                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
+                                                                />
+                                                            </div>
                                                         </div>
                                                     </Link>
                                                 </motion.article>
@@ -399,4 +391,3 @@ export function Recap() {
         </div>
     );
 }
-

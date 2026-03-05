@@ -243,14 +243,14 @@ export function News() {
                                 x: { type: "spring", stiffness: 300, damping: 30 },
                                 opacity: { duration: 0.2 }
                             }}
-                            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+                            className="flex overflow-x-auto pb-8 md:pb-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 no-scrollbar snap-x snap-mandatory"
                         >
                             {currentArticles.length > 0 ? (
                                 currentArticles.map((item: any) => (
                                     <motion.article
                                         key={item.id}
                                         onMouseEnter={playHoverSound}
-                                        className="group bg-dark-card border border-white/5 rounded-3xl overflow-hidden hover:border-neon-red/50 hover:shadow-[0_0_40px_rgba(255,0,51,0.2)] transition-all duration-500 relative"
+                                        className="group relative rounded-[2rem] overflow-hidden transition-all duration-500 w-[85vw] flex-shrink-0 snap-center aspect-square md:aspect-auto md:w-auto md:flex-shrink-1 md:bg-dark-card md:border md:border-white/5 md:rounded-3xl hover:border-neon-red/50 hover:shadow-[0_0_40px_rgba(255,0,51,0.2)] md:flex md:flex-col"
                                     >
                                         {isAdmin && (
                                             <button
@@ -270,40 +270,70 @@ export function News() {
                                                 )}
                                             </button>
                                         )}
-                                        <Link to={getArticleLink(item)} className="flex flex-col h-full overflow-hidden">
-                                            <div className="h-56 md:h-64 overflow-hidden bg-black/40 relative">
+                                        <Link to={getArticleLink(item)} className="absolute inset-0 md:static block w-full h-full">
+                                            {/* Mobile Variant */}
+                                            <div className="absolute inset-0 md:hidden">
                                                 <img
                                                     src={item.image}
                                                     alt={item.title}
                                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                 />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-dark-bg/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                            </div>
-                                            <div className="p-6 flex flex-col flex-1">
-                                                <div className="flex justify-between items-center mb-4">
-                                                    <span className={`text-[9px] font-black px-3 py-1 rounded-full border shadow-sm ${item.isFocus
-                                                        ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
-                                                        : (item.category || '').toLowerCase() === 'musique'
-                                                            ? 'bg-neon-green/10 text-neon-green border-neon-green/20'
-                                                            : 'bg-neon-red/10 text-neon-red border-neon-red/20'
-                                                        }`}>
-                                                        {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
-                                                    </span>
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-[9px] text-white/30 font-black uppercase tracking-widest">{item.date}</span>
+                                                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
+                                                <div className="absolute inset-0 p-6 flex flex-col justify-end text-left z-10">
+                                                    <div className="flex items-center justify-between mb-4">
+                                                        <span className={`text-[10px] font-black px-3 py-1.5 rounded-xl border backdrop-blur-md ${item.isFocus
+                                                            ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30'
+                                                            : (item.category || '').toLowerCase() === 'musique'
+                                                                ? 'bg-neon-green/20 text-neon-green border-neon-green/30'
+                                                                : 'bg-neon-red/20 text-neon-red border-neon-red/30'
+                                                            }`}>
+                                                            {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
+                                                        </span>
+                                                        <span className="text-white/60 text-[10px] font-black uppercase tracking-widest">{item.date}</span>
                                                     </div>
+                                                    <h2
+                                                        className="text-2xl sm:text-3xl font-display font-black text-white italic uppercase leading-tight tracking-tight line-clamp-4 shadow-black drop-shadow-lg"
+                                                        dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
+                                                    />
                                                 </div>
-                                                <h2
-                                                    className="text-lg md:text-xl font-display font-black text-white mb-4 group-hover:text-neon-red transition-colors line-clamp-2 uppercase italic leading-tight tracking-tight h-12"
-                                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
-                                                />
-                                                <p
-                                                    className="hidden md:block text-gray-400 text-sm line-clamp-3 font-medium leading-relaxed"
-                                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
-                                                />
-                                                <div className="mt-auto pt-4 flex items-center justify-between border-t border-white/5">
-                                                    <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em]">{item.author || 'Alex'}</span>
-                                                    <span className="text-white/20 group-hover:text-neon-red transition-colors"><ArrowRight className="w-4 h-4" /></span>
+                                            </div>
+
+                                            {/* Desktop Variant */}
+                                            <div className="hidden md:flex flex-col h-full overflow-hidden">
+                                                <div className="h-64 overflow-hidden bg-black/40 relative">
+                                                    <img
+                                                        src={item.image}
+                                                        alt={item.title}
+                                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-dark-bg/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                </div>
+                                                <div className="p-6 flex flex-col flex-1 relative z-10">
+                                                    <div className="flex justify-between items-center mb-4">
+                                                        <span className={`text-[9px] font-black px-3 py-1 rounded-full border shadow-sm ${item.isFocus
+                                                            ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                                                            : (item.category || '').toLowerCase() === 'musique'
+                                                                ? 'bg-neon-green/10 text-neon-green border-neon-green/20'
+                                                                : 'bg-neon-red/10 text-neon-red border-neon-red/20'
+                                                            }`}>
+                                                            {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
+                                                        </span>
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="text-[9px] text-white/30 font-black uppercase tracking-widest">{item.date}</span>
+                                                        </div>
+                                                    </div>
+                                                    <h2
+                                                        className="text-xl font-display font-black text-white mb-4 group-hover:text-neon-red transition-colors line-clamp-2 uppercase italic leading-tight tracking-tight h-12"
+                                                        dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
+                                                    />
+                                                    <p
+                                                        className="text-gray-400 text-sm line-clamp-3 font-medium leading-relaxed"
+                                                        dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
+                                                    />
+                                                    <div className="mt-auto pt-4 flex items-center justify-between border-t border-white/5">
+                                                        <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em]">{item.author || 'Alex'}</span>
+                                                        <span className="text-white/20 group-hover:text-neon-red transition-colors"><ArrowRight className="w-4 h-4" /></span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </Link>

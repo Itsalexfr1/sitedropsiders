@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, AlertCircle, Inbox, Plus } from 'lucide-react';
+import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, AlertCircle, Inbox, Plus, Archive, FileText, Video } from 'lucide-react';
 import { getAuthHeaders } from '../utils/auth';
 import editorsData from '../data/editors.json';
 
@@ -43,6 +43,10 @@ export function AdminMessages() {
     const [replyError, setReplyError] = useState('');
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [notification, setNotification] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
+    const [mailboxTab, setMailboxTab] = useState<'inbox' | 'sent'>('inbox');
+    const [sentMessages, setSentMessages] = useState<{ id: string; to: string; subject: string; body: string; date: string; signer: string }[]>(() => {
+        try { return JSON.parse(localStorage.getItem('dropsiders_sent_messages') || '[]'); } catch { return []; }
+    });
 
     // New States for Custom Emails
     const [isNewMail, setIsNewMail] = useState(false);
@@ -137,6 +141,20 @@ export function AdminMessages() {
             if (res.ok) {
                 setReplyStatus('success');
                 setReplyBody('');
+                // Archive in sent box
+                const sent = {
+                    id: Date.now().toString(),
+                    to: to,
+                    subject: isNewMail ? mailSubject : `Re: ${selected?.subject}`,
+                    body: replyBody,
+                    date: new Date().toISOString(),
+                    signer: signatureName || 'Dropsiders'
+                };
+                setSentMessages(prev => {
+                    const next = [sent, ...prev];
+                    localStorage.setItem('dropsiders_sent_messages', JSON.stringify(next));
+                    return next;
+                });
                 if (selected && !isNewMail) {
                     setMessages(prev => prev.map(m => m.id === selected.id ? { ...m, replied: true } : m));
                     setSelected(prev => prev ? { ...prev, replied: true } : prev);
@@ -496,59 +514,91 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
 
             <div className={`max-w-full mx-auto flex h-[calc(100vh-65px)] px-0 md:px-12`}>
                 {/* LEFT: Message List */}
-                <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full md:w-96 border-r border-white/5 overflow-y-auto flex-shrink-0 flex-col`}>
-                    {loading ? (
-                        <div className="flex items-center justify-center h-48 text-gray-600">
-                            <div className="animate-spin w-6 h-6 border-2 border-neon-red border-t-transparent rounded-full" />
-                        </div>
-                    ) : messages.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center h-64 gap-4 text-gray-600">
-                            <MessageSquare className="w-12 h-12 opacity-20" />
-                            <p className="text-sm font-bold uppercase tracking-widest">Aucun message</p>
-                        </div>
-                    ) : (
-                        <div className="divide-y divide-white/5">
-                            {messages.map(msg => (
-                                <motion.div
-                                    key={msg.id}
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    onClick={() => openMessage(msg)}
-                                    className={`p-4 cursor-pointer transition-all hover:bg-white/5 relative ${selected?.id === msg.id ? 'bg-white/5 border-l-2 border-neon-red' : 'border-l-2 border-transparent'}`}
-                                >
-                                    {!msg.read && (
-                                        <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-neon-red" />
-                                    )}
-                                    <div className="flex items-start gap-3">
-                                        <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 ${msg.read ? 'bg-white/5 text-gray-500' : 'bg-neon-red/20 text-neon-red'}`}>
-                                            {msg.name.charAt(0).toUpperCase()}
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            <div className="flex items-center justify-between gap-1">
-                                                <span className={`text-sm truncate ${msg.read ? 'text-gray-400 font-medium' : 'text-white font-black'}`}>{msg.name}</span>
-                                                <span className="text-[10px] text-gray-600 flex-shrink-0">{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full md:w-96 border-r border-white/5 flex-shrink-0 flex-col bg-white/[0.015]`}>
+                    {/* Inbox / Sent tabs */}
+                    <div className="flex border-b border-white/5 shrink-0">
+                        <button onClick={() => setMailboxTab('inbox')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${mailboxTab === 'inbox' ? 'text-white border-b-2 border-neon-red' : 'text-gray-600 hover:text-white'}`}>
+                            <Inbox className="w-3.5 h-3.5" /> Reçus <span className={`px-1.5 py-0.5 rounded-full text-[9px] ${unreadCount > 0 ? 'bg-neon-red text-white' : 'bg-white/10 text-gray-500'}`}>{messages.length}</span>
+                        </button>
+                        <button onClick={() => setMailboxTab('sent')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${mailboxTab === 'sent' ? 'text-white border-b-2 border-neon-cyan' : 'text-gray-600 hover:text-white'}`}>
+                            <Archive className="w-3.5 h-3.5" /> Envoyés <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-white/10 text-gray-500">{sentMessages.length}</span>
+                        </button>
+                    </div>
+                    <div className="flex-1 overflow-y-auto">
+                        {loading ? (
+                            <div className="flex items-center justify-center h-48 text-gray-600">
+                                <div className="animate-spin w-6 h-6 border-2 border-neon-red border-t-transparent rounded-full" />
+                            </div>
+                        ) : mailboxTab === 'sent' ? (
+                            sentMessages.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-64 gap-4 text-gray-600">
+                                    <Archive className="w-12 h-12 opacity-20" />
+                                    <p className="text-sm font-bold uppercase tracking-widest">Aucun message envoyé</p>
+                                </div>
+                            ) : (
+                                <div className="divide-y divide-white/5">
+                                    {sentMessages.map(msg => (
+                                        <div key={msg.id} className="p-4 hover:bg-white/5 transition-all cursor-default">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <span className="text-[10px] font-black text-neon-cyan uppercase truncate">{msg.to}</span>
+                                                <span className="text-[9px] text-gray-600 flex-shrink-0 ml-2">{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
                                             </div>
-                                            <div className="flex items-center gap-2 mt-0.5">
-                                                <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${getSubjectColor(msg.subject)}`}>
-                                                    {msg.subject}
-                                                </span>
-                                            </div>
-                                            <p className={`text-sm truncate mt-2 font-medium ${msg.read ? 'text-white/40' : 'text-white/80'}`}>{msg.message}</p>
-                                            {msg.replied && (
-                                                <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black text-neon-cyan/70 mt-1">
-                                                    <Reply className="w-3 h-3" /> Répondu
-                                                </span>
-                                            )}
+                                            <p className="text-sm font-bold text-white/70 truncate">{msg.subject}</p>
+                                            <p className="text-xs text-gray-500 truncate mt-0.5">{msg.body.slice(0, 60)}...</p>
+                                            <span className="text-[9px] text-gray-600 mt-1 block">Signataire : {msg.signer}</span>
                                         </div>
-                                    </div>
-                                </motion.div>
-                            ))}
-                        </div>
-                    )}
+                                    ))}
+                                </div>
+                            )
+                        ) : messages.length === 0 ? (
+                            <div className="flex flex-col items-center justify-center h-64 gap-4 text-gray-600">
+                                <MessageSquare className="w-12 h-12 opacity-20" />
+                                <p className="text-sm font-bold uppercase tracking-widest">Aucun message</p>
+                            </div>
+                        ) : (
+                            <div className="divide-y divide-white/5">
+                                {messages.map(msg => (
+                                    <motion.div
+                                        key={msg.id}
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        onClick={() => openMessage(msg)}
+                                        className={`p-4 cursor-pointer transition-all hover:bg-white/5 relative ${selected?.id === msg.id ? 'bg-white/5 border-l-2 border-neon-red' : 'border-l-2 border-transparent'}`}
+                                    >
+                                        {!msg.read && (
+                                            <div className="absolute top-4 right-4 w-2 h-2 rounded-full bg-neon-red" />
+                                        )}
+                                        <div className="flex items-start gap-3">
+                                            <div className={`w-9 h-9 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 ${msg.read ? 'bg-white/5 text-gray-500' : 'bg-neon-red/20 text-neon-red'}`}>
+                                                {msg.name.charAt(0).toUpperCase()}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center justify-between gap-1">
+                                                    <span className={`text-sm truncate ${msg.read ? 'text-gray-400 font-medium' : 'text-white font-black'}`}>{msg.name}</span>
+                                                    <span className="text-[10px] text-gray-600 flex-shrink-0">{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                                </div>
+                                                <div className="flex items-center gap-2 mt-0.5">
+                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${getSubjectColor(msg.subject)}`}>
+                                                        {msg.subject}
+                                                    </span>
+                                                </div>
+                                                <p className={`text-sm truncate mt-2 font-medium ${msg.read ? 'text-white/40' : 'text-white/80'}`}>{msg.message}</p>
+                                                {msg.replied && (
+                                                    <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black text-neon-cyan/70 mt-1">
+                                                        <Reply className="w-3 h-3" /> Répondu
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    </motion.div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
                 </div>
 
                 {/* RIGHT: Message Detail */}
-                <div className={`${selected ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto flex-col`}>
+                <div className={`${selected ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto flex-col bg-white/[0.04] border-l border-white/5`}>
                     {selected ? (
                         <motion.div
                             key={selected.id}
@@ -789,6 +839,18 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                     setIsAccreditationMode(false);
                                                     setIsPhotoAccreditationMode(false);
                                                     setIsInterviewMode(false);
+                                                    setReplyBody('');
+                                                    setMailSubject('');
+                                                }}
+                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-1.5 ${(!isAccreditationMode && !isPhotoAccreditationMode && !isInterviewMode && !replyBody) ? 'bg-white/20 border-white/40 text-white' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                            >
+                                                <FileText className="w-3 h-3" /> Mail Vide
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    setIsAccreditationMode(false);
+                                                    setIsPhotoAccreditationMode(false);
+                                                    setIsInterviewMode(false);
                                                     setReplyBody(getPressReleaseTemplate(accreditationLang, signatureName));
                                                     if (accreditationLang === 'FR') {
                                                         setMailSubject('Dropsiders V2 : Nouvelle plateforme média & agenda interactif ! 🎙️');
@@ -796,7 +858,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                         setMailSubject('Dropsiders V2: New media platform & interactive agenda! 🎙️');
                                                     }
                                                 }}
-                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${(!isAccreditationMode && !isPhotoAccreditationMode && !isInterviewMode) ? 'bg-neon-cyan border-neon-cyan text-black' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${(!isAccreditationMode && !isPhotoAccreditationMode && !isInterviewMode && replyBody) ? 'bg-neon-cyan border-neon-cyan text-black' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
                                                 Communiqué Standard
                                             </button>
@@ -826,9 +888,9 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                     setIsAccreditationMode(false);
                                                     setIsPhotoAccreditationMode(false);
                                                 }}
-                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border ${isInterviewMode ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,18,65,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
+                                                className={`px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all border flex items-center gap-1.5 ${isInterviewMode ? 'bg-neon-red border-neon-red text-white shadow-[0_0_15px_rgba(255,18,65,0.3)]' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}
                                             >
-                                                Demande Interview
+                                                <Video className="w-3 h-3" /> Demande Interview
                                             </button>
                                         </div>
                                     )}
