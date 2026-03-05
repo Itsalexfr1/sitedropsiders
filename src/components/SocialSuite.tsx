@@ -3,7 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Download, Upload, PlusCircle,
     Video, Layout, Smartphone, Image as ImageIcon,
-    Home, Link as LinkIcon
+    Home, Link as LinkIcon, Palette, Type, Film, ChevronDown,
+    Check, Layers
 } from 'lucide-react';
 import { Downloader } from '../pages/Downloader';
 
@@ -52,6 +53,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [isVideoRecording, setIsVideoRecording] = useState(false);
     const [visualsList, setVisualsList] = useState<string[]>([]);
     const [isDownloaderOpen, setIsDownloaderOpen] = useState(false);
+    // InShot-style: active bottom panel and format modal
+    const [activePanel, setActivePanel] = useState<string | null>(null);
+    const [showFormatModal, setShowFormatModal] = useState(true);
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -73,6 +77,17 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const logoRef = useRef<HTMLImageElement | null>(null);
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const [selection, setSelection] = useState({ start: 0, end: 0 });
+
+    // Detect mobile vs desktop (lg breakpoint = 1024px) — JS-based to avoid canvasRef conflict
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
+    useEffect(() => {
+        const onResize = () => setIsMobile(window.innerWidth < 1024);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
+    }, []);
+
+    const togglePanel = (panel: string) => setActivePanel(prev => prev === panel ? null : panel);
+
 
     const handleTextStyler = (type: 'C' | 'B', value: string) => {
         if (!textAreaRef.current) return;
@@ -664,328 +679,428 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         setTimeout(() => setIsDownloading(false), 1000);
     };
 
-    return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] flex items-center justify-center lg:p-4 bg-black/95 backdrop-blur-3xl">
-            <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} className="bg-[#0a0a0a] w-full lg:max-w-6xl h-full lg:h-[90vh] lg:rounded-[40px] border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden flex flex-col lg:flex-row">
+    // Shared content blocks (used in both mobile & desktop)
+    const themeButtons = (
+        <div className="grid grid-cols-2 gap-2">
+            {activeTab === 'REEL' ? (
+                <>
+                    <button onClick={() => setTheme('INTRO')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
+                    <button onClick={() => setTheme('TOP 5 ARTISTE')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'TOP 5 ARTISTE' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 ARTISTES</button>
+                    <button onClick={() => setTheme('TOP 5 STYLES')} className={`px-2 py-3 rounded-xl text-[9px] font-black uppercase border transition-all col-span-2 ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
+                </>
+            ) : (
+                <>
+                    <button onClick={() => setTheme('NEWS')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
+                    <button onClick={() => setTheme('FOCUS')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/5 text-gray-400'}`}>FOCUS</button>
+                    <button onClick={() => setTheme('MUSIQUE')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
+                    <button onClick={() => setTheme('RECAP')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RECAP</button>
+                </>
+            )}
+        </div>
+    );
 
-                {/* Preview Section - Moved to top on mobile */}
-                <div className="w-full lg:flex-1 bg-[#020202] py-4 lg:py-6 px-4 flex flex-col items-center justify-center relative overflow-hidden h-auto min-h-[40vh] lg:h-full border-b lg:border-b-0 lg:border-l border-white/10 order-first lg:order-last">
-                    <div className="aspect-[9/16] lg:aspect-auto w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[450px] relative">
-                        <div className="w-full h-full bg-[#111] rounded-[20px] lg:rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
-                            <canvas ref={canvasRef} className="w-full h-full object-contain" />
+    const styleMusicButtons = activeTab === 'REEL' && (theme === 'INTRO' || theme === 'TOP 5 STYLES') ? (
+        <div className="space-y-4">
+            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Style de musique</span>
+            <div className="flex flex-wrap gap-2">
+                {STYLE_PRESETS.map(s => (
+                    <button key={s.name} onClick={() => setThemeColor(s)}
+                        className={`px-3 py-2 rounded-xl text-[8px] font-black uppercase transition-all border-2 ${themeColor?.name === s.name ? 'bg-white text-black border-white' : 'bg-black/40 border-white/10 hover:border-white/30'}`}
+                        style={themeColor?.name === s.name ? {} : { borderColor: `rgba(${s.grad}, 0.3)`, color: s.color }}>
+                        {s.name}
+                    </button>
+                ))}
+                <button onClick={() => setThemeColor(null)} className="px-2 text-[8px] font-bold text-gray-500 uppercase hover:text-white transition-all underline underline-offset-4 decoration-neon-red">Reset</button>
+            </div>
+        </div>
+    ) : null;
+
+    const top5Editor = (
+        <div className="space-y-4">
+            {top5Items.map((item, i) => (
+                <div key={i} className={`p-4 rounded-2xl border transition-all cursor-pointer ${currentPreviewIndex === i ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/5'}`} onClick={() => setCurrentPreviewIndex(i)}>
+                    <div className="grid grid-cols-2 gap-2 mb-2">
+                        <input value={item.main} onChange={e => { const n = [...top5Items]; n[i].main = e.target.value.toUpperCase(); setTop5Items(n); }} placeholder="ARTISTE" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                        <input value={item.sub} onChange={e => { const n = [...top5Items]; n[i].sub = e.target.value.toUpperCase(); setTop5Items(n); }} placeholder="TITRE" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                    </div>
+                    {theme === 'TOP 5 ARTISTE' && (
+                        <input value={item.value} onChange={e => { const n = [...top5Items]; n[i].value = e.target.value; setTop5Items(n); }} placeholder="STREAMS (MILLIONS)" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold mb-2" />
+                    )}
+                    <input value={item.spotifyUrl} onChange={e => { const n = [...top5Items]; n[i].spotifyUrl = e.target.value; setTop5Items(n); }} placeholder="LIEN SPOTIFY / VIDEO" className="w-full bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-[#1DB954] font-bold mb-2" />
+                    <div className="flex items-center gap-2">
+                        <button onClick={(e) => {
+                            e.stopPropagation();
+                            const input = document.createElement('input');
+                            input.type = 'file'; input.accept = 'image/*';
+                            input.onchange = (ev: any) => {
+                                const file = ev.target.files?.[0];
+                                if (file) {
+                                    const reader = new FileReader();
+                                    reader.onload = (re) => { const n = [...top5Items]; n[i].photo = re.target?.result as string; setTop5Items(n); };
+                                    reader.readAsDataURL(file);
+                                }
+                            };
+                            input.click();
+                        }} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                            <ImageIcon className="w-3 h-3" /> {item.photo ? 'Modifier Photo' : 'Ajouter Photo'}
+                        </button>
+                        {item.photo && (
+                            <button onClick={(e) => { e.stopPropagation(); const n = [...top5Items]; n[i].photo = ''; setTop5Items(n); }}
+                                className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all">
+                                <X className="w-3 h-3" />
+                            </button>
+                        )}
+                    </div>
+                </div>
+            ))}
+        </div>
+    );
+
+    const textEditor = (
+        <div className="space-y-4">
+            <textarea
+                ref={textAreaRef}
+                value={customText}
+                onSelect={(e) => { const t = e.target as HTMLTextAreaElement; setSelection({ start: t.selectionStart, end: t.selectionEnd }); }}
+                onChange={e => setCustomText(e.target.value.slice(0, 1100))}
+                placeholder="VOTRE TEXTE..."
+                className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black uppercase"
+            />
+            <p className="text-[9px] text-white/30 italic px-1">Les codes comme [C:...] ou [B:...] seront transformés en style sur l'image finale.</p>
+            <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black text-gray-500 uppercase">Couleur Texte</label>
+                    <div className="flex gap-2 items-center">
+                        <input type="color" value={textColor} onMouseDown={(e) => e.stopPropagation()} onChange={e => handleTextStyler('C', e.target.value)} className="w-10 h-10 rounded-lg bg-transparent border-none cursor-pointer" />
+                        <span className="text-[10px] font-mono text-white/50">{textColor}</span>
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black text-gray-500 uppercase">Fond Texte</label>
+                    <div className="flex gap-2 items-center">
+                        <input type="color" value={textBgColor === 'transparent' ? '#000000' : textBgColor} onMouseDown={(e) => e.stopPropagation()} onChange={e => handleTextStyler('B', e.target.value)} className="w-10 h-10 rounded-lg bg-transparent border-none cursor-pointer" />
+                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => { setTextBgColor('transparent'); setSelection({ start: 0, end: 0 }); }}
+                            className={`px-2 py-1 rounded-md text-[8px] font-bold uppercase transition-all ${textBgColor === 'transparent' ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
+                            Aucun
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    const exportButtons = (
+        <div className="space-y-2">
+            {activeTab === 'PUBLICATION' && (
+                <div className="grid grid-cols-2 gap-2">
+                    <button onClick={addVisualToList} className="py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter</button>
+                    <button onClick={downloadSingle} disabled={isDownloading} className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all"><Download className="w-3.5 h-3.5" /> Télécharger PNG</button>
+                </div>
+            )}
+            <button onClick={startVideoRecording} disabled={isVideoRecording}
+                className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}>
+                <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo Instagram (${theme})`}
+            </button>
+        </div>
+    );
+
+    // Shared downloader modal
+    const downloaderModal = (
+        <AnimatePresence>
+            {isDownloaderOpen && (
+                <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/90 backdrop-blur-2xl">
+                    <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                        className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden h-[80vh] flex flex-col">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-blue-500 to-neon-purple" />
+                        <div className="flex justify-between items-start mb-10">
+                            <div>
+                                <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">Import <span className="text-neon-cyan">Social</span></h2>
+                                <p className="text-gray-400 font-medium">Copiez un lien Instagram, TikTok ou YouTube</p>
+                            </div>
+                            <button onClick={() => setIsDownloaderOpen(false)} className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"><X className="w-6 h-6" /></button>
+                        </div>
+                        <div className="flex-1 overflow-y-auto custom-scrollbar">
+                            <Downloader isPopup={true} onSelect={(url) => {
+                                const isVideo = url.includes('.mp4') || url.includes('.mov') || url.includes('.webm') || url.includes('video') || url.includes('googlevideo') || url.includes('play') || url.includes('tiktok');
+                                if (isVideo) {
+                                    const video = document.createElement('video');
+                                    video.src = url; video.crossOrigin = "anonymous";
+                                    video.onloadeddata = () => { setBgVideo(video); setBgImage(''); };
+                                    video.onerror = () => { setBgImage(url); setBgVideo(null); };
+                                } else { setBgImage(url); setBgVideo(null); }
+                                setIsDownloaderOpen(false);
+                            }} />
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+    );
+
+    return (
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-3xl">
+
+            {!isMobile ? (
+                /* ══════════════════════════════════════════════════════════
+                    DESKTOP LAYOUT (lg+) — original two-column design
+                ══════════════════════════════════════════════════════════ */
+                <div className="flex w-full h-full max-w-6xl mx-auto rounded-[40px] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden bg-[#0a0a0a]">
+
+                    {/* Controls Sidebar */}
+                    <div className="w-[400px] border-r border-white/10 p-8 flex flex-col gap-8 overflow-y-auto custom-scrollbar h-full">
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <h2 className="text-2xl font-black text-white italic tracking-tighter">SOCIAL STUDIO</h2>
+                                <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">ÉDITION CRÉATIVE</p>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button onClick={() => window.location.href = '/'} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-400 hover:text-neon-cyan transition-all flex items-center gap-2 group" title="Retour au site">
+                                    <Home className="w-5 h-5" /><span className="text-[10px] font-black uppercase">SITE</span>
+                                </button>
+                                <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-400 hover:text-neon-red transition-all" title="Quitter">
+                                    <X className="w-5 h-5" />
+                                </button>
+                            </div>
+                        </div>
+
+                        {/* Tab selector */}
+                        <div className="flex gap-2 p-1 bg-white/5 rounded-2xl border border-white/10">
+                            <button onClick={() => setActiveTab('REEL')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'REEL' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><Smartphone className="w-4 h-4" /> REEL</button>
+                            <button onClick={() => setActiveTab('PUBLICATION')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'PUBLICATION' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><ImageIcon className="w-4 h-4" /> POST</button>
+                        </div>
+
+                        {themeButtons}
+                        {styleMusicButtons}
+
+                        {/* Background */}
+                        <div className="space-y-3">
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Fond Visuel</span>
+                            <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                <Upload className="w-4 h-4 group-hover:text-neon-red transition-colors" />
+                                {bgImage || bgVideo ? 'Modifier le fond' : 'Importer Image/Vidéo'}
+                            </button>
+                            <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />
+                                Télécharger Vidéo/Photo (URL)
+                            </button>
+                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+                        </div>
+
+                        {/* Content editor */}
+                        <div className="space-y-4">
+                            {theme.startsWith('TOP 5') ? (
+                                <><span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>{top5Editor}</>
+                            ) : (
+                                <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
+                            )}
+                        </div>
+
+                        {/* Toggles + Export */}
+                        <div className="space-y-4 mt-auto pb-8">
+                            <div className="flex gap-2">
+                                <div className="flex-1 p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowArticleLink(!showArticleLink)}>
+                                    <div className="flex items-center gap-2"><LinkIcon className="w-3.5 h-3.5 text-gray-500" /><span className="text-[9px] font-black text-white uppercase whitespace-nowrap">Lien Article</span></div>
+                                    <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showArticleLink ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
+                                        {showArticleLink && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
+                                    </div>
+                                </div>
+                                <div className="flex-1 p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowSwipe(!showSwipe)}>
+                                    <div className="flex items-center gap-2"><Layout className="w-3.5 h-3.5 text-gray-500" /><span className="text-[9px] font-black text-white uppercase">Swipe</span></div>
+                                    <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showSwipe ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,18,65,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
+                                        {showSwipe && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
+                                    </div>
+                                </div>
+                            </div>
+                            {exportButtons}
+                        </div>
+                    </div>
+
+                    {/* Preview */}
+                    <div className="flex-1 bg-[#020202] flex flex-col items-center justify-center relative overflow-hidden h-full border-l border-white/10">
+                        <div className="aspect-auto w-full max-w-[450px] relative">
+                            <div className="w-full h-full bg-[#111] rounded-[30px] overflow-hidden border border-white/10 shadow-2xl">
+                                <canvas ref={canvasRef} className="w-full h-full object-contain" />
+                            </div>
                         </div>
                     </div>
                 </div>
+            ) : (
+                /* ══════════════════════════════════════════════════════════
+                    MOBILE LAYOUT — InShot style: full-screen + bottom bar
+                ══════════════════════════════════════════════════════════ */
+                <div className="relative w-full h-full">
 
-                {/* Controls Sidebar */}
-                <div className="w-full lg:w-[400px] border-r border-white/10 p-6 lg:p-8 flex flex-col gap-6 lg:gap-8 overflow-y-auto custom-scrollbar flex-1 lg:h-full">
-
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <h2 className="text-xl lg:text-2xl font-black text-white italic tracking-tighter">SOCIAL STUDIO</h2>
-                            <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest lg:block hidden">ÉDITION CRÉATIVE</p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => window.location.href = '/'}
-                                className="p-2 lg:p-3 bg-white/5 hover:bg-white/10 rounded-xl lg:rounded-2xl text-gray-400 hover:text-neon-cyan transition-all flex items-center gap-2 group"
-                                title="Retour au site"
-                            >
-                                <Home className="w-5 h-5" />
-                                <span className="text-[10px] font-black uppercase hidden sm:block">SITE</span>
-                            </button>
-                            <button
-                                onClick={onClose}
-                                className="p-2 lg:p-3 bg-white/5 hover:bg-white/10 rounded-xl lg:rounded-2xl text-gray-400 hover:text-neon-red transition-all"
-                                title="Quitter"
-                            >
-                                <X className="w-5 h-5" />
-                            </button>
-                        </div>
-                    </div>
-
-
-                    <div className="flex gap-2 p-1 bg-white/5 rounded-2xl border border-white/10">
-                        <button onClick={() => setActiveTab('REEL')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'REEL' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><Smartphone className="w-4 h-4" /> REEL</button>
-                        <button onClick={() => setActiveTab('PUBLICATION')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'PUBLICATION' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><ImageIcon className="w-4 h-4" /> POST</button>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-2">
-                        {activeTab === 'REEL' ? (
-                            <>
-                                <button onClick={() => setTheme('INTRO')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
-                                <button onClick={() => setTheme('TOP 5 ARTISTE')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'TOP 5 ARTISTE' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 ARTISTES</button>
-                                <button onClick={() => setTheme('TOP 5 STYLES')} className={`px-2 py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
-                            </>
-                        ) : (
-                            <>
-                                <button onClick={() => setTheme('NEWS')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
-                                <button onClick={() => setTheme('FOCUS')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/5 text-gray-400'}`}>FOCUS</button>
-                                <button onClick={() => setTheme('MUSIQUE')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
-                                <button onClick={() => setTheme('RECAP')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RECAP</button>
-                            </>
-                        )}
-                    </div>
-
-                    {/* Background Selection Section - Moved Up for priority */}
-                    <div className="space-y-3">
-                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Fond Visuel</span>
-                        <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                            <Upload className="w-4 h-4 group-hover:text-neon-red transition-colors" />
-                            {bgImage || bgVideo ? 'Modifier le fond' : 'Importer Image/Vidéo'}
-                        </button>
-                        <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                            <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />
-                            Télécharger Vidéo/Photo (URL)
-                        </button>
-                        <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
-
-                    </div>
-
-                    {activeTab === 'REEL' && (theme === 'INTRO' || theme === 'TOP 5 STYLES') && (
-                        <div className="space-y-4">
-                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Style de musique</span>
-                            <div className="flex flex-wrap gap-2">
-                                {STYLE_PRESETS.map(s => (
-                                    <button
-                                        key={s.name}
-                                        onClick={() => setThemeColor(s)}
-                                        className={`px-3 py-2 rounded-xl text-[8px] font-black uppercase transition-all border-2 ${themeColor?.name === s.name ? 'bg-white text-black border-white' : 'bg-black/40 border-white/10 hover:border-white/30'}`}
-                                        style={themeColor?.name === s.name ? {} : { borderColor: `rgba(${s.grad}, 0.3)`, color: s.color }}
-                                    >
-                                        {s.name}
-                                    </button>
-                                ))}
-                                <button onClick={() => setThemeColor(null)} className="px-2 text-[8px] font-bold text-gray-500 uppercase hover:text-white transition-all underline underline-offset-4 decoration-neon-red">Reset</button>
-                            </div>
-                        </div>
-                    )}
-
-                    <div className="space-y-4">
-                        {theme.startsWith('TOP 5') ? (
-                            <>
-                                <span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>
-                                <div className="space-y-4">
-                                    {top5Items.map((item, i) => (
-                                        <div key={i} className={`p-4 rounded-2xl border transition-all cursor-pointer ${currentPreviewIndex === i ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/5'}`} onClick={() => setCurrentPreviewIndex(i)}>
-                                            <div className="grid grid-cols-2 gap-2 mb-2">
-                                                <input value={item.main} onChange={e => { const n = [...top5Items]; n[i].main = e.target.value.toUpperCase(); setTop5Items(n); }} placeholder="ARTISTE" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
-                                                <input value={item.sub} onChange={e => { const n = [...top5Items]; n[i].sub = e.target.value.toUpperCase(); setTop5Items(n); }} placeholder="TITRE" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
-                                            </div>
-                                            {theme === 'TOP 5 ARTISTE' && (
-                                                <input value={item.value} onChange={e => { const n = [...top5Items]; n[i].value = e.target.value; setTop5Items(n); }} placeholder="STREAMS (MILLIONS)" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold mb-2" />
-                                            )}
-                                            <input value={item.spotifyUrl} onChange={e => { const n = [...top5Items]; n[i].spotifyUrl = e.target.value; setTop5Items(n); }} placeholder="LIEN SPOTIFY / VIDEO" className="w-full bg-white/10 border border-white/20 rounded-lg p-2 text-[10px] text-[#1DB954] font-bold mb-2" />
-
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={(e) => {
-                                                        e.stopPropagation();
-                                                        const input = document.createElement('input');
-                                                        input.type = 'file';
-                                                        input.accept = 'image/*';
-                                                        input.onchange = (ev: any) => {
-                                                            const file = ev.target.files?.[0];
-                                                            if (file) {
-                                                                const reader = new FileReader();
-                                                                reader.onload = (re) => {
-                                                                    const n = [...top5Items];
-                                                                    n[i].photo = re.target?.result as string;
-                                                                    setTop5Items(n);
-                                                                };
-                                                                reader.readAsDataURL(file);
-                                                            }
-                                                        };
-                                                        input.click();
-                                                    }}
-                                                    className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-2"
-                                                >
-                                                    < ImageIcon className="w-3 h-3" /> {item.photo ? 'Modifier Photo' : 'Ajouter Photo'}
-                                                </button>
-                                                {item.photo && (
-                                                    <button
-                                                        onClick={(e) => {
-                                                            e.stopPropagation();
-                                                            const n = [...top5Items];
-                                                            n[i].photo = '';
-                                                            setTop5Items(n);
-                                                        }}
-                                                        className="p-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all"
-                                                    >
-                                                        <X className="w-3 h-3" />
-                                                    </button>
-                                                )}
-                                            </div>
+                    {/* Format selection modal (mobile only) */}
+                    <AnimatePresence>
+                        {showFormatModal && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-[400] flex items-end justify-center"
+                                style={{ background: 'rgba(0,0,0,0.85)', backdropFilter: 'blur(20px)' }}>
+                                <motion.div
+                                    initial={{ y: 120, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 120, opacity: 0 }}
+                                    transition={{ type: 'spring', damping: 22, stiffness: 280 }}
+                                    className="w-full max-w-lg rounded-t-[36px] overflow-hidden"
+                                    style={{ background: 'linear-gradient(180deg, #141414 0%, #0a0a0a 100%)', border: '1px solid rgba(255,255,255,0.08)', borderBottom: 'none' }}>
+                                    <div className="flex justify-center pt-4 pb-2"><div className="w-10 h-1 rounded-full bg-white/20" /></div>
+                                    <div className="px-8 pb-10">
+                                        <h2 className="text-2xl font-black text-white italic tracking-tighter text-center mb-1">SOCIAL STUDIO</h2>
+                                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest text-center mb-8">Choisir le format</p>
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <button onClick={() => { setActiveTab('REEL'); setTheme('TOP 5 ARTISTE'); setShowFormatModal(false); }}
+                                                className="group flex flex-col items-center gap-3 p-6 rounded-3xl border-2 border-white/10 bg-white/5 hover:border-white/30 transition-all">
+                                                <div className="w-12 h-20 rounded-xl border-2 border-white/30 flex items-center justify-center group-hover:border-neon-red/60 transition-all" style={{ background: 'linear-gradient(180deg,#1a1a1a,#0a0a0a)' }}>
+                                                    <Smartphone className="w-5 h-5 text-gray-400 group-hover:text-neon-red transition-colors" />
+                                                </div>
+                                                <span className="text-[11px] font-black text-white uppercase">Réel</span>
+                                                <span className="text-[9px] text-gray-500">1080 × 1920</span>
+                                            </button>
+                                            <button onClick={() => { setActiveTab('PUBLICATION'); setTheme('NEWS'); setShowFormatModal(false); }}
+                                                className="group flex flex-col items-center gap-3 p-6 rounded-3xl border-2 border-white/10 bg-white/5 hover:border-white/30 transition-all">
+                                                <div className="w-16 h-16 rounded-xl border-2 border-white/30 flex items-center justify-center group-hover:border-neon-cyan/60 transition-all" style={{ background: 'linear-gradient(180deg,#1a1a1a,#0a0a0a)' }}>
+                                                    <ImageIcon className="w-6 h-6 text-gray-400 group-hover:text-neon-cyan transition-colors" />
+                                                </div>
+                                                <span className="text-[11px] font-black text-white uppercase">Publication</span>
+                                                <span className="text-[9px] text-gray-500">1080 × 1350</span>
+                                            </button>
                                         </div>
-                                    ))}
-                                </div>
-                            </>
-                        ) : (
-                            <div className="space-y-4">
-                                <span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>
-                                <textarea
-                                    ref={textAreaRef}
-                                    value={customText}
-                                    onSelect={(e) => {
-                                        const t = e.target as HTMLTextAreaElement;
-                                        setSelection({ start: t.selectionStart, end: t.selectionEnd });
-                                    }}
-                                    onChange={e => setCustomText(e.target.value.slice(0, 1100))}
-                                    placeholder="VOTRE TEXTE..."
-                                    className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black uppercase"
-                                />
-                                <p className="text-[9px] text-white/30 italic mt-1 px-4">Les codes comme [C:...] ou [B:...] seront transformés en style sur l'image finale.</p>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <label className="text-[9px] font-black text-gray-500 uppercase">Couleur Texte</label>
-                                        <div className="flex gap-2 items-center">
-                                            <input
-                                                type="color"
-                                                value={textColor}
-                                                onMouseDown={(e) => e.stopPropagation()}
-                                                onChange={e => handleTextStyler('C', e.target.value)}
-                                                className="w-10 h-10 rounded-lg bg-transparent border-none cursor-pointer"
-                                            />
-                                            <span className="text-[10px] font-mono text-white/50">{textColor}</span>
-                                        </div>
+                                        <button onClick={() => setShowFormatModal(false)} className="mt-6 w-full py-3 text-[10px] font-black text-gray-500 uppercase tracking-widest hover:text-white transition-colors">Continuer sans changer</button>
                                     </div>
-                                    <div className="space-y-2">
-                                        <label className="text-[9px] font-black text-gray-500 uppercase">Fond Texte</label>
-                                        <div className="flex gap-2 items-center">
-                                            <input
-                                                type="color"
-                                                value={textBgColor === 'transparent' ? '#000000' : textBgColor}
-                                                onMouseDown={(e) => e.stopPropagation()}
-                                                onChange={e => handleTextStyler('B', e.target.value)}
-                                                className="w-10 h-10 rounded-lg bg-transparent border-none cursor-pointer"
-                                            />
-                                            <button
-                                                onMouseDown={(e) => e.preventDefault()}
-                                                onClick={() => { setTextBgColor('transparent'); setSelection({ start: 0, end: 0 }); }}
-                                                className={`px-2 py-1 rounded-md text-[8px] font-bold uppercase transition-all ${textBgColor === 'transparent' ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}
-                                            >
-                                                Aucun
+                                </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Full-screen canvas */}
+                    <div className="absolute inset-0 flex items-center justify-center bg-black" style={{ paddingBottom: '130px' }}>
+                        <canvas ref={canvasRef} className="max-w-full max-h-full object-contain" style={{ borderRadius: '10px', boxShadow: '0 0 60px rgba(0,0,0,0.9)' }} />
+                    </div>
+
+                    {/* Top bar */}
+                    <div className="absolute top-0 inset-x-0 flex items-center justify-between px-4 pt-4 pb-3 z-20" style={{ background: 'linear-gradient(180deg,rgba(0,0,0,0.7) 0%,transparent 100%)' }}>
+                        <button onClick={onClose} className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all"><X className="w-5 h-5" /></button>
+                        <span className="text-[11px] font-black text-white/50 uppercase tracking-widest italic">SOCIAL STUDIO</span>
+                        <button onClick={() => window.location.href = '/'} className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all"><Home className="w-5 h-5" /></button>
+                    </div>
+
+                    {/* Contextual panels (slide up) */}
+                    <AnimatePresence>
+                        {activePanel && activePanel !== 'export' && (
+                            <motion.div key={activePanel}
+                                initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }}
+                                transition={{ type: 'spring', damping: 26, stiffness: 300 }}
+                                className="absolute inset-x-0 bottom-[130px] z-30 rounded-t-[28px]"
+                                style={{ background: 'linear-gradient(180deg,#161616 0%,#0d0d0d 100%)', borderTop: '1px solid rgba(255,255,255,0.08)', maxHeight: '60vh', overflowY: 'auto' }}>
+                                <div className="flex justify-center pt-3 pb-2"><div className="w-8 h-1 rounded-full bg-white/20" /></div>
+
+                                {activePanel === 'format' && (
+                                    <div className="px-6 pb-8">
+                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Format</p>
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <button onClick={() => { setActiveTab('REEL'); setTheme('TOP 5 ARTISTE'); setActivePanel(null); }}
+                                                className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${activeTab === 'REEL' ? 'border-neon-red/60 bg-neon-red/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
+                                                <Smartphone className={`w-5 h-5 ${activeTab === 'REEL' ? 'text-neon-red' : 'text-gray-400'}`} />
+                                                <div className="text-left"><p className={`text-[11px] font-black uppercase ${activeTab === 'REEL' ? 'text-white' : 'text-gray-400'}`}>Réel</p><p className="text-[9px] text-gray-600">1080×1920</p></div>
+                                                {activeTab === 'REEL' && <Check className="w-4 h-4 text-neon-red ml-auto" />}
+                                            </button>
+                                            <button onClick={() => { setActiveTab('PUBLICATION'); setTheme('NEWS'); setActivePanel(null); }}
+                                                className={`flex items-center gap-3 p-4 rounded-2xl border-2 transition-all ${activeTab === 'PUBLICATION' ? 'border-neon-cyan/60 bg-neon-cyan/10' : 'border-white/10 bg-white/5 hover:border-white/20'}`}>
+                                                <ImageIcon className={`w-5 h-5 ${activeTab === 'PUBLICATION' ? 'text-neon-cyan' : 'text-gray-400'}`} />
+                                                <div className="text-left"><p className={`text-[11px] font-black uppercase ${activeTab === 'PUBLICATION' ? 'text-white' : 'text-gray-400'}`}>Publication</p><p className="text-[9px] text-gray-600">1080×1350</p></div>
+                                                {activeTab === 'PUBLICATION' && <Check className="w-4 h-4 text-neon-cyan ml-auto" />}
                                             </button>
                                         </div>
                                     </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
+                                )}
 
-                    <div className="space-y-4 mt-auto pb-8">
-                        <div className="flex gap-2">
-                            <div className="flex-1 p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowArticleLink(!showArticleLink)}>
-                                <div className="flex items-center gap-2">
-                                    <LinkIcon className="w-3.5 h-3.5 text-gray-500" />
-                                    <span className="text-[9px] font-black text-white uppercase whitespace-nowrap">Lien Article</span>
-                                </div>
-                                <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showArticleLink ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
-                                    {showArticleLink && (
-                                        <motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                        </motion.svg>
-                                    )}
-                                </div>
-                            </div>
-
-                            <div className="flex-1 p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowSwipe(!showSwipe)}>
-                                <div className="flex items-center gap-2">
-                                    <Layout className="w-3.5 h-3.5 text-gray-500" />
-                                    <span className="text-[9px] font-black text-white uppercase">Swipe</span>
-                                </div>
-                                <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showSwipe ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,18,65,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
-                                    {showSwipe && (
-                                        <motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}>
-                                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                        </motion.svg>
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            {activeTab === 'REEL' ? (
-                                <button onClick={startVideoRecording} disabled={isVideoRecording} className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}><Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo Instagram (${theme})`}</button>
-                            ) : (
-                                <div className="space-y-2">
-                                    <div className="grid grid-cols-2 gap-2">
-                                        <button onClick={addVisualToList} className="py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter</button>
-                                        <button onClick={downloadSingle} disabled={isDownloading} className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all"><Download className="w-3.5 h-3.5" /> Télécharger PNG</button>
+                                {activePanel === 'theme' && (
+                                    <div className="px-6 pb-8">
+                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Thème visuel</p>
+                                        {themeButtons}
+                                        {styleMusicButtons && <div className="mt-4">{styleMusicButtons}</div>}
                                     </div>
-                                    <button onClick={startVideoRecording} disabled={isVideoRecording} className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}><Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo Instagram (${theme})`}</button>
+                                )}
+
+                                {activePanel === 'texte' && (
+                                    <div className="px-6 pb-8">
+                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
+                                        {theme.startsWith('TOP 5') ? top5Editor : textEditor}
+                                    </div>
+                                )}
+
+                                {activePanel === 'fond' && (
+                                    <div className="px-6 pb-8">
+                                        <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Fond Visuel</p>
+                                        <div className="space-y-3">
+                                            <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                                <Upload className="w-4 h-4 group-hover:text-neon-red transition-colors" />{bgImage || bgVideo ? 'Modifier le fond' : 'Importer Image/Vidéo'}
+                                            </button>
+                                            <button onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                                <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />Télécharger Vidéo/Photo (URL)
+                                            </button>
+                                            <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+                                        </div>
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Export panel */}
+                    <AnimatePresence>
+                        {activePanel === 'export' && (
+                            <motion.div key="export"
+                                initial={{ y: '100%', opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: '100%', opacity: 0 }}
+                                transition={{ type: 'spring', damping: 26, stiffness: 300 }}
+                                className="absolute inset-x-0 bottom-[130px] z-30 rounded-t-[28px]"
+                                style={{ background: 'linear-gradient(180deg,#161616 0%,#0d0d0d 100%)', borderTop: '1px solid rgba(255,255,255,0.08)' }}>
+                                <div className="flex justify-center pt-3 pb-2"><div className="w-8 h-1 rounded-full bg-white/20" /></div>
+                                <div className="px-6 pb-8">
+                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Exporter</p>
+                                    {exportButtons}
                                 </div>
-                            )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+
+                    {/* Bottom icon bar */}
+                    <div className="absolute bottom-0 inset-x-0 z-40"
+                        style={{ background: 'linear-gradient(0deg,rgba(0,0,0,0.98) 0%,rgba(0,0,0,0.85) 100%)', backdropFilter: 'blur(20px)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                        {/* Quick toggles */}
+                        <div className="flex items-center justify-center gap-3 px-4 pt-2 pb-1">
+                            <button onClick={() => setShowSwipe(!showSwipe)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border ${showSwipe ? 'bg-neon-red/20 border-neon-red/50 text-neon-red' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}>
+                                <Layout className="w-3 h-3" /> Swipe {showSwipe ? 'ON' : 'OFF'}
+                            </button>
+                            <button onClick={() => setShowArticleLink(!showArticleLink)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border ${showArticleLink ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}>
+                                <LinkIcon className="w-3 h-3" /> Lien {showArticleLink ? 'ON' : 'OFF'}
+                            </button>
+                        </div>
+                        {/* Icon buttons */}
+                        <div className="flex items-center justify-around px-2 py-3">
+                            {[
+                                { id: 'format', icon: <Layers className="w-5 h-5" />, label: 'Format' },
+                                { id: 'theme', icon: <Palette className="w-5 h-5" />, label: 'Thème' },
+                                { id: 'texte', icon: <Type className="w-5 h-5" />, label: 'Texte' },
+                                { id: 'fond', icon: <ImageIcon className="w-5 h-5" />, label: 'Fond' },
+                                { id: 'export', icon: <Film className="w-5 h-5" />, label: 'Export' },
+                            ].map(btn => (
+                                <button key={btn.id} onClick={() => togglePanel(btn.id)} className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-2xl transition-all group">
+                                    <div className={`p-2.5 rounded-2xl transition-all ${activePanel === btn.id ? 'bg-white text-black scale-110 shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'text-gray-400 bg-white/5 group-hover:bg-white/10 group-hover:text-white'}`}>
+                                        {btn.icon}
+                                    </div>
+                                    <span className={`text-[8px] font-black uppercase tracking-wide ${activePanel === btn.id ? 'text-white' : 'text-gray-600 group-hover:text-gray-400'}`}>{btn.label}</span>
+                                </button>
+                            ))}
                         </div>
                     </div>
                 </div>
 
-                {/* Modal Downloader */}
-                <AnimatePresence>
-                    {isDownloaderOpen && (
-                        <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/90 backdrop-blur-2xl">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden h-[80vh] flex flex-col"
-                            >
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-blue-500 to-neon-purple" />
+            )} {/* end isMobile ternary */}
 
-                                <div className="flex justify-between items-start mb-10">
-                                    <div>
-                                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Import <span className="text-neon-cyan">Social</span>
-                                        </h2>
-                                        <p className="text-gray-400 font-medium">Copiez un lien Instagram, TikTok ou YouTube</p>
-                                    </div>
-                                    <button
-                                        onClick={() => setIsDownloaderOpen(false)}
-                                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
-                                    >
-                                        <X className="w-6 h-6" />
-                                    </button>
-                                </div>
-
-                                <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                    <Downloader
-                                        isPopup={true}
-                                        onSelect={(url) => {
-                                            const isVideo = url.includes('.mp4') ||
-                                                url.includes('.mov') ||
-                                                url.includes('.webm') ||
-                                                url.includes('video') ||
-                                                url.includes('googlevideo') ||
-                                                url.includes('play') || // TikWM
-                                                url.includes('tiktok');
-
-                                            if (isVideo) {
-                                                const video = document.createElement('video');
-                                                video.src = url;
-                                                video.crossOrigin = "anonymous";
-                                                video.onloadeddata = () => {
-                                                    setBgVideo(video);
-                                                    setBgImage('');
-                                                };
-                                                video.onerror = () => {
-                                                    // Fallback to image if video fails to load
-                                                    setBgImage(url);
-                                                    setBgVideo(null);
-                                                };
-                                            } else {
-                                                setBgImage(url);
-                                                setBgVideo(null);
-                                            }
-                                            setIsDownloaderOpen(false);
-                                        }}
-                                    />
-                                </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
-            </motion.div>
-
+            {/* Shared downloader modal (visible on both) */}
+            {downloaderModal}
         </motion.div>
     );
 }
+
