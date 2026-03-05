@@ -138,7 +138,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
         'RECAP': { label: 'RECAP', grad: '189, 0, 255', color: '#bd00ff' },
         'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' },
-        'LIVE TAKEOVER': { label: 'LIVE TAKEOVER', grad: '255, 0, 255', color: '#ff00ff' }
+        'LIVE TAKEOVER': { label: 'LIVE TAKEOVER', grad: '255, 0, 180', color: '#ff00b4' }
     };
 
     useEffect(() => {
@@ -356,6 +356,53 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120); // Descendu dans le dégradé
 
+            } else if (theme === 'LIVE TAKEOVER') {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                // Neon Ring Background
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.shadowColor = activeData.color;
+                ctx.shadowBlur = 60;
+                ctx.strokeStyle = activeData.color;
+                ctx.lineWidth = 15;
+                ctx.beginPath();
+                ctx.arc(0, 0, 350, 0, Math.PI * 2);
+                ctx.stroke();
+
+                // Pulse effect
+                ctx.globalAlpha = 0.3;
+                ctx.lineWidth = 40;
+                ctx.beginPath();
+                ctx.arc(0, 0, 380, 0, Math.PI * 2);
+                ctx.stroke();
+                ctx.restore();
+
+                // Upper text: "TAKEOVER" (Large, Italic, Outlined)
+                ctx.textAlign = 'center';
+                ctx.font = '900 italic 160px "Inter", sans-serif';
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 4;
+                ctx.strokeText('TAKEOVER', centerX, centerY - 80);
+
+                // Bottom text: "LIVE" (Solid, Neon)
+                ctx.fillStyle = activeData.color;
+                ctx.shadowColor = activeData.color;
+                ctx.shadowBlur = 30;
+                ctx.fillText('LIVE', centerX, centerY + 80);
+
+                // Custom text handling for live details (Artist, Hour)
+                if (customText) {
+                    ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '900 italic 50px "Inter", sans-serif';
+                    const lines = customText.toUpperCase().split('\n');
+                    lines.forEach((line, i) => {
+                        ctx.fillText(line, centerX, centerY + 240 + (i * 65));
+                    });
+                }
+
             } else {
                 const fontSize = activeTab === 'PUBLICATION' ? 55 : 78; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
@@ -552,6 +599,29 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.shadowColor = 'rgba(0,0,0,0.8)';
                 ctx.shadowBlur = 10;
                 ctx.fillText('ARTICLE COMPLET À LIRE SUR DROPSIDERS.FR', 40, canvas.height - 10);
+                ctx.restore();
+            }
+
+            if (theme === 'LIVE TAKEOVER') {
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'bottom';
+                ctx.font = '900 italic 38px "Inter", sans-serif';
+                ctx.fillStyle = '#fff';
+
+                // Glowing bar for CTA
+                const text = 'REJOIGNEZ LE LIVE SUR DROPSIDERS.FR/LIVE';
+                const tw = ctx.measureText(text).width + 80;
+                ctx.fillStyle = `rgba(${activeData.grad}, 0.8)`;
+                ctx.shadowColor = activeData.color;
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.roundRect((canvas.width - tw) / 2, canvas.height - 90, tw, 60, 15);
+                ctx.fill();
+
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = '#000';
+                ctx.fillText(text, canvas.width / 2, canvas.height - 45);
                 ctx.restore();
             }
 
@@ -797,13 +867,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 <div className="grid grid-cols-2 gap-2">
                     <button onClick={addVisualToList} className="py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter</button>
                     <button onClick={downloadSingle} disabled={isDownloading} className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all">
-                        {!isMobile && <Download className="w-3.5 h-3.5" />} Télécharger PNG
+                        <Download className="w-3.5 h-3.5" /> Télécharger PNG
                     </button>
                 </div>
             )}
             <button onClick={startVideoRecording} disabled={isVideoRecording}
                 className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}>
-                {!isMobile && <Video className="w-4 h-4" />} {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo Instagram (${theme})`}
+                <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo Instagram (${theme})`}
             </button>
         </div>
     );
