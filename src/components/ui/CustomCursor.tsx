@@ -123,51 +123,35 @@ export function CustomCursor() {
                 }}
                 className="relative w-full h-full"
             >
-                {/* USB Key Stylized Cursor (50% smaller and slimmer) */}
-                <div className="absolute inset-0 flex items-center justify-center scale-50">
+                {/* Standard Neon Arrow/Dot Cursor (Premium & Clean) */}
+                <div className="absolute inset-0 flex items-center justify-center">
                     <motion.div
                         animate={{
-                            rotate: isHovering ? 45 : 0,
-                            scale: isHovering ? 1.1 : 1
+                            scale: isHovering ? 1.5 : 1,
                         }}
                         className="relative w-full h-full flex items-center justify-center"
                     >
-                        {/* USB Metal Head - Silver */}
+                        {/* Center Dot */}
                         <div
-                            className={`absolute top-0 w-[30%] h-[30%] border-2 rounded-t-sm transition-all duration-300 ${isHovering ? 'bg-opacity-20 shadow-lg' : 'border-white/60 bg-white/40'}`}
+                            className="w-2 h-2 rounded-full transition-all duration-300"
                             style={{
-                                borderColor: isHovering ? hoverColor : undefined,
-                                backgroundColor: isHovering ? `${hoverColor}33` : undefined,
-                                boxShadow: isHovering ? `0 0 10px ${hoverColor}80` : undefined
+                                backgroundColor: isHovering ? hoverColor : '#FFFFFF',
+                                boxShadow: `0 0 10px ${isHovering ? hoverColor : 'rgba(255,255,255,0.5)'}`
                             }}
                         />
 
-                        {/* USB Body - White */}
-                        <div
-                            className={`absolute top-[30%] w-[45%] h-[60%] rounded-b-md border-2 transition-all duration-300 ${isHovering ? 'bg-white shadow-lg' : 'border-white/40 bg-white'}`}
-                            style={{
-                                borderColor: isHovering ? hoverColor : undefined,
-                                boxShadow: isHovering ? `0 0 15px ${hoverColor}4D` : undefined
+                        {/* Outer Ring */}
+                        <motion.div
+                            animate={{
+                                scale: isHovering ? 1.2 : 1,
+                                opacity: isHovering ? 1 : 0.3
                             }}
-                        >
-                            {/* Tiny details on USB body */}
-                            <div
-                                className={`absolute top-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full ${isHovering ? 'animate-pulse' : 'bg-black/20'}`}
-                                style={{ backgroundColor: isHovering ? hoverColor : undefined }}
-                            />
-                        </div>
-
-                        {/* Connection pins inside head */}
-                        <div className="absolute top-[5%] w-[20%] h-[15%] flex justify-between px-0.5">
-                            <div
-                                className={`w-[25%] h-full rounded-full ${isHovering ? '' : 'bg-black/20'}`}
-                                style={{ backgroundColor: isHovering ? hoverColor : undefined }}
-                            />
-                            <div
-                                className={`w-[25%] h-full rounded-full ${isHovering ? '' : 'bg-black/20'}`}
-                                style={{ backgroundColor: isHovering ? hoverColor : undefined }}
-                            />
-                        </div>
+                            className="absolute w-5 h-5 border rounded-full"
+                            style={{
+                                borderColor: isHovering ? hoverColor : '#FFFFFF',
+                                boxShadow: isHovering ? `0 0 15px ${hoverColor}` : 'none'
+                            }}
+                        />
                     </motion.div>
                 </div>
 
