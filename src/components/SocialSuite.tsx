@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Download, Upload, PlusCircle,
     Video, Layout, Smartphone, Image as ImageIcon,
-    Home, Link as LinkIcon, Palette, Type, Film, ChevronDown,
+    Home, Link as LinkIcon, Palette, Type, Film,
     Check, Layers
 } from 'lucide-react';
 import { Downloader } from '../pages/Downloader';
