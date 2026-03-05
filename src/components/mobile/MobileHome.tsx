@@ -1,9 +1,8 @@
 import { Link } from 'react-router-dom';
-import { Newspaper, ArrowRight, TrendingUp, Star, Calendar, Play, MapPin, Share2, Heart, MessageCircle } from 'lucide-react';
+import { Newspaper, TrendingUp, Star, Calendar, MapPin } from 'lucide-react';
 import newsData from '../../data/news.json';
 import agendaData from '../../data/agenda.json';
-import recapsData from '../../data/recaps.json';
-import { getArticleLink, getAgendaLink, getRecapLink } from '../../utils/slugify';
+import { getArticleLink, getAgendaLink } from '../../utils/slugify';
 import { useLanguage } from '../../context/LanguageContext';
 import { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -40,12 +39,6 @@ export function MobileHome() {
                 return dateA - dateB;
             })
             .slice(0, 8);
-    }, []);
-
-    const recentRecaps = useMemo(() => {
-        return [...recapsData]
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-            .slice(0, 6);
     }, []);
 
     const containerVariants = {
@@ -139,19 +132,20 @@ export function MobileHome() {
                         <Link
                             key={event.id}
                             to={getAgendaLink(event)}
-                            className="min-w-[150px] bg-white/[0.03] border border-white/10 rounded-[2rem] p-5 snap-start active:bg-white/10 transition-colors relative overflow-hidden"
+                            className="min-w-[260px] bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-6 snap-start active:bg-white/10 transition-colors relative overflow-hidden shadow-2xl"
                         >
-                            <div className="absolute top-0 right-0 w-12 h-12 bg-neon-cyan/10 blur-2xl rounded-full" />
-                            <div className="text-neon-cyan text-[10px] font-black mb-1.5 flex items-center gap-1.5">
-                                <div className="w-1 h-1 bg-neon-cyan rounded-full animate-pulse" />
+                            <div className="absolute top-0 right-0 w-16 h-16 bg-neon-cyan/10 blur-2xl rounded-full" />
+                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-neon-cyan/5 blur-3xl rounded-full" />
+                            <div className="text-neon-cyan text-[11px] font-black mb-2 flex items-center gap-2 relative z-10">
+                                <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
                                 {new Date(event.date || event.startDate || 0).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: '2-digit', month: 'short' }).toUpperCase()}
                             </div>
-                            <h3 className="text-[10px] font-black text-white line-clamp-2 uppercase italic mb-3 leading-tight tracking-tight">
+                            <h3 className="text-sm md:text-base font-black text-white uppercase italic mb-4 leading-tight relative z-10">
                                 {event.title}
                             </h3>
-                            <div className="flex items-center gap-1.5 text-gray-500">
-                                <MapPin className="w-2.5 h-2.5 text-neon-cyan" />
-                                <span className="text-[8px] font-black uppercase truncate">{event.location}</span>
+                            <div className="flex items-center gap-2 text-gray-500 relative z-10">
+                                <MapPin className="w-3.5 h-3.5 text-neon-cyan" />
+                                <span className="text-[10px] font-black uppercase truncate">{event.location}</span>
                             </div>
                         </Link>
                     ))}
@@ -159,97 +153,40 @@ export function MobileHome() {
                 </div>
             </motion.section>
 
-            {/* Social Feed - TikTok style */}
-            <motion.section variants={itemVariants} className="bg-white/[0.02] py-10 border-y border-white/5">
-                <div className="mobile-safe-container mb-8">
-                    <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
-                        <Star className="w-4 h-4 text-neon-pink animate-spin-slow" />
-                        DROPSIDERS SOCIAL
-                    </h2>
-                    <p className="text-[9px] text-gray-600 font-bold uppercase tracking-wider mt-1">Les meilleurs moments en plein écran</p>
-                </div>
-                <div className="flex gap-6 overflow-x-auto px-5 snap-x snap-mandatory no-scrollbar pb-4">
-                    {recentRecaps.map((recap, idx) => (
-                        <div
-                            key={recap.id}
-                            className="min-w-[280px] aspect-[9/16] relative rounded-[3rem] overflow-hidden snap-center shadow-2xl group border border-white/10"
-                        >
-                            <img src={recap.image} className="absolute inset-0 w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-700" alt="" />
-                            <div className="absolute inset-0 bg-gradient-to-b from-black/20 via-transparent to-black/80" />
-
-                            {/* Overlay Interaction Buttons */}
-                            <div className="absolute right-4 bottom-24 flex flex-col gap-6 items-center">
-                                <button className="flex flex-col items-center gap-1 group/act">
-                                    <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center active:scale-90 transition-all">
-                                        <Heart className="w-6 h-6 text-white group-hover/act:text-neon-red group-hover/act:fill-neon-red" />
-                                    </div>
-                                    <span className="text-[8px] font-black text-white/60">{(1.2 + idx * 0.4).toFixed(1)}K</span>
-                                </button>
-                                <button className="flex flex-col items-center gap-1">
-                                    <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center active:scale-90 transition-all">
-                                        <MessageCircle className="w-6 h-6 text-white" />
-                                    </div>
-                                    <span className="text-[8px] font-black text-white/60">{42 + idx * 12}</span>
-                                </button>
-                                <button className="flex flex-col items-center gap-1">
-                                    <div className="w-12 h-12 rounded-full bg-black/40 backdrop-blur-md border border-white/10 flex items-center justify-center active:scale-90 transition-all">
-                                        <Share2 className="w-6 h-6 text-white" />
-                                    </div>
-                                </button>
-                            </div>
-
-                            {/* Content Info */}
-                            <Link to={getRecapLink(recap)} className="absolute bottom-6 left-6 right-20">
-                                <div className="flex items-center gap-2 mb-2">
-                                    <div className="w-7 h-7 rounded-lg bg-neon-purple/20 border border-neon-purple/30 flex items-center justify-center">
-                                        <Play className="w-3 h-3 text-neon-purple fill-neon-purple" />
-                                    </div>
-                                    <span className="text-[9px] font-black text-neon-purple tracking-widest uppercase">REC’ 2025</span>
-                                </div>
-                                <h3 className="text-sm font-display font-black text-white uppercase italic leading-tight line-clamp-2">
-                                    {recap.title}
-                                </h3>
-                            </Link>
-                        </div>
-                    ))}
-                </div>
-            </motion.section>
-
             {/* 4. The Feed - List News */}
-            <motion.section variants={itemVariants} className="mobile-safe-container">
-                <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 mb-8 flex items-center gap-2.5">
-                    <Newspaper className="w-4 h-4 text-neon-red" />
-                    ACTUALITÉS RÉCENTES
-                </h2>
-                <div className="grid grid-cols-2 gap-5">
+            <motion.section variants={itemVariants} className="pt-8 border-t border-white/5">
+                <div className="mobile-safe-container mb-5 flex items-center justify-between">
+                    <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
+                        <Newspaper className="w-4 h-4 text-neon-red shadow-[0_0_10px_rgba(255,0,51,0.5)]" />
+                        ACTUALITÉS RÉCENTES
+                    </h2>
+                    <Link to="/news" className="text-[10px] font-black uppercase tracking-widest text-neon-red px-2 py-1 rounded-lg hover:bg-neon-red/10 transition-colors">Tout voir</Link>
+                </div>
+                <div className="flex gap-4 overflow-x-auto px-5 scrollbar-hide snap-x no-scrollbar">
                     {hotNews.map((news) => (
                         <Link
                             key={news.id}
                             to={getArticleLink(news)}
-                            className="flex flex-col bg-white/[0.03] border border-white/5 rounded-[2.5rem] active:bg-white/10 transition-all shadow-xl overflow-hidden group"
+                            className="min-w-[280px] flex flex-col bg-white/[0.03] border border-white/5 rounded-[3rem] active:bg-white/10 transition-all shadow-2xl overflow-hidden group snap-center"
                         >
-                            <div className="h-40 overflow-hidden shrink-0 bg-black/40 relative">
-                                <img src={news.image} className="w-full h-full object-cover group-active:scale-110 transition-transform duration-700" alt="" />
-                                <div className="absolute top-4 left-4 px-3 py-1 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl">
-                                    <span className="text-[8px] font-black text-neon-red uppercase tracking-wider">{news.category}</span>
+                            <div className="h-56 overflow-hidden shrink-0 bg-black/40 relative">
+                                <img src={news.image} className="w-full h-full object-cover group-active:scale-105 transition-transform duration-700" alt="" />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
+                                <div className="absolute top-4 left-4 px-4 py-1.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl shadow-lg">
+                                    <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
                                 </div>
                             </div>
-                            <div className="p-5 flex flex-col gap-2">
-                                <h3 className="text-[11px] font-black text-white uppercase italic leading-tight line-clamp-2 min-h-[2.2em]">{news.title}</h3>
-                                <div className="flex items-center gap-1.5 text-gray-600">
-                                    <div className="w-1 h-1 bg-gray-600 rounded-full" />
-                                    <span className="text-[8px] font-bold uppercase tracking-wider">{news.date}</span>
+                            <div className="p-6 flex flex-col gap-3">
+                                <h3 className="text-lg font-display font-black text-white uppercase italic leading-tight">{news.title}</h3>
+                                <div className="flex items-center gap-2 text-gray-500 mt-1">
+                                    <div className="w-1.5 h-1.5 bg-gray-500 rounded-full" />
+                                    <span className="text-[10px] font-bold uppercase tracking-widest">{news.date}</span>
                                 </div>
                             </div>
                         </Link>
                     ))}
+                    <div className="min-w-[20px] shrink-0" />
                 </div>
-                <Link
-                    to="/news"
-                    className="mt-10 w-full py-5 bg-white/[0.03] border border-white/10 rounded-2xl flex items-center justify-center gap-4 text-[11px] font-black uppercase tracking-[0.25em] text-white active:scale-95 transition-all shadow-xl group"
-                >
-                    Toutes les actualités <ArrowRight className="w-4 h-4 text-neon-red group-hover:translate-x-1 transition-transform" />
-                </Link>
             </motion.section>
 
             {/* 5. Premium CTA */}
