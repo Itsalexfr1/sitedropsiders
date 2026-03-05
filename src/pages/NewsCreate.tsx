@@ -289,28 +289,34 @@ export function NewsCreate() {
 
     // Auto-location effect
     useEffect(() => {
+        if (isEditing && initialDataLoaded.current && country) return;
+        if ((!locationInput || locationInput.length < 2) && (!title || title.length < 3)) return;
+
+        const searchText = title && title.length >= 3 ? `${title} ${locationInput}` : locationInput;
+        if (searchText.length < 3) return;
+
         const timeoutId = setTimeout(async () => {
-            if (locationInput && locationInput.length >= 3 && !country) {
-                setIsAutoLocating(true);
-                try {
-                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationInput)}&limit=1`);
-                    const data = await response.json();
-                    if (data && data[0]) {
-                        const displayName = data[0].display_name;
-                        const parts = displayName.split(', ');
-                        const countryName = parts[parts.length - 1];
-                        setCountry(countryName);
-                    }
-                } catch (error: any) {
-                    console.error('Auto-location error:', error);
-                } finally {
-                    setIsAutoLocating(false);
+            setIsAutoLocating(true);
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchText)}&limit=1&accept-language=fr`);
+                const data = await response.json();
+                if (data && data[0]) {
+                    const displayName = data[0].display_name;
+                    const parts = displayName.split(', ');
+                    const countryName = parts[parts.length - 1];
+                    const cityName = parts[0].trim();
+                    if (countryName) setCountry(countryName.toUpperCase());
+                    if (!locationInput && cityName) setLocationInput(cityName.toUpperCase());
                 }
+            } catch (error: any) {
+                console.error('Auto-location error:', error);
+            } finally {
+                setIsAutoLocating(false);
             }
-        }, 1000);
+        }, 1200);
 
         return () => clearTimeout(timeoutId);
-    }, [locationInput]);
+    }, [locationInput, title]);
 
     // Widget System State
     const [widgets, setWidgets] = useState<{ id: string, content: string }[]>(() => {

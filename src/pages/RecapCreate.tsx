@@ -247,28 +247,34 @@ export function RecapCreate() {
 
     // Auto-location effect
     useEffect(() => {
+        if (isEditing && initialDataLoaded.current && country) return;
+        if ((!locationInput || locationInput.length < 2) && (!festival || festival.length < 3)) return;
+
+        const searchText = festival && festival.length >= 3 ? `${festival} ${locationInput}` : locationInput;
+        if (searchText.length < 3) return;
+
         const timeoutId = setTimeout(async () => {
-            if (locationInput && locationInput.length >= 3 && !country) {
-                setIsAutoLocating(true);
-                try {
-                    const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationInput)}&limit=1`);
-                    const data = await response.json();
-                    if (data && data[0]) {
-                        const displayName = data[0].display_name;
-                        const parts = displayName.split(', ');
-                        const countryName = parts[parts.length - 1];
-                        setCountry(countryName);
-                    }
-                } catch (error: any) {
-                    console.error('Auto-location error:', error);
-                } finally {
-                    setIsAutoLocating(false);
+            setIsAutoLocating(true);
+            try {
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchText)}&limit=1&accept-language=fr`);
+                const data = await response.json();
+                if (data && data[0]) {
+                    const displayName = data[0].display_name;
+                    const parts = displayName.split(', ');
+                    const countryName = parts[parts.length - 1];
+                    const cityName = parts[0].trim();
+                    if (countryName) setCountry(countryName.toUpperCase());
+                    if (!locationInput && cityName) setLocationInput(cityName.toUpperCase());
                 }
+            } catch (error: any) {
+                console.error('Auto-location error:', error);
+            } finally {
+                setIsAutoLocating(false);
             }
-        }, 1000);
+        }, 1200);
 
         return () => clearTimeout(timeoutId);
-    }, [locationInput]);
+    }, [locationInput, festival]);
 
     const [mediaModal, setMediaModal] = useState<{ show: boolean, type: 'image' | 'gallery' | 'video', url: string, urls: string, aspectRatio?: string, widgetId?: string }>({ show: false, type: 'image', url: '', urls: '', aspectRatio: 'auto' });
     const [showUploadModal, setShowUploadModal] = useState(false);

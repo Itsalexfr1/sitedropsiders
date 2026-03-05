@@ -331,7 +331,11 @@ export function AdminManage() {
     const handleToggleFeatured = async (item: any) => {
         try {
             const newStatus = !item.isFeatured;
-            const endpoint = activeTab === 'Recaps' ? '/api/recaps/update' : '/api/news/update';
+            let endpoint = '';
+            if (activeTab === 'Recaps') endpoint = '/api/recaps/update';
+            else if (activeTab === 'Communauté') endpoint = '/api/galerie/update';
+            else endpoint = '/api/news/update';
+
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: getAuthHeaders(),
@@ -339,7 +343,12 @@ export function AdminManage() {
             });
 
             if (response.ok) {
-                setItems(items.map(i => i.id === item.id ? { ...i, isFeatured: newStatus } : i));
+                setItems(prev => prev.map(i => {
+                    if (i.id === item.id) return { ...i, isFeatured: newStatus };
+                    // If we just featured this item, any other featured item in the list should lose its status
+                    if (newStatus && i.isFeatured) return { ...i, isFeatured: false };
+                    return i;
+                }));
             }
         } catch (e: any) {
             console.error('Error toggling featured:', e);
@@ -359,7 +368,7 @@ export function AdminManage() {
             });
 
             if (response.ok) {
-                setItems(items.map(i => i.id === activePhotoId ? { ...i, image: newImageUrl } : i));
+                setItems(prev => prev.map(i => i.id === activePhotoId ? { ...i, image: newImageUrl } : i));
                 setIsImageModalOpen(false);
             }
         } catch (e: any) {

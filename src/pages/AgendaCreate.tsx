@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useLocation, useSearchParams, useBlocker } from 'react-router-dom';
-import { Calendar, MapPin, Tag, Image as ImageIcon, Link as LinkIcon, ArrowLeft, Send, AlertCircle, Music, FileText, Globe } from 'lucide-react';
+import { Calendar, MapPin, Tag, Image as ImageIcon, Link as LinkIcon, ArrowLeft, Send, AlertCircle, FileText, Globe, Upload } from 'lucide-react';
 import { getAuthHeaders } from '../utils/auth';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
@@ -19,7 +19,7 @@ export function AgendaCreate() {
 
     const [title, setTitle] = useState('');
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0]);
-    const [endDate, setEndDate] = useState(new Date().toISOString().split('T')[0]);
+    const [endDate, setEndDate] = useState('');
     const [venue, setVenue] = useState(editingItem?.venue || '');
     const [locationInput, setLocationInput] = useState(editingItem?.location || '');
     const [country, setCountry] = useState(editingItem?.country || '');
@@ -29,6 +29,7 @@ export function AgendaCreate() {
     const [url, setUrl] = useState('');
     const [genre, setGenre] = useState(''); // Empty by default - user must choose
     const [isWeekly, setIsWeekly] = useState(false);
+    const [isMultiDay, setIsMultiDay] = useState(false);
     const [isSoldOut, setIsSoldOut] = useState(false);
     const [isLiveDropsiders, setIsLiveDropsiders] = useState(false);
     const [showUploadModal, setShowUploadModal] = useState(false);
@@ -55,11 +56,10 @@ export function AgendaCreate() {
         // From agenda
         (agendaData as any[]).forEach(item => {
             if (item.location) {
-                const parts = item.location.split(',');
-                const city = parts[0].trim();
-                const countryPart = parts.length > 1 ? parts[1].trim() : '';
+                const city = item.location.split(',')[0].trim();
+                const countryVal = item.country || (item.location.split(',').length > 1 ? item.location.split(',')[1].trim() : '');
                 if (city && !locations.has(city.toLowerCase())) {
-                    locations.set(city.toLowerCase(), countryPart);
+                    locations.set(city.toLowerCase(), countryVal);
                 }
             }
         });
@@ -116,6 +116,7 @@ export function AgendaCreate() {
                             setUrl(item.url);
                             setGenre(item.genre || 'Big Room');
                             setIsWeekly(item.isWeekly || false);
+                            setIsMultiDay(item.endDate && item.endDate !== (item.startDate || item.date) && !item.isWeekly);
                             setIsSoldOut(item.isSoldOut || false);
                             setIsLiveDropsiders(item.isLiveDropsiders || false);
                         }
@@ -138,7 +139,8 @@ export function AgendaCreate() {
         if (isEditing && editingItem) {
             setTitle(editingItem.title);
             setStartDate(editingItem.startDate || editingItem.date);
-            setEndDate(editingItem.endDate || editingItem.date || new Date().toISOString().split('T')[0]);
+            setEndDate(editingItem.endDate || editingItem.date || '');
+            setIsMultiDay(editingItem.endDate && editingItem.endDate !== (editingItem.startDate || editingItem.date) && !editingItem.isWeekly);
             setVenue(editingItem.venue || '');
             setLocationInput(editingItem.location || '');
             setCountry(editingItem.country || '');
@@ -175,24 +177,31 @@ export function AgendaCreate() {
         if (initialDataLoaded.current) {
             setIsDirty(true);
         }
-    }, [title, startDate, endDate, venue, locationInput, country, type, imageUrl, url, genre, isWeekly, isSoldOut, isLiveDropsiders]);
+    }, [title, startDate, endDate, venue, locationInput, country, type, imageUrl, url, genre, isWeekly, isMultiDay, isSoldOut, isLiveDropsiders]);
 
     // Autolocation Logic
     useEffect(() => {
-        if (!locationInput || locationInput.length < 3) return;
+        if ((!locationInput || locationInput.length < 2) && (!venue || venue.length < 3)) return;
+
+        const searchText = venue && venue.length >= 3 ? `${venue} ${locationInput}` : locationInput;
+        if (searchText.length < 3) return;
 
         const timer = setTimeout(async () => {
             setIsAutoLocating(true);
             try {
-                const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(locationInput)}&format=json&limit=1&accept-language=fr`);
+                const response = await fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(searchText)}&format=json&limit=1&accept-language=fr`);
                 if (response.ok) {
                     const data = await response.json();
                     if (data && data.length > 0) {
                         const displayName = data[0].display_name;
                         const parts = displayName.split(',');
                         const detectedCountry = parts[parts.length - 1].trim();
+                        const detectedCity = parts[0].trim();
                         if (detectedCountry) {
                             setCountry(detectedCountry);
+                        }
+                        if (!locationInput && detectedCity) {
+                            setLocationInput(detectedCity.toUpperCase());
                         }
                     }
                 }
@@ -204,7 +213,7 @@ export function AgendaCreate() {
         }, 1200);
 
         return () => clearTimeout(timer);
-    }, [locationInput]);
+    }, [locationInput, venue]);
 
 
 
@@ -282,7 +291,8 @@ export function AgendaCreate() {
                 setTitle('');
                 const now = new Date().toISOString().split('T')[0];
                 setStartDate(now);
-                setEndDate(now);
+                setEndDate('');
+                setIsMultiDay(false);
                 setVenue('');
                 setLocationInput('');
                 setCountry('');
@@ -371,51 +381,182 @@ export function AgendaCreate() {
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Dates */}
-                            <div className="space-y-2">
-                                <div className="flex items-center justify-between">
-                                    <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Date de début <span className="text-neon-red">*</span></label>
-                                    <button
-                                        type="button"
-                                        onClick={() => setStartDate(new Date().toISOString().split('T')[0])}
-                                        className="text-[9px] font-black text-neon-yellow hover:text-white uppercase tracking-widest transition-colors"
-                                    >
-                                        Aujourd'hui
-                                    </button>
-                                </div>
-                                <div className="relative group">
-                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6 bg-white/5 border border-white/10 rounded-2xl relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-1 h-full bg-neon-yellow" />
+
+                            {/* Section: Dates */}
+                            <div className="space-y-4">
+                                <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                    <Calendar className="w-3 h-3 text-neon-yellow" /> Calendrier
+                                </h3>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Date de début</label>
                                     <input
                                         type="date"
                                         value={startDate}
                                         onChange={(e) => setStartDate(e.target.value)}
-                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all"
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:border-neon-yellow outline-none transition-all"
                                         required
                                     />
                                 </div>
+
+                                {type !== 'Résidence' && (
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Type de durée</label>
+                                        <div className="flex gap-2 p-1 bg-black/40 rounded-xl border border-white/5">
+                                            <button
+                                                type="button"
+                                                onClick={() => { setIsMultiDay(false); if (!isWeekly) setEndDate(''); }}
+                                                className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${!isMultiDay && !isWeekly ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                1 Jour
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => { setIsMultiDay(true); setIsWeekly(false); }}
+                                                className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase transition-all ${isMultiDay ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                Plusieurs Jours
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {(isMultiDay || isWeekly) && (
+                                    <motion.div
+                                        initial={{ opacity: 0, y: -10 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        className="space-y-2"
+                                    >
+                                        <label className="text-[10px] font-bold text-neon-red uppercase tracking-widest">Date de fin {(isMultiDay || isWeekly) && '*'}</label>
+                                        <input
+                                            type="date"
+                                            value={endDate}
+                                            onChange={(e) => setEndDate(e.target.value)}
+                                            className="w-full bg-black/40 border border-neon-red/30 rounded-xl py-3 px-4 text-white focus:border-neon-red outline-none transition-all"
+                                            required={isMultiDay || isWeekly}
+                                        />
+                                    </motion.div>
+                                )}
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Date de fin</label>
-                                <div className="relative group">
-                                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
-                                    <input
-                                        type="date"
-                                        value={endDate}
-                                        onChange={(e) => setEndDate(e.target.value)}
-                                        className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all"
-                                    />
+                            {/* Section: Type & Genre */}
+                            <div className="space-y-4">
+                                <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                    <Tag className="w-3 h-3 text-neon-cyan" /> Catégorie
+                                </h3>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Type d'Événement</label>
+                                    <select
+                                        value={type}
+                                        onChange={(e) => {
+                                            const val = e.target.value;
+                                            setType(val);
+                                            if (val === 'Résidence') {
+                                                setIsWeekly(true);
+                                                setIsMultiDay(false);
+                                            } else {
+                                                setIsWeekly(false);
+                                            }
+                                        }}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white outline-none appearance-none cursor-pointer"
+                                    >
+                                        <option value="Festival">Festival</option>
+                                        <option value="Showcase">Showcase</option>
+                                        <option value="Résidence">Résidence</option>
+                                        <option value="Opening">Opening</option>
+                                        <option value="Events">Events</option>
+                                        <option value="Live Take Over">LIVE TAKE OVER</option>
+                                    </select>
                                 </div>
+
+                                <div className="space-y-2">
+                                    <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Genre Musical</label>
+                                    <select
+                                        value={genre}
+                                        onChange={(e) => setGenre(e.target.value)}
+                                        required
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white outline-none appearance-none cursor-pointer"
+                                    >
+                                        <option value="" disabled>-- Choisir --</option>
+                                        <option value="Big Room">Big Room</option>
+                                        <option value="Tech House">Tech House</option>
+                                        <option value="Techno">Techno</option>
+                                        <option value="Melodic Techno">Melodic Techno</option>
+                                        <option value="Trance">Trance</option>
+                                        <option value="Progressive House">Progressive House</option>
+                                        <option value="Multi Styles">Multi Styles</option>
+                                        <option value="Hybride">Hybride</option>
+                                        <option value="Hardstyle">Hardstyle</option>
+                                        <option value="Drum & Bass">Drum & Bass</option>
+                                        <option value="House">House</option>
+                                        <option value="Hardcore">Hardcore</option>
+                                        <option value="HardTechno">HardTechno</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            {/* Section: Options Spécifiques */}
+                            <div className="space-y-4">
+                                <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-2">
+                                    <AlertCircle className="w-3 h-3 text-neon-red" /> Options Vidéo/Res
+                                </h3>
+
+                                <label className={`flex items-center gap-3 cursor-pointer p-4 border rounded-xl transition-all ${isWeekly ? 'bg-neon-yellow/10 border-neon-yellow/50 text-neon-yellow' : 'bg-black/40 border-white/10 text-gray-400'}`}>
+                                    <input
+                                        type="checkbox"
+                                        checked={isWeekly}
+                                        onChange={(e) => {
+                                            setIsWeekly(e.target.checked);
+                                            if (e.target.checked) {
+                                                setType('Résidence');
+                                                setIsMultiDay(false);
+                                            }
+                                        }}
+                                        className="w-5 h-5 rounded bg-dark-bg text-neon-yellow focus:ring-neon-yellow transition-all"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Cocher comme Résidence</span>
+                                        <span className="text-[8px] opacity-70 italic lowercase">Génère les events par semaine</span>
+                                    </div>
+                                </label>
+
+                                <label className={`flex items-center gap-3 cursor-pointer p-4 border rounded-xl transition-all ${isLiveDropsiders ? 'bg-neon-cyan/10 border-neon-cyan/50 text-neon-cyan' : 'bg-black/40 border-white/10 text-gray-400'}`}>
+                                    <input
+                                        type="checkbox"
+                                        checked={isLiveDropsiders}
+                                        onChange={(e) => setIsLiveDropsiders(e.target.checked)}
+                                        className="w-5 h-5 rounded bg-dark-bg text-neon-cyan focus:ring-neon-cyan transition-all"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Diffusé sur Dropsiders</span>
+                                        <span className="text-[8px] opacity-70 italic lowercase">LIVE TAKEOVER</span>
+                                    </div>
+                                </label>
+
+                                <label className={`flex items-center gap-3 cursor-pointer p-4 border rounded-xl transition-all ${isSoldOut ? 'bg-red-500/10 border-red-500/50 text-red-500' : 'bg-black/40 border-white/10 text-gray-400'}`}>
+                                    <input
+                                        type="checkbox"
+                                        checked={isSoldOut}
+                                        onChange={(e) => setIsSoldOut(e.target.checked)}
+                                        className="w-5 h-5 rounded bg-dark-bg text-red-500 focus:ring-neon-red transition-all"
+                                    />
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-black uppercase tracking-widest">Sold Out</span>
+                                        <span className="text-[8px] opacity-70 italic lowercase">Plus de tickets</span>
+                                    </div>
+                                </label>
                             </div>
                         </div>
 
-                        {/* Location & Country */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        {/* Meta: Venue & Location */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Lieu <span className="text-neon-red font-normal italic text-xs lowercase ml-2">(ex: Ushuaïa, Amnesia - Optionnel)</span></label>
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Lieu / Venue</label>
                                 <div className="relative group">
-                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
                                     <input
                                         type="text"
                                         value={venue}
@@ -425,10 +566,11 @@ export function AgendaCreate() {
                                     />
                                 </div>
                             </div>
+
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Ville <span className="text-neon-red">*</span></label>
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Ville <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
-                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
+                                    <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
                                     <input
                                         type="text"
                                         value={locationInput}
@@ -469,10 +611,11 @@ export function AgendaCreate() {
                                     </AnimatePresence>
                                 </div>
                             </div>
+
                             <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Pays <span className="text-neon-red">*</span></label>
+                                <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Pays <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
-                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
+                                    <Globe className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
                                     <input
                                         type="text"
                                         value={country}
@@ -487,95 +630,6 @@ export function AgendaCreate() {
                                         </div>
                                     )}
                                 </div>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {/* Type */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Type</label>
-                                <div className="relative group">
-                                    <Tag className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
-                                    <select
-                                        value={type}
-                                        onChange={(e) => setType(e.target.value)}
-                                        className="w-full bg-gray-900 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all appearance-none"
-                                    >
-                                        <option value="Festival">Festival</option>
-                                        <option value="Showcase">Showcase</option>
-                                        <option value="Résidence">Résidence</option>
-                                        <option value="Opening">Opening</option>
-                                        <option value="Events">Events</option>
-                                        <option value="Live Take Over">LIVE TAKE OVER SUR DROPSIDERS</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            {/* Genre */}
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-gray-400 uppercase tracking-wider">Genre Musical <span className="text-neon-red">*</span></label>
-                                <div className="relative group">
-                                    <Music className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-neon-yellow transition-colors" />
-                                    <select
-                                        value={genre}
-                                        onChange={(e) => setGenre(e.target.value)}
-                                        required
-                                        className={`w-full bg-gray-900 border rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:border-neon-yellow focus:ring-1 focus:ring-neon-yellow transition-all appearance-none ${genre === '' ? 'text-gray-500 border-neon-red/40' : 'text-white border-white/10'}`}
-                                    >
-                                        <option value="" disabled>-- Choisir un genre --</option>
-                                        <option value="Big Room">Big Room</option>
-                                        <option value="Tech House">Tech House</option>
-                                        <option value="Techno">Techno</option>
-                                        <option value="Melodic Techno">Melodic Techno</option>
-                                        <option value="Trance">Trance</option>
-                                        <option value="Progressive House">Progressive House</option>
-                                        <option value="Multi Styles">Multi Styles</option>
-                                        <option value="Hybride">Hybride</option>
-                                        <option value="Hardstyle">Hardstyle</option>
-                                        <option value="Drum & Bass">Drum & Bass</option>
-                                        <option value="House">House</option>
-                                        <option value="Hardcore">Hardcore</option>
-                                        <option value="HardTechno">HardTechno</option>
-                                    </select>
-                                </div>
-                            </div>
-                            {/* isWeekly */}
-                            <div className="space-y-4 col-span-1 md:col-span-2">
-                                <label className="flex items-center gap-3 cursor-pointer p-4 bg-black/20 border border-white/10 rounded-xl hover:bg-black/40 transition-colors">
-                                    <input
-                                        type="checkbox"
-                                        checked={isWeekly}
-                                        onChange={(e) => setIsWeekly(e.target.checked)}
-                                        className="w-5 h-5 rounded border-white/10 bg-dark-bg text-neon-yellow focus:ring-neon-yellow focus:ring-offset-0 transition-all cursor-pointer"
-                                    />
-                                    <span className="text-sm font-bold text-white uppercase tracking-wider">
-                                        Résidence / Événement hebdomadaire (Priorité jour de la semaine)
-                                    </span>
-                                </label>
-
-                                <label className="flex items-center gap-3 cursor-pointer p-4 bg-black/20 border border-white/10 rounded-xl hover:bg-black/40 transition-colors">
-                                    <input
-                                        type="checkbox"
-                                        checked={isSoldOut}
-                                        onChange={(e) => setIsSoldOut(e.target.checked)}
-                                        className="w-5 h-5 rounded border-white/10 bg-dark-bg text-neon-red focus:ring-neon-red focus:ring-offset-0 transition-all cursor-pointer"
-                                    />
-                                    <span className="text-sm font-bold text-neon-red uppercase tracking-wider">
-                                        Événement SOLD OUT
-                                    </span>
-                                </label>
-
-                                <label className="flex items-center gap-3 cursor-pointer p-4 bg-black/20 border border-white/10 rounded-xl hover:bg-black/40 transition-colors">
-                                    <input
-                                        type="checkbox"
-                                        checked={isLiveDropsiders}
-                                        onChange={(e) => setIsLiveDropsiders(e.target.checked)}
-                                        className="w-5 h-5 rounded border-white/10 bg-dark-bg text-neon-cyan focus:ring-neon-cyan focus:ring-offset-0 transition-all cursor-pointer"
-                                    />
-                                    <span className="text-sm font-bold text-white uppercase tracking-wider">
-                                        Diffusé sur <span className="text-neon-cyan font-black">DROPSIDERS</span> dans le <span className="text-neon-red italic font-black">LIVE TAKEOVER</span>
-                                    </span>
-                                </label>
                             </div>
                         </div>
 
@@ -597,11 +651,11 @@ export function AgendaCreate() {
                                 <button
                                     type="button"
                                     onClick={() => setShowUploadModal(true)}
-                                    className="px-6 py-4 bg-neon-yellow/20 border border-neon-yellow/50 text-neon-yellow rounded-xl font-bold uppercase tracking-wider hover:bg-neon-yellow/30 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
+                                    className="px-6 py-4 bg-neon-yellow/10 border border-neon-yellow/30 text-neon-yellow rounded-xl font-bold uppercase tracking-wider hover:bg-neon-yellow/20 transition-all cursor-pointer flex flex-col items-center justify-center gap-1 min-w-[120px]"
                                 >
-                                    Upload
+                                    <Upload className="w-4 h-4" />
+                                    <span className="text-[10px]">Upload</span>
                                 </button>
-
                             </div>
                         </div>
 
