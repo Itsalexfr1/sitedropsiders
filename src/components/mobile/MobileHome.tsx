@@ -100,15 +100,15 @@ export function MobileHome() {
                         <Link
                             key={news.id}
                             to={getArticleLink(news)}
-                            className="min-w-[280px] aspect-[16/10] relative rounded-[2.5rem] overflow-hidden snap-center border border-white/5 group shadow-2xl active:scale-95 transition-transform"
+                            className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden snap-center border border-white/10 group shadow-[0_20px_50px_rgba(0,0,0,0.5)] active:scale-95 transition-transform"
                         >
-                            <img src={news.image} className="absolute inset-0 w-full h-full object-cover" alt="" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                            <div className="absolute bottom-0 left-0 right-0 p-6">
-                                <span className="px-3 py-1 bg-neon-red text-white text-[9px] font-black uppercase rounded-lg mb-3 inline-block shadow-lg">
-                                    {news.category}
-                                </span>
-                                <h3 className="text-base font-display font-black text-white italic leading-tight uppercase line-clamp-2 drop-shadow-lg">
+                            <img src={news.image} className="absolute inset-0 w-full h-full object-cover group-active:scale-105 transition-transform duration-700" alt="" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-90" />
+                            <div className="absolute top-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
+                                <span className="text-xs font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
+                                <h3 className="text-3xl sm:text-4xl font-display font-black text-white italic leading-[1.1] uppercase line-clamp-4 drop-shadow-2xl">
                                     {news.title}
                                 </h3>
                             </div>
@@ -132,20 +132,21 @@ export function MobileHome() {
                         <Link
                             key={event.id}
                             to={getAgendaLink(event)}
-                            className="min-w-[260px] bg-white/[0.03] border border-white/10 rounded-[2.5rem] p-6 snap-start active:bg-white/10 transition-colors relative overflow-hidden shadow-2xl"
+                            className="w-[85vw] flex-shrink-0 aspect-square bg-[#111] border border-white/10 rounded-[3rem] p-8 snap-center active:bg-white/5 transition-colors relative overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex flex-col justify-end group"
                         >
-                            <div className="absolute top-0 right-0 w-16 h-16 bg-neon-cyan/10 blur-2xl rounded-full" />
-                            <div className="absolute bottom-0 left-0 w-32 h-32 bg-neon-cyan/5 blur-3xl rounded-full" />
-                            <div className="text-neon-cyan text-[11px] font-black mb-2 flex items-center gap-2 relative z-10">
-                                <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                            <div className="absolute top-0 right-0 w-32 h-32 bg-neon-cyan/10 blur-[50px] rounded-full group-hover:bg-neon-cyan/20 transition-colors" />
+                            <div className="absolute bottom-0 left-0 w-48 h-48 bg-neon-cyan/5 blur-[50px] rounded-full" />
+                            <div className="flex-1" />
+                            <div className="text-neon-cyan text-sm font-black mb-3 flex items-center gap-2 relative z-10 uppercase tracking-widest">
+                                <div className="w-2 h-2 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
                                 {new Date(event.date || event.startDate || 0).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: '2-digit', month: 'short' }).toUpperCase()}
                             </div>
-                            <h3 className="text-sm md:text-base font-black text-white uppercase italic mb-4 leading-tight relative z-10">
+                            <h3 className="text-3xl font-black text-white uppercase italic mb-6 leading-[1.1] relative z-10 drop-shadow-2xl line-clamp-3">
                                 {event.title}
                             </h3>
-                            <div className="flex items-center gap-2 text-gray-500 relative z-10">
-                                <MapPin className="w-3.5 h-3.5 text-neon-cyan" />
-                                <span className="text-[10px] font-black uppercase truncate">{event.location}</span>
+                            <div className="flex items-center gap-3 text-gray-400 relative z-10 bg-white/5 w-fit px-4 py-3 rounded-2xl backdrop-blur-sm border border-white/10 shadow-lg">
+                                <MapPin className="w-5 h-5 text-neon-cyan" />
+                                <span className="text-xs font-black uppercase truncate max-w-[200px]">{event.location}</span>
                             </div>
                         </Link>
                     ))}
@@ -167,20 +168,18 @@ export function MobileHome() {
                         <Link
                             key={news.id}
                             to={getArticleLink(news)}
-                            className="min-w-[280px] flex flex-col bg-white/[0.03] border border-white/5 rounded-[3rem] active:bg-white/10 transition-all shadow-2xl overflow-hidden group snap-center"
+                            className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 active:scale-95 transition-transform"
                         >
-                            <div className="h-56 overflow-hidden shrink-0 bg-black/40 relative">
-                                <img src={news.image} className="w-full h-full object-cover group-active:scale-105 transition-transform duration-700" alt="" />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-80" />
-                                <div className="absolute top-4 left-4 px-4 py-1.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-xl shadow-lg">
-                                    <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
-                                </div>
+                            <img src={news.image} className="absolute inset-0 w-full h-full object-cover group-active:scale-105 transition-transform duration-700" alt="" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-90" />
+                            <div className="absolute top-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
+                                <span className="text-xs font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
                             </div>
-                            <div className="p-6 flex flex-col gap-3">
-                                <h3 className="text-sm font-display font-black text-white uppercase italic leading-tight line-clamp-3">{news.title}</h3>
-                                <div className="flex items-center gap-2 text-gray-500 mt-1">
-                                    <div className="w-1.5 h-1.5 bg-gray-500 rounded-full" />
-                                    <span className="text-[10px] font-bold uppercase tracking-widest">{news.date}</span>
+                            <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
+                                <h3 className="text-3xl sm:text-4xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl">{news.title}</h3>
+                                <div className="flex items-center gap-3 text-white/60">
+                                    <div className="w-2 h-2 bg-white/40 rounded-full" />
+                                    <span className="text-xs font-bold uppercase tracking-widest">{news.date}</span>
                                 </div>
                             </div>
                         </Link>
