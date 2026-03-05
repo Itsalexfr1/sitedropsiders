@@ -257,6 +257,9 @@ export function Shop() {
                         </AnimatePresence>
                     </div>
                 )}
+                <div className="mt-16 text-center text-gray-500 text-[9px] font-black uppercase tracking-widest opacity-60">
+                    * Les prix peuvent varier de quelques centimes en raison de la conversion de notre partenaire Fourthwall.
+                </div>
             </div>
 
             {/* Redirection Modal (Optional, but good for UX) */}

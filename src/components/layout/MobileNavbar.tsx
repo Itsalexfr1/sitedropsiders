@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Newspaper, Video, Calendar, MoreHorizontal, X, Music, Users, ShoppingBag, Shield, Info } from 'lucide-react';
+import { Home, Newspaper, Video, Calendar, X, Music, Users, ShoppingBag, Shield, Info } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useState, useEffect } from 'react';
 import settings from '../../data/settings.json';
@@ -34,17 +34,18 @@ export function MobileNavbar() {
     }, []);
 
     const mainItems = [
-        { icon: Home, label: 'Home', path: '/' },
-        { icon: Newspaper, label: 'News', path: '/news' },
+        { icon: Home, label: 'Accueil', path: '/' },
+        { icon: Newspaper, label: 'Actu', path: '/news' },
         {
             icon: Video,
             label: 'LIVE',
             path: '/live',
+            isCenter: true,
             isLive: takeoverEnabled && takeoverStatus === 'live',
             color: 'neon-red'
         },
         { icon: Calendar, label: 'Agenda', path: '/agenda' },
-        { icon: MoreHorizontal, label: 'Plus', path: '#menu', onClick: () => setIsMenuOpen(true) }
+        { icon: ShoppingBag, label: 'Shop', path: '/shop' }
     ];
 
     const menuItems = [
@@ -60,60 +61,51 @@ export function MobileNavbar() {
     return (
         <>
             {/* Bottom Bar */}
-            <div className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] pointer-events-none" style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}>
+            <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] w-[92%] max-w-[400px]">
                 <motion.div
-                    initial={{ y: 100 }}
-                    animate={{ y: 0 }}
-                    className="bg-black/95 backdrop-blur-3xl border-t border-white/10 h-16 flex items-center justify-around shadow-[0_-10px_30px_rgba(0,0,0,0.5)] pointer-events-auto relative overflow-hidden"
+                    initial={{ y: 100, x: "-50%", opacity: 0 }}
+                    animate={{ y: 0, x: "-50%", opacity: 1 }}
+                    className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-2xl border border-white/10 h-16 rounded-[2rem] flex items-center justify-around px-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] pointer-events-auto w-[92%] max-w-[400px]"
                 >
-                    {/* Active Indicator Glow */}
-                    <div className="absolute inset-x-0 top-0 h-[1px] bg-gradient-to-r from-transparent via-neon-red/50 to-transparent opacity-50" />
-                    <div className="absolute inset-0 bg-gradient-to-t from-neon-red/[0.03] to-transparent pointer-events-none" />
-
                     {mainItems.map((item) => {
-                        const isActive = location.pathname === item.path && item.path !== '#menu';
+                        const isActive = location.pathname === item.path;
                         const Icon = item.icon;
 
-                        const content = (
-                            <div className="relative flex flex-col items-center justify-center w-12 h-12 group">
-                                <div className={twMerge(
-                                    "relative p-2.5 rounded-2xl transition-all duration-300",
-                                    isActive ? "bg-neon-red/20 text-neon-red scale-110 shadow-[0_0_20px_rgba(255,0,51,0.2)]" : (item.label === 'Plus' && isMenuOpen ? "text-neon-red" : "text-gray-400")
-                                )}>
-                                    <Icon className={twMerge(
-                                        "w-5 h-5",
-                                        item.isLive ? "text-neon-red animate-pulse drop-shadow-[0_0_8px_rgba(255,0,0,0.6)]" : ""
-                                    )} />
-                                    {item.isLive && (
-                                        <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full animate-ping shadow-[0_0_10px_rgba(255,0,0,0.8)]" />
-                                    )}
-                                </div>
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="mobile-nav-active"
-                                        className="absolute -bottom-1 w-1.5 h-1.5 bg-neon-red rounded-full shadow-[0_0_10px_#ff0033]"
-                                    />
-                                )}
-                                <span className={twMerge(
-                                    "text-[8px] font-black uppercase tracking-[0.1em] mt-1 transition-colors",
-                                    isActive ? "text-neon-red" : "text-gray-500"
-                                )}>
-                                    {item.label}
-                                </span>
-                            </div>
-                        );
-
-                        if (item.path === '#menu') {
+                        if (item.isCenter) {
                             return (
-                                <button key={item.label} onClick={item.onClick} className="pointer-events-auto outline-none">
-                                    {content}
-                                </button>
+                                <Link
+                                    key={item.label}
+                                    to={item.path}
+                                    className="relative flex items-center justify-center -mt-10"
+                                >
+                                    <div className={`w-16 h-16 rounded-full flex items-center justify-center relative transition-all ${item.isLive ? 'bg-neon-red shadow-[0_0_30px_rgba(255,0,51,0.6)] animate-pulse' : 'bg-white/5 border border-white/10 backdrop-blur-xl'}`}>
+                                        <Icon className={`w-7 h-7 ${item.isLive ? 'text-white' : 'text-gray-400'}`} />
+                                        {item.isLive && (
+                                            <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                                                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                                <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+                                            </span>
+                                        )}
+                                    </div>
+                                    <span className="absolute -bottom-6 text-[9px] font-black text-neon-red uppercase tracking-widest">LIVE</span>
+                                </Link>
                             );
                         }
 
                         return (
-                            <Link key={item.label} to={item.path} className="pointer-events-auto outline-none">
-                                {content}
+                            <Link
+                                key={item.label}
+                                to={item.path}
+                                className={`flex flex-col items-center justify-center gap-1 transition-all relative py-1 min-w-[50px] ${isActive ? 'text-white' : 'text-gray-500'}`}
+                            >
+                                {isActive && (
+                                    <motion.div
+                                        layoutId="global-tab-indicator"
+                                        className="absolute -top-[17px] w-8 h-[2px] bg-neon-red shadow-[0_0_10px_rgba(255,18,65,0.8)]"
+                                    />
+                                )}
+                                <Icon className={`w-5 h-5 transition-transform ${isActive ? 'scale-110 text-neon-red' : 'scale-95 group-active:scale-75'}`} />
+                                <span className={`text-[8px] font-black uppercase tracking-wider ${isActive ? 'opacity-100 text-neon-red' : 'opacity-40'}`}>{item.label}</span>
                             </Link>
                         );
                     })}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import {
     X, Download, Upload, PlusCircle,
     Video, Layout, Smartphone, Image as ImageIcon,
@@ -77,6 +77,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const logoRef = useRef<HTMLImageElement | null>(null);
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const [selection, setSelection] = useState({ start: 0, end: 0 });
+    const dragControls = useDragControls();
 
     // Detect mobile vs desktop (lg breakpoint = 1024px) — JS-based to avoid canvasRef conflict
     const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
@@ -358,51 +359,100 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
             } else if (theme === 'LIVE TAKEOVER') {
                 const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2;
+                const centerY = (canvas.height / 2) - 100;
 
-                // Neon Ring Background
+                // --- Stylized Background Grid/Scanlines ---
+                ctx.save();
+                ctx.strokeStyle = activeData.color;
+                ctx.globalAlpha = 0.15;
+                ctx.lineWidth = 2;
+                for (let i = 0; i < canvas.height; i += 100) {
+                    ctx.beginPath();
+                    ctx.moveTo(0, i);
+                    ctx.lineTo(canvas.width, i);
+                    ctx.stroke();
+                }
+                for (let i = 0; i < canvas.width; i += 100) {
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0);
+                    ctx.lineTo(i, canvas.height);
+                    ctx.stroke();
+                }
+                ctx.restore();
+
+                // --- Neon Ring & Glow ---
                 ctx.save();
                 ctx.translate(centerX, centerY);
                 ctx.shadowColor = activeData.color;
-                ctx.shadowBlur = 60;
+                ctx.shadowBlur = 80;
                 ctx.strokeStyle = activeData.color;
-                ctx.lineWidth = 15;
+                ctx.lineWidth = 20;
                 ctx.beginPath();
-                ctx.arc(0, 0, 350, 0, Math.PI * 2);
+                ctx.arc(0, 0, 360, 0, Math.PI * 2);
                 ctx.stroke();
 
-                // Pulse effect
-                ctx.globalAlpha = 0.3;
-                ctx.lineWidth = 40;
+                // Inner Glow Pulse
+                ctx.globalAlpha = 0.25;
+                ctx.lineWidth = 50;
                 ctx.beginPath();
-                ctx.arc(0, 0, 380, 0, Math.PI * 2);
+                ctx.arc(0, 0, 390, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.restore();
 
-                // Upper text: "TAKEOVER" (Large, Italic, Outlined)
+                // --- Advanced Typography ---
                 ctx.textAlign = 'center';
-                ctx.font = '900 italic 160px "Inter", sans-serif';
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 4;
-                ctx.strokeText('TAKEOVER', centerX, centerY - 80);
+                ctx.textBaseline = 'middle';
 
-                // Bottom text: "LIVE" (Solid, Neon)
+                // "TAKEOVER" - Premium Gold/White Gradient Outline
+                ctx.font = '900 italic 170px "Inter", sans-serif';
+                const takeoverGrad = ctx.createLinearGradient(0, centerY - 150, 0, centerY);
+                takeoverGrad.addColorStop(0, '#FFFFFF');
+                takeoverGrad.addColorStop(0.5, '#CCCCCC');
+                takeoverGrad.addColorStop(1, '#FFFFFF');
+                ctx.strokeStyle = takeoverGrad;
+                ctx.lineWidth = 5;
+                ctx.strokeText('TAKEOVER', centerX, centerY - 85);
+
+                // "LIVE" - Solid Neon with heavy Glow
+                ctx.save();
+                ctx.font = '900 italic 190px "Inter", sans-serif';
                 ctx.fillStyle = activeData.color;
                 ctx.shadowColor = activeData.color;
-                ctx.shadowBlur = 30;
-                ctx.fillText('LIVE', centerX, centerY + 80);
+                ctx.shadowBlur = 40;
+                ctx.fillText('LIVE', centerX, centerY + 95);
+                ctx.restore();
 
-                // Custom text handling for live details (Artist, Hour)
+                // --- Custom Info (Artist, Time) ---
                 if (customText) {
-                    ctx.shadowBlur = 0;
+                    const infoLines = customText.toUpperCase().split('\n');
+                    ctx.font = '900 italic 55px "Inter", sans-serif';
                     ctx.fillStyle = '#fff';
-                    ctx.font = '900 italic 50px "Inter", sans-serif';
-                    const lines = customText.toUpperCase().split('\n');
-                    lines.forEach((line, i) => {
-                        ctx.fillText(line, centerX, centerY + 240 + (i * 65));
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 10;
+                    infoLines.forEach((line, i) => {
+                        ctx.fillText(line, centerX, centerY + 320 + (i * 70));
                     });
                 }
 
+                // --- Bottom CTA (Request 5) ---
+                ctx.save();
+                const btmY = canvas.height - 180;
+                ctx.fillStyle = `rgba(${activeData.grad}, 0.2)`;
+                ctx.fillRect(0, btmY - 60, canvas.width, 120);
+
+                ctx.font = '900 italic 45px "Inter", sans-serif';
+                ctx.fillStyle = '#fff';
+                ctx.textAlign = 'center';
+                ctx.shadowColor = activeData.color;
+                ctx.shadowBlur = 20;
+                ctx.fillText('RENDEZ-VOUS SUR DROPSIDERS.COM/LIVE', centerX, btmY);
+
+                // Scanning Line Effect Overlay
+                ctx.globalAlpha = 0.4;
+                ctx.fillStyle = activeData.color;
+                const scanLineY = (Date.now() / 20) % canvas.height;
+                ctx.fillRect(0, scanLineY, canvas.width, 3);
+                ctx.restore();
             } else {
                 const fontSize = activeTab === 'PUBLICATION' ? 55 : 78; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
@@ -520,8 +570,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 }
             }
 
-            // Logic removed here to be drawn at the end as overlay
-
             // 5. Apply Transition Effects (Glitch / Zoom)
             if (transitionProgress > 0) {
                 const glitchIntensity = Math.sin(transitionProgress * Math.PI);
@@ -602,29 +650,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.restore();
             }
 
-            if (theme === 'LIVE TAKEOVER') {
-                ctx.save();
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'bottom';
-                ctx.font = '900 italic 38px "Inter", sans-serif';
-                ctx.fillStyle = '#fff';
-
-                // Glowing bar for CTA
-                const text = 'REJOIGNEZ LE LIVE SUR DROPSIDERS.FR/LIVE';
-                const tw = ctx.measureText(text).width + 80;
-                ctx.fillStyle = `rgba(${activeData.grad}, 0.8)`;
-                ctx.shadowColor = activeData.color;
-                ctx.shadowBlur = 20;
-                ctx.beginPath();
-                ctx.roundRect((canvas.width - tw) / 2, canvas.height - 90, tw, 60, 15);
-                ctx.fill();
-
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = '#000';
-                ctx.fillText(text, canvas.width / 2, canvas.height - 45);
-                ctx.restore();
-            }
-
         } catch (e) { console.error(e); }
     };
 
@@ -643,9 +668,22 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         const url = URL.createObjectURL(file);
         if (file.type.startsWith('video/')) {
             const video = document.createElement('video');
-            video.src = url; video.muted = true; video.loop = true; video.play();
+            video.src = url;
+            video.muted = true;
+            video.loop = true;
+            video.crossOrigin = "anonymous";
+            video.play();
             setBgVideo(video); setBgImage('');
-        } else { setBgImage(url); setBgVideo(null); }
+        } else {
+            // Pre-load image to ensure it works with toDataURL
+            const img = new Image();
+            img.crossOrigin = "anonymous";
+            img.onload = () => {
+                setBgImage(url);
+                setBgVideo(null);
+            };
+            img.src = url;
+        }
     };
 
     const startVideoRecording = async () => {
@@ -742,12 +780,23 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
     const downloadSingle = () => {
         if (!canvasRef.current) return;
-        setIsDownloading(true);
-        const a = document.createElement('a');
-        a.download = `dropsiders-${theme}-${Date.now()}.png`;
-        a.href = canvasRef.current.toDataURL('image/png');
-        a.click();
-        setTimeout(() => setIsDownloading(false), 1000);
+        try {
+            setIsDownloading(true);
+            const dataUrl = canvasRef.current.toDataURL('image/png');
+            if (!dataUrl || dataUrl === 'data:,') throw new Error('Empty canvas');
+
+            const a = document.createElement('a');
+            a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
+            a.href = dataUrl;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+        } catch (err) {
+            console.error('Export failed:', err);
+            alert("Erreur d'exportation : Assurez-vous que les images importées proviennent d'une source autorisée.");
+        } finally {
+            setTimeout(() => setIsDownloading(false), 1000);
+        }
     };
 
     // Shared content blocks (used in both mobile & desktop)
@@ -836,6 +885,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 onSelect={(e) => { const t = e.target as HTMLTextAreaElement; setSelection({ start: t.selectionStart, end: t.selectionEnd }); }}
                 onChange={e => setCustomText(e.target.value.slice(0, 1100))}
                 placeholder="VOTRE TEXTE..."
+                spellCheck="true"
+                autoCorrect="on"
+                autoComplete="on"
                 className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black uppercase"
             />
             <p className="text-[9px] text-white/30 italic px-1">Les codes comme [C:...] ou [B:...] seront transformés en style sur l'image finale.</p>
@@ -1004,10 +1056,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ══════════════════════════════════════════════════════════ */
                 <motion.div
                     drag="y"
+                    dragControls={dragControls}
+                    dragListener={false}
                     dragConstraints={{ top: 0, bottom: 300 }}
                     dragElastic={{ top: 0.1, bottom: 0.8 }}
                     onDragEnd={(_, info) => {
-                        if (info.offset.y > 150) onClose();
+                        if (info.offset.y > 150) {
+                            if (activePanel) setActivePanel(null);
+                        }
                     }}
                     className="relative w-full h-full bg-black flex flex-col overflow-hidden">
 
@@ -1056,16 +1112,18 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         <canvas ref={canvasRef} className="max-w-full max-h-full object-contain" style={{ borderRadius: '10px', boxShadow: '0 0 60px rgba(0,0,0,0.9)' }} />
                     </div>
 
-                    {/* Swipe Indicator (top handle) */}
-                    <div className="absolute top-2 inset-x-0 flex justify-center z-50 pointer-events-none">
-                        <div className="w-12 h-1.5 rounded-full bg-white/20 shadow-lg" />
+                    {/* Swipe Indicator (top handle) + Drag listener hook */}
+                    <div
+                        onPointerDown={(e) => dragControls.start(e)}
+                        className="absolute top-0 inset-x-0 h-16 flex justify-center z-[60] cursor-grab active:cursor-grabbing">
+                        <div className="w-12 h-1.5 rounded-full bg-white/20 shadow-lg mt-3" />
                     </div>
 
-                    {/* Top bar (Header also acts as drag handle) */}
-                    <div className="absolute top-0 inset-x-0 flex items-center justify-between px-4 pt-5 pb-3 z-20" style={{ background: 'linear-gradient(180deg,rgba(0,0,0,0.8) 0%,transparent 100%)' }}>
-                        <button onClick={onClose} className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95"><X className="w-5 h-5" /></button>
+                    {/* Top bar (Header) */}
+                    <div className="absolute top-0 inset-x-0 flex items-center justify-between px-4 pt-5 pb-3 z-20 pointer-events-none" style={{ background: 'linear-gradient(180deg,rgba(0,0,0,0.8) 0%,transparent 100%)' }}>
+                        <button onClick={() => { if (activePanel) setActivePanel(null); }} className={`p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95 pointer-events-auto ${!activePanel ? 'opacity-0 pointer-events-none' : 'opacity-100'}`} disabled={!activePanel}><X className="w-5 h-5" /></button>
                         <span className="text-[11px] font-black text-white/50 uppercase tracking-[0.2em] italic">SOCIAL STUDIO</span>
-                        <button onClick={() => window.location.href = '/'} className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95"><Home className="w-5 h-5" /></button>
+                        <button onClick={onClose} className="p-2.5 rounded-2xl text-white/70 hover:text-white hover:bg-white/10 transition-all active:scale-95 pointer-events-auto"><Home className="w-5 h-5" /></button>
                     </div>
 
                     {/* Contextual panels (slide up) */}
@@ -1150,7 +1208,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                     {/* Bottom icon bar */}
                     <div className="absolute bottom-0 inset-x-0 z-40"
-                        style={{ background: 'linear-gradient(0deg,rgba(0,0,0,0.98) 0%,rgba(0,0,0,0.85) 100%)', backdropFilter: 'blur(20px)', borderTop: '1px solid rgba(255,255,255,0.07)' }}>
+                        style={{ background: 'rgba(5, 5, 5, 0.4)', backdropFilter: 'blur(25px) saturate(180%)', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                         {/* Quick toggles */}
                         <div className="flex items-center justify-center gap-3 px-4 pt-2 pb-1">
                             <button onClick={() => setShowSwipe(!showSwipe)}

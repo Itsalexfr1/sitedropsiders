@@ -1,6 +1,8 @@
 import { AnnouncementBanner } from '../AnnouncementBanner';
 import { Navbar } from './Navbar';
 import { MobileNavbar } from './MobileNavbar';
+import { MobileSearchOverlay } from '../mobile/MobileSearchOverlay';
+import { Search } from 'lucide-react';
 
 import { Footer } from './Footer';
 import { useLocation } from 'react-router-dom';
@@ -14,6 +16,7 @@ export function Layout({ children }: LayoutProps) {
     const location = useLocation();
     const [bannerEnabled, setBannerEnabled] = useState(false);
     const [isMobile, setIsMobile] = useState(window.innerWidth < 1024);
+    const [isSearchOpen, setIsSearchOpen] = useState(false);
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth < 1024);
@@ -49,7 +52,7 @@ export function Layout({ children }: LayoutProps) {
         (bannerEnabled ? 'pt-[112px]' : (isHome ? 'pt-0' : (isMobile ? 'pt-0' : 'pt-20')));
 
     return (
-        <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white pb-24 lg:pb-0">
+        <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white pb-24 lg:pb-0 overflow-x-hidden">
 
             {/* Background Effects - Hidden on mobile for performance */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden hidden md:block">
@@ -60,6 +63,19 @@ export function Layout({ children }: LayoutProps) {
 
             {!isMobile && !isAdminPage && <Navbar />}
             {!isMobile && !isAdminPage && <AnnouncementBanner />}
+
+            {/* Floating Search Button (Mobile Only) */}
+            {isMobile && !isAdminPage && (
+                <button
+                    onClick={() => setIsSearchOpen(true)}
+                    className="fixed top-6 right-6 z-[100] w-12 h-12 rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl active:scale-90 transition-all group"
+                >
+                    <div className="absolute inset-0 rounded-2xl bg-neon-red/10 opacity-0 group-active:opacity-100 transition-opacity" />
+                    <Search className="w-6 h-6 text-white group-active:text-neon-red transition-colors" />
+                </button>
+            )}
+
+            <MobileSearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
             <main className={`flex-grow relative ${ptClass}`}>
                 {children}

@@ -34,7 +34,16 @@ export const VinylCursor = () => {
         };
     }, [mouseX, mouseY, isHovering, isVisible]);
 
-    if (!isVisible) return null;
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => setIsMobile(window.innerWidth < 768);
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    if (isMobile || !isVisible) return null;
 
     return (
         <motion.div

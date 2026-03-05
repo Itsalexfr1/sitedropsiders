@@ -448,6 +448,17 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
     return (
         <div className={`min-h-screen bg-dark-bg selection:bg-neon-red selection:text-white ${type === 'recap' ? 'article-type-recap' : isInterview ? 'article-type-interview' : isMusic ? 'article-type-music' : 'article-type-news'}`}>
+            {/* Reading Progress Bar (Neon) */}
+            <div className="fixed top-0 left-0 right-0 h-1 z-[200] pointer-events-none mb-20 md:mb-0">
+                <motion.div
+                    className="h-full bg-neon-red shadow-[0_0_15px_rgba(255,0,51,0.8)]"
+                    style={{
+                        scaleX: 0,
+                        transformOrigin: "left",
+                    }}
+                    id="reading-progress-bar"
+                />
+            </div>
             {/* Lightbox */}
             <AnimatePresence>
                 {selectedImage && (
@@ -476,6 +487,19 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                     </motion.div>
                 )}
             </AnimatePresence>
+
+            <script dangerouslySetInnerHTML={{
+                __html: `
+                window.addEventListener('scroll', () => {
+                    const bar = document.getElementById('reading-progress-bar');
+                    if (bar) {
+                        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+                        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                        const scrolled = (winScroll / height);
+                        bar.style.transform = 'scaleX(' + scrolled + ')';
+                    }
+                });
+            `}} />
 
             {/* --- HERO HEADER (Interview Style) --- */}
             <div className="relative h-[50vh] md:h-[70vh] flex items-end justify-center overflow-hidden">
@@ -636,7 +660,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                         {/* Title */}
                         {!isInterview && (
                             <h1
-                                className="text-5xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-none drop-shadow-2xl premium-h1"
+                                className="text-3xl sm:text-4xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-[0.9] drop-shadow-2xl premium-h1"
                                 dangerouslySetInnerHTML={{ __html: standardizeText(displayTitle) }}
                             />
                         )}
@@ -645,10 +669,26 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             </div>
 
             {/* --- MAIN CONTENT CONTAINER (8/4 GRID) --- */}
-            <main className="relative z-20 pb-16 -mt-10">
-                <div className="w-full px-6 lg:px-12 xl:px-16 2xl:px-24">
-                    <div className="bg-dark-card border border-white/5 rounded-[2rem] p-6 md:p-10 lg:p-12 shadow-2xl backdrop-blur-md">
-                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-16">
+            <motion.main
+                className="relative z-20 pb-16 -mt-10"
+                drag="x"
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.2}
+                onDragEnd={(_e, info) => {
+                    if (info.offset.x < -100 && nextArticle) {
+                        // Swipe Left -> Next Article
+                        navigate(type === 'recap' ? getRecapLink(nextArticle) : getArticleLink(nextArticle));
+                        window.scrollTo(0, 0);
+                    } else if (info.offset.x > 100 && previousArticle) {
+                        // Swipe Right -> Previous Article
+                        navigate(type === 'recap' ? getRecapLink(previousArticle) : getArticleLink(previousArticle));
+                        window.scrollTo(0, 0);
+                    }
+                }}
+            >
+                <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
+                    <div className="bg-dark-card border border-white/5 rounded-[1.5rem] md:rounded-[2rem] p-5 sm:p-6 md:p-10 lg:p-12 shadow-2xl backdrop-blur-md">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16">
 
                             {/* LEFT COLUMN: Main Content (9 spans) */}
                             <div className="lg:col-span-9">
@@ -913,9 +953,9 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                             </aside>
                         </div>
                     </div>
-                </div >
-            </main >
-        </div >
+                </div>
+            </motion.main>
+        </div>
     );
 };
 

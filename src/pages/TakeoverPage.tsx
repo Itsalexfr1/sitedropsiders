@@ -7,7 +7,7 @@ import {
     Facebook, Maximize, Minimize, Video, Heart, User, ArrowRight, Bell,
     Globe, Users, X, Youtube, Shield, Trash2, ShieldAlert, Clock, MessageSquare, Send, Mail, Mic, Hash, Headphones, Trophy, Crown,
     ChevronUp, ChevronDown, Volume2, PowerOff, BarChart3, ShoppingBag, LogOut, MicOff, CircleStop, Loader2,
-    Star, ShieldCheck, LayoutGrid
+    Star, ShieldCheck, LayoutGrid, MoreHorizontal
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { GlitchTransition } from '../components/ui/GlitchTransition';
@@ -211,6 +211,22 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [_showDropsShop] = useState(false);
     const [_isListeningForDrops, _setIsListeningForDrops] = useState(true);
     const [activeChatTab, setActiveChatTab] = useState<'chat' | 'shop' | 'drops-shop' | 'leaderboard' | 'audio' | 'shazam' | 'clips'>('chat');
+    const [showMobileModMenu, setShowMobileModMenu] = useState(false);
+
+    // TAB SWIPE LOGIC
+    const handleSwipeTabs = (direction: 'left' | 'right') => {
+        const order = ['chat', 'shazam', 'leaderboard', 'shop', 'clips'];
+        const currentIndex = order.indexOf(activeChatTab);
+        if (currentIndex === -1) return;
+
+        if (direction === 'left') {
+            const nextIndex = (currentIndex + 1) % order.length;
+            setActiveChatTab(order[nextIndex] as any);
+        } else {
+            const prevIndex = (currentIndex - 1 + order.length) % order.length;
+            setActiveChatTab(order[prevIndex] as any);
+        }
+    };
     const [chatCountryFilter, setChatCountryFilter] = useState('ALL');
     const [forceScroll, setForceScroll] = useState(false);
     const isFirstJoinFetch = useRef(true);
@@ -4236,6 +4252,63 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         </div>
                                     </div>
 
+                                    {/* Mobile Mod Menu Button */}
+                                    {hasModPowers && (
+                                        <div className="lg:hidden flex items-center gap-2">
+                                            <button
+                                                onClick={() => setShowMobileModMenu(!showMobileModMenu)}
+                                                className={`p-1.5 rounded-lg border transition-all ${showMobileModMenu ? 'bg-neon-red text-white border-neon-red shadow-[0_0_15px_rgba(255,18,65,0.4)]' : 'bg-white/5 text-gray-400 border-white/10'}`}
+                                            >
+                                                <MoreHorizontal className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    {/* Mobile Mod Menu Drawer */}
+                                    <AnimatePresence>
+                                        {showMobileModMenu && hasModPowers && (
+                                            <>
+                                                <motion.div
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    exit={{ opacity: 0 }}
+                                                    onClick={() => setShowMobileModMenu(false)}
+                                                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] lg:hidden"
+                                                />
+                                                <motion.div
+                                                    initial={{ y: "100%" }}
+                                                    animate={{ y: 0 }}
+                                                    exit={{ y: "100%" }}
+                                                    transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                                                    className="fixed bottom-0 left-0 right-0 bg-[#0d0d0d] border-t border-white/10 rounded-t-[2.5rem] p-6 z-[210] lg:hidden shadow-[0_-20px_50px_rgba(0,0,0,0.5)]"
+                                                >
+                                                    <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-6" />
+                                                    <h3 className="text-xs font-black text-white uppercase tracking-[0.3em] mb-6 flex items-center gap-3 italic">
+                                                        <Shield className="w-4 h-4 text-neon-red" /> Modération
+                                                    </h3>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <button onClick={() => { handleClearChat(); setShowMobileModMenu(false); }} className="flex flex-col items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-neon-red/10 hover:border-neon-red/30 transition-all">
+                                                            <Trash2 className="w-5 h-5 text-neon-red" />
+                                                            <span className="text-[9px] font-black uppercase text-gray-400">Vider Chat</span>
+                                                        </button>
+                                                        <button onClick={() => { setShowSlowModePopup(!showSlowModePopup); setShowMobileModMenu(false); }} className={`flex flex-col items-center gap-3 p-4 border rounded-2xl transition-all ${isSlowMode ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-white/5 border-white/10'}`}>
+                                                            <Clock className={`w-5 h-5 ${isSlowMode ? 'text-yellow-500' : 'text-gray-400'}`} />
+                                                            <span className="text-[9px] font-black uppercase text-gray-400">Mode Lent</span>
+                                                        </button>
+                                                        <button onClick={() => { handleUpdateSettings({ showShop: !showShopWidget }); setShowMobileModMenu(false); }} className={`flex flex-col items-center gap-3 p-4 border rounded-2xl transition-all ${showShopWidget ? 'bg-neon-cyan/10 border-neon-cyan/30' : 'bg-white/5 border-white/10'}`}>
+                                                            <Zap className={`w-5 h-5 ${showShopWidget ? 'text-neon-cyan' : 'text-gray-400'}`} />
+                                                            <span className="text-[9px] font-black uppercase text-gray-400">Shop On/Off</span>
+                                                        </button>
+                                                        <button onClick={() => { setShowEditModal(true); setShowMobileModMenu(false); }} className="flex flex-col items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl">
+                                                            <Shield className="w-5 h-5 text-neon-purple" />
+                                                            <span className="text-[9px] font-black uppercase text-gray-400">Admin</span>
+                                                        </button>
+                                                    </div>
+                                                </motion.div>
+                                            </>
+                                        )}
+                                    </AnimatePresence>
+
                                     {/* MES DROPS - CENTERED */}
                                     <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
                                         <button
@@ -4443,25 +4516,25 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 >
                                     <div className="relative group px-1">
                                         <div className="absolute top-2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
-                                        <div className="w-full overflow-hidden relative py-2 mb-1">
-                                            <div className="flex flex-row gap-3 animate-shop-scroll">
+                                        <div className="w-full overflow-hidden relative py-1 md:py-2 mb-0.5 md:mb-1">
+                                            <div className="flex flex-row gap-2 md:gap-3 animate-shop-scroll">
                                                 {(showShopWidget && shopProducts.length > 0 ? [...shopProducts, ...shopProducts, ...shopProducts] : []).map((product, i) => (
                                                     <a
                                                         key={`${product.id}-${i}`}
                                                         href={product.url}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className="flex items-center gap-3 p-1.5 pr-4 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-neon-cyan/30 rounded-xl transition-all group/item active:scale-95 shrink-0"
+                                                        className="flex items-center gap-2 md:gap-3 p-1 md:p-1.5 pr-3 md:pr-4 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-neon-cyan/30 rounded-lg md:rounded-xl transition-all group/item active:scale-95 shrink-0"
                                                     >
-                                                        <div className="w-12 h-12 shrink-0 rounded-lg overflow-hidden relative shadow-lg">
+                                                        <div className="w-8 h-8 md:w-12 md:h-12 shrink-0 rounded-md md:rounded-lg overflow-hidden relative shadow-lg">
                                                             <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500" />
                                                             <div className="absolute inset-x-0 bottom-0 bg-black/60 backdrop-blur-sm py-0.5 text-center">
-                                                                <span className="text-[7.5px] font-black text-white">{product.price}€</span>
+                                                                <span className="text-[6px] md:text-[7.5px] font-black text-white">{product.price}€</span>
                                                             </div>
                                                         </div>
-                                                        <div className="flex flex-col justify-center max-w-[120px]">
-                                                            <p className="text-[9px] font-black text-white uppercase tracking-widest leading-none truncate">{product.name}</p>
-                                                            <p className="text-[7.5px] text-gray-500 uppercase tracking-widest mt-1 truncate opacity-60 font-bold">{product.description}</p>
+                                                        <div className="flex flex-col justify-center max-w-[100px] md:max-w-[120px]">
+                                                            <p className="text-[8px] md:text-[9px] font-black text-white uppercase tracking-widest leading-none truncate">{product.name}</p>
+                                                            <p className="text-[6.5px] md:text-[7.5px] text-gray-500 uppercase tracking-widest mt-0.5 md:mt-1 truncate opacity-60 font-bold">{product.description}</p>
                                                         </div>
                                                     </a>
                                                 ))}
@@ -4495,7 +4568,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
                                         {/* FLUX SELECTION - PERSISTENT AT TOP OF SIDEBAR */}
                                         <div className="px-0 md:px-4 pt-0 md:pt-4 pb-0 shrink-0 z-[60]">
-                                            <div className="flex items-center gap-0 bg-white/5 border-b border-white/10 p-0 md:p-1 overflow-x-auto no-scrollbar">
+                                            <div className="flex items-center gap-0 bg-black/40 md:bg-white/5 border-b border-white/10 p-0 md:p-1 overflow-x-auto no-scrollbar">
                                                 {channelItems.map((item: any, idx) => {
                                                     const isDisabled = settings.disableMainPlayer !== false;
                                                     if (item.isMain && isDisabled && playersOption === 1) return null;
@@ -4507,7 +4580,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 setActiveVideoIndex(idx);
                                                                 setPlayersOption(1);
                                                             }}
-                                                            className={`px-0.5 md:px-3 py-[1px] md:py-2 rounded-sm md:rounded-lg text-[6px] md:text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[10px] md:min-w-[70px] leading-none ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                                            className={`px-2 md:px-3 py-1.5 md:py-2 rounded-sm md:rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[50px] md:min-w-[70px] leading-none ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
                                                         >
                                                             {item.title}
                                                         </button>
@@ -4550,8 +4623,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         initial={{ x: 50, opacity: 0 }}
                                                         animate={{ x: 0, opacity: 1 }}
                                                         exit={{ x: -50, opacity: 0 }}
+                                                        drag="x"
+                                                        dragConstraints={{ left: 0, right: 0 }}
+                                                        dragElastic={0.2}
+                                                        onDragEnd={(_, info) => {
+                                                            if (info.offset.x > 100) handleSwipeTabs('right');
+                                                            else if (info.offset.x < -100) handleSwipeTabs('left');
+                                                        }}
                                                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                        className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4 pb-24"
+                                                        className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4 pb-24 touch-pan-y"
                                                     >
                                                         <div className="flex flex-col gap-3">
                                                             <div className="p-6 bg-gradient-to-br from-neon-red/10 to-transparent border border-neon-red/20 rounded-2xl relative overflow-hidden group">
@@ -4637,8 +4717,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         initial={{ x: 50, opacity: 0 }}
                                                         animate={{ x: 0, opacity: 1 }}
                                                         exit={{ x: -50, opacity: 0 }}
+                                                        drag="x"
+                                                        dragConstraints={{ left: 0, right: 0 }}
+                                                        dragElastic={0.2}
+                                                        onDragEnd={(_, info) => {
+                                                            if (info.offset.x > 100) setActiveChatTab('chat');
+                                                            else if (info.offset.x < -100) setActiveChatTab('chat');
+                                                        }}
                                                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                        className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24"
+                                                        className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24 touch-pan-y"
                                                     >
                                                         {/* Drops Shop Content */}
                                                         <div className="text-center bg-black/40 border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
@@ -4689,8 +4776,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         initial={{ x: 50, opacity: 0 }}
                                                         animate={{ x: 0, opacity: 1 }}
                                                         exit={{ x: -50, opacity: 0 }}
+                                                        drag="x"
+                                                        dragConstraints={{ left: 0, right: 0 }}
+                                                        dragElastic={0.05}
+                                                        onDragEnd={(_, info) => {
+                                                            if (info.offset.x > 100) handleSwipeTabs('right');
+                                                            else if (info.offset.x < -100) handleSwipeTabs('left');
+                                                        }}
                                                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                        className="flex-1 flex flex-col min-h-0 bg-black"
+                                                        className="flex-1 flex flex-col min-h-0 bg-black touch-pan-y"
                                                     >
                                                         <iframe
                                                             src="/shop?mini=true"
@@ -4704,8 +4798,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         initial={{ x: 50, opacity: 0 }}
                                                         animate={{ x: 0, opacity: 1 }}
                                                         exit={{ x: -50, opacity: 0 }}
+                                                        drag="x"
+                                                        dragConstraints={{ left: 0, right: 0 }}
+                                                        dragElastic={0.2}
+                                                        onDragEnd={(_, info) => {
+                                                            if (info.offset.x > 100) handleSwipeTabs('right');
+                                                            else if (info.offset.x < -100) handleSwipeTabs('left');
+                                                        }}
                                                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                        className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-8 pb-24"
+                                                        className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-8 pb-24 touch-pan-y"
                                                     >
                                                         {/* Leaderboard Podium */}
                                                         <div className="flex items-end justify-center gap-2 pt-10 pb-6">
@@ -4756,8 +4857,15 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         initial={{ x: 50, opacity: 0 }}
                                                         animate={{ x: 0, opacity: 1 }}
                                                         exit={{ x: -50, opacity: 0 }}
+                                                        drag="x"
+                                                        dragConstraints={{ left: 0, right: 0 }}
+                                                        dragElastic={0.2}
+                                                        onDragEnd={(_, info) => {
+                                                            if (info.offset.x > 100) handleSwipeTabs('right');
+                                                            else if (info.offset.x < -100) handleSwipeTabs('left');
+                                                        }}
                                                         transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                        className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24"
+                                                        className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24 touch-pan-y"
                                                     >
                                                         <div className="bg-gradient-to-br from-neon-cyan/20 via-black to-neon-purple/20 border border-white/10 p-8 rounded-3xl relative overflow-hidden group">
                                                             <div className="absolute inset-0 bg-aurora opacity-10 pointer-events-none" />
@@ -5055,9 +5163,16 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                         initial={{ x: 100, opacity: 0 }}
                                                         animate={{ x: 0, opacity: 1 }}
                                                         exit={{ x: -100, opacity: 0 }}
+                                                        drag="x"
+                                                        dragConstraints={{ left: 0, right: 0 }}
+                                                        dragElastic={0.1}
+                                                        onDragEnd={(_, info) => {
+                                                            if (info.offset.x > 100) handleSwipeTabs('right');
+                                                            else if (info.offset.x < -100) handleSwipeTabs('left');
+                                                        }}
                                                         transition={{ type: "spring", damping: 30, stiffness: 200 }}
                                                         id="default-chat-view"
-                                                        className="flex-1 flex flex-col min-h-0 relative"
+                                                        className="flex-1 flex flex-col min-h-0 relative touch-pan-y"
                                                     >
                                                         {!isJoined ? (
                                                             <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative overflow-hidden">
@@ -5179,7 +5294,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                         <Pin className="w-3.5 h-3.5 text-neon-red shrink-0 mt-1 animate-pulse" />
                                                                         <div className="flex-1 min-w-0">
                                                                             <p className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-0.5">MESSAGE ÉPINGLÉ</p>
-                                                                            <p className="text-[11px] font-bold text-white leading-relaxed break-words uppercase">
+                                                                            <p className="text-[10px] md:text-[11px] font-bold text-white leading-tight break-words uppercase">
                                                                                 {settings.pinnedMessage}
                                                                             </p>
                                                                         </div>
@@ -5195,7 +5310,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 )}
 
                                                                 {/* Chat Messages */}
-                                                                <div id="chat-messages" className="flex-1 overflow-visible lg:overflow-y-auto p-2 md:p-4 lg:p-5 space-y-1 md:space-y-2 scroll-smooth lg:custom-scrollbar pointer-events-auto">
+                                                                <div id="chat-messages" className="flex-1 overflow-visible lg:overflow-y-auto p-1.5 md:p-3 lg:p-5 space-y-0.5 md:space-y-1.5 scroll-smooth lg:custom-scrollbar pointer-events-auto">
                                                                     {messages
                                                                         .filter(m => chatCountryFilter === 'ALL' || m.country === chatCountryFilter || (chatCountryFilter === 'OTHER' && !['FR', 'BE', 'CH', 'CA'].includes(m.country)))
                                                                         .map((msg, idx) => {
@@ -5209,71 +5324,75 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                     key={msg.id || idx}
                                                                                     initial={{ opacity: 0, x: 10 }}
                                                                                     animate={{ opacity: 1, x: 0 }}
-                                                                                    className="group relative min-w-0 overflow-hidden px-1 flex flex-wrap items-baseline gap-x-1 gap-y-0"
+                                                                                    className="group relative min-w-0 overflow-hidden px-1 py-[1px]"
                                                                                 >
-                                                                                    <div className="w-3 md:w-4 flex items-center justify-center opacity-80 shrink-0">
-                                                                                        {getCountryFlag(msg.country || "FR")}
+                                                                                    <div className="flex items-start gap-1.5 md:gap-2 leading-tight">
+                                                                                        <div className="w-3 md:w-4 flex items-center justify-center opacity-80 shrink-0 mt-0.5 md:mt-1">
+                                                                                            {getCountryFlag(msg.country || "FR")}
+                                                                                        </div>
+                                                                                        <div className="flex-1 min-w-0 break-words">
+                                                                                            <span
+                                                                                                className="text-[10px] md:text-[11px] lg:text-[12px] font-black uppercase tracking-widest mr-1.5"
+                                                                                                style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? "#eab308" : (msg.color || "#9ca3af") }}
+                                                                                            >
+                                                                                                {msg.pseudo}{isMsgAdmin && <span className="ml-1 px-1 rounded text-white text-[7px] font-black uppercase align-middle" style={{ backgroundColor: (localSettings.adminColor || adminColor) }}>ADM</span>}:
+                                                                                            </span>
+                                                                                            <span
+                                                                                                className={`text-[10px] md:text-[11px] lg:text-[11px] font-medium relative leading-[1.2] ${isBot ? "" : isMsgAdmin ? "" : "text-gray-200"}`}
+                                                                                                style={isBot ? { color: botColor } : isMsgAdmin ? { color: "#ffffff" } : {}}
+                                                                                            >
+                                                                                                {(() => {
+                                                                                                    const text = msg.message;
+                                                                                                    if (!text) return null;
+                                                                                                    const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                                                                                    const parts = text.split(urlRegex);
+                                                                                                    return parts.map((part: string, i: number) => {
+                                                                                                        if (part.match(urlRegex)) {
+                                                                                                            if (part.includes("#clip-")) {
+                                                                                                                const cId = part.split("#clip-")[1];
+                                                                                                                const targetClip = clips.find(c => c.id === cId);
+                                                                                                                return (
+                                                                                                                    <button
+                                                                                                                        key={i}
+                                                                                                                        onClick={(e) => {
+                                                                                                                            e.preventDefault();
+                                                                                                                            e.stopPropagation();
+                                                                                                                            if (targetClip) {
+                                                                                                                                setActiveClipToPlay(targetClip);
+                                                                                                                                setShowClipPlayer(true);
+                                                                                                                                setIsMutedGlobal(true);
+                                                                                                                            }
+                                                                                                                        }}
+                                                                                                                        className="text-neon-cyan hover:text-white bg-neon-cyan/10 hover:bg-neon-cyan/30 px-1 py-0 rounded-sm border border-neon-cyan/20 font-black transition-all inline-flex items-center gap-1 text-[6px] mx-0.5"
+                                                                                                                    >
+                                                                                                                        <Video className="w-2 h-2" /> CLIP
+                                                                                                                    </button>
+                                                                                                                );
+                                                                                                            }
+                                                                                                            return (
+                                                                                                                <a
+                                                                                                                    key={i}
+                                                                                                                    href={part}
+                                                                                                                    target="_blank"
+                                                                                                                    rel="noopener noreferrer"
+                                                                                                                    className="text-cyan-400 hover:text-cyan-300 underline font-bold mx-0.5"
+                                                                                                                    onClick={(e) => e.stopPropagation()}
+                                                                                                                >
+                                                                                                                    {part.length > 20 ? part.substring(0, 20) + "..." : part}
+                                                                                                                </a>
+                                                                                                            );
+                                                                                                        }
+                                                                                                        return part;
+                                                                                                    });
+                                                                                                })()}
+                                                                                            </span>
+                                                                                            <span className="text-[5px] text-gray-700 font-bold uppercase ml-2 opacity-40">{msg.time}</span>
+                                                                                        </div>
                                                                                     </div>
-                                                                                    <span
-                                                                                        className="text-[8px] md:text-[8px] lg:text-[12px] font-black uppercase tracking-widest flex-shrink-0"
-                                                                                        style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? "#eab308" : (msg.color || "#9ca3af") }}
-                                                                                    >
-                                                                                        {msg.pseudo}{isMsgAdmin && <span className="ml-1 px-1 rounded text-white text-[6px] font-black uppercase" style={{ backgroundColor: (localSettings.adminColor || adminColor) }}>ADM</span>}:
-                                                                                    </span>
-                                                                                    <span
-                                                                                        className={`text-[8px] md:text-[10px] lg:text-[11px] font-medium leading-[1.1] break-words relative ${isBot ? "" : isMsgAdmin ? "" : "text-gray-200"}`}
-                                                                                        style={isBot ? { color: botColor } : isMsgAdmin ? { color: "#ffffff" } : {}}
-                                                                                    >
-                                                                                        {(() => {
-                                                                                            const text = msg.message;
-                                                                                            if (!text) return null;
-                                                                                            const urlRegex = /(https?:\/\/[^\s]+)/g;
-                                                                                            const parts = text.split(urlRegex);
-                                                                                            return parts.map((part: string, i: number) => {
-                                                                                                if (part.match(urlRegex)) {
-                                                                                                    if (part.includes("#clip-")) {
-                                                                                                        const cId = part.split("#clip-")[1];
-                                                                                                        const targetClip = clips.find(c => c.id === cId);
-                                                                                                        return (
-                                                                                                            <button
-                                                                                                                key={i}
-                                                                                                                onClick={(e) => {
-                                                                                                                    e.preventDefault();
-                                                                                                                    e.stopPropagation();
-                                                                                                                    if (targetClip) {
-                                                                                                                        setActiveClipToPlay(targetClip);
-                                                                                                                        setShowClipPlayer(true);
-                                                                                                                        setIsMutedGlobal(true);
-                                                                                                                    }
-                                                                                                                }}
-                                                                                                                className="text-neon-cyan hover:text-white bg-neon-cyan/10 hover:bg-neon-cyan/30 px-1 py-0 rounded-sm border border-neon-cyan/20 font-black transition-all flex items-center gap-1 inline-flex text-[6px]"
-                                                                                                            >
-                                                                                                                <Video className="w-2 h-2" /> CLIP
-                                                                                                            </button>
-                                                                                                        );
-                                                                                                    }
-                                                                                                    return (
-                                                                                                        <a
-                                                                                                            key={i}
-                                                                                                            href={part}
-                                                                                                            target="_blank"
-                                                                                                            rel="noopener noreferrer"
-                                                                                                            className="text-cyan-400 hover:text-cyan-300 underline font-bold"
-                                                                                                            onClick={(e) => e.stopPropagation()}
-                                                                                                        >
-                                                                                                            {part.length > 20 ? part.substring(0, 20) + "..." : part}
-                                                                                                        </a>
-                                                                                                    );
-                                                                                                }
-                                                                                                return part;
-                                                                                            });
-                                                                                        })()}
-                                                                                    </span>
-                                                                                    <span className="text-[5px] text-gray-700 font-bold uppercase ml-auto self-center">{msg.time}</span>
                                                                                     {hasModPowers && (isAdmin || !isMsgAdmin) && (
-                                                                                        <div className="absolute top-0 right-0 flex gap-1 opacity-0 group-hover:opacity-100 transition-all z-20 pointer-events-none md:pointer-events-auto">
-                                                                                            <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-0.5 px-1 hover:bg-white/10 rounded text-gray-500 hover:text-white transition-all pointer-events-auto"><Pin className="w-2.5 h-2.5" /></button>
-                                                                                            <button onClick={() => handleDelete(msg.id)} className="p-0.5 px-1 hover:bg-neon-red/20 rounded text-gray-500 hover:text-neon-red transition-all pointer-events-auto"><Trash2 className="w-2.5 h-2.5" /></button>
+                                                                                        <div className="absolute top-0 right-0 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-all z-20 bg-[#0a0a0a]/80 backdrop-blur-sm rounded-bl-lg overflow-hidden border-l border-b border-white/10">
+                                                                                            <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1 hover:bg-white/10 text-gray-500 hover:text-white transition-all"><Pin className="w-2.5 h-2.5" /></button>
+                                                                                            <button onClick={() => handleDelete(msg.id)} className="p-1 hover:bg-neon-red/20 text-gray-500 hover:text-neon-red transition-all"><Trash2 className="w-2.5 h-2.5" /></button>
                                                                                         </div>
                                                                                     )}
                                                                                 </motion.div>
@@ -5282,13 +5401,13 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 </div>
 
                                                                 {/* Chat Input Area */}
-                                                                <div className="p-2 md:p-3 lg:p-4 bg-[#0a0a0a] border-t border-white/10 relative lg:sticky bottom-0 z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)] pb-safe">
+                                                                <div className="p-1.5 md:p-3 lg:p-4 bg-[#0a0a0a]/80 backdrop-blur-2xl border-t border-white/10 relative lg:sticky bottom-0 z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)] pb-safe">
 
-                                                                    <form onSubmit={handleSendMessage} className="relative group/input px-1 md:px-2 py-0.5 md:py-1">
+                                                                    <form onSubmit={handleSendMessage} className="relative group/input px-0.5 md:px-2 py-0">
                                                                         <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-xl lg:rounded-2xl transition-all" />
                                                                         <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl lg:rounded-2xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
                                                                             <div className="flex items-center px-1 md:px-2 py-0.5 lg:py-1">
-                                                                                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-1.5 md:p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-3.5 h-3.5 md:w-5 md:h-5" /></button>
+                                                                                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-1 md:p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-4 h-4 md:w-5 md:h-5" /></button>
                                                                                 <div className="w-[1px] h-3 md:h-4 bg-white/10 mx-0.5 md:mx-1" />
 
                                                                                 <input
@@ -5296,11 +5415,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                     value={newMessage}
                                                                                     onChange={(e) => setNewMessage(e.target.value)}
                                                                                     placeholder={isSlowMode && !hasModPowers ? "⏳ Lent..." : "Écrire..."}
-                                                                                    className="flex-1 bg-transparent px-1 md:px-3 py-1.5 text-[9px] md:text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
+                                                                                    className="flex-1 bg-transparent px-1.5 md:px-3 py-2 text-[11px] md:text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
                                                                                 />
 
                                                                                 <button type="button" onClick={handleShazam} className={`p-1 md:p-1.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
-                                                                                    <Headphones className="w-3.5 h-3.5 md:w-5 md:h-5" />
+                                                                                    <Headphones className="w-4 h-4 md:w-5 md:h-5" />
                                                                                 </button>
 
                                                                                 <button
@@ -5333,6 +5452,34 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     </motion.div>
                                                 )}
                                             </AnimatePresence>
+
+                                            {/* FLOATING MOBILE BOTTOM NAV */}
+                                            {!isFocusMode && (
+                                                <div className="lg:hidden h-14 bg-black/40 backdrop-blur-2xl border-t border-white/10 flex items-center justify-around px-2 relative z-50 shrink-0 shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+                                                    {[
+                                                        { id: 'chat', icon: MessageSquare, label: 'Chat' },
+                                                        { id: 'shazam', icon: Headphones, label: 'Shz' },
+                                                        { id: 'leaderboard', icon: Trophy, label: 'Top' },
+                                                        { id: 'shop', icon: ShoppingBag, label: 'Shop' },
+                                                        { id: 'clips', icon: Video, label: 'Clips' }
+                                                    ].map(tab => (
+                                                        <button
+                                                            key={tab.id}
+                                                            onClick={() => setActiveChatTab(tab.id as any)}
+                                                            className={`flex flex-col items-center justify-center gap-1 min-w-[50px] transition-all relative py-1 ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white'}`}
+                                                        >
+                                                            {activeChatTab === tab.id && (
+                                                                <motion.div
+                                                                    layoutId="mobile-tab-indicator"
+                                                                    className="absolute -top-[1.5px] left-0 right-0 h-[2px] bg-neon-red shadow-[0_0_10px_rgba(255,18,65,0.8)]"
+                                                                />
+                                                            )}
+                                                            <tab.icon className={`w-4 h-4 transition-transform ${activeChatTab === tab.id ? 'scale-110' : 'scale-90 group-active:scale-75'}`} />
+                                                            <span className={`text-[8px] font-black uppercase tracking-widest ${activeChatTab === tab.id ? 'opacity-100' : 'opacity-40'}`}>{tab.label}</span>
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
                                 )}

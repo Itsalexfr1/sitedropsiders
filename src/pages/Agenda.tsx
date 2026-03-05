@@ -1,6 +1,6 @@
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
-import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash2, CheckSquare, Square, Plus } from 'lucide-react';
+import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash2, CheckSquare, Square, Plus, Calendar } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
@@ -449,14 +449,33 @@ export function Agenda() {
                 </div>
             )}
 
-            <div className="space-y-4 w-full">
+            <div className="space-y-4 md:space-y-4 w-full relative">
+                {/* Vertical Line for Mobile Timeline */}
+                <div className="md:hidden absolute left-[31px] top-4 bottom-4 w-[1px] bg-white/5 z-0" />
+
                 <AnimatePresence mode="popLayout">
                     {months.length > 0 && filteredEvents.length > 0 ? (
                         filteredEvents.map((event: any, index: number) => {
-
                             const styles = getEventStyles(event.genre, event.type);
                             const isExpanded = expandedEvent === event.id;
                             const isSelected = selectedEvents.has(event.id);
+
+                            const eventDate = new Date(event.startDate || event.date);
+                            const now = new Date();
+                            const isPast = eventDate < new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+                            // Check if it's the "Next" event (the first one in the filtered list since they are sorted)
+                            const isNext = index === 0 && !isPast;
+
+                            const handleReminder = (e: React.MouseEvent) => {
+                                e.stopPropagation();
+                                e.preventDefault();
+                                const title = encodeURIComponent(event.title);
+                                const details = encodeURIComponent(event.genre + ' @ ' + (event.venue || event.location));
+                                const date = new Date(event.startDate || event.date).toISOString().replace(/-|:|\.\d\d\d/g, "");
+                                const url = `https://www.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${encodeURIComponent(event.location)}&dates=${date}/${date}`;
+                                window.open(url, '_blank');
+                            };
 
                             return (
                                 <motion.div
@@ -465,8 +484,14 @@ export function Agenda() {
                                     initial={{ opacity: 0, x: -20 }}
                                     animate={{ opacity: 1, x: 0 }}
                                     transition={{ delay: index * 0.05 }}
-                                    className={`group bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-300 ${styles.hoverBorder} ${styles.shadow} ${isSelected ? 'border-neon-red/50 bg-neon-red/5' : ''}`}
+                                    className={`group relative z-10 bg-white/5 border border-white/10 rounded-xl overflow-hidden transition-all duration-300 ${styles.hoverBorder} ${styles.shadow} ${isSelected ? 'border-neon-red/50 bg-neon-red/5' : ''} ${isPast ? 'opacity-40 grayscale-[0.5]' : ''} ${isNext ? 'shadow-[0_0_40px_rgba(255,0,51,0.4)] border border-neon-red z-20 overflow-visible before:absolute before:-inset-[1px] before:border before:border-neon-red/50 before:rounded-xl before:animate-pulse before:pointer-events-none' : ''}`}
                                 >
+                                    {isNext && (
+                                        <div className="absolute top-0 right-0 px-3 py-1 bg-neon-red text-white text-[8px] font-black uppercase tracking-widest rounded-bl-xl shadow-lg z-20">
+                                            Prochainement
+                                        </div>
+                                    )}
+
                                     <div className="flex">
                                         {canDelete && (
                                             <div
@@ -487,70 +512,79 @@ export function Agenda() {
                                             </div>
                                         )}
                                         <div
-                                            className="flex-1 p-2 md:p-6 cursor-pointer hover:bg-white/10 transition-colors"
+                                            className="flex-1 p-3 md:p-6 cursor-pointer hover:bg-white/10 transition-colors"
                                             onClick={() => toggleEvent(event.id)}
                                         >
-                                            <div className="flex flex-row items-center justify-between gap-2 md:gap-6">
-                                                <div className="flex items-center gap-2 md:gap-6">
-                                                    {event.image && (
-                                                        <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 border border-white/10 hidden sm:block">
-                                                            <img src={event.image} alt="" className="w-full h-full object-cover" />
-                                                        </div>
-                                                    )}
-                                                    <div className="flex-shrink-0 text-center bg-dark-bg border border-white/10 rounded-md md:rounded-lg p-1 md:p-3 w-10 md:w-20 min-h-0 md:min-h-[5.5rem] flex flex-col justify-center">
-                                                        <span className={`block text-[6px] md:text-[10px] ${styles.text} font-black uppercase mb-0.5 md:mb-1 tracking-tight`}>
+                                            <div className="flex flex-row items-center justify-between gap-4 md:gap-6">
+                                                <div className="flex items-center gap-4 md:gap-6">
+                                                    {/* Timeline Dot (Mobile Only) */}
+                                                    <div className={`md:hidden absolute left-[28px] w-1.5 h-1.5 rounded-full z-20 transition-all ${isPast ? 'bg-gray-700 border border-white/10' : (isNext ? 'bg-neon-red shadow-[0_0_20px_#ff0033] animate-pulse w-2.5 h-2.5 -ml-[2px]' : styles.bg.replace('/20', ''))}`} />
+
+                                                    <div className="flex-shrink-0 text-center bg-dark-bg border border-white/10 rounded-md md:rounded-xl p-1.5 md:p-4 w-12 md:w-24 min-h-0 md:min-h-[6.5rem] flex flex-col justify-center relative z-20">
+                                                        <span className={`block text-[8px] md:text-[11px] ${styles.text} font-black uppercase mb-0.5 md:mb-1.5 tracking-tight`}>
                                                             {event.startDate && event.endDate && event.startDate !== event.endDate ? (
                                                                 <>{new Date(event.startDate).toLocaleString(locale, { weekday: 'short' }).replace('.', '')} - {new Date(event.endDate).toLocaleString(locale, { weekday: 'short' }).replace('.', '')}</>
                                                             ) : (
                                                                 new Date(event.startDate || event.date).toLocaleString(locale, { weekday: 'short' }).replace('.', '')
                                                             )}
                                                         </span>
-                                                        <span className="block text-sm md:text-2xl font-bold text-white leading-none mb-0.5 md:mb-1">
+                                                        <span className="block text-lg md:text-3xl font-black text-white italic leading-none mb-0.5 md:mb-1.5">
                                                             {event.startDate && event.endDate && event.startDate !== event.endDate ? (
-                                                                <span className="text-xs md:text-lg">{new Date(event.startDate).getDate()}-{new Date(event.endDate).getDate()}</span>
+                                                                <span className="text-xs md:text-xl">{new Date(event.startDate).getDate()}-{new Date(event.endDate).getDate()}</span>
                                                             ) : (
                                                                 new Date(event.startDate || event.date).getDate()
                                                             )}
                                                         </span>
-                                                        <span className="block text-[6px] md:text-[10px] text-gray-400 uppercase leading-tight font-bold">
+                                                        <span className="block text-[8px] md:text-[11px] text-gray-400 uppercase leading-tight font-black">
                                                             {new Date(event.startDate || event.date).toLocaleString(locale, { month: 'short' }).replace('.', '')}
                                                         </span>
                                                     </div>
-                                                    <div>
-                                                        <div className="hidden md:flex flex-wrap gap-2 mb-2">
-                                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider ${styles.bg} ${styles.text} border ${styles.borderMedium}`}>
+
+                                                    <div className="min-w-0">
+                                                        <div className="hidden md:flex flex-wrap gap-2 mb-2.5">
+                                                            <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider ${styles.bg} ${styles.text} border ${styles.borderMedium}`}>
                                                                 {event.type}
                                                             </span>
-                                                            <span className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/5 text-gray-300 border border-white/10`}>
+                                                            <span className={`inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-white/5 text-gray-300 border border-white/10`}>
                                                                 {event.genre}
                                                             </span>
                                                             {event.isLiveDropsiders && (
-                                                                <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-neon-red/20 text-neon-red border border-neon-red/30 animate-pulse">
+                                                                <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-neon-red/20 text-neon-red border border-neon-red/30 animate-pulse">
                                                                     LIVE
                                                                 </span>
                                                             )}
                                                         </div>
-                                                        <h3 className="text-[8px] md:text-xl font-bold text-white group-hover:text-neon-red transition-colors leading-none">
+                                                        <h3 className="text-sm md:text-2xl font-black text-white group-hover:text-neon-red transition-colors leading-tight uppercase italic truncate max-w-[150px] md:max-w-none">
                                                             {event.title}
                                                         </h3>
-                                                        <div className="flex items-center gap-1 mt-0.5 text-[7px] md:text-sm text-gray-400">
-                                                            <MapPin className="w-2 h-2 md:w-4 md:h-4" />
-                                                            <span>{event.venue && `${event.venue}, `}{event.location}{event.location && event.country ? ', ' : ''}{event.country}</span>
+                                                        <div className="flex items-center gap-1.5 mt-1 text-[9px] md:text-base text-gray-500 uppercase font-bold tracking-wider">
+                                                            <MapPin className="w-2.5 h-2.5 md:w-5 md:h-5 text-neon-red" />
+                                                            <span className="truncate">{event.venue && `${event.venue}, `}{event.location}</span>
                                                             <FlagIcon location={event.country || event.location} />
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <div className="flex items-center gap-4">
+
+                                                <div className="flex items-center gap-3">
+                                                    {!isPast && (
+                                                        <button
+                                                            onClick={handleReminder}
+                                                            className="hidden sm:flex w-10 h-10 rounded-xl bg-white/5 border border-white/10 items-center justify-center hover:bg-neon-red/10 hover:border-neon-red transition-all group/btn"
+                                                            title="Rappel Calendrier"
+                                                        >
+                                                            <Calendar className="w-5 h-5 text-gray-500 group-hover/btn:text-neon-red" />
+                                                        </button>
+                                                    )}
                                                     <a
                                                         href={event.url}
                                                         target="_blank"
                                                         rel="noopener noreferrer"
-                                                        className={`px-6 py-2 rounded-lg border text-sm font-bold uppercase tracking-tight transition-all ${event.isSoldOut ? 'bg-neon-red/10 text-neon-red border-neon-red/30' : 'bg-white/5 border-white/10 text-white hover:bg-neon-red hover:border-neon-red'}`}
+                                                        className={`hidden md:block px-8 py-3 rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all ${event.isSoldOut ? 'bg-neon-red/10 text-neon-red border-neon-red/30' : 'bg-white/5 border-white/10 text-white hover:bg-neon-red hover:border-neon-red hover:shadow-[0_0_20px_rgba(255,0,51,0.3)]'}`}
                                                         onClick={e => e.stopPropagation()}
                                                     >
                                                         {event.isSoldOut ? 'Sold Out' : t('agenda.infos_tickets')}
                                                     </a>
-                                                    <ChevronDown className={`w-5 h-5 text-gray-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                                                    <ChevronDown className={`w-5 h-5 md:w-6 md:h-6 text-gray-600 transition-transform ${isExpanded ? 'rotate-180 text-neon-red' : ''}`} />
                                                 </div>
                                             </div>
                                         </div>
@@ -562,25 +596,45 @@ export function Agenda() {
                                                 initial={{ height: 0, opacity: 0 }}
                                                 animate={{ height: 'auto', opacity: 1 }}
                                                 exit={{ height: 0, opacity: 0 }}
-                                                className="border-t border-white/10 bg-black/20 p-8"
+                                                className="border-t border-white/5 bg-black/40 p-5 md:p-12"
                                             >
-                                                <div className="flex flex-col md:flex-row gap-10 items-center">
-                                                    <div className="w-full md:w-1/3">
-                                                        <img src={event.image} alt="" className="w-full rounded-2xl shadow-2xl" />
+                                                <div className="flex flex-col md:flex-row gap-8 md:gap-14 items-center">
+                                                    <div className="w-full md:w-1/3 group">
+                                                        <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/10">
+                                                            <img src={event.image} alt="" className="w-full group-hover:scale-110 transition-transform duration-700" />
+                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                        </div>
                                                     </div>
-                                                    <div className="flex-1 space-y-6">
-                                                        <h3 className="text-4xl font-display font-black text-white uppercase italic italic tracking-tighter leading-none">
-                                                            {event.title}
-                                                        </h3>
-                                                        <div className="flex flex-wrap gap-4 pt-4">
+                                                    <div className="flex-1 space-y-6 md:space-y-8">
+                                                        <div className="space-y-2">
+                                                            <span className={`text-[10px] md:text-sm font-black uppercase tracking-[0.3em] ${styles.text}`}>
+                                                                {event.genre} • {event.type}
+                                                            </span>
+                                                            <h3 className="text-3xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                                                {event.title}
+                                                            </h3>
+                                                        </div>
+
+                                                        <div className="flex flex-wrap gap-4 md:gap-6 pt-2">
                                                             <a
                                                                 href={event.url}
                                                                 target="_blank"
                                                                 rel="noopener noreferrer"
-                                                                className="px-8 py-4 bg-neon-red text-white rounded-xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,0,51,0.3)]"
+                                                                className="flex-1 md:flex-none px-10 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)] text-center text-xs md:text-sm"
                                                             >
                                                                 {t('agenda.book_tickets')}
                                                             </a>
+
+                                                            {!isPast && (
+                                                                <button
+                                                                    onClick={handleReminder}
+                                                                    className="flex-1 md:flex-none flex items-center justify-center gap-3 px-10 py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all text-xs md:text-sm"
+                                                                >
+                                                                    <Calendar className="w-5 h-5 text-neon-cyan" />
+                                                                    M'en rappeler
+                                                                </button>
+                                                            )}
+
                                                             {canEdit && (
                                                                 <button
                                                                     onClick={(e) => {
@@ -588,9 +642,9 @@ export function Agenda() {
                                                                         setEditingEvent(event);
                                                                         setIsEditModalOpen(true);
                                                                     }}
-                                                                    className="flex items-center gap-3 px-8 py-4 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/50 rounded-xl font-black uppercase tracking-widest hover:bg-neon-cyan/30 transition-all"
+                                                                    className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/20 rounded-xl font-black uppercase tracking-widest hover:bg-neon-cyan/20 transition-all text-xs"
                                                                 >
-                                                                    <Edit2 className="w-5 h-5" />
+                                                                    <Edit2 className="w-4 h-4" />
                                                                     {t('admin.modify')}
                                                                 </button>
                                                             )}

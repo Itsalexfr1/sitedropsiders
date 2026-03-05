@@ -1,12 +1,12 @@
 import { useEffect, Suspense, lazy } from 'react';
-import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Layout } from './components/layout/Layout';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { CookieConsent } from './components/ui/CookieConsent';
 import { GoogleAdSense } from './components/analytics/GoogleAdSense';
 import { ScrollToTop } from './components/utils/ScrollToTop';
 import { NotificationPrompt } from './components/NotificationPrompt';
-import { CustomCursor } from './components/ui/CustomCursor';
 
 // Lazy load pages for better mobile performance
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
@@ -63,15 +63,27 @@ function LoadingPage() {
 }
 
 function Root() {
+  const location = useLocation();
+
   return (
     <>
       <ScrollToTop />
       <GoogleAdSense />
-      <CustomCursor />
       <Layout>
-        <Suspense fallback={<LoadingPage />}>
-          <Outlet />
-        </Suspense>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={location.pathname}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="w-full"
+          >
+            <Suspense fallback={<LoadingPage />}>
+              <Outlet />
+            </Suspense>
+          </motion.div>
+        </AnimatePresence>
       </Layout>
       <CookieConsent />
       <NotificationPrompt />
