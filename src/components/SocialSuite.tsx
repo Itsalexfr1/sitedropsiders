@@ -16,7 +16,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVE TAKEOVER';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -137,7 +137,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
         'RECAP': { label: 'RECAP', grad: '189, 0, 255', color: '#bd00ff' },
-        'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' }
+        'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' },
+        'LIVE TAKEOVER': { label: 'LIVE TAKEOVER', grad: '255, 0, 255', color: '#ff00ff' }
     };
 
     useEffect(() => {
@@ -694,6 +695,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     <button onClick={() => setTheme('FOCUS')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/5 text-gray-400'}`}>FOCUS</button>
                     <button onClick={() => setTheme('MUSIQUE')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
                     <button onClick={() => setTheme('RECAP')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RECAP</button>
+                    <button onClick={() => setTheme('LIVE TAKEOVER')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all col-span-2 ${theme === 'LIVE TAKEOVER' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>LIVE TAKEOVER</button>
                 </>
             )}
         </div>
@@ -794,12 +796,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             {activeTab === 'PUBLICATION' && (
                 <div className="grid grid-cols-2 gap-2">
                     <button onClick={addVisualToList} className="py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter</button>
-                    <button onClick={downloadSingle} disabled={isDownloading} className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all"><Download className="w-3.5 h-3.5" /> Télécharger PNG</button>
+                    <button onClick={downloadSingle} disabled={isDownloading} className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all">
+                        {!isMobile && <Download className="w-3.5 h-3.5" />} Télécharger PNG
+                    </button>
                 </div>
             )}
             <button onClick={startVideoRecording} disabled={isVideoRecording}
                 className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}>
-                <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo Instagram (${theme})`}
+                {!isMobile && <Video className="w-4 h-4" />} {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo Instagram (${theme})`}
             </button>
         </div>
     );
@@ -928,7 +932,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 /* ══════════════════════════════════════════════════════════
                     MOBILE LAYOUT — InShot style: full-screen + bottom bar
                 ══════════════════════════════════════════════════════════ */
-                <div className="relative w-full h-full">
+                <motion.div
+                    drag="y"
+                    dragConstraints={{ top: 0, bottom: 0 }}
+                    dragElastic={{ top: 0, bottom: 0.5 }}
+                    onDragEnd={(_, info) => {
+                        if (info.offset.y > 100) onClose();
+                    }}
+                    className="relative w-full h-full bg-black">
 
                     {/* Format selection modal (mobile only) */}
                     <AnimatePresence>
@@ -1094,7 +1105,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             ))}
                         </div>
                     </div>
-                </div>
+                </motion.div>
 
             )} {/* end isMobile ternary */}
 
