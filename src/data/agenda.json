@@ -3409,7 +3409,7 @@
     "title": "A State Of Trance ",
     "date": "2026-09-07",
     "startDate": "2026-09-07",
-    "endDate": "2026-10-05",
+    "endDate": "2026-09-07",
     "location": "UNVRS IBIZA",
     "country": "Espagne",
     "type": "Résidence",
@@ -3420,7 +3420,8 @@
     "isWeekly": true,
     "dayOfWeek": 1,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "venue": ""
   },
   {
     "id": 272,
