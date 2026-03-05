@@ -177,7 +177,7 @@ export function MobileHome() {
                                 </div>
                             </div>
                             <div className="p-6 flex flex-col gap-3">
-                                <h3 className="text-lg font-display font-black text-white uppercase italic leading-tight">{news.title}</h3>
+                                <h3 className="text-sm font-display font-black text-white uppercase italic leading-tight line-clamp-3">{news.title}</h3>
                                 <div className="flex items-center gap-2 text-gray-500 mt-1">
                                     <div className="w-1.5 h-1.5 bg-gray-500 rounded-full" />
                                     <span className="text-[10px] font-bold uppercase tracking-widest">{news.date}</span>
