@@ -5413,19 +5413,19 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                 <form onSubmit={handleSendMessage} className="relative group/input px-0.5 md:px-2 py-0">
                                                                     <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-xl lg:rounded-2xl transition-all" />
                                                                     <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl lg:rounded-2xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
-                                                                        <div className="flex items-center px-1 md:px-2 py-0.5 lg:py-1">
-                                                                            <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-1 md:p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-4 h-4 md:w-5 md:h-5" /></button>
-                                                                            <div className="w-[1px] h-3 md:h-4 bg-white/10 mx-0.5 md:mx-1" />
+                                                                        <div className="flex items-center px-1 md:px-2 py-0.5 lg:py-1 gap-1">
+                                                                            <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`flex-shrink-0 p-1 md:p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-4 h-4 md:w-5 md:h-5" /></button>
+                                                                            <div className="w-[1px] h-3 md:h-4 bg-white/10 sm:block hidden" />
 
                                                                             <input
                                                                                 type="text"
                                                                                 value={newMessage}
                                                                                 onChange={(e) => setNewMessage(e.target.value)}
                                                                                 placeholder={isSlowMode && !hasModPowers ? "⏳ Lent..." : "Écrire..."}
-                                                                                className="flex-1 bg-transparent px-1.5 md:px-3 py-2 text-[11px] md:text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
+                                                                                className="flex-1 w-0 bg-transparent px-1.5 md:px-3 py-2 text-[10px] md:text-sm font-medium text-white outline-none placeholder:text-gray-700"
                                                                             />
 
-                                                                            <button type="button" onClick={handleShazam} className={`p-1 md:p-1.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
+                                                                            <button type="button" onClick={handleShazam} className={`flex-shrink-0 p-1 md:p-1.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
                                                                                 <Headphones className="w-4 h-4 md:w-5 md:h-5" />
                                                                             </button>
 
@@ -5433,14 +5433,14 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                                                 type="button"
                                                                                 onClick={isPushEnabled ? unsubscribeFromPush : subscribeToPushNotifications}
                                                                                 title={isPushEnabled ? "Désactiver les notifications" : "Activer les notifications natives (Favoris)"}
-                                                                                className={`p-1 md:p-1.5 transition-all flex items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
+                                                                                className={`flex-shrink-0 hidden sm:flex p-1 md:p-1.5 transition-all items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
                                                                             >
                                                                                 <Bell className={`w-4 h-4 md:w-5 md:h-5 ${isPushEnabled ? 'animate-bounce' : ''}`} />
                                                                             </button>
 
-                                                                            <div className="w-[1px] h-3 md:h-4 bg-white/10 mx-0.5 md:mx-1" />
+                                                                            <div className="w-[1px] h-3 md:h-4 bg-white/10 sm:block hidden" />
 
-                                                                            <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-1.5 md:p-2 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-lg md:rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
+                                                                            <button type="submit" disabled={!newMessage.trim() || isSending} className="flex-shrink-0 ml-0.5 p-1.5 md:p-2 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-lg md:rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
                                                                                 <Send className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isSending ? 'animate-pulse' : ''}`} />
                                                                             </button>
                                                                         </div>

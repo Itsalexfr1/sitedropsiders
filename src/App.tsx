@@ -1,4 +1,4 @@
-import { useEffect, Suspense, lazy } from 'react';
+import { useEffect, Suspense, lazy, useState } from 'react';
 import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layout } from './components/layout/Layout';
@@ -149,6 +149,14 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
+  const [initialLoad, setInitialLoad] = useState(true);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setInitialLoad(false);
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, []);
   useEffect(() => {
     const originalTitle = document.title;
     const scrollText = "DROPSIDERS : L'actu de tous les festivals ";
@@ -165,6 +173,24 @@ function App() {
       document.title = originalTitle;
     };
   }, []);
+
+  if (initialLoad) {
+    return (
+      <div className="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center pointer-events-none">
+        <div className="w-16 h-16 border-4 border-neon-red/20 border-t-neon-red rounded-full animate-spin shadow-[0_0_30px_rgba(255,0,51,0.3)] mb-6" />
+        <div className="flex overflow-hidden relative">
+          <motion.div
+            initial={{ y: "100%" }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.5, ease: "easeOut" }}
+            className="text-white font-display font-black uppercase tracking-widest text-xl italic"
+          >
+            DROPSIDERS V2
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return <RouterProvider router={router} />;
 }
