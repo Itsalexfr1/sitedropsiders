@@ -27,7 +27,14 @@
     "description": "Le label de John Summit prend le contrôle de Miami Music Week.",
     "url": "https://dice.fm/partner/tickets/event/mx8y59-experts-only-miami-music-week-2026-24th-mar-the-ground-miami-miami-club-space-miami-miami-floyd-miami-miami-tickets",
     "genre": "Tech House",
-    "country": "USA"
+    "country": "USA",
+    "startDate": "2026-03-24",
+    "endDate": "2026-03-24",
+    "venue": "CLUB SPACE",
+    "month": "MARS",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   },
   {
     "id": 3,
