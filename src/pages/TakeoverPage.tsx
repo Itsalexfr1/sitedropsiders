@@ -2448,9 +2448,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
 
 
-                {/* Flux Selection & Info Bar - Always visible above video on Desktop */}
+                {/* Flux Selection & Info Bar - Always visible above video */}
                 {!isFullScreen && (
-                    <div className="hidden lg:flex w-full bg-[#0a0a0a] border-b border-white/10 px-2 md:px-4 py-2 items-center justify-between gap-2 z-40 relative overflow-hidden">
+                    <div className="flex w-full bg-[#0a0a0a] border-b border-white/10 px-2 md:px-4 py-2 items-center justify-between gap-2 z-40 relative overflow-hidden">
                         <div className="flex items-center gap-2 md:gap-4 flex-1 min-w-0">
                             {/* LIVE TITLE */}
                             <div className="flex flex-col min-w-0 py-0.5">
@@ -2560,7 +2560,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                 <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0 relative">
                     {/* Video Section */}
-                    <div className={`shrink-0 w-full h-[35vh] lg:h-auto lg:w-auto lg:flex-[2] bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden shadow-2xl ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
+                    <div className={`order-1 shrink-0 w-full aspect-video lg:aspect-auto lg:h-auto lg:w-auto lg:flex-[2] bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden shadow-2xl ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
 
                         <div ref={videoPlayerRef} className="w-full h-full lg:flex-1 relative bg-black group overflow-hidden">
                             <div className="absolute inset-0 z-0">
@@ -4204,7 +4204,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
 
                 {/* Chat Section */}
-                <div className="flex-1 lg:w-[480px] lg:flex-none bg-[#080808] flex flex-col min-h-0 lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60_rgba(0,0,0,0.6)]" >
+                <div className="order-2 lg:order-2 flex-1 lg:w-[480px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:min-h-0 relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]" >
                     {/* MULTIVUE - hidden on mobile, visible on desktop */}
                     {channelItems.length >= 2 && !isFocusMode && (
                         <div className="hidden lg:block p-3 border-b border-white/10 bg-black/40 shrink-0 z-30">
