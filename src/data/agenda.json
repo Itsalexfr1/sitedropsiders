@@ -3881,5 +3881,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 297,
+    "title": "25Years Of A State Of Trance Poland",
+    "date": "2026-03-06",
+    "startDate": "2026-03-06",
+    "endDate": "2026-03-06",
+    "venue": "Legia Warsaw City Stadium",
+    "location": "Varsovie",
+    "country": "Pologne",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772805437508-ce4394bd-2f02-42ff-9215-ed3868243506.jpg",
+    "url": "https://festival.astateoftrance.com/poland/#:~:text=A%20State%20of%20Trance%20is,providers%20using%20the%20buttons%20below.",
+    "genre": "Trance",
+    "month": "MARS",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
