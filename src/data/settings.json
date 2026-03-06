@@ -3,7 +3,7 @@
   "shop_password_protected": false,
   "shop_password_image": "",
   "takeover": {
-    "enabled": false,
+    "enabled": true,
     "youtubeId": "",
     "title": "tomorrowland one world radio",
     "moderators": "",
@@ -27,7 +27,7 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "off"
+    "status": "live"
   },
   "socials": {
     "instagram": "dropsiders.eu",

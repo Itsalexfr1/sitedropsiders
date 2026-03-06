@@ -3322,6 +3322,8 @@ export default {
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 
+        // All API routes should be handled before this point.
+        // If we reached here and start with /api/, it's a true 404 for the API.
         if (path.startsWith('/api/')) {
             return new Response(JSON.stringify({ error: 'Not Found' }), { status: 404, headers });
         }
