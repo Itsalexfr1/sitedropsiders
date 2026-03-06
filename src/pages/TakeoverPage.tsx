@@ -2463,7 +2463,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                             </span>
                                         </div>
                                     )}
-                                    <h1 className="text-sm md:text-2xl font-display font-black text-white uppercase italic tracking-tighter truncate leading-none">
+                                    <h1 className="text-sm md:text-2xl font-display font-black text-white uppercase italic tracking-tighter truncate leading-normal py-1">
                                         {displayTitle}
                                     </h1>
                                 </div>
@@ -2531,7 +2531,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-2 px-3 py-1 bg-blue-600/20 border border-blue-500/30 rounded-md shadow-[0_0_15px_rgba(37,99,235,0.2)]">
                                 <span className="text-[9px] font-black uppercase tracking-widest text-blue-400">EN DIRECT:</span>
-                                <span className="text-[10px] font-black uppercase tracking-widest text-white">{fluxCurrentArtist.artist || '---'}</span>
+                                <span className="text-[10px] font-black uppercase tracking-widest text-white leading-normal truncate py-0.5">{fluxCurrentArtist.artist || '---'}</span>
                             </div>
                         </div>
 
@@ -4531,17 +4531,17 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                                     href={product.url}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className="flex items-center gap-2 md:gap-3 p-1 md:p-1.5 pr-3 md:pr-4 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-neon-cyan/30 rounded-lg md:rounded-xl transition-all group/item active:scale-95 shrink-0"
+                                                    className="flex items-center gap-2 md:gap-2 p-1 md:p-1 pr-3 md:pr-3 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-neon-cyan/30 rounded-lg md:rounded-xl transition-all group/item active:scale-95 shrink-0"
                                                 >
-                                                    <div className="w-8 h-8 md:w-12 md:h-12 shrink-0 rounded-md md:rounded-lg overflow-hidden relative shadow-lg">
+                                                    <div className="w-8 h-8 md:w-9 md:h-9 shrink-0 rounded-md md:rounded-lg overflow-hidden relative shadow-lg">
                                                         <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500" />
                                                         <div className="absolute inset-x-0 bottom-0 bg-black/60 backdrop-blur-sm py-0.5 text-center">
-                                                            <span className="text-[6px] md:text-[7.5px] font-black text-white">{product.price}€</span>
+                                                            <span className="text-[6px] md:text-[7px] font-black text-white">{product.price}€</span>
                                                         </div>
                                                     </div>
-                                                    <div className="flex flex-col justify-center max-w-[100px] md:max-w-[120px]">
-                                                        <p className="text-[8px] md:text-[9px] font-black text-white uppercase tracking-widest leading-none truncate">{product.name}</p>
-                                                        <p className="text-[6.5px] md:text-[7.5px] text-gray-500 uppercase tracking-widest mt-0.5 md:mt-1 truncate opacity-60 font-bold">{product.description}</p>
+                                                    <div className="flex flex-col justify-center max-w-[100px] md:max-w-[110px]">
+                                                        <p className="text-[8px] md:text-[8px] font-black text-white uppercase tracking-widest leading-none truncate">{product.name}</p>
+                                                        <p className="text-[6.5px] md:text-[7px] text-gray-500 uppercase tracking-widest mt-0.5 md:mt-1 truncate opacity-60 font-bold">{product.description}</p>
                                                     </div>
                                                 </a>
                                             ))}

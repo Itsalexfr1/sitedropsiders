@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Home, Newspaper, Video, Calendar, X, Music, Users, ShoppingBag, Shield, Info } from 'lucide-react';
+import { Newspaper, Video, Calendar, X, Music, Users, ShoppingBag, Shield, Info, MoreHorizontal } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useState, useEffect } from 'react';
 import settings from '../../data/settings.json';
@@ -34,8 +34,8 @@ export function MobileNavbar() {
     }, []);
 
     const mainItems = [
-        { icon: Home, label: 'Accueil', path: '/' },
-        { icon: Newspaper, label: 'Actu', path: '/news' },
+        { icon: Newspaper, label: 'News', path: '/news' },
+        { icon: Calendar, label: 'Agenda', path: '/agenda' },
         {
             icon: Users,
             label: 'Communaute',
@@ -50,7 +50,12 @@ export function MobileNavbar() {
             isLive: takeoverEnabled && takeoverStatus === 'live',
             color: 'neon-red'
         },
-        { icon: Calendar, label: 'Agenda', path: '/agenda' }
+        {
+            icon: MoreHorizontal,
+            label: 'Plus',
+            path: '#',
+            isMenuTrigger: true
+        }
     ];
 
     const menuItems = [
@@ -88,6 +93,22 @@ export function MobileNavbar() {
                                     </div>
                                 </Link>
                             );
+                        }
+
+                        if (item.isMenuTrigger) {
+                            return (
+                                <button
+                                    key={item.label}
+                                    onClick={() => setIsMenuOpen(true)}
+                                    className="flex flex-col items-center justify-center transition-all relative py-2 px-3 rounded-2xl min-w-[60px] text-gray-500"
+                                >
+                                    <Icon className="w-6 h-6 scale-90 opacity-60" />
+                                </button>
+                            );
+                        }
+
+                        if (item.isLive && !(takeoverEnabled && takeoverStatus === 'live')) {
+                            return null;
                         }
 
                         return (
