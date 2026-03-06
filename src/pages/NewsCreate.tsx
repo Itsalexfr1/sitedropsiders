@@ -105,7 +105,7 @@ const getAuthorTextStyle = (username: string) => {
 };
 
 // --- HELPER WRAPPER FOR MOBILE EDITOR EXPERIENCE ---
-function MobileToolbar({ widgetId, widgets, updateWidget, applyFormat, toggleWidgetStyle, applyColorToSelection, addWidget }: any) {
+function MobileToolbar({ widgetId, applyFormat, toggleWidgetStyle, applyColorToSelection, addWidget }: any) {
     return (
         <motion.div
             initial={{ y: 100 }}
@@ -695,7 +695,6 @@ export function NewsCreate() {
     });
 
     const [isDirty, setIsDirty] = useState(false);
-    const initialDataLoaded = useRef(false);
 
     // Track changes
     useEffect(() => {
@@ -746,9 +745,6 @@ export function NewsCreate() {
         }
     }, [type, isEditing]);
 
-
-    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-    const [message, setMessage] = useState('');
 
     // const handleUpload = async (file: File) => {
     //     const validation = uploadValidation(file);
