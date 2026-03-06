@@ -580,11 +580,11 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                     <span className="text-[10px] text-gray-600 flex-shrink-0">{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
                                                 </div>
                                                 <div className="flex items-center gap-2 mt-0.5">
-                                                    <span className={`text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border ${getSubjectColor(msg.subject)}`}>
+                                                    <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border truncate max-w-full block md:inline ${getSubjectColor(msg.subject)}`}>
                                                         {msg.subject}
                                                     </span>
                                                 </div>
-                                                <p className={`text-sm truncate mt-2 font-medium ${msg.read ? 'text-white/40' : 'text-white/80'}`}>{msg.message}</p>
+                                                <p className={`text-xs md:text-sm truncate mt-2 font-medium ${msg.read ? 'text-white/40' : 'text-white/80'}`}>{msg.message}</p>
                                                 {msg.replied && (
                                                     <span className="inline-flex items-center gap-1 text-[9px] uppercase font-black text-neon-cyan/70 mt-1">
                                                         <Reply className="w-3 h-3" /> Répondu
@@ -611,7 +611,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                             {/* Mobile Back Button */}
                             <button
                                 onClick={() => setSelected(null)}
-                                className="md:hidden flex items-center gap-2 text-gray-400 hover:text-white mb-6 uppercase text-[10px] font-black tracking-widest"
+                                className="md:hidden flex items-center gap-2 text-neon-cyan hover:text-white mb-6 p-2 bg-neon-cyan/5 border border-neon-cyan/10 rounded-xl uppercase text-[10px] font-black tracking-widest transition-all active:scale-95 w-fit"
                             >
                                 <ArrowLeft className="w-4 h-4" /> Retour à la liste
                             </button>
@@ -623,7 +623,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                             {selected.subject}
                                         </span>
                                     </div>
-                                    <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tight mb-1">{selected.name}</h2>
+                                    <h2 className="text-xl md:text-2xl font-display font-black text-white italic uppercase tracking-tight mb-1">{selected.name}</h2>
                                     <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400">
                                         <div className="flex items-center gap-1.5">
                                             <User className="w-3.5 h-3.5" />

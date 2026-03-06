@@ -176,17 +176,39 @@ function App() {
 
   if (initialLoad) {
     return (
-      <div className="fixed inset-0 bg-black z-[9999] flex flex-col items-center justify-center pointer-events-none">
-        <div className="w-16 h-16 border-4 border-neon-red/20 border-t-neon-red rounded-full animate-spin shadow-[0_0_30px_rgba(255,0,51,0.3)] mb-6" />
-        <div className="flex overflow-hidden relative">
-          <motion.div
-            initial={{ y: "100%" }}
-            animate={{ y: 0 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="text-white font-display font-black uppercase tracking-widest text-xl italic"
-          >
-            DROPSIDERS V2
-          </motion.div>
+      <div className="fixed inset-0 bg-[#050505] z-[9999] flex flex-col items-center justify-center pointer-events-none overflow-hidden">
+        {/* Ambient Glows */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-neon-red/10 rounded-full blur-[120px] animate-pulse" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[300px] h-[300px] bg-neon-cyan/5 rounded-full blur-[100px] animate-pulse [animation-delay:1s]" />
+
+        <div className="relative flex flex-col items-center">
+          <div className="relative w-24 h-24 mb-10">
+            <div className="absolute inset-0 border-4 border-neon-red/20 rounded-full" />
+            <div className="absolute inset-0 border-4 border-t-neon-red rounded-full animate-spin shadow-[0_0_25px_rgba(255,0,51,0.4)]" />
+            <div className="absolute inset-4 border-4 border-neon-cyan/20 rounded-full" />
+            <div className="absolute inset-4 border-4 border-b-neon-cyan rounded-full animate-spin-slow [animation-duration:3s] shadow-[0_0_25px_rgba(0,240,255,0.4)]" />
+          </div>
+
+          <div className="flex flex-col items-center gap-2">
+            <div className="flex overflow-hidden">
+              <motion.div
+                initial={{ y: "100%", opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                className="text-white font-display font-black uppercase tracking-[0.3em] text-2xl md:text-3xl italic"
+              >
+                DROPSIDERS <span className="text-neon-red">V2</span>
+              </motion.div>
+            </div>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.4 }}
+              transition={{ delay: 0.5, duration: 1 }}
+              className="text-[10px] text-white/60 font-black uppercase tracking-[0.5em] ml-1.5"
+            >
+              Chargement de l'expérience
+            </motion.div>
+          </div>
         </div>
       </div>
     );
