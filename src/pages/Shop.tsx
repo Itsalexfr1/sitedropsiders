@@ -198,7 +198,7 @@ export function Shop() {
                     >
                         <span className="text-neon-red font-display font-black uppercase tracking-[0.3em] text-xs mb-4 block underline decoration-4 underline-offset-8">COLLECTION 2026</span>
                         <h1 className={`${isMini ? 'text-4xl md:text-5xl' : 'text-6xl md:text-8xl'} font-display font-black text-white uppercase italic tracking-tighter leading-none mb-6`}>
-                            OFFICIAL <span className="text-neon-red">SHOP</span>
+                            SHOP <span className="text-neon-red">OFFICIEL</span>
                         </h1>
 
                         <div className={`flex justify-center gap-2 md:gap-4 mt-8 ${isMini ? 'mb-4' : 'mb-8'} flex-wrap`}>
@@ -244,7 +244,7 @@ export function Shop() {
                         <p className="text-gray-400">Revenez bientôt pour nos nouveautés.</p>
                     </div>
                 ) : (
-                    <div className={`grid ${isMini ? 'grid-cols-3 sm:grid-cols-4 gap-2 md:gap-4' : 'grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8'}`}>
+                    <div className={`grid ${isMini ? 'grid-cols-4 gap-2 md:gap-4' : 'grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-8'}`}>
                         <AnimatePresence mode="popLayout">
                             {filteredProducts.map((product) => (
                                 <ProductCard
@@ -385,7 +385,7 @@ function ProductCard({ product, onBuy, isMini = false }: { product: any, onBuy: 
                             }}
                             className={`flex-1 px-2 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${!showBack ? 'bg-white text-black border-white shadow-lg shadow-white/10' : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'}`}
                         >
-                            Face
+                            FACE
                         </button>
                         <button
                             onClick={(e) => {
@@ -395,7 +395,7 @@ function ProductCard({ product, onBuy, isMini = false }: { product: any, onBuy: 
                             }}
                             className={`flex-1 px-2 md:px-4 py-1.5 md:py-2 rounded-lg md:rounded-xl text-[8px] md:text-[10px] font-black uppercase tracking-widest transition-all border flex items-center justify-center gap-2 ${showBack ? 'bg-white text-black border-white shadow-lg shadow-white/10' : 'bg-white/5 text-gray-400 border-white/10 hover:bg-white/10'}`}
                         >
-                            Dos
+                            DOS
                         </button>
                     </div>
                 )}
@@ -443,9 +443,9 @@ function ProductCard({ product, onBuy, isMini = false }: { product: any, onBuy: 
                             e.preventDefault();
                             onBuy();
                         }}
-                        className={`w-full bg-neon-red text-white rounded-xl font-bold uppercase tracking-widest text-center shadow-lg shadow-neon-red/20 transform hover:scale-[1.02] active:scale-[0.98] transition-all ${isMini ? 'py-2 text-[10px]' : 'py-4'}`}
+                        className={`w-full bg-neon-red text-white rounded-xl font-black uppercase tracking-widest text-center shadow-lg shadow-neon-red/20 transform hover:scale-[1.02] active:scale-[0.98] transition-all ${isMini ? 'py-2 text-[10px]' : 'py-4'}`}
                     >
-                        Acheter
+                        ACHETER
                     </button>
                 </div>
             </div>

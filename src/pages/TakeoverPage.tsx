@@ -4204,7 +4204,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
 
                 {/* Chat Section */}
-                <div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-0 lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60_rgba(0,0,0,0.6)]" >
+                <div className="flex-1 lg:w-[480px] lg:flex-none bg-[#080808] flex flex-col min-h-0 lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60_rgba(0,0,0,0.6)]" >
                     {/* MULTIVUE - hidden on mobile, visible on desktop */}
                     {channelItems.length >= 2 && !isFocusMode && (
                         <div className="hidden lg:block p-3 border-b border-white/10 bg-black/40 shrink-0 z-30">
@@ -4220,7 +4220,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     {/* Glossy Header */}
                     {
                         !isFocusMode && (
-                            <div className="p-1 md:p-2 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
+                            <div className="p-3 md:p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
                                 <div className="flex-1 flex items-center gap-1.5 md:gap-2">
                                     {/* Back Button for mobile users */}
                                     <button
@@ -4240,8 +4240,8 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                         <MessageSquare className="w-2.5 h-2.5 text-neon-red" />
                                     </div>
                                     <div className="flex flex-col">
-                                        <h2 className="text-[1.5px] md:text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-none flex items-center gap-1 md:gap-2">
-                                            {activeChatTab === 'chat' ? 'Chat' : activeChatTab === 'shop' ? 'Shop' : activeChatTab === 'drops-shop' ? 'Drops' : activeChatTab === 'shazam' ? 'Shazam' : activeChatTab === 'audio' ? 'Audio' : activeChatTab === 'leaderboard' ? 'Top' : 'Clips'}
+                                        <h2 className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-none flex items-center gap-1 md:gap-2">
+                                            {activeChatTab === 'chat' ? 'CHAT EN DIRECT' : activeChatTab === 'shop' ? 'SHOP OFFICIEL' : activeChatTab === 'drops-shop' ? 'MES DROPS' : activeChatTab === 'shazam' ? 'SHAZAM LIVE' : activeChatTab === 'audio' ? 'AUDIO ROOM' : activeChatTab === 'leaderboard' ? 'LEADERBOARD' : 'CLIPS'}
                                             {isSlowMode && <span className="px-1 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[5px] md:text-[7px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">LENT</span>}
                                         </h2>
                                         {/* Hype Energy Mini Gauge */}
@@ -4599,12 +4599,12 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     {/* Tab Switcher - Persistent at Top */}
                                     <div className="flex items-center gap-0.5 md:gap-1 p-0 md:p-1 bg-white/[0.02] border border-white/10 rounded-md md:rounded-xl mb-0 mx-1 md:mx-4 mt-0.5 md:mt-3 relative z-20 shrink-0 overflow-x-auto no-scrollbar">
                                         {[
-                                            { id: 'chat', icon: MessageSquare, label: 'Chat', mobileVisible: true },
-                                            { id: 'shazam', icon: Headphones, label: 'Shz', mobileVisible: true },
-                                            { id: 'audio', icon: Mic, label: 'Aud', mobileVisible: true },
-                                            { id: 'shop', icon: ShoppingBag, label: 'Shop', mobileVisible: true },
-                                            { id: 'leaderboard', icon: Trophy, label: 'Top', mobileVisible: true },
-                                            { id: 'clips', icon: Video, label: 'Clips', mobileVisible: true },
+                                            { id: 'chat', icon: MessageSquare, label: 'CHAT', mobileVisible: true },
+                                            { id: 'shazam', icon: Headphones, label: 'SHAZAM', mobileVisible: true },
+                                            { id: 'audio', icon: Mic, label: 'AUDIO', mobileVisible: true },
+                                            { id: 'shop', icon: ShoppingBag, label: 'SHOP', mobileVisible: true },
+                                            { id: 'leaderboard', icon: Trophy, label: 'TOP', mobileVisible: true },
+                                            { id: 'clips', icon: Video, label: 'CLIPS', mobileVisible: true },
                                             ...(activeChatTab === 'drops-shop' ? [{ id: 'drops-shop', icon: Zap, label: 'Drops', mobileVisible: true }] : [])
                                         ].map(tab => (
                                             <button
