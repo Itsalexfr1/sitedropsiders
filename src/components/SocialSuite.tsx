@@ -134,12 +134,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const baseThemeData: Record<ThemeType, { label: string; grad: string; color: string }> = {
         'TOP 5 ARTISTE': { label: 'TOP 5 ARTISTES', grad: '255, 230, 0', color: '#ffe600' }, // Unique Yellow/Gold
         'TOP 5 STYLES': { label: 'TOP 5 STYLES', grad: '0, 240, 255', color: '#00f0ff' },
-        'NEWS': { label: 'NEWS', grad: '255, 0, 51', color: '#ff0033' },
-        'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
+        'NEWS': { label: 'ACTUALITÉS', grad: '255, 0, 51', color: '#ff0033' },
+        'FOCUS': { label: 'À LA UNE', grad: '255, 170, 0', color: '#ffaa00' },
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
-        'RECAP': { label: 'RECAP', grad: '189, 0, 255', color: '#bd00ff' },
+        'RECAP': { label: 'RÉCAP', grad: '189, 0, 255', color: '#bd00ff' },
         'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' },
-        'LIVE TAKEOVER': { label: 'LIVE TAKEOVER', grad: '255, 0, 180', color: '#ff00b4' }
+        'LIVE TAKEOVER': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' }
     };
 
     useEffect(() => {
@@ -351,7 +351,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillRect(barX + slideX, barY, barWidth, barHeight);
                 ctx.fillStyle = '#000'; // Black text on yellow bar
                 ctx.font = '900 italic 43px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
-                ctx.fillText(`${item.value.toUpperCase()} MILLIONS DE STREAMS`, barX + 30 + slideX, barY + 60);
+                ctx.fillText(`${item.value.toUpperCase()} MILLIONS D'ÉCOUTES`, barX + 30 + slideX, barY + 60);
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 117px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
@@ -359,99 +359,140 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
             } else if (theme === 'LIVE TAKEOVER') {
                 const centerX = canvas.width / 2;
-                const centerY = (canvas.height / 2) - 100;
+                const centerY = (canvas.height / 2);
 
-                // --- Stylized Background Grid/Scanlines ---
+                // 1. Background Enhancement: Aurora Glows & Atmosphere
+                const auroraGrad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, canvas.width);
+                auroraGrad.addColorStop(0, `rgba(${activeData.grad}, 0.2)`);
+                auroraGrad.addColorStop(0.6, 'rgba(0,0,0,0)');
+                ctx.fillStyle = auroraGrad;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                const drawGlow = (x: number, y: number, color: string, size: number) => {
+                    ctx.save();
+                    const g = ctx.createRadialGradient(x, y, 0, x, y, size);
+                    g.addColorStop(0, color);
+                    g.addColorStop(1, 'transparent');
+                    ctx.globalAlpha = 0.4;
+                    ctx.fillStyle = g;
+                    ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill();
+                    ctx.restore();
+                };
+                drawGlow(0, 0, `rgba(${activeData.grad}, 0.5)`, 800);
+                drawGlow(canvas.width, canvas.height, 'rgba(0, 255, 255, 0.3)', 800);
+
+                // 2. The "LIVE" Badge (Site Style)
                 ctx.save();
-                ctx.strokeStyle = activeData.color;
-                ctx.globalAlpha = 0.15;
-                ctx.lineWidth = 2;
-                for (let i = 0; i < canvas.height; i += 100) {
-                    ctx.beginPath();
-                    ctx.moveTo(0, i);
-                    ctx.lineTo(canvas.width, i);
-                    ctx.stroke();
-                }
-                for (let i = 0; i < canvas.width; i += 100) {
-                    ctx.beginPath();
-                    ctx.moveTo(i, 0);
-                    ctx.lineTo(i, canvas.height);
-                    ctx.stroke();
-                }
-                ctx.restore();
+                const badgeW = 260;
+                const badgeH = 74;
+                const badgeY = activeTab === 'PUBLICATION' ? 140 : 280;
+                const badgeX = (canvas.width - badgeW) / 2;
 
-                // --- Neon Ring & Glow ---
-                ctx.save();
-                ctx.translate(centerX, centerY);
-                ctx.shadowColor = activeData.color;
-                ctx.shadowBlur = 80;
-                ctx.strokeStyle = activeData.color;
-                ctx.lineWidth = 20;
+                // Shadow for premium feel
+                ctx.shadowColor = 'rgba(255, 0, 51, 0.6)';
+                ctx.shadowBlur = 40;
+                ctx.fillStyle = '#ff0033'; // Dropsiders Red
                 ctx.beginPath();
-                ctx.arc(0, 0, 360, 0, Math.PI * 2);
-                ctx.stroke();
+                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 37);
+                ctx.fill();
 
-                // Inner Glow Pulse
-                ctx.globalAlpha = 0.25;
-                ctx.lineWidth = 50;
+                // Pulse dot
+                const pulse = (Math.sin(Date.now() / 400) + 1) / 2;
                 ctx.beginPath();
-                ctx.arc(0, 0, 390, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.restore();
+                ctx.arc(badgeX + 55, badgeY + badgeH / 2, 8 + (pulse * 3), 0, Math.PI * 2);
+                ctx.fillStyle = '#fff';
+                ctx.fill();
 
-                // --- Advanced Typography ---
+                // Badge Text
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-
-                // "TAKEOVER" - Premium Gold/White Gradient Outline
-                ctx.font = '900 italic 170px "Inter", sans-serif';
-                const takeoverGrad = ctx.createLinearGradient(0, centerY - 150, 0, centerY);
-                takeoverGrad.addColorStop(0, '#FFFFFF');
-                takeoverGrad.addColorStop(0.5, '#CCCCCC');
-                takeoverGrad.addColorStop(1, '#FFFFFF');
-                ctx.strokeStyle = takeoverGrad;
-                ctx.lineWidth = 5;
-                ctx.strokeText('TAKEOVER', centerX, centerY - 85);
-
-                // "LIVE" - Solid Neon with heavy Glow
-                ctx.save();
-                ctx.font = '900 italic 190px "Inter", sans-serif';
-                ctx.fillStyle = activeData.color;
-                ctx.shadowColor = activeData.color;
-                ctx.shadowBlur = 40;
-                ctx.fillText('LIVE', centerX, centerY + 95);
+                ctx.fillStyle = '#fff';
+                ctx.font = '900 italic 42px "Inter", sans-serif';
+                ctx.shadowBlur = 0;
+                ctx.fillText('LIVE', centerX + 15, badgeY + badgeH / 2 + 3);
                 ctx.restore();
 
-                // --- Custom Info (Artist, Time) ---
+                // 3. MAIN TITLE: "TAKEOVER" (Large, Italic, Impactful)
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#fff';
+                ctx.font = '900 italic 180px "Inter", sans-serif';
+                ctx.shadowColor = 'rgba(255, 255, 255, 0.2)';
+                ctx.shadowBlur = 20;
+                ctx.fillText('TAKEOVER', centerX, centerY - 60);
+
+                // Subtle underline
+                const lineW = 600;
+                ctx.fillStyle = `rgba(${activeData.grad}, 0.5)`;
+                ctx.fillRect(centerX - lineW / 2, centerY + 30, lineW, 8);
+                ctx.restore();
+
+                // 4. FESTIVAL / INFO SECTION (Large Card)
                 if (customText) {
-                    const infoLines = customText.toUpperCase().split('\n');
-                    ctx.font = '900 italic 55px "Inter", sans-serif';
+                    const lines = customText.split('\n');
+                    const festivalName = lines[0].toUpperCase();
+                    const location = lines[1] ? lines[1].toUpperCase() : '';
+
+                    ctx.save();
+                    ctx.font = '900 italic 72px "Inter", sans-serif';
+                    const nameW = Math.max(ctx.measureText(festivalName).width, ctx.measureText(location).width) + 160;
+                    const cardH = location ? 180 : 130;
+                    const cardY = centerY + 120;
+
+                    // Glassmorphism card - Wider for festivals
+                    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+                    ctx.beginPath();
+                    ctx.roundRect((canvas.width - nameW) / 2, cardY, nameW, cardH, 30);
+                    ctx.fill();
+
+                    // Dual accent border
+                    ctx.strokeStyle = `rgba(${activeData.grad}, 0.8)`;
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+
+                    // Festival name
                     ctx.fillStyle = '#fff';
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.shadowBlur = 10;
-                    infoLines.forEach((line, i) => {
-                        ctx.fillText(line, centerX, centerY + 320 + (i * 70));
-                    });
+                    ctx.font = '900 italic 75px "Inter", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.shadowColor = `rgba(${activeData.grad}, 0.5)`;
+                    ctx.shadowBlur = 20;
+                    ctx.fillText(festivalName, centerX, cardY + (location ? 75 : cardH / 2 + 5));
+
+                    // Location (if present)
+                    if (location) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                        ctx.font = '900 italic 32px "Inter", sans-serif';
+                        ctx.shadowBlur = 0;
+                        ctx.fillText(location, centerX, cardY + 135);
+                    }
+                    ctx.restore();
                 }
 
-                // --- Bottom CTA (Request 5) ---
+                // 5. BOTTOM NAVIGATION BAR
                 ctx.save();
-                const btmY = canvas.height - 180;
-                ctx.fillStyle = `rgba(${activeData.grad}, 0.2)`;
-                ctx.fillRect(0, btmY - 60, canvas.width, 120);
+                const barH = 180;
+                const barY = canvas.height - barH;
 
-                ctx.font = '900 italic 45px "Inter", sans-serif';
-                ctx.fillStyle = '#fff';
+                // Gradient base for the bar
+                const barGrad = ctx.createLinearGradient(0, barY, 0, canvas.height);
+                barGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                barGrad.addColorStop(1, 'rgba(0,0,0,0.8)');
+                ctx.fillStyle = barGrad;
+                ctx.fillRect(0, barY, canvas.width, barH);
+
+                ctx.font = '900 italic 42px "Inter", sans-serif';
                 ctx.textAlign = 'center';
-                ctx.shadowColor = activeData.color;
-                ctx.shadowBlur = 20;
-                ctx.fillText('RENDEZ-VOUS SUR DROPSIDERS.COM/LIVE', centerX, btmY);
 
-                // Scanning Line Effect Overlay
-                ctx.globalAlpha = 0.4;
-                ctx.fillStyle = activeData.color;
-                const scanLineY = (Date.now() / 20) % canvas.height;
-                ctx.fillRect(0, scanLineY, canvas.width, 3);
+                // Glow text effect
+                ctx.shadowColor = `rgba(${activeData.grad}, 0.5)`;
+                ctx.shadowBlur = 20;
+                ctx.fillStyle = '#fff';
+                ctx.fillText('RENDEZ-VOUS SUR DROPSIDERS.FR/LIVE', centerX, canvas.height - 80);
+
+                // Cyan mini-border indicator
+                ctx.fillStyle = '#00ffff';
+                ctx.fillRect(centerX - 100, canvas.height - 40, 200, 4);
                 ctx.restore();
             } else {
                 const fontSize = activeTab === 'PUBLICATION' ? 55 : 78; const lineHeight = fontSize * 1.15;
@@ -646,7 +687,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillStyle = '#fff';
                 ctx.shadowColor = 'rgba(0,0,0,0.8)';
                 ctx.shadowBlur = 10;
-                ctx.fillText('ARTICLE COMPLET À LIRE SUR DROPSIDERS.FR', 40, canvas.height - 10);
+                ctx.fillText('ARTICLE COMPLET SUR DROPSIDERS.FR', 40, canvas.height - 10);
                 ctx.restore();
             }
 
@@ -889,11 +930,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 </>
             ) : (
                 <>
-                    <button onClick={() => setTheme('NEWS')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
-                    <button onClick={() => setTheme('FOCUS')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/5 text-gray-400'}`}>FOCUS</button>
+                    <button onClick={() => setTheme('NEWS')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>ACTUS</button>
+                    <button onClick={() => setTheme('FOCUS')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>À LA UNE</button>
                     <button onClick={() => setTheme('MUSIQUE')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
-                    <button onClick={() => setTheme('RECAP')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RECAP</button>
-                    <button onClick={() => setTheme('LIVE TAKEOVER')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all col-span-2 ${theme === 'LIVE TAKEOVER' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>LIVE TAKEOVER</button>
+                    <button onClick={() => setTheme('RECAP')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
+                    <button onClick={() => setTheme('LIVE TAKEOVER')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all col-span-2 ${theme === 'LIVE TAKEOVER' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
                 </>
             )}
         </div>

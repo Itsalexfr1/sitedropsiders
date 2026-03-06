@@ -104,7 +104,67 @@ const getAuthorTextStyle = (username: string) => {
     return { color };
 };
 
-// Helper component for styled checkboxes (Request 7)
+// --- HELPER WRAPPER FOR MOBILE EDITOR EXPERIENCE ---
+function MobileToolbar({ widgetId, widgets, updateWidget, applyFormat, toggleWidgetStyle, applyColorToSelection, addWidget }: any) {
+    return (
+        <motion.div
+            initial={{ y: 100 }}
+            animate={{ y: 0 }}
+            exit={{ y: 100 }}
+            className="fixed bottom-0 left-0 right-0 z-[1000] bg-black/90 backdrop-blur-2xl border-t border-white/10 p-4 pb-10"
+        >
+            <div className="flex flex-col gap-4">
+                <div className="flex items-center justify-between gap-4 overflow-x-auto pb-2 scrollbar-hide no-scrollbar">
+                    <div className="flex bg-white/5 rounded-xl border border-white/10 p-1">
+                        <button onMouseDown={e => e.preventDefault()} onClick={() => applyFormat('bold')} className="p-3 text-white hover:bg-white/10 rounded-lg"><Bold className="w-5 h-5" /></button>
+                        <button onMouseDown={e => e.preventDefault()} onClick={() => applyFormat('italic')} className="p-3 text-white hover:bg-white/10 rounded-lg"><Italic className="w-5 h-5" /></button>
+                        <button onMouseDown={e => e.preventDefault()} onClick={() => applyFormat('underline')} className="p-3 text-white hover:bg-white/10 rounded-lg"><UnderlineIcon className="w-5 h-5" /></button>
+                    </div>
+
+                    <div className="flex bg-white/5 rounded-xl border border-white/10 p-1">
+                        <button onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widgetId, 'text-left')} className="p-3 text-white hover:bg-white/10 rounded-lg"><AlignLeft className="w-5 h-5" /></button>
+                        <button onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widgetId, 'text-center')} className="p-3 text-white hover:bg-white/10 rounded-lg"><AlignCenter className="w-5 h-5" /></button>
+                        <button onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widgetId, 'text-right')} className="p-3 text-white hover:bg-white/10 rounded-lg"><AlignRight className="w-5 h-5" /></button>
+                    </div>
+
+                    <div className="flex bg-white/5 rounded-xl border border-white/10 p-1">
+                        <button onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widgetId, 'text-xl')} className="px-3 py-1.5 text-xs font-bold text-white uppercase">M</button>
+                        <button onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widgetId, 'text-2xl')} className="px-3 py-1.5 text-xs font-bold text-white uppercase">L</button>
+                        <button onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widgetId, 'text-4xl')} className="px-3 py-1.5 text-xs font-bold text-white uppercase">XL</button>
+                    </div>
+
+                    <div className="flex bg-white/5 rounded-xl border border-white/10 p-1">
+                        <button onMouseDown={e => e.preventDefault()} onClick={() => toggleWidgetStyle(widgetId, 'uppercase')} className="px-4 py-1.5 text-[10px] font-black text-white uppercase">MAJ</button>
+                    </div>
+
+                    <button
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => addWidget()}
+                        className="p-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl"
+                        title="Ajouter un widget texte après"
+                    >
+                        <Plus className="w-5 h-5" />
+                    </button>
+                </div>
+
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar">
+                    {EDITOR_COLORS.map(color => (
+                        <button
+                            key={color}
+                            type="button"
+                            onMouseDown={e => e.preventDefault()}
+                            onClick={() => applyColorToSelection(widgetId, color)}
+                            className="w-8 h-8 rounded-full border border-white/20 shrink-0"
+                            style={{ backgroundColor: color }}
+                        />
+                    ))}
+                </div>
+            </div>
+        </motion.div>
+    );
+}
+
+// Helper component for styled checkboxes
 function StyledCheckbox({ checked, onChange, label, sublabel, icon: Icon, colorClass = "neon-red" }: { checked: boolean, onChange: (val: boolean) => void, label: string, sublabel?: string, icon?: any, colorClass?: string }) {
     const isRed = colorClass === "neon-red";
     const isCyan = colorClass === "neon-cyan";
@@ -220,6 +280,11 @@ export function NewsCreate() {
         category: string,
         articleId: string
     } | null>(null);
+    const [activeWidgetId, setActiveWidgetId] = useState<string | null>(null);
+    const [isMobileEditorActive, setIsMobileEditorActive] = useState(false);
+    const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+    const [message, setMessage] = useState('');
+    const initialDataLoaded = useRef(false);
 
 
 
@@ -1514,87 +1579,103 @@ ${generateSocialsHtml()}
         );
     }
 
-    return (
-        <div className="min-h-screen bg-dark-bg py-8 md:py-20 px-4 md:px-8">
-            <div className="max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-                    <div className="flex items-center gap-6">
-                        <button
-                            onClick={() => navigate(-1)}
-                            className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-white group"
-                        >
-                            <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
-                        </button>
-                        <div>
-                            <div className="flex items-center gap-3 mb-2">
-                                <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${isEditing ? 'bg-neon-cyan/10 border-neon-cyan/30 text-neon-cyan' : 'bg-neon-green/10 border-neon-green/30 text-neon-green'
-                                    }`}>
-                                    {isEditing ? 'Mode Édition' : 'Nouvel Article'}
-                                </span>
-                                <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
-                                    <User className="w-3 h-3 text-gray-500" />
-                                    <span className="text-[9px] font-black text-white uppercase tracking-widest">
-                                        Éditeur : <span style={getAuthorTextStyle(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase())}>{author}</span>
-                                    </span>
-                                    {isAuthorConfirmed ? (
-                                        <CheckCircle2 className="w-3 h-3 text-neon-green" />
-                                    ) : (
-                                        <div className="w-1.5 h-1.5 rounded-full bg-neon-red animate-pulse" />
-                                    )}
-                                </div>
-                            </div>
-                            <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
-                                {isEditing ? 'Modifier' : 'Créer'} <span className="text-neon-red">{type === 'Interview' ? 'une Interview' : activeTab === 'Musique' ? 'un article Musique' : 'une Actualité'}</span>
-                            </h1>
-                        </div>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-                        <button
-                            type="button"
-                            onClick={() => handleSubmit(true)}
-                            disabled={status === 'loading'}
-                            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
-                                ? 'bg-gray-600 cursor-not-allowed opacity-50'
-                                : 'bg-gradient-to-r from-neon-orange to-neon-red hover:scale-105 active:scale-95 text-white'
-                                }`}
-                        >
-                            <Send className="w-4 h-4" />
-                            <span>{status === 'loading' ? 'EN COURS...' : (isEditing ? 'METTRE À JOUR' : 'PUBLIER')}</span>
-                        </button>
+    const handleEditorFocus = (widgetId: string) => {
+        setActiveWidgetId(widgetId);
+        if (window.innerWidth < 768) {
+            setIsMobileEditorActive(true);
+            document.body.style.overflow = 'hidden';
+        }
+    };
 
-                        <button
-                            type="button"
-                            onClick={() => setShowScheduleModal(true)}
-                            disabled={status === 'loading'}
-                            className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
-                                ? 'bg-gray-600 cursor-not-allowed opacity-50'
-                                : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:scale-105 active:scale-95'
-                                }`}
-                        >
-                            <Calendar className="w-4 h-4" />
-                            <span>{status === 'loading' ? 'EN COURS...' : 'PROGRAMMER'}</span>
-                        </button>
-                        {isEditing && (
+    const closeMobileEditor = () => {
+        setIsMobileEditorActive(false);
+        setActiveWidgetId(null);
+        document.body.style.overflow = 'auto';
+    };
+
+    return (
+        <div className={`min-h-screen bg-dark-bg transition-all duration-500 ${isMobileEditorActive ? 'py-0 px-0' : 'py-8 md:py-20 px-0 md:px-8'}`}>
+            <div className={`max-w-7xl mx-auto ${isMobileEditorActive ? 'px-0' : 'px-4 md:px-0'}`}>
+                {!isMobileEditorActive && (
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                        <div className="flex items-center gap-6">
+                            <button
+                                onClick={() => navigate(-1)}
+                                className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-white group"
+                            >
+                                <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
+                            </button>
+                            <div>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${isEditing ? 'bg-neon-cyan/10 border-neon-cyan/30 text-neon-cyan' : 'bg-neon-green/10 border-neon-green/30 text-neon-green'
+                                        }`}>
+                                        {isEditing ? 'Mode Édition' : 'Nouvel Article'}
+                                    </span>
+                                    <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                                        <User className="w-3 h-3 text-gray-500" />
+                                        <span className="text-[9px] font-black text-white uppercase tracking-widest">
+                                            Éditeur : <span style={getAuthorTextStyle(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase())}>{author}</span>
+                                        </span>
+                                        {isAuthorConfirmed ? (
+                                            <CheckCircle2 className="w-3 h-3 text-neon-green" />
+                                        ) : (
+                                            <div className="w-1.5 h-1.5 rounded-full bg-neon-red animate-pulse" />
+                                        )}
+                                    </div>
+                                </div>
+                                <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
+                                    {isEditing ? 'Modifier' : 'Créer'} <span className="text-neon-red">{type === 'Interview' ? 'une Interview' : activeTab === 'Musique' ? 'un article Musique' : 'une Actualité'}</span>
+                                </h1>
+                            </div>
+                        </div>
+                        <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
                             <button
                                 type="button"
-                                onClick={() => setShowDeleteConfirm(true)}
-                                className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all border bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500`}
+                                onClick={() => handleSubmit(true)}
+                                disabled={status === 'loading'}
+                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
+                                    ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                                    : 'bg-gradient-to-r from-neon-orange to-neon-red hover:scale-105 active:scale-95 text-white'
+                                    }`}
                             >
-                                <Trash2 className="w-4 h-4" />
-                                <span className="hidden md:inline">SUPPRIMER</span>
+                                <Send className="w-4 h-4" />
+                                <span>{status === 'loading' ? 'EN COURS...' : (isEditing ? 'METTRE À JOUR' : 'PUBLIER')}</span>
                             </button>
-                        )}
-                        <StyledCheckbox
-                            checked={isFeatured}
-                            onChange={setIsFeatured}
-                            label={isFeatured ? 'À LA UNE' : 'METTRE À LA UNE'}
-                            icon={Star}
-                            colorClass="neon-yellow"
-                        />
-                    </div>
-                </div>
 
-                <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-4 md:p-8">
+                            <button
+                                type="button"
+                                onClick={() => setShowScheduleModal(true)}
+                                disabled={status === 'loading'}
+                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
+                                    ? 'bg-gray-600 cursor-not-allowed opacity-50'
+                                    : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:scale-105 active:scale-95'
+                                    }`}
+                            >
+                                <Calendar className="w-4 h-4" />
+                                <span>{status === 'loading' ? 'EN COURS...' : 'PROGRAMMER'}</span>
+                            </button>
+                            {isEditing && (
+                                <button
+                                    type="button"
+                                    onClick={() => setShowDeleteConfirm(true)}
+                                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all border bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500`}
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                    <span className="hidden md:inline">SUPPRIMER</span>
+                                </button>
+                            )}
+                            <StyledCheckbox
+                                checked={isFeatured}
+                                onChange={setIsFeatured}
+                                label={isFeatured ? 'À LA UNE' : 'METTRE À LA UNE'}
+                                icon={Star}
+                                colorClass="neon-yellow"
+                            />
+                        </div>
+                    </div>
+                )}
+
+                <div className={`bg-white/5 backdrop-blur-xl transition-all duration-500 ${isMobileEditorActive ? 'min-h-screen rounded-none border-0' : 'rounded-3xl border border-white/10'} p-4 md:p-8`}>
                     {/* Tabs Selector - Only for News */}
                     {type === 'News' && (
                         <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 mb-8 w-full md:w-fit mx-auto overflow-x-auto">
@@ -2120,7 +2201,7 @@ ${generateSocialsHtml()}
                     {/* WIDGET EDITOR SECTION (Always available to add flexibility) */}
                     {((activeTab === 'News' || activeTab === 'Focus' || type === 'Interview')) && (
                         <div className="pt-8 border-t border-white/10">
-                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
+                            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 ${isMobileEditorActive ? 'hidden' : ''}`}>
                                 <label className="text-sm font-black text-gray-400 uppercase tracking-widest flex items-center gap-2">
                                     <FileText className="w-4 h-4 text-neon-cyan" /> WIDGETS
                                 </label>
@@ -2179,11 +2260,14 @@ ${generateSocialsHtml()}
                                 </div>
                             </div>
 
-                            <div className="space-y-4">
+                            <div className={`space-y-4 ${isMobileEditorActive ? 'pb-32' : ''}`}>
                                 {widgets.map((widget, index) => (
-                                    <div key={widget.id} className="space-y-4">
-                                        <div className="relative group bg-white/5 border border-white/10 rounded-2xl p-3 md:p-6 transition-all hover:border-white/20">
-                                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                                    <div
+                                        key={widget.id}
+                                        className={`space-y-4 transition-all duration-500 ${isMobileEditorActive && activeWidgetId !== widget.id ? 'hidden' : ''}`}
+                                    >
+                                        <div className={`relative group transition-all duration-500 ${isMobileEditorActive ? 'bg-transparent border-0 p-0 shadow-none' : 'bg-white/5 border border-white/10 rounded-2xl p-3 md:p-6 hover:border-white/20 shadow-xl'}`}>
+                                            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 ${isMobileEditorActive ? 'hidden' : ''}`}>
                                                 <div className="flex items-center gap-3">
                                                     <span className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-[10px] font-black text-gray-400">
                                                         {index + 1}
@@ -2195,7 +2279,6 @@ ${generateSocialsHtml()}
                                                                     widget.content.includes('gallery-premium-grid') ? 'Galerie' : 'Texte'}
                                                     </span>
 
-                                                    {/* Movement Arrows */}
                                                     <div className="flex items-center gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                                         <button
                                                             type="button"
@@ -2217,15 +2300,28 @@ ${generateSocialsHtml()}
                                                         </button>
                                                     </div>
                                                 </div>
-                                                <div className="flex flex-wrap items-center gap-2">
+                                                <div className="flex flex-wrap items-center gap-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
                                                     <button
                                                         type="button"
                                                         onMouseDown={e => e.preventDefault()}
-                                                        onClick={() => insertLinkToActiveWidget(widget.id)}
+                                                        onClick={() => {
+                                                            const activeEl = document.activeElement as HTMLElement;
+                                                            const isVisualEditor = activeEl && activeEl.classList.contains('visual-editor-content');
+                                                            if (isVisualEditor) {
+                                                                insertLinkToActiveWidget(widget.id);
+                                                            } else {
+                                                                const url = prompt('URL du lien :');
+                                                                if (url) {
+                                                                    const text = prompt('Texte du lien (ou vide pour l\'URL) :');
+                                                                    const link = `<a href="${url}" target="_blank" class="text-neon-cyan hover:underline">${text || url}</a>`;
+                                                                    updateWidget(widget.id, widget.content + ' ' + link);
+                                                                }
+                                                            }
+                                                        }}
                                                         className="p-2 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-lg transition-colors flex items-center gap-2 text-[10px] font-bold uppercase"
                                                         title="Ajouter un lien"
                                                     >
-                                                        <Link2 className="w-4 h-4" /> Lien
+                                                        <Link2 className="w-4 h-4" /> <span className="hidden sm:inline">Lien</span>
                                                     </button>
                                                     {(!widget.content.includes('image-premium-wrapper') && !widget.content.includes('gallery-premium-grid') && !widget.content.includes('youtube-player-widget')) && (
                                                         <>
@@ -2453,7 +2549,7 @@ ${generateSocialsHtml()}
                                                                     });
                                                                 }
                                                             }}
-                                                            className="p-2 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-lg transition-colors"
+                                                            className={`p-2 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-lg transition-colors ${isMobileEditorActive ? 'hidden' : ''}`}
                                                             title="Éditer le widget"
                                                         >
                                                             <Edit2 className="w-4 h-4" />
@@ -2462,13 +2558,43 @@ ${generateSocialsHtml()}
                                                     {widgets.length > 1 && (
                                                         <button
                                                             onClick={() => removeWidget(widget.id)}
-                                                            className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                            className={`p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-colors ${isMobileEditorActive ? 'hidden' : ''}`}
                                                         >
                                                             <Trash2 className="w-4 h-4" />
                                                         </button>
                                                     )}
                                                 </div>
                                             </div>
+
+                                            {/* Mobile Active Header */}
+                                            {isMobileEditorActive && activeWidgetId === widget.id && (
+                                                <div className="flex items-center justify-between p-4 mb-4 bg-white/5 border-b border-white/10">
+                                                    <div className="flex items-center gap-3">
+                                                        <button
+                                                            onClick={closeMobileEditor}
+                                                            className="p-2 bg-white/10 rounded-xl text-white"
+                                                        >
+                                                            <ArrowLeft className="w-5 h-5" />
+                                                        </button>
+                                                        <span className="text-[10px] font-black uppercase tracking-widest text-neon-cyan">Édition Focus</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => fixWidgetEncoding(widget.id)}
+                                                            className="p-2 text-gray-400 hover:text-white"
+                                                            title="Réparer"
+                                                        >
+                                                            <Wand2 className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={closeMobileEditor}
+                                                            className="px-4 py-2 bg-neon-green/20 text-neon-green border border-neon-green/30 rounded-xl text-[10px] font-black uppercase tracking-widest"
+                                                        >
+                                                            Terminer
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
 
                                             {/* Le rendu final est désormais directement éditable au-dessus */}
 
@@ -2488,14 +2614,15 @@ ${generateSocialsHtml()}
                                                     !widget.content.includes('image-premium-wrapper') &&
                                                     !widget.content.includes('gallery-premium-grid') &&
                                                     !widget.content.includes('duo-photos-premium') ? (
-                                                    <div className="admin-editor-container bg-white/[0.02] border border-white/5 rounded-3xl overflow-hidden shadow-2xl">
+                                                    <div className={`admin-editor-container bg-white/[0.02] border transition-all duration-500 ${isMobileEditorActive ? 'min-h-[80vh] border-0 rounded-none bg-black/40' : 'border-white/5 rounded-3xl overflow-hidden shadow-2xl'}`}>
                                                         <VisualEditor
                                                             content={widget.content}
                                                             onChange={(html) => updateWidget(widget.id, html)}
-                                                            className="visual-editor-content p-4 md:p-8 min-h-[150px] text-white outline-none focus:bg-white/[0.04] transition-all article-body-premium text-sm md:text-base"
+                                                            className={`visual-editor-content outline-none transition-all article-body-premium ${isMobileEditorActive ? 'p-6 pb-40 text-lg leading-relaxed' : 'p-4 md:p-8 min-h-[150px] text-sm md:text-base text-white focus:bg-white/[0.04]'}`}
                                                             widgetId={widget.id}
                                                             onFocus={(e) => {
                                                                 if (e.currentTarget.innerHTML === '<br>') e.currentTarget.innerHTML = '';
+                                                                handleEditorFocus(widget.id);
                                                             }}
                                                         />
                                                     </div>
@@ -2511,6 +2638,27 @@ ${generateSocialsHtml()}
                                                 )
                                             )}
                                         </div>
+
+                                        {/* Mobile Bottom Toolbar */}
+                                        <AnimatePresence>
+                                            {isMobileEditorActive && activeWidgetId === widget.id && (
+                                                <MobileToolbar
+                                                    widgetId={widget.id}
+                                                    widgets={widgets}
+                                                    updateWidget={updateWidget}
+                                                    applyFormat={applyFormat}
+                                                    toggleWidgetStyle={toggleWidgetStyle}
+                                                    applyColorToSelection={applyColorToSelection}
+                                                    addWidget={() => {
+                                                        const newId = Math.random().toString(36).substr(2, 9);
+                                                        const newWidgets = [...widgets];
+                                                        newWidgets.splice(index + 1, 0, { id: newId, content: '<p><br></p>' });
+                                                        setWidgets(newWidgets);
+                                                        setTimeout(() => handleEditorFocus(newId), 100);
+                                                    }}
+                                                />
+                                            )}
+                                        </AnimatePresence>
 
                                         {/* Add Button BETWEEN widgets */}
                                         <div className="flex items-center gap-4 py-2 group/adder">
