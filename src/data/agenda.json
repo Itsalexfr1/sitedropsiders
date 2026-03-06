@@ -3899,5 +3899,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 298,
+    "title": "A State Of Trance 2026 Pologne",
+    "date": "2026-06-20",
+    "startDate": "2026-06-20",
+    "endDate": "2026-06-20",
+    "venue": "Legia Warsaw City Stadium",
+    "location": "VARSOVIE",
+    "country": "POLOGNE",
+    "type": "Festival",
+    "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772822490163-csm_astateoftrance2026-1164x600_34dfeded78.jpeg",
+    "url": "https://festival.astateoftrance.com/poland/",
+    "genre": "Trance",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
