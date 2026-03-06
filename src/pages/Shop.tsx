@@ -201,7 +201,12 @@ export function Shop() {
                             SHOP <span className="text-neon-red">OFFICIEL</span>
                         </h1>
 
-                        <div className={`flex justify-center gap-2 md:gap-4 mt-8 ${isMini ? 'mb-4' : 'mb-8'} flex-wrap`}>
+                        <div className="mt-8 mb-8 text-center text-white text-[10px] font-black uppercase tracking-widest bg-neon-red/10 py-4 px-6 border border-neon-red/30 rounded-xl max-w-2xl mx-auto shadow-[0_0_20px_rgba(255,0,51,0.15)] leading-relaxed">
+                            <span className="text-neon-red block text-xs mb-1">⚠️ À savoir</span>
+                            Les prix peuvent varier de quelques centimes en raison de la conversion de notre partenaire Fourthwall.
+                        </div>
+
+                        <div className={`flex justify-center gap-2 md:gap-4 mt-12 ${isMini ? 'mb-4' : 'mb-8'} flex-wrap`}>
                             {['Tous', 'Vetements', 'Accessoires'].map((cat) => {
                                 const isActive = activeCategory === cat;
                                 return (
@@ -257,9 +262,6 @@ export function Shop() {
                         </AnimatePresence>
                     </div>
                 )}
-                <div className="mt-16 text-center text-gray-500 text-[9px] font-black uppercase tracking-widest opacity-60">
-                    * Les prix peuvent varier de quelques centimes en raison de la conversion de notre partenaire Fourthwall.
-                </div>
             </div>
 
             {/* Redirection Modal (Optional, but good for UX) */}
