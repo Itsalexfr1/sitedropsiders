@@ -17,16 +17,6 @@
 	"compatibility_flags": [
 		"nodejs_compat"
 	],
-	"routes": [
-		{
-			"pattern": "dropsiders.fr",
-			"custom_domain": true
-		},
-		{
-			"pattern": "www.dropsiders.fr",
-			"custom_domain": true
-		}
-	],
 	"vars": {
 		"GITHUB_OWNER": "Itsalexfr1",
 		"GITHUB_REPO": "sitedropsiders",
