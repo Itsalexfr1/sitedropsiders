@@ -6262,8 +6262,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     title={confirmModal.title}
                     message={confirmModal.message}
                     onConfirm={confirmModal.onConfirm}
+                    onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
+                    type={confirmModal.type}
                 />
-            </div >
+            </div>
         </>
     );
 };

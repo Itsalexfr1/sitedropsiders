@@ -1,8 +1,9 @@
 import { Link } from 'react-router-dom';
-import { Newspaper, TrendingUp, Calendar, MapPin } from 'lucide-react';
+import { Newspaper, TrendingUp, Calendar, MapPin, Play, MessageSquare } from 'lucide-react';
 import newsData from '../../data/news.json';
 import agendaData from '../../data/agenda.json';
-import { getArticleLink, getAgendaLink } from '../../utils/slugify';
+import recapsData from '../../data/recaps.json';
+import { getArticleLink, getAgendaLink, getRecapLink } from '../../utils/slugify';
 import { useLanguage } from '../../context/LanguageContext';
 import { useMemo, useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
@@ -23,7 +24,24 @@ export function MobileHome() {
     }, []);
 
     const featuredNews = sortedNews.filter(n => n.isFeatured).slice(0, 5);
-    const hotNews = sortedNews.slice(0, 6);
+
+    // 2. Filter News (exclude interviews/musique for this block)
+    const newsHighlight = useMemo(() => {
+        return sortedNews.filter(n => {
+            const cat = n.category?.toLowerCase() || '';
+            return cat === 'news' || (!cat.includes('interview') && cat !== 'musique');
+        }).slice(0, 6);
+    }, [sortedNews]);
+
+    // 3. Recaps
+    const recapsHighlight = useMemo(() => {
+        return [...recapsData].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 6);
+    }, []);
+
+    // 4. Interviews
+    const interviewsHighlight = useMemo(() => {
+        return sortedNews.filter(n => (n.category?.toLowerCase() || '').includes('interview')).slice(0, 6);
+    }, [sortedNews]);
 
     const upcomingEvents = useMemo(() => {
         const today = new Date();
@@ -118,17 +136,17 @@ export function MobileHome() {
                 </div>
             </motion.section>
 
-            {/* 4. The Feed - List News */}
+            {/* 2. Dropsiders NEWS - Swipe Slider */}
             <motion.section variants={itemVariants} className="pt-8 border-t border-white/5">
                 <div className="mobile-safe-container mb-5 flex items-center justify-between">
                     <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
                         <Newspaper className="w-4 h-4 text-neon-red shadow-[0_0_10px_rgba(255,0,51,0.5)]" />
-                        ACTUALITÉS RÉCENTES
+                        DROPSIDERS NEWS
                     </h2>
                     <Link to="/news" className="text-[10px] font-black uppercase tracking-widest text-neon-red px-2 py-1 rounded-lg hover:bg-neon-red/10 transition-colors">Tout voir</Link>
                 </div>
                 <div className="flex gap-4 overflow-x-auto px-5 scrollbar-hide snap-x no-scrollbar">
-                    {hotNews.map((news) => (
+                    {newsHighlight.map((news) => (
                         <Link
                             key={news.id}
                             to={getArticleLink(news)}
@@ -152,7 +170,75 @@ export function MobileHome() {
                 </div>
             </motion.section>
 
-            {/* 2. Agenda Slider - Moved below News */}
+            {/* 3. RECAPS - Swipe Slider */}
+            <motion.section variants={itemVariants} className="pt-8 border-t border-white/5">
+                <div className="mobile-safe-container mb-5 flex items-center justify-between">
+                    <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
+                        <Play className="w-4 h-4 text-neon-purple shadow-[0_0_10px_rgba(189,0,255,0.5)]" />
+                        RECAPS FESTIVALS
+                    </h2>
+                    <Link to="/recaps" className="text-[10px] font-black uppercase tracking-widest text-neon-purple px-2 py-1 rounded-lg hover:bg-neon-purple/10 transition-colors">Explorer</Link>
+                </div>
+                <div className="flex gap-4 overflow-x-auto px-5 scrollbar-hide snap-x no-scrollbar">
+                    {recapsHighlight.map((recap) => (
+                        <Link
+                            key={recap.id}
+                            to={getRecapLink(recap)}
+                            className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 active:scale-95 transition-transform"
+                        >
+                            <img src={(recap as any).image} className="absolute inset-0 w-full h-full object-cover group-active:scale-105 transition-transform duration-700" alt="" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-90" />
+                            <div className="absolute top-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
+                                <span className="text-xs font-black text-neon-purple uppercase tracking-[0.2em]">{recap.festival || 'RECAP'}</span>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
+                                <h3 className="text-2xl sm:text-3xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl">{recap.title}</h3>
+                                <div className="flex items-center gap-3 text-white/60">
+                                    <div className="w-2 h-2 bg-white/40 rounded-full" />
+                                    <span className="text-xs font-bold uppercase tracking-widest">{recap.location}</span>
+                                </div>
+                            </div>
+                        </Link>
+                    ))}
+                    <div className="min-w-[20px] shrink-0" />
+                </div>
+            </motion.section>
+
+            {/* 4. INTERVIEWS - Swipe Slider */}
+            <motion.section variants={itemVariants} className="pt-8 border-t border-white/5">
+                <div className="mobile-safe-container mb-5 flex items-center justify-between">
+                    <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
+                        <MessageSquare className="w-4 h-4 text-neon-blue shadow-[0_0_10px_rgba(0,100,255,0.5)]" />
+                        INTERVIEWS
+                    </h2>
+                    <Link to="/interviews" className="text-[10px] font-black uppercase tracking-widest text-neon-blue px-2 py-1 rounded-lg hover:bg-neon-blue/10 transition-colors">Tout voir</Link>
+                </div>
+                <div className="flex gap-4 overflow-x-auto px-5 scrollbar-hide snap-x no-scrollbar">
+                    {interviewsHighlight.map((interview) => (
+                        <Link
+                            key={interview.id}
+                            to={getArticleLink(interview)}
+                            className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 active:scale-95 transition-transform"
+                        >
+                            <img src={interview.image} className="absolute inset-0 w-full h-full object-cover group-active:scale-105 transition-transform duration-700" alt="" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-90" />
+                            <div className="absolute top-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
+                                <span className="text-xs font-black text-neon-blue uppercase tracking-[0.2em]">{interview.category}</span>
+                            </div>
+                            <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
+                                <h3 className="text-2xl sm:text-3xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl">{interview.title}</h3>
+                                <div className="flex items-center gap-3 text-white/60">
+                                    <div className="w-2 h-2 bg-white/40 rounded-full" />
+                                    <span className="text-xs font-bold uppercase tracking-widest">{interview.date}</span>
+                                </div>
+                            </div>
+                        </Link>
+                    ))}
+                    <div className="min-w-[20px] shrink-0" />
+                </div>
+            </motion.section>
+
+            {/* 5. Agenda Slider - Moved below News */}
             <motion.section variants={itemVariants} className="pt-8 border-t border-white/5">
                 <div className="mobile-safe-container mb-5 flex items-center justify-between">
                     <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
@@ -194,7 +280,7 @@ export function MobileHome() {
                 </div>
             </motion.section>
 
-            {/* 5. Newsletter Section */}
+            {/* 6. Newsletter Section */}
             <motion.section variants={itemVariants} className="mobile-safe-container">
                 <div className="bg-gradient-to-br from-[#111] to-[#050505] p-10 rounded-[3.5rem] relative overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-white/10">
                     <div className="absolute -top-24 -right-24 w-64 h-64 bg-neon-red/10 blur-[100px] rounded-full" />
