@@ -178,7 +178,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                                         <span style={{ color: color }}>{item.category}</span>
                                         <span>{new Date(item.date).toLocaleDateString()}</span>
                                     </div>
-                                    <h5 className="text-[11px] font-bold text-white line-clamp-2 leading-tight uppercase italic">{translatedTitles[item.id] || item.title}</h5>
+                                    <h5 className="text-[11px] font-bold text-white line-clamp-4 leading-tight uppercase italic">{translatedTitles[item.id] || item.title}</h5>
                                 </div>
                             </Link>
                         ))}

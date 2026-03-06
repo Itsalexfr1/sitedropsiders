@@ -111,14 +111,14 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelec
                                 value={url}
                                 onChange={(e) => setUrl(e.target.value)}
                                 placeholder="Collez le lien Instagram, TikTok, Twitter..."
-                                className="w-full bg-black/40 border border-white/10 text-white rounded-3xl py-6 pl-14 pr-64 focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all outline-none text-sm md:text-base font-medium placeholder:text-gray-600"
+                                className="w-full bg-black/40 border border-white/10 text-white rounded-3xl py-5 md:py-6 pl-14 pr-16 md:pr-64 focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all outline-none text-xs md:text-base font-medium placeholder:text-gray-600"
                             />
 
                             {url && !loading && (
                                 <button
                                     type="button"
                                     onClick={handleClear}
-                                    className="absolute right-52 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-20 group/clear"
+                                    className="absolute right-16 md:right-52 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-white bg-white/5 hover:bg-white/10 rounded-full transition-all z-20 group/clear"
                                     title="Vider le champ"
                                 >
                                     <X className="w-4 h-4 group-hover/clear:scale-110 transition-transform" />
@@ -128,17 +128,17 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelec
                             <button
                                 type="submit"
                                 disabled={loading || !url}
-                                className="absolute right-3 top-3 bottom-3 px-8 bg-gradient-to-r from-neon-cyan to-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-wider flex items-center gap-2 hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
+                                className="absolute right-2 top-2 bottom-2 md:right-3 md:top-3 md:bottom-3 px-3 md:px-8 bg-gradient-to-r from-neon-cyan to-blue-600 text-white rounded-2xl font-black text-[9px] md:text-xs uppercase tracking-wider flex items-center gap-2 hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95"
                             >
                                 {loading ? (
                                     <>
                                         <Loader2 className="w-4 h-4 animate-spin" />
-                                        ANALYSE...
+                                        {isPopup ? '' : 'ANALYSE...'}
                                     </>
                                 ) : (
                                     <>
                                         <Download className="w-4 h-4" />
-                                        TÉLÉCHARGER
+                                        <span className="hidden md:inline">TÉLÉCHARGER</span>
                                     </>
                                 )}
                             </button>
@@ -189,46 +189,82 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelec
                             {result.picker ? (
                                 // Multiple items (Instagram carousel or TikTok photos)
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                    {result.picker.map((item: any, i: number) => (
-                                        <div key={i} className="bg-black/40 rounded-3xl overflow-hidden border border-white/10 group">
-                                            {item.thumb && (
-                                                <img src={item.thumb} alt={`Media ${i}`} className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-500" />
-                                            )}
-                                            <div className="p-4 space-y-2">
-                                                <a
-                                                    href={item.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="w-full py-3 bg-white text-black rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan hover:text-white transition-all"
-                                                >
-                                                    <Download className="w-3 h-3" />
-                                                    TÉLÉCHARGER {i + 1}
-                                                </a>
-                                                {onSelect && (
-                                                    <button
-                                                        onClick={() => onSelect(item.url)}
-                                                        className="w-full py-3 bg-neon-cyan/20 border border-neon-cyan/40 text-neon-cyan rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/30 transition-all"
-                                                    >
-                                                        UTILISER DANS LE STUDIO
-                                                    </button>
+                                    {result.picker.map((item: any, i: number) => {
+                                        const handleShare = async () => {
+                                            if ('share' in navigator) {
+                                                try {
+                                                    const response = await fetch(item.url);
+                                                    const blob = await response.blob();
+                                                    const file = new File([blob], `dropsiders-media-${i + 1}.png`, { type: blob.type });
+                                                    await (navigator as any).share({
+                                                        files: [file],
+                                                        title: 'Dropsiders Media',
+                                                        text: 'Média téléchargé via Dropsiders'
+                                                    });
+                                                } catch (err) {
+                                                    console.warn('Share failed', err);
+                                                    window.open(item.url, '_blank');
+                                                }
+                                            } else {
+                                                window.open(item.url, '_blank');
+                                            }
+                                        };
+
+                                        return (
+                                            <div key={i} className="bg-black/40 rounded-3xl overflow-hidden border border-white/10 group">
+                                                {item.thumb && (
+                                                    <img src={item.thumb} alt={`Media ${i}`} className="w-full h-40 object-cover group-hover:scale-110 transition-transform duration-500" />
                                                 )}
+                                                <div className="p-4 space-y-2">
+                                                    <button
+                                                        onClick={handleShare}
+                                                        className="w-full py-3 bg-white text-black rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan hover:text-white transition-all"
+                                                    >
+                                                        <Download className="w-3 h-3" />
+                                                        {('share' in navigator) ? 'ENREGISTRER / PARTAGER' : `TÉLÉCHARGER ${i + 1}`}
+                                                    </button>
+                                                    {onSelect && (
+                                                        <button
+                                                            onClick={() => onSelect(item.url)}
+                                                            className="w-full py-3 bg-neon-cyan/20 border border-neon-cyan/40 text-neon-cyan rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/30 transition-all"
+                                                        >
+                                                            UTILISER DANS LE STUDIO
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             ) : (
                                 // Single item
                                 <div className="space-y-4">
                                     <div className="flex flex-col md:flex-row gap-4">
-                                        <a
-                                            href={result.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
+                                        <button
+                                            onClick={async () => {
+                                                if ('share' in navigator) {
+                                                    try {
+                                                        const response = await fetch(result.url);
+                                                        const blob = await response.blob();
+                                                        const ext = blob.type.split('/')[1] || 'mp4';
+                                                        const file = new File([blob], `dropsiders-download.${ext}`, { type: blob.type });
+                                                        await (navigator as any).share({
+                                                            files: [file],
+                                                            title: 'Dropsiders Download',
+                                                            text: 'Contenu téléchargé via Dropsiders'
+                                                        });
+                                                    } catch (err) {
+                                                        window.open(result.url, '_blank');
+                                                    }
+                                                } else {
+                                                    window.open(result.url, '_blank');
+                                                }
+                                            }}
                                             className="flex-1 py-5 bg-gradient-to-r from-neon-red to-neon-cyan text-white rounded-2xl text-sm font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:shadow-[0_0_30px_rgba(255,18,65,0.4)] transition-all"
                                         >
                                             <Download className="w-5 h-5" />
-                                            TÉLÉCHARGER
-                                        </a>
+                                            {('share' in navigator) ? 'ENREGISTRER / PARTAGER' : 'TÉLÉCHARGER'}
+                                        </button>
                                         {onSelect && (
                                             <button
                                                 onClick={() => onSelect(result.url)}
@@ -239,7 +275,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelec
                                         )}
                                     </div>
                                     <p className="text-center text-gray-500 text-[10px] font-medium">
-                                        Note: Si la vidéo s'ouvre dans le navigateur, faites un clic droit (ou appui long) et "Enregistrer sous".
+                                        Note: Si le bouton ne déclenche pas l'enregistrement direct, faites un appui long sur le média ouvert pour le sauvegarder.
                                     </p>
                                 </div>
                             )}

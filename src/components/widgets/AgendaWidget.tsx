@@ -255,68 +255,78 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                                 }}
                                 viewport={{ once: true }}
                                 transition={{ delay: index * 0.05 }}
-                                className={`p-3 rounded-xl bg-white/5 border border-white/5 hover:bg-white/10 ${styles.hoverBorder} ${styles.shadow} transition-all duration-300`}
+                                className={`p-4 rounded-xl bg-[#080808] border border-white/5 hover:bg-[#0a0a0a] ${styles.hoverBorder} ${styles.shadow} transition-all duration-300 relative overflow-hidden group min-h-[90px] flex flex-col justify-center`}
                             >
-                                <div className="flex justify-between items-start mb-2">
-                                    <div className="flex flex-col min-w-0 flex-1 mr-3">
-                                        <div className="flex items-center flex-wrap gap-1 mb-1">
-                                            <span
-                                                className={`text-[9px] font-black ${styles.text} border ${styles.borderMedium} px-2 py-0.5 rounded-full uppercase tracking-tighter`}
-                                                style={styles.gradient ? { backgroundImage: styles.gradient, border: 'none', color: 'white' } : {}}
-                                            >
-                                                {event.genre}
-                                            </span>
-                                            {event.isWeekly && (
-                                                <span className="text-[8px] font-bold text-white bg-white/10 px-1.5 py-0.5 rounded-full border border-white/20 uppercase">
-                                                    {language === 'fr' ? 'Hebdo' : 'Weekly'}
-                                                </span>
-                                            )}
-                                        </div>
-                                        <h4
-                                            className={`font-display font-bold text-white flex items-center gap-2 ${styles.groupHoverText} transition-all duration-300 line-clamp-2 uppercase italic tracking-tighter text-sm`}
-                                            title={event.title}
-                                        >
-                                            {event.title}
-                                            {event.isLiveDropsiders && (
-                                                <div className="flex items-center gap-1.5 shrink-0 px-1.5 py-0.5 bg-neon-red/20 border border-neon-red/30 rounded-full">
-                                                    <div className="w-1.5 h-1.5 bg-neon-red rounded-full animate-pulse shadow-[0_0_8px_#ff0033]" />
-                                                    <span className="text-[7px] font-black uppercase text-neon-red tracking-widest break-normal whitespace-nowrap">Live</span>
-                                                </div>
-                                            )}
-                                        </h4>
-                                    </div>
-                                    <div className="text-center bg-white/5 rounded-lg p-1.5 min-w-[3.2rem] border border-white/5 flex flex-col justify-center min-h-[3.2rem]">
-                                        <span className={`block text-[7px] ${styles.text} font-bold uppercase leading-none mb-1 tracking-tighter`}>
-                                            {event.startDate && event.endDate && event.startDate !== event.endDate ? (
-                                                new Date(event.startDate).getMonth() === new Date(event.endDate).getMonth() ?
-                                                    new Date(event.startDate).toLocaleString(locale, { month: 'short' }).replace('.', '').substring(0, 4)
-                                                    :
-                                                    `${new Date(event.startDate).toLocaleString(locale, { month: 'short' }).replace('.', '').substring(0, 3)}-${new Date(event.endDate).toLocaleString(locale, { month: 'short' }).replace('.', '').substring(0, 3)}`
-                                            ) : (
-                                                new Date(event.startDate || event.date).toLocaleString(locale, { month: 'short' }).replace('.', '').substring(0, 4)
-                                            )}
-                                        </span>
-                                        <span className={`block ${event.startDate && event.endDate && event.startDate !== event.endDate ? 'text-[10px]' : 'text-xs'} font-bold text-white leading-none tracking-tighter`}>
-                                            {event.startDate && event.endDate && event.startDate !== event.endDate ? (
-                                                `${new Date(event.startDate).getDate()}-${new Date(event.endDate).getDate()}`
-                                            ) : (
-                                                new Date(event.date || event.startDate).getDate()
-                                            )}
-                                        </span>
-                                    </div>
-                                </div>
+                                {/* Photo en Fond */}
+                                <img
+                                    src={event.image}
+                                    className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-40 group-hover:scale-110 transition-all duration-700 pointer-events-none"
+                                    alt=""
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent pointer-events-none" />
 
-                                <div className="flex items-center gap-3 text-[10px] text-gray-500 font-medium z-10 relative">
-                                    <span
-                                        className="flex items-center gap-1.5 cursor-pointer hover:text-neon-red transition-colors"
-                                        onClick={(e) => {
-                                            e.preventDefault();
-                                            e.stopPropagation();
-                                            window.location.href = `/agenda?location=${encodeURIComponent(event.location)}`;
-                                        }}
-                                    >
-                                        <MapPin className="w-3 h-3 text-neon-red" /> {event.venue && `${event.venue}, `}{event.location}{event.location && event.country ? ', ' : ''}{event.country} <FlagIcon location={event.country || event.location} className="w-3 h-2" />
-                                    </span>
+                                <div className="relative z-10">
+                                    <div className="flex justify-between items-start mb-2">
+                                        <div className="flex flex-col min-w-0 flex-1 mr-3">
+                                            <div className="flex items-center flex-wrap gap-1 mb-1">
+                                                <span
+                                                    className={`text-[9px] font-black ${styles.text} border ${styles.borderMedium} px-2 py-0.5 rounded-full uppercase tracking-tighter`}
+                                                    style={styles.gradient ? { backgroundImage: styles.gradient, border: 'none', color: 'white' } : {}}
+                                                >
+                                                    {event.genre}
+                                                </span>
+                                                {event.isWeekly && (
+                                                    <span className="text-[8px] font-bold text-white bg-white/10 px-1.5 py-0.5 rounded-full border border-white/20 uppercase">
+                                                        {language === 'fr' ? 'Hebdo' : 'Weekly'}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <h4
+                                                className={`font-display font-bold text-white flex items-center gap-2 ${styles.groupHoverText} transition-all duration-300 line-clamp-4 uppercase italic tracking-tighter text-sm`}
+                                                title={event.title}
+                                            >
+                                                {event.title}
+                                                {event.isLiveDropsiders && (
+                                                    <div className="flex items-center gap-1.5 shrink-0 px-1.5 py-0.5 bg-neon-red/20 border border-neon-red/30 rounded-full">
+                                                        <div className="w-1.5 h-1.5 bg-neon-red rounded-full animate-pulse shadow-[0_0_8px_#ff0033]" />
+                                                        <span className="text-[7px] font-black uppercase text-neon-red tracking-widest break-normal whitespace-nowrap">Live</span>
+                                                    </div>
+                                                )}
+                                            </h4>
+                                        </div>
+                                        <div className="text-center bg-black/40 backdrop-blur-md rounded-lg p-1.5 min-w-[3.2rem] border border-white/10 flex flex-col justify-center min-h-[3.2rem] shadow-lg">
+                                            <span className={`block text-[7px] ${styles.text} font-bold uppercase leading-none mb-1 tracking-tighter`}>
+                                                {event.startDate && event.endDate && event.startDate !== event.endDate ? (
+                                                    new Date(event.startDate).getMonth() === new Date(event.endDate).getMonth() ?
+                                                        new Date(event.startDate).toLocaleString(locale, { month: 'short' }).replace('.', '').substring(0, 4)
+                                                        :
+                                                        `${new Date(event.startDate).toLocaleString(locale, { month: 'short' }).replace('.', '').substring(0, 3)}-${new Date(event.endDate).toLocaleString(locale, { month: 'short' }).replace('.', '').substring(0, 3)}`
+                                                ) : (
+                                                    new Date(event.startDate || event.date).toLocaleString(locale, { month: 'short' }).replace('.', '').substring(0, 4)
+                                                )}
+                                            </span>
+                                            <span className={`block ${event.startDate && event.endDate && event.startDate !== event.endDate ? 'text-[10px]' : 'text-xs'} font-bold text-white leading-none tracking-tighter`}>
+                                                {event.startDate && event.endDate && event.startDate !== event.endDate ? (
+                                                    `${new Date(event.startDate).getDate()}-${new Date(event.endDate).getDate()}`
+                                                ) : (
+                                                    new Date(event.date || event.startDate).getDate()
+                                                )}
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-3 text-[10px] text-gray-400 font-medium font-bold">
+                                        <span
+                                            className="flex items-center gap-1.5 cursor-pointer hover:text-neon-red transition-colors"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                window.location.href = `/agenda?location=${encodeURIComponent(event.location)}`;
+                                            }}
+                                        >
+                                            <MapPin className="w-3 h-3 text-neon-red shadow-[0_0_5px_rgba(255,0,51,0.5)]" /> {event.venue && `${event.venue}, `}{event.location}{event.location && event.country ? ', ' : ''}{event.country} <FlagIcon location={event.country || event.location} className="w-3 h-2" />
+                                        </span>
+                                    </div>
                                 </div>
                             </motion.div>
                         </Link>

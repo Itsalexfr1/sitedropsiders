@@ -307,7 +307,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.font = '900 italic 62px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 15;
-                ctx.fillText(`${item.main} - ${item.sub}`, centerX + slideX, centerY + radius + 140);
+                ctx.fillText(`${item.main.toUpperCase()} - ${item.sub.toUpperCase()}`, centerX + slideX, centerY + radius + 140);
 
                 // Restore Ranking Number
                 ctx.textAlign = 'right';
@@ -343,7 +343,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.font = '900 italic 49px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 10;
-                ctx.fillText(`${item.main} - ${item.sub}`, itemX, baseY);
+                ctx.fillText(`${item.main.toUpperCase()} - ${item.sub.toUpperCase()}`, itemX, baseY);
                 const barWidth = 880; const barHeight = 90; const barX = 90; const barY = baseY + 45;
                 ctx.fillStyle = `rgba(${activeData.grad}, 0.4)`;
                 ctx.fillRect(barX - 10 + slideX, barY - 10, barWidth + 20, barHeight + 20);
@@ -351,7 +351,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillRect(barX + slideX, barY, barWidth, barHeight);
                 ctx.fillStyle = '#000'; // Black text on yellow bar
                 ctx.font = '900 italic 43px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
-                ctx.fillText(`${item.value} MILLIONS DE STREAMS`, barX + 30 + slideX, barY + 60);
+                ctx.fillText(`${item.value.toUpperCase()} MILLIONS DE STREAMS`, barX + 30 + slideX, barY + 60);
                 ctx.textAlign = 'right';
                 ctx.font = '900 italic 117px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
@@ -729,9 +729,26 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
         const chunks: Blob[] = [];
         recorder.ondataavailable = (e) => chunks.push(e.data);
-        recorder.onstop = () => {
+        recorder.onstop = async () => {
             const blob = new Blob(chunks, { type: mimeType });
             const url = URL.createObjectURL(blob);
+
+            if (isMobile && ('share' in navigator)) {
+                try {
+                    const file = new File([blob], `dropsiders-${theme.replace(/ /g, '-')}-${Date.now()}.${extension}`, { type: mimeType });
+                    await (navigator as any).share({
+                        files: [file],
+                        title: 'Dropsiders Social Studio Video',
+                        text: 'Ma vidéo générée avec le Social Studio Dropsiders'
+                    });
+                    setIsVideoRecording(false);
+                    setActivePanel(null);
+                    return;
+                } catch (err) {
+                    console.warn('Share rejected or failed, falling back to traditional download', err);
+                }
+            }
+
             const a = document.createElement('a');
             a.href = url;
             a.download = `dropsiders-${theme.replace(/ /g, '-')}-${Date.now()}.${extension}`;
@@ -782,17 +799,36 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         setVisualsList([...visualsList, canvasRef.current.toDataURL('image/png')]);
     };
 
-    const downloadSingle = () => {
+    const downloadSingle = async () => {
         if (!canvasRef.current) return;
         setIsDownloading(true);
         try {
             // Use toBlob (more reliable, avoids CORS taint issues)
-            canvasRef.current.toBlob((blob) => {
+            canvasRef.current.toBlob(async (blob) => {
                 if (!blob) {
                     // Fallback: toDataURL
                     try {
                         const dataUrl = canvasRef.current!.toDataURL('image/png');
                         if (!dataUrl || dataUrl === 'data:,') throw new Error('Empty canvas');
+
+                        // On mobile, try Web Share API first if available for generated image
+                        if (isMobile && ('share' in navigator)) {
+                            const response = await fetch(dataUrl);
+                            const blobFromUrl = await response.blob();
+                            const file = new File([blobFromUrl], `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}.png`, { type: 'image/png' });
+                            try {
+                                await (navigator as any).share({
+                                    files: [file],
+                                    title: 'Dropsiders Social Studio',
+                                    text: 'Visuel généré avec le Social Studio Dropsiders'
+                                });
+                                setIsDownloading(false);
+                                return;
+                            } catch (err) {
+                                console.warn('Share rejected or failed, falling back to traditional download', err);
+                            }
+                        }
+
                         const a = document.createElement('a');
                         a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
                         a.href = dataUrl;
@@ -807,6 +843,23 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     }
                     return;
                 }
+
+                // Native Share for Mobile (if supported and it's a blob)
+                if (isMobile && ('share' in navigator)) {
+                    try {
+                        const file = new File([blob], `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}.png`, { type: 'image/png' });
+                        await (navigator as any).share({
+                            files: [file],
+                            title: 'Dropsiders Social Studio',
+                            text: 'Visuel généré avec le Social Studio Dropsiders'
+                        });
+                        setIsDownloading(false);
+                        return;
+                    } catch (err) {
+                        console.warn('Share rejected or failed, falling back to traditional download', err);
+                    }
+                }
+
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.download = `dropsiders-${theme.toLowerCase().replace(/\s+/g, '-')}-${Date.now()}.png`;
@@ -867,8 +920,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             {top5Items.map((item, i) => (
                 <div key={i} className={`p-4 rounded-2xl border transition-all cursor-pointer ${currentPreviewIndex === i ? 'bg-white/10 border-white/30' : 'bg-white/5 border-white/5'}`} onClick={() => setCurrentPreviewIndex(i)}>
                     <div className="grid grid-cols-2 gap-2 mb-2">
-                        <input value={item.main} onChange={e => { const n = [...top5Items]; n[i].main = e.target.value.toUpperCase(); setTop5Items(n); }} placeholder="ARTISTE" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
-                        <input value={item.sub} onChange={e => { const n = [...top5Items]; n[i].sub = e.target.value.toUpperCase(); setTop5Items(n); }} placeholder="TITRE" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                        <input value={item.main} onChange={e => { const n = [...top5Items]; n[i].main = e.target.value; setTop5Items(n); }} placeholder="ARTISTE" spellCheck={true} autoCapitalize="words" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
+                        <input value={item.sub} onChange={e => { const n = [...top5Items]; n[i].sub = e.target.value; setTop5Items(n); }} placeholder="TITRE" spellCheck={true} autoCapitalize="words" className="bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" />
                     </div>
                     {theme === 'TOP 5 ARTISTE' && (
                         <input value={item.value} onChange={e => { const n = [...top5Items]; n[i].value = e.target.value; setTop5Items(n); }} placeholder="STREAMS (MILLIONS)" className="w-full bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold mb-2" />
@@ -911,10 +964,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 onSelect={(e) => { const t = e.target as HTMLTextAreaElement; setSelection({ start: t.selectionStart, end: t.selectionEnd }); }}
                 onChange={e => setCustomText(e.target.value.slice(0, 1100))}
                 placeholder="VOTRE TEXTE..."
-                spellCheck="true"
+                spellCheck={true}
                 autoCorrect="on"
                 autoComplete="on"
-                className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black uppercase"
+                autoCapitalize="sentences"
+                className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black"
             />
             <p className="text-[9px] text-white/30 italic px-1">Les codes comme [C:...] ou [B:...] seront transformés en style sur l'image finale.</p>
             <div className="grid grid-cols-2 gap-4">

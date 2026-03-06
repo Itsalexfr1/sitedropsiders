@@ -4199,1392 +4199,1392 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                     </motion.div>
                                 </motion.div>
                             )}
-                        </AnimatePresence >
-                    </div >
+                        </AnimatePresence>
+                    </div>
+                </div>
 
-                    {/* Chat Section */}
-                    <div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-0 lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60_rgba(0,0,0,0.6)]" >
-                        {/* MULTIVUE - hidden on mobile, visible on desktop */}
-                        {channelItems.length >= 2 && !isFocusMode && (
-                            <div className="hidden lg:block p-3 border-b border-white/10 bg-black/40 shrink-0 z-30">
-                                <button
-                                    onClick={() => setPlayersOption(playersOption === 4 ? 1 : 4)}
-                                    className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-3 active:scale-95 ${playersOption === 4 ? 'bg-neon-purple text-white shadow-[0_0_25px_rgba(189,0,255,0.4)] border border-neon-purple/50' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10 hover:border-white-20'}`}
-                                >
-                                    <LayoutGrid className="w-4 h-4" />
-                                    MULTIVUE
-                                </button>
-                            </div>
-                        )}
-                        {/* Glossy Header */}
-                        {
-                            !isFocusMode && (
-                                <div className="p-1 md:p-2 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
-                                    <div className="flex-1 flex items-center gap-1.5 md:gap-2">
-                                        {/* Back Button for mobile users */}
-                                        <button
-                                            onClick={() => {
-                                                if (activeChatTab !== 'chat') {
-                                                    setActiveChatTab('chat');
-                                                } else {
-                                                    navigate('/');
-                                                }
-                                            }}
-                                            className="lg:hidden p-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white transition-all mr-1 md:mr-2"
-                                            title={activeChatTab !== 'chat' ? "Retour au Chat" : "Retour à l'accueil"}
+                {/* Chat Section */}
+                <div className="flex-1 lg:w-[700px] lg:flex-none bg-[#080808] flex flex-col min-h-0 lg:h-full relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60_rgba(0,0,0,0.6)]" >
+                    {/* MULTIVUE - hidden on mobile, visible on desktop */}
+                    {channelItems.length >= 2 && !isFocusMode && (
+                        <div className="hidden lg:block p-3 border-b border-white/10 bg-black/40 shrink-0 z-30">
+                            <button
+                                onClick={() => setPlayersOption(playersOption === 4 ? 1 : 4)}
+                                className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase tracking-[0.4em] transition-all flex items-center justify-center gap-3 active:scale-95 ${playersOption === 4 ? 'bg-neon-purple text-white shadow-[0_0_25px_rgba(189,0,255,0.4)] border border-neon-purple/50' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10 hover:border-white-20'}`}
+                            >
+                                <LayoutGrid className="w-4 h-4" />
+                                MULTIVUE
+                            </button>
+                        </div>
+                    )}
+                    {/* Glossy Header */}
+                    {
+                        !isFocusMode && (
+                            <div className="p-1 md:p-2 border-b border-white/10 flex items-center justify-between bg-white/[0.02] backdrop-blur-xl relative z-20 shrink-0">
+                                <div className="flex-1 flex items-center gap-1.5 md:gap-2">
+                                    {/* Back Button for mobile users */}
+                                    <button
+                                        onClick={() => {
+                                            if (activeChatTab !== 'chat') {
+                                                setActiveChatTab('chat');
+                                            } else {
+                                                navigate('/');
+                                            }
+                                        }}
+                                        className="lg:hidden p-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-white transition-all mr-1 md:mr-2"
+                                        title={activeChatTab !== 'chat' ? "Retour au Chat" : "Retour à l'accueil"}
+                                    >
+                                        <ArrowLeft className="w-3.5 h-3.5" />
+                                    </button>
+                                    <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg md:rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,0,51,0.2)]">
+                                        <MessageSquare className="w-2.5 h-2.5 text-neon-red" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <h2 className="text-[1.5px] md:text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-none flex items-center gap-1 md:gap-2">
+                                            {activeChatTab === 'chat' ? 'Chat' : activeChatTab === 'shop' ? 'Shop' : activeChatTab === 'drops-shop' ? 'Drops' : activeChatTab === 'shazam' ? 'Shazam' : activeChatTab === 'audio' ? 'Audio' : activeChatTab === 'leaderboard' ? 'Top' : 'Clips'}
+                                            {isSlowMode && <span className="px-1 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[5px] md:text-[7px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">LENT</span>}
+                                        </h2>
+                                        {/* Hype Energy Mini Gauge */}
+                                        <div
+                                            className="hidden lg:block w-16 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 mt-1 cursor-pointer hover:border-white/20 transition-all"
+                                            onClick={() => setActiveChatTab('shazam')}
+                                            title="Voir Shazam"
                                         >
-                                            <ArrowLeft className="w-3.5 h-3.5" />
-                                        </button>
-                                        <div className="w-6 h-6 md:w-7 md:h-7 rounded-lg md:rounded-xl bg-neon-red/10 border border-neon-red/20 flex items-center justify-center shadow-[0_0_20px_rgba(255,0,51,0.2)]">
-                                            <MessageSquare className="w-2.5 h-2.5 text-neon-red" />
-                                        </div>
-                                        <div className="flex flex-col">
-                                            <h2 className="text-[1.5px] md:text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter leading-none flex items-center gap-1 md:gap-2">
-                                                {activeChatTab === 'chat' ? 'Chat' : activeChatTab === 'shop' ? 'Shop' : activeChatTab === 'drops-shop' ? 'Drops' : activeChatTab === 'shazam' ? 'Shazam' : activeChatTab === 'audio' ? 'Audio' : activeChatTab === 'leaderboard' ? 'Top' : 'Clips'}
-                                                {isSlowMode && <span className="px-1 py-0.5 rounded bg-yellow-500/20 text-yellow-500 text-[5px] md:text-[7px] font-black uppercase flex items-center gap-1 border border-yellow-500/30">LENT</span>}
-                                            </h2>
-                                            {/* Hype Energy Mini Gauge */}
-                                            <div
-                                                className="hidden lg:block w-16 h-1 bg-white/5 rounded-full overflow-hidden border border-white/5 mt-1 cursor-pointer hover:border-white/20 transition-all"
-                                                onClick={() => setActiveChatTab('shazam')}
-                                                title="Voir Shazam"
-                                            >
-                                                <motion.div
-                                                    className="h-full bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan"
-                                                    animate={{ width: `${hypeLevel}%` }}
-                                                    transition={{ type: "spring", stiffness: 50 }}
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Mobile Mod Menu Button */}
-                                    {hasModPowers && (
-                                        <div className="lg:hidden flex items-center gap-2">
-                                            <button
-                                                onClick={() => setShowMobileModMenu(!showMobileModMenu)}
-                                                className={`p-1.5 rounded-lg border transition-all ${showMobileModMenu ? 'bg-neon-red text-white border-neon-red shadow-[0_0_15px_rgba(255,18,65,0.4)]' : 'bg-white/5 text-gray-400 border-white/10'}`}
-                                            >
-                                                <MoreHorizontal className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    )}
-
-                                    {/* Mobile Mod Menu Drawer */}
-                                    <AnimatePresence>
-                                        {showMobileModMenu && hasModPowers && (
-                                            <>
-                                                <motion.div
-                                                    initial={{ opacity: 0 }}
-                                                    animate={{ opacity: 1 }}
-                                                    exit={{ opacity: 0 }}
-                                                    onClick={() => setShowMobileModMenu(false)}
-                                                    className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] lg:hidden"
-                                                />
-                                                <motion.div
-                                                    initial={{ y: "100%" }}
-                                                    animate={{ y: 0 }}
-                                                    exit={{ y: "100%" }}
-                                                    transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                                                    className="fixed bottom-0 left-0 right-0 bg-[#0d0d0d] border-t border-white/10 rounded-t-[2.5rem] p-6 z-[210] lg:hidden shadow-[0_-20px_50px_rgba(0,0,0,0.5)]"
-                                                >
-                                                    <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-6" />
-                                                    <h3 className="text-xs font-black text-white uppercase tracking-[0.3em] mb-6 flex items-center gap-3 italic">
-                                                        <Shield className="w-4 h-4 text-neon-red" /> Modération
-                                                    </h3>
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <button onClick={() => { handleClearChat(); setShowMobileModMenu(false); }} className="flex flex-col items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-neon-red/10 hover:border-neon-red/30 transition-all">
-                                                            <Trash2 className="w-5 h-5 text-neon-red" />
-                                                            <span className="text-[9px] font-black uppercase text-gray-400">Vider Chat</span>
-                                                        </button>
-                                                        <button onClick={() => { setShowSlowModePopup(!showSlowModePopup); setShowMobileModMenu(false); }} className={`flex flex-col items-center gap-3 p-4 border rounded-2xl transition-all ${isSlowMode ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-white/5 border-white/10'}`}>
-                                                            <Clock className={`w-5 h-5 ${isSlowMode ? 'text-yellow-500' : 'text-gray-400'}`} />
-                                                            <span className="text-[9px] font-black uppercase text-gray-400">Mode Lent</span>
-                                                        </button>
-                                                        <button onClick={() => { handleUpdateSettings({ showShop: !showShopWidget }); setShowMobileModMenu(false); }} className={`flex flex-col items-center gap-3 p-4 border rounded-2xl transition-all ${showShopWidget ? 'bg-neon-cyan/10 border-neon-cyan/30' : 'bg-white/5 border-white/10'}`}>
-                                                            <Zap className={`w-5 h-5 ${showShopWidget ? 'text-neon-cyan' : 'text-gray-400'}`} />
-                                                            <span className="text-[9px] font-black uppercase text-gray-400">Shop On/Off</span>
-                                                        </button>
-                                                        <button onClick={() => { setShowEditModal(true); setShowMobileModMenu(false); }} className="flex flex-col items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl">
-                                                            <Shield className="w-5 h-5 text-neon-purple" />
-                                                            <span className="text-[9px] font-black uppercase text-gray-400">Admin</span>
-                                                        </button>
-                                                    </div>
-                                                </motion.div>
-                                            </>
-                                        )}
-                                    </AnimatePresence>
-
-                                    {/* MES DROPS - CENTERED */}
-                                    <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
-                                        <button
-                                            onClick={() => setActiveChatTab(activeChatTab === 'drops-shop' ? 'chat' : 'drops-shop')}
-                                            className={`flex items-center gap-2 px-1.5 py-0.5 rounded-full transition-all group shadow-lg ${activeChatTab === 'drops-shop' ? 'bg-neon-purple text-white' : 'bg-neon-purple/10 border border-neon-purple/20 shadow-neon-purple/5'}`}
-                                        >
-                                            <span className="text-[8px] font-black text-white uppercase tracking-widest">{userDrops} <span className="text-neon-purple">Drops</span></span>
-                                            <div className="w-3.5 h-3.5 bg-neon-purple rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(147,51,234,0.3)]">
-                                                <Zap className="w-2 h-2 text-white fill-current" />
-                                            </div>
-                                        </button>
-                                    </div>
-
-                                    <div className="hidden lg:flex flex-1 items-center justify-end gap-2">
-                                        {hasModPowers && (
-                                            <>
-                                                <button
-                                                    onClick={handleClearChat}
-                                                    className="p-2 rounded-lg bg-neon-red/10 text-neon-red border border-neon-red/20 hover:bg-neon-red hover:text-white transition-all shadow-[0_0_10px_rgba(255,18,65,0.2)]"
-                                                    title="Vider le chat"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => handleUpdateSettings({ showShop: !showShopWidget })}
-                                                    className={`p-2 rounded-lg transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
-                                                    title="Shop (Global)"
-                                                >
-                                                    <Zap className="w-3.5 h-3.5" />
-                                                </button>
-                                                <button
-                                                    onClick={() => setShowSlowModePopup(!showSlowModePopup)}
-                                                    className={`p-2 rounded-lg transition-all relative ${showSlowModePopup || isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
-                                                    title="Mode Lent"
-                                                >
-                                                    <Clock className="w-3.5 h-3.5" />
-                                                </button>
-                                                {activePoll && (
-                                                    <button
-                                                        onClick={handleStopPoll}
-                                                        className="p-2 rounded-lg bg-neon-red/20 text-white border border-neon-red/40 hover:bg-neon-red hover:scale-110 active:scale-95 transition-all shadow-[0_0_15px_rgba(255,0,51,0.4)] animate-pulse"
-                                                        title="Arrêter le sondage"
-                                                    >
-                                                        <CircleStop className="w-4 h-4" />
-                                                    </button>
-                                                )}
-                                                <div className="w-[1px] h-4 bg-white/10 mx-1" />
-                                                <select
-                                                    value={chatCountryFilter}
-                                                    onChange={(e) => setChatCountryFilter(e.target.value)}
-                                                    className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-[9px] font-black text-white outline-none focus:border-neon-cyan transition-all appearance-none cursor-pointer hover:bg-white/5"
-                                                >
-                                                    <option value="ALL">🌐 FILTRE</option>
-                                                    <option value="FR">🇫🇷 FR</option>
-                                                    <option value="BE">🇧🇪 BE</option>
-                                                    <option value="CH">🇨🇭 CH</option>
-                                                    <option value="CA">🇨🇦 CA</option>
-                                                    <option value="OTHER">🌍 AUTRE</option>
-                                                </select>
-                                                <button
-                                                    id="admin-edit-btn"
-                                                    onClick={() => setShowEditModal(!showEditModal)}
-                                                    className="p-2 bg-neon-red/10 hover:bg-neon-red border border-neon-red/20 hover:border-neon-red text-neon-red hover:text-white rounded-lg transition-all shadow-[0_0_15px_rgba(255,0,51,0.2)]"
-                                                    title="Administration"
-                                                >
-                                                    <Shield className="w-3.5 h-3.5" />
-                                                </button>
-                                            </>
-                                        )}
-                                    </div>
-                                    {showSlowModePopup && (
-                                        <div className="absolute top-16 right-4 w-60 bg-[#111] border border-white/10 rounded-2xl p-4 shadow-2xl z-[200]">
-                                            <h3 className="text-[10px] font-black text-white uppercase tracking-widest mb-3 flex items-center gap-2">
-                                                <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
-                                            </h3>
-                                            <input
-                                                type="number"
-                                                value={slowModeDuration}
-                                                onChange={e => setSlowModeDuration(Math.max(1, parseInt(e.target.value) || 2))}
-                                                className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-xs text-white font-black outline-none focus:border-yellow-500 mb-4"
+                                            <motion.div
+                                                className="h-full bg-gradient-to-r from-neon-red via-neon-purple to-neon-cyan"
+                                                animate={{ width: `${hypeLevel}%` }}
+                                                transition={{ type: "spring", stiffness: 50 }}
                                             />
-                                            <div className="flex gap-2">
-                                                <button onClick={() => { setIsSlowMode(true); setShowSlowModePopup(false); }} className="flex-1 py-2.5 bg-yellow-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Activer</button>
-                                                <button onClick={() => setShowSlowModePopup(false)} className="px-4 py-2.5 bg-white/5 text-gray-400 rounded-xl text-[10px] font-black uppercase border border-white/5">X</button>
-                                            </div>
                                         </div>
+                                    </div>
+                                </div>
+
+                                {/* Mobile Mod Menu Button */}
+                                {hasModPowers && (
+                                    <div className="lg:hidden flex items-center gap-2">
+                                        <button
+                                            onClick={() => setShowMobileModMenu(!showMobileModMenu)}
+                                            className={`p-1.5 rounded-lg border transition-all ${showMobileModMenu ? 'bg-neon-red text-white border-neon-red shadow-[0_0_15px_rgba(255,18,65,0.4)]' : 'bg-white/5 text-gray-400 border-white/10'}`}
+                                        >
+                                            <MoreHorizontal className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Mobile Mod Menu Drawer */}
+                                <AnimatePresence>
+                                    {showMobileModMenu && hasModPowers && (
+                                        <>
+                                            <motion.div
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                onClick={() => setShowMobileModMenu(false)}
+                                                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] lg:hidden"
+                                            />
+                                            <motion.div
+                                                initial={{ y: "100%" }}
+                                                animate={{ y: 0 }}
+                                                exit={{ y: "100%" }}
+                                                transition={{ type: "spring", damping: 25, stiffness: 300 }}
+                                                className="fixed bottom-0 left-0 right-0 bg-[#0d0d0d] border-t border-white/10 rounded-t-[2.5rem] p-6 z-[210] lg:hidden shadow-[0_-20px_50px_rgba(0,0,0,0.5)]"
+                                            >
+                                                <div className="w-12 h-1.5 bg-white/20 rounded-full mx-auto mb-6" />
+                                                <h3 className="text-xs font-black text-white uppercase tracking-[0.3em] mb-6 flex items-center gap-3 italic">
+                                                    <Shield className="w-4 h-4 text-neon-red" /> Modération
+                                                </h3>
+                                                <div className="grid grid-cols-2 gap-3">
+                                                    <button onClick={() => { handleClearChat(); setShowMobileModMenu(false); }} className="flex flex-col items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-neon-red/10 hover:border-neon-red/30 transition-all">
+                                                        <Trash2 className="w-5 h-5 text-neon-red" />
+                                                        <span className="text-[9px] font-black uppercase text-gray-400">Vider Chat</span>
+                                                    </button>
+                                                    <button onClick={() => { setShowSlowModePopup(!showSlowModePopup); setShowMobileModMenu(false); }} className={`flex flex-col items-center gap-3 p-4 border rounded-2xl transition-all ${isSlowMode ? 'bg-yellow-500/10 border-yellow-500/30' : 'bg-white/5 border-white/10'}`}>
+                                                        <Clock className={`w-5 h-5 ${isSlowMode ? 'text-yellow-500' : 'text-gray-400'}`} />
+                                                        <span className="text-[9px] font-black uppercase text-gray-400">Mode Lent</span>
+                                                    </button>
+                                                    <button onClick={() => { handleUpdateSettings({ showShop: !showShopWidget }); setShowMobileModMenu(false); }} className={`flex flex-col items-center gap-3 p-4 border rounded-2xl transition-all ${showShopWidget ? 'bg-neon-cyan/10 border-neon-cyan/30' : 'bg-white/5 border-white/10'}`}>
+                                                        <Zap className={`w-5 h-5 ${showShopWidget ? 'text-neon-cyan' : 'text-gray-400'}`} />
+                                                        <span className="text-[9px] font-black uppercase text-gray-400">Shop On/Off</span>
+                                                    </button>
+                                                    <button onClick={() => { setShowEditModal(true); setShowMobileModMenu(false); }} className="flex flex-col items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl">
+                                                        <Shield className="w-5 h-5 text-neon-purple" />
+                                                        <span className="text-[9px] font-black uppercase text-gray-400">Admin</span>
+                                                    </button>
+                                                </div>
+                                            </motion.div>
+                                        </>
+                                    )}
+                                </AnimatePresence>
+
+                                {/* MES DROPS - CENTERED */}
+                                <div className="hidden lg:block absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
+                                    <button
+                                        onClick={() => setActiveChatTab(activeChatTab === 'drops-shop' ? 'chat' : 'drops-shop')}
+                                        className={`flex items-center gap-2 px-1.5 py-0.5 rounded-full transition-all group shadow-lg ${activeChatTab === 'drops-shop' ? 'bg-neon-purple text-white' : 'bg-neon-purple/10 border border-neon-purple/20 shadow-neon-purple/5'}`}
+                                    >
+                                        <span className="text-[8px] font-black text-white uppercase tracking-widest">{userDrops} <span className="text-neon-purple">Drops</span></span>
+                                        <div className="w-3.5 h-3.5 bg-neon-purple rounded-full flex items-center justify-center shadow-[0_0_10px_rgba(147,51,234,0.3)]">
+                                            <Zap className="w-2 h-2 text-white fill-current" />
+                                        </div>
+                                    </button>
+                                </div>
+
+                                <div className="hidden lg:flex flex-1 items-center justify-end gap-2">
+                                    {hasModPowers && (
+                                        <>
+                                            <button
+                                                onClick={handleClearChat}
+                                                className="p-2 rounded-lg bg-neon-red/10 text-neon-red border border-neon-red/20 hover:bg-neon-red hover:text-white transition-all shadow-[0_0_10px_rgba(255,18,65,0.2)]"
+                                                title="Vider le chat"
+                                            >
+                                                <Trash2 className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                                onClick={() => handleUpdateSettings({ showShop: !showShopWidget })}
+                                                className={`p-2 rounded-lg transition-all ${showShopWidget ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                                title="Shop (Global)"
+                                            >
+                                                <Zap className="w-3.5 h-3.5" />
+                                            </button>
+                                            <button
+                                                onClick={() => setShowSlowModePopup(!showSlowModePopup)}
+                                                className={`p-2 rounded-lg transition-all relative ${showSlowModePopup || isSlowMode ? 'bg-yellow-500/20 text-yellow-500 border border-yellow-500/30' : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'}`}
+                                                title="Mode Lent"
+                                            >
+                                                <Clock className="w-3.5 h-3.5" />
+                                            </button>
+                                            {activePoll && (
+                                                <button
+                                                    onClick={handleStopPoll}
+                                                    className="p-2 rounded-lg bg-neon-red/20 text-white border border-neon-red/40 hover:bg-neon-red hover:scale-110 active:scale-95 transition-all shadow-[0_0_15px_rgba(255,0,51,0.4)] animate-pulse"
+                                                    title="Arrêter le sondage"
+                                                >
+                                                    <CircleStop className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                            <div className="w-[1px] h-4 bg-white/10 mx-1" />
+                                            <select
+                                                value={chatCountryFilter}
+                                                onChange={(e) => setChatCountryFilter(e.target.value)}
+                                                className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-[9px] font-black text-white outline-none focus:border-neon-cyan transition-all appearance-none cursor-pointer hover:bg-white/5"
+                                            >
+                                                <option value="ALL">🌐 FILTRE</option>
+                                                <option value="FR">🇫🇷 FR</option>
+                                                <option value="BE">🇧🇪 BE</option>
+                                                <option value="CH">🇨🇭 CH</option>
+                                                <option value="CA">🇨🇦 CA</option>
+                                                <option value="OTHER">🌍 AUTRE</option>
+                                            </select>
+                                            <button
+                                                id="admin-edit-btn"
+                                                onClick={() => setShowEditModal(!showEditModal)}
+                                                className="p-2 bg-neon-red/10 hover:bg-neon-red border border-neon-red/20 hover:border-neon-red text-neon-red hover:text-white rounded-lg transition-all shadow-[0_0_15px_rgba(255,0,51,0.2)]"
+                                                title="Administration"
+                                            >
+                                                <Shield className="w-3.5 h-3.5" />
+                                            </button>
+                                        </>
                                     )}
                                 </div>
-                            )
-                        }
+                                {showSlowModePopup && (
+                                    <div className="absolute top-16 right-4 w-60 bg-[#111] border border-white/10 rounded-2xl p-4 shadow-2xl z-[200]">
+                                        <h3 className="text-[10px] font-black text-white uppercase tracking-widest mb-3 flex items-center gap-2">
+                                            <Clock className="w-3.5 h-3.5 text-yellow-500" /> Mode Lent
+                                        </h3>
+                                        <input
+                                            type="number"
+                                            value={slowModeDuration}
+                                            onChange={e => setSlowModeDuration(Math.max(1, parseInt(e.target.value) || 2))}
+                                            className="w-full bg-black border border-white/10 rounded-xl px-4 py-2 text-xs text-white font-black outline-none focus:border-yellow-500 mb-4"
+                                        />
+                                        <div className="flex gap-2">
+                                            <button onClick={() => { setIsSlowMode(true); setShowSlowModePopup(false); }} className="flex-1 py-2.5 bg-yellow-500 text-black rounded-xl text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-all">Activer</button>
+                                            <button onClick={() => setShowSlowModePopup(false)} className="px-4 py-2.5 bg-white/5 text-gray-400 rounded-xl text-[10px] font-black uppercase border border-white/5">X</button>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )
+                    }
 
-                        {/* Poll Overlay - Top Center of Chat */}
-                        <AnimatePresence>
-                            {!isFocusMode && activePoll && (
+                    {/* Poll Overlay - Top Center of Chat */}
+                    <AnimatePresence>
+                        {!isFocusMode && activePoll && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                                className="absolute top-20 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-[320px] bg-black/90 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl overflow-hidden"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-red animate-pulse" />
+                                <h3 className="text-[10px] font-black text-white uppercase italic tracking-widest mb-3 flex items-center justify-between">
+                                    <span className="flex items-center gap-2">
+                                        <span className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
+                                        Sondage En Cours
+                                    </span>
+                                    {hasModPowers && <button onClick={handleStopPoll} className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-neon-red/10 text-neon-red hover:bg-neon-red hover:text-white transition-all text-[8px] font-black border border-neon-red/20"><CircleStop className="w-2.5 h-2.5" /> ARRÊTER</button>}
+                                </h3>
+                                <p className="text-[11px] font-bold text-white mb-4 drop-shadow-sm">{activePoll.question}</p>
+                                <div className="space-y-2">
+                                    {activePoll.options.map((opt, i) => {
+                                        const pollTakers = messages.filter(m => /^[1-9][0-9]*$/.test(m.message.trim()));
+                                        const uniquePollTakers = pollTakers.filter((v, i, a) => a.findIndex(t => (t.pseudo === v.pseudo)) === i);
+                                        const totalVotes = uniquePollTakers.length;
+                                        const optVotes = uniquePollTakers.filter(m => m.message.trim() === String(i + 1)).length;
+                                        const percentage = totalVotes > 0 ? Math.round((optVotes / totalVotes) * 100) : 0;
+
+                                        return (
+                                            <button
+                                                key={i}
+                                                onClick={async () => {
+                                                    if (!isJoined) return alert("Rejoignez le chat pour voter !");
+                                                    const pollId = String((activePoll as any).id);
+                                                    if (votedPollIds.includes(pollId)) return alert("Déjà voté !");
+
+                                                    setVotedPollIds(prev => [...prev, pollId]);
+                                                    await fetch('/api/chat/messages', {
+                                                        method: 'POST',
+                                                        headers: { 'Content-Type': 'application/json' },
+                                                        body: JSON.stringify({
+                                                            pseudo: pseudo.toUpperCase(),
+                                                            country: country || 'FR',
+                                                            message: String(i + 1),
+                                                            color: userColor,
+                                                            channel: currentVideoId
+                                                        })
+                                                    });
+                                                }}
+                                                className="w-full relative h-10 group/vote bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden flex items-center px-4 border border-white/5 hover:border-neon-red/30 transition-all duration-300"
+                                            >
+                                                <motion.div
+                                                    className="absolute left-0 top-0 bottom-0 bg-neon-red/20"
+                                                    initial={{ width: 0 }}
+                                                    animate={{ width: `${percentage}%` }}
+                                                    transition={{ duration: 0.8, ease: "easeOut" }}
+                                                />
+                                                <span className="relative z-10 text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-3">
+                                                    <span className="w-5 h-5 flex items-center justify-center bg-black/40 rounded-md text-gray-400 group-hover/vote:text-neon-red transition-colors font-mono">{i + 1}</span>
+                                                    {opt}
+                                                </span>
+                                                <span className="relative z-10 text-[11px] font-black text-neon-red ml-auto drop-shadow-[0_0_8px_rgba(255,0,51,0.6)] font-mono">{percentage}%</span>
+                                            </button>
+                                        )
+                                    })}
+                                </div>
+                                <p className="text-[7px] text-gray-500 uppercase tracking-[0.2em] mt-3 text-center border-t border-white/5 pt-2">Tapez le chiffre dans le chat ou cliquez</p>
+                            </motion.div>
+                        )}
+
+                        {/* Winning Result Overlay */}
+                        {!isFocusMode && lastPollResult && !activePoll && (
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8, y: -20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.8, y: -20 }}
+                                className="absolute top-12 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-[280px] bg-[#000]/90 backdrop-blur-3xl border border-neon-cyan/50 rounded-3xl p-6 shadow-[0_0_60px_rgba(0,255,255,0.4)] text-center overflow-hidden"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-b from-neon-cyan/10 via-transparent to-transparent pointer-events-none" />
+                                <div className="absolute -top-10 -left-10 w-24 h-24 bg-neon-cyan/20 blur-3xl rounded-full animate-pulse" />
+                                <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-neon-cyan/20 blur-3xl rounded-full animate-pulse" />
+
+                                <Trophy className="w-8 h-8 text-neon-cyan mx-auto mb-4 drop-shadow-[0_0_15px_#00ffff]" />
+                                <h3 className="text-[10px] font-black text-neon-cyan uppercase tracking-[0.4em] mb-2 drop-shadow-[0_0_10px_#00ffff]">VAINQUEUR</h3>
+                                <p className="text-[9px] text-gray-500 uppercase mb-4 px-2 font-black italic tracking-wider leading-tight">{lastPollResult.question}</p>
+
+                                <div className="relative inline-block py-2 px-6">
+                                    <div className="absolute inset-0 blur-2xl bg-neon-cyan/40 animate-pulse" />
+                                    <h4 className="relative text-2xl font-black text-white uppercase tracking-tighter drop-shadow-[0_0_20px_#fff]">
+                                        {lastPollResult.winner}
+                                    </h4>
+                                </div>
+
+                                <div className="mt-5 text-[12px] font-black text-neon-cyan font-mono tracking-widest bg-neon-cyan/10 py-1.5 rounded-xl border border-neon-cyan/20">
+                                    {lastPollResult.percentage}% DES VOIX
+                                </div>
+
                                 <motion.div
-                                    initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                    className="absolute top-20 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-[320px] bg-black/90 backdrop-blur-xl border border-white/20 rounded-2xl p-4 shadow-2xl overflow-hidden"
-                                >
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-red animate-pulse" />
-                                    <h3 className="text-[10px] font-black text-white uppercase italic tracking-widest mb-3 flex items-center justify-between">
-                                        <span className="flex items-center gap-2">
-                                            <span className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
-                                            Sondage En Cours
-                                        </span>
-                                        {hasModPowers && <button onClick={handleStopPoll} className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-neon-red/10 text-neon-red hover:bg-neon-red hover:text-white transition-all text-[8px] font-black border border-neon-red/20"><CircleStop className="w-2.5 h-2.5" /> ARRÊTER</button>}
-                                    </h3>
-                                    <p className="text-[11px] font-bold text-white mb-4 drop-shadow-sm">{activePoll.question}</p>
-                                    <div className="space-y-2">
-                                        {activePoll.options.map((opt, i) => {
-                                            const pollTakers = messages.filter(m => /^[1-9][0-9]*$/.test(m.message.trim()));
-                                            const uniquePollTakers = pollTakers.filter((v, i, a) => a.findIndex(t => (t.pseudo === v.pseudo)) === i);
-                                            const totalVotes = uniquePollTakers.length;
-                                            const optVotes = uniquePollTakers.filter(m => m.message.trim() === String(i + 1)).length;
-                                            const percentage = totalVotes > 0 ? Math.round((optVotes / totalVotes) * 100) : 0;
+                                    className="mt-4 h-[2px] bg-neon-cyan rounded-full"
+                                    initial={{ width: 0 }}
+                                    animate={{ width: "100%" }}
+                                    transition={{ duration: 1, ease: "easeOut" }}
+                                />
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-                                            return (
-                                                <button
-                                                    key={i}
-                                                    onClick={async () => {
-                                                        if (!isJoined) return alert("Rejoignez le chat pour voter !");
-                                                        const pollId = String((activePoll as any).id);
-                                                        if (votedPollIds.includes(pollId)) return alert("Déjà voté !");
-
-                                                        setVotedPollIds(prev => [...prev, pollId]);
-                                                        await fetch('/api/chat/messages', {
-                                                            method: 'POST',
-                                                            headers: { 'Content-Type': 'application/json' },
-                                                            body: JSON.stringify({
-                                                                pseudo: pseudo.toUpperCase(),
-                                                                country: country || 'FR',
-                                                                message: String(i + 1),
-                                                                color: userColor,
-                                                                channel: currentVideoId
-                                                            })
-                                                        });
-                                                    }}
-                                                    className="w-full relative h-10 group/vote bg-white/5 hover:bg-white/10 rounded-xl overflow-hidden flex items-center px-4 border border-white/5 hover:border-neon-red/30 transition-all duration-300"
+                    {/* Shop Widget Overhead */}
+                    <AnimatePresence>
+                        {!isFocusMode && showShopWidget && (
+                            <motion.div
+                                initial={{ height: 0, opacity: 0 }}
+                                animate={{ height: 'auto', opacity: 1 }}
+                                exit={{ height: 0, opacity: 0 }}
+                                className="bg-black/80 border-b border-white/10 overflow-hidden relative z-40"
+                            >
+                                <div className="relative group px-1">
+                                    <div className="absolute top-2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
+                                    <div className="w-full overflow-hidden relative py-1 md:py-2 mb-0.5 md:mb-1">
+                                        <div className="flex flex-row gap-2 md:gap-3 animate-shop-scroll">
+                                            {(showShopWidget && shopProducts.length > 0 ? [...shopProducts, ...shopProducts, ...shopProducts] : []).map((product, i) => (
+                                                <a
+                                                    key={`${product.id}-${i}`}
+                                                    href={product.url}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className="flex items-center gap-2 md:gap-3 p-1 md:p-1.5 pr-3 md:pr-4 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-neon-cyan/30 rounded-lg md:rounded-xl transition-all group/item active:scale-95 shrink-0"
                                                 >
-                                                    <motion.div
-                                                        className="absolute left-0 top-0 bottom-0 bg-neon-red/20"
-                                                        initial={{ width: 0 }}
-                                                        animate={{ width: `${percentage}%` }}
-                                                        transition={{ duration: 0.8, ease: "easeOut" }}
-                                                    />
-                                                    <span className="relative z-10 text-[10px] font-black text-white uppercase tracking-widest flex items-center gap-3">
-                                                        <span className="w-5 h-5 flex items-center justify-center bg-black/40 rounded-md text-gray-400 group-hover/vote:text-neon-red transition-colors font-mono">{i + 1}</span>
-                                                        {opt}
-                                                    </span>
-                                                    <span className="relative z-10 text-[11px] font-black text-neon-red ml-auto drop-shadow-[0_0_8px_rgba(255,0,51,0.6)] font-mono">{percentage}%</span>
-                                                </button>
-                                            )
-                                        })}
-                                    </div>
-                                    <p className="text-[7px] text-gray-500 uppercase tracking-[0.2em] mt-3 text-center border-t border-white/5 pt-2">Tapez le chiffre dans le chat ou cliquez</p>
-                                </motion.div>
-                            )}
-
-                            {/* Winning Result Overlay */}
-                            {!isFocusMode && lastPollResult && !activePoll && (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.8, y: -20 }}
-                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                    exit={{ opacity: 0, scale: 0.8, y: -20 }}
-                                    className="absolute top-12 left-1/2 -translate-x-1/2 z-[100] w-[90%] max-w-[280px] bg-[#000]/90 backdrop-blur-3xl border border-neon-cyan/50 rounded-3xl p-6 shadow-[0_0_60px_rgba(0,255,255,0.4)] text-center overflow-hidden"
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-b from-neon-cyan/10 via-transparent to-transparent pointer-events-none" />
-                                    <div className="absolute -top-10 -left-10 w-24 h-24 bg-neon-cyan/20 blur-3xl rounded-full animate-pulse" />
-                                    <div className="absolute -bottom-10 -right-10 w-24 h-24 bg-neon-cyan/20 blur-3xl rounded-full animate-pulse" />
-
-                                    <Trophy className="w-8 h-8 text-neon-cyan mx-auto mb-4 drop-shadow-[0_0_15px_#00ffff]" />
-                                    <h3 className="text-[10px] font-black text-neon-cyan uppercase tracking-[0.4em] mb-2 drop-shadow-[0_0_10px_#00ffff]">VAINQUEUR</h3>
-                                    <p className="text-[9px] text-gray-500 uppercase mb-4 px-2 font-black italic tracking-wider leading-tight">{lastPollResult.question}</p>
-
-                                    <div className="relative inline-block py-2 px-6">
-                                        <div className="absolute inset-0 blur-2xl bg-neon-cyan/40 animate-pulse" />
-                                        <h4 className="relative text-2xl font-black text-white uppercase tracking-tighter drop-shadow-[0_0_20px_#fff]">
-                                            {lastPollResult.winner}
-                                        </h4>
-                                    </div>
-
-                                    <div className="mt-5 text-[12px] font-black text-neon-cyan font-mono tracking-widest bg-neon-cyan/10 py-1.5 rounded-xl border border-neon-cyan/20">
-                                        {lastPollResult.percentage}% DES VOIX
-                                    </div>
-
-                                    <motion.div
-                                        className="mt-4 h-[2px] bg-neon-cyan rounded-full"
-                                        initial={{ width: 0 }}
-                                        animate={{ width: "100%" }}
-                                        transition={{ duration: 1, ease: "easeOut" }}
-                                    />
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Shop Widget Overhead */}
-                        <AnimatePresence>
-                            {!isFocusMode && showShopWidget && (
-                                <motion.div
-                                    initial={{ height: 0, opacity: 0 }}
-                                    animate={{ height: 'auto', opacity: 1 }}
-                                    exit={{ height: 0, opacity: 0 }}
-                                    className="bg-black/80 border-b border-white/10 overflow-hidden relative z-40"
-                                >
-                                    <div className="relative group px-1">
-                                        <div className="absolute top-2 left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
-                                        <div className="w-full overflow-hidden relative py-1 md:py-2 mb-0.5 md:mb-1">
-                                            <div className="flex flex-row gap-2 md:gap-3 animate-shop-scroll">
-                                                {(showShopWidget && shopProducts.length > 0 ? [...shopProducts, ...shopProducts, ...shopProducts] : []).map((product, i) => (
-                                                    <a
-                                                        key={`${product.id}-${i}`}
-                                                        href={product.url}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="flex items-center gap-2 md:gap-3 p-1 md:p-1.5 pr-3 md:pr-4 bg-white/[0.03] hover:bg-white/[0.08] border border-white/5 hover:border-neon-cyan/30 rounded-lg md:rounded-xl transition-all group/item active:scale-95 shrink-0"
-                                                    >
-                                                        <div className="w-8 h-8 md:w-12 md:h-12 shrink-0 rounded-md md:rounded-lg overflow-hidden relative shadow-lg">
-                                                            <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500" />
-                                                            <div className="absolute inset-x-0 bottom-0 bg-black/60 backdrop-blur-sm py-0.5 text-center">
-                                                                <span className="text-[6px] md:text-[7.5px] font-black text-white">{product.price}€</span>
-                                                            </div>
+                                                    <div className="w-8 h-8 md:w-12 md:h-12 shrink-0 rounded-md md:rounded-lg overflow-hidden relative shadow-lg">
+                                                        <img src={product.image} alt={product.name} className="w-full h-full object-cover group-hover/item:scale-110 transition-transform duration-500" />
+                                                        <div className="absolute inset-x-0 bottom-0 bg-black/60 backdrop-blur-sm py-0.5 text-center">
+                                                            <span className="text-[6px] md:text-[7.5px] font-black text-white">{product.price}€</span>
                                                         </div>
-                                                        <div className="flex flex-col justify-center max-w-[100px] md:max-w-[120px]">
-                                                            <p className="text-[8px] md:text-[9px] font-black text-white uppercase tracking-widest leading-none truncate">{product.name}</p>
-                                                            <p className="text-[6.5px] md:text-[7.5px] text-gray-500 uppercase tracking-widest mt-0.5 md:mt-1 truncate opacity-60 font-bold">{product.description}</p>
-                                                        </div>
-                                                    </a>
-                                                ))}
-                                            </div>
-                                        </div>
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Chat Content and Sidebar Wrapper */}
-                        <div className={`flex-1 w-full lg:w-auto lg:flex-1 flex flex-row min-h-0 overflow-hidden relative ${(settings.isOnline || isServerAdmin) ? '' : 'hidden'}`}>
-                            <div className="flex-1 flex flex-col min-h-0 relative">
-                                {isLocalBanned ? (
-                                    <div className="flex-1 flex flex-col items-center justify-center p-10 text-center bg-black/40">
-                                        <div className="w-24 h-24 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,0,0,0.15)]">
-                                            <ShieldAlert className="w-12 h-12 text-neon-red" />
-                                        </div>
-                                        <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-4">Accès restreint</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
-                                            Vous avez été banni du chat communautaire.
-                                        </p>
-                                        <button
-                                            onClick={handleUnbanRequest}
-                                            className="px-10 py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20"
-                                        >
-                                            Demande de débannissement
-                                        </button>
-                                    </div>
-                                ) : (
-                                    <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
-                                        {/* FLUX SELECTION - PERSISTENT AT TOP OF SIDEBAR */}
-                                        <div className="px-0 md:px-4 pt-0 md:pt-4 pb-0 shrink-0 z-[60]">
-                                            <div className="flex items-center gap-0 bg-black/40 md:bg-white/5 border-b border-white/10 p-0 md:p-1 overflow-x-auto no-scrollbar">
-                                                {channelItems.map((item: any, idx) => {
-                                                    const isDisabled = settings.disableMainPlayer !== false;
-                                                    if (item.isMain && isDisabled && playersOption === 1) return null;
-                                                    return (
-                                                        <button
-                                                            key={idx}
-                                                            onClick={() => {
-                                                                if (activeVideoIndex === idx && playersOption === 1) return;
-                                                                setActiveVideoIndex(idx);
-                                                                setPlayersOption(1);
-                                                            }}
-                                                            className={`px-2 md:px-3 py-1.5 md:py-2 rounded-sm md:rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[50px] md:min-w-[70px] leading-none ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-                                                        >
-                                                            {item.title}
-                                                        </button>
-                                                    );
-                                                })}
-                                            </div>
-                                        </div>
-
-                                        {/* Tab Switcher - Persistent at Top */}
-                                        <div className="flex items-center gap-0.5 md:gap-1 p-0 md:p-1 bg-white/[0.02] border border-white/10 rounded-md md:rounded-xl mb-0 mx-1 md:mx-4 mt-0.5 md:mt-3 relative z-20 shrink-0 overflow-x-auto no-scrollbar">
-                                            {[
-                                                { id: 'chat', icon: MessageSquare, label: 'Chat', mobileVisible: true },
-                                                { id: 'shazam', icon: Headphones, label: 'Shz', mobileVisible: true },
-                                                { id: 'audio', icon: Mic, label: 'Aud', mobileVisible: true },
-                                                { id: 'shop', icon: ShoppingBag, label: 'Shop', mobileVisible: true },
-                                                { id: 'leaderboard', icon: Trophy, label: 'Top', mobileVisible: true },
-                                                { id: 'clips', icon: Video, label: 'Clips', mobileVisible: true },
-                                                ...(activeChatTab === 'drops-shop' ? [{ id: 'drops-shop', icon: Zap, label: 'Drops', mobileVisible: true }] : [])
-                                            ].map(tab => (
-                                                <button
-                                                    key={tab.id}
-                                                    onClick={() => setActiveChatTab(tab.id as any)}
-                                                    className={`flex-1 ${(tab as any).mobileVisible === false ? 'hidden md:flex' : 'flex'} flex-col items-center justify-center gap-0 md:gap-1.5 py-[2px] md:py-2 rounded-sm md:rounded-lg transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                                                >
-                                                    <tab.icon className="w-1.5 h-1.5 md:w-3.5 md:h-3.5" />
-                                                    <span className="text-[6px] md:text-[9px] font-black uppercase leading-none">{tab.label.substring(0, 3)}</span>
-                                                    {activeChatTab === tab.id && (
-                                                        <motion.div layoutId="active-chat-tab" className="absolute bottom-0 left-0 right-0 h-[1px] bg-neon-red" />
-                                                    )}
-                                                </button>
+                                                    </div>
+                                                    <div className="flex flex-col justify-center max-w-[100px] md:max-w-[120px]">
+                                                        <p className="text-[8px] md:text-[9px] font-black text-white uppercase tracking-widest leading-none truncate">{product.name}</p>
+                                                        <p className="text-[6.5px] md:text-[7.5px] text-gray-500 uppercase tracking-widest mt-0.5 md:mt-1 truncate opacity-60 font-bold">{product.description}</p>
+                                                    </div>
+                                                </a>
                                             ))}
                                         </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-                                        <div className="relative flex-1 flex flex-col min-h-0">
-                                            <GlitchTransition trigger={activeChatTab} />
-                                            <AnimatePresence mode="wait">
-                                                {activeChatTab === 'clips' ? (
-                                                    <motion.div
-                                                        key="clips-view"
-                                                        initial={{ x: 50, opacity: 0 }}
-                                                        animate={{ x: 0, opacity: 1 }}
-                                                        exit={{ x: -50, opacity: 0 }}
-                                                        drag="x"
-                                                        dragConstraints={{ left: 0, right: 0 }}
-                                                        dragElastic={0.2}
-                                                        onDragEnd={(_, info) => {
-                                                            if (info.offset.x > 100) handleSwipeTabs('right');
-                                                            else if (info.offset.x < -100) handleSwipeTabs('left');
+                    {/* Chat Content and Sidebar Wrapper */}
+                    <div className={`flex-1 w-full lg:w-auto lg:flex-1 flex flex-row min-h-0 overflow-hidden relative ${(settings.isOnline || isServerAdmin) ? '' : 'hidden'}`}>
+                        <div className="flex-1 flex flex-col min-h-0 relative">
+                            {isLocalBanned ? (
+                                <div className="flex-1 flex flex-col items-center justify-center p-10 text-center bg-black/40">
+                                    <div className="w-24 h-24 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_50px_rgba(255,0,0,0.15)]">
+                                        <ShieldAlert className="w-12 h-12 text-neon-red" />
+                                    </div>
+                                    <h3 className="text-xl font-black text-white uppercase italic tracking-tighter mb-4">Accès restreint</h3>
+                                    <p className="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed mb-8">
+                                        Vous avez été banni du chat communautaire.
+                                    </p>
+                                    <button
+                                        onClick={handleUnbanRequest}
+                                        className="px-10 py-4 bg-neon-red text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-red/80 transition-all shadow-xl shadow-neon-red/20"
+                                    >
+                                        Demande de débannissement
+                                    </button>
+                                </div>
+                            ) : (
+                                <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
+                                    {/* FLUX SELECTION - PERSISTENT AT TOP OF SIDEBAR */}
+                                    <div className="px-0 md:px-4 pt-0 md:pt-4 pb-0 shrink-0 z-[60]">
+                                        <div className="flex items-center gap-0 bg-black/40 md:bg-white/5 border-b border-white/10 p-0 md:p-1 overflow-x-auto no-scrollbar">
+                                            {channelItems.map((item: any, idx) => {
+                                                const isDisabled = settings.disableMainPlayer !== false;
+                                                if (item.isMain && isDisabled && playersOption === 1) return null;
+                                                return (
+                                                    <button
+                                                        key={idx}
+                                                        onClick={() => {
+                                                            if (activeVideoIndex === idx && playersOption === 1) return;
+                                                            setActiveVideoIndex(idx);
+                                                            setPlayersOption(1);
                                                         }}
-                                                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                        className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4 pb-24 touch-pan-y"
+                                                        className={`px-2 md:px-3 py-1.5 md:py-2 rounded-sm md:rounded-lg text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap flex-none min-w-[50px] md:min-w-[70px] leading-none ${activeVideoIndex === idx && playersOption === 1 ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.3)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
                                                     >
-                                                        <div className="flex flex-col gap-3">
-                                                            <div className="p-6 bg-gradient-to-br from-neon-red/10 to-transparent border border-neon-red/20 rounded-2xl relative overflow-hidden group">
-                                                                <div className="absolute top-0 right-0 w-24 h-24 bg-neon-red/20 blur-3xl rounded-full -mr-12 -mt-12" />
-                                                                <h4 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                                    <Video className="w-4 h-4 text-neon-red" /> {t('takeover.clips.title')}
-                                                                </h4>
-                                                                <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">{t('takeover.clips.subtitle')}</p>
-                                                            </div>
+                                                        {item.title}
+                                                    </button>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
 
-                                                            {clips.length === 0 ? (
-                                                                <div className="py-12 flex flex-col items-center justify-center text-center opacity-40">
-                                                                    <Video className="w-12 h-12 mb-4" />
-                                                                    <p className="text-[10px] font-black uppercase tracking-widest">{t('takeover.clips.empty')}</p>
-                                                                </div>
-                                                            ) : (
-                                                                <div className="grid grid-cols-1 gap-3">
-                                                                    {clips
-                                                                        .sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0))
-                                                                        .map(clip => (
-                                                                            <div key={clip.id} className={`group relative bg-[#111] border rounded-2xl p-3 transition-all ${clip.isFeatured ? 'border-neon-red/40 bg-neon-red/5' : 'border-white/5 hover:border-white/10'}`}>
-                                                                                {clip.isFeatured && (
-                                                                                    <div className="absolute -top-2 -left-2 z-10 bg-neon-red text-[7px] font-black px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(255,0,51,0.3)] text-white">
-                                                                                        FEATURED
+                                    {/* Tab Switcher - Persistent at Top */}
+                                    <div className="flex items-center gap-0.5 md:gap-1 p-0 md:p-1 bg-white/[0.02] border border-white/10 rounded-md md:rounded-xl mb-0 mx-1 md:mx-4 mt-0.5 md:mt-3 relative z-20 shrink-0 overflow-x-auto no-scrollbar">
+                                        {[
+                                            { id: 'chat', icon: MessageSquare, label: 'Chat', mobileVisible: true },
+                                            { id: 'shazam', icon: Headphones, label: 'Shz', mobileVisible: true },
+                                            { id: 'audio', icon: Mic, label: 'Aud', mobileVisible: true },
+                                            { id: 'shop', icon: ShoppingBag, label: 'Shop', mobileVisible: true },
+                                            { id: 'leaderboard', icon: Trophy, label: 'Top', mobileVisible: true },
+                                            { id: 'clips', icon: Video, label: 'Clips', mobileVisible: true },
+                                            ...(activeChatTab === 'drops-shop' ? [{ id: 'drops-shop', icon: Zap, label: 'Drops', mobileVisible: true }] : [])
+                                        ].map(tab => (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setActiveChatTab(tab.id as any)}
+                                                className={`flex-1 ${(tab as any).mobileVisible === false ? 'hidden md:flex' : 'flex'} flex-col items-center justify-center gap-0 md:gap-1.5 py-[2px] md:py-2 rounded-sm md:rounded-lg transition-all relative ${activeChatTab === tab.id ? 'text-white' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                            >
+                                                <tab.icon className="w-1.5 h-1.5 md:w-3.5 md:h-3.5" />
+                                                <span className="text-[6px] md:text-[9px] font-black uppercase leading-none">{tab.label.substring(0, 3)}</span>
+                                                {activeChatTab === tab.id && (
+                                                    <motion.div layoutId="active-chat-tab" className="absolute bottom-0 left-0 right-0 h-[1px] bg-neon-red" />
+                                                )}
+                                            </button>
+                                        ))}
+                                    </div>
+
+                                    <div className="relative flex-1 flex flex-col min-h-0">
+                                        <GlitchTransition trigger={activeChatTab} />
+                                        <AnimatePresence mode="wait">
+                                            {activeChatTab === 'clips' ? (
+                                                <motion.div
+                                                    key="clips-view"
+                                                    initial={{ x: 50, opacity: 0 }}
+                                                    animate={{ x: 0, opacity: 1 }}
+                                                    exit={{ x: -50, opacity: 0 }}
+                                                    drag="x"
+                                                    dragConstraints={{ left: 0, right: 0 }}
+                                                    dragElastic={0.2}
+                                                    onDragEnd={(_, info) => {
+                                                        if (info.offset.x > 100) handleSwipeTabs('right');
+                                                        else if (info.offset.x < -100) handleSwipeTabs('left');
+                                                    }}
+                                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                    className="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4 pb-24 touch-pan-y"
+                                                >
+                                                    <div className="flex flex-col gap-3">
+                                                        <div className="p-6 bg-gradient-to-br from-neon-red/10 to-transparent border border-neon-red/20 rounded-2xl relative overflow-hidden group">
+                                                            <div className="absolute top-0 right-0 w-24 h-24 bg-neon-red/20 blur-3xl rounded-full -mr-12 -mt-12" />
+                                                            <h4 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                                <Video className="w-4 h-4 text-neon-red" /> {t('takeover.clips.title')}
+                                                            </h4>
+                                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">{t('takeover.clips.subtitle')}</p>
+                                                        </div>
+
+                                                        {clips.length === 0 ? (
+                                                            <div className="py-12 flex flex-col items-center justify-center text-center opacity-40">
+                                                                <Video className="w-12 h-12 mb-4" />
+                                                                <p className="text-[10px] font-black uppercase tracking-widest">{t('takeover.clips.empty')}</p>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="grid grid-cols-1 gap-3">
+                                                                {clips
+                                                                    .sort((a, b) => (b.isFeatured ? 1 : 0) - (a.isFeatured ? 1 : 0))
+                                                                    .map(clip => (
+                                                                        <div key={clip.id} className={`group relative bg-[#111] border rounded-2xl p-3 transition-all ${clip.isFeatured ? 'border-neon-red/40 bg-neon-red/5' : 'border-white/5 hover:border-white/10'}`}>
+                                                                            {clip.isFeatured && (
+                                                                                <div className="absolute -top-2 -left-2 z-10 bg-neon-red text-[7px] font-black px-2 py-0.5 rounded-full shadow-[0_0_10px_rgba(255,0,51,0.3)] text-white">
+                                                                                    FEATURED
+                                                                                </div>
+                                                                            )}
+                                                                            <div className="flex gap-4">
+                                                                                <div className="w-24 aspect-video bg-black rounded-lg overflow-hidden relative shadow-lg">
+                                                                                    {clip.isLocal ? (
+                                                                                        <div className="w-full h-full flex items-center justify-center bg-white/5">
+                                                                                            <span className="text-[8px] font-black text-neon-red opacity-60">LOCAL</span>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <video src={clip.url} className="w-full h-full object-cover opacity-60" />
+                                                                                    )}
+                                                                                    <button
+                                                                                        onClick={() => {
+                                                                                            setActiveClipToPlay(clip);
+                                                                                            setShowClipPlayer(true);
+                                                                                        }}
+                                                                                        className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                                    >
+                                                                                        <div className="w-8 h-8 rounded-full bg-neon-red flex items-center justify-center shadow-lg shadow-neon-red/20">
+                                                                                            <Maximize className="w-4 h-4 text-white" />
+                                                                                        </div>
+                                                                                    </button>
+                                                                                </div>
+                                                                                <div className="flex-1 min-w-0">
+                                                                                    <h5 className="text-[10px] font-black text-white uppercase truncate mb-1">{clip.title}</h5>
+                                                                                    <div className="flex items-center gap-2 text-[8px] font-bold text-gray-500 uppercase">
+                                                                                        <span className="text-neon-cyan">@{clip.creator}</span>
+                                                                                        <span>•</span>
+                                                                                        <span>{clip.date}</span>
                                                                                     </div>
-                                                                                )}
-                                                                                <div className="flex gap-4">
-                                                                                    <div className="w-24 aspect-video bg-black rounded-lg overflow-hidden relative shadow-lg">
-                                                                                        {clip.isLocal ? (
-                                                                                            <div className="w-full h-full flex items-center justify-center bg-white/5">
-                                                                                                <span className="text-[8px] font-black text-neon-red opacity-60">LOCAL</span>
-                                                                                            </div>
-                                                                                        ) : (
-                                                                                            <video src={clip.url} className="w-full h-full object-cover opacity-60" />
-                                                                                        )}
+                                                                                    <div className="mt-2 flex gap-2">
                                                                                         <button
                                                                                             onClick={() => {
                                                                                                 setActiveClipToPlay(clip);
                                                                                                 setShowClipPlayer(true);
                                                                                             }}
-                                                                                            className="absolute inset-0 flex items-center justify-center bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                                            className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-md text-[8px] font-black text-white uppercase tracking-widest transition-all"
                                                                                         >
-                                                                                            <div className="w-8 h-8 rounded-full bg-neon-red flex items-center justify-center shadow-lg shadow-neon-red/20">
-                                                                                                <Maximize className="w-4 h-4 text-white" />
-                                                                                            </div>
+                                                                                            {t('takeover.clips.watch')}
                                                                                         </button>
-                                                                                    </div>
-                                                                                    <div className="flex-1 min-w-0">
-                                                                                        <h5 className="text-[10px] font-black text-white uppercase truncate mb-1">{clip.title}</h5>
-                                                                                        <div className="flex items-center gap-2 text-[8px] font-bold text-gray-500 uppercase">
-                                                                                            <span className="text-neon-cyan">@{clip.creator}</span>
-                                                                                            <span>•</span>
-                                                                                            <span>{clip.date}</span>
-                                                                                        </div>
-                                                                                        <div className="mt-2 flex gap-2">
-                                                                                            <button
-                                                                                                onClick={() => {
-                                                                                                    setActiveClipToPlay(clip);
-                                                                                                    setShowClipPlayer(true);
-                                                                                                }}
-                                                                                                className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-md text-[8px] font-black text-white uppercase tracking-widest transition-all"
-                                                                                            >
-                                                                                                {t('takeover.clips.watch')}
-                                                                                            </button>
-                                                                                            <button
-                                                                                                onClick={() => handleDownloadClip(clip)}
-                                                                                                className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-md text-[8px] font-black text-gray-400 hover:text-white uppercase tracking-widest transition-all"
-                                                                                            >
-                                                                                                {t('takeover.clips.dl')}
-                                                                                            </button>
-                                                                                        </div>
+                                                                                        <button
+                                                                                            onClick={() => handleDownloadClip(clip)}
+                                                                                            className="px-3 py-1 bg-white/5 hover:bg-white/10 rounded-md text-[8px] font-black text-gray-400 hover:text-white uppercase tracking-widest transition-all"
+                                                                                        >
+                                                                                            {t('takeover.clips.dl')}
+                                                                                        </button>
                                                                                     </div>
                                                                                 </div>
                                                                             </div>
-                                                                        ))}
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    </motion.div>
-                                                ) : activeChatTab === 'drops-shop' ? (
-                                                    <motion.div
-                                                        key="drops-shop-view"
-                                                        initial={{ x: 50, opacity: 0 }}
-                                                        animate={{ x: 0, opacity: 1 }}
-                                                        exit={{ x: -50, opacity: 0 }}
-                                                        drag="x"
-                                                        dragConstraints={{ left: 0, right: 0 }}
-                                                        dragElastic={0.2}
-                                                        onDragEnd={(_, info) => {
-                                                            if (info.offset.x > 100) setActiveChatTab('chat');
-                                                            else if (info.offset.x < -100) setActiveChatTab('chat');
-                                                        }}
-                                                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                        className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24 touch-pan-y"
-                                                    >
-                                                        {/* Drops Shop Content */}
-                                                        <div className="text-center bg-black/40 border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
-                                                            <div className="absolute inset-0 bg-neon-purple/5 blur-3xl rounded-full translate-y-12" />
-                                                            <Zap className="w-12 h-12 text-neon-purple mx-auto mb-4 animate-pulse drop-shadow-[0_0_10px_#9333ea]" />
-                                                            <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Drops Shop</h4>
-                                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
-                                                                Ton Solde : <strong className="text-neon-cyan">{userDrops} 💧</strong>
-                                                            </p>
-                                                        </div>
-
-                                                        <div className="grid grid-cols-1 gap-4">
-                                                            {rewards.map(reward => (
-                                                                <div key={reward.id} className="p-4 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-2xl relative overflow-hidden group">
-                                                                    <div className="absolute top-0 right-0 w-32 h-32 bg-neon-purple/20 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-neon-purple/40 transition-colors" />
-                                                                    <div className="relative flex items-center justify-between">
-                                                                        <div className="space-y-1">
-                                                                            <h4 className="text-[11px] font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                                                {reward.icon === 'Smile' ? <Smile className="w-4 h-4 text-neon-purple" /> :
-                                                                                    reward.icon === 'MessageSquare' ? <MessageSquare className="w-4 h-4 text-neon-cyan" /> :
-                                                                                        <Zap className="w-4 h-4 text-neon-red" />} {reward.name}
-                                                                            </h4>
-                                                                            <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{reward.description}</p>
                                                                         </div>
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                if (!confirm(`Confirmer l'achat de "${reward.name}" pour ${reward.cost} Drops ?`)) return;
-                                                                                if (userDrops >= reward.cost) {
-                                                                                    setUserDrops(d => d - reward.cost);
-                                                                                    if (reward.id === 'pin') {
-                                                                                        setActiveChatTab('chat');
-                                                                                    }
-                                                                                    alert(`Récompense "${reward.name}" activée !`);
-                                                                                } else alert("Pas assez de Drops !");
-                                                                            }}
-                                                                            className={`px-4 py-2 text-white text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg ${reward.cost >= 1000 ? 'bg-neon-red' : reward.cost >= 500 ? 'bg-neon-purple' : 'bg-neon-cyan text-black'}`}
-                                                                        >
-                                                                            {reward.cost} 💧
-                                                                        </button>
+                                                                    ))}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </motion.div>
+                                            ) : activeChatTab === 'drops-shop' ? (
+                                                <motion.div
+                                                    key="drops-shop-view"
+                                                    initial={{ x: 50, opacity: 0 }}
+                                                    animate={{ x: 0, opacity: 1 }}
+                                                    exit={{ x: -50, opacity: 0 }}
+                                                    drag="x"
+                                                    dragConstraints={{ left: 0, right: 0 }}
+                                                    dragElastic={0.2}
+                                                    onDragEnd={(_, info) => {
+                                                        if (info.offset.x > 100) setActiveChatTab('chat');
+                                                        else if (info.offset.x < -100) setActiveChatTab('chat');
+                                                    }}
+                                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                    className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-6 pb-24 touch-pan-y"
+                                                >
+                                                    {/* Drops Shop Content */}
+                                                    <div className="text-center bg-black/40 border border-white/5 p-8 rounded-3xl relative overflow-hidden group">
+                                                        <div className="absolute inset-0 bg-neon-purple/5 blur-3xl rounded-full translate-y-12" />
+                                                        <Zap className="w-12 h-12 text-neon-purple mx-auto mb-4 animate-pulse drop-shadow-[0_0_10px_#9333ea]" />
+                                                        <h4 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-2">Drops Shop</h4>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest flex items-center justify-center gap-2">
+                                                            Ton Solde : <strong className="text-neon-cyan">{userDrops} 💧</strong>
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 gap-4">
+                                                        {rewards.map(reward => (
+                                                            <div key={reward.id} className="p-4 bg-gradient-to-br from-white/5 to-white/[0.02] border border-white/10 rounded-2xl relative overflow-hidden group">
+                                                                <div className="absolute top-0 right-0 w-32 h-32 bg-neon-purple/20 blur-3xl rounded-full -mr-16 -mt-16 group-hover:bg-neon-purple/40 transition-colors" />
+                                                                <div className="relative flex items-center justify-between">
+                                                                    <div className="space-y-1">
+                                                                        <h4 className="text-[11px] font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                                            {reward.icon === 'Smile' ? <Smile className="w-4 h-4 text-neon-purple" /> :
+                                                                                reward.icon === 'MessageSquare' ? <MessageSquare className="w-4 h-4 text-neon-cyan" /> :
+                                                                                    <Zap className="w-4 h-4 text-neon-red" />} {reward.name}
+                                                                        </h4>
+                                                                        <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">{reward.description}</p>
                                                                     </div>
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </motion.div>
-                                                ) : activeChatTab === 'shop' ? (
-                                                    <motion.div
-                                                        key="real-shop-view"
-                                                        initial={{ x: 50, opacity: 0 }}
-                                                        animate={{ x: 0, opacity: 1 }}
-                                                        exit={{ x: -50, opacity: 0 }}
-                                                        drag="x"
-                                                        dragConstraints={{ left: 0, right: 0 }}
-                                                        dragElastic={0.05}
-                                                        onDragEnd={(_, info) => {
-                                                            if (info.offset.x > 100) handleSwipeTabs('right');
-                                                            else if (info.offset.x < -100) handleSwipeTabs('left');
-                                                        }}
-                                                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                        className="flex-1 flex flex-col min-h-0 bg-black touch-pan-y"
-                                                    >
-                                                        <iframe
-                                                            src="/shop?mini=true"
-                                                            className="flex-1 w-full border-none"
-                                                            title="Dropsiders Shop"
-                                                        ></iframe>
-                                                    </motion.div>
-                                                ) : activeChatTab === 'leaderboard' ? (
-                                                    <motion.div
-                                                        key="leaderboard-view"
-                                                        initial={{ x: 50, opacity: 0 }}
-                                                        animate={{ x: 0, opacity: 1 }}
-                                                        exit={{ x: -50, opacity: 0 }}
-                                                        drag="x"
-                                                        dragConstraints={{ left: 0, right: 0 }}
-                                                        dragElastic={0.2}
-                                                        onDragEnd={(_, info) => {
-                                                            if (info.offset.x > 100) handleSwipeTabs('right');
-                                                            else if (info.offset.x < -100) handleSwipeTabs('left');
-                                                        }}
-                                                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                        className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-8 pb-24 touch-pan-y"
-                                                    >
-                                                        {/* Leaderboard Podium */}
-                                                        <div className="flex items-end justify-center gap-2 pt-10 pb-6">
-                                                            <div className="flex flex-col items-center gap-2">
-                                                                <div className="w-12 h-12 rounded-2xl bg-gray-300/10 border border-gray-300/20 flex items-center justify-center relative">
-                                                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2"><Trophy className="w-5 h-5 text-gray-400" /></div>
-                                                                    <span className="text-[10px] font-black text-white/50">#2</span>
-                                                                </div>
-                                                                <div className="h-16 w-16 bg-gradient-to-t from-gray-400/20 to-transparent border-x border-t border-white/5 rounded-t-xl flex flex-col items-center justify-end p-2"><span className="text-[8px] font-black text-white/60 truncate w-full text-center">DROPS_FAN</span></div>
-                                                            </div>
-                                                            <div className="flex flex-col items-center gap-2 -translate-y-4">
-                                                                <div className="w-16 h-16 rounded-2xl bg-yellow-400/10 border border-yellow-400/30 flex items-center justify-center relative shadow-[0_0_30px_rgba(250,204,21,0.2)]">
-                                                                    <div className="absolute -top-4 left-1/2 -translate-x-1/2"><Crown className="w-7 h-7 text-yellow-500 animate-bounce" /></div>
-                                                                    <span className="text-xs font-black text-yellow-500">🏆</span>
-                                                                </div>
-                                                                <div className="h-24 w-20 bg-gradient-to-t from-yellow-400/20 to-transparent border-x border-t border-yellow-400/20 rounded-t-2xl flex flex-col items-center justify-end p-2"><span className="text-[9px] font-black text-white truncate w-full text-center">ALEXFR</span></div>
-                                                            </div>
-                                                            <div className="flex flex-col items-center gap-2">
-                                                                <div className="w-12 h-12 rounded-2xl bg-orange-400/10 border border-orange-400/20 flex items-center justify-center relative">
-                                                                    <div className="absolute -top-3 left-1/2 -translate-x-1/2"><Trophy className="w-5 h-5 text-orange-400" /></div>
-                                                                    <span className="text-[10px] font-black text-white/50">#3</span>
-                                                                </div>
-                                                                <div className="h-12 w-16 bg-gradient-to-t from-orange-400/20 to-transparent border-x border-t border-white/5 rounded-t-xl flex flex-col items-center justify-end p-2"><span className="text-[8px] font-black text-white/60 truncate w-full text-center">TECHNO...</span></div>
-                                                            </div>
-                                                        </div>
-                                                        <div className="space-y-4">
-                                                            {[
-                                                                { rank: 1, name: "ALEXFR", drops: 2450, color: "text-yellow-400", bg: "bg-yellow-400/10" },
-                                                                { rank: 2, name: "DROPS_FAN", drops: 1820, color: "text-gray-300", bg: "bg-gray-300/10" },
-                                                                { rank: 3, name: "TECHNO_LOVER", drops: 1540, color: "text-orange-400", bg: "bg-orange-400/10" },
-                                                                { rank: 4, name: "NIGHT_OWL", drops: 980, color: "text-white/50", bg: "bg-white/5" },
-                                                                { rank: 5, name: "PARTY_GIRL", drops: 450, color: "text-white/50", bg: "bg-white/5" },
-                                                            ].map((user) => (
-                                                                <div key={user.rank} className={`flex items-center gap-4 p-4 rounded-2xl border border-white/5 ${user.bg} group hover:border-white/20 transition-all`}>
-                                                                    <span className={`text-xl font-black ${user.color} italic w-8`}>#{user.rank}</span>
-                                                                    <div className="flex-1">
-                                                                        <p className="text-sm font-black text-white uppercase italic tracking-tighter">{user.name}</p>
-                                                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">{user.drops} Drops accumulés</p>
-                                                                    </div>
-                                                                    <Zap className={`w-5 h-5 ${user.color}`} />
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </motion.div>
-                                                ) : activeChatTab === 'shazam' ? (
-                                                    <motion.div
-                                                        key="shazam-view"
-                                                        initial={{ x: 50, opacity: 0 }}
-                                                        animate={{ x: 0, opacity: 1 }}
-                                                        exit={{ x: -50, opacity: 0 }}
-                                                        drag="x"
-                                                        dragConstraints={{ left: 0, right: 0 }}
-                                                        dragElastic={0.2}
-                                                        onDragEnd={(_, info) => {
-                                                            if (info.offset.x > 100) handleSwipeTabs('right');
-                                                            else if (info.offset.x < -100) handleSwipeTabs('left');
-                                                        }}
-                                                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                        className="flex-1 overflow-y-auto p-2 lg:p-6 custom-scrollbar space-y-4 lg:space-y-6 touch-pan-y"
-                                                    >
-                                                        <div className="bg-gradient-to-br from-neon-cyan/20 via-black to-neon-purple/20 border border-white/10 p-4 lg:p-8 rounded-2xl lg:rounded-3xl relative overflow-hidden group">
-                                                            <div className="absolute inset-0 bg-aurora opacity-10 pointer-events-none" />
-                                                            <div className="relative flex flex-col items-center text-center">
-                                                                <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-full border-2 ${shazamLoading ? 'border-neon-cyan animate-spin shadow-[0_0_50px_#00ffff]' : 'border-neon-purple shadow-[0_0_30px_#bc13fe33]'} flex items-center justify-center mb-4 lg:mb-6`}>
-                                                                    <Headphones className={`w-6 h-6 lg:w-10 lg:h-10 ${shazamLoading ? 'text-neon-cyan' : 'text-neon-purple'}`} />
-                                                                </div>
-                                                                <h4 className="text-2xl lg:text-4xl font-black text-white uppercase italic tracking-tighter mb-1 lg:mb-2">Shazam Live</h4>
-                                                                <p className="text-[8px] lg:text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mb-6 lg:mb-8">Identifie la musique en direct</p>
-
-                                                                <button
-                                                                    onClick={handleShazam}
-                                                                    disabled={shazamLoading}
-                                                                    className={`w-full max-w-sm py-3 lg:py-5 rounded-xl lg:rounded-2xl text-[10px] lg:text-base font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-2 lg:gap-3 shadow-lg ${shazamLoading ? 'bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-neon-cyan text-black hover:scale-[1.02] shadow-neon-cyan/20'}`}
-                                                                >
-                                                                    {shazamLoading ? (
-                                                                        <><Loader2 className="w-4 h-4 lg:w-5 lg:h-5 animate-spin" /> ÉCOUTE...</>
-                                                                    ) : (
-                                                                        <><Headphones className="w-4 h-4 lg:w-5 lg:h-5" /> SHAZAM</>
-                                                                    )}
-                                                                </button>
-                                                            </div>
-                                                        </div>
-
-                                                        {shazamResult ? (
-                                                            <motion.div
-                                                                initial={{ opacity: 0, y: 20 }}
-                                                                animate={{ opacity: 1, y: 0 }}
-                                                                className="p-6 bg-white/[0.04] border border-white/10 rounded-3xl flex flex-col items-center text-center gap-6"
-                                                            >
-                                                                <div className="w-32 h-32 rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
-                                                                    <img src={shazamResult.image} alt="Cover" className="w-full h-full object-cover" />
-                                                                </div>
-                                                                <div>
-                                                                    <h5 className="text-[10px] font-black text-neon-cyan uppercase tracking-widest mb-1">Dernière Musique Trouvée</h5>
-                                                                    <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-1">{shazamResult.title}</h3>
-                                                                    <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">{shazamResult.artist}</p>
-                                                                </div>
-
-                                                                <div className="flex gap-4 w-full">
-                                                                    {shazamResult.spotify && (
-                                                                        <a
-                                                                            href={shazamResult.spotify}
-                                                                            target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                            className="flex-1 py-4 bg-[#1DB954] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all flex items-center justify-center gap-2"
-                                                                        >
-                                                                            <span className="text-lg">🎧</span> Spotify
-                                                                        </a>
-                                                                    )}
                                                                     <button
                                                                         onClick={() => {
-                                                                            setNewMessage(`🎶 Je viens de trouver "${shazamResult.title}" par ${shazamResult.artist} grâce au Shazam ! 🔥`);
-                                                                            setActiveChatTab('chat');
+                                                                            if (!confirm(`Confirmer l'achat de "${reward.name}" pour ${reward.cost} Drops ?`)) return;
+                                                                            if (userDrops >= reward.cost) {
+                                                                                setUserDrops(d => d - reward.cost);
+                                                                                if (reward.id === 'pin') {
+                                                                                    setActiveChatTab('chat');
+                                                                                }
+                                                                                alert(`Récompense "${reward.name}" activée !`);
+                                                                            } else alert("Pas assez de Drops !");
                                                                         }}
-                                                                        className="flex-1 py-4 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all"
+                                                                        className={`px-4 py-2 text-white text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg ${reward.cost >= 1000 ? 'bg-neon-red' : reward.cost >= 500 ? 'bg-neon-purple' : 'bg-neon-cyan text-black'}`}
                                                                     >
-                                                                        Partager
+                                                                        {reward.cost} 💧
                                                                     </button>
                                                                 </div>
-                                                            </motion.div>
-                                                        ) : (
-                                                            <div className="p-12 border border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center gap-4 text-gray-600 opacity-40">
-                                                                <Headphones className="w-12 h-12" />
-                                                                <p className="text-[10px] font-black uppercase tracking-widest">Aucune musique identifiée</p>
                                                             </div>
-                                                        )}
-
-                                                        {shazamHistory.length > 0 && (
-                                                            <div className="space-y-4">
-                                                                <h5 className="text-[10px] font-black text-white uppercase tracking-[0.2em] flex items-center gap-2">
-                                                                    <Clock className="w-3 h-3 text-neon-cyan" /> Historique Communautaire
-                                                                </h5>
-                                                                <div className="space-y-3">
-                                                                    {shazamHistory.map((item, idx) => (
-                                                                        <motion.div
-                                                                            key={idx}
-                                                                            initial={{ opacity: 0, x: 20 }}
-                                                                            animate={{ opacity: 1, x: 0 }}
-                                                                            transition={{ delay: idx * 0.05 }}
-                                                                            className="p-3 bg-white/[0.03] border border-white/5 rounded-2xl flex items-center gap-3 group hover:bg-white/[0.06] hover:border-white/10 transition-all"
-                                                                        >
-                                                                            <img src={item.image} alt="Art" className="w-10 h-10 rounded-lg shadow-lg group-hover:scale-110 transition-transform" />
-                                                                            <div className="flex-1 min-w-0">
-                                                                                <div className="flex items-center justify-between mb-0.5">
-                                                                                    <h6 className="text-[10px] font-black text-white truncate pr-2 uppercase italic">{item.title}</h6>
-                                                                                    <span className="text-[7px] font-bold text-gray-500 uppercase whitespace-nowrap">{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                                                                                </div>
-                                                                                <p className="text-[8px] font-bold text-gray-400 uppercase truncate">
-                                                                                    {item.artist} <span className="opacity-40 ml-1">• par @{item.user}</span>
-                                                                                </p>
-                                                                                {item.playedBy && item.playedBy !== 'Inconnu' && (
-                                                                                    <div className="flex items-center gap-1 mt-0.5">
-                                                                                        <span className="text-[7px] font-black text-neon-purple uppercase tracking-tight">SET: {item.playedBy}</span>
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                            <div className="flex gap-1">
-                                                                                {item.spotify && (
-                                                                                    <a href={item.spotify} target="_blank" rel="noopener noreferrer" className="w-7 h-7 bg-[#1DB954]/10 hover:bg-[#1DB954] rounded-lg flex items-center justify-center transition-all group/icon">
-                                                                                        <Headphones className="w-3.5 h-3.5 text-[#1DB954] group-hover/icon:text-white" />
-                                                                                    </a>
-                                                                                )}
-                                                                                <button
-                                                                                    onClick={() => {
-                                                                                        setNewMessage(`🎶 J'adore ce morceau : "${item.title}" par ${item.artist} ! 🔥`);
-                                                                                        setActiveChatTab('chat');
-                                                                                    }}
-                                                                                    className="w-7 h-7 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center transition-all"
-                                                                                >
-                                                                                    <Zap className="w-3.5 h-3.5 text-neon-cyan" />
-                                                                                </button>
-                                                                            </div>
-                                                                        </motion.div>
-                                                                    ))}
-                                                                </div>
+                                                        ))}
+                                                    </div>
+                                                </motion.div>
+                                            ) : activeChatTab === 'shop' ? (
+                                                <motion.div
+                                                    key="real-shop-view"
+                                                    initial={{ x: 50, opacity: 0 }}
+                                                    animate={{ x: 0, opacity: 1 }}
+                                                    exit={{ x: -50, opacity: 0 }}
+                                                    drag="x"
+                                                    dragConstraints={{ left: 0, right: 0 }}
+                                                    dragElastic={0.05}
+                                                    onDragEnd={(_, info) => {
+                                                        if (info.offset.x > 100) handleSwipeTabs('right');
+                                                        else if (info.offset.x < -100) handleSwipeTabs('left');
+                                                    }}
+                                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                    className="flex-1 flex flex-col min-h-0 bg-black touch-pan-y"
+                                                >
+                                                    <iframe
+                                                        src="/shop?mini=true"
+                                                        className="flex-1 w-full border-none"
+                                                        title="Dropsiders Shop"
+                                                    ></iframe>
+                                                </motion.div>
+                                            ) : activeChatTab === 'leaderboard' ? (
+                                                <motion.div
+                                                    key="leaderboard-view"
+                                                    initial={{ x: 50, opacity: 0 }}
+                                                    animate={{ x: 0, opacity: 1 }}
+                                                    exit={{ x: -50, opacity: 0 }}
+                                                    drag="x"
+                                                    dragConstraints={{ left: 0, right: 0 }}
+                                                    dragElastic={0.2}
+                                                    onDragEnd={(_, info) => {
+                                                        if (info.offset.x > 100) handleSwipeTabs('right');
+                                                        else if (info.offset.x < -100) handleSwipeTabs('left');
+                                                    }}
+                                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                    className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-8 pb-24 touch-pan-y"
+                                                >
+                                                    {/* Leaderboard Podium */}
+                                                    <div className="flex items-end justify-center gap-2 pt-10 pb-6">
+                                                        <div className="flex flex-col items-center gap-2">
+                                                            <div className="w-12 h-12 rounded-2xl bg-gray-300/10 border border-gray-300/20 flex items-center justify-center relative">
+                                                                <div className="absolute -top-3 left-1/2 -translate-x-1/2"><Trophy className="w-5 h-5 text-gray-400" /></div>
+                                                                <span className="text-[10px] font-black text-white/50">#2</span>
                                                             </div>
-                                                        )}
-
-                                                        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl opacity-60">
-                                                            <h5 className="text-[9px] font-black text-white uppercase tracking-widest mb-4">Fonctionnement</h5>
-                                                            <ul className="space-y-3">
-                                                                <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-neon-cyan" /> Clique sur le bouton pour écouter le flux
-                                                                </li>
-                                                                <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
-                                                                    <div className="w-1.5 h-1.5 rounded-full bg-neon-purple" /> Les résultats sont partagés avec la communauté
-                                                                </li>
-                                                            </ul>
+                                                            <div className="h-16 w-16 bg-gradient-to-t from-gray-400/20 to-transparent border-x border-t border-white/5 rounded-t-xl flex flex-col items-center justify-end p-2"><span className="text-[8px] font-black text-white/60 truncate w-full text-center">DROPS_FAN</span></div>
                                                         </div>
-                                                    </motion.div>
-                                                ) : activeChatTab === 'audio' ? (
-                                                    <motion.div
-                                                        key="audio-view"
-                                                        initial={{ x: 50, opacity: 0 }}
-                                                        animate={{ x: 0, opacity: 1 }}
-                                                        exit={{ x: -50, opacity: 0 }}
-                                                        transition={{ type: "spring", damping: 25, stiffness: 200 }}
-                                                        className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-4 pb-24"
-                                                    >
-                                                        {currentAudioRoom ? (
-                                                            <div className="flex flex-col items-center justify-center text-center py-10 h-full">
-                                                                <div className="relative mb-8">
-                                                                    <div className="w-24 h-24 bg-neon-cyan/10 border-2 border-neon-cyan/30 rounded-full flex items-center justify-center shadow-[0_0_60px_rgba(0,255,255,0.2)]">
-                                                                        <div className="absolute inset-0 bg-neon-cyan/20 rounded-full animate-ping opacity-20" />
-                                                                        <Mic className="w-10 h-10 text-neon-cyan" />
+                                                        <div className="flex flex-col items-center gap-2 -translate-y-4">
+                                                            <div className="w-16 h-16 rounded-2xl bg-yellow-400/10 border border-yellow-400/30 flex items-center justify-center relative shadow-[0_0_30px_rgba(250,204,21,0.2)]">
+                                                                <div className="absolute -top-4 left-1/2 -translate-x-1/2"><Crown className="w-7 h-7 text-yellow-500 animate-bounce" /></div>
+                                                                <span className="text-xs font-black text-yellow-500">🏆</span>
+                                                            </div>
+                                                            <div className="h-24 w-20 bg-gradient-to-t from-yellow-400/20 to-transparent border-x border-t border-yellow-400/20 rounded-t-2xl flex flex-col items-center justify-end p-2"><span className="text-[9px] font-black text-white truncate w-full text-center">ALEXFR</span></div>
+                                                        </div>
+                                                        <div className="flex flex-col items-center gap-2">
+                                                            <div className="w-12 h-12 rounded-2xl bg-orange-400/10 border border-orange-400/20 flex items-center justify-center relative">
+                                                                <div className="absolute -top-3 left-1/2 -translate-x-1/2"><Trophy className="w-5 h-5 text-orange-400" /></div>
+                                                                <span className="text-[10px] font-black text-white/50">#3</span>
+                                                            </div>
+                                                            <div className="h-12 w-16 bg-gradient-to-t from-orange-400/20 to-transparent border-x border-t border-white/5 rounded-t-xl flex flex-col items-center justify-end p-2"><span className="text-[8px] font-black text-white/60 truncate w-full text-center">TECHNO...</span></div>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-4">
+                                                        {[
+                                                            { rank: 1, name: "ALEXFR", drops: 2450, color: "text-yellow-400", bg: "bg-yellow-400/10" },
+                                                            { rank: 2, name: "DROPS_FAN", drops: 1820, color: "text-gray-300", bg: "bg-gray-300/10" },
+                                                            { rank: 3, name: "TECHNO_LOVER", drops: 1540, color: "text-orange-400", bg: "bg-orange-400/10" },
+                                                            { rank: 4, name: "NIGHT_OWL", drops: 980, color: "text-white/50", bg: "bg-white/5" },
+                                                            { rank: 5, name: "PARTY_GIRL", drops: 450, color: "text-white/50", bg: "bg-white/5" },
+                                                        ].map((user) => (
+                                                            <div key={user.rank} className={`flex items-center gap-4 p-4 rounded-2xl border border-white/5 ${user.bg} group hover:border-white/20 transition-all`}>
+                                                                <span className={`text-xl font-black ${user.color} italic w-8`}>#{user.rank}</span>
+                                                                <div className="flex-1">
+                                                                    <p className="text-sm font-black text-white uppercase italic tracking-tighter">{user.name}</p>
+                                                                    <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">{user.drops} Drops accumulés</p>
+                                                                </div>
+                                                                <Zap className={`w-5 h-5 ${user.color}`} />
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </motion.div>
+                                            ) : activeChatTab === 'shazam' ? (
+                                                <motion.div
+                                                    key="shazam-view"
+                                                    initial={{ x: 50, opacity: 0 }}
+                                                    animate={{ x: 0, opacity: 1 }}
+                                                    exit={{ x: -50, opacity: 0 }}
+                                                    drag="x"
+                                                    dragConstraints={{ left: 0, right: 0 }}
+                                                    dragElastic={0.2}
+                                                    onDragEnd={(_, info) => {
+                                                        if (info.offset.x > 100) handleSwipeTabs('right');
+                                                        else if (info.offset.x < -100) handleSwipeTabs('left');
+                                                    }}
+                                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                    className="flex-1 overflow-y-auto p-2 lg:p-6 custom-scrollbar space-y-4 lg:space-y-6 touch-pan-y"
+                                                >
+                                                    <div className="bg-gradient-to-br from-neon-cyan/20 via-black to-neon-purple/20 border border-white/10 p-4 lg:p-8 rounded-2xl lg:rounded-3xl relative overflow-hidden group">
+                                                        <div className="absolute inset-0 bg-aurora opacity-10 pointer-events-none" />
+                                                        <div className="relative flex flex-col items-center text-center">
+                                                            <div className={`w-12 h-12 lg:w-20 lg:h-20 rounded-full border-2 ${shazamLoading ? 'border-neon-cyan animate-spin shadow-[0_0_50px_#00ffff]' : 'border-neon-purple shadow-[0_0_30px_#bc13fe33]'} flex items-center justify-center mb-4 lg:mb-6`}>
+                                                                <Headphones className={`w-6 h-6 lg:w-10 lg:h-10 ${shazamLoading ? 'text-neon-cyan' : 'text-neon-purple'}`} />
+                                                            </div>
+                                                            <h4 className="text-2xl lg:text-4xl font-black text-white uppercase italic tracking-tighter mb-1 lg:mb-2">Shazam Live</h4>
+                                                            <p className="text-[8px] lg:text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mb-6 lg:mb-8">Identifie la musique en direct</p>
+
+                                                            <button
+                                                                onClick={handleShazam}
+                                                                disabled={shazamLoading}
+                                                                className={`w-full max-w-sm py-3 lg:py-5 rounded-xl lg:rounded-2xl text-[10px] lg:text-base font-black uppercase tracking-[0.3em] transition-all flex items-center justify-center gap-2 lg:gap-3 shadow-lg ${shazamLoading ? 'bg-gray-800 text-gray-400 cursor-not-allowed' : 'bg-neon-cyan text-black hover:scale-[1.02] shadow-neon-cyan/20'}`}
+                                                            >
+                                                                {shazamLoading ? (
+                                                                    <><Loader2 className="w-4 h-4 lg:w-5 lg:h-5 animate-spin" /> ÉCOUTE...</>
+                                                                ) : (
+                                                                    <><Headphones className="w-4 h-4 lg:w-5 lg:h-5" /> SHAZAM</>
+                                                                )}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {shazamResult ? (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, y: 20 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            className="p-6 bg-white/[0.04] border border-white/10 rounded-3xl flex flex-col items-center text-center gap-6"
+                                                        >
+                                                            <div className="w-32 h-32 rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
+                                                                <img src={shazamResult.image} alt="Cover" className="w-full h-full object-cover" />
+                                                            </div>
+                                                            <div>
+                                                                <h5 className="text-[10px] font-black text-neon-cyan uppercase tracking-widest mb-1">Dernière Musique Trouvée</h5>
+                                                                <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-1">{shazamResult.title}</h3>
+                                                                <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">{shazamResult.artist}</p>
+                                                            </div>
+
+                                                            <div className="flex gap-4 w-full">
+                                                                {shazamResult.spotify && (
+                                                                    <a
+                                                                        href={shazamResult.spotify}
+                                                                        target="_blank"
+                                                                        rel="noopener noreferrer"
+                                                                        className="flex-1 py-4 bg-[#1DB954] text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:scale-105 transition-all flex items-center justify-center gap-2"
+                                                                    >
+                                                                        <span className="text-lg">🎧</span> Spotify
+                                                                    </a>
+                                                                )}
+                                                                <button
+                                                                    onClick={() => {
+                                                                        setNewMessage(`🎶 Je viens de trouver "${shazamResult.title}" par ${shazamResult.artist} grâce au Shazam ! 🔥`);
+                                                                        setActiveChatTab('chat');
+                                                                    }}
+                                                                    className="flex-1 py-4 bg-white/5 border border-white/10 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all"
+                                                                >
+                                                                    Partager
+                                                                </button>
+                                                            </div>
+                                                        </motion.div>
+                                                    ) : (
+                                                        <div className="p-12 border border-dashed border-white/10 rounded-3xl flex flex-col items-center justify-center gap-4 text-gray-600 opacity-40">
+                                                            <Headphones className="w-12 h-12" />
+                                                            <p className="text-[10px] font-black uppercase tracking-widest">Aucune musique identifiée</p>
+                                                        </div>
+                                                    )}
+
+                                                    {shazamHistory.length > 0 && (
+                                                        <div className="space-y-4">
+                                                            <h5 className="text-[10px] font-black text-white uppercase tracking-[0.2em] flex items-center gap-2">
+                                                                <Clock className="w-3 h-3 text-neon-cyan" /> Historique Communautaire
+                                                            </h5>
+                                                            <div className="space-y-3">
+                                                                {shazamHistory.map((item, idx) => (
+                                                                    <motion.div
+                                                                        key={idx}
+                                                                        initial={{ opacity: 0, x: 20 }}
+                                                                        animate={{ opacity: 1, x: 0 }}
+                                                                        transition={{ delay: idx * 0.05 }}
+                                                                        className="p-3 bg-white/[0.03] border border-white/5 rounded-2xl flex items-center gap-3 group hover:bg-white/[0.06] hover:border-white/10 transition-all"
+                                                                    >
+                                                                        <img src={item.image} alt="Art" className="w-10 h-10 rounded-lg shadow-lg group-hover:scale-110 transition-transform" />
+                                                                        <div className="flex-1 min-w-0">
+                                                                            <div className="flex items-center justify-between mb-0.5">
+                                                                                <h6 className="text-[10px] font-black text-white truncate pr-2 uppercase italic">{item.title}</h6>
+                                                                                <span className="text-[7px] font-bold text-gray-500 uppercase whitespace-nowrap">{new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                                                                            </div>
+                                                                            <p className="text-[8px] font-bold text-gray-400 uppercase truncate">
+                                                                                {item.artist} <span className="opacity-40 ml-1">• par @{item.user}</span>
+                                                                            </p>
+                                                                            {item.playedBy && item.playedBy !== 'Inconnu' && (
+                                                                                <div className="flex items-center gap-1 mt-0.5">
+                                                                                    <span className="text-[7px] font-black text-neon-purple uppercase tracking-tight">SET: {item.playedBy}</span>
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                        <div className="flex gap-1">
+                                                                            {item.spotify && (
+                                                                                <a href={item.spotify} target="_blank" rel="noopener noreferrer" className="w-7 h-7 bg-[#1DB954]/10 hover:bg-[#1DB954] rounded-lg flex items-center justify-center transition-all group/icon">
+                                                                                    <Headphones className="w-3.5 h-3.5 text-[#1DB954] group-hover/icon:text-white" />
+                                                                                </a>
+                                                                            )}
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    setNewMessage(`🎶 J'adore ce morceau : "${item.title}" par ${item.artist} ! 🔥`);
+                                                                                    setActiveChatTab('chat');
+                                                                                }}
+                                                                                className="w-7 h-7 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center transition-all"
+                                                                            >
+                                                                                <Zap className="w-3.5 h-3.5 text-neon-cyan" />
+                                                                            </button>
+                                                                        </div>
+                                                                    </motion.div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl opacity-60">
+                                                        <h5 className="text-[9px] font-black text-white uppercase tracking-widest mb-4">Fonctionnement</h5>
+                                                        <ul className="space-y-3">
+                                                            <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-neon-cyan" /> Clique sur le bouton pour écouter le flux
+                                                            </li>
+                                                            <li className="flex items-center gap-3 text-[9px] font-bold text-gray-400 uppercase">
+                                                                <div className="w-1.5 h-1.5 rounded-full bg-neon-purple" /> Les résultats sont partagés avec la communauté
+                                                            </li>
+                                                        </ul>
+                                                    </div>
+                                                </motion.div>
+                                            ) : activeChatTab === 'audio' ? (
+                                                <motion.div
+                                                    key="audio-view"
+                                                    initial={{ x: 50, opacity: 0 }}
+                                                    animate={{ x: 0, opacity: 1 }}
+                                                    exit={{ x: -50, opacity: 0 }}
+                                                    transition={{ type: "spring", damping: 25, stiffness: 200 }}
+                                                    className="flex-1 overflow-y-auto p-4 lg:p-6 custom-scrollbar space-y-4 pb-24"
+                                                >
+                                                    {currentAudioRoom ? (
+                                                        <div className="flex flex-col items-center justify-center text-center py-10 h-full">
+                                                            <div className="relative mb-8">
+                                                                <div className="w-24 h-24 bg-neon-cyan/10 border-2 border-neon-cyan/30 rounded-full flex items-center justify-center shadow-[0_0_60px_rgba(0,255,255,0.2)]">
+                                                                    <div className="absolute inset-0 bg-neon-cyan/20 rounded-full animate-ping opacity-20" />
+                                                                    <Mic className="w-10 h-10 text-neon-cyan" />
+                                                                </div>
+                                                                <div className="absolute -bottom-2 -right-2 px-3 py-1 bg-neon-red text-white text-[8px] font-black uppercase rounded-lg border border-white/20 shadow-lg">
+                                                                    EN DIRECT
+                                                                </div>
+                                                            </div>
+
+                                                            <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-1 select-none">
+                                                                {currentAudioRoom.name}
+                                                            </h4>
+                                                            <p className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.3em] mb-8">
+                                                                Salon ID: {currentAudioRoom.id}
+                                                            </p>
+
+                                                            <div className="w-full max-w-xs space-y-4">
+                                                                <div className="p-5 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center overflow-hidden">
+                                                                            <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentAudioRoom.host}`} alt="Host" className="w-full h-full object-cover" />
+                                                                        </div>
+                                                                        <div className="text-left">
+                                                                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Hôte</p>
+                                                                            <p className="text-[10px] text-white font-black uppercase">{currentAudioRoom.host}</p>
+                                                                        </div>
                                                                     </div>
-                                                                    <div className="absolute -bottom-2 -right-2 px-3 py-1 bg-neon-red text-white text-[8px] font-black uppercase rounded-lg border border-white/20 shadow-lg">
-                                                                        EN DIRECT
+                                                                    <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                                                                        <Users className="w-3 h-3 text-neon-cyan" />
+                                                                        <span className="text-[9px] font-black text-white uppercase">{currentAudioRoom.members}</span>
                                                                     </div>
                                                                 </div>
 
-                                                                <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-1 select-none">
-                                                                    {currentAudioRoom.name}
-                                                                </h4>
-                                                                <p className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.3em] mb-8">
-                                                                    Salon ID: {currentAudioRoom.id}
-                                                                </p>
-
-                                                                <div className="w-full max-w-xs space-y-4">
-                                                                    <div className="p-5 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
-                                                                        <div className="flex items-center gap-3">
-                                                                            <div className="w-8 h-8 rounded-full bg-white/10 border border-white/10 flex items-center justify-center overflow-hidden">
-                                                                                <img src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${currentAudioRoom.host}`} alt="Host" className="w-full h-full object-cover" />
-                                                                            </div>
-                                                                            <div className="text-left">
-                                                                                <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Hôte</p>
-                                                                                <p className="text-[10px] text-white font-black uppercase">{currentAudioRoom.host}</p>
-                                                                            </div>
+                                                                <div className="grid grid-cols-2 gap-3">
+                                                                    <button className="flex flex-col items-center justify-center gap-3 p-5 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group">
+                                                                        <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                                            <Volume2 className="w-5 h-5 text-gray-400 group-hover:text-neon-cyan" />
                                                                         </div>
-                                                                        <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
-                                                                            <Users className="w-3 h-3 text-neon-cyan" />
-                                                                            <span className="text-[9px] font-black text-white uppercase">{currentAudioRoom.members}</span>
+                                                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-white">Volume</span>
+                                                                    </button>
+                                                                    <button className="flex flex-col items-center justify-center gap-3 p-5 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group">
+                                                                        <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                                                            <MicOff className="w-5 h-5 text-gray-400 group-hover:text-neon-red" />
                                                                         </div>
-                                                                    </div>
-
-                                                                    <div className="grid grid-cols-2 gap-3">
-                                                                        <button className="flex flex-col items-center justify-center gap-3 p-5 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group">
-                                                                            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                                                <Volume2 className="w-5 h-5 text-gray-400 group-hover:text-neon-cyan" />
-                                                                            </div>
-                                                                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-white">Volume</span>
-                                                                        </button>
-                                                                        <button className="flex flex-col items-center justify-center gap-3 p-5 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group">
-                                                                            <div className="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                                                                <MicOff className="w-5 h-5 text-gray-400 group-hover:text-neon-red" />
-                                                                            </div>
-                                                                            <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-white">Muet</span>
-                                                                        </button>
-                                                                    </div>
-
-                                                                    <button
-                                                                        onClick={() => setCurrentAudioRoom(null)}
-                                                                        className="w-full py-4 bg-neon-red/10 border border-neon-red/20 text-neon-red font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-lg shadow-neon-red/10 mt-4 h-14 flex items-center justify-center gap-3"
-                                                                    >
-                                                                        <LogOut className="w-4 h-4" /> QUITTER LE SALON
+                                                                        <span className="text-[8px] font-black text-gray-400 uppercase tracking-widest group-hover:text-white">Muet</span>
                                                                     </button>
                                                                 </div>
 
-                                                                <div className="mt-auto pt-8">
-                                                                    <p className="text-[8px] text-gray-600 font-bold uppercase tracking-[0.2em] animate-pulse">
-                                                                        Connexion audio sécurisée par Dropsiders V2
+                                                                <button
+                                                                    onClick={() => setCurrentAudioRoom(null)}
+                                                                    className="w-full py-4 bg-neon-red/10 border border-neon-red/20 text-neon-red font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-neon-red hover:text-white transition-all shadow-lg shadow-neon-red/10 mt-4 h-14 flex items-center justify-center gap-3"
+                                                                >
+                                                                    <LogOut className="w-4 h-4" /> QUITTER LE SALON
+                                                                </button>
+                                                            </div>
+
+                                                            <div className="mt-auto pt-8">
+                                                                <p className="text-[8px] text-gray-600 font-bold uppercase tracking-[0.2em] animate-pulse">
+                                                                    Connexion audio sécurisée par Dropsiders V2
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            {/* Audio Watch Party Content */}
+                                                            <div className="flex flex-col items-center justify-center text-center py-6">
+                                                                <div className="w-16 h-16 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(0,255,255,0.1)]">
+                                                                    <Mic className="w-8 h-8 text-neon-cyan animate-pulse" />
+                                                                </div>
+                                                                <h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Watch Party Audio</h4>
+                                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-10 max-w-[250px]">Crée un salon privé pour parler avec tes amis en direct</p>
+                                                                <div className="w-full space-y-4">
+                                                                    <button
+                                                                        onClick={async () => {
+                                                                            const roomName = prompt("Nom du salon :", `${pseudo.toUpperCase()}'S ROOM`);
+                                                                            if (!roomName) return;
+                                                                            try {
+                                                                                const res = await fetch('/api/audio/create', {
+                                                                                    method: 'POST',
+                                                                                    headers: { 'Content-Type': 'application/json' },
+                                                                                    body: JSON.stringify({ name: roomName, host: pseudo, channel: currentVideoId })
+                                                                                });
+                                                                                if (res.ok) {
+                                                                                    const data = await res.json();
+                                                                                    setCurrentAudioRoom(data);
+                                                                                } else alert("Erreur lors de la création du salon.");
+                                                                            } catch (e) { alert("Erreur serveur."); }
+                                                                        }}
+                                                                        className="w-full py-5 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-lg shadow-neon-cyan/20 group"
+                                                                    >
+                                                                        <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> CRÉER UN SALON
+                                                                    </button>
+                                                                    <div className="relative">
+                                                                        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+                                                                            <Hash className="w-4 h-4 text-gray-500" />
+                                                                        </div>
+                                                                        <input
+                                                                            type="text"
+                                                                            placeholder="CODE DU SALON..."
+                                                                            value={audioRoomCode}
+                                                                            onChange={(e) => setAudioRoomCode(e.target.value)}
+                                                                            className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-4 py-5 text-xs font-black text-white outline-none focus:border-neon-cyan transition-all uppercase placeholder:text-gray-700"
+                                                                        />
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => handleJoinAudioRoom(audioRoomCode)}
+                                                                        className="w-full py-4 bg-white/5 border border-white/10 text-white font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all active:scale-95"
+                                                                    >
+                                                                        REJOINDRE
+                                                                    </button>
+                                                                </div>
+                                                                <div className="mt-12 w-full text-left">
+                                                                    <h5 className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
+                                                                        <Users className="w-3.5 h-3.5" /> Salons Publics
+                                                                    </h5>
+                                                                    <div className="space-y-3">
+                                                                        {audioRooms.length > 0 ? (
+                                                                            audioRooms.map((room) => (
+                                                                                <div key={room.id} className="p-4 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-between group transition-all hover:bg-white/[0.15] cursor-pointer">
+                                                                                    <div className="flex items-center gap-3">
+                                                                                        <div className="w-8 h-8 rounded-lg bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
+                                                                                            <Headphones className="w-4 h-4 text-neon-cyan" />
+                                                                                        </div>
+                                                                                        <div>
+                                                                                            <h6 className="text-[10px] font-black text-white uppercase">{room.name}</h6>
+                                                                                            <p className="text-[8px] text-gray-500 font-bold uppercase">{room.host.toUpperCase()} • {room.members} VIEWERS</p>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                    <button
+                                                                                        onClick={(e) => { e.stopPropagation(); handleJoinAudioRoom(room.id); }}
+                                                                                        className="text-[8px] font-black text-neon-cyan uppercase tracking-widest bg-neon-cyan/10 px-3 py-1.5 rounded-lg border border-neon-cyan/20 group-hover:bg-neon-cyan group-hover:text-black transition-all"
+                                                                                    >
+                                                                                        REJOINDRE
+                                                                                    </button>
+                                                                                </div>
+                                                                            ))
+                                                                        ) : (
+                                                                            <div className="p-8 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-600">
+                                                                                <MicOff className="w-6 h-6 opacity-30" />
+                                                                                <span className="text-[8px] font-black uppercase tracking-widest">Aucun salon actif</span>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </motion.div>
+                                            ) : (
+                                                <motion.div
+                                                    key="chat-view"
+                                                    initial={{ x: 100, opacity: 0 }}
+                                                    animate={{ x: 0, opacity: 1 }}
+                                                    exit={{ x: -100, opacity: 0 }}
+                                                    drag="x"
+                                                    dragConstraints={{ left: 0, right: 0 }}
+                                                    dragElastic={0.1}
+                                                    onDragEnd={(_, info) => {
+                                                        if (info.offset.x > 100) handleSwipeTabs('right');
+                                                        else if (info.offset.x < -100) handleSwipeTabs('left');
+                                                    }}
+                                                    transition={{ type: "spring", damping: 30, stiffness: 200 }}
+                                                    id="default-chat-view"
+                                                    className="flex-1 flex flex-col min-h-0 relative touch-pan-y"
+                                                >
+                                                    {!isJoined ? (
+                                                        <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative overflow-hidden">
+                                                            {/* Background Decor */}
+                                                            <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-neon-red to-transparent opacity-50" />
+                                                            <div className="absolute -top-24 -right-24 w-64 h-64 bg-neon-red/10 rounded-full blur-[100px]" />
+                                                            <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-neon-cyan/10 rounded-full blur-[100px]" />
+
+                                                            <div className="relative z-10 w-full max-w-sm flex flex-col items-center text-center space-y-8">
+                                                                <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-neon-red to-neon-purple p-[1px] shadow-[0_0_40px_rgba(255,18,65,0.3)] animate-float">
+                                                                    <div className="w-full h-full rounded-[2rem] bg-[#0a0a0a] flex items-center justify-center">
+                                                                        <Users className="w-10 h-10 text-white" />
+                                                                    </div>
+                                                                </div>
+
+                                                                <div className="space-y-3">
+                                                                    <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                                                        Rejoins le <span className="text-neon-red">Direct</span>
+                                                                    </h3>
+                                                                    <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] leading-relaxed">
+                                                                        Connecte-toi pour voir les messages<br />et participer à l'expérience !
                                                                     </p>
                                                                 </div>
-                                                            </div>
-                                                        ) : (
-                                                            <>
-                                                                {/* Audio Watch Party Content */}
-                                                                <div className="flex flex-col items-center justify-center text-center py-6">
-                                                                    <div className="w-16 h-16 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full flex items-center justify-center mb-6 shadow-[0_0_40px_rgba(0,255,255,0.1)]">
-                                                                        <Mic className="w-8 h-8 text-neon-cyan animate-pulse" />
-                                                                    </div>
-                                                                    <h4 className="text-xl font-black text-white uppercase italic tracking-tighter mb-2">Watch Party Audio</h4>
-                                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-10 max-w-[250px]">Crée un salon privé pour parler avec tes amis en direct</p>
-                                                                    <div className="w-full space-y-4">
-                                                                        <button
-                                                                            onClick={async () => {
-                                                                                const roomName = prompt("Nom du salon :", `${pseudo.toUpperCase()}'S ROOM`);
-                                                                                if (!roomName) return;
-                                                                                try {
-                                                                                    const res = await fetch('/api/audio/create', {
-                                                                                        method: 'POST',
-                                                                                        headers: { 'Content-Type': 'application/json' },
-                                                                                        body: JSON.stringify({ name: roomName, host: pseudo, channel: currentVideoId })
-                                                                                    });
-                                                                                    if (res.ok) {
-                                                                                        const data = await res.json();
-                                                                                        setCurrentAudioRoom(data);
-                                                                                    } else alert("Erreur lors de la création du salon.");
-                                                                                } catch (e) { alert("Erreur serveur."); }
-                                                                            }}
-                                                                            className="w-full py-5 bg-neon-cyan text-black font-black uppercase tracking-[0.3em] rounded-2xl hover:scale-[1.02] transition-all flex items-center justify-center gap-3 shadow-lg shadow-neon-cyan/20 group"
-                                                                        >
-                                                                            <Plus className="w-5 h-5 group-hover:rotate-90 transition-transform" /> CRÉER UN SALON
-                                                                        </button>
-                                                                        <div className="relative">
-                                                                            <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-                                                                                <Hash className="w-4 h-4 text-gray-500" />
-                                                                            </div>
-                                                                            <input
-                                                                                type="text"
-                                                                                placeholder="CODE DU SALON..."
-                                                                                value={audioRoomCode}
-                                                                                onChange={(e) => setAudioRoomCode(e.target.value)}
-                                                                                className="w-full bg-black/40 border border-white/10 rounded-2xl pl-12 pr-4 py-5 text-xs font-black text-white outline-none focus:border-neon-cyan transition-all uppercase placeholder:text-gray-700"
-                                                                            />
-                                                                        </div>
-                                                                        <button
-                                                                            onClick={() => handleJoinAudioRoom(audioRoomCode)}
-                                                                            className="w-full py-4 bg-white/5 border border-white/10 text-white font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-white/10 transition-all active:scale-95"
-                                                                        >
-                                                                            REJOINDRE
-                                                                        </button>
-                                                                    </div>
-                                                                    <div className="mt-12 w-full text-left">
-                                                                        <h5 className="text-[9px] font-black text-gray-500 uppercase tracking-widest mb-4 flex items-center gap-2">
-                                                                            <Users className="w-3.5 h-3.5" /> Salons Publics
-                                                                        </h5>
+
+                                                                <div className="w-full p-6 bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-xl">
+                                                                    <form onSubmit={handleJoin} className="space-y-4">
                                                                         <div className="space-y-3">
-                                                                            {audioRooms.length > 0 ? (
-                                                                                audioRooms.map((room) => (
-                                                                                    <div key={room.id} className="p-4 bg-white/10 border border-white/20 rounded-2xl flex items-center justify-between group transition-all hover:bg-white/[0.15] cursor-pointer">
-                                                                                        <div className="flex items-center gap-3">
-                                                                                            <div className="w-8 h-8 rounded-lg bg-neon-cyan/20 border border-neon-cyan/30 flex items-center justify-center">
-                                                                                                <Headphones className="w-4 h-4 text-neon-cyan" />
-                                                                                            </div>
-                                                                                            <div>
-                                                                                                <h6 className="text-[10px] font-black text-white uppercase">{room.name}</h6>
-                                                                                                <p className="text-[8px] text-gray-500 font-bold uppercase">{room.host.toUpperCase()} • {room.members} VIEWERS</p>
-                                                                                            </div>
-                                                                                        </div>
-                                                                                        <button
-                                                                                            onClick={(e) => { e.stopPropagation(); handleJoinAudioRoom(room.id); }}
-                                                                                            className="text-[8px] font-black text-neon-cyan uppercase tracking-widest bg-neon-cyan/10 px-3 py-1.5 rounded-lg border border-neon-cyan/20 group-hover:bg-neon-cyan group-hover:text-black transition-all"
-                                                                                        >
-                                                                                            REJOINDRE
-                                                                                        </button>
-                                                                                    </div>
-                                                                                ))
-                                                                            ) : (
-                                                                                <div className="p-8 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-600">
-                                                                                    <MicOff className="w-6 h-6 opacity-30" />
-                                                                                    <span className="text-[8px] font-black uppercase tracking-widest">Aucun salon actif</span>
+                                                                            <div className="relative group">
+                                                                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                                                                    <User className="w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
                                                                                 </div>
-                                                                            )}
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </motion.div>
-                                                ) : (
-                                                    <motion.div
-                                                        key="chat-view"
-                                                        initial={{ x: 100, opacity: 0 }}
-                                                        animate={{ x: 0, opacity: 1 }}
-                                                        exit={{ x: -100, opacity: 0 }}
-                                                        drag="x"
-                                                        dragConstraints={{ left: 0, right: 0 }}
-                                                        dragElastic={0.1}
-                                                        onDragEnd={(_, info) => {
-                                                            if (info.offset.x > 100) handleSwipeTabs('right');
-                                                            else if (info.offset.x < -100) handleSwipeTabs('left');
-                                                        }}
-                                                        transition={{ type: "spring", damping: 30, stiffness: 200 }}
-                                                        id="default-chat-view"
-                                                        className="flex-1 flex flex-col min-h-0 relative touch-pan-y"
-                                                    >
-                                                        {!isJoined ? (
-                                                            <div className="flex-1 flex flex-col items-center justify-center p-8 bg-[#0a0a0a] relative overflow-hidden">
-                                                                {/* Background Decor */}
-                                                                <div className="absolute top-0 left-0 w-full h-[1px] bg-gradient-to-r from-transparent via-neon-red to-transparent opacity-50" />
-                                                                <div className="absolute -top-24 -right-24 w-64 h-64 bg-neon-red/10 rounded-full blur-[100px]" />
-                                                                <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-neon-cyan/10 rounded-full blur-[100px]" />
-
-                                                                <div className="relative z-10 w-full max-w-sm flex flex-col items-center text-center space-y-8">
-                                                                    <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-neon-red to-neon-purple p-[1px] shadow-[0_0_40px_rgba(255,18,65,0.3)] animate-float">
-                                                                        <div className="w-full h-full rounded-[2rem] bg-[#0a0a0a] flex items-center justify-center">
-                                                                            <Users className="w-10 h-10 text-white" />
-                                                                        </div>
-                                                                    </div>
-
-                                                                    <div className="space-y-3">
-                                                                        <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                                                            Rejoins le <span className="text-neon-red">Direct</span>
-                                                                        </h3>
-                                                                        <p className="text-gray-400 text-xs font-bold uppercase tracking-[0.2em] leading-relaxed">
-                                                                            Connecte-toi pour voir les messages<br />et participer à l'expérience !
-                                                                        </p>
-                                                                    </div>
-
-                                                                    <div className="w-full p-6 bg-white/[0.03] border border-white/10 rounded-3xl backdrop-blur-xl">
-                                                                        <form onSubmit={handleJoin} className="space-y-4">
-                                                                            <div className="space-y-3">
-                                                                                <div className="relative group">
-                                                                                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                                                                                        <User className="w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
-                                                                                    </div>
-                                                                                    <input
-                                                                                        type="text"
-                                                                                        placeholder="TON PSEUDO"
-                                                                                        required
-                                                                                        value={pseudo}
-                                                                                        onChange={(e) => setPseudo(e.target.value)}
-                                                                                        className="w-full bg-black/60 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
-                                                                                    />
-                                                                                </div>
-
-                                                                                <div className="relative group">
-                                                                                    <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-                                                                                        <Mail className="w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
-                                                                                    </div>
-                                                                                    <input
-                                                                                        type="email"
-                                                                                        placeholder="TON EMAIL"
-                                                                                        required
-                                                                                        value={email}
-                                                                                        onChange={(e) => setEmail(e.target.value)}
-                                                                                        className="w-full bg-black/60 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
-                                                                                    />
-                                                                                </div>
-
-                                                                                <div className="flex items-center gap-3 px-4 py-3 bg-white/[0.02] border border-white/5 rounded-2xl">
-                                                                                    <input
-                                                                                        type="checkbox"
-                                                                                        id="newsletter"
-                                                                                        checked={newsletter}
-                                                                                        onChange={(e) => setNewsletter(e.target.checked)}
-                                                                                        className="w-5 h-5 accent-neon-red cursor-pointer"
-                                                                                    />
-                                                                                    <label htmlFor="newsletter" className="text-[10px] font-black text-gray-400 uppercase tracking-widest cursor-pointer select-none">
-                                                                                        Recevoir la Newsletter & les actus (LINE UP...)
-                                                                                    </label>
-                                                                                </div>
-
-                                                                                <div className="grid grid-cols-2 gap-3">
-                                                                                    <select
-                                                                                        required
-                                                                                        value={country}
-                                                                                        onChange={(e) => setCountry(e.target.value)}
-                                                                                        autoComplete="off"
-                                                                                        className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[11px] font-black text-white outline-none focus:border-neon-red transition-all appearance-none cursor-pointer"
-                                                                                    >
-                                                                                        <option value="" disabled>PAYS</option>
-                                                                                        <option value="FR">🇫🇷 FR</option>
-                                                                                        <option value="BE">🇧🇪 BE</option>
-                                                                                        <option value="CH">🇨🇭 CH</option>
-                                                                                        <option value="OTHER">🌍 AUTRE</option>
-                                                                                    </select>
-                                                                                    <input
-                                                                                        type="text"
-                                                                                        placeholder={`${captchaA} + ${captchaB} = ?`}
-                                                                                        required
-                                                                                        value={captchaAnswer}
-                                                                                        onChange={(e) => setCaptchaAnswer(e.target.value)}
-                                                                                        className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all placeholder:text-gray-600"
-                                                                                    />
-                                                                                </div>
-                                                                            </div>
-
-                                                                            <button
-                                                                                type="submit"
-                                                                                className="w-full bg-neon-red text-white py-4 rounded-2xl font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-red/20 group"
-                                                                            >
-                                                                                REJOINDRE LE LIVE
-                                                                                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
-                                                                            </button>
-
-                                                                            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">
-                                                                                En rejoignant le live, tu acceptes nos CGU
-                                                                            </p>
-                                                                        </form>
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        ) : (
-                                                            <>
-                                                                {/* Pinned Message */}
-                                                                {settings.pinnedMessage && (
-                                                                    <motion.div
-                                                                        initial={{ opacity: 0, y: -10 }}
-                                                                        animate={{ opacity: 1, y: 0 }}
-                                                                        className="mx-3 lg:mx-5 mt-3 p-3 bg-neon-red/10 border border-neon-red/20 rounded-xl flex items-start gap-3 relative overflow-hidden group/pinned"
-                                                                    >
-                                                                        <div className="absolute inset-0 bg-gradient-to-r from-neon-red/5 to-transparent pointer-events-none" />
-                                                                        <Pin className="w-3.5 h-3.5 text-neon-red shrink-0 mt-1 animate-pulse" />
-                                                                        <div className="flex-1 min-w-0">
-                                                                            <p className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-0.5">MESSAGE ÉPINGLÉ</p>
-                                                                            <p className="text-[10px] md:text-[11px] font-bold text-white leading-tight break-words uppercase">
-                                                                                {settings.pinnedMessage}
-                                                                            </p>
-                                                                        </div>
-                                                                        {hasModPowers && (
-                                                                            <button
-                                                                                onClick={() => handleUpdateSettings({ pinnedMessage: '' })}
-                                                                                className="p-1 hover:bg-neon-red/20 rounded-lg text-gray-500 hover:text-neon-red transition-all opacity-0 group-hover/pinned:opacity-100"
-                                                                            >
-                                                                                <X className="w-3 h-3" />
-                                                                            </button>
-                                                                        )}
-                                                                    </motion.div>
-                                                                )}
-
-                                                                {/* Chat Messages */}
-                                                                <div id="chat-messages" className="flex-1 overflow-visible lg:overflow-y-auto p-1.5 md:p-3 lg:p-5 space-y-0.5 md:space-y-1.5 scroll-smooth lg:custom-scrollbar pointer-events-auto">
-                                                                    {messages
-                                                                        .filter(m => chatCountryFilter === 'ALL' || m.country === chatCountryFilter || (chatCountryFilter === 'OTHER' && !['FR', 'BE', 'CH', 'CA'].includes(m.country)))
-                                                                        .map((msg, idx) => {
-                                                                            const role = getRole(msg.pseudo);
-                                                                            const isMsgAdmin = role === "admin";
-                                                                            const isMsgModo = role === "modo";
-                                                                            const isBot = msg.isBot || msg.pseudo === "DROPSIDERS BOT";
-
-                                                                            return (
-                                                                                <motion.div
-                                                                                    key={msg.id || idx}
-                                                                                    initial={{ opacity: 0, x: 10 }}
-                                                                                    animate={{ opacity: 1, x: 0 }}
-                                                                                    className="group relative min-w-0 overflow-hidden px-1 py-[1px]"
-                                                                                >
-                                                                                    <div className="flex items-start gap-1.5 md:gap-2 leading-tight">
-                                                                                        <div className="w-3 md:w-4 flex items-center justify-center opacity-80 shrink-0 mt-0.5 md:mt-1">
-                                                                                            {getCountryFlag(msg.country || "FR")}
-                                                                                        </div>
-                                                                                        <div className="flex-1 min-w-0 break-words">
-                                                                                            <span
-                                                                                                className="text-[10px] md:text-[11px] lg:text-[12px] font-black uppercase tracking-widest mr-1.5"
-                                                                                                style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? "#eab308" : (msg.color || "#9ca3af") }}
-                                                                                            >
-                                                                                                {msg.pseudo}{isMsgAdmin && <span className="ml-1 px-1 rounded text-white text-[7px] font-black uppercase align-middle" style={{ backgroundColor: (localSettings.adminColor || adminColor) }}>ADM</span>}:
-                                                                                            </span>
-                                                                                            <span
-                                                                                                className={`text-[10px] md:text-[11px] lg:text-[11px] font-medium relative leading-[1.2] ${isBot ? "" : isMsgAdmin ? "" : "text-gray-200"}`}
-                                                                                                style={isBot ? { color: botColor } : isMsgAdmin ? { color: "#ffffff" } : {}}
-                                                                                            >
-                                                                                                {(() => {
-                                                                                                    const text = msg.message;
-                                                                                                    if (!text) return null;
-                                                                                                    const urlRegex = /(https?:\/\/[^\s]+)/g;
-                                                                                                    const parts = text.split(urlRegex);
-                                                                                                    return parts.map((part: string, i: number) => {
-                                                                                                        if (part.match(urlRegex)) {
-                                                                                                            if (part.includes("#clip-")) {
-                                                                                                                const cId = part.split("#clip-")[1];
-                                                                                                                const targetClip = clips.find(c => c.id === cId);
-                                                                                                                return (
-                                                                                                                    <button
-                                                                                                                        key={i}
-                                                                                                                        onClick={(e) => {
-                                                                                                                            e.preventDefault();
-                                                                                                                            e.stopPropagation();
-                                                                                                                            if (targetClip) {
-                                                                                                                                setActiveClipToPlay(targetClip);
-                                                                                                                                setShowClipPlayer(true);
-                                                                                                                                setIsMutedGlobal(true);
-                                                                                                                            }
-                                                                                                                        }}
-                                                                                                                        className="text-neon-cyan hover:text-white bg-neon-cyan/10 hover:bg-neon-cyan/30 px-1 py-0 rounded-sm border border-neon-cyan/20 font-black transition-all inline-flex items-center gap-1 text-[6px] mx-0.5"
-                                                                                                                    >
-                                                                                                                        <Video className="w-2 h-2" /> CLIP
-                                                                                                                    </button>
-                                                                                                                );
-                                                                                                            }
-                                                                                                            return (
-                                                                                                                <a
-                                                                                                                    key={i}
-                                                                                                                    href={part}
-                                                                                                                    target="_blank"
-                                                                                                                    rel="noopener noreferrer"
-                                                                                                                    className="text-cyan-400 hover:text-cyan-300 underline font-bold mx-0.5"
-                                                                                                                    onClick={(e) => e.stopPropagation()}
-                                                                                                                >
-                                                                                                                    {part.length > 20 ? part.substring(0, 20) + "..." : part}
-                                                                                                                </a>
-                                                                                                            );
-                                                                                                        }
-                                                                                                        return part;
-                                                                                                    });
-                                                                                                })()}
-                                                                                            </span>
-                                                                                            <span className="text-[5px] text-gray-700 font-bold uppercase ml-2 opacity-40">{msg.time}</span>
-                                                                                        </div>
-                                                                                    </div>
-                                                                                    {hasModPowers && (isAdmin || !isMsgAdmin) && (
-                                                                                        <div className="absolute top-0 right-0 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-all z-20 bg-[#0a0a0a]/80 backdrop-blur-sm rounded-bl-lg overflow-hidden border-l border-b border-white/10">
-                                                                                            <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1 hover:bg-white/10 text-gray-500 hover:text-white transition-all"><Pin className="w-2.5 h-2.5" /></button>
-                                                                                            <button onClick={() => handleDelete(msg.id)} className="p-1 hover:bg-neon-red/20 text-gray-500 hover:text-neon-red transition-all"><Trash2 className="w-2.5 h-2.5" /></button>
-                                                                                        </div>
-                                                                                    )}
-                                                                                </motion.div>
-                                                                            );
-                                                                        })}
-                                                                </div>
-
-                                                                {/* Chat Input Area */}
-                                                                <div className="p-1.5 md:p-3 lg:p-4 bg-[#0a0a0a]/80 backdrop-blur-2xl border-t border-white/10 relative lg:sticky bottom-0 z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)] pb-safe">
-
-                                                                    <form onSubmit={handleSendMessage} className="relative group/input px-0.5 md:px-2 py-0">
-                                                                        <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-xl lg:rounded-2xl transition-all" />
-                                                                        <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl lg:rounded-2xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
-                                                                            <div className="flex items-center px-1 md:px-2 py-0.5 lg:py-1">
-                                                                                <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-1 md:p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-4 h-4 md:w-5 md:h-5" /></button>
-                                                                                <div className="w-[1px] h-3 md:h-4 bg-white/10 mx-0.5 md:mx-1" />
-
                                                                                 <input
                                                                                     type="text"
-                                                                                    value={newMessage}
-                                                                                    onChange={(e) => setNewMessage(e.target.value)}
-                                                                                    placeholder={isSlowMode && !hasModPowers ? "⏳ Lent..." : "Écrire..."}
-                                                                                    className="flex-1 bg-transparent px-1.5 md:px-3 py-2 text-[11px] md:text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
+                                                                                    placeholder="TON PSEUDO"
+                                                                                    required
+                                                                                    value={pseudo}
+                                                                                    onChange={(e) => setPseudo(e.target.value)}
+                                                                                    className="w-full bg-black/60 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
                                                                                 />
+                                                                            </div>
 
-                                                                                <button type="button" onClick={handleShazam} className={`p-1 md:p-1.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
-                                                                                    <Headphones className="w-4 h-4 md:w-5 md:h-5" />
-                                                                                </button>
+                                                                            <div className="relative group">
+                                                                                <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+                                                                                    <Mail className="w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
+                                                                                </div>
+                                                                                <input
+                                                                                    type="email"
+                                                                                    placeholder="TON EMAIL"
+                                                                                    required
+                                                                                    value={email}
+                                                                                    onChange={(e) => setEmail(e.target.value)}
+                                                                                    className="w-full bg-black/60 border border-white/10 rounded-2xl pl-12 pr-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all uppercase placeholder:text-gray-600"
+                                                                                />
+                                                                            </div>
 
-                                                                                <button
-                                                                                    type="button"
-                                                                                    onClick={isPushEnabled ? unsubscribeFromPush : subscribeToPushNotifications}
-                                                                                    title={isPushEnabled ? "Désactiver les notifications" : "Activer les notifications natives (Favoris)"}
-                                                                                    className={`p-1 md:p-1.5 transition-all flex items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
+                                                                            <div className="flex items-center gap-3 px-4 py-3 bg-white/[0.02] border border-white/5 rounded-2xl">
+                                                                                <input
+                                                                                    type="checkbox"
+                                                                                    id="newsletter"
+                                                                                    checked={newsletter}
+                                                                                    onChange={(e) => setNewsletter(e.target.checked)}
+                                                                                    className="w-5 h-5 accent-neon-red cursor-pointer"
+                                                                                />
+                                                                                <label htmlFor="newsletter" className="text-[10px] font-black text-gray-400 uppercase tracking-widest cursor-pointer select-none">
+                                                                                    Recevoir la Newsletter & les actus (LINE UP...)
+                                                                                </label>
+                                                                            </div>
+
+                                                                            <div className="grid grid-cols-2 gap-3">
+                                                                                <select
+                                                                                    required
+                                                                                    value={country}
+                                                                                    onChange={(e) => setCountry(e.target.value)}
+                                                                                    autoComplete="off"
+                                                                                    className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[11px] font-black text-white outline-none focus:border-neon-red transition-all appearance-none cursor-pointer"
                                                                                 >
-                                                                                    <Bell className={`w-4 h-4 md:w-5 md:h-5 ${isPushEnabled ? 'animate-bounce' : ''}`} />
-                                                                                </button>
-
-                                                                                <div className="w-[1px] h-3 md:h-4 bg-white/10 mx-0.5 md:mx-1" />
-
-                                                                                <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-1.5 md:p-2 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-lg md:rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
-                                                                                    <Send className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isSending ? 'animate-pulse' : ''}`} />
-                                                                                </button>
+                                                                                    <option value="" disabled>PAYS</option>
+                                                                                    <option value="FR">🇫🇷 FR</option>
+                                                                                    <option value="BE">🇧🇪 BE</option>
+                                                                                    <option value="CH">🇨🇭 CH</option>
+                                                                                    <option value="OTHER">🌍 AUTRE</option>
+                                                                                </select>
+                                                                                <input
+                                                                                    type="text"
+                                                                                    placeholder={`${captchaA} + ${captchaB} = ?`}
+                                                                                    required
+                                                                                    value={captchaAnswer}
+                                                                                    onChange={(e) => setCaptchaAnswer(e.target.value)}
+                                                                                    className="bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-[13px] font-black text-white outline-none focus:border-neon-red transition-all placeholder:text-gray-600"
+                                                                                />
                                                                             </div>
                                                                         </div>
-                                                                        {showEmojiPicker && (
-                                                                            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute bottom-full left-0 right-0 mb-4 p-4 bg-[#0a0a0a] border border-white/10 rounded-3xl grid grid-cols-6 lg:grid-cols-8 gap-2 shadow-2xl h-52 overflow-y-auto z-[60] custom-scrollbar">
-                                                                                {['🔥', '🙌', '🚀', '❤️', '🤩', '💿', '💫', '💥', '✨', '⚡️', '🎹', '🎧', '🕺', '💃', '🎆', '🔊', '🎉', '💯', '🎶', '🎵', '😎', '🤪', '🤯', '🥳'].map(e => (
-                                                                                    <button key={e} type="button" onClick={() => { setNewMessage(p => p + e); setShowEmojiPicker(false); }} className="text-xl md:text-2xl hover:bg-white/10 p-2 md:p-2.5 rounded-xl transition-transform active:scale-90">{e}</button>
-                                                                                ))}
-                                                                            </motion.div>
-                                                                        )}
+
+                                                                        <button
+                                                                            type="submit"
+                                                                            className="w-full bg-neon-red text-white py-4 rounded-2xl font-black uppercase tracking-[0.3em] flex items-center justify-center gap-3 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-neon-red/20 group"
+                                                                        >
+                                                                            REJOINDRE LE LIVE
+                                                                            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                                                                        </button>
+
+                                                                        <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">
+                                                                            En rejoignant le live, tu acceptes nos CGU
+                                                                        </p>
                                                                     </form>
                                                                 </div>
-                                                            </>
-                                                        )}
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <>
+                                                            {/* Pinned Message */}
+                                                            {settings.pinnedMessage && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, y: -10 }}
+                                                                    animate={{ opacity: 1, y: 0 }}
+                                                                    className="mx-3 lg:mx-5 mt-3 p-3 bg-neon-red/10 border border-neon-red/20 rounded-xl flex items-start gap-3 relative overflow-hidden group/pinned"
+                                                                >
+                                                                    <div className="absolute inset-0 bg-gradient-to-r from-neon-red/5 to-transparent pointer-events-none" />
+                                                                    <Pin className="w-3.5 h-3.5 text-neon-red shrink-0 mt-1 animate-pulse" />
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <p className="text-[10px] font-black text-neon-red uppercase tracking-widest mb-0.5">MESSAGE ÉPINGLÉ</p>
+                                                                        <p className="text-[10px] md:text-[11px] font-bold text-white leading-tight break-words uppercase">
+                                                                            {settings.pinnedMessage}
+                                                                        </p>
+                                                                    </div>
+                                                                    {hasModPowers && (
+                                                                        <button
+                                                                            onClick={() => handleUpdateSettings({ pinnedMessage: '' })}
+                                                                            className="p-1 hover:bg-neon-red/20 rounded-lg text-gray-500 hover:text-neon-red transition-all opacity-0 group-hover/pinned:opacity-100"
+                                                                        >
+                                                                            <X className="w-3 h-3" />
+                                                                        </button>
+                                                                    )}
+                                                                </motion.div>
+                                                            )}
 
-                                        </div>
-                                    </div>
-                                )}
-                                {!isFocusMode && (
-                                    <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
-                                        <button
-                                            onClick={() => setShowUsersPanel(!showUsersPanel)}
-                                            className="absolute right-0 w-8 h-16 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-xl flex items-center justify-center transition-all group z-[100]"
-                                        >
-                                            <div className={`w-2 h-2 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
-                                        </button>
-                                    </div>
-                                )}
+                                                            {/* Chat Messages */}
+                                                            <div id="chat-messages" className="flex-1 overflow-visible lg:overflow-y-auto p-1.5 md:p-3 lg:p-5 space-y-0.5 md:space-y-1.5 scroll-smooth lg:custom-scrollbar pointer-events-auto">
+                                                                {messages
+                                                                    .filter(m => chatCountryFilter === 'ALL' || m.country === chatCountryFilter || (chatCountryFilter === 'OTHER' && !['FR', 'BE', 'CH', 'CA'].includes(m.country)))
+                                                                    .map((msg, idx) => {
+                                                                        const role = getRole(msg.pseudo);
+                                                                        const isMsgAdmin = role === "admin";
+                                                                        const isMsgModo = role === "modo";
+                                                                        const isBot = msg.isBot || msg.pseudo === "DROPSIDERS BOT";
 
-                                <AnimatePresence>
-                                    {!isFocusMode && showUsersPanel && (
-                                        <motion.div
-                                            initial={{ width: 0, opacity: 0 }}
-                                            animate={{ width: 200, opacity: 1 }}
-                                            exit={{ width: 0, opacity: 0 }}
-                                            className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
-                                        >
-                                            <div className="w-[200px] flex flex-col h-full">
-                                                <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
-                                                    <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
-                                                        <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
-                                                    </h2>
-                                                    <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
-                                                </div>
-                                                <div className="flex-1 overflow-y-auto">
-                                                    <div className="p-3 space-y-2">
-                                                        {allActiveUsers.map(u => {
-                                                            const role = getRole(u.pseudo);
-                                                            const isUserAdmin = role === 'admin';
-                                                            const isUserModo = role === 'modo';
-                                                            const isExpanded = expandedUserId === u.pseudo;
+                                                                        return (
+                                                                            <motion.div
+                                                                                key={msg.id || idx}
+                                                                                initial={{ opacity: 0, x: 10 }}
+                                                                                animate={{ opacity: 1, x: 0 }}
+                                                                                className="group relative min-w-0 overflow-hidden px-1 py-[1px]"
+                                                                            >
+                                                                                <div className="flex items-start gap-1.5 md:gap-2 leading-tight">
+                                                                                    <div className="w-3 md:w-4 flex items-center justify-center opacity-80 shrink-0 mt-0.5 md:mt-1">
+                                                                                        {getCountryFlag(msg.country || "FR")}
+                                                                                    </div>
+                                                                                    <div className="flex-1 min-w-0 break-words">
+                                                                                        <span
+                                                                                            className="text-[10px] md:text-[11px] lg:text-[12px] font-black uppercase tracking-widest mr-1.5"
+                                                                                            style={{ color: isBot ? botColor : isMsgAdmin ? (localSettings.adminColor || adminColor) : isMsgModo ? "#eab308" : (msg.color || "#9ca3af") }}
+                                                                                        >
+                                                                                            {msg.pseudo}{isMsgAdmin && <span className="ml-1 px-1 rounded text-white text-[7px] font-black uppercase align-middle" style={{ backgroundColor: (localSettings.adminColor || adminColor) }}>ADM</span>}:
+                                                                                        </span>
+                                                                                        <span
+                                                                                            className={`text-[10px] md:text-[11px] lg:text-[11px] font-medium relative leading-[1.2] ${isBot ? "" : isMsgAdmin ? "" : "text-gray-200"}`}
+                                                                                            style={isBot ? { color: botColor } : isMsgAdmin ? { color: "#ffffff" } : {}}
+                                                                                        >
+                                                                                            {(() => {
+                                                                                                const text = msg.message;
+                                                                                                if (!text) return null;
+                                                                                                const urlRegex = /(https?:\/\/[^\s]+)/g;
+                                                                                                const parts = text.split(urlRegex);
+                                                                                                return parts.map((part: string, i: number) => {
+                                                                                                    if (part.match(urlRegex)) {
+                                                                                                        if (part.includes("#clip-")) {
+                                                                                                            const cId = part.split("#clip-")[1];
+                                                                                                            const targetClip = clips.find(c => c.id === cId);
+                                                                                                            return (
+                                                                                                                <button
+                                                                                                                    key={i}
+                                                                                                                    onClick={(e) => {
+                                                                                                                        e.preventDefault();
+                                                                                                                        e.stopPropagation();
+                                                                                                                        if (targetClip) {
+                                                                                                                            setActiveClipToPlay(targetClip);
+                                                                                                                            setShowClipPlayer(true);
+                                                                                                                            setIsMutedGlobal(true);
+                                                                                                                        }
+                                                                                                                    }}
+                                                                                                                    className="text-neon-cyan hover:text-white bg-neon-cyan/10 hover:bg-neon-cyan/30 px-1 py-0 rounded-sm border border-neon-cyan/20 font-black transition-all inline-flex items-center gap-1 text-[6px] mx-0.5"
+                                                                                                                >
+                                                                                                                    <Video className="w-2 h-2" /> CLIP
+                                                                                                                </button>
+                                                                                                            );
+                                                                                                        }
+                                                                                                        return (
+                                                                                                            <a
+                                                                                                                key={i}
+                                                                                                                href={part}
+                                                                                                                target="_blank"
+                                                                                                                rel="noopener noreferrer"
+                                                                                                                className="text-cyan-400 hover:text-cyan-300 underline font-bold mx-0.5"
+                                                                                                                onClick={(e) => e.stopPropagation()}
+                                                                                                            >
+                                                                                                                {part.length > 20 ? part.substring(0, 20) + "..." : part}
+                                                                                                            </a>
+                                                                                                        );
+                                                                                                    }
+                                                                                                    return part;
+                                                                                                });
+                                                                                            })()}
+                                                                                        </span>
+                                                                                        <span className="text-[5px] text-gray-700 font-bold uppercase ml-2 opacity-40">{msg.time}</span>
+                                                                                    </div>
+                                                                                </div>
+                                                                                {hasModPowers && (isAdmin || !isMsgAdmin) && (
+                                                                                    <div className="absolute top-0 right-0 flex gap-0.5 opacity-0 group-hover:opacity-100 transition-all z-20 bg-[#0a0a0a]/80 backdrop-blur-sm rounded-bl-lg overflow-hidden border-l border-b border-white/10">
+                                                                                        <button onClick={() => handleUpdateSettings({ pinnedMessage: msg.message })} className="p-1 hover:bg-white/10 text-gray-500 hover:text-white transition-all"><Pin className="w-2.5 h-2.5" /></button>
+                                                                                        <button onClick={() => handleDelete(msg.id)} className="p-1 hover:bg-neon-red/20 text-gray-500 hover:text-neon-red transition-all"><Trash2 className="w-2.5 h-2.5" /></button>
+                                                                                    </div>
+                                                                                )}
+                                                                            </motion.div>
+                                                                        );
+                                                                    })}
+                                                            </div>
 
-                                                            return (
-                                                                <div key={u.pseudo} className="flex flex-col bg-white/[0.02] hover:bg-white/5 rounded-lg transition-colors border border-white/5">
-                                                                    <div
-                                                                        onClick={() => setExpandedUserId(isExpanded ? null : u.pseudo)}
-                                                                        className="flex items-center justify-between group p-2 cursor-pointer select-none"
-                                                                    >
-                                                                        <div className="flex items-center gap-2 truncate">
-                                                                            <div className="w-4 flex items-center justify-center">
-                                                                                {getCountryFlag(u.country)}
-                                                                            </div>
-                                                                            <span className={`text-xs font-bold uppercase truncate max-w-[100px] sm:max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
-                                                                                {u.pseudo}
-                                                                            </span>
-                                                                        </div>
-                                                                        <div className="flex items-center gap-2">
-                                                                            {(isUserAdmin || isUserModo) && (
-                                                                                <span className="text-[10px] bg-white/10 px-1 py-0.5 rounded text-white font-bold opacity-60 flex items-center gap-1">
-                                                                                    {isUserAdmin && <Zap className="w-3 h-3 text-neon-red" />}
-                                                                                    {isUserModo && !isUserAdmin && <Shield className="w-3 h-3 text-yellow-500" />}
-                                                                                </span>
-                                                                            )}
-                                                                            {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
-                                                                                <button
-                                                                                    onClick={(e) => { e.stopPropagation(); handlePromote(u.pseudo); }}
-                                                                                    className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
-                                                                                    title="Promouvoir Modérateur Chat"
-                                                                                >
-                                                                                    <Shield className="w-3.5 h-3.5" />
-                                                                                </button>
-                                                                            )}
+                                                            {/* Chat Input Area */}
+                                                            <div className="p-1.5 md:p-3 lg:p-4 bg-[#0a0a0a]/80 backdrop-blur-2xl border-t border-white/10 relative lg:sticky bottom-0 z-[150] shadow-[0_-20px_40px_rgba(0,0,0,0.8)] pb-safe">
+
+                                                                <form onSubmit={handleSendMessage} className="relative group/input px-0.5 md:px-2 py-0">
+                                                                    <div className="absolute -inset-0.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple opacity-10 group-focus-within/input:opacity-30 blur-md rounded-xl lg:rounded-2xl transition-all" />
+                                                                    <div className="relative flex flex-col bg-black/40 backdrop-blur-xl border border-white/10 rounded-xl lg:rounded-2xl overflow-hidden focus-within:border-neon-red/30 shadow-2xl">
+                                                                        <div className="flex items-center px-1 md:px-2 py-0.5 lg:py-1">
+                                                                            <button type="button" onClick={() => setShowEmojiPicker(!showEmojiPicker)} className={`p-1 md:p-2.5 transition-all ${showEmojiPicker ? 'text-neon-red scale-110' : 'text-gray-500 hover:text-white hover:scale-105'}`}><Smile className="w-4 h-4 md:w-5 md:h-5" /></button>
+                                                                            <div className="w-[1px] h-3 md:h-4 bg-white/10 mx-0.5 md:mx-1" />
+
+                                                                            <input
+                                                                                type="text"
+                                                                                value={newMessage}
+                                                                                onChange={(e) => setNewMessage(e.target.value)}
+                                                                                placeholder={isSlowMode && !hasModPowers ? "⏳ Lent..." : "Écrire..."}
+                                                                                className="flex-1 bg-transparent px-1.5 md:px-3 py-2 text-[11px] md:text-sm font-medium text-white outline-none placeholder:text-gray-700 min-w-0"
+                                                                            />
+
+                                                                            <button type="button" onClick={handleShazam} className={`p-1 md:p-1.5 transition-all flex items-center gap-1.5 ${shazamLoading ? 'text-neon-cyan animate-pulse' : 'text-gray-500 hover:text-neon-cyan hover:scale-105'}`}>
+                                                                                <Headphones className="w-4 h-4 md:w-5 md:h-5" />
+                                                                            </button>
+
+                                                                            <button
+                                                                                type="button"
+                                                                                onClick={isPushEnabled ? unsubscribeFromPush : subscribeToPushNotifications}
+                                                                                title={isPushEnabled ? "Désactiver les notifications" : "Activer les notifications natives (Favoris)"}
+                                                                                className={`p-1 md:p-1.5 transition-all flex items-center gap-1.5 ${isPushEnabled ? 'text-neon-cyan' : 'text-gray-500 hover:text-neon-cyan hover:scale-110'}`}
+                                                                            >
+                                                                                <Bell className={`w-4 h-4 md:w-5 md:h-5 ${isPushEnabled ? 'animate-bounce' : ''}`} />
+                                                                            </button>
+
+                                                                            <div className="w-[1px] h-3 md:h-4 bg-white/10 mx-0.5 md:mx-1" />
+
+                                                                            <button type="submit" disabled={!newMessage.trim() || isSending} className="ml-1 p-1.5 md:p-2 bg-neon-red text-white hover:bg-neon-red/80 disabled:opacity-20 rounded-lg md:rounded-xl transition-all flex items-center justify-center active:scale-90 shadow-lg shadow-neon-red/20">
+                                                                                <Send className={`w-3.5 h-3.5 md:w-4 md:h-4 ${isSending ? 'animate-pulse' : ''}`} />
+                                                                            </button>
                                                                         </div>
                                                                     </div>
+                                                                    {showEmojiPicker && (
+                                                                        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="absolute bottom-full left-0 right-0 mb-4 p-4 bg-[#0a0a0a] border border-white/10 rounded-3xl grid grid-cols-6 lg:grid-cols-8 gap-2 shadow-2xl h-52 overflow-y-auto z-[60] custom-scrollbar">
+                                                                            {['🔥', '🙌', '🚀', '❤️', '🤩', '💿', '💫', '💥', '✨', '⚡️', '🎹', '🎧', '🕺', '💃', '🎆', '🔊', '🎉', '💯', '🎶', '🎵', '😎', '🤪', '🤯', '🥳'].map(e => (
+                                                                                <button key={e} type="button" onClick={() => { setNewMessage(p => p + e); setShowEmojiPicker(false); }} className="text-xl md:text-2xl hover:bg-white/10 p-2 md:p-2.5 rounded-xl transition-transform active:scale-90">{e}</button>
+                                                                            ))}
+                                                                        </motion.div>
+                                                                    )}
+                                                                </form>
+                                                            </div>
+                                                        </>
+                                                    )}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
 
-                                                                    <AnimatePresence>
-                                                                        {isExpanded && (
-                                                                            <motion.div
-                                                                                initial={{ height: 0, opacity: 0 }}
-                                                                                animate={{ height: 'auto', opacity: 1 }}
-                                                                                exit={{ height: 0, opacity: 0 }}
-                                                                                className="overflow-hidden border-t border-white/5"
-                                                                            >
-                                                                                <div className="p-3 space-y-3 bg-black/40">
-                                                                                    <div className="space-y-1.5">
-                                                                                        <div className="flex items-center justify-between text-[10px]">
-                                                                                            <span className="text-gray-500 font-bold uppercase tracking-widest">Pays</span>
-                                                                                            <span className="text-gray-300 font-bold">{u.country} {getCountryFlag(u.country)}</span>
-                                                                                        </div>
-                                                                                        <div className="flex items-center justify-between text-[10px]">
-                                                                                            <span className="text-gray-500 font-bold uppercase tracking-widest">Email</span>
-                                                                                            <span className="text-gray-400 font-italic">Non disponible</span>
-                                                                                        </div>
-                                                                                    </div>
+                                    </div>
+                                </div>
+                            )}
+                            {!isFocusMode && (
+                                <div className="hidden md:flex relative h-full items-center justify-center shrink-0 z-30">
+                                    <button
+                                        onClick={() => setShowUsersPanel(!showUsersPanel)}
+                                        className="absolute right-0 w-8 h-16 bg-white/5 hover:bg-white/10 border-y border-l border-white/10 rounded-l-xl flex items-center justify-center transition-all group z-[100]"
+                                    >
+                                        <div className={`w-2 h-2 border-b-2 border-r-2 border-white/50 group-hover:border-white transition-all transform ${showUsersPanel ? '-rotate-45' : 'rotate-135'}`} />
+                                    </button>
+                                </div>
+                            )}
 
-                                                                                    {isAdmin && pseudo !== u.pseudo && (
-                                                                                        <button
-                                                                                            onClick={(e) => { e.stopPropagation(); handleGiveDrops(u.pseudo); }}
-                                                                                            className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-neon-purple/10 hover:bg-neon-purple/20 text-neon-purple border border-neon-purple/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
-                                                                                        >
-                                                                                            <Zap className="w-3.5 h-3.5" />
-                                                                                            Donner DROPS
-                                                                                        </button>
-                                                                                    )}
+                            <AnimatePresence>
+                                {!isFocusMode && showUsersPanel && (
+                                    <motion.div
+                                        initial={{ width: 0, opacity: 0 }}
+                                        animate={{ width: 200, opacity: 1 }}
+                                        exit={{ width: 0, opacity: 0 }}
+                                        className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
+                                    >
+                                        <div className="w-[200px] flex flex-col h-full">
+                                            <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
+                                                <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
+                                                    <Users className="w-4 h-4 text-neon-red" /> Utilisateurs
+                                                </h2>
+                                                <span className="text-[10px] bg-white/10 text-white px-2 py-0.5 rounded-full font-bold">{allActiveUsers.length}</span>
+                                            </div>
+                                            <div className="flex-1 overflow-y-auto">
+                                                <div className="p-3 space-y-2">
+                                                    {allActiveUsers.map(u => {
+                                                        const role = getRole(u.pseudo);
+                                                        const isUserAdmin = role === 'admin';
+                                                        const isUserModo = role === 'modo';
+                                                        const isExpanded = expandedUserId === u.pseudo;
 
-                                                                                    {isAdmin && isUserModo && pseudo !== u.pseudo && (
-                                                                                        <button
-                                                                                            onClick={(e) => { e.stopPropagation(); handleDemote(u.pseudo); }}
-                                                                                            className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border border-yellow-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
-                                                                                        >
-                                                                                            <Shield className="w-3.5 h-3.5" />
-                                                                                            Retirer MODO
-                                                                                        </button>
-                                                                                    )}
-                                                                                </div>
-                                                                            </motion.div>
+                                                        return (
+                                                            <div key={u.pseudo} className="flex flex-col bg-white/[0.02] hover:bg-white/5 rounded-lg transition-colors border border-white/5">
+                                                                <div
+                                                                    onClick={() => setExpandedUserId(isExpanded ? null : u.pseudo)}
+                                                                    className="flex items-center justify-between group p-2 cursor-pointer select-none"
+                                                                >
+                                                                    <div className="flex items-center gap-2 truncate">
+                                                                        <div className="w-4 flex items-center justify-center">
+                                                                            {getCountryFlag(u.country)}
+                                                                        </div>
+                                                                        <span className={`text-xs font-bold uppercase truncate max-w-[100px] sm:max-w-[120px] ${isUserAdmin ? 'text-neon-red' : isUserModo ? 'text-yellow-500' : 'text-gray-300'}`}>
+                                                                            {u.pseudo}
+                                                                        </span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        {(isUserAdmin || isUserModo) && (
+                                                                            <span className="text-[10px] bg-white/10 px-1 py-0.5 rounded text-white font-bold opacity-60 flex items-center gap-1">
+                                                                                {isUserAdmin && <Zap className="w-3 h-3 text-neon-red" />}
+                                                                                {isUserModo && !isUserAdmin && <Shield className="w-3 h-3 text-yellow-500" />}
+                                                                            </span>
                                                                         )}
-                                                                    </AnimatePresence>
+                                                                        {isAdmin && !isUserAdmin && !isUserModo && pseudo !== u.pseudo && (
+                                                                            <button
+                                                                                onClick={(e) => { e.stopPropagation(); handlePromote(u.pseudo); }}
+                                                                                className="p-1 opacity-0 group-hover:opacity-100 xl:group-hover:opacity-100 hover:bg-neon-red/20 rounded-md text-gray-500 hover:text-neon-red transition-all"
+                                                                                title="Promouvoir Modérateur Chat"
+                                                                            >
+                                                                                <Shield className="w-3.5 h-3.5" />
+                                                                            </button>
+                                                                        )}
+                                                                    </div>
                                                                 </div>
-                                                            );
-                                                        })}
-                                                    </div>
+
+                                                                <AnimatePresence>
+                                                                    {isExpanded && (
+                                                                        <motion.div
+                                                                            initial={{ height: 0, opacity: 0 }}
+                                                                            animate={{ height: 'auto', opacity: 1 }}
+                                                                            exit={{ height: 0, opacity: 0 }}
+                                                                            className="overflow-hidden border-t border-white/5"
+                                                                        >
+                                                                            <div className="p-3 space-y-3 bg-black/40">
+                                                                                <div className="space-y-1.5">
+                                                                                    <div className="flex items-center justify-between text-[10px]">
+                                                                                        <span className="text-gray-500 font-bold uppercase tracking-widest">Pays</span>
+                                                                                        <span className="text-gray-300 font-bold">{u.country} {getCountryFlag(u.country)}</span>
+                                                                                    </div>
+                                                                                    <div className="flex items-center justify-between text-[10px]">
+                                                                                        <span className="text-gray-500 font-bold uppercase tracking-widest">Email</span>
+                                                                                        <span className="text-gray-400 font-italic">Non disponible</span>
+                                                                                    </div>
+                                                                                </div>
+
+                                                                                {isAdmin && pseudo !== u.pseudo && (
+                                                                                    <button
+                                                                                        onClick={(e) => { e.stopPropagation(); handleGiveDrops(u.pseudo); }}
+                                                                                        className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-neon-purple/10 hover:bg-neon-purple/20 text-neon-purple border border-neon-purple/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                                                                    >
+                                                                                        <Zap className="w-3.5 h-3.5" />
+                                                                                        Donner DROPS
+                                                                                    </button>
+                                                                                )}
+
+                                                                                {isAdmin && isUserModo && pseudo !== u.pseudo && (
+                                                                                    <button
+                                                                                        onClick={(e) => { e.stopPropagation(); handleDemote(u.pseudo); }}
+                                                                                        className="w-full flex items-center justify-center gap-2 py-2 mt-2 bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-500 border border-yellow-500/20 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all"
+                                                                                    >
+                                                                                        <Shield className="w-3.5 h-3.5" />
+                                                                                        Retirer MODO
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
+                                                                        </motion.div>
+                                                                    )}
+                                                                </AnimatePresence>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
                                             </div>
-                                        </motion.div>
-                                    )}
-                                </AnimatePresence>
-                            </div>
-                        </div >
-                    </div >
-                </div >
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
+                        </div>
+                    </div>
+                </div>
 
                 {/* Ticker Banner */}
                 {
@@ -5744,106 +5744,110 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                 {/* Shazam Instructions Modal */}
                 <AnimatePresence>
-                    {showShazamInfo && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
-                            onClick={() => setShowShazamInfo(false)}
-                        >
+                    {
+                        showShazamInfo && (
                             <motion.div
-                                initial={{ scale: 0.9, opacity: 0, y: 30 }}
-                                animate={{ scale: 1, opacity: 1, y: 0 }}
-                                exit={{ scale: 0.9, opacity: 0, y: 30 }}
-                                className="w-full max-w-lg bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_120px_rgba(0,255,255,0.15)] relative"
-                                onClick={e => e.stopPropagation()}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-[1000] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl"
+                                onClick={() => setShowShazamInfo(false)}
                             >
-                                {/* Decorative elements */}
-                                <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
-                                <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
+                                <motion.div
+                                    initial={{ scale: 0.9, opacity: 0, y: 30 }}
+                                    animate={{ scale: 1, opacity: 1, y: 0 }}
+                                    exit={{ scale: 0.9, opacity: 0, y: 30 }}
+                                    className="w-full max-w-lg bg-[#050505] border border-white/10 rounded-[3rem] overflow-hidden shadow-[0_0_120px_rgba(0,255,255,0.15)] relative"
+                                    onClick={e => e.stopPropagation()}
+                                >
+                                    {/* Decorative elements */}
+                                    <div className="absolute top-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/50 to-transparent" />
+                                    <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
 
-                                <div className="relative p-10 lg:p-14 text-center space-y-10">
-                                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none" />
+                                    <div className="relative p-10 lg:p-14 text-center space-y-10">
+                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-80 h-80 bg-neon-cyan/5 blur-[120px] rounded-full pointer-events-none" />
 
-                                    <div className="relative flex flex-col items-center">
-                                        <div className="relative group">
-                                            <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full group-hover:bg-neon-cyan/30 transition-all duration-700" />
-                                            <div className="w-28 h-28 bg-black/40 border border-neon-cyan/30 rounded-full flex items-center justify-center relative z-10 shadow-[0_0_40px_rgba(0,255,255,0.1)] group-hover:border-neon-cyan/60 transition-all duration-500">
-                                                <Headphones className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
+                                        <div className="relative flex flex-col items-center">
+                                            <div className="relative group">
+                                                <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full group-hover:bg-neon-cyan/30 transition-all duration-700" />
+                                                <div className="w-28 h-28 bg-black/40 border border-neon-cyan/30 rounded-full flex items-center justify-center relative z-10 shadow-[0_0_40px_rgba(0,255,255,0.1)] group-hover:border-neon-cyan/60 transition-all duration-500">
+                                                    <Headphones className="w-12 h-12 text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.6)]" />
+                                                </div>
+                                                <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#050505] border border-white/10 rounded-full flex items-center justify-center z-20">
+                                                    <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
+                                                </div>
                                             </div>
-                                            <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-[#050505] border border-white/10 rounded-full flex items-center justify-center z-20">
-                                                <div className="w-2 h-2 bg-neon-cyan rounded-full animate-ping" />
+
+                                            <div className="mt-8">
+                                                <h3 className="text-3xl lg:text-4xl font-black text-white uppercase italic tracking-tighter leading-none">
+                                                    Identifier le <span className="text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.4)]">Son</span>
+                                                </h3>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-3 opacity-60">Technologie Dropsiders Shazam</p>
                                             </div>
                                         </div>
 
-                                        <div className="mt-8">
-                                            <h3 className="text-3xl lg:text-4xl font-black text-white uppercase italic tracking-tighter leading-none">
-                                                Identifier le <span className="text-neon-cyan drop-shadow-[0_0_15px_rgba(0,255,255,0.4)]">Son</span>
-                                            </h3>
-                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.3em] mt-3 opacity-60">Technologie Dropsiders Shazam</p>
+                                        <div className="space-y-3 text-left relative z-10">
+                                            <motion.div
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: 0.1 }}
+                                                className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                                            >
+                                                <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">1</div>
+                                                <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                                    Cliquez sur <span className="text-neon-cyan font-black">"DÉMARRER L'ÉCOUTE"</span>
+                                                </p>
+                                            </motion.div>
+
+                                            <motion.div
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: 0.2 }}
+                                                className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
+                                            >
+                                                <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">2</div>
+                                                <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
+                                                    Sélectionnez <span className="text-white font-black">"ONGLET CHROME"</span> et <span className="text-white font-black">"DROPSIDERS LIVE"</span>
+                                                </p>
+                                            </motion.div>
+
+                                            <motion.div
+                                                initial={{ opacity: 0, x: -10 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                transition={{ delay: 0.3 }}
+                                                className="flex items-center gap-5 p-5 bg-neon-red/10 hover:bg-neon-red/15 backdrop-blur-md rounded-[1.5rem] border border-neon-red/20 group transition-all duration-300"
+                                            >
+                                                <div className="w-10 h-10 rounded-2xl bg-neon-red text-white text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,0,51,0.3)] group-hover:scale-110 transition-transform">!</div>
+                                                <p className="text-[12px] text-white font-black uppercase leading-relaxed tracking-wider">
+                                                    Activez impérativement <span className="underline decoration-2 underline-offset-4 decoration-white/30">"PARTAGER L'AUDIO"</span>
+                                                </p>
+                                            </motion.div>
+                                        </div>
+
+                                        <div className="flex flex-col sm:flex-row gap-4 pt-4">
+                                            <button
+                                                onClick={() => { setShowShazamInfo(false); handleShazam(); }}
+                                                className="flex-1 py-5 bg-neon-cyan hover:bg-neon-cyan/90 text-black text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-[0_15px_30px_rgba(0,255,255,0.2)]"
+                                            >
+                                                Démarrer
+                                            </button>
+                                            <button
+                                                onClick={() => setShowShazamInfo(false)}
+                                                className="px-10 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl active:scale-95 transition-all"
+                                            >
+                                                Annuler
+                                            </button>
                                         </div>
                                     </div>
-
-                                    <div className="space-y-3 text-left relative z-10">
-                                        <motion.div
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.1 }}
-                                            className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
-                                        >
-                                            <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">1</div>
-                                            <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
-                                                Cliquez sur <span className="text-neon-cyan font-black">"DÉMARRER L'ÉCOUTE"</span>
-                                            </p>
-                                        </motion.div>
-
-                                        <motion.div
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.2 }}
-                                            className="flex items-center gap-5 p-5 bg-white/[0.03] hover:bg-white/[0.06] backdrop-blur-md rounded-[1.5rem] border border-white/5 hover:border-white/10 transition-all duration-300 group"
-                                        >
-                                            <div className="w-10 h-10 rounded-2xl bg-neon-cyan text-black text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(0,255,255,0.3)] group-hover:scale-110 transition-transform">2</div>
-                                            <p className="text-[12px] text-gray-300 font-bold uppercase leading-relaxed tracking-wider">
-                                                Sélectionnez <span className="text-white font-black">"ONGLET CHROME"</span> et <span className="text-white font-black">"DROPSIDERS LIVE"</span>
-                                            </p>
-                                        </motion.div>
-
-                                        <motion.div
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.3 }}
-                                            className="flex items-center gap-5 p-5 bg-neon-red/10 hover:bg-neon-red/15 backdrop-blur-md rounded-[1.5rem] border border-neon-red/20 group transition-all duration-300"
-                                        >
-                                            <div className="w-10 h-10 rounded-2xl bg-neon-red text-white text-sm font-black flex items-center justify-center shrink-0 shadow-[0_0_15px_rgba(255,0,51,0.3)] group-hover:scale-110 transition-transform">!</div>
-                                            <p className="text-[12px] text-white font-black uppercase leading-relaxed tracking-wider">
-                                                Activez impérativement <span className="underline decoration-2 underline-offset-4 decoration-white/30">"PARTAGER L'AUDIO"</span>
-                                            </p>
-                                        </motion.div>
-                                    </div>
-
-                                    <div className="flex flex-col sm:flex-row gap-4 pt-4">
-                                        <button
-                                            onClick={() => { setShowShazamInfo(false); handleShazam(); }}
-                                            className="flex-1 py-5 bg-neon-cyan hover:bg-neon-cyan/90 text-black text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl hover:scale-[1.02] active:scale-95 transition-all shadow-[0_15px_30px_rgba(0,255,255,0.2)]"
-                                        >
-                                            Démarrer
-                                        </button>
-                                        <button
-                                            onClick={() => setShowShazamInfo(false)}
-                                            className="px-10 py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white text-[13px] font-black uppercase tracking-[0.2em] rounded-2xl active:scale-95 transition-all"
-                                        >
-                                            Annuler
-                                        </button>
-                                    </div>
-                                </div>
+                                </motion.div>
                             </motion.div>
-                        </motion.div>
-                    )}
+                        )
+                    }
+                </AnimatePresence>
 
-                    {/* === QUIZ POPUP (petite popup flottante dans le coin du chat) === */}
-                    {showQuizPopup && (
+                {/* === QUIZ POPUP (petite popup flottante dans le coin du chat) === */}
+                {
+                    showQuizPopup && (
                         <motion.div
                             initial={{ opacity: 0, scale: 0.85, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -6049,9 +6053,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 </div>
                             </motion.div>
                         </motion.div>
-                    )}
+                    )
+                }
 
-                    {showPollModal && (
+                {
+                    showPollModal && (
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -6194,7 +6200,6 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                             </motion.div>
                         </motion.div>
                     )}
-                </AnimatePresence>
 
                 <style>{`
                 @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
@@ -6257,11 +6262,10 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     title={confirmModal.title}
                     message={confirmModal.message}
                     onConfirm={confirmModal.onConfirm}
-                    onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
-                    type={confirmModal.type}
                 />
-            </>
-            );
-}
+            </div >
+        </>
+    );
+};
 
-            export default TakeoverPage;
+export default TakeoverPage;
