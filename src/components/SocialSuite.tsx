@@ -969,21 +969,21 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
     // Shared content blocks (used in both mobile & desktop)
     const themeButtons = (
-        <div className={activeTab === 'REEL' ? "grid grid-cols-2 gap-2" : "grid grid-cols-3 gap-2"}>
+        <div className={activeTab === 'REEL' ? "grid grid-cols-2 gap-1.5" : "grid grid-cols-3 gap-1.5"}>
             {activeTab === 'REEL' ? (
                 <>
-                    <button onClick={() => setTheme('INTRO')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
-                    <button onClick={() => setTheme('TOP 5 ARTISTE')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'TOP 5 ARTISTE' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 ARTISTES</button>
-                    <button onClick={() => setTheme('TOP 5 STYLES')} className={`px-2 py-3 rounded-xl text-[9px] font-black uppercase border transition-all col-span-2 ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
+                    <button onClick={() => setTheme('INTRO')} className={`py-2 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
+                    <button onClick={() => setTheme('TOP 5 ARTISTE')} className={`py-2 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'TOP 5 ARTISTE' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 ARTISTES</button>
+                    <button onClick={() => setTheme('TOP 5 STYLES')} className={`px-2 py-2 rounded-xl text-[9px] font-black uppercase border transition-all col-span-2 ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
                 </>
             ) : (
                 <>
-                    <button onClick={() => setTheme('NEWS')} className={`py-3 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
-                    <button onClick={() => setTheme('FOCUS')} className={`py-3 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
-                    <button onClick={() => setTheme('HIGHLIGHTS')} className={`py-3 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>HIGHLIGHTS</button>
-                    <button onClick={() => setTheme('MUSIQUE')} className={`py-3 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
-                    <button onClick={() => setTheme('RECAP')} className={`py-3 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
-                    <button onClick={() => setTheme('LIVE TAKEOVER')} className={`py-3 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVE TAKEOVER' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
+                    <button onClick={() => setTheme('NEWS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
+                    <button onClick={() => setTheme('FOCUS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
+                    <button onClick={() => setTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>HIGHLIGHTS</button>
+                    <button onClick={() => setTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
+                    <button onClick={() => setTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
+                    <button onClick={() => setTheme('LIVE TAKEOVER')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVE TAKEOVER' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
                 </>
             )}
         </div>
@@ -1047,7 +1047,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     );
 
     const textEditor = (
-        <div className="space-y-4">
+        <div className="space-y-2">
             <textarea
                 ref={textAreaRef}
                 value={customText}
@@ -1058,7 +1058,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 autoCorrect="on"
                 autoComplete="on"
                 autoCapitalize="sentences"
-                className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black font-sans uppercase"
+                className="w-full h-24 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black font-sans uppercase break-words"
             />
             <p className="text-[9px] text-white/30 italic px-1">Les codes comme [C:...] ou [B:...] seront transformés en style sur l'image finale.</p>
             <div className="grid grid-cols-2 gap-4">
@@ -1087,15 +1087,15 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         <div className="space-y-2">
             {activeTab === 'PUBLICATION' && (
                 <div className="grid grid-cols-2 gap-2">
-                    <button onClick={addVisualToList} className="py-4 bg-white/5 border border-white/10 text-white rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter</button>
-                    <button onClick={downloadSingle} disabled={isDownloading} className="py-4 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-2xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all">
+                    <button onClick={addVisualToList} className="py-2.5 bg-white/5 border border-white/10 text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter</button>
+                    <button onClick={downloadSingle} disabled={isDownloading} className="py-2.5 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all">
                         <Download className="w-3.5 h-3.5" /> Télécharger PNG
                     </button>
                 </div>
             )}
             <button onClick={startVideoRecording} disabled={isVideoRecording}
-                className={`w-full py-4 rounded-2xl text-[10px] font-black uppercase flex items-center justify-center gap-3 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}>
-                <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo Instagram (${theme})`}
+                className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}>
+                <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo (${theme})`}
             </button>
         </div>
     );
@@ -1143,7 +1143,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 <div className="flex w-full h-full max-w-6xl mx-auto rounded-[40px] border border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden bg-[#0a0a0a]">
 
                     {/* Controls Sidebar */}
-                    <div className="w-[400px] border-r border-white/10 p-8 flex flex-col gap-8 overflow-y-auto custom-scrollbar h-full">
+                    <div className="w-[360px] border-r border-white/10 p-5 flex flex-col gap-5 overflow-y-auto custom-scrollbar h-full">
                         <div className="flex items-center justify-between">
                             <div>
                                 <h2 className="text-2xl font-black text-white italic tracking-tighter">SOCIAL STUDIO</h2>
@@ -1160,23 +1160,23 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         </div>
 
                         {/* Tab selector */}
-                        <div className="flex gap-2 p-1 bg-white/5 rounded-2xl border border-white/10">
-                            <button onClick={() => setActiveTab('REEL')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'REEL' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><Smartphone className="w-4 h-4" /> REEL</button>
-                            <button onClick={() => setActiveTab('PUBLICATION')} className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'PUBLICATION' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><ImageIcon className="w-4 h-4" /> POST</button>
+                        <div className="flex gap-1.5 p-1 bg-white/5 rounded-xl border border-white/10">
+                            <button onClick={() => setActiveTab('REEL')} className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'REEL' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><Smartphone className="w-3.5 h-3.5" /> REEL</button>
+                            <button onClick={() => setActiveTab('PUBLICATION')} className={`flex-1 py-2 rounded-lg text-[9px] font-black uppercase flex items-center justify-center gap-2 transition-all ${activeTab === 'PUBLICATION' ? 'bg-white text-black' : 'text-gray-400 hover:text-white'}`}><ImageIcon className="w-3.5 h-3.5" /> POST</button>
                         </div>
 
                         {themeButtons}
                         {styleMusicButtons}
 
                         {/* Background */}
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Fond Visuel</span>
-                            <button onClick={() => fileInputRef.current?.click()} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                <Upload className="w-4 h-4 group-hover:text-neon-red transition-colors" />
+                            <button onClick={() => fileInputRef.current?.click()} className="w-full py-2.5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[9px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                <Upload className="w-3.5 h-3.5 group-hover:text-neon-red transition-colors" />
                                 {bgImage || bgVideo ? 'Modifier le fond' : 'Importer Image/Vidéo'}
                             </button>
-                            <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
-                                <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />
+                            <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-2.5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[9px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
+                                <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
                                 Télécharger Vidéo/Photo (URL)
                             </button>
                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
