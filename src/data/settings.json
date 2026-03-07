@@ -44,7 +44,11 @@
     "botBgColor": "rgba(0, 255, 204, 0.05)",
     "adminColor": "#ff0033",
     "adminBgColor": "rgba(255, 0, 51, 0.05)",
-    "mainFluxName": ""
+    "mainFluxName": "",
+    "acrHost": "identify-eu-west-1.acrcloud.com",
+    "acrAccessKey": "",
+    "acrAccessSecret": "",
+    "auddToken": "0707d622c51645acc2e4fa26ed64538d"
   },
   "socials": {
     "instagram": "dropsiders.eu",
