@@ -745,14 +745,24 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         const mimeType = formats.find(f => MediaRecorder.isTypeSupported(f)) || 'video/webm';
         const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
 
-        const canvasStream = canvas.captureStream(60);
+        // Mobile compatibility: 30fps is safer than 60fps for many mobile encoders
+        const fps = isMobile ? 30 : 60;
+        const canvasStream = (canvas as any).captureStream ? (canvas as any).captureStream(fps) : (canvas as any).mozCaptureStream ? (canvas as any).mozCaptureStream(fps) : null;
+
+        if (!canvasStream) {
+            alert("Votre navigateur ne supporte pas la capture vidéo.");
+            setIsVideoRecording(false);
+            return;
+        }
+
         let combinedStream = canvasStream;
 
         if (bgVideo) {
             try {
                 bgVideo.currentTime = 0;
                 bgVideo.loop = false;
-                bgVideo.play();
+                await bgVideo.play().catch(e => console.warn("Autoplay blocked or video not ready", e));
+
                 // If bgVideo has audio tracks, add them to our stream
                 const videoStream = (bgVideo as any).captureStream ? (bgVideo as any).captureStream() : (bgVideo as any).mozCaptureStream ? (bgVideo as any).mozCaptureStream() : null;
                 if (videoStream && videoStream.getAudioTracks().length > 0) {
@@ -764,55 +774,78 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             }
         }
 
+        // Lower bitrate for mobile to avoid encoder crashes
+        const bitrate = isMobile ? 5000000 : 12000000;
+
         const recorder = new MediaRecorder(combinedStream, {
             mimeType,
-            videoBitsPerSecond: 12000000 // 12Mbps for pro quality
+            videoBitsPerSecond: bitrate
         });
 
         const chunks: Blob[] = [];
-        recorder.ondataavailable = (e) => chunks.push(e.data);
+        recorder.ondataavailable = (e) => {
+            if (e.data && e.data.size > 0) {
+                chunks.push(e.data);
+            }
+        };
+
         recorder.onstop = async () => {
+            if (chunks.length === 0) {
+                alert("Erreur: Aucune donnée vidéo capturée.");
+                setIsVideoRecording(false);
+                return;
+            }
+
             const blob = new Blob(chunks, { type: mimeType });
             const url = URL.createObjectURL(blob);
+
+            // Re-syncing state
+            setIsVideoRecording(false);
+            setActivePanel(null);
 
             if (isMobile && ('share' in navigator)) {
                 try {
                     const file = new File([blob], `dropsiders-${theme.replace(/ /g, '-')}-${Date.now()}.${extension}`, { type: mimeType });
                     await (navigator as any).share({
                         files: [file],
-                        title: 'Dropsiders Social Studio Video',
+                        title: 'Dropsiders Social Studio',
                         text: 'Ma vidéo générée avec le Social Studio Dropsiders'
                     });
-                    setIsVideoRecording(false);
-                    setActivePanel(null);
                     return;
                 } catch (err) {
                     console.warn('Share rejected or failed, falling back to traditional download', err);
                 }
             }
 
+            // Fallback for download
             const a = document.createElement('a');
             a.href = url;
             a.download = `dropsiders-${theme.replace(/ /g, '-')}-${Date.now()}.${extension}`;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 2000);
-            setIsVideoRecording(false);
-            setActivePanel(null);
+            // On some mobile browsers, a.click() doesn't work well, window.open or location.href is better
+            if (isMobile) {
+                window.location.href = url;
+            } else {
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+            setTimeout(() => URL.revokeObjectURL(url), 5000);
         };
-        recorder.start();
 
+        // Start recording with a timeslice to ensure data is periodically pushed
+        recorder.start(1000);
+
+        // Control the duration based on theme
         if (theme === 'INTRO') {
             await new Promise(r => setTimeout(r, 10000));
         } else if (theme.startsWith('TOP 5')) {
             for (let i = 0; i < 5; i++) {
                 if (i > 0) {
-                    const duration = 1200;
-                    const start = Date.now();
+                    const durationTransition = 1200;
+                    const startT = Date.now();
                     let switched = false;
-                    while (Date.now() - start < duration) {
-                        const progress = (Date.now() - start) / duration;
+                    while (Date.now() - startT < durationTransition) {
+                        const progress = (Date.now() - startT) / durationTransition;
                         setTransitionProgress(progress);
                         if (progress > 0.5 && !switched) {
                             setCurrentPreviewIndex(i);
@@ -827,13 +860,22 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 await new Promise(r => setTimeout(r, 16800));
             }
         } else {
-            // Match background video duration or default to 15s (better for social posts than 60s)
-            const duration = (bgVideo && bgVideo.duration) ? bgVideo.duration * 1000 : 15000;
+            // Match background video duration or default to 15s
+            let duration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) ? bgVideo.duration * 1000 : 15000;
+            // Cap to 60s max to avoid memory issues on mobile
+            if (duration > 60000) duration = 60000;
             await new Promise(r => setTimeout(r, duration));
         }
+
         setTransitionProgress(0); // Safety reset
-        if (bgVideo) bgVideo.loop = true; // Restore looping for preview
-        recorder.stop();
+        if (bgVideo) {
+            bgVideo.loop = true; // Restore looping for preview
+            bgVideo.play().catch(() => { });
+        }
+
+        if (recorder.state !== 'inactive') {
+            recorder.stop();
+        }
     };
 
     const addVisualToList = () => {
