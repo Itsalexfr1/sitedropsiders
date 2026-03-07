@@ -26,7 +26,10 @@
     -webkit-tap-highlight-color: transparent;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    min-height: 100vh;
+    min-height: 100dvh;
   }
 
   a {
@@ -287,6 +290,8 @@
   .article-body-premium .jw-element-image,
   .article-body-premium picture {
     @apply shadow-2xl mx-auto block;
+    image-rendering: -webkit-optimize-contrast;
+    will-change: transform;
     margin: 4rem auto !important;
     display: block !important;
     float: none !important;
@@ -638,6 +643,15 @@
 
   .bg-dark-bg {
     background-color: var(--color-dark-bg) !important;
+  }
+
+  /* Force GPU acceleration for smooth transitions */
+  .layout-main,
+  .article-card,
+  .news-card {
+    transform: translateZ(0);
+    backface-visibility: hidden;
+    perspective: 1000;
   }
 
   /* Disable heavy visual effects on mobile to maintain 60FPS */

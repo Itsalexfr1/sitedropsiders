@@ -49,6 +49,20 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
+            urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'cloudinary-images-cache',
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
             urlPattern: /^https:\/\/fonts\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
@@ -90,13 +104,16 @@ export default defineConfig({
     }
   },
   build: {
+    cssCodeSplit: true,
+    sourcemap: false,
+    minify: 'esbuild',
     rollupOptions: {
       output: {
         manualChunks: {
           'vendor': ['react', 'react-dom', 'react-router-dom'],
-          'ui': ['lucide-react', 'framer-motion', 'clsx', 'tailwind-merge'],
-          'utils': ['axios', 'cheerio', 'jsdom'],
-          'charts': ['d3-geo', 'd3-scale', 'react-simple-maps'],
+          'framer': ['framer-motion'],
+          'ui-icons': ['lucide-react'],
+          'md-editor': ['@uiw/react-md-editor'],
         }
       }
     },
