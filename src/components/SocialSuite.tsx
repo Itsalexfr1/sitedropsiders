@@ -734,19 +734,16 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         if (!canvas) return;
         setIsVideoRecording(true);
 
-        // Detect best supported format
         const formats = [
             'video/mp4;codecs=h264',
             'video/webm;codecs=h264',
             'video/webm;codecs=vp9',
-            'video/webm;codecs=vp8',
             'video/webm'
         ];
 
         const mimeType = formats.find(f => MediaRecorder.isTypeSupported(f)) || 'video/webm';
-        const extension = mimeType.includes('mp4') ? 'mp4' : 'webm';
+        const extension = mimeType.length > 0 && mimeType.includes('mp4') ? 'mp4' : 'webm';
 
-        // Mobile compatibility: 30fps is safer than 60fps for many mobile encoders
         const fps = isMobile ? 30 : 60;
         const canvasStream = (canvas as any).captureStream ? (canvas as any).captureStream(fps) : (canvas as any).mozCaptureStream ? (canvas as any).mozCaptureStream(fps) : null;
 
@@ -757,26 +754,29 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         }
 
         let combinedStream = canvasStream;
+        const previousMutedState = bgVideo ? bgVideo.muted : true;
 
         if (bgVideo) {
             try {
+                // IMPORTANT: Unmute to capture sound
+                bgVideo.muted = false;
+                bgVideo.volume = 1.0;
                 bgVideo.currentTime = 0;
                 bgVideo.loop = false;
-                await bgVideo.play().catch(e => console.warn("Autoplay blocked or video not ready", e));
+                await bgVideo.play().catch(e => console.warn("Audio capture play failed", e));
 
-                // If bgVideo has audio tracks, add them to our stream
+                // Get audio tracks from video
                 const videoStream = (bgVideo as any).captureStream ? (bgVideo as any).captureStream() : (bgVideo as any).mozCaptureStream ? (bgVideo as any).mozCaptureStream() : null;
                 if (videoStream && videoStream.getAudioTracks().length > 0) {
                     const audioTrack = videoStream.getAudioTracks()[0];
                     combinedStream = new MediaStream([...canvasStream.getTracks(), audioTrack]);
                 }
             } catch (e) {
-                console.error("Could not capture audio from video", e);
+                console.error("Audio capture error:", e);
             }
         }
 
-        // Lower bitrate for mobile to avoid encoder crashes
-        const bitrate = isMobile ? 5000000 : 12000000;
+        const bitrate = isMobile ? 6000000 : 12000000;
 
         const recorder = new MediaRecorder(combinedStream, {
             mimeType,
@@ -785,14 +785,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
         const chunks: Blob[] = [];
         recorder.ondataavailable = (e) => {
-            if (e.data && e.data.size > 0) {
-                chunks.push(e.data);
-            }
+            if (e.data && e.data.size > 0) chunks.push(e.data);
         };
 
         recorder.onstop = async () => {
             if (chunks.length === 0) {
-                alert("Erreur: Aucune donnée vidéo capturée.");
+                alert("Erreur de capture vidéo.");
                 setIsVideoRecording(false);
                 return;
             }
@@ -800,43 +798,52 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             const blob = new Blob(chunks, { type: mimeType });
             const url = URL.createObjectURL(blob);
 
-            // Re-syncing state
             setIsVideoRecording(false);
             setActivePanel(null);
 
+            // iOS WORKAROUND: Force a direct link if sharing is unstable
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+
             if (isMobile && ('share' in navigator)) {
                 try {
-                    const file = new File([blob], `dropsiders-${theme.replace(/ /g, '-')}-${Date.now()}.${extension}`, { type: mimeType });
-                    await (navigator as any).share({
-                        files: [file],
-                        title: 'Dropsiders Social Studio',
-                        text: 'Ma vidéo générée avec le Social Studio Dropsiders'
-                    });
-                    return;
+                    const fileName = `dropsiders-${theme.replace(/ /g, '-')}-${Date.now()}.${extension}`;
+                    const file = new File([blob], fileName, { type: mimeType });
+
+                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Dropsiders Video',
+                            text: 'Vidéo générée par Dropsiders'
+                        });
+                        return;
+                    }
                 } catch (err) {
-                    console.warn('Share rejected or failed, falling back to traditional download', err);
+                    console.warn('Sharing failed', err);
                 }
             }
 
-            // Fallback for download
+            // FALLBACK / TRADITIONAL DOWNLOAD
             const a = document.createElement('a');
             a.href = url;
             a.download = `dropsiders-${theme.replace(/ /g, '-')}-${Date.now()}.${extension}`;
-            // On some mobile browsers, a.click() doesn't work well, window.open or location.href is better
-            if (isMobile) {
+
+            if (isIOS || isMobile) {
+                // On iOS, we show the video in a way the user can long-press to save, 
+                // or try to force a download via window.open
+                const message = isIOS ? "Votre vidéo est prête. Cliquez sur 'OK' puis maintenez la vidéo pour l'enregistrer dans vos photos." : "Téléchargement en cours...";
+                alert(message);
                 window.location.href = url;
             } else {
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);
             }
-            setTimeout(() => URL.revokeObjectURL(url), 5000);
+
+            setTimeout(() => URL.revokeObjectURL(url), 10000);
         };
 
-        // Start recording with a timeslice to ensure data is periodically pushed
         recorder.start(1000);
 
-        // Control the duration based on theme
         if (theme === 'INTRO') {
             await new Promise(r => setTimeout(r, 10000));
         } else if (theme.startsWith('TOP 5')) {
@@ -861,22 +868,19 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 await new Promise(r => setTimeout(r, 16800));
             }
         } else {
-            // Match background video duration or default to 15s
             let duration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) ? bgVideo.duration * 1000 : 15000;
-            // Cap to 60s max to avoid memory issues on mobile
             if (duration > 60000) duration = 60000;
             await new Promise(r => setTimeout(r, duration));
         }
 
-        setTransitionProgress(0); // Safety reset
+        setTransitionProgress(0);
         if (bgVideo) {
-            bgVideo.loop = true; // Restore looping for preview
+            bgVideo.muted = previousMutedState; // Return to muted for preview if it was muted
+            bgVideo.loop = true;
             bgVideo.play().catch(() => { });
         }
 
-        if (recorder.state !== 'inactive') {
-            recorder.stop();
-        }
+        if (recorder.state !== 'inactive') recorder.stop();
     };
 
     const addVisualToList = () => {
