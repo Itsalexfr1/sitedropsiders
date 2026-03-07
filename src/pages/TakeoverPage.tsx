@@ -3,7 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Settings, Users, MessageSquare, Send, Zap,
-    Smile, Save, AlertCircle, ShoppingBag, Music, Trash2, Calendar, Plus, Instagram
+    Smile, Save, AlertCircle, ShoppingBag, Music, Trash2, Calendar, Plus, Instagram,
+    Pin, Ban, Star, ShieldCheck, UserMinus, Shield
 } from 'lucide-react';
 
 interface LineupItem {
@@ -44,11 +45,26 @@ interface ShazamTrack {
 
 export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => {
     const navigate = useNavigate();
-    const [isAdmin] = useState(true); // À coupler avec votre système auth
+    const [userRole, setUserRole] = useState<'admin' | 'mod' | 'user'>('admin');
+    const [isAdmin] = useState(userRole === 'admin');
+    const [isMod] = useState(userRole === 'admin' || userRole === 'mod');
     const [showAdminPanel, setShowAdminPanel] = useState(false);
     const [viewersCount] = useState(1);
     const [activeChatTab, setActiveChatTab] = useState('chat');
     const [newMessage, setNewMessage] = useState('');
+    const [isHighlightChecked, setIsHighlightChecked] = useState(false);
+    const highlightCost = 100;
+
+    const [pinnedMessage, setPinnedMessage] = useState<any>({
+        id: 'welcome',
+        user: "DROPSIDERS",
+        text: "BIENVENUE ! PROFITEZ DU FESTIVAL EN DIRECT ! 🔥",
+        isBot: true
+    });
+
+    const [bannedUsers, setBannedUsers] = useState<Record<string, number | 'perm'>>({});
+    const [banMenuUser, setBanMenuUser] = useState<string | null>(null);
+
     const [drops, setDrops] = useState(150);
     const [shazamHistory, setShazamHistory] = useState<ShazamTrack[]>(() => {
         const saved = localStorage.getItem('shazam_history');
@@ -227,6 +243,17 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const handleSendMessage = () => {
         if (!newMessage.trim()) return;
 
+        // Check if user is banned
+        const banExpiry = bannedUsers["VOUS"];
+        if (banExpiry) {
+            if (banExpiry === 'perm') {
+                showNotification("Vous êtes banni de façon permanente.", "error"); return;
+            } else if (Date.now() < banExpiry) {
+                const remaining = Math.ceil((banExpiry - Date.now()) / 60000);
+                showNotification(`Vous êtes banni pendant encore ${remaining} min.`, "error"); return;
+            }
+        }
+
         // 1. Check for links (Security/Bot)
         const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
         if (urlRegex.test(newMessage)) {
@@ -235,16 +262,31 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             return;
         }
 
+        // Check for highlight
+        if (isHighlightChecked && drops < highlightCost) {
+            showNotification(`Besoin de ${highlightCost} Drops pour mettre en avant !`, 'error');
+            setIsHighlightChecked(false);
+            return;
+        }
+
+        if (isHighlightChecked) {
+            setDrops(d => d - highlightCost);
+            showNotification(`Message mis en avant ! (-${highlightCost} Drops)`, 'success');
+        }
+
         // 2. Add user message
         const msg = {
             id: Date.now(),
             user: "VOUS",
             text: newMessage.trim(),
-            color: "text-neon-red"
+            color: "text-neon-red",
+            role: userRole,
+            isHighlighted: isHighlightChecked
         };
         const newChat = [...chatMessages, msg];
         setChatMessages(newChat.slice(-50)); // Keep last 50 messages
         setNewMessage('');
+        setIsHighlightChecked(false);
 
         // 3. Check for Bot Commands
         const trimmedMsg = newMessage.trim().toLowerCase();
@@ -467,12 +509,24 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                 <div className="flex items-center gap-6">
                     {isAdmin && (
+                        <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                            <ShieldCheck className="w-4 h-4 text-neon-purple" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-neon-purple">ADMIN LOGIN</span>
+                        </div>
+                    )}
+                    {isMod && !isAdmin && (
+                        <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                            <Shield className="w-4 h-4 text-neon-cyan" />
+                            <span className="text-[9px] font-black uppercase tracking-widest text-neon-cyan">MOD LOGIN</span>
+                        </div>
+                    )}
+                    {isMod && (
                         <button
                             onClick={() => setShowAdminPanel(!showAdminPanel)}
                             className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${showAdminPanel ? 'bg-neon-purple border-neon-purple text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
                         >
                             <Settings className="w-4 h-4" />
-                            <span className="text-[9px] font-black uppercase tracking-widest">ADMIN</span>
+                            <span className="text-[9px] font-black uppercase tracking-widest">MENU ADMIN</span>
                         </button>
                     )}
                     <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all">
@@ -760,15 +814,59 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         </div>
                                     ) : (
                                         <div className="space-y-8">
-                                            <div className="max-w-md mx-auto p-12 border-2 border-dashed border-white/10 rounded-[4rem] text-center space-y-8">
-                                                <div className="w-20 h-20 bg-red-600/20 rounded-full flex items-center justify-center mx-auto">
-                                                    <MessageSquare className="w-10 h-10 text-red-500" />
+                                            <div className="grid grid-cols-2 gap-8">
+                                                <div className="space-y-6">
+                                                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Contrôle Rapide</h3>
+                                                    <div className="p-8 bg-red-600/5 border border-red-600/20 rounded-[2.5rem] text-center space-y-6">
+                                                        <div className="w-16 h-16 bg-red-600/20 rounded-full flex items-center justify-center mx-auto">
+                                                            <Trash2 className="w-8 h-8 text-red-500" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-lg font-black text-white uppercase italic">Nettoyage Chat</h4>
+                                                            <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">Supprimer tous les messages du flux</p>
+                                                        </div>
+                                                        <button onClick={clearChat} className="w-full py-4 bg-red-600 text-white rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-red-700 transition-all shadow-xl shadow-red-600/20">Vider le Chat</button>
+                                                    </div>
                                                 </div>
-                                                <div>
-                                                    <h3 className="text-2xl font-black text-white uppercase italic">Modération Chat</h3>
-                                                    <p className="text-[10px] text-gray-500 font-bold uppercase mt-2">Suppression définitive du flux</p>
+
+                                                <div className="space-y-6">
+                                                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Utilisateurs Bannis ({Object.keys(bannedUsers).length})</h3>
+                                                    <div className="space-y-3">
+                                                        {Object.keys(bannedUsers).length === 0 ? (
+                                                            <div className="p-10 border-2 border-dashed border-white/5 rounded-[2.5rem] text-center">
+                                                                <Users className="w-10 h-10 text-white/5 mx-auto mb-2" />
+                                                                <p className="text-[9px] font-black text-white/20 uppercase">Aucun utilisateur banni</p>
+                                                            </div>
+                                                        ) : (
+                                                            Object.entries(bannedUsers).map(([username, expiry]) => (
+                                                                <div key={username} className="p-4 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-8 h-8 bg-red-500/20 rounded-lg flex items-center justify-center">
+                                                                            <UserMinus className="w-4 h-4 text-red-500" />
+                                                                        </div>
+                                                                        <div>
+                                                                            <p className="text-xs font-black text-white uppercase">{username}</p>
+                                                                            <p className="text-[8px] text-red-500 font-bold uppercase tracking-widest">
+                                                                                {expiry === 'perm' ? 'BAN DÉFINITIF' : `EXPIRE: ${new Date(expiry as number).toLocaleTimeString()}`}
+                                                                            </p>
+                                                                        </div>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            const newBanned = { ...bannedUsers };
+                                                                            delete newBanned[username];
+                                                                            setBannedUsers(newBanned);
+                                                                            showNotification(`${username} débanni`, 'success');
+                                                                        }}
+                                                                        className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[8px] font-black text-white uppercase transition-all"
+                                                                    >
+                                                                        Débannir
+                                                                    </button>
+                                                                </div>
+                                                            ))
+                                                        )}
+                                                    </div>
                                                 </div>
-                                                <button onClick={clearChat} className="w-full py-5 bg-red-600/10 text-red-500 border border-red-500/20 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-xl hover:shadow-red-600/30">Vider le Chat</button>
                                             </div>
                                         </div>
                                     )}
@@ -805,15 +903,26 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             </div>
                             <h2 className="text-xs font-black uppercase italic tracking-tighter text-white">LIVE INTERACTIF</h2>
                         </div>
-                        {isAdmin && (
-                            <button
-                                onClick={clearChat}
-                                className="p-2 text-gray-500 hover:text-neon-red hover:bg-neon-red/10 rounded-lg transition-all"
-                                title="Vider le chat"
-                            >
-                                <Trash2 className="w-4 h-4" />
-                            </button>
-                        )}
+                        <div className="flex items-center gap-1">
+                            {isMod && (
+                                <button
+                                    onClick={() => setUserRole(userRole === 'admin' ? 'mod' : userRole === 'mod' ? 'user' : 'admin')}
+                                    className="px-2 py-1 bg-white/5 rounded text-[8px] font-black text-gray-600 hover:text-white transition-all uppercase"
+                                    title="Toggle Role (Debug Test)"
+                                >
+                                    {userRole}
+                                </button>
+                            )}
+                            {isAdmin && (
+                                <button
+                                    onClick={clearChat}
+                                    className="p-2 text-gray-500 hover:text-neon-red hover:bg-neon-red/10 rounded-lg transition-all"
+                                    title="Vider le chat"
+                                >
+                                    <Trash2 className="w-4 h-4" />
+                                </button>
+                            )}
+                        </div>
                     </div>
 
                     <div className="flex gap-1 p-2 bg-black/20 border-b border-white/10 overflow-x-auto no-scrollbar">
@@ -826,25 +935,89 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         <AnimatePresence mode="wait">
                             {activeChatTab === 'chat' ? (
                                 <motion.div key="chat-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-                                    <div className="p-3 bg-neon-red/10 border border-neon-red/20 rounded-xl">
-                                        <p className="text-[10px] text-neon-red font-black uppercase mb-1">Épinglé</p>
-                                        <p className="text-xs text-white">Bienvenue ! Profitez du festival en direct ! 🔥</p>
-                                    </div>
-                                    {chatMessages.map((msg: any) => (
-                                        <div key={msg.id} className={`group flex gap-3 animate-slide-in relative ${msg.isBot ? 'bg-neon-red/5 p-2 rounded-xl border border-neon-red/10' : ''}`}>
-                                            <div className={`w-8 h-8 rounded-full border border-white/10 shrink-0 flex items-center justify-center ${msg.isBot ? 'bg-neon-red/10 text-neon-red' : 'bg-white/5'}`}>
-                                                {msg.isBot ? <Zap className="w-4 h-4" /> : null}
+                                    {pinnedMessage && (
+                                        <div className="p-3 bg-neon-red/10 border border-neon-red/20 rounded-xl relative overflow-hidden group">
+                                            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-100 transition-all">
+                                                <Pin className="w-4 h-4 text-neon-red rotate-45" />
                                             </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="flex items-center justify-between">
-                                                    <p className={`text-[10px] font-black uppercase tracking-wider mb-0.5 ${msg.color}`}>{msg.user}</p>
-                                                    {isAdmin && (
-                                                        <button onClick={() => deleteMessage(msg.id)} className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-red-500/10 rounded transition-all">
+                                            <div className="flex items-center justify-between mb-1">
+                                                <p className="text-[10px] text-neon-red font-black uppercase flex items-center gap-2">
+                                                    <Pin className="w-3 h-3" /> Message Épinglé
+                                                </p>
+                                                {isMod && (
+                                                    <button onClick={() => setPinnedMessage(null)} className="text-[9px] text-gray-500 hover:text-white font-bold uppercase transition-all">
+                                                        Désépingler
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-white">
+                                                <span className="font-black italic mr-2 text-neon-red">{pinnedMessage.user} :</span>
+                                                {pinnedMessage.text}
+                                            </p>
+                                        </div>
+                                    )}
+
+                                    {chatMessages.map((msg: any) => (
+                                        <div key={msg.id} className={`group flex flex-col gap-1 animate-slide-in relative ${msg.isBot ? 'bg-neon-red/5 p-2 rounded-xl border border-neon-red/10 overflow-hidden' : msg.isHighlighted ? 'bg-amber-500/5 p-3 rounded-xl border border-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.05)]' : ''}`}>
+                                            {msg.isHighlighted && (
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                                                    <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">⭐ MESSAGE À LA UNE</span>
+                                                </div>
+                                            )}
+                                            <div className="flex gap-3 relative">
+                                                <div className={`w-8 h-8 rounded-full border border-white/10 shrink-0 flex items-center justify-center ${msg.isBot ? 'bg-neon-red/10 text-neon-red' : 'bg-white/5'}`}>
+                                                    {msg.isBot ? <Zap className="w-4 h-4" /> : <div className="text-[10px] font-black text-gray-500">{msg.user[0]}</div>}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center gap-2 mb-0.5">
+                                                        <span className={`text-[10px] font-black uppercase italic ${msg.color || 'text-white'}`}>{msg.user}</span>
+                                                        {msg.role === 'admin' && <ShieldCheck className="w-3 h-3 text-neon-purple" />}
+                                                        {msg.role === 'mod' && <Shield className="w-3 h-3 text-neon-cyan" />}
+                                                    </div>
+                                                    <p className="text-xs text-gray-400 leading-relaxed font-bold break-all">{msg.text}</p>
+                                                </div>
+
+                                                {/* Moderation Actions */}
+                                                {isMod && !msg.isBot && (
+                                                    <div className="absolute right-0 top-0 hidden group-hover:flex items-center gap-1 bg-black/80 backdrop-blur-md p-1 rounded-lg border border-white/10 shadow-2xl z-20">
+                                                        <button
+                                                            onClick={() => setPinnedMessage(msg)}
+                                                            className="p-1.5 text-gray-500 hover:text-neon-red transition-all"
+                                                            title="Épingler"
+                                                        >
+                                                            <Pin className="w-3 h-3" />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setBanMenuUser(banMenuUser === msg.id ? null : msg.id)}
+                                                            className="p-1.5 text-gray-500 hover:text-red-500 transition-all"
+                                                            title="Bannir"
+                                                        >
+                                                            <Ban className="w-3 h-3" />
+                                                        </button>
+                                                        <button onClick={() => deleteMessage(msg.id)} className="p-1.5 text-gray-500 hover:text-red-500 transition-all">
                                                             <X className="w-3 h-3" />
                                                         </button>
-                                                    )}
-                                                </div>
-                                                <p className="text-sm text-gray-300">{msg.text}</p>
+                                                    </div>
+                                                )}
+
+                                                {/* Ban Popup Menu */}
+                                                {banMenuUser === msg.id && (
+                                                    <div className="absolute right-0 top-10 bg-black/95 backdrop-blur-xl p-3 border border-white/10 rounded-2xl shadow-2xl z-50 min-w-[180px] space-y-2 animate-in fade-in zoom-in duration-200">
+                                                        <div className="flex items-center gap-2 pb-2 border-b border-white/5 mb-2">
+                                                            <UserMinus className="w-3 h-3 text-red-500" />
+                                                            <span className="text-[9px] font-black text-white uppercase italic">Modération: {msg.user}</span>
+                                                        </div>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            {[1, 5, 10, 60].map(m => (
+                                                                <button key={m} onClick={() => { setBannedUsers({ ...bannedUsers, [msg.user]: Date.now() + m * 60000 }); setBanMenuUser(null); showNotification(`${msg.user} banni ${m} min`, 'error'); }} className="py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[8px] font-black text-white uppercase transition-all">{m} MIN</button>
+                                                            ))}
+                                                        </div>
+                                                        <button onClick={() => { setBannedUsers({ ...bannedUsers, [msg.user]: 'perm' }); setBanMenuUser(null); showNotification(`${msg.user} banni DEFINITIVEMENT`, 'error'); }} className="w-full py-2 bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-2">
+                                                            <Ban className="w-3 h-3" /> BAN DÉFINITIF
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
                                     ))}
@@ -935,7 +1108,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 </motion.div>
                             ) : (
                                 <motion.div key="planning-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-                                    {lineupData.length > 0 ? lineupData.map((item, i) => item && (
+                                    {lineupData.length > 0 ? lineupData.map((item: any, i: number) => item && (
                                         <div key={i} className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-4">
                                             <div className="text-[10px] font-black text-neon-purple uppercase">{item.time}</div>
                                             <div className="flex-1"><p className="text-xs font-black text-white uppercase italic">{item.artist}</p><p className="text-[9px] text-gray-500 font-bold uppercase">{item.stage}</p></div>
@@ -947,11 +1120,31 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     </div>
 
                     {activeChatTab === 'chat' && (
-                        <div className="p-4 bg-[#080808] border-t border-white/10">
-                            <div className="flex items-center gap-2 p-1 bg-black/40 border border-white/10 rounded-xl focus-within:border-neon-red/30 transition-all">
-                                <button className="p-2 text-gray-500 hover:text-white"><Smile className="w-5 h-5" /></button>
-                                <input className="flex-1 bg-transparent px-2 py-2 text-sm text-white outline-none" placeholder="Écrire un message..." value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendMessage()} />
-                                <button onClick={handleSendMessage} className="p-2 bg-neon-red text-white rounded-lg"><Send className="w-4 h-4" /></button>
+                        <div className="p-4 bg-[#080808] border-t border-white/10 space-y-3">
+                            {isHighlightChecked && (
+                                <div className="flex items-center justify-between px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg animate-pulse">
+                                    <div className="flex items-center gap-2">
+                                        <Star className="w-3 h-3 text-amber-500" />
+                                        <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest">Message mis en avant</span>
+                                    </div>
+                                    <span className="text-[9px] font-black text-amber-500">-{highlightCost} DROPS</span>
+                                </div>
+                            )}
+                            <div className="flex flex-col gap-2">
+                                <div className="flex items-center gap-3">
+                                    <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black' : 'bg-white/5 text-gray-500 hover:text-amber-500'}`} title={`Mettre en avant (${highlightCost} Drops)`}>
+                                        <Star className={`w-5 h-5 ${isHighlightChecked ? 'fill-black' : ''}`} />
+                                    </button>
+                                    <div className="flex-1 flex items-center gap-2 p-1 bg-black/40 border border-white/10 rounded-xl focus-within:border-neon-red/30 transition-all">
+                                        <button className="p-2 text-gray-500 hover:text-white"><Smile className="w-5 h-5" /></button>
+                                        <input className="flex-1 bg-transparent px-2 py-2 text-sm text-white outline-none" placeholder="Écrire un message..." value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendMessage()} />
+                                        <button onClick={handleSendMessage} className="p-2 bg-neon-red text-white rounded-lg"><Send className="w-4 h-4" /></button>
+                                    </div>
+                                </div>
+                                <div className="flex justify-between px-1">
+                                    <p className="text-[8px] font-black text-gray-600 uppercase italic">Tapez !help pour les commandes</p>
+                                    <p className="text-[8px] font-black text-gray-600 uppercase italic">{newMessage.length}/200</p>
+                                </div>
                             </div>
                         </div>
                     )}
