@@ -4,7 +4,7 @@
   "shop_password_image": "",
   "takeover": {
     "enabled": true,
-    "youtubeId": "",
+    "youtubeId": "https://www.youtube.com/watch?v=DQHSj6cphm0&pp=0gcJCa4KAYcqIYzv",
     "title": "LIVE TAKEOVER",
     "moderators": "",
     "lineup": "",
@@ -43,7 +43,8 @@
     "botColor": "#00ffcc",
     "botBgColor": "rgba(0, 255, 204, 0.05)",
     "adminColor": "#ff0033",
-    "adminBgColor": "rgba(255, 0, 51, 0.05)"
+    "adminBgColor": "rgba(255, 0, 51, 0.05)",
+    "mainFluxName": ""
   },
   "socials": {
     "instagram": "dropsiders.eu",
