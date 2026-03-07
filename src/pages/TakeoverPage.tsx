@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Settings, Users, MessageSquare, Send, Zap,
-    Smile, Save, AlertCircle, ShoppingBag, Music, Trash2
+    Smile, Save, AlertCircle, ShoppingBag, Music, Trash2, Calendar
 } from 'lucide-react';
 
 interface TakeoverSettings {
@@ -467,7 +467,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <div className="flex items-center justify-between border-b border-white/10 pb-6">
                                         <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Configuration <span className="text-neon-purple">Studio</span></h2>
                                         <div className="flex gap-2">
-                                            {['GENERAL', 'DROPS', 'BOT', 'MODERATION'].map(t => (
+                                            {['GENERAL', 'PLANNING', 'DROPS', 'BOT', 'MODERATION'].map(t => (
                                                 <button
                                                     key={t}
                                                     onClick={() => setAdminActiveTab(t.toLowerCase())}
@@ -487,14 +487,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     <div>
                                                         <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre du Live</label>
                                                         <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: MAIN STAGE LIVE" />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Artiste Actuel (Bandeau)</label>
-                                                        <input type="text" value={editMainFluxName} onChange={e => setEditMainFluxName(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: DEBORAH DE LUCA" />
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre Actuel (Shazam)</label>
-                                                        <input type="text" value={editCurrentTrack} onChange={e => setEditCurrentTrack(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: JEALOUS (ORIGINAL MIX)" />
                                                     </div>
                                                 </div>
                                                 <div className="pt-6 border-t border-white/5 space-y-6">
@@ -564,17 +556,49 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-2 gap-8">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                 <div className="space-y-4">
                                                     <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Texte du Bandeau</label>
                                                     <textarea value={editAnnText} onChange={e => setEditAnnText(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all min-h-[120px] uppercase" placeholder="MESSAGE BANDEAU..." />
                                                 </div>
-                                                <div className="space-y-4">
-                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Planning</label>
-                                                    <textarea value={editLineup} onChange={e => setEditLineup(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all min-h-[120px] uppercase font-mono" placeholder="[HH:mm] Artist | Stage" />
-                                                </div>
                                             </div>
                                         </>
+                                    ) : adminActiveTab === 'planning' ? (
+                                        <div className="space-y-8">
+                                            <div className="grid grid-cols-2 gap-8">
+                                                <div className="space-y-6">
+                                                    <h3 className="text-xs font-black text-neon-cyan uppercase tracking-widest flex items-center gap-2">
+                                                        <Calendar className="w-4 h-4" /> Programmation
+                                                    </h3>
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Planning des Artistes</label>
+                                                        <textarea
+                                                            value={editLineup}
+                                                            onChange={e => setEditLineup(e.target.value)}
+                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-cyan transition-all min-h-[300px] uppercase font-mono leading-relaxed"
+                                                            placeholder="[20:00] MOCHAKK | MAIN STAGE&#10;[21:30] VINTAGE CULTURE | MAIN STAGE"
+                                                        />
+                                                        <p className="mt-4 p-4 bg-neon-cyan/5 border border-neon-cyan/20 rounded-xl text-[9px] text-neon-cyan font-bold uppercase leading-relaxed">
+                                                            Format : [HH:mm] Artiste | Scène (Optionnel) <br />
+                                                            L'artiste actuel sera automatiquement détecté selon l'heure pour l'affichage en direct.
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-6">
+                                                    <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest">Aide de remplissage</h3>
+                                                    <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+                                                        <div className="space-y-2">
+                                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Nom de la scène par défaut</label>
+                                                            <input type="text" value={editMainFluxName} onChange={e => setEditMainFluxName(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-cyan" placeholder="MAIN STAGE" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Titre par défaut (ID)</label>
+                                                            <input type="text" value={editCurrentTrack} onChange={e => setEditCurrentTrack(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-cyan" placeholder="ID - UNRELEASED" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
                                     ) : adminActiveTab === 'drops' ? (
                                         <div className="space-y-8">
                                             <div className="grid grid-cols-2 gap-8">
