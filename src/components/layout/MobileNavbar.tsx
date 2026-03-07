@@ -70,7 +70,7 @@ export function MobileNavbar() {
             <motion.div
                 initial={{ y: 100, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
-                className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] w-full bg-black/90 backdrop-blur-xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] flex items-center justify-around px-2 pt-3 pb-1"
+                className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] w-full bg-dark-bg/90 backdrop-blur-xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] flex items-center justify-around px-2 pt-3 pb-1"
             >
                 {mainItems.map((item) => {
                     const isActive = location.pathname === item.path;
@@ -135,7 +135,7 @@ export function MobileNavbar() {
                             animate={{ opacity: 1 }}
                             exit={{ opacity: 0 }}
                             onClick={() => setIsMenuOpen(false)}
-                            className="absolute inset-0 bg-black/80 backdrop-blur-md"
+                            className="absolute inset-0 bg-dark-bg/80 backdrop-blur-md"
                         />
                         <motion.div
                             initial={{ y: "100%" }}
@@ -164,7 +164,7 @@ export function MobileNavbar() {
                                         onClick={() => setIsMenuOpen(false)}
                                         className="flex items-center gap-4 p-4 bg-white/5 border border-white/5 rounded-2xl active:bg-white/10 transition-all"
                                     >
-                                        <div className={twMerge("p-2 rounded-xl bg-black/20", item.color)}>
+                                        <div className={twMerge("p-2 rounded-xl bg-dark-bg/50", item.color)}>
                                             <item.icon className="w-5 h-5" />
                                         </div>
                                         <span className="text-xs font-black uppercase tracking-widest text-white">{item.label}</span>

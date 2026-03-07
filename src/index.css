@@ -626,6 +626,20 @@
 
 /* --- MOBILE PERFORMANCE OPTIMIZATIONS --- */
 @media (max-width: 1024px) {
+
+  /* Eclaircir légèrement le fond sur mobile */
+  :root {
+    --color-dark-bg: #141414;
+  }
+
+  body {
+    background-color: var(--color-dark-bg) !important;
+  }
+
+  .bg-dark-bg {
+    background-color: var(--color-dark-bg) !important;
+  }
+
   /* Disable heavy visual effects on mobile to maintain 60FPS */
 
   /* Backdrop blur is extremely expensive on mobile GPUs */

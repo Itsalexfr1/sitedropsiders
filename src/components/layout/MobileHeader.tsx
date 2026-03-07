@@ -13,7 +13,7 @@ export function MobileHeader({ onOpenSearch }: MobileHeaderProps) {
     const { language, setLanguage } = useLanguage();
 
     return (
-        <header className="fixed top-0 left-0 right-0 h-16 bg-black/80 backdrop-blur-md z-[120] border-b border-white/10 px-4 flex items-center justify-between lg:hidden shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+        <header className="fixed top-0 left-0 right-0 h-16 bg-dark-bg/80 backdrop-blur-md z-[120] border-b border-white/10 px-4 flex items-center justify-between lg:hidden shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
             {/* Glassy Overlay for extra premium feel */}
             <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
 

@@ -125,8 +125,8 @@ export function MobileHome() {
                             className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden snap-center border border-white/10 group shadow-[0_20px_50px_rgba(0,0,0,0.5)] active:scale-95 transition-transform"
                         >
                             <img src={news.image} className="absolute inset-0 w-full h-full object-cover group-active:scale-105 transition-transform duration-700" alt="" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-90" />
-                            <div className="absolute top-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
+                            <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
+                            <div className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
                                 <span className="text-xs font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
@@ -157,8 +157,8 @@ export function MobileHome() {
                             className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 active:scale-95 transition-transform"
                         >
                             <img src={news.image} className="absolute inset-0 w-full h-full object-cover group-active:scale-105 transition-transform duration-700" alt="" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-90" />
-                            <div className="absolute top-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
+                            <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
+                            <div className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
                                 <span className="text-xs font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
@@ -196,7 +196,7 @@ export function MobileHome() {
                                 className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-700"
                                 alt=""
                             />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-80" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/40 to-transparent opacity-80" />
 
                             <div className="flex-1" />
                             <div className="text-neon-cyan text-sm font-black mb-3 flex items-center gap-2 relative z-10 uppercase tracking-widest">
@@ -206,7 +206,7 @@ export function MobileHome() {
                             <h3 className="text-2xl font-black text-white uppercase italic mb-6 leading-[1.1] relative z-10 drop-shadow-2xl line-clamp-3">
                                 {event.title}
                             </h3>
-                            <div className="flex items-center gap-3 text-gray-200 relative z-10 bg-black/40 w-fit px-4 py-3 rounded-2xl backdrop-blur-md border border-white/10 shadow-lg">
+                            <div className="flex items-center gap-3 text-gray-200 relative z-10 bg-dark-bg/40 w-fit px-4 py-3 rounded-2xl backdrop-blur-md border border-white/10 shadow-lg">
                                 <MapPin className="w-5 h-5 text-neon-cyan" />
                                 <span className="text-xs font-black uppercase truncate max-w-[200px]">{event.location}</span>
                             </div>
@@ -233,8 +233,8 @@ export function MobileHome() {
                             className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 active:scale-95 transition-transform"
                         >
                             <img src={(recap as any).image} className="absolute inset-0 w-full h-full object-cover group-active:scale-105 transition-transform duration-700" alt="" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-90" />
-                            <div className="absolute top-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
+                            <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
+                            <div className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
                                 <span className="text-xs font-black text-neon-purple uppercase tracking-[0.2em]">{recap.festival || 'RECAP'}</span>
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
