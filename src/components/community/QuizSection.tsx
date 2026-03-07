@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Gamepad2, Headphones, Plus, CheckCircle2, XCircle, Trophy, Send, Play, User, Zap, Camera, Upload, Image as ImageIcon } from 'lucide-react';
 import { uploadFile } from '../../utils/uploadService';
 import { useLanguage } from '../../context/LanguageContext';
+import { AudioWaveformSelector } from '../admin/AudioWaveformSelector';
 
 type QuizType = 'QCM' | 'BLIND_TEST' | 'IMAGE';
 type GameLength = 5 | 10 | 20;
@@ -946,37 +947,49 @@ export function QuizSection() {
                         </div>
 
                         {formData.type === 'BLIND_TEST' && (
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-3">Extrait Audio (.mp3)</label>
-                                    <div className="flex gap-2">
-                                        <input
-                                            type="url"
-                                            value={formData.audioUrl}
-                                            onChange={e => setFormData({ ...formData, audioUrl: e.target.value })}
-                                            className="flex-1 bg-black/40 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-neon-red transition-all font-bold"
-                                            placeholder="URL MP3..."
-                                        />
-                                        <label className="cursor-pointer px-6 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center hover:bg-white/10 transition-all">
-                                            <Upload className="w-5 h-5 text-gray-400" />
+                            <div className="space-y-4">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-neon-red uppercase tracking-widest mb-3">Extrait Audio (.mp3)</label>
+                                        <div className="flex gap-2">
                                             <input
-                                                type="file"
-                                                accept="audio/*"
-                                                className="hidden"
-                                                onChange={async (e) => {
-                                                    const file = e.target.files?.[0];
-                                                    if (!file) return;
-                                                    setUploading(true);
-                                                    try {
-                                                        const url = await uploadFile(file);
-                                                        setFormData({ ...formData, audioUrl: url });
-                                                    } catch (err) { alert('Erreur upload'); }
-                                                    finally { setUploading(false); }
-                                                }}
+                                                type="url"
+                                                value={formData.audioUrl}
+                                                onChange={e => setFormData({ ...formData, audioUrl: e.target.value })}
+                                                className="flex-1 bg-black/40 border border-white/10 rounded-2xl p-4 text-white focus:outline-none focus:border-neon-red transition-all font-bold"
+                                                placeholder="URL MP3..."
                                             />
-                                        </label>
+                                            <label className="cursor-pointer px-6 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center hover:bg-white/10 transition-all">
+                                                <Upload className="w-5 h-5 text-gray-400" />
+                                                <input
+                                                    type="file"
+                                                    accept="audio/*"
+                                                    className="hidden"
+                                                    onChange={async (e) => {
+                                                        const file = e.target.files?.[0];
+                                                        if (!file) return;
+                                                        setUploading(true);
+                                                        try {
+                                                            const url = await uploadFile(file);
+                                                            setFormData({ ...formData, audioUrl: url });
+                                                        } catch (err) { alert('Erreur upload'); }
+                                                        finally { setUploading(false); }
+                                                    }}
+                                                />
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
+
+                                {/* Waveform Selector */}
+                                {formData.audioUrl && (
+                                    <AudioWaveformSelector
+                                        audioUrl={formData.audioUrl}
+                                        startTime={formData.startTime}
+                                        duration={30}
+                                        onChange={(newStart) => setFormData(prev => ({ ...prev, startTime: newStart }))}
+                                    />
+                                )}
                             </div>
                         )}
 

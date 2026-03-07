@@ -3113,6 +3113,24 @@ export default {
             return new Response(JSON.stringify({ error: 'Quiz not found' }), { status: 404, headers });
         }
 
+        // Reset all BLIND_TEST questions
+        if (path === '/api/quiz/reset-blind-test' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+
+            const activeRaw = await env.CHAT_KV.get('quiz_active') || "[]";
+            const active = JSON.parse(activeRaw);
+            const filteredActive = active.filter(q => q.type !== 'BLIND_TEST');
+            await env.CHAT_KV.put('quiz_active', JSON.stringify(filteredActive));
+
+            const pendingRaw = await env.CHAT_KV.get('quiz_pending') || "[]";
+            const pending = JSON.parse(pendingRaw);
+            const filteredPending = pending.filter(q => q.type !== 'BLIND_TEST');
+            await env.CHAT_KV.put('quiz_pending', JSON.stringify(filteredPending));
+
+            const removedCount = (active.length - filteredActive.length) + (pending.length - filteredPending.length);
+            return new Response(JSON.stringify({ success: true, removed: removedCount }), { status: 200, headers });
+        }
+
         if (path === '/api/quiz/active' && request.method === 'GET') {
             const activeRaw = await env.CHAT_KV.get('quiz_active') || "[]";
             let active = JSON.parse(activeRaw);

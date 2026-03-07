@@ -17,6 +17,7 @@ import { SocialSuite } from '../components/SocialSuite';
 import { ModerationModal } from '../components/admin/ModerationModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Downloader } from './Downloader';
+import { AudioWaveformSelector } from '../components/admin/AudioWaveformSelector';
 
 export function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -4240,6 +4241,26 @@ export function AdminDashboard() {
                                                 Ajouter une question
                                             </button>
                                             <button
+                                                onClick={async () => {
+                                                    if (!window.confirm('⚠️ Voulez-vous vraiment supprimer TOUTES les questions Blind Test ? Cette action est irréversible.')) return;
+                                                    try {
+                                                        const res = await apiFetch('/api/quiz/reset-blind-test', {
+                                                            method: 'POST',
+                                                            headers: getAuthHeaders()
+                                                        });
+                                                        if (res.ok) {
+                                                            const data = await res.json();
+                                                            alert(`✅ ${data.removed} questions Blind Test supprimées !`);
+                                                            fetchQuizzes();
+                                                        }
+                                                    } catch (err) { console.error('Reset BT error:', err); }
+                                                }}
+                                                className="px-4 py-2 bg-orange-500/10 border border-orange-500/20 text-orange-400 rounded-xl font-black uppercase text-[10px] hover:bg-orange-500 hover:text-white transition-all flex items-center gap-2"
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                                Reset BT
+                                            </button>
+                                            <button
                                                 onClick={() => setIsQuizModalOpen(false)}
                                                 className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all shadow-xl"
                                             >
@@ -4607,33 +4628,28 @@ export function AdminDashboard() {
                                                 </div>
                                             </div>
 
-                                            <div>
-                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5 font-display italic">Paramètres de lecture</label>
-                                                <div className="flex flex-col gap-3">
-                                                    <div className="flex flex-col gap-1.5">
-                                                        <label className="text-[9px] font-black text-neon-cyan uppercase tracking-widest block font-display italic opacity-80">Début de l'extrait (Sec)</label>
-                                                        <div className="flex gap-2">
-                                                            <input
-                                                                type="number"
-                                                                value={quizToEdit.startTime || 0}
-                                                                onChange={(e) => setQuizToEdit({ ...quizToEdit, startTime: parseInt(e.target.value) || 0 })}
-                                                                className="flex-1 bg-black border border-neon-cyan/20 rounded-xl p-3 text-white focus:border-neon-cyan outline-none text-[10px] font-black"
-                                                            />
-                                                            <div className="flex gap-1">
-                                                                {[30, 45, 60].map(s => (
-                                                                    <button
-                                                                        key={s}
-                                                                        onClick={() => setQuizToEdit((prev: any) => prev ? { ...prev, startTime: s } : null)}
-                                                                        className={`px-3 rounded-lg border text-[8px] font-black uppercase transition-all ${quizToEdit.startTime === s ? 'bg-neon-cyan text-black border-neon-cyan shadow-lg shadow-neon-cyan/20' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
-                                                                    >
-                                                                        {s}s
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-                                                    </div>
+                                            {/* Waveform Selector */}
+                                            {quizToEdit.audioUrl && (
+                                                <AudioWaveformSelector
+                                                    audioUrl={quizToEdit.audioUrl}
+                                                    startTime={quizToEdit.startTime || 0}
+                                                    duration={30}
+                                                    onChange={(newStart) => setQuizToEdit((prev: any) => prev ? { ...prev, startTime: newStart } : null)}
+                                                />
+                                            )}
+
+                                            {/* Fallback manual input when no audio */}
+                                            {!quizToEdit.audioUrl && (
+                                                <div>
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5 font-display italic">Début de l'extrait (Sec)</label>
+                                                    <input
+                                                        type="number"
+                                                        value={quizToEdit.startTime || 0}
+                                                        onChange={(e) => setQuizToEdit({ ...quizToEdit, startTime: parseInt(e.target.value) || 0 })}
+                                                        className="w-full bg-black border border-neon-cyan/20 rounded-xl p-3 text-white focus:border-neon-cyan outline-none text-[10px] font-black"
+                                                    />
                                                 </div>
-                                            </div>
+                                            )}
                                         </div>
                                     )}
 
