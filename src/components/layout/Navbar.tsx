@@ -69,11 +69,11 @@ export function Navbar() {
         { name: t('nav.interviews'), path: '/interviews', color: 'neon-blue' },
         { name: t('nav.team'), path: '/team', color: 'neon-yellow' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop', color: 'neon-red' }] : []),
-        ...((takeoverEnabled || isAdmin) && (takeoverSettings as any)?.status === 'live' && ((takeoverSettings as any)?.showInNavbar !== false || isAdmin) ? [{
+        ...((isAdmin || (takeoverEnabled && (takeoverSettings as any)?.status !== 'off')) && ((takeoverSettings as any)?.showInNavbar !== false || isAdmin) ? [{
             name: 'LIVE',
             path: '/live',
             icon: Video,
-            isLive: true,
+            isLive: (takeoverSettings as any)?.status === 'live',
             color: 'neon-red',
             onClick: () => {
                 sessionStorage.removeItem('exited_live');

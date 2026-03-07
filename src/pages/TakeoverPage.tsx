@@ -27,6 +27,8 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
     const [editAnnEnabled, setEditAnnEnabled] = useState(initialSettings.showTickerBanner || false);
     const [editLineup, setEditLineup] = useState(initialSettings.lineup || '');
 
+    const [editStatus, setEditStatus] = useState(initialSettings.status || 'off');
+
     const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({
         show: false, message: '', type: 'success'
     });
@@ -61,7 +63,9 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                 mainFluxName: editMainFluxName,
                 tickerText: editAnnText,
                 showTickerBanner: editAnnEnabled,
-                lineup: editLineup
+                lineup: editLineup,
+                status: editStatus,
+                enabled: editStatus !== 'off'
             };
 
             const updatedSettings = { ...globalSettings, takeover: updatedTakeover };
@@ -132,7 +136,7 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
     const parsedLineup = getLineupProgress(parseLineup(settings.lineup));
 
     return (
-        <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden font-sans selection:bg-neon-red selection:text-white">
+        <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden font-sans selection:bg-neon-red selection:text-white z-[9999]">
 
             {/* 1. TOP TICKER BANNER */}
             {settings.showTickerBanner && settings.tickerText && (
@@ -212,6 +216,23 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                                             </div>
                                         </div>
                                         <div className="space-y-6">
+                                            <div>
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Mode de Diffusion</label>
+                                                <div className="flex gap-2 p-1 bg-black/40 border border-white/10 rounded-xl">
+                                                    {(['live', 'edit', 'off'] as const).map(s => (
+                                                        <button
+                                                            key={s}
+                                                            onClick={() => setEditStatus(s)}
+                                                            className={`flex-1 py-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${editStatus === s
+                                                                    ? (s === 'live' ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : s === 'edit' ? 'bg-orange-600 text-white' : 'bg-gray-600 text-white')
+                                                                    : 'text-gray-500 hover:text-white hover:bg-white/5'
+                                                                }`}
+                                                        >
+                                                            {s === 'live' ? 'EN DIRECT' : s === 'edit' ? 'PRÉPARATION' : 'HORS LIGNE'}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            </div>
                                             <div>
                                                 <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">ID Vidéo YouTube</label>
                                                 <input type="text" value={editYoutubeId} onChange={e => setEditYoutubeId(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all" placeholder="EX: dQw4w9WgXcQ" />

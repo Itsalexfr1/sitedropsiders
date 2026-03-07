@@ -44,6 +44,7 @@ export function Layout({ children }: LayoutProps) {
         location.pathname.startsWith('/newsletter/admin') ||
         location.pathname.startsWith('/newsletter/studio') ||
         location.pathname.startsWith('/social-studio') ||
+        location.pathname === '/live' ||
         location.pathname.includes('/create') ||
         isMini;
 
