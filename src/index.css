@@ -819,3 +819,7 @@
     padding-bottom: env(safe-area-inset-bottom) !important;
   }
 }
+
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom) !important;
+}
