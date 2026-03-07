@@ -2283,16 +2283,21 @@ export default {
             const BREVO_KEY = env.BREVO_API_KEY;
             if (!BREVO_KEY) return new Response(JSON.stringify({ error: 'Brevo API Key missing' }), { status: 500, headers });
             try {
-                const { to, from, name, subject, message } = await request.json();
+                const body = await request.json().catch(() => ({}));
+                const { to, from, name, subject, message } = body;
                 if (!to || !subject || !message) {
-                    return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+                    return new Response(JSON.stringify({ error: 'Missing required fields (to, subject, message)' }), { status: 400, headers });
                 }
 
-                const senderEmail = (from && from.trim() !== '') ? from : 'contact@dropsiders.fr';
+                // SECURITY/COMPLIANCE: Only use verified sender or a fallback matching the domain
+                const senderEmail = (from && from.includes('@dropsiders')) ? from.trim() : 'contact@dropsiders.fr';
 
                 const recipients = to.split(',').map((email: string) => ({ email: email.trim(), name: name || email.trim() })).filter((r: any) => r.email);
+                if (recipients.length === 0) return new Response(JSON.stringify({ error: 'No valid recipients' }), { status: 400, headers });
+
+                // Add admin as BCC/CC surrogate if not in list
                 if (!recipients.find((r: any) => r.email === 'contact@dropsiders.fr')) {
-                    recipients.push({ email: 'contact@dropsiders.fr', name: 'Dropsiders Admin' });
+                    recipients.push({ email: 'contact@dropsiders.fr', name: 'Dropsiders Backup' });
                 }
 
                 const payload = {
@@ -2358,27 +2363,42 @@ export default {
                     `,
                     replyTo: { email: 'contact@dropsiders.fr', name: 'Dropsiders' }
                 };
+
                 const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
                     method: 'POST',
                     headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+
                 if (!brevoRes.ok) {
                     const errText = await brevoRes.text();
+                    console.error('Brevo API Error:', errText);
                     let parsedErr = errText;
                     try { parsedErr = JSON.parse(errText).message || errText; } catch (e) { }
-                    return new Response(JSON.stringify({ error: parsedErr }), { status: 500, headers });
+                    return new Response(JSON.stringify({ error: parsedErr }), { status: brevoRes.status, headers });
                 }
-                // Mark as replied
+
+                // Mark as replied in database
                 try {
                     const CONTACTS_PATH = 'src/data/contacts.json';
                     const file = await fetchGitHubFile(CONTACTS_PATH) || { content: [], sha: null };
                     const contacts = Array.isArray(file.content) ? file.content : [];
-                    const updatedContacts = contacts.map(c => c.email === to ? { ...c, replied: true, read: true } : c);
+
+                    // Improved matching: if multiple emails, match any
+                    const toEmails = to.split(',').map((e: string) => e.trim().toLowerCase());
+                    const updatedContacts = contacts.map(c =>
+                        toEmails.includes(c.email.toLowerCase()) ? { ...c, replied: true, read: true } : c
+                    );
+
                     await saveGitHubFile(CONTACTS_PATH, updatedContacts, `Reply sent to: ${to} [skip ci] [CF-Pages-Skip]`, file.sha);
-                } catch (e) { console.error('Failed to mark replied:', e); }
+                } catch (e) {
+                    console.error('Failed to mark replied in DB:', e);
+                    // We don't return error here because the email WAS sent successfully
+                }
+
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-            } catch (e) {
+            } catch (e: any) {
+                console.error('Reply API Global Error:', e);
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
         }

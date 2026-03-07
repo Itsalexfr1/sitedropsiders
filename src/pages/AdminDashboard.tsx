@@ -7,7 +7,7 @@ import {
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type,
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram, Bell, Zap,
-    RotateCcw, VideoOff, Play, Download, Gamepad2, Upload, Activity
+    RotateCcw, VideoOff, Play, Download, Gamepad2, Upload, Activity, Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -1093,8 +1093,8 @@ export function AdminDashboard() {
                             {editMode ? (
                                 <>
                                     <button
-                                        onClick={saveConfig}
-                                        disabled={isSaving}
+                                        onClick={deployConfig}
+                                        disabled={isSaving || !hasChanges}
                                         className="px-6 py-2 bg-neon-green/10 hover:bg-neon-green border border-neon-green/30 text-neon-green hover:text-white rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 shadow-lg shadow-neon-green/10"
                                     >
                                         <Save className="w-3.5 h-3.5" />
