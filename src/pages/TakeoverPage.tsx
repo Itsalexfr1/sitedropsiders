@@ -28,6 +28,8 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
     const [editLineup, setEditLineup] = useState(initialSettings.lineup || '');
 
     const [editStatus, setEditStatus] = useState(initialSettings.status || 'off');
+    const [editTickerBg, setEditTickerBg] = useState(initialSettings.tickerBgColor || '#ff0033');
+    const [editTickerTextC, setEditTickerTextC] = useState(initialSettings.tickerTextColor || '#ffffff');
 
     const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({
         show: false, message: '', type: 'success'
@@ -63,6 +65,8 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                 mainFluxName: editMainFluxName,
                 tickerText: editAnnText,
                 showTickerBanner: editAnnEnabled,
+                tickerBgColor: editTickerBg,
+                tickerTextColor: editTickerTextC,
                 lineup: editLineup,
                 status: editStatus,
                 enabled: editStatus !== 'off'
@@ -246,6 +250,23 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                                                     <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editAnnEnabled ? 'left-7' : 'left-1'}`} />
                                                 </button>
                                             </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div>
+                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Couleur Fond</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <input type="color" value={editTickerBg} onChange={e => setEditTickerBg(e.target.value)} className="w-10 h-10 bg-transparent border-none cursor-pointer" />
+                                                        <input type="text" value={editTickerBg} onChange={e => setEditTickerBg(e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white uppercase" />
+                                                    </div>
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Couleur Texte</label>
+                                                    <div className="flex items-center gap-2">
+                                                        <input type="color" value={editTickerTextC} onChange={e => setEditTickerTextC(e.target.value)} className="w-10 h-10 bg-transparent border-none cursor-pointer" />
+                                                        <input type="text" value={editTickerTextC} onChange={e => setEditTickerTextC(e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white uppercase" />
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 
@@ -295,7 +316,7 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                     </div>
 
                     <div className="flex gap-1 p-2 bg-black/20 border-b border-white/10 overflow-x-auto no-scrollbar">
-                        {['CHAT', 'PLANNING', 'SHAZAM', 'AUDIO', 'SHOP'].map(tab => (
+                        {['CHAT', 'PLANNING', 'TRACKLIST'].map(tab => (
                             <button key={tab} onClick={() => setActiveChatTab(tab.toLowerCase())} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === tab.toLowerCase() ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{tab}</button>
                         ))}
                     </div>
