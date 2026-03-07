@@ -567,7 +567,7 @@ export default {
             const requestSessionId = request.headers.get('X-Session-ID');
 
             if (requestPassword === adminPassword && (requestUsername === 'alex' || !requestUsername)) {
-                const settingsFile = await fetchGitHubFile('src/data/settings.json');
+                const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
                 const serverSessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
 
                 // On autorise si le sessionId correspond
@@ -577,7 +577,7 @@ export default {
                 }
             }
             else if (requestUsername) {
-                const editorsFile = await fetchGitHubFile(EDITORS_PATH);
+                const editorsFile = await fetchGitHubFile(EDITORS_PATH, gitConfig);
                 if (editorsFile && editorsFile.content) {
                     const editor = editorsFile.content.find(e => e.username === requestUsername && e.password === requestPassword);
                     if (editor) {
@@ -727,25 +727,25 @@ export default {
 
         if (path === '/api/news' && request.method === 'GET') {
             const FILE_PATH = 'src/data/news.json';
-            const file = await fetchGitHubFile(FILE_PATH);
+            const file = await fetchGitHubFile(FILE_PATH, gitConfig);
             return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
         }
 
         if (path === '/api/recaps' && request.method === 'GET') {
             const FILE_PATH = 'src/data/recaps.json';
-            const file = await fetchGitHubFile(FILE_PATH);
+            const file = await fetchGitHubFile(FILE_PATH, gitConfig);
             return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
         }
 
         if (path === '/api/agenda' && request.method === 'GET') {
             const FILE_PATH = 'src/data/agenda.json';
-            const file = await fetchGitHubFile(FILE_PATH);
+            const file = await fetchGitHubFile(FILE_PATH, gitConfig);
             return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
         }
 
         if (path === '/api/galerie' && request.method === 'GET') {
             const FILE_PATH = 'src/data/galerie.json';
-            const file = await fetchGitHubFile(FILE_PATH);
+            const file = await fetchGitHubFile(FILE_PATH, gitConfig);
             return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
         }
 
@@ -754,12 +754,12 @@ export default {
             try {
                 const { username, password } = await request.json();
                 if ((username === 'alex' || username === 'contact@dropsiders.fr') && password === adminPassword) {
-                    const settingsFile = await fetchGitHubFile('src/data/settings.json');
+                    const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
                     const sessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
                     return new Response(JSON.stringify({ success: true, user: username, permissions: ['all'], sessionId }), { status: 200, headers });
                 }
 
-                const editorsFile = await fetchGitHubFile(EDITORS_PATH);
+                const editorsFile = await fetchGitHubFile(EDITORS_PATH, gitConfig);
                 if (editorsFile && editorsFile.content) {
                     const editor = editorsFile.content.find(e => e.username === username && e.password === password);
                     if (editor) {
@@ -804,20 +804,20 @@ export default {
                 let saved = { ok: true };
 
                 if (userToRevoke === 'alex' || userToRevoke === 'contact@dropsiders.fr') {
-                    const settingsFile = await fetchGitHubFile('src/data/settings.json');
+                    const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
                     if (settingsFile) {
                         settingsFile.content.master_session_id = newSessionId;
-                        saved = await saveGitHubFile('src/data/settings.json', settingsFile.content, 'Revoke all sessions (Alex)', settingsFile.sha);
+                        saved = await saveGitHubFile('src/data/settings.json', settingsFile.content, 'Revoke all sessions (Alex)', settingsFile.sha, gitConfig);
                     } else {
                         return new Response(JSON.stringify({ error: 'Fichier settings introuvable' }), { status: 404, headers });
                     }
                 } else {
-                    const editorsFile = await fetchGitHubFile(EDITORS_PATH);
+                    const editorsFile = await fetchGitHubFile(EDITORS_PATH, gitConfig);
                     if (editorsFile && editorsFile.content) {
                         const index = editorsFile.content.findIndex(e => e.username === userToRevoke);
                         if (index !== -1) {
                             editorsFile.content[index].session_id = newSessionId;
-                            saved = await saveGitHubFile(EDITORS_PATH, editorsFile.content, `Revoke all sessions (${userToRevoke})`, editorsFile.sha);
+                            saved = await saveGitHubFile(EDITORS_PATH, editorsFile.content, `Revoke all sessions (${userToRevoke})`, editorsFile.sha, gitConfig);
                         } else {
                             return new Response(JSON.stringify({ error: 'Éditeur introuvable' }), { status: 404, headers });
                         }
@@ -839,30 +839,30 @@ export default {
 
         // --- API: EDITORS MANAGEMENT ---
         if (path === '/api/editors' && request.method === 'GET') {
-            const editors = await fetchGitHubFile(EDITORS_PATH) || { content: [] };
+            const editors = await fetchGitHubFile(EDITORS_PATH, gitConfig) || { content: [] };
             return new Response(JSON.stringify(editors.content), { status: 200, headers });
         }
 
         if (path === '/api/editors/create' && request.method === 'POST') {
             const { username, password, name, permissions } = await request.json();
-            const file = await fetchGitHubFile(EDITORS_PATH) || { content: [], sha: null };
+            const file = await fetchGitHubFile(EDITORS_PATH, gitConfig) || { content: [], sha: null };
             const updated = [...file.content, { username, password, name, permissions: permissions || [], created: new Date().toISOString() }];
-            const saved = await saveGitHubFile(EDITORS_PATH, updated, `Add editor: ${username}`, file.sha);
+            const saved = await saveGitHubFile(EDITORS_PATH, updated, `Add editor: ${username}`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         if (path === '/api/editors/delete' && request.method === 'POST') {
             const { username } = await request.json();
-            const file = await fetchGitHubFile(EDITORS_PATH);
+            const file = await fetchGitHubFile(EDITORS_PATH, gitConfig);
             if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
             const updated = file.content.filter(e => e.username !== username);
-            const saved = await saveGitHubFile(EDITORS_PATH, updated, `Remove editor: ${username}`, file.sha);
+            const saved = await saveGitHubFile(EDITORS_PATH, updated, `Remove editor: ${username}`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         if (path === '/api/editors/update' && request.method === 'POST') {
             const { username, password, name, permissions } = await request.json();
-            const file = await fetchGitHubFile(EDITORS_PATH);
+            const file = await fetchGitHubFile(EDITORS_PATH, gitConfig);
             if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
 
             const index = file.content.findIndex(e => e.username === username);
@@ -874,14 +874,14 @@ export default {
             }
 
             file.content[index] = updatedEditor;
-            const saved = await saveGitHubFile(EDITORS_PATH, file.content, `Update editor: ${username}`, file.sha);
+            const saved = await saveGitHubFile(EDITORS_PATH, file.content, `Update editor: ${username}`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         // --- API: SPOTIFY MANAGEMENT ---
         if (path === '/api/spotify' && request.method === 'GET') {
             const SPOTIFY_PATH = 'src/data/spotify.json';
-            const file = await fetchGitHubFile(SPOTIFY_PATH);
+            const file = await fetchGitHubFile(SPOTIFY_PATH, gitConfig);
             if (!file) return new Response(JSON.stringify([]), { status: 200, headers });
             return new Response(JSON.stringify(file.content), { status: 200, headers });
         }
@@ -889,15 +889,15 @@ export default {
         if (path === '/api/spotify/update' && request.method === 'POST') {
             const SPOTIFY_PATH = 'src/data/spotify.json';
             const { playlists } = await request.json();
-            const file = await fetchGitHubFile(SPOTIFY_PATH) || { content: [], sha: null };
-            const saved = await saveGitHubFile(SPOTIFY_PATH, playlists, `Update Spotify playlists`, file.sha);
+            const file = await fetchGitHubFile(SPOTIFY_PATH, gitConfig) || { content: [], sha: null };
+            const saved = await saveGitHubFile(SPOTIFY_PATH, playlists, `Update Spotify playlists`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         // --- API: TEAM MANAGEMENT ---
         if (path === '/api/team' && request.method === 'GET') {
             const TEAM_PATH = 'src/data/team.json';
-            const file = await fetchGitHubFile(TEAM_PATH);
+            const file = await fetchGitHubFile(TEAM_PATH, gitConfig);
             if (!file) return new Response(JSON.stringify([]), { status: 200, headers });
             return new Response(JSON.stringify(file.content), { status: 200, headers });
         }
@@ -2530,7 +2530,7 @@ export default {
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
 
             try {
-                const file = await fetchGitHubFile(PATH);
+                const file = await fetchGitHubFile(PATH, gitConfig);
                 if (!file) {
                     // Empty file or error -> Return empty list to prevent frontend crash
                     return new Response(JSON.stringify([]), { status: 200, headers });
@@ -2631,7 +2631,7 @@ export default {
             const id = parseInt(url.searchParams.get('id') || '0');
             if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers });
             for (const filePath of NEWS_CONTENT_FILES) {
-                const cFile = await fetchGitHubFile(filePath);
+                const cFile = await fetchGitHubFile(filePath, gitConfig);
                 if (cFile && Array.isArray(cFile.content)) {
                     const item = cFile.content.find(i => i.id === id);
                     if (item) return new Response(JSON.stringify({ content: item.content }), { status: 200, headers });
@@ -2646,7 +2646,7 @@ export default {
             const id = parseInt(url.searchParams.get('id') || '0');
             if (!id) return new Response(JSON.stringify({ error: 'Missing id' }), { status: 400, headers });
             for (const filePath of RECAPS_CONTENT_FILES) {
-                const cFile = await fetchGitHubFile(filePath);
+                const cFile = await fetchGitHubFile(filePath, gitConfig);
                 if (cFile && Array.isArray(cFile.content)) {
                     const item = cFile.content.find(i => i.id === id);
                     if (item) return new Response(JSON.stringify({ content: item.content }), { status: 200, headers });
@@ -2662,7 +2662,7 @@ export default {
                 const { imageUrl, userName, festivalName, year, instagram, anecdote } = body;
                 if (!imageUrl) return new Response(JSON.stringify({ error: 'Image URL required' }), { status: 400, headers });
 
-                const file = await fetchGitHubFile(PENDING_SUBMISSIONS_PATH) || { content: [], sha: null };
+                const file = await fetchGitHubFile(PENDING_SUBMISSIONS_PATH, gitConfig) || { content: [], sha: null };
                 const submissions = Array.isArray(file.content) ? file.content : [];
 
                 const newSubmission = {
@@ -2678,7 +2678,7 @@ export default {
                 };
 
                 const updated = [newSubmission, ...submissions];
-                await saveGitHubFile(PENDING_SUBMISSIONS_PATH, updated, `New photo submission from ${newSubmission.userName}`, file.sha);
+                await saveGitHubFile(PENDING_SUBMISSIONS_PATH, updated, `New photo submission from ${newSubmission.userName}`, file.sha, gitConfig);
 
                 return new Response(JSON.stringify({ success: true, submission: newSubmission }), { status: 200, headers });
             } catch (e) {
@@ -2689,7 +2689,7 @@ export default {
         if (path === '/api/photos/pending' && request.method === 'GET') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
-                const file = await fetchGitHubFile(PENDING_SUBMISSIONS_PATH);
+                const file = await fetchGitHubFile(PENDING_SUBMISSIONS_PATH, gitConfig);
                 return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
@@ -2702,7 +2702,7 @@ export default {
                 const { id, action } = await request.json();
                 if (!id || !action) return new Response(JSON.stringify({ error: 'Missing ID or action' }), { status: 400, headers });
 
-                const subFile = await fetchGitHubFile(PENDING_SUBMISSIONS_PATH);
+                const subFile = await fetchGitHubFile(PENDING_SUBMISSIONS_PATH, gitConfig);
                 if (!subFile) return new Response(JSON.stringify({ error: 'Submissions file not found' }), { status: 404, headers });
 
                 const submission = subFile.content.find(s => s.id === id);
@@ -2710,7 +2710,7 @@ export default {
 
                 if (action === 'approve') {
                     // Add to galerie.json
-                    const galFile = await fetchGitHubFile(GALERIE_PATH) || { content: [], sha: null };
+                    const galFile = await fetchGitHubFile(GALERIE_PATH, gitConfig) || { content: [], sha: null };
                     const galleries = Array.isArray(galFile.content) ? galFile.content : [];
 
                     const year = (submission as any).year || new Date().getFullYear().toString();
@@ -2734,7 +2734,7 @@ export default {
                         }
                     }
 
-                    await saveGitHubFile(GALERIE_PATH, galleries, `Approve photo for ${galleryTitle}`, galFile.sha);
+                    await saveGitHubFile(GALERIE_PATH, galleries, `Approve photo for ${galleryTitle}`, galFile.sha, gitConfig);
 
                     // Save anecdote to KV
                     const finalAnecdote = anecdote !== undefined ? anecdote : submission.anecdote;
@@ -2759,7 +2759,7 @@ export default {
 
                 // Remove from pending (for both approve and reject)
                 const updatedSubs = subFile.content.filter(s => s.id !== id);
-                await saveGitHubFile(PENDING_SUBMISSIONS_PATH, updatedSubs, `${action === 'approve' ? 'Approve' : 'Reject'} photo submission ${id}`, subFile.sha);
+                await saveGitHubFile(PENDING_SUBMISSIONS_PATH, updatedSubs, `${action === 'approve' ? 'Approve' : 'Reject'} photo submission ${id}`, subFile.sha, gitConfig);
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e) {
@@ -3480,7 +3480,7 @@ export default {
 
             if (id && dataSource) {
                 try {
-                    const dataFile = await fetchGitHubFile(dataSource);
+                    const dataFile = await fetchGitHubFile(dataSource, gitConfig);
                     if (dataFile && dataFile.content) {
                         const itemIdStr = String(id);
                         const actualId = itemIdStr.match(/^(\d+)/) ? itemIdStr.match(/^(\d+)/)[1] : itemIdStr;

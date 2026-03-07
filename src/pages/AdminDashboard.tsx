@@ -794,7 +794,6 @@ export function AdminDashboard() {
 
         } catch (err: any) {
             // FALLBACK LOCAL (DEV MODE)
-            // Si l'API n'est pas accessible (ex: dev local sans Wrangler), on vérifie en dur ici pour ébloquer
             console.log("API Login failed, trying local check...", err);
 
             if ((username === 'contact@dropsiders.fr' || username === 'alex') && password === '2026') {
@@ -802,6 +801,8 @@ export function AdminDashboard() {
                 localStorage.setItem('admin_auth', 'true');
                 localStorage.setItem('admin_password', password);
                 localStorage.setItem('admin_user', 'alex');
+                localStorage.setItem('admin_permissions', JSON.stringify(['all']));
+                localStorage.setItem('admin_session_id', 'initial-session-id');
                 setActions(getFallbackActions());
             } else {
                 setError('Identifiants incorrects (Mode Local)');
