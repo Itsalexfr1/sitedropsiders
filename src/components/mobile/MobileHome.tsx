@@ -23,7 +23,11 @@ export function MobileHome() {
         return [...newsData].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }, []);
 
-    const featuredNews = sortedNews.filter(n => n.isFeatured).slice(0, 5);
+    const featuredNews = useMemo(() => {
+        const featured = sortedNews.filter(n => n.isFeatured).slice(0, 5);
+        if (featured.length > 0) return featured;
+        return sortedNews.slice(0, 5);
+    }, [sortedNews]);
 
     // 2. Filter News (exclude interviews/musique for this block)
     const newsHighlight = useMemo(() => {
