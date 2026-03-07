@@ -56,6 +56,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     // InShot-style: active bottom panel and format modal
     const [activePanel, setActivePanel] = useState<string | null>(null);
     const [showFormatModal, setShowFormatModal] = useState(true);
+    const [readyVideoBlob, setReadyVideoBlob] = useState<Blob | null>(null);
+    const [readyVideoUrl, setReadyVideoUrl] = useState<string>('');
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -790,47 +792,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             const url = URL.createObjectURL(blob);
 
             setIsVideoRecording(false);
-            setActivePanel(null);
-
-            // iOS WORKAROUND: Force a direct link if sharing is unstable
-            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
-
-            if (isMobile && ('share' in navigator)) {
-                try {
-                    const fileName = `dropsiders-${theme.replace(/ /g, '-')}-${Date.now()}.${extension}`;
-                    const file = new File([blob], fileName, { type: mimeType });
-
-                    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                            files: [file],
-                            title: 'Dropsiders Video',
-                            text: 'Vidéo générée par Dropsiders'
-                        });
-                        return;
-                    }
-                } catch (err) {
-                    console.warn('Sharing failed', err);
-                }
-            }
-
-            // FALLBACK / TRADITIONAL DOWNLOAD
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = `dropsiders-${theme.replace(/ /g, '-')}-${Date.now()}.${extension}`;
-
-            if (isIOS || isMobile) {
-                // On iOS, we show the video in a way the user can long-press to save, 
-                // or try to force a download via window.open
-                const message = isIOS ? "Votre vidéo est prête. Cliquez sur 'OK' puis maintenez la vidéo pour l'enregistrer dans vos photos." : "Téléchargement en cours...";
-                alert(message);
-                window.location.href = url;
-            } else {
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
-
-            setTimeout(() => URL.revokeObjectURL(url), 10000);
+            setReadyVideoBlob(blob);
+            setReadyVideoUrl(url);
+            setActivePanel(null); // Close export panel
         };
 
         recorder.start(1000);
@@ -1419,6 +1383,83 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 </motion.div>
 
             )} {/* end isMobile ternary */}
+
+            {/* Video Ready Success Modal (Mobile Only) */}
+            <AnimatePresence>
+                {readyVideoBlob && (
+                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[500] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl">
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+                            className="w-full max-w-sm bg-dark-bg border border-white/10 rounded-[3rem] p-8 flex flex-col items-center">
+
+                            <div className="w-20 h-20 bg-neon-green/10 rounded-full flex items-center justify-center mb-6 border border-neon-green/20">
+                                <Check className="w-10 h-10 text-neon-green" />
+                            </div>
+
+                            <h2 className="text-2xl font-black text-white italic uppercase mb-2 text-center leading-none">VIDÉO PRÊTE !</h2>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-8 text-center">Enregistrez-la pour vos réseaux</p>
+
+                            <div className="w-full aspect-[9/16] max-h-[300px] mb-8 rounded-2xl overflow-hidden bg-black border border-white/5 relative group">
+                                <video src={readyVideoUrl} className="w-full h-full object-cover" autoPlay loop muted playsInline />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                            </div>
+
+                            <div className="w-full space-y-3">
+                                <button
+                                    onClick={async () => {
+                                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                                        const extension = readyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+                                        const fileName = `dropsiders-${theme.replace(/ /g, '-')}.${extension}`;
+                                        const file = new File([readyVideoBlob], fileName, { type: readyVideoBlob.type });
+
+                                        if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                                            try {
+                                                await navigator.share({
+                                                    files: [file],
+                                                    title: 'Dropsiders Video',
+                                                    text: 'Ma vidéo générée'
+                                                });
+                                            } catch (err) {
+                                                console.warn("Share failed:", err);
+                                                // Fallback to open URL
+                                                window.location.href = readyVideoUrl;
+                                            }
+                                        } else {
+                                            // Fallback for non-share browsers
+                                            const a = document.createElement('a');
+                                            a.href = readyVideoUrl;
+                                            a.download = fileName;
+                                            document.body.appendChild(a);
+                                            a.click();
+                                            document.body.removeChild(a);
+
+                                            if (isIOS) {
+                                                alert("Maintenez la vidéo qui va s'ouvrir pour l'enregistrer.");
+                                                window.location.href = readyVideoUrl;
+                                            }
+                                        }
+                                    }}
+                                    className="w-full py-5 bg-white text-black font-black rounded-2xl uppercase tracking-widest text-[11px] shadow-[0_10px_30px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all"
+                                >
+                                    Enregistrer dans mes photos
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        if (readyVideoUrl) URL.revokeObjectURL(readyVideoUrl);
+                                        setReadyVideoBlob(null);
+                                        setReadyVideoUrl('');
+                                    }}
+                                    className="w-full py-4 text-gray-500 font-black uppercase text-[10px] tracking-widest hover:text-white transition-colors"
+                                >
+                                    Fermer
+                                </button>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Shared downloader modal (visible on both) */}
             {downloaderModal}
