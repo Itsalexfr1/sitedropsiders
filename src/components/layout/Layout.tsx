@@ -1,8 +1,8 @@
 import { AnnouncementBanner } from '../AnnouncementBanner';
 import { Navbar } from './Navbar';
 import { MobileNavbar } from './MobileNavbar';
+import { MobileHeader } from './MobileHeader';
 import { MobileSearchOverlay } from '../mobile/MobileSearchOverlay';
-import { Search } from 'lucide-react';
 import { VinylCursor } from '../ui/VinylCursor';
 
 import { Footer } from './Footer';
@@ -50,7 +50,7 @@ export function Layout({ children }: LayoutProps) {
 
 
     const ptClass = isAdminPage ? 'pt-0' :
-        (bannerEnabled ? 'pt-[112px]' : (isHome ? 'pt-0' : (isMobile ? 'pt-0' : 'pt-20')));
+        (isMobile ? 'pt-16' : (bannerEnabled ? 'pt-[112px]' : (isHome ? 'pt-0' : 'pt-20')));
 
     return (
         <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white pb-24 lg:pb-0 overflow-x-hidden">
@@ -66,17 +66,7 @@ export function Layout({ children }: LayoutProps) {
 
             {!isMobile && !isAdminPage && <Navbar />}
             {!isMobile && !isAdminPage && <AnnouncementBanner />}
-
-            {/* Floating Search Button (Mobile Only) */}
-            {isMobile && !isAdminPage && (
-                <button
-                    onClick={() => setIsSearchOpen(true)}
-                    className="fixed top-6 right-6 z-[100] w-12 h-12 rounded-2xl bg-black/60 backdrop-blur-md border border-white/10 flex items-center justify-center shadow-2xl active:scale-90 transition-all group"
-                >
-                    <div className="absolute inset-0 rounded-2xl bg-neon-red/10 opacity-0 group-active:opacity-100 transition-opacity" />
-                    <Search className="w-6 h-6 text-white group-active:text-neon-red transition-colors" />
-                </button>
-            )}
+            {isMobile && !isAdminPage && <MobileHeader onOpenSearch={() => setIsSearchOpen(true)} />}
 
             <MobileSearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
