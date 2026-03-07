@@ -3,6 +3,7 @@ import { Navbar } from './Navbar';
 import { MobileNavbar } from './MobileNavbar';
 import { MobileSearchOverlay } from '../mobile/MobileSearchOverlay';
 import { Search } from 'lucide-react';
+import { VinylCursor } from '../ui/VinylCursor';
 
 import { Footer } from './Footer';
 import { useLocation } from 'react-router-dom';
@@ -59,6 +60,8 @@ export function Layout({ children }: LayoutProps) {
                 <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-neon-red/10 rounded-full blur-[100px]" />
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
             </div>
+
+            {!isMobile && !isAdminPage && <VinylCursor />}
 
             {!isMobile && !isAdminPage && <Navbar />}
             {!isMobile && !isAdminPage && <AnnouncementBanner />}

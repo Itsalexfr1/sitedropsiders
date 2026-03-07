@@ -16,7 +16,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVE TAKEOVER';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVE TAKEOVER' | 'HIGHLIGHTS';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -134,8 +134,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const baseThemeData: Record<ThemeType, { label: string; grad: string; color: string }> = {
         'TOP 5 ARTISTE': { label: 'TOP 5 ARTISTES', grad: '255, 230, 0', color: '#ffe600' }, // Unique Yellow/Gold
         'TOP 5 STYLES': { label: 'TOP 5 STYLES', grad: '0, 240, 255', color: '#00f0ff' },
-        'NEWS': { label: 'ACTUALITÉS', grad: '255, 0, 51', color: '#ff0033' },
-        'FOCUS': { label: 'À LA UNE', grad: '255, 170, 0', color: '#ffaa00' },
+        'NEWS': { label: 'NEWS', grad: '255, 0, 51', color: '#ff0033' },
+        'FOCUS': { label: 'FOCUS', grad: '255, 170, 0', color: '#ffaa00' },
+        'HIGHLIGHTS': { label: 'HIGHLIGHTS', grad: '0, 112, 255', color: '#0070ff' },
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
         'RECAP': { label: 'RÉCAP', grad: '189, 0, 255', color: '#bd00ff' },
         'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' },
@@ -256,7 +257,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.font = `900 italic 67px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                ctx.font = `900 italic 67px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 const textGrad = ctx.createLinearGradient(0, -h / 2, 0, h / 2);
                 textGrad.addColorStop(0, '#ffffff');
                 textGrad.addColorStop(0.4, '#e0e0e0');
@@ -304,14 +305,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 // Artist & Title - Single Line Bold Italic
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '900 italic 62px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
+                ctx.font = '900 italic 62px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 15;
                 ctx.fillText(`${item.main.toUpperCase()} - ${item.sub.toUpperCase()}`, centerX + slideX, centerY + radius + 140);
 
                 // Restore Ranking Number
                 ctx.textAlign = 'right';
-                ctx.font = '900 italic 147px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
+                ctx.font = '900 italic 147px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120);
 
@@ -340,7 +341,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 ctx.textAlign = 'left';
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '900 italic 49px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
+                ctx.font = '900 italic 49px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,0.5)';
                 ctx.shadowBlur = 10;
                 ctx.fillText(`${item.main.toUpperCase()} - ${item.sub.toUpperCase()}`, itemX, baseY);
@@ -350,10 +351,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillStyle = activeData.color;
                 ctx.fillRect(barX + slideX, barY, barWidth, barHeight);
                 ctx.fillStyle = '#000'; // Black text on yellow bar
-                ctx.font = '900 italic 43px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
+                ctx.font = '900 italic 43px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.fillText(`${item.value.toUpperCase()} MILLIONS D'ÉCOUTES`, barX + 30 + slideX, barY + 60);
                 ctx.textAlign = 'right';
-                ctx.font = '900 italic 117px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
+                ctx.font = '900 italic 117px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120); // Descendu dans le dégradé
 
@@ -407,7 +408,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#fff';
-                ctx.font = '900 italic 42px "Inter", sans-serif';
+                ctx.font = '900 italic 42px "Montserrat", sans-serif';
                 ctx.shadowBlur = 0;
                 ctx.fillText('LIVE', centerX + 15, badgeY + badgeH / 2 + 3);
                 ctx.restore();
@@ -417,7 +418,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#fff';
-                ctx.font = '900 italic 180px "Inter", sans-serif';
+                ctx.font = '900 italic 180px "Montserrat", sans-serif';
                 ctx.shadowColor = 'rgba(255, 255, 255, 0.2)';
                 ctx.shadowBlur = 20;
                 ctx.fillText('TAKEOVER', centerX, centerY - 60);
@@ -435,7 +436,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     const location = lines[1] ? lines[1].toUpperCase() : '';
 
                     ctx.save();
-                    ctx.font = '900 italic 72px "Inter", sans-serif';
+                    ctx.font = '900 italic 72px "Montserrat", sans-serif';
                     const nameW = Math.max(ctx.measureText(festivalName).width, ctx.measureText(location).width) + 160;
                     const cardH = location ? 180 : 130;
                     const cardY = centerY + 120;
@@ -453,7 +454,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                     // Festival name
                     ctx.fillStyle = '#fff';
-                    ctx.font = '900 italic 75px "Inter", sans-serif';
+                    ctx.font = '900 italic 75px "Montserrat", sans-serif';
                     ctx.textAlign = 'center';
                     ctx.shadowColor = `rgba(${activeData.grad}, 0.5)`;
                     ctx.shadowBlur = 20;
@@ -462,7 +463,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     // Location (if present)
                     if (location) {
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-                        ctx.font = '900 italic 32px "Inter", sans-serif';
+                        ctx.font = '900 italic 32px "Montserrat", sans-serif';
                         ctx.shadowBlur = 0;
                         ctx.fillText(location, centerX, cardY + 135);
                     }
@@ -499,7 +500,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'center';
                 const paragraphs = customText.toUpperCase().split('\n');
                 let lines: string[] = [];
-                ctx.font = `900 italic ${fontSize}px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                ctx.font = `900 italic ${fontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 const stripTags = (s: string) => s.replace(/\[[CB]:[^\]]+\]|\[\/[CB]\]/gi, '');
                 for (let para of paragraphs) {
                     if (para.trim() === '') { lines.push(''); continue; }
@@ -533,7 +534,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.globalAlpha = 1;
                 ctx.fillStyle = labelText === 'MUSIQUE' ? '#000' : '#FFF';
                 const labelFontSize = activeTab === 'PUBLICATION' ? 42 : 35;
-                ctx.font = `900 italic ${labelFontSize}px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                ctx.font = `900 italic ${labelFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 ctx.textBaseline = 'middle';
                 ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 4);
                 ctx.restore();
@@ -605,7 +606,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 if (lines.length > maxLines) {
                     ctx.fillStyle = textColor;
                     ctx.globalAlpha = 0.3;
-                    ctx.font = '900 italic 27px "Inter", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
+                    ctx.font = '900 italic 27px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif';
                     ctx.fillText('...', canvas.width / 2, startY + (maxLines * lineHeight) - 20);
                     ctx.globalAlpha = 1;
                 }
@@ -921,7 +922,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
     // Shared content blocks (used in both mobile & desktop)
     const themeButtons = (
-        <div className="grid grid-cols-2 gap-2">
+        <div className={activeTab === 'REEL' ? "grid grid-cols-2 gap-2" : "grid grid-cols-3 gap-2"}>
             {activeTab === 'REEL' ? (
                 <>
                     <button onClick={() => setTheme('INTRO')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
@@ -930,11 +931,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 </>
             ) : (
                 <>
-                    <button onClick={() => setTheme('NEWS')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>ACTUS</button>
-                    <button onClick={() => setTheme('FOCUS')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>À LA UNE</button>
-                    <button onClick={() => setTheme('MUSIQUE')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
-                    <button onClick={() => setTheme('RECAP')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
-                    <button onClick={() => setTheme('LIVE TAKEOVER')} className={`py-3 rounded-xl text-[9px] font-black uppercase border transition-all col-span-2 ${theme === 'LIVE TAKEOVER' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
+                    <button onClick={() => setTheme('NEWS')} className={`py-3 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'NEWS' ? 'bg-neon-red/20 border-neon-red text-neon-red' : 'bg-white/5 border-white/5 text-gray-400'}`}>NEWS</button>
+                    <button onClick={() => setTheme('FOCUS')} className={`py-3 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'FOCUS' ? 'bg-[#ffaa00]/20 border-[#ffaa00] text-[#ffaa00]' : 'bg-white/5 border-white/10 text-gray-400'}`}>FOCUS</button>
+                    <button onClick={() => setTheme('HIGHLIGHTS')} className={`py-3 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>HIGHLIGHTS</button>
+                    <button onClick={() => setTheme('MUSIQUE')} className={`py-3 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
+                    <button onClick={() => setTheme('RECAP')} className={`py-3 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
+                    <button onClick={() => setTheme('LIVE TAKEOVER')} className={`py-3 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVE TAKEOVER' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
                 </>
             )}
         </div>
@@ -1009,7 +1011,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 autoCorrect="on"
                 autoComplete="on"
                 autoCapitalize="sentences"
-                className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black"
+                className="w-full h-32 bg-white/5 border border-white/10 rounded-2xl p-4 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black font-sans uppercase"
             />
             <p className="text-[9px] text-white/30 italic px-1">Les codes comme [C:...] ou [B:...] seront transformés en style sur l'image finale.</p>
             <div className="grid grid-cols-2 gap-4">

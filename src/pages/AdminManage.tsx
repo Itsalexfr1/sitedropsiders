@@ -80,7 +80,7 @@ async function fetchJson(file: string): Promise<any[]> {
     return LOCAL_DATA[file] ?? [];
 }
 
-type ContentType = 'News' | 'Musique' | 'Recaps' | 'Interviews' | 'Agenda' | 'Communauté';
+type ContentType = 'News' | 'Musique' | 'Recaps' | 'Interviews' | 'Agenda' | 'Communauté' | 'Focus';
 
 export function AdminManage() {
     const [searchParams] = useSearchParams();
@@ -222,13 +222,15 @@ export function AdminManage() {
         setLoading(true);
         try {
             let data: any[] = [];
-            if (activeTab === 'News' || activeTab === 'Interviews' || activeTab === 'Musique') {
+            if (activeTab === 'News' || activeTab === 'Interviews' || activeTab === 'Musique' || activeTab === 'Focus') {
                 const allNews = await fetchJson('news.json');
                 data = activeTab === 'News'
-                    ? allNews.filter((item: any) => item.category === 'News')
+                    ? allNews.filter((item: any) => item.category === 'News' && !item.isFocus)
                     : activeTab === 'Interviews'
                         ? allNews.filter((item: any) => item.category?.startsWith('Interview'))
-                        : allNews.filter((item: any) => item.category === 'Musique');
+                        : activeTab === 'Musique'
+                            ? allNews.filter((item: any) => item.category === 'Musique')
+                            : allNews.filter((item: any) => item.isFocus);
             } else if (activeTab === 'Recaps') {
                 data = await fetchJson('recaps.json');
             } else if (activeTab === 'Agenda') {
@@ -308,6 +310,8 @@ export function AdminManage() {
                 editPath = `/agenda/create?id=${item.id}`;
             } else if (activeTab === 'Communauté') {
                 editPath = `/galerie/create?id=${item.id}`;
+            } else if (activeTab === 'Focus') {
+                editPath = `/news/create?tab=Focus&id=${item.id}`;
             } else {
                 editPath = `/news/create?id=${item.id}`;
             }
@@ -392,7 +396,7 @@ export function AdminManage() {
     const handleSaveOrder = async () => {
         setIsSavingOrder(true);
         try {
-            const resource = (activeTab === 'Interviews' || activeTab === 'Musique' || activeTab === 'News') ? 'news' : activeTab.toLowerCase();
+            const resource = (activeTab === 'Interviews' || activeTab === 'Musique' || activeTab === 'News' || activeTab === 'Focus') ? 'news' : activeTab.toLowerCase();
             const filename = resource === 'news' ? 'news.json' :
                 resource === 'recaps' ? 'recaps.json' :
                     resource === 'agenda' ? 'agenda.json' :
@@ -406,9 +410,10 @@ export function AdminManage() {
             if (resource === 'news') {
                 let localIdx = 0;
                 updatedList = fullList.map(item => {
-                    const matchesTab = activeTab === 'News' ? item.category === 'News'
+                    const matchesTab = activeTab === 'News' ? (item.category === 'News' && !item.isFocus)
                         : activeTab === 'Interviews' ? item.category?.startsWith('Interview')
-                            : item.category === 'Musique';
+                            : activeTab === 'Musique' ? item.category === 'Musique'
+                                : item.isFocus;
                     if (matchesTab) {
                         return items[localIdx++] || item;
                     }
@@ -513,6 +518,7 @@ export function AdminManage() {
         { type: 'Musique', icon: <Music className="w-4 h-4" />, color: 'text-neon-cyan' },
         { type: 'Recaps', icon: <Video className="w-4 h-4" />, color: 'text-neon-red' },
         { type: 'Interviews', icon: <Mic className="w-4 h-4" />, color: 'text-neon-purple' },
+        { type: 'Focus', icon: <Star className="w-4 h-4" />, color: 'text-neon-yellow' },
         { type: 'Agenda', icon: <Calendar className="w-4 h-4" />, color: 'text-neon-yellow' },
         { type: 'Communauté', icon: <ImageIcon className="w-4 h-4" />, color: 'text-neon-pink' },
     ];
@@ -570,7 +576,15 @@ export function AdminManage() {
                         </button>
                         {canCreate && (
                             <Link
-                                to={activeTab === 'News' ? '/news/create' : activeTab === 'Musique' ? '/news/create?type=Musique' : activeTab === 'Recaps' ? '/recaps/create' : activeTab === 'Interviews' ? '/news/create?type=Interview' : activeTab === 'Agenda' ? '/agenda/create' : activeTab === 'Communauté' ? '/galerie/create' : '#'}
+                                to={
+                                    activeTab === 'News' ? '/news/create' :
+                                        activeTab === 'Musique' ? '/news/create?type=Musique' :
+                                            activeTab === 'Recaps' ? '/recaps/create' :
+                                                activeTab === 'Interviews' ? '/news/create?type=Interview' :
+                                                    activeTab === 'Focus' ? '/news/create?tab=Focus' :
+                                                        activeTab === 'Agenda' ? '/agenda/create' :
+                                                            activeTab === 'Communauté' ? '/galerie/create' : '#'
+                                }
                                 className="p-4 bg-neon-red text-white rounded-full hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center group flex-shrink-0"
                             >
                                 <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform" />

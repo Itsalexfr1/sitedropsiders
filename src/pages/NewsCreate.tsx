@@ -411,7 +411,10 @@ export function NewsCreate() {
         { id: Math.random().toString(36).substr(2, 9), type: 'qa', artistName: '', artistColor: '#ff1241', question: '', answer: '' }
     ]);
 
-    const [activeTab, setActiveTab] = useState<'News' | 'Musique' | 'Focus'>(type === 'Musique' ? 'Musique' : 'News');
+    const [activeTab, setActiveTab] = useState<'News' | 'Musique' | 'Focus'>(
+        (searchParams.get('tab') as 'News' | 'Musique' | 'Focus') ||
+        (type === 'Musique' ? 'Musique' : 'News')
+    );
     const [musicItems, setMusicItems] = useState([{ id: Math.random().toString(36).substr(2, 9), title: '', media: '', imageUrl: '', playerType: 'spotify' }]);
     const [mediaModal, setMediaModal] = useState<{
         show: boolean,

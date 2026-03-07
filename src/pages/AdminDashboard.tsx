@@ -148,6 +148,16 @@ export function AdminDashboard() {
     const [isUpdatingTakeover, setIsUpdatingTakeover] = useState(false);
     const [takeoverTab, setTakeoverTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'blocked' | 'access' | 'clips'>('general');
     const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
+    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'CONTENU' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP'>('ALL');
+
+    const DASHBOARD_TABS = [
+        { id: 'ALL', label: 'Tout' },
+        { id: 'NEWS', label: 'News' },
+        { id: 'CONTENU', label: 'Éditorial' },
+        { id: 'STUDIO', label: 'Studio' },
+        { id: 'COMMUNAUTÉ', label: 'Communauté' },
+        { id: 'SHOP', label: 'Shop' }
+    ];
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean,
         title: string,
@@ -741,6 +751,7 @@ export function AdminDashboard() {
         { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
         { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
         { title: "Team", description: "À‰quipe & Accès", icon: "Users", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
+        { title: "News Focus", description: "Focus de la semaine", icon: "Zap", category: "CONTENU & ÉDITORIAL", link: "/news/create?tab=Focus", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "news", baseColor: "purple", columns: 1 },
     ];
 
 
@@ -1013,7 +1024,32 @@ export function AdminDashboard() {
 
 
 
-    const filteredActions = actions.filter(action => !action.permission || hasPermission(action.permission));
+    const filteredActions = actions.filter(action => {
+        // Base permission check
+        if (action.permission && !hasPermission(action.permission)) return false;
+
+        // Search term check
+        const matchSearch = !searchTerm ||
+            action.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            action.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+        if (!matchSearch) return false;
+
+        // Tab selection check
+        if (dashboardTab === 'ALL') return true;
+
+        if (dashboardTab === 'NEWS') {
+            // Specifically for the "News" focused experience
+            return action.title === 'Contenu' || action.title === 'Agenda' || action.title === 'News Focus' || action.title === 'Social Studio';
+        }
+
+        if (dashboardTab === 'CONTENU') return action.category?.includes('CONTENU');
+        if (dashboardTab === 'STUDIO') return action.category?.includes('STUDIO');
+        if (dashboardTab === 'COMMUNAUTÉ') return action.category?.includes('COMMUNAUTÉ');
+        if (dashboardTab === 'SHOP') return action.category?.includes('SHOP');
+
+        return true;
+    });
 
     return (
         <div className="min-h-screen py-32 relative overflow-hidden">
@@ -1022,21 +1058,22 @@ export function AdminDashboard() {
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-16 text-center md:text-left flex flex-col md:flex-row justify-between items-start md:items-end gap-6"
+                    className="mb-12 text-center md:text-left flex flex-col md:flex-row justify-between items-start md:items-end gap-6"
                 >
                     <div>
-                        <div className="flex items-center gap-4 justify-center md:justify-start mb-4">
-                            <div className="p-3 bg-neon-red/10 rounded-2xl">
+                        <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
+                            <div className="p-3 bg-neon-red/10 rounded-2xl border border-neon-red/20 rotate-12">
                                 <LayoutDashboard className="w-8 h-8 text-neon-red" />
                             </div>
-                            <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
-                                Tableau de <span className="text-neon-red">Bord</span>
-                            </h1>
+                            <div>
+                                <h1 className="text-5xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                    Tableau de <span className="text-neon-red">Bord</span>
+                                </h1>
+                                <p className="text-gray-500 font-bold uppercase tracking-[0.3em] text-[10px] mt-2">Dropsiders Administration Suite</p>
+                            </div>
                         </div>
-                        <p className="text-gray-400 text-lg max-w-2xl">
-                            Bienvenue dans votre espace d'administration. {isAdminAcc && "éplacez les cartes pour réorganiser."}
-                        </p>
-                        <div className="mt-4 flex flex-wrap items-center gap-6">
+
+                        <div className="mt-4 flex flex-wrap items-center justify-center md:justify-start gap-6">
                             <Link to="/" className="inline-flex items-center gap-2 text-gray-600 hover:text-white text-xs uppercase tracking-widest font-bold transition-all group">
                                 <ChevronLeft className="w-3.5 h-3.5 group-hover:-translate-x-1 transition-transform" />
                                 Retour au site
@@ -1046,56 +1083,55 @@ export function AdminDashboard() {
                                 className="inline-flex items-center gap-2 text-red-500/60 hover:text-red-500 text-xs uppercase tracking-widest font-black transition-all group"
                             >
                                 <LogOut className="w-3.5 h-3.5" />
-                                éconnexion
+                                Déconnexion
                             </button>
                         </div>
                     </div>
 
-                    <div className="flex flex-col gap-4 w-full md:w-auto">
-                        <div className="flex flex-wrap items-center justify-center md:justify-end gap-3 mb-2">
-                            {isAdminAcc && (
+                    <div className="flex flex-col md:items-end gap-3 w-full md:w-auto">
+                        <div className="flex flex-wrap items-center gap-2 mb-2 md:mb-0">
+                            {editMode ? (
                                 <>
-                                    {editMode ? (
-                                        <>
-                                            <button
-                                                onClick={() => { setEditMode(false); fetchActions(); }}
-                                                className="px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase text-gray-400"
-                                            >
-                                                Annuler
-                                            </button>
-                                            <button
-                                                onClick={deployConfig}
-                                                disabled={isSaving || !hasChanges}
-                                                className="px-6 py-2 bg-neon-red text-white border border-neon-red rounded-xl text-[10px] font-black uppercase shadow-lg shadow-neon-red/20 disabled:opacity-50"
-                                            >
-                                                {isSaving ? "Enregistrement..." : "Enregistrer la config"}
-                                            </button>
-                                        </>
-                                    ) : (
+                                    <button
+                                        onClick={saveConfig}
+                                        disabled={isSaving}
+                                        className="px-6 py-2 bg-neon-green/10 hover:bg-neon-green border border-neon-green/30 text-neon-green hover:text-white rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 shadow-lg shadow-neon-green/10"
+                                    >
+                                        <Save className="w-3.5 h-3.5" />
+                                        {isSaving ? 'Sauvegarde...' : 'Sauvegarder'}
+                                    </button>
+                                    <button
+                                        onClick={() => { setEditMode(false); fetchActions(); }}
+                                        className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 text-gray-400 hover:text-white rounded-xl text-[10px] font-black uppercase transition-all"
+                                    >
+                                        Annuler
+                                    </button>
+                                </>
+                            ) : (
+                                <>
+                                    {isAdminAcc && (
                                         <button
                                             onClick={() => setEditMode(true)}
                                             className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase text-gray-400 flex items-center gap-2"
                                         >
                                             <Paintbrush className="w-3.5 h-3.5" />
-                                            Mode À‰dition
+                                            Mode Édition
                                         </button>
                                     )}
                                 </>
                             )}
                         </div>
-                        <div className="relative w-full md:w-80">
-                            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+
+                        <div className="relative w-full md:w-80 group">
+                            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-neon-red transition-colors">
+                                <Search className="w-4 h-4" />
+                            </div>
                             <input
                                 type="text"
-                                placeholder="Recherche rapide..."
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter' && searchTerm.trim()) {
-                                        navigate(`/admin/manage?q=${encodeURIComponent(searchTerm)}`);
-                                    }
-                                }}
-                                className="w-full pl-12 pr-10 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:border-neon-red transition-colors"
+                                placeholder="RECHERCHER UN ACCÈS..."
+                                className="w-full bg-black/40 border border-white/10 rounded-xl md:rounded-full py-3 md:py-2 pl-12 pr-4 text-white text-xs font-black uppercase tracking-widest focus:border-neon-red outline-none transition-all placeholder:text-gray-700"
                             />
                             {searchTerm && (
                                 <button
@@ -1172,6 +1208,27 @@ export function AdminDashboard() {
                         </div>
                     </div>
                 </motion.div>
+
+                {/* Dashboard Tabs - Navigation Mobile Optimize */}
+                <div className="mb-12 overflow-x-auto pb-4 no-scrollbar">
+                    <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 w-max mx-auto md:mx-0">
+                        {DASHBOARD_TABS.map((tab) => {
+                            const isActive = dashboardTab === tab.id;
+                            return (
+                                <button
+                                    key={tab.id}
+                                    onClick={() => setDashboardTab(tab.id as any)}
+                                    className={`px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all whitespace-nowrap ${isActive
+                                        ? 'bg-white/10 text-white border border-white/20 shadow-lg'
+                                        : 'text-gray-500 hover:text-gray-300'
+                                        }`}
+                                >
+                                    {tab.label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
 
                 <div className="space-y-16 relative">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -1823,7 +1880,7 @@ export function AdminDashboard() {
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
                                     <Link
                                         to="/news/create"
                                         onClick={() => setIsNewsModalOpen(false)}
@@ -1847,24 +1904,55 @@ export function AdminDashboard() {
                                         <h3 className="text-xl font-bold text-white uppercase italic mb-1">Musique</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouvel article musique</p>
                                     </Link>
+
+                                    <Link
+                                        to="/news/create?tab=Focus"
+                                        onClick={() => setIsNewsModalOpen(false)}
+                                        className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group sm:col-span-2 lg:col-span-1"
+                                    >
+                                        <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                                            <Zap className="w-6 h-6 text-neon-purple" />
+                                        </div>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Focus</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Focus de la semaine</p>
+                                    </Link>
                                 </div>
 
-                                <Link
-                                    to="/admin/manage?tab=News"
-                                    onClick={() => setIsNewsModalOpen(false)}
-                                    className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group"
-                                >
-                                    <div className="flex items-center gap-4">
-                                        <div className="p-3 bg-gray-500/20 rounded-xl border border-gray-500/30">
-                                            <Settings2 className="w-5 h-5 text-gray-400" />
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <Link
+                                        to="/admin/manage?tab=News"
+                                        onClick={() => setIsNewsModalOpen(false)}
+                                        className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-gray-500/20 rounded-xl border border-gray-500/30">
+                                                <Settings2 className="w-5 h-5 text-gray-400" />
+                                            </div>
+                                            <div className="text-left">
+                                                <h3 className="font-bold text-white uppercase italic tracking-tight">Gérer les News</h3>
+                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
+                                            </div>
                                         </div>
-                                        <div className="text-left">
-                                            <h3 className="font-bold text-white uppercase italic tracking-tight">Gérer mes articles</h3>
-                                            <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
+                                        <ArrowRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
+                                    </Link>
+
+                                    <Link
+                                        to="/admin/manage?tab=Focus"
+                                        onClick={() => setIsNewsModalOpen(false)}
+                                        className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-neon-yellow/10 border-neon-yellow/20 transition-all group"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-neon-yellow/10 rounded-xl border border-neon-yellow/20">
+                                                <Star className="w-5 h-5 text-neon-yellow fill-neon-yellow" />
+                                            </div>
+                                            <div className="text-left">
+                                                <h3 className="font-bold text-white uppercase italic tracking-tight text-neon-yellow">Gérer les Focus</h3>
+                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir les articles épinglés</p>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <ArrowRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
-                                </Link>
+                                        <ArrowRight className="w-5 h-5 text-neon-yellow group-hover:translate-x-1 transition-transform" />
+                                    </Link>
+                                </div>
                             </motion.div>
                         </div>
                     )}
