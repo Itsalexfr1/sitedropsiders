@@ -713,8 +713,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             video.src = url;
             video.muted = true;
             video.loop = true;
+            video.playsInline = true; // Important for mobile preview
             video.crossOrigin = "anonymous";
-            video.play();
+            video.play().catch(e => console.warn("Auto-preview play failed", e));
             setBgVideo(video); setBgImage('');
         } else {
             // Pre-load image to ensure it works with toDataURL
@@ -1175,6 +1176,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                 Télécharger Vidéo/Photo (URL)
                             </button>
                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
+                            {bgVideo && (
+                                <button
+                                    onClick={() => bgVideo.play().catch(() => { })}
+                                    className="w-full py-2 bg-neon-cyan/10 border border-neon-cyan/30 rounded-xl text-[9px] font-black text-neon-cyan uppercase hover:bg-neon-cyan/20 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Video className="w-3.5 h-3.5" /> Relancer la prévisualisation
+                                </button>
+                            )}
                         </div>
 
                         {/* Content editor */}
