@@ -16,6 +16,12 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
     const [activeChatTab, setActiveChatTab] = useState('chat');
     const [newMessage, setNewMessage] = useState('');
     const [currentTime, setCurrentTime] = useState(new Date());
+    const [drops, setDrops] = useState(150);
+    const [shazamHistory, setShazamHistory] = useState([
+        { id: 1, artist: "Mochakk", title: "Jealous", time: "20:45" },
+        { id: 2, artist: "Vintage Culture", title: "Fractions", time: "20:38" }
+    ]);
+    const [isShazamming, setIsShazamming] = useState(false);
 
     // Admin Panel States
     const [showAdminPanel, setShowAdminPanel] = useState(false);
@@ -184,6 +190,10 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                         <Users className="w-4 h-4 text-neon-red" />
                         <span className="text-[10px] font-black uppercase tracking-widest">{viewersCount} SPECTATEURS</span>
                     </div>
+                    <div className="flex items-center gap-2 px-3 py-1 bg-neon-red/10 border border-neon-red/20 rounded-full group cursor-pointer hover:bg-neon-red/20 transition-all">
+                        <Zap className="w-4 h-4 text-neon-red group-hover:animate-bounce" />
+                        <span className="text-[10px] font-black uppercase tracking-widest text-white">{drops} DROPS</span>
+                    </div>
                     <button onClick={() => navigate('/')} className="p-2 hover:bg-white/5 rounded-full transition-all">
                         <X className="w-5 h-5 text-gray-500" />
                     </button>
@@ -316,7 +326,7 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                     </div>
 
                     <div className="flex gap-1 p-2 bg-black/20 border-b border-white/10 overflow-x-auto no-scrollbar">
-                        {['CHAT', 'PLANNING', 'TRACKLIST'].map(tab => (
+                        {['CHAT', 'PLANNING', 'SHAZAM', 'DROPS'].map(tab => (
                             <button key={tab} onClick={() => setActiveChatTab(tab.toLowerCase())} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === tab.toLowerCase() ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{tab}</button>
                         ))}
                     </div>
@@ -378,6 +388,76 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                                             <p className="text-[10px] font-black uppercase">Aucun planning disponible</p>
                                         </div>
                                     )}
+                                </motion.div>
+                            ) : activeChatTab === 'shazam' ? (
+                                <motion.div key="shazam-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
+                                    <button
+                                        onClick={() => {
+                                            setIsShazamming(true);
+                                            setTimeout(() => {
+                                                setIsShazamming(false);
+                                                const newTrack = { id: Date.now(), artist: fluxCurrentArtist.artist, title: "Track Identification...", time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) };
+                                                setShazamHistory([newTrack, ...shazamHistory]);
+                                                setDrops(d => d + 10);
+                                            }, 3000);
+                                        }}
+                                        disabled={isShazamming}
+                                        className={`w-full py-8 rounded-3xl border-2 flex flex-col items-center justify-center gap-4 transition-all group ${isShazamming ? 'border-neon-cyan bg-neon-cyan/5' : 'border-white/10 bg-white/5 hover:border-neon-cyan/50 hover:bg-neon-cyan/5'}`}
+                                    >
+                                        <div className={`w-20 h-20 rounded-full flex items-center justify-center relative ${isShazamming ? 'animate-pulse bg-neon-cyan/20' : 'bg-white/10'}`}>
+                                            <svg viewBox="0 0 24 24" className={`w-10 h-10 ${isShazamming ? 'text-neon-cyan animate-spin' : 'text-gray-400 group-hover:text-neon-cyan'}`} fill="currentColor">
+                                                <path d="M19.11 17.11c-1.12 1.12-2.9 1.12-4.02 0l-7.98-7.98c-1.12-1.12-1.12-2.9 0-4.02s2.9-1.12 4.02 0l7.98 7.98c1.1 1.1 1.1 2.9 0 4.02zm-14.22-14.22c1.12-1.12 2.9-1.12 4.02 0l7.98 7.98c1.12 1.12 1.12 2.9 0 4.02s-2.9 1.12-4.02 0l-7.98-7.98c-1.11-1.11-1.11-2.9 0-4.02z" />
+                                            </svg>
+                                        </div>
+                                        <p className="text-xs font-black uppercase tracking-[0.2em]">{isShazamming ? 'Identification...' : 'Shazam ce son'}</p>
+                                    </button>
+
+                                    <div className="space-y-4">
+                                        <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/10 pb-2">Historique des captures</h3>
+                                        <div className="space-y-2">
+                                            {shazamHistory.map(track => (
+                                                <div key={track.id} className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between group hover:border-neon-cyan/30 transition-all">
+                                                    <div>
+                                                        <p className="text-xs font-black text-white uppercase italic">{track.artist}</p>
+                                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{track.title}</p>
+                                                    </div>
+                                                    <span className="text-[9px] text-gray-600 font-black">{track.time}</span>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ) : activeChatTab === 'drops' ? (
+                                <motion.div key="drops-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                                    <div className="p-8 bg-neon-red/10 border border-neon-red/20 rounded-[2rem] text-center relative overflow-hidden group">
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-red/10 blur-[50px] -mr-16 -mt-16" />
+                                        <Zap className="w-12 h-12 text-neon-red mx-auto mb-4 animate-bounce" />
+                                        <h3 className="text-4xl font-display font-black text-white italic tracking-tighter mb-2">{drops}</h3>
+                                        <p className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em]">DROPS ACCUMULÉS</p>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 gap-3">
+                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                                            <div>
+                                                <p className="text-[10px] font-black text-white uppercase tracking-wider">Bonus Quotidien</p>
+                                                <p className="text-[9px] text-gray-500 font-bold">Réclamé aujourd'hui</p>
+                                            </div>
+                                            <span className="text-xs font-black text-green-500">+50</span>
+                                        </div>
+                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between opacity-50">
+                                            <div>
+                                                <p className="text-[10px] font-black text-white uppercase tracking-wider">Parrainage</p>
+                                                <p className="text-[9px] text-gray-400 font-bold">Invite tes amis</p>
+                                            </div>
+                                            <span className="text-xs font-black text-neon-red">+100</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-4">
+                                        <button className="w-full py-4 bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all">
+                                            Utiliser mes Drops
+                                        </button>
+                                    </div>
                                 </motion.div>
                             ) : (
                                 <div className="text-center py-20 opacity-20 uppercase font-black text-xs tracking-widest">Contenu en attente</div>
