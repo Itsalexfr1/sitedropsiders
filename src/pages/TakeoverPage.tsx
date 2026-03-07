@@ -3,8 +3,18 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Settings, Users, MessageSquare, Send, Zap,
-    Smile, Save, AlertCircle, ShoppingBag, Music, Trash2, Calendar
+    Smile, Save, AlertCircle, ShoppingBag, Music, Trash2, Calendar, Plus, Instagram
 } from 'lucide-react';
+
+interface LineupItem {
+    id: string;
+    day: string;
+    startTime: string;
+    endTime: string;
+    artist: string;
+    stage: string;
+    instagram: string;
+}
 
 interface TakeoverSettings {
     title: string;
@@ -87,7 +97,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editCurrentTrack, setEditCurrentTrack] = useState(settings.currentTrack);
     const [editAnnText, setEditAnnText] = useState(settings.tickerText);
     const [editAnnEnabled, setEditAnnEnabled] = useState(settings.showTickerBanner);
-    const [editLineup, setEditLineup] = useState(settings.lineup);
     const [editStatus, setEditStatus] = useState(settings.status);
     const [editTickerBg, setEditTickerBg] = useState(settings.tickerBgColor);
     const [editTickerTextC, setEditTickerTextC] = useState(settings.tickerTextColor);
@@ -110,6 +119,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     // Admin Form States
     const [newLot, setNewLot] = useState({ name: '', price: '', stock: '' });
     const [newCmd, setNewCmd] = useState({ command: '', response: '' });
+    const [lineupItems, setLineupItems] = useState<LineupItem[]>(() => {
+        try {
+            return JSON.parse(settings.lineup);
+        } catch (e) {
+            return [];
+        }
+    });
+    const [newLineupItem, setNewLineupItem] = useState<LineupItem>({
+        id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: ''
+    });
 
     const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({
         show: false, message: '', type: 'success'
@@ -133,12 +152,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 setEditAnnEnabled(data.showTickerBanner);
                 setEditTickerBg(data.tickerBgColor || '#ff0033');
                 setEditTickerTextC(data.tickerTextColor || '#ffffff');
-                setEditLineup(data.lineup);
                 setEditStatus(data.status);
                 setEditAcrHost(data.acrHost || 'identify-eu-west-1.acrcloud.com');
                 setEditAcrKey(data.acrAccessKey || '');
                 setEditAcrSecret(data.acrAccessSecret || '');
                 setEditAuddToken(data.auddToken || '');
+
+                try {
+                    const parsed = JSON.parse(data.lineup);
+                    setLineupItems(Array.isArray(parsed) ? parsed : []);
+                } catch (e) {
+                    setLineupItems([]);
+                }
             }
         } catch (e) { console.error("Error loading settings:", e); }
     };
@@ -154,7 +179,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             showTickerBanner: editAnnEnabled,
             tickerBgColor: editTickerBg,
             tickerTextColor: editTickerTextC,
-            lineup: editLineup,
+            lineup: JSON.stringify(lineupItems),
             status: editStatus,
             enabled: editStatus !== 'off',
             acrHost: editAcrHost,
@@ -250,26 +275,32 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     // --- Lineup Logic ---
     const parseLineup = (text: string) => {
         if (!text) return [];
-        return text.split('\n').map(line => {
-            const match = line.match(/\[(.*?)\] (.*?) \| (.*)/);
-            if (match) {
-                const time = match[1];
-                const artistPart = match[2];
-                const stage = match[3];
+        try {
+            // Try to parse as JSON first
+            return JSON.parse(text);
+        } catch (e) {
+            // Fallback to legacy line parsing
+            return text.split('\n').map(line => {
+                const match = line.match(/\[(.*?)\] (.*?) \| (.*)/);
+                if (match) {
+                    const time = match[1];
+                    const artistPart = match[2];
+                    const stage = match[3];
 
-                let artist = artistPart;
-                let track = '';
+                    let artist = artistPart;
+                    let track = '';
 
-                if (artistPart.includes(' - ')) {
-                    const parts = artistPart.split(' - ');
-                    artist = parts[0].trim();
-                    track = parts[1].trim();
+                    if (artistPart.includes(' - ')) {
+                        const parts = artistPart.split(' - ');
+                        artist = parts[0].trim();
+                        track = parts[1].trim();
+                    }
+
+                    return { startTime: time, day: 'DIRECT', artist, track, stage, id: Math.random().toString() };
                 }
-
-                return { time, artist, track, stage };
-            }
-            return null;
-        }).filter(Boolean);
+                return null;
+            }).filter(Boolean);
+        }
     };
 
     const getCurrentArtist = () => {
@@ -277,14 +308,20 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         const currentTimeString = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
         const lineup = parseLineup(settings.lineup);
 
-        // Trouver l'artiste dont l'heure de début est la plus proche avant l'heure actuelle
-        const current = [...lineup].reverse().find(item => item && item.time <= currentTimeString);
+        // Find artist active NOW
+        const current = lineup.find((item: any) => {
+            if (item.startTime && item.endTime) {
+                return currentTimeString >= item.startTime && currentTimeString <= item.endTime;
+            }
+            return item.startTime <= currentTimeString;
+        });
 
         if (current) {
             return {
                 artist: current.artist,
                 track: current.track || settings.currentTrack || 'ID - UNRELEASED',
-                stage: current.stage
+                stage: current.stage,
+                instagram: current.instagram
             };
         }
 
@@ -564,38 +601,103 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             </div>
                                         </>
                                     ) : adminActiveTab === 'planning' ? (
-                                        <div className="space-y-8">
-                                            <div className="grid grid-cols-2 gap-8">
-                                                <div className="space-y-6">
-                                                    <h3 className="text-xs font-black text-neon-cyan uppercase tracking-widest flex items-center gap-2">
-                                                        <Calendar className="w-4 h-4" /> Programmation
-                                                    </h3>
-                                                    <div>
-                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Planning des Artistes</label>
-                                                        <textarea
-                                                            value={editLineup}
-                                                            onChange={e => setEditLineup(e.target.value)}
-                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-cyan transition-all min-h-[300px] uppercase font-mono leading-relaxed"
-                                                            placeholder="[20:00] MOCHAKK | MAIN STAGE&#10;[21:30] VINTAGE CULTURE | MAIN STAGE"
-                                                        />
-                                                        <p className="mt-4 p-4 bg-neon-cyan/5 border border-neon-cyan/20 rounded-xl text-[9px] text-neon-cyan font-bold uppercase leading-relaxed">
-                                                            Format : [HH:mm] Artiste | Scène (Optionnel) <br />
-                                                            L'artiste actuel sera automatiquement détecté selon l'heure pour l'affichage en direct.
-                                                        </p>
+                                        <div className="space-y-10">
+                                            {/* Formulaire d'ajout */}
+                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <div className="w-10 h-10 bg-neon-cyan/20 rounded-xl flex items-center justify-center text-neon-cyan">
+                                                        <Plus className="w-6 h-6" />
+                                                    </div>
+                                                    <h3 className="text-sm font-black text-white uppercase tracking-widest">Ajouter une session</h3>
+                                                </div>
+
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                                    <div className="space-y-2">
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Jour (Mandatoire)</label>
+                                                        <input type="text" placeholder="Logo du jour, LUNDI..." value={newLineupItem.day} onChange={e => setNewLineupItem({ ...newLineupItem, day: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Artiste (Mandatoire)</label>
+                                                        <input type="text" placeholder="MOCHAKK" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, artist: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Heure Début (Mandatoire)</label>
+                                                        <input type="text" placeholder="20:00" value={newLineupItem.startTime} onChange={e => setNewLineupItem({ ...newLineupItem, startTime: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Heure Fin (Mandatoire)</label>
+                                                        <input type="text" placeholder="21:30" value={newLineupItem.endTime} onChange={e => setNewLineupItem({ ...newLineupItem, endTime: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Scène (Mandatoire)</label>
+                                                        <input type="text" placeholder="MAIN STAGE" value={newLineupItem.stage} onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                    </div>
+                                                    <div className="col-span-2 md:col-span-3 space-y-2">
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Instagram (Mandatoire)</label>
+                                                        <div className="relative">
+                                                            <Instagram className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
+                                                            <input type="text" placeholder="@DROPSIDERS.EU" value={newLineupItem.instagram} onChange={e => setNewLineupItem({ ...newLineupItem, instagram: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl pl-12 pr-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div className="space-y-6">
-                                                    <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest">Aide de remplissage</h3>
-                                                    <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
-                                                        <div className="space-y-2">
-                                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Nom de la scène par défaut</label>
-                                                            <input type="text" value={editMainFluxName} onChange={e => setEditMainFluxName(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-cyan" placeholder="MAIN STAGE" />
+
+                                                <button
+                                                    onClick={() => {
+                                                        if (newLineupItem.day && newLineupItem.artist && newLineupItem.startTime && newLineupItem.endTime && newLineupItem.stage && newLineupItem.instagram) {
+                                                            setLineupItems([...lineupItems, { ...newLineupItem, id: Date.now().toString() }]);
+                                                            setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '' });
+                                                            showNotification('Session ajoutée', 'success');
+                                                        } else {
+                                                            showNotification('Tous les champs sont obligatoires', 'error');
+                                                        }
+                                                    }}
+                                                    className="w-full py-4 bg-neon-cyan text-black font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-neon-cyan/80 transition-all flex items-center justify-center gap-2"
+                                                >
+                                                    <Plus className="w-5 h-5" /> Ajouter à la programmation
+                                                </button>
+                                            </div>
+
+                                            {/* Liste des sessions */}
+                                            <div className="space-y-4">
+                                                <div className="flex items-center justify-between px-6 pb-2 border-b border-white/5">
+                                                    <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest">Sessions Programmées ({lineupItems.length})</h3>
+                                                    <p className="text-[9px] text-gray-600 font-bold uppercase italic">* L'ordre n'importe pas, la détection est automatique</p>
+                                                </div>
+
+                                                <div className="space-y-3">
+                                                    {lineupItems.length === 0 ? (
+                                                        <div className="py-20 bg-white/[0.02] border-2 border-dashed border-white/5 rounded-[2.5rem] flex flex-col items-center justify-center text-center">
+                                                            <Calendar className="w-12 h-12 text-white/5 mb-4" />
+                                                            <p className="text-xs font-black text-white/20 uppercase tracking-widest">Aucune session programmée</p>
                                                         </div>
-                                                        <div className="space-y-2">
-                                                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest">Titre par défaut (ID)</label>
-                                                            <input type="text" value={editCurrentTrack} onChange={e => setEditCurrentTrack(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-cyan" placeholder="ID - UNRELEASED" />
-                                                        </div>
-                                                    </div>
+                                                    ) : (
+                                                        lineupItems.map((item, i) => (
+                                                            <div key={item.id} className="p-5 bg-white/5 border border-white/10 rounded-[1.5rem] flex items-center gap-6 group hover:bg-white/[0.08] transition-all">
+                                                                <div className="w-12 h-12 bg-white/5 rounded-xl flex flex-col items-center justify-center border border-white/10 shrink-0">
+                                                                    <p className="text-[8px] font-black text-gray-500 uppercase">{item.day.slice(0, 3)}</p>
+                                                                    <p className="text-[10px] font-black text-white">{item.startTime}</p>
+                                                                </div>
+
+                                                                <div className="flex-1 space-y-1">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <p className="text-sm font-black text-white uppercase italic tracking-tighter">{item.artist}</p>
+                                                                        <span className="px-2 py-0.5 bg-neon-cyan/10 text-neon-cyan text-[8px] font-black rounded-lg border border-neon-cyan/20">{item.stage}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-4">
+                                                                        <p className="text-[9px] text-gray-500 font-bold uppercase">{item.startTime} — {item.endTime}</p>
+                                                                        <div className="flex items-center gap-1.5 text-neon-purple">
+                                                                            <Instagram className="w-3 h-3" />
+                                                                            <p className="text-[9px] font-black uppercase">{item.instagram}</p>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                <button onClick={() => setLineupItems(lineupItems.filter((_, idx) => idx !== i))} className="p-3 text-red-500/40 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
+                                                                    <Trash2 className="w-5 h-5" />
+                                                                </button>
+                                                            </div>
+                                                        ))
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
