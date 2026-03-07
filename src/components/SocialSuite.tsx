@@ -1279,10 +1279,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     {/* Full-screen canvas — click to close any open panel */}
                     <div
                         className="absolute inset-0 flex items-center justify-center bg-black"
-                        style={{ paddingBottom: '130px' }}
                         onClick={() => { if (activePanel) setActivePanel(null); }}
                     >
-                        <canvas ref={canvasRef} className="max-w-full max-h-full object-contain" style={{ borderRadius: '10px', boxShadow: '0 0 60px rgba(0,0,0,0.9)' }} />
+                        <canvas ref={canvasRef} className="w-full h-full object-contain" />
                     </div>
 
                     {/* Swipe Indicator (top handle) + Drag listener hook */}
@@ -1384,22 +1383,23 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         )}
                     </AnimatePresence>
 
-                    {/* Bottom icon bar */}
-                    <div className="absolute bottom-0 inset-x-0 z-40"
-                        style={{ background: 'rgba(5, 5, 5, 0.4)', backdropFilter: 'blur(25px) saturate(180%)', borderTop: '1px solid rgba(255,255,255,0.1)' }}>
+                    {/* Bottom icon bar - Floating and transparent */}
+                    <div className="absolute bottom-0 inset-x-0 z-40 pb-6 pt-12 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none">
+
                         {/* Quick toggles */}
-                        <div className="flex items-center justify-center gap-3 px-4 pt-2 pb-1">
+                        <div className="flex items-center justify-center gap-3 px-4 mb-4 pointer-events-auto">
                             <button onClick={() => setShowSwipe(!showSwipe)}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border ${showSwipe ? 'bg-neon-red/20 border-neon-red/50 text-neon-red' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}>
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border backdrop-blur-md ${showSwipe ? 'bg-neon-red/20 border-neon-red/50 text-neon-red' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}>
                                 <Layout className="w-3 h-3" /> Swipe {showSwipe ? 'ON' : 'OFF'}
                             </button>
                             <button onClick={() => setShowArticleLink(!showArticleLink)}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border ${showArticleLink ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}>
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border backdrop-blur-md ${showArticleLink ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}>
                                 <LinkIcon className="w-3 h-3" /> Lien {showArticleLink ? 'ON' : 'OFF'}
                             </button>
                         </div>
+
                         {/* Icon buttons */}
-                        <div className="flex items-center justify-around px-2 py-3">
+                        <div className="flex items-center justify-around px-2 pointer-events-auto">
                             {[
                                 { id: 'format', icon: <Layers className="w-5 h-5" />, label: 'Format' },
                                 { id: 'theme', icon: <Palette className="w-5 h-5" />, label: 'Thème' },
@@ -1407,11 +1407,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                 { id: 'fond', icon: <ImageIcon className="w-5 h-5" />, label: 'Fond' },
                                 { id: 'export', icon: <Film className="w-5 h-5" />, label: 'Export' },
                             ].map(btn => (
-                                <button key={btn.id} onClick={() => togglePanel(btn.id)} className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-2xl transition-all group">
-                                    <div className={`p-2.5 rounded-2xl transition-all ${activePanel === btn.id ? 'bg-white text-black scale-110 shadow-[0_0_20px_rgba(255,255,255,0.3)]' : 'text-gray-400 bg-white/5 group-hover:bg-white/10 group-hover:text-white'}`}>
+                                <button key={btn.id} onClick={() => togglePanel(btn.id)} className="flex flex-col items-center gap-1.5 px-2 py-1 transition-all group">
+                                    <div className={`p-3 rounded-full backdrop-blur-md transition-all ${activePanel === btn.id ? 'bg-white text-black scale-110 shadow-[0_0_20px_rgba(255,255,255,0.4)]' : 'text-white bg-black/40 border border-white/10 group-hover:bg-white/20'}`}>
                                         {btn.icon}
                                     </div>
-                                    <span className={`text-[8px] font-black uppercase tracking-wide ${activePanel === btn.id ? 'text-white' : 'text-gray-600 group-hover:text-gray-400'}`}>{btn.label}</span>
+                                    <span style={{ textShadow: '0 2px 4px rgba(0,0,0,0.8)' }} className={`text-[8px] font-black uppercase tracking-wide ${activePanel === btn.id ? 'text-white' : 'text-gray-300 group-hover:text-white'}`}>{btn.label}</span>
                                 </button>
                             ))}
                         </div>
