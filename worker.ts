@@ -1,5 +1,93 @@
-﻿
-// @ts-nocheck
+﻿// @ts-nocheck
+
+const utf8Encode = (str) => {
+    const bytes = new TextEncoder().encode(str);
+    let binary = '';
+    const len = bytes.byteLength;
+    for (let i = 0; i < len; i++) {
+        binary += String.fromCharCode(bytes[i]);
+    }
+    return btoa(binary);
+};
+
+const utf8Decode = (base64) => {
+    const binary = atob(base64.replace(/\s/g, ''));
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+        bytes[i] = binary.charCodeAt(i);
+    }
+    return new TextDecoder().decode(bytes);
+};
+
+const SETTINGS_PATH = 'src/data/settings.json';
+const NEWS_PATH = 'src/data/news.json';
+const RECAPS_PATH = 'src/data/recaps.json';
+const AGENDA_PATH = 'src/data/agenda.json';
+const GALERIE_PATH = 'src/data/galerie.json';
+const TEAM_PATH = 'src/data/team.json';
+const SHOP_PATH = 'src/data/shop.json';
+const CLIPS_PATH = 'src/data/clips.json';
+const NEWS_CONTENT_TARGET = 'src/data/news_content_3.json';
+const RECAPS_CONTENT_TARGET = 'src/data/recaps_content_2.json';
+const NEWS_CONTENT_FILES = ['src/data/news_content_3.json', 'src/data/news_content_2.json', 'src/data/news_content_1.json'];
+const RECAPS_CONTENT_FILES = ['src/data/recaps_content_2.json', 'src/data/recaps_content_1.json'];
+const EDITORS_PATH = 'src/data/editors.json';
+const PENDING_SUBMISSIONS_PATH = 'src/data/pending_submissions.json';
+const CONTACTS_PATH = 'src/data/contacts.json';
+
+async function fetchGitHubFile(filePath, config) {
+    const { OWNER, REPO, TOKEN } = config;
+    if (!TOKEN) return null;
+    const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
+    const response = await fetch(getUrl, {
+        headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' }
+    });
+    if (!response.ok) {
+        if (response.status === 404) return { content: [], sha: null };
+        return null;
+    }
+    const fileData = await response.json();
+    let content;
+    if (fileData.content) {
+        content = utf8Decode(fileData.content);
+    } else if (fileData.download_url) {
+        const rawRes = await fetch(fileData.download_url, {
+            headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker' }
+        });
+        if (rawRes.ok) content = await rawRes.text();
+        else return null;
+    } else return null;
+
+    try {
+        if (content.includes('Ã') || content.includes('â')) {
+            content = content
+                .replace(/Ã /g, 'à').replace(/Ã©/g, 'é').replace(/Ã¨/g, 'è')
+                .replace(/Â /g, ' ').replace(/â€™/g, "'");
+        }
+        return { content: JSON.parse(content), sha: fileData.sha, rawData: fileData };
+    } catch (e) {
+        return { content: [], sha: fileData.sha, rawData: fileData };
+    }
+}
+
+async function saveGitHubFile(filePath, content, message, sha, config) {
+    const { OWNER, REPO, TOKEN } = config;
+    if (!TOKEN) return { ok: false, error: 'GITHUB_TOKEN is missing' };
+    const putUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
+    const encodedContent = utf8Encode(JSON.stringify(content, null, 2));
+    const response = await fetch(putUrl, {
+        method: 'PUT',
+        headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message, content: encodedContent, sha })
+    });
+
+    if (!response.ok) {
+        const errText = await response.text();
+        return { ok: false, status: response.status, error: errText };
+    }
+    return { ok: true };
+}
+
 export default {
     async fetch(request, env, ctx) {
         const url = new URL(request.url);
@@ -13,6 +101,7 @@ export default {
         const REPO = env.GITHUB_REPO || 'sitedropsiders';
         const PATH = env.GITHUB_FILE_PATH || 'src/data/subscribers.json';
         const TOKEN = env.GITHUB_TOKEN;
+        const gitConfig = { OWNER, REPO, TOKEN };
 
         // CORS Headers
         const headers = {
@@ -21,15 +110,6 @@ export default {
             'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Password, X-Admin-Username, X-Google-Token, X-Session-ID',
             'Content-Type': 'application/json'
         };
-
-        // --- CONTENT SPLITTING CONFIG ---
-        const NEWS_CONTENT_TARGET = 'src/data/news_content_3.json';
-        const RECAPS_CONTENT_TARGET = 'src/data/recaps_content_2.json';
-        const NEWS_CONTENT_FILES = ['src/data/news_content_3.json', 'src/data/news_content_2.json', 'src/data/news_content_1.json'];
-        const RECAPS_CONTENT_FILES = ['src/data/recaps_content_2.json', 'src/data/recaps_content_1.json'];
-        const EDITORS_PATH = 'src/data/editors.json';
-        const PENDING_SUBMISSIONS_PATH = 'src/data/pending_submissions.json';
-        const GALERIE_PATH = 'src/data/galerie.json';
 
         if (request.method === 'OPTIONS') {
             return new Response(null, { headers });
@@ -151,7 +231,7 @@ export default {
             if (!audioData) return new Response(JSON.stringify({ error: 'Audio requis' }), { status: 400, headers });
 
             // 1. Get Keys from settings
-            const settingsFile = await fetchGitHubFile('src/data/settings.json');
+            const settingsFile = await fetchGitHubFile('src/data/settings.json', { OWNER, REPO, TOKEN });
             const takeover = settingsFile?.content?.takeover || {};
 
             // 2. Try AudD (Simple and effective)
@@ -368,119 +448,7 @@ export default {
             return new Response(null, { headers });
         }
 
-        // --- HELPER FUNCTIONS ---
-        // --- HELPER FUNCTIONS ---
-        const utf8Encode = (str) => {
-            const bytes = new TextEncoder().encode(str);
-            let binary = '';
-            const len = bytes.byteLength;
-            for (let i = 0; i < len; i++) {
-                binary += String.fromCharCode(bytes[i]);
-            }
-            return btoa(binary);
-        };
-
-        const utf8Decode = (base64) => {
-            const binary = atob(base64.replace(/\s/g, ''));
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-                bytes[i] = binary.charCodeAt(i);
-            }
-            return new TextDecoder().decode(bytes);
-        };
-
-        async function fetchGitHubFile(filePath) {
-            const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
-            const response = await fetch(getUrl, {
-                headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache', 'Pragma': 'no-cache' }
-            });
-            if (!response.ok) {
-                if (response.status === 404) return { content: [], sha: null };
-                return null;
-            }
-            const fileData = await response.json();
-
-            let content;
-            if (fileData.content) {
-                content = utf8Decode(fileData.content);
-            } else if (fileData.download_url) {
-                const rawRes = await fetch(fileData.download_url, {
-                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker' }
-                });
-                if (rawRes.ok) {
-                    content = await rawRes.text();
-                } else {
-                    return null;
-                }
-            } else {
-                return null;
-            }
-
-            try {
-                // Recovery logic for double-encoded/mangled UTF-8 characters (common issues with JSON saves)
-                if (content.includes('Ã') || content.includes('â') || content.includes('Â')) {
-                    content = content
-                        .replace(/Ã /g, 'à').replace(/Ã©/g, 'é').replace(/Ã¨/g, 'è')
-                        .replace(/Ãª/g, 'ê').replace(/Ã»/g, 'û').replace(/Ã´/g, 'ô')
-                        .replace(/Ã®/g, 'î').replace(/Ã§/g, 'ç').replace(/Ã¹/g, 'ù')
-                        .replace(/Ã«/g, 'ë').replace(/Ã¯/g, 'ï').replace(/Â /g, ' ')
-                        .replace(/â€™/g, "'").replace(/â€¦/g, '...').replace(/Ã‚/g, '')
-                        .replace(/Ã³/g, 'ó').replace(/Ã±/g, 'ñ').replace(/Ã‰/g, 'É')
-                        .replace(/â€“/g, '-').replace(/Â«/g, '«').replace(/Â»/g, '»')
-                        .replace(/Ã»/g, 'û').replace(/Ã€/g, 'À');
-                }
-                return { content: JSON.parse(content), sha: fileData.sha, rawData: fileData };
-            } catch (e) {
-                console.error("JSON Parse Error for " + filePath, e);
-                return { content: [], sha: fileData.sha, rawData: fileData };
-            }
-        }
-
-        async function saveGitHubFile(filePath, content, message, sha) {
-            const putUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
-            const encodedContent = utf8Encode(JSON.stringify(content, null, 2));
-            const response = await fetch(putUrl, {
-                method: 'PUT',
-                headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-                body: JSON.stringify({ message, content: encodedContent, sha })
-            });
-
-            if (!response.ok) {
-                const errText = await response.text();
-                // On 409 conflict (SHA mismatch due to concurrent commits), fetch the latest SHA and retry once
-                if (response.status === 409) {
-                    console.warn(`SHA conflict for ${filePath}, fetching fresh SHA and retrying...`);
-                    try {
-                        const metaRes = await fetch(`https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`, {
-                            headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' }
-                        });
-                        if (metaRes.ok) {
-                            const metaData = await metaRes.json();
-                            const freshSha = metaData.sha;
-                            if (freshSha && freshSha !== sha) {
-                                const retryResponse = await fetch(putUrl, {
-                                    method: 'PUT',
-                                    headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-                                    body: JSON.stringify({ message: message + ' [retry]', content: encodedContent, sha: freshSha })
-                                });
-                                if (retryResponse.ok) {
-                                    console.log(`SHA conflict resolved for ${filePath}, saved successfully on retry.`);
-                                    return { ok: true };
-                                }
-                                const retryErr = await retryResponse.text();
-                                console.error(`GitHub Save Retry Error (${filePath}): ${retryResponse.status} ${retryErr}`);
-                                return { ok: false, status: retryResponse.status, error: retryErr };
-                            }
-                        }
-                    } catch (retryEx) {
-                        console.error(`SHA conflict retry exception for ${filePath}:`, retryEx);
-                    }
-                }
-                console.error(`GitHub Save Error (${filePath}): ${response.status} ${errText}`);
-                return { ok: false, status: response.status, error: errText };
-            }
-            return { ok: true };
-        }
+        const gitConfig = { OWNER, REPO, TOKEN };
 
         const extractMetadata = (content) => {
             if (!content) return { images: [], youtubeId: '' };
@@ -943,8 +911,8 @@ export default {
         if (path === '/api/team/update' && request.method === 'POST') {
             const TEAM_PATH = 'src/data/team.json';
             const { members } = await request.json();
-            const file = await fetchGitHubFile(TEAM_PATH) || { content: [], sha: null };
-            const saved = await saveGitHubFile(TEAM_PATH, members, `Update Team members`, file.sha);
+            const file = await fetchGitHubFile(TEAM_PATH, gitConfig) || { content: [], sha: null };
+            const saved = await saveGitHubFile(TEAM_PATH, members, `Update Team members`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
@@ -1141,11 +1109,11 @@ export default {
                 } else if (cmd === '!vote') {
                     await botResponse('📊 Pour voter au sondage actuel, envoie simplement le chiffre correspondant à ton choix dans le chat (ex: 1, 2, 3...)');
                 } else if (cmd === '!lineup' || cmd === '!planning') {
-                    const settingsFile = await fetchGitHubFile('src/data/settings.json');
+                    const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
                     const lineup = settingsFile?.content?.takeover?.lineup || 'Aucun planning configuré.';
                     await botResponse('📅 PLANNING LIVE :\n' + lineup.substring(0, 300));
                 } else if (cmd === '!shop' || cmd === '!boutique') {
-                    const shopFile = await fetchGitHubFile('src/data/shop.json');
+                    const shopFile = await fetchGitHubFile('src/data/shop.json', gitConfig);
                     const products = shopFile?.content?.products || [];
                     if (products.length > 0) {
                         const random = products[Math.floor(Math.random() * products.length)];
@@ -1156,7 +1124,7 @@ export default {
                 } else if (cmd === '!shazam' || cmd === '!musique') {
                     await botResponse('🎵 Utilisez le bouton Shazam (icône bleue) pour identifier le titre actuel !');
                 } else if (cmd === '!news' || cmd === '!actu') {
-                    const newsFile = await fetchGitHubFile('src/data/news.json');
+                    const newsFile = await fetchGitHubFile('src/data/news.json', gitConfig);
                     const latest = newsFile?.content?.[0];
                     if (latest) {
                         await botResponse(`🔥 DERNIÈRE ACTU : ${latest.title}\nLien : https://dropsiders.fr/news/${latest.id}`);
@@ -1184,7 +1152,7 @@ export default {
                         await botResponse('❓ QUIZZ : ' + randomQ.question + '\\nOptions : ' + randomQ.options.join(' / '));
                     }
                 } else if (cmd === '!id') {
-                    const settingsFile = await fetchGitHubFile('src/data/settings.json');
+                    const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
                     await botResponse(`📺 YOUTUBE ID : ${settingsFile?.content?.takeover?.youtubeId || 'N/A'}`);
                 }
             }
@@ -1324,14 +1292,14 @@ export default {
 
         if (path === '/api/settings' && request.method === 'GET') {
             const SETTINGS_PATH = 'src/data/settings.json';
-            const file = await fetchGitHubFile(SETTINGS_PATH);
+            const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
             if (!file) return new Response(JSON.stringify({ shop_enabled: false }), { status: 200, headers });
             return new Response(JSON.stringify(file.content), { status: 200, headers });
         }
 
         if ((path === '/api/settings/takeover' || path === '/api/takeover-settings') && request.method === 'GET') {
             const SETTINGS_PATH = 'src/data/settings.json';
-            const file = await fetchGitHubFile(SETTINGS_PATH);
+            const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
             if (!file || !file.content.takeover) return new Response(JSON.stringify({ enabled: false }), { status: 200, headers });
             const takeover = file.content.takeover;
             if (!takeover.auddToken) takeover.auddToken = '0707d622c51645acc2e4fa26ed64538d';
@@ -1339,30 +1307,30 @@ export default {
         }
 
         if (path === '/api/takeover-settings' && request.method === 'POST') {
-            const SETTINGS_PATH = 'src/data/settings.json';
             const takeoverData = await request.json();
-            const file = await fetchGitHubFile(SETTINGS_PATH) || { content: { shop_enabled: false }, sha: null };
+            const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig) || { content: {}, sha: null };
+            if (!file.content) file.content = {};
             file.content.takeover = {
-                ...file.content.takeover,
+                ...(file.content.takeover || {}),
                 ...takeoverData,
                 auddToken: '0707d622c51645acc2e4fa26ed64538d'
             };
-            const saved = await saveGitHubFile(SETTINGS_PATH, file.content, `Update takeover settings`, file.sha);
+            const saved = await saveGitHubFile(SETTINGS_PATH, file.content, `Update takeover settings`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         if (path === '/api/settings/update' && request.method === 'POST') {
             const SETTINGS_PATH = 'src/data/settings.json';
             const settings = await request.json();
-            const file = await fetchGitHubFile(SETTINGS_PATH) || { content: { shop_enabled: false }, sha: null };
-            const saved = await saveGitHubFile(SETTINGS_PATH, settings, `Update site settings`, file.sha);
+            const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig) || { content: { shop_enabled: false }, sha: null };
+            const saved = await saveGitHubFile(SETTINGS_PATH, settings, `Update site settings`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         // --- API: HOME LAYOUT MANAGEMENT ---
         if (path === '/api/home-layout' && request.method === 'GET') {
             const LAYOUT_PATH = 'src/data/home_layout.json';
-            const file = await fetchGitHubFile(LAYOUT_PATH);
+            const file = await fetchGitHubFile(LAYOUT_PATH, gitConfig);
             if (!file) {
                 const defaultLayout = [
                     { "id": "hero", "enabled": true },
@@ -1380,15 +1348,15 @@ export default {
         if (path === '/api/home-layout/update' && request.method === 'POST') {
             const LAYOUT_PATH = 'src/data/home_layout.json';
             const { layout } = await request.json();
-            const file = await fetchGitHubFile(LAYOUT_PATH) || { content: [], sha: null };
-            const saved = await saveGitHubFile(LAYOUT_PATH, layout, `Update Home layout`, file.sha);
+            const file = await fetchGitHubFile(LAYOUT_PATH, gitConfig) || { content: [], sha: null };
+            const saved = await saveGitHubFile(LAYOUT_PATH, layout, `Update Home layout`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         // --- API: DASHBOARD ACTIONS MANAGEMENT ---
         if (path === '/api/dashboard-actions' && request.method === 'GET') {
             const ACTIONS_PATH = 'src/data/dashboard_actions.json';
-            const file = await fetchGitHubFile(ACTIONS_PATH);
+            const file = await fetchGitHubFile(ACTIONS_PATH, gitConfig);
             if (!file) return new Response(JSON.stringify([]), { status: 200, headers });
             return new Response(JSON.stringify(file.content), { status: 200, headers });
         }
@@ -1396,8 +1364,8 @@ export default {
         if (path === '/api/dashboard-actions/update' && request.method === 'POST') {
             const ACTIONS_PATH = 'src/data/dashboard_actions.json';
             const { actions } = await request.json();
-            const file = await fetchGitHubFile(ACTIONS_PATH) || { content: [], sha: null };
-            const saved = await saveGitHubFile(ACTIONS_PATH, actions, `Update Dashboard actions order`, file.sha);
+            const file = await fetchGitHubFile(ACTIONS_PATH, gitConfig) || { content: [], sha: null };
+            const saved = await saveGitHubFile(ACTIONS_PATH, actions, `Update Dashboard actions order`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
@@ -1405,79 +1373,79 @@ export default {
 
         if (path === '/api/shop' && request.method === 'GET') {
             const SHOP_PATH = 'src/data/shop.json';
-            const file = await fetchGitHubFile(SHOP_PATH) || { content: { products: [] } };
+            const file = await fetchGitHubFile(SHOP_PATH, gitConfig) || { content: { products: [] } };
             return new Response(JSON.stringify(file.content.products), { status: 200, headers });
         }
 
         if (path === '/api/shop/create' && request.method === 'POST') {
             const SHOP_PATH = 'src/data/shop.json';
             const product = await request.json();
-            const file = await fetchGitHubFile(SHOP_PATH) || { content: { products: [] }, sha: null };
+            const file = await fetchGitHubFile(SHOP_PATH, gitConfig) || { content: { products: [] }, sha: null };
 
             const maxId = file.content.products.reduce((max, p) => (p.id > max ? p.id : max), 0);
             const newProduct = { ...product, id: maxId + 1, createdAt: new Date().toISOString() };
 
             const updated = { ...file.content, products: [newProduct, ...file.content.products] };
-            const saved = await saveGitHubFile(SHOP_PATH, updated, `Add shop product: ${product.name}`, file.sha);
+            const saved = await saveGitHubFile(SHOP_PATH, updated, `Add shop product: ${product.name}`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         if (path === '/api/shop/update' && request.method === 'POST') {
             const SHOP_PATH = 'src/data/shop.json';
             const { id, updates } = await request.json();
-            const file = await fetchGitHubFile(SHOP_PATH);
+            const file = await fetchGitHubFile(SHOP_PATH, gitConfig);
             if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
 
             const products = file.content.products.map(p => p.id === id ? { ...p, ...updates, updatedAt: new Date().toISOString() } : p);
             const updated = { ...file.content, products };
-            const saved = await saveGitHubFile(SHOP_PATH, updated, `Update shop product: ${id}`, file.sha);
+            const saved = await saveGitHubFile(SHOP_PATH, updated, `Update shop product: ${id}`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error, product: products.find(p => p.id === id) }), { status: saved.ok ? 200 : 500, headers });
         }
 
         if (path === '/api/shop/delete' && request.method === 'POST') {
             const SHOP_PATH = 'src/data/shop.json';
             const { id } = await request.json();
-            const file = await fetchGitHubFile(SHOP_PATH);
+            const file = await fetchGitHubFile(SHOP_PATH, gitConfig);
             if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
 
             const updated = { ...file.content, products: file.content.products.filter(p => p.id !== id) };
-            const saved = await saveGitHubFile(SHOP_PATH, updated, `Delete shop product: ${id}`, file.sha);
+            const saved = await saveGitHubFile(SHOP_PATH, updated, `Delete shop product: ${id}`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         if (path === '/api/clips' && request.method === 'GET') {
             const CLIPS_PATH = 'src/data/clips.json';
-            const file = await fetchGitHubFile(CLIPS_PATH);
+            const file = await fetchGitHubFile(CLIPS_PATH, gitConfig);
             return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
         }
 
         if (path === '/api/clips/create' && request.method === 'POST') {
             const CLIPS_PATH = 'src/data/clips.json';
             const clip = await request.json();
-            const file = await fetchGitHubFile(CLIPS_PATH) || { content: [], sha: null };
+            const file = await fetchGitHubFile(CLIPS_PATH, gitConfig) || { content: [], sha: null };
             const updated = [clip, ...file.content];
-            const saved = await saveGitHubFile(CLIPS_PATH, updated.slice(0, 200), `Add clip: ${clip.id}`, file.sha);
+            const saved = await saveGitHubFile(CLIPS_PATH, updated.slice(0, 200), `Add clip: ${clip.id}`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         if (path === '/api/clips/delete' && request.method === 'POST') {
             const CLIPS_PATH = 'src/data/clips.json';
             const { id } = await request.json();
-            const file = await fetchGitHubFile(CLIPS_PATH);
+            const file = await fetchGitHubFile(CLIPS_PATH, gitConfig);
             if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
             const updated = file.content.filter(c => c.id !== id);
-            const saved = await saveGitHubFile(CLIPS_PATH, updated, `Delete clip: ${id}`, file.sha);
+            const saved = await saveGitHubFile(CLIPS_PATH, updated, `Delete clip: ${id}`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         if (path === '/api/shop/reorder' && request.method === 'POST') {
             const SHOP_PATH = 'src/data/shop.json';
             const { products } = await request.json();
-            const file = await fetchGitHubFile(SHOP_PATH);
+            const file = await fetchGitHubFile(SHOP_PATH, gitConfig);
             if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
 
             const updated = { ...file.content, products };
-            const saved = await saveGitHubFile(SHOP_PATH, updated, 'Reorder shop products', file.sha);
+            const saved = await saveGitHubFile(SHOP_PATH, updated, 'Reorder shop products', file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
@@ -1485,10 +1453,10 @@ export default {
             const type = path.split('/')[2];
             const { items } = await request.json();
             const FILE_PATH = `src/data/${type}.json`;
-            const file = await fetchGitHubFile(FILE_PATH);
+            const file = await fetchGitHubFile(FILE_PATH, gitConfig);
             if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
 
-            const saved = await saveGitHubFile(FILE_PATH, items, `Reorder ${type}`, file.sha);
+            const saved = await saveGitHubFile(FILE_PATH, items, `Reorder ${type}`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
@@ -1609,7 +1577,7 @@ export default {
                 const { email, firstName, lastName } = JSON.parse(rawBody);
                 if (!email) return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
 
-                const file = await fetchGitHubFile(PATH) || { content: [], sha: null };
+                const file = await fetchGitHubFile(PATH, gitConfig) || { content: [], sha: null };
                 if (file.content.some(sub => sub.email === email)) {
                     return new Response(JSON.stringify({ error: 'Déjà inscrit' }), { status: 409, headers });
                 }
@@ -1617,7 +1585,7 @@ export default {
                 const newSubscriber = { email, firstName: firstName || null, lastName: lastName || null, subscribedAt: new Date().toISOString() };
                 const updatedData = [...file.content, newSubscriber];
 
-                const saved = await saveGitHubFile(PATH, updatedData, `Nouvel abonné : ${email}`, file.sha);
+                const saved = await saveGitHubFile(PATH, updatedData, `Nouvel abonné : ${email}`, file.sha, gitConfig);
                 if (saved.ok) {
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
@@ -1633,13 +1601,13 @@ export default {
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             try {
                 const { email } = await request.json();
-                const file = await fetchGitHubFile(PATH);
+                const file = await fetchGitHubFile(PATH, gitConfig);
                 if (!file) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
 
                 const updatedData = file.content.filter(sub => sub.email !== email);
                 if (updatedData.length === file.content.length) return new Response(JSON.stringify({ error: 'Email not found' }), { status: 404, headers });
 
-                const saved = await saveGitHubFile(PATH, updatedData, `Désinscription : ${email}`, file.sha);
+                const saved = await saveGitHubFile(PATH, updatedData, `Désinscription : ${email}`, file.sha, gitConfig);
                 if (saved.ok) {
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
@@ -1661,7 +1629,7 @@ export default {
                 if (!title || !content) return new Response(JSON.stringify({ error: 'Missing required fields' }), { status: 400, headers });
 
                 // 1. Update news.json (Metadata only)
-                const newsFile = await fetchGitHubFile(NEWS_PATH) || { content: [], sha: null };
+                const newsFile = await fetchGitHubFile(NEWS_PATH, gitConfig) || { content: [], sha: null };
                 let currentNews = newsFile.content;
 
                 // Handle exclusive featured logic: if new is featured, others lose it
@@ -1693,15 +1661,15 @@ export default {
                 };
 
                 const updatedNews = [newArticle, ...currentNews];
-                const metaSaved = await saveGitHubFile(NEWS_PATH, updatedNews, `Add news: ${title}`, newsFile.sha);
+                const metaSaved = await saveGitHubFile(NEWS_PATH, updatedNews, `Add news: ${title}`, newsFile.sha, gitConfig);
                 if (!metaSaved.ok) return new Response(JSON.stringify({ error: 'Error saving metadata: ' + metaSaved.error }), { status: 500, headers });
 
                 // 2. Save Content to separated file
-                const contentFile = await fetchGitHubFile(NEWS_CONTENT_TARGET);
+                const contentFile = await fetchGitHubFile(NEWS_CONTENT_TARGET, gitConfig);
                 if (contentFile) {
                     const newContentItem = { id: newId, content: content };
                     const updatedContentFile = [...contentFile.content, newContentItem];
-                    await saveGitHubFile(NEWS_CONTENT_TARGET, updatedContentFile, `Add news content: ${newId}`, contentFile.sha);
+                    await saveGitHubFile(NEWS_CONTENT_TARGET, updatedContentFile, `Add news content: ${newId}`, contentFile.sha, gitConfig);
                 }
 
                 if (sendPush) {
@@ -1759,7 +1727,7 @@ export default {
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
                 // 1. Update recaps.json
-                const recapsFile = await fetchGitHubFile(FILE_PATH) || { content: [], sha: null };
+                const recapsFile = await fetchGitHubFile(FILE_PATH, gitConfig) || { content: [], sha: null };
                 let currentData = recapsFile.content;
 
                 // Handle exclusive featured logic: if new is featured, others lose it
@@ -1793,15 +1761,15 @@ export default {
                 };
 
                 const updatedData = [newItem, ...currentData];
-                const metaSaved = await saveGitHubFile(FILE_PATH, updatedData, `Add recap: ${title}`, recapsFile.sha);
+                const metaSaved = await saveGitHubFile(FILE_PATH, updatedData, `Add recap: ${title}`, recapsFile.sha, gitConfig);
                 if (!metaSaved.ok) return new Response(JSON.stringify({ error: 'Error saving metadata: ' + metaSaved.error }), { status: 500, headers });
 
                 // 2. Save Content
-                const contentFile = await fetchGitHubFile(RECAPS_CONTENT_TARGET);
+                const contentFile = await fetchGitHubFile(RECAPS_CONTENT_TARGET, gitConfig);
                 if (contentFile) {
                     const newContentItem = { id: newId, content: content };
                     const updatedContentFile = [...contentFile.content, newContentItem];
-                    await saveGitHubFile(RECAPS_CONTENT_TARGET, updatedContentFile, `Add recap content: ${newId}`, contentFile.sha);
+                    await saveGitHubFile(RECAPS_CONTENT_TARGET, updatedContentFile, `Add recap content: ${newId}`, contentFile.sha, gitConfig);
                 }
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
@@ -1820,7 +1788,7 @@ export default {
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 // 1. Update Metadata
-                const newsFile = await fetchGitHubFile(FILE_PATH);
+                const newsFile = await fetchGitHubFile(FILE_PATH, gitConfig);
                 if (!newsFile) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
 
                 let currentData = newsFile.content;
@@ -1852,19 +1820,19 @@ export default {
                     author: author || existing.author || requestUsername || 'Alex'
                 };
 
-                await saveGitHubFile(FILE_PATH, currentData, `Update news: ${title || existing.title}`, newsFile.sha);
+                await saveGitHubFile(FILE_PATH, currentData, `Update news: ${title || existing.title}`, newsFile.sha, gitConfig);
 
                 // 2. Update Content (Search in all content files)
                 // If content is provided, we need to find where it is and update it
                 if (content) {
                     let contentUpdated = false;
                     for (const filePath of NEWS_CONTENT_FILES) {
-                        const cFile = await fetchGitHubFile(filePath);
+                        const cFile = await fetchGitHubFile(filePath, gitConfig);
                         if (cFile) {
                             const cIndex = cFile.content.findIndex((item: any) => String(item.id) === String(id));
                             if (cIndex !== -1) {
                                 cFile.content[cIndex].content = content;
-                                await saveGitHubFile(filePath, cFile.content, `Update news content: ${id}`, cFile.sha);
+                                await saveGitHubFile(filePath, cFile.content, `Update news content: ${id}`, cFile.sha, gitConfig);
                                 contentUpdated = true;
                                 break;
                             }
@@ -1872,10 +1840,10 @@ export default {
                     }
                     // If content not found in any file (legacy?), add it to target file
                     if (!contentUpdated) {
-                        const targetFile = await fetchGitHubFile(NEWS_CONTENT_TARGET);
+                        const targetFile = await fetchGitHubFile(NEWS_CONTENT_TARGET, gitConfig);
                         if (targetFile) {
                             const updatedContentFile = [...targetFile.content, { id, content }];
-                            await saveGitHubFile(NEWS_CONTENT_TARGET, updatedContentFile, `Add missing news content: ${id}`, targetFile.sha);
+                            await saveGitHubFile(NEWS_CONTENT_TARGET, updatedContentFile, `Add missing news content: ${id}`, targetFile.sha, gitConfig);
                         }
                     }
                 }
@@ -1894,7 +1862,7 @@ export default {
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 // 1. Update Metadata
-                const recapsFile = await fetchGitHubFile(FILE_PATH);
+                const recapsFile = await fetchGitHubFile(FILE_PATH, gitConfig);
                 if (!recapsFile) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
 
                 let currentData = recapsFile.content;
@@ -1927,28 +1895,28 @@ export default {
                     author: author || existing.author || requestUsername || 'Alex'
                 };
 
-                await saveGitHubFile(FILE_PATH, currentData, `Update recap: ${title || existing.title}`, recapsFile.sha);
+                await saveGitHubFile(FILE_PATH, currentData, `Update recap: ${title || existing.title}`, recapsFile.sha, gitConfig);
 
                 // 2. Update Content
                 if (content) {
                     let contentUpdated = false;
                     for (const filePath of RECAPS_CONTENT_FILES) {
-                        const cFile = await fetchGitHubFile(filePath);
+                        const cFile = await fetchGitHubFile(filePath, gitConfig);
                         if (cFile) {
                             const cIndex = cFile.content.findIndex((item: any) => String(item.id) === String(id));
                             if (cIndex !== -1) {
                                 cFile.content[cIndex].content = content;
-                                await saveGitHubFile(filePath, cFile.content, `Update recap content: ${id}`, cFile.sha);
+                                await saveGitHubFile(filePath, cFile.content, `Update recap content: ${id}`, cFile.sha, gitConfig);
                                 contentUpdated = true;
                                 break;
                             }
                         }
                     }
                     if (!contentUpdated) {
-                        const targetFile = await fetchGitHubFile(RECAPS_CONTENT_TARGET);
+                        const targetFile = await fetchGitHubFile(RECAPS_CONTENT_TARGET, gitConfig);
                         if (targetFile) {
                             const updatedContentFile = [...targetFile.content, { id, content }];
-                            await saveGitHubFile(RECAPS_CONTENT_TARGET, updatedContentFile, `Add missing recap content: ${id}`, targetFile.sha);
+                            await saveGitHubFile(RECAPS_CONTENT_TARGET, updatedContentFile, `Add missing recap content: ${id}`, targetFile.sha, gitConfig);
                         }
                     }
                 }
@@ -1966,7 +1934,7 @@ export default {
                 const { id, title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
-                const agendaFile = await fetchGitHubFile(FILE_PATH);
+                const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig);
                 if (!agendaFile) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
 
                 let currentData = agendaFile.content;
@@ -2021,7 +1989,7 @@ export default {
                     // Single Update
                     currentData[index] = {
                         ...existing,
-                        title: title || existing.title,
+                        title: cleanStr(title) || existing.title,
                         date: date || existing.date,
                         startDate: startDate || existing.startDate,
                         endDate: endDate || existing.endDate,
@@ -2041,7 +2009,7 @@ export default {
                     };
                 }
 
-                const saved = await saveGitHubFile(FILE_PATH, currentData, `Update agenda: ${title || existing.title}`, agendaFile.sha);
+                const saved = await saveGitHubFile(FILE_PATH, currentData, `Update agenda: ${title || existing.title}`, agendaFile.sha, gitConfig);
                 if (saved.ok) {
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
@@ -2059,7 +2027,7 @@ export default {
                 const { title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek } = body;
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
-                const agendaFile = await fetchGitHubFile(FILE_PATH) || { content: [], sha: null };
+                const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig) || { content: [], sha: null };
                 let currentData = agendaFile.content;
                 let maxId = currentData.reduce((max, item) => (item.id > max ? item.id : max), 0);
 
@@ -2121,7 +2089,7 @@ export default {
                     currentData = [...currentData, newItem];
                 }
 
-                const saved = await saveGitHubFile(FILE_PATH, currentData, `Add agenda: ${title}`, agendaFile.sha);
+                const saved = await saveGitHubFile(FILE_PATH, currentData, `Add agenda: ${title}`, agendaFile.sha, gitConfig);
                 if (saved.ok) {
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
@@ -2139,13 +2107,13 @@ export default {
                 const { title, date, category, cover, images } = body;
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
-                const galerieFile = await fetchGitHubFile(FILE_PATH) || { content: [], sha: null };
+                const galerieFile = await fetchGitHubFile(FILE_PATH, gitConfig) || { content: [], sha: null };
                 const newId = title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
 
                 const newItem = { id: newId, title, category, cover, images, date };
                 const updatedData = [newItem, ...galerieFile.content];
 
-                const saved = await saveGitHubFile(FILE_PATH, updatedData, `Add galerie: ${title}`, galerieFile.sha);
+                const saved = await saveGitHubFile(FILE_PATH, updatedData, `Add galerie: ${title}`, galerieFile.sha, gitConfig);
                 if (saved.ok) {
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
@@ -2208,7 +2176,7 @@ export default {
                 // --- LOG NEWSLETTER ---
                 try {
                     const logPath = 'src/data/newsletters_sent.json';
-                    const file = await fetchGitHubFile(logPath) || { content: [], sha: null };
+                    const file = await fetchGitHubFile(logPath, gitConfig) || { content: [], sha: null };
                     const newLog = {
                         id: Date.now().toString(),
                         subject,
@@ -2218,7 +2186,7 @@ export default {
                         fromAccount: "contact@dropsiders.fr"
                     };
                     const updated = [...(Array.isArray(file.content) ? file.content : []), newLog];
-                    await saveGitHubFile(logPath, updated, `Newsletter sent: ${subject} [skip ci] [CF-Pages-Skip]`, file.sha);
+                    await saveGitHubFile(logPath, updated, `Newsletter sent: ${subject} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
                 } catch (logErr) {
                     console.error('Log Newsletter Error:', logErr);
                 }
@@ -2236,7 +2204,7 @@ export default {
                     return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
                 }
                 const CONTACTS_PATH = 'src/data/contacts.json';
-                const file = await fetchGitHubFile(CONTACTS_PATH) || { content: [], sha: null };
+                const file = await fetchGitHubFile(CONTACTS_PATH, gitConfig) || { content: [], sha: null };
                 const contacts = Array.isArray(file.content) ? file.content : [];
                 const newMsg = {
                     id: Date.now().toString(),
@@ -2246,7 +2214,7 @@ export default {
                     replied: false
                 };
                 contacts.push(newMsg);
-                await saveGitHubFile(CONTACTS_PATH, contacts, `New contact: ${name} [skip ci] [CF-Pages-Skip]`, file.sha);
+                await saveGitHubFile(CONTACTS_PATH, contacts, `New contact: ${name} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
 
                 // --- SEND NOTIFICATION EMAIL TO ADMIN ---
                 const BREVO_KEY = env.BREVO_API_KEY;
@@ -2347,7 +2315,7 @@ export default {
 
         if (path === '/api/contacts' && request.method === 'GET') {
             try {
-                const file = await fetchGitHubFile('src/data/contacts.json') || { content: [] };
+                const file = await fetchGitHubFile('src/data/contacts.json', gitConfig) || { content: [] };
                 return new Response(JSON.stringify(file.content || []), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
@@ -2358,10 +2326,10 @@ export default {
             try {
                 const { id } = await request.json();
                 const CONTACTS_PATH = 'src/data/contacts.json';
-                const file = await fetchGitHubFile(CONTACTS_PATH) || { content: [], sha: null };
+                const file = await fetchGitHubFile(CONTACTS_PATH, gitConfig) || { content: [], sha: null };
                 const contacts = Array.isArray(file.content) ? file.content : [];
                 const updated = contacts.map(c => c.id === id ? { ...c, read: true } : c);
-                await saveGitHubFile(CONTACTS_PATH, updated, `Mark read: ${id} [skip ci] [CF-Pages-Skip]`, file.sha);
+                await saveGitHubFile(CONTACTS_PATH, updated, `Mark read: ${id} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
@@ -2372,10 +2340,10 @@ export default {
             try {
                 const { id } = await request.json();
                 const CONTACTS_PATH = 'src/data/contacts.json';
-                const file = await fetchGitHubFile(CONTACTS_PATH) || { content: [], sha: null };
+                const file = await fetchGitHubFile(CONTACTS_PATH, gitConfig) || { content: [], sha: null };
                 const contacts = Array.isArray(file.content) ? file.content : [];
                 const updated = contacts.filter(c => c.id !== id);
-                await saveGitHubFile(CONTACTS_PATH, updated, `Delete contact: ${id} [skip ci] [CF-Pages-Skip]`, file.sha);
+                await saveGitHubFile(CONTACTS_PATH, updated, `Delete contact: ${id} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
@@ -2484,7 +2452,7 @@ export default {
                 // Mark as replied in database
                 try {
                     const CONTACTS_PATH = 'src/data/contacts.json';
-                    const file = await fetchGitHubFile(CONTACTS_PATH) || { content: [], sha: null };
+                    const file = await fetchGitHubFile(CONTACTS_PATH, gitConfig) || { content: [], sha: null };
                     const contacts = Array.isArray(file.content) ? file.content : [];
 
                     // Improved matching: if multiple emails, match any
@@ -2493,7 +2461,7 @@ export default {
                         toEmails.includes(c.email.toLowerCase()) ? { ...c, replied: true, read: true } : c
                     );
 
-                    await saveGitHubFile(CONTACTS_PATH, updatedContacts, `Reply sent to: ${to} [skip ci] [CF-Pages-Skip]`, file.sha);
+                    await saveGitHubFile(CONTACTS_PATH, updatedContacts, `Reply sent to: ${to} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
                 } catch (e) {
                     console.error('Failed to mark replied in DB:', e);
                     // We don't return error here because the email WAS sent successfully
@@ -2532,7 +2500,7 @@ export default {
                 if (!FILE_PATH) return new Response(JSON.stringify({ error: 'Invalid path' }), { status: 400, headers });
 
                 // 1. Delete Metadata
-                const file = await fetchGitHubFile(FILE_PATH);
+                const file = await fetchGitHubFile(FILE_PATH, gitConfig);
                 if (!file) return new Response(JSON.stringify({ error: 'Error fetching metadata file' }), { status: 502, headers });
 
                 const updatedData = file.content.filter(item => String(item.id) !== String(id));
@@ -2540,16 +2508,16 @@ export default {
                     return new Response(JSON.stringify({ error: 'Item not found in metadata' }), { status: 404, headers });
                 }
 
-                await saveGitHubFile(FILE_PATH, updatedData, `Delete content: ${id}`, file.sha);
+                await saveGitHubFile(FILE_PATH, updatedData, `Delete content: ${id}`, file.sha, gitConfig);
 
                 // 2. Delete Content (News/Recaps)
                 if (CONTENT_FILES.length > 0) {
                     for (const cp of CONTENT_FILES) {
-                        const cf = await fetchGitHubFile(cp);
+                        const cf = await fetchGitHubFile(cp, gitConfig);
                         if (cf) {
                             const newCfContent = cf.content.filter(item => String(item.id) !== String(id));
                             if (newCfContent.length !== cf.content.length) {
-                                await saveGitHubFile(cp, newCfContent, `Delete content body: ${id}`, cf.sha);
+                                await saveGitHubFile(cp, newCfContent, `Delete content body: ${id}`, cf.sha, gitConfig);
                             }
                         }
                     }
@@ -3550,9 +3518,10 @@ export default {
         const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
         const REPO = env.GITHUB_REPO || 'sitedropsiders';
         const TOKEN = env.GITHUB_TOKEN;
+        const gitConfig = { OWNER, REPO, TOKEN };
 
         // 1. Fetch current settings to get the lineup
-        const res = await fetchGitHubFile(SETTINGS_PATH);
+        const res = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
         if (!res) return;
         const content = res.content;
         const fileData = { sha: res.sha };
@@ -3583,7 +3552,7 @@ export default {
         const lineupText = content?.takeover?.lineup;
         if (!lineupText) {
             if (settingsChanged) {
-                await saveGitHubFile(SETTINGS_PATH, content, 'Auto-switch live status (Scheduled)', fileData.sha);
+                await saveGitHubFile(SETTINGS_PATH, content, 'Auto-switch live status (Scheduled)', fileData.sha, gitConfig);
             }
             return;
         }

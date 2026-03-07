@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Settings, Users, MessageSquare, Send, Zap, Video,
-    Save, AlertCircle, Music, Trash2, Calendar, Plus, Instagram,
-    Pin, Star, ShieldCheck, UserMinus
+    Save, AlertCircle, Music, Trash2, Plus,
+    Pin, Star, ShieldCheck
 } from 'lucide-react';
 
 interface LineupItem {
@@ -53,9 +53,8 @@ interface ShazamTrack {
 
 export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => {
     const navigate = useNavigate();
-    const [userRole, setUserRole] = useState<'admin' | 'mod' | 'user'>('admin');
+    const [userRole] = useState<'admin' | 'mod' | 'user'>('admin');
     const [isMod] = useState(userRole === 'admin' || userRole === 'mod');
-    const [isAdmin] = useState(userRole === 'admin');
     const [showAdminPanel, setShowAdminPanel] = useState(false);
     const [viewersCount] = useState(Math.floor(Math.random() * 50) + 10);
     const [activeChatTab, setActiveChatTab] = useState('chat');
@@ -69,11 +68,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         color: "text-neon-red"
     });
 
-    const [bannedUsers, setBannedUsers] = useState<Record<string, number | 'perm'>>({});
-    const [drops] = useState(2450);
-
     const [shazamStatus, setShazamStatus] = useState<'idle' | 'listening' | 'processing' | 'found'>('idle');
-    const [lastFoundTrack, setLastFoundTrack] = useState<ShazamTrack | null>(null);
     const [shazamHistory, setShazamHistory] = useState<ShazamTrack[]>(() => {
         const saved = localStorage.getItem('shazam_history');
         return saved ? JSON.parse(saved) : [];
@@ -147,14 +142,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         return match ? match[1] : url.trim();
     };
 
-    const extractInstagramUsername = (url: string) => {
-        if (!url) return '';
-        const cleanUrl = url.split('?')[0];
-        const match = cleanUrl.match(/(?:instagram\.com\/|instagr\.am\/|instagram\.com\/reels?\/|instagram\.com\/p\/|instagram\.com\/tv\/)([a-zA-Z0-9._]+)/);
-        if (match) return match[1];
-        return url.replace('@', '').trim();
-    };
-
     const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({
         show: false, message: '', type: 'success'
     });
@@ -165,7 +152,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const fetchSettings = async () => {
         try {
-            const res = await fetch('https://api.dropsiders.fr/api/takeover-settings');
+            const res = await fetch('/api/takeover-settings');
             if (res.ok) {
                 const data = await res.json();
                 if (data) {
@@ -209,7 +196,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         };
 
         try {
-            const saveRes = await fetch('https://api.dropsiders.fr/api/takeover-settings', {
+            const saveRes = await fetch('/api/takeover-settings', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(updatedTakeover)
@@ -251,15 +238,69 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const deleteMessage = (id: number) => setChatMessages(prev => prev.filter(m => m.id !== id));
 
     const handleShazamAction = async () => {
-        setShazamStatus('listening');
-        setTimeout(() => setShazamStatus('processing'), 3000);
-        setTimeout(() => {
-            const mockTrack = { id: Date.now(), artist: "MOCHAKK", title: "JEALOUS (ORIGINAL MIX)", time: "22:45", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=cover" };
-            setLastFoundTrack(mockTrack);
-            setShazamHistory(prev => [mockTrack, ...prev.slice(0, 19)]);
-            setShazamStatus('found');
-            setTimeout(() => setShazamStatus('idle'), 3000);
-        }, 6000);
+        try {
+            setShazamStatus('listening');
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            const audioChunks: Blob[] = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                setShazamStatus('processing');
+                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                const formData = new FormData();
+                formData.append('audio', audioBlob, 'shazam.wav');
+
+                try {
+                    const res = await fetch('/api/shazam/identify', {
+                        method: 'POST',
+                        body: formData
+                    });
+                    const data = await res.json();
+                    if (data.status === 'success') {
+                        const track: ShazamTrack = {
+                            id: Date.now(),
+                            artist: data.metadata.artist,
+                            title: data.metadata.title,
+                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                            image: data.metadata.image || "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=cover"
+                        };
+                        setShazamHistory(prev => [track, ...prev.slice(0, 19)]);
+                        setShazamStatus('found');
+                        setTimeout(() => setShazamStatus('idle'), 3000);
+
+                        // Enregistrer dans l'historique serveur
+                        fetch('/api/shazam/history', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ ...data.metadata, user: 'Alex' })
+                        });
+                    } else {
+                        showNotification(data.error || 'Non identifié', 'error');
+                        setShazamStatus('idle');
+                    }
+                } catch (e) {
+                    showNotification('Erreur identification', 'error');
+                    setShazamStatus('idle');
+                } finally {
+                    stream.getTracks().forEach(track => track.stop());
+                }
+            };
+
+            mediaRecorder.start();
+            setTimeout(() => {
+                if (mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+            }, 6000); // 6 secondes d'écoute
+        } catch (err) {
+            console.error(err);
+            showNotification('Erreur: Micro non accessible', 'error');
+            setShazamStatus('idle');
+        }
     };
 
     const fluxCurrentArtist = lineupItems.find(item => {
@@ -461,7 +502,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         </div>
 
                                                         <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Statut de la diffusion</label>
+                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widestStatut de la diffusion">Statut de la diffusion</label>
                                                             <div className="flex gap-2 p-1 bg-black/40 border border-white/10 rounded-xl">
                                                                 {(['live', 'edit', 'off'] as const).map(s => (
                                                                     <button
@@ -541,17 +582,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <Trash2 className="w-8 h-8 text-red-500 mx-auto" />
                                                         <h4 className="text-white font-black uppercase">Nettoyage Chat</h4>
                                                         <button onClick={clearChat} className="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase">Vider le Chat</button>
-                                                    </div>
-                                                    <div className="space-y-4">
-                                                        <h3 className="text-white uppercase font-black text-xs">Utilisateurs Bannis</h3>
-                                                        <div className="space-y-2">
-                                                            {Object.entries(bannedUsers).map(([username]) => (
-                                                                <div key={username} className="p-4 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between text-white text-xs font-bold uppercase">
-                                                                    <span>{username}</span>
-                                                                    <button onClick={() => { const b = { ...bannedUsers }; delete b[username]; setBannedUsers(b); }} className="text-red-500 hover:bg-red-500/10 p-2 rounded-lg"><X className="w-4 h-4" /></button>
-                                                                </div>
-                                                            ))}
-                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -711,7 +741,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         <div className="flex items-center justify-between px-2">
                             <div className="flex items-center gap-1.5">
                                 <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                                <span className="text-[10px] font-black text-white">{drops} <span className="text-gray-600 ml-0.5 uppercase">DROPS</span></span>
+                                <span className="text-[10px] font-black text-white">{2450} <span className="text-gray-600 ml-0.5 uppercase">DROPS</span></span>
                             </div>
                             <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">Powered by Dropsiders</span>
                         </div>
