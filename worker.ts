@@ -149,6 +149,8 @@ export default {
                             spotify: res.spotify?.external_urls?.spotify || ''
                         }
                     }), { headers });
+                } else if (auddData.error) {
+                    return new Response(JSON.stringify({ error: `AudD: ${auddData.error.error_message}` }), { status: 500, headers });
                 }
             }
 
@@ -200,10 +202,12 @@ export default {
                             spotify: music.external_metadata?.spotify?.track?.id ? `https://open.spotify.com/track/${music.external_metadata.spotify.track.id}` : ''
                         }
                     }), { headers });
+                } else if (acrData.status && acrData.status.code !== 0) {
+                    return new Response(JSON.stringify({ error: `ACRCloud: ${acrData.status.msg}` }), { status: 500, headers });
                 }
             }
 
-            return new Response(JSON.stringify({ error: 'Aucun match trouvé ou API non configurée' }), { status: 404, headers });
+            return new Response(JSON.stringify({ error: 'Aucun match trouvé ou API non configurée (Vérifiez vos tokens dans GENERAL)' }), { status: 404, headers });
         }
 
         // --- API: SHAZAM HISTORY ---

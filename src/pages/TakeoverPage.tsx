@@ -416,7 +416,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             throw new Error(data.error || 'Aucun titre trouvé');
                         }
                     } else {
-                        throw new Error('Erreur API identification');
+                        const errorData = await resp.json().catch(() => ({ error: 'Erreur API identification' }));
+                        throw new Error(errorData.error || 'Erreur API identification');
                     }
                 } catch (err: any) {
                     showNotification(err.message || "Impossible d'identifier ce titre", 'error');
