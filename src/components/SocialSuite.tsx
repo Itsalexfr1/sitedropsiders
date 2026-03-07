@@ -384,23 +384,29 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 // 2. The "LIVE" Badge (Top Center)
                 ctx.save();
-                const badgeW = 320;
-                const badgeH = 80;
-                const badgeY = activeTab === 'PUBLICATION' ? 100 : 250;
+                const badgeW = 280;
+                const badgeH = 65;
+                const badgeY = activeTab === 'PUBLICATION' ? 120 : 260;
                 const badgeX = (canvas.width - badgeW) / 2;
 
-                // Glowing Background for Badge
-                ctx.shadowColor = 'rgba(255, 0, 51, 0.8)';
-                ctx.shadowBlur = 35;
+                // Glowing Background for Badge - Cyber/Futuristic look
+                ctx.shadowColor = 'rgba(255, 0, 51, 0.9)';
+                ctx.shadowBlur = 40;
                 ctx.fillStyle = '#ff0033'; // Dropsiders Red
+
+                // Futuristic angled badge
                 ctx.beginPath();
-                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 40);
+                ctx.moveTo(badgeX + 15, badgeY);
+                ctx.lineTo(badgeX + badgeW, badgeY);
+                ctx.lineTo(badgeX + badgeW - 15, badgeY + badgeH);
+                ctx.lineTo(badgeX, badgeY + badgeH);
+                ctx.closePath();
                 ctx.fill();
 
                 // Pulse dot
-                const pulse = (Math.sin(Date.now() / 300) + 1) / 2;
+                const pulse = (Math.sin(Date.now() / 250) + 1) / 2;
                 ctx.beginPath();
-                ctx.arc(badgeX + 60, badgeY + badgeH / 2, 10 + (pulse * 4), 0, Math.PI * 2);
+                ctx.arc(badgeX + 50, badgeY + badgeH / 2, 7 + (pulse * 3), 0, Math.PI * 2);
                 ctx.fillStyle = '#fff';
                 ctx.fill();
 
@@ -408,31 +414,36 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#fff';
-                ctx.font = '900 italic 46px "Montserrat", sans-serif';
+                ctx.font = '900 italic 38px "Montserrat", sans-serif';
+                ctx.letterSpacing = "2px";
                 ctx.shadowBlur = 0;
-                ctx.fillText('EN DIRECT', centerX + 20, badgeY + badgeH / 2 + 4);
+                ctx.fillText('EN DIRECT', centerX + 15, badgeY + badgeH / 2 + 2);
                 ctx.restore();
 
-                // 3. MAIN TITLE: "TAKEOVER" (Huge, Stroke & Fill styling)
+                // 3. MAIN TITLE: "TAKEOVER" (Futuristic, smaller)
                 ctx.save();
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
 
-                // Shadow / Glow behind title
-                ctx.shadowColor = `rgba(${activeData.grad}, 0.6)`;
-                ctx.shadowBlur = 40;
+                const takeoverY = centerY - 120;
 
+                // Add a cool stroke/outline effect slightly offset (Glitch/Cyberpunk vibe)
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = `rgba(${activeData.grad}, 0.9)`;
+                ctx.font = '900 italic 130px "Montserrat", sans-serif';
+                ctx.strokeText('TAKEOVER', centerX + 8, takeoverY + 8);
+
+                // Core title
                 ctx.fillStyle = '#fff';
-                ctx.font = '900 italic 200px "Montserrat", sans-serif';
-
-                const takeoverY = centerY - 100;
+                ctx.shadowColor = `rgba(${activeData.grad}, 0.8)`;
+                ctx.shadowBlur = 30;
                 ctx.fillText('TAKEOVER', centerX, takeoverY);
 
-                // Add a cool stroke/outline effect slightly offset
-                ctx.lineWidth = 4;
-                ctx.strokeStyle = `rgba(${activeData.grad}, 0.8)`;
+                // Futuristic tech lines under title
                 ctx.shadowBlur = 0;
-                ctx.strokeText('TAKEOVER', centerX + 10, takeoverY + 10);
+                ctx.fillStyle = `rgba(${activeData.grad}, 0.6)`;
+                ctx.fillRect(centerX - 250, takeoverY + 80, 500, 4);
+                ctx.fillRect(centerX - 50, takeoverY + 90, 100, 2);
                 ctx.restore();
 
                 // 4. INFO SECTION (Premium Glass Card)
@@ -443,86 +454,108 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     const extraInfo = lines[2]?.toUpperCase() || ''; // Optional 3rd line
 
                     ctx.save();
-                    ctx.font = '900 italic 75px "Montserrat", sans-serif';
+                    ctx.font = '900 italic 55px "Montserrat", sans-serif';
                     let maxW = ctx.measureText(mainInfo).width;
                     if (subInfo) {
-                        ctx.font = '900 italic 45px "Montserrat", sans-serif';
+                        ctx.font = '900 italic 35px "Montserrat", sans-serif';
                         maxW = Math.max(maxW, ctx.measureText(subInfo).width);
                     }
                     if (extraInfo) {
-                        ctx.font = '900 italic 35px "Montserrat", sans-serif';
+                        ctx.font = '900 italic 28px "Montserrat", sans-serif';
                         maxW = Math.max(maxW, ctx.measureText(extraInfo).width);
                     }
 
-                    const cardW = maxW + 200;
-                    let cardH = 140;
-                    if (subInfo) cardH += 60;
-                    if (extraInfo) cardH += 50;
+                    const cardW = maxW + 160;
+                    let cardH = 110;
+                    if (subInfo) cardH += 45;
+                    if (extraInfo) cardH += 35;
 
-                    const cardY = centerY + 80;
+                    const cardY = centerY + 30;
                     const cardX = (canvas.width - cardW) / 2;
 
-                    // Sleek Dark Glass
-                    ctx.fillStyle = 'rgba(10, 10, 10, 0.85)';
+                    // Cybernetic Glass background
+                    ctx.fillStyle = 'rgba(5, 5, 8, 0.9)';
+
+                    // Tech-style clipped corner rectangle
                     ctx.beginPath();
-                    ctx.roundRect(cardX, cardY, cardW, cardH, 20);
+                    ctx.moveTo(cardX + 20, cardY);
+                    ctx.lineTo(cardX + cardW, cardY);
+                    ctx.lineTo(cardX + cardW, cardY + cardH - 20);
+                    ctx.lineTo(cardX + cardW - 20, cardY + cardH);
+                    ctx.lineTo(cardX, cardY + cardH);
+                    ctx.lineTo(cardX, cardY + 20);
+                    ctx.closePath();
                     ctx.fill();
 
-                    // Vibrant Accent Line on the Left side of the card
-                    ctx.fillStyle = `rgb(${activeData.grad})`;
+                    // Vibrant Tech Accent Line on left 
+                    ctx.lineWidth = 6;
+                    ctx.strokeStyle = `rgb(${activeData.grad})`;
                     ctx.beginPath();
-                    // Need a standard fillRect for the edge if roundRect partial radius isn't supported perfectly on old canvas
-                    ctx.roundRect(cardX, cardY, 20, cardH, { tl: 20, bl: 20, tr: 0, br: 0 } as any);
-                    ctx.fill();
-
-                    // Border around the whole card
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                    ctx.lineWidth = 2;
-                    ctx.beginPath();
-                    ctx.roundRect(cardX, cardY, cardW, cardH, 20);
+                    ctx.moveTo(cardX, cardY + 20);
+                    ctx.lineTo(cardX, cardY + cardH);
                     ctx.stroke();
+
+                    // Neon wireframe border
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(cardX + 20, cardY);
+                    ctx.lineTo(cardX + cardW, cardY);
+                    ctx.lineTo(cardX + cardW, cardY + cardH - 20);
+                    ctx.lineTo(cardX + cardW - 20, cardY + cardH);
+                    ctx.lineTo(cardX, cardY + cardH);
+                    ctx.stroke();
+
+                    // Corner UI accents
+                    ctx.fillStyle = `rgb(${activeData.grad})`;
+                    ctx.fillRect(cardX + cardW - 10, cardY + 10, 4, 15);
+                    ctx.fillRect(cardX + cardW - 15, cardY + 10, 15, 4);
 
                     // Texts inside card
                     ctx.textAlign = 'center';
 
                     // Main Info
                     ctx.fillStyle = '#fff';
-                    ctx.font = '900 italic 75px "Montserrat", sans-serif';
-                    ctx.fillText(mainInfo, centerX, cardY + 75);
+                    ctx.font = '900 italic 55px "Montserrat", sans-serif';
+                    ctx.fillText(mainInfo, centerX, cardY + 65);
 
                     // Sub Info
                     if (subInfo) {
                         ctx.fillStyle = `rgb(${activeData.grad})`;
-                        ctx.font = '900 italic 45px "Montserrat", sans-serif';
-                        ctx.fillText(subInfo, centerX, cardY + 140);
+                        ctx.font = '900 italic 35px "Montserrat", sans-serif';
+                        ctx.fillText(subInfo, centerX, cardY + 115);
                     }
 
                     // Extra Info
                     if (extraInfo) {
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                        ctx.font = '900 italic 35px "Montserrat", sans-serif';
-                        ctx.fillText(extraInfo, centerX, cardY + (subInfo ? 195 : 140));
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                        ctx.font = '900 italic 28px "Montserrat", sans-serif';
+                        ctx.fillText(extraInfo, centerX, cardY + (subInfo ? 155 : 115));
                     }
                     ctx.restore();
                 }
 
-                // 5. BOTTOM NAVIGATION BAR (Sleek Modern Footer)
+                // 5. BOTTOM NAVIGATION BAR (Cyberpunk Footer)
                 ctx.save();
-                const barH = 160;
+                const barH = 140;
                 const barY = canvas.height - barH;
 
-                // Solid dark blur footer
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
+                // Striped tech background
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
                 ctx.fillRect(0, barY, canvas.width, barH);
 
-                // Top border for the footer
-                ctx.fillStyle = `rgba(${activeData.grad}, 0.5)`;
-                ctx.fillRect(0, barY, canvas.width, 3);
+                // Scanning line / top border
+                const scanGrad = ctx.createLinearGradient(0, barY, canvas.width, barY);
+                scanGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                scanGrad.addColorStop(0.5, `rgba(${activeData.grad}, 1)`);
+                scanGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = scanGrad;
+                ctx.fillRect(0, barY, canvas.width, 2);
 
-                ctx.font = '900 italic 45px "Montserrat", sans-serif';
+                ctx.font = '900 italic 38px "Montserrat", sans-serif';
                 ctx.textAlign = 'center';
 
-                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                 const textPart1 = "RENDEZ-VOUS SUR ";
                 const textPart2 = "DROPSIDERS.FR/LIVE";
 
@@ -533,12 +566,20 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const startX = centerX - totalW / 2;
 
                 ctx.textAlign = 'left';
-                ctx.fillText(textPart1, startX, canvas.height - 70);
+                ctx.fillText(textPart1, startX, canvas.height - 60);
 
                 ctx.fillStyle = '#fff';
-                ctx.shadowColor = '#fff';
-                ctx.shadowBlur = 15;
-                ctx.fillText(textPart2, startX + w1, canvas.height - 70);
+                ctx.shadowColor = `rgba(${activeData.grad}, 0.8)`;
+                ctx.shadowBlur = 10;
+                ctx.fillText(textPart2, startX + w1, canvas.height - 60);
+
+                // Add some tech UI decor
+                ctx.fillStyle = `rgb(${activeData.grad})`;
+                ctx.fillRect(startX - 40, canvas.height - 75, 20, 4);
+                ctx.fillRect(startX - 40, canvas.height - 65, 10, 4);
+
+                ctx.fillRect(startX + totalW + 20, canvas.height - 75, 20, 4);
+                ctx.fillRect(startX + totalW + 20, canvas.height - 65, 10, 4);
 
                 ctx.restore();
             } else {
