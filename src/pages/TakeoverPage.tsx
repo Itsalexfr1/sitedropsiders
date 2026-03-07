@@ -276,7 +276,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     }) || { artist: 'DROPSIDERS LIVE', stage: 'MAIN STAGE' };
 
     return (
-        <div className="fixed inset-0 bg-dark-bg flex flex-col font-sans select-none overflow-hidden">
+        <div className="fixed inset-0 bg-[#050505] flex flex-col font-sans select-none overflow-hidden z-[100]">
             {/* 1. TOP ANNOUNCER (Ticker) */}
             <AnimatePresence>
                 {settings.showTickerBanner && (
@@ -328,7 +328,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             {/* 3. MAIN CONTENT AREA */}
             <div className="flex-1 flex flex-row overflow-hidden relative">
                 {/* A. VIDEO PANEL (60%) */}
-                <div className="w-[60%] h-full bg-transparent border-r border-white/10 relative flex flex-col shrink-0">
+                <div className="w-[60%] h-full bg-black border-r border-white/10 relative flex flex-col shrink-0">
                     <AnimatePresence mode="wait">
                         {showAdminPanel ? (
                             <motion.div
@@ -714,7 +714,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 </div>
 
                 {/* B. CHAT PANEL (40%) */}
-                <div className="flex-1 h-full bg-dark-bg/20 backdrop-blur-sm flex flex-col relative z-10 border-r border-white/10 shadow-2xl">
+                <div className="flex-1 h-full bg-[#080808] flex flex-col relative z-10 border-l border-white/10 shadow-2xl">
                     <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red">

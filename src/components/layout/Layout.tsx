@@ -41,15 +41,23 @@ export function Layout({ children }: LayoutProps) {
     const isHome = location.pathname === '/';
     const isMini = new URLSearchParams(location.search).get('mini') === 'true';
     const isLivePage = location.pathname === '/live';
+    const isHideLayout = location.pathname.startsWith('/admin') ||
+        location.pathname.startsWith('/newsletter/admin') ||
+        location.pathname.startsWith('/newsletter/studio') ||
+        location.pathname.startsWith('/social-studio') ||
+        location.pathname.includes('/create') ||
+        isMini ||
+        isLivePage;
+
     const isAdminPage = (location.pathname.startsWith('/admin') ||
         location.pathname.startsWith('/newsletter/admin') ||
         location.pathname.startsWith('/newsletter/studio') ||
         location.pathname.startsWith('/social-studio') ||
         location.pathname.includes('/create') ||
-        isMini) && !isLivePage;
+        isMini);
 
 
-    const ptClass = (isAdminPage || isLivePage) ? 'pt-0' :
+    const ptClass = isHideLayout ? 'pt-0' :
         (isMobile ? 'pt-16' : (bannerEnabled ? 'pt-[112px]' : (isHome ? 'pt-0' : 'pt-20')));
 
     return (
@@ -71,9 +79,9 @@ export function Layout({ children }: LayoutProps) {
 
             {!isMobile && !isAdminPage && <VinylCursor />}
 
-            {!isMobile && !isAdminPage && !isLivePage && <Navbar />}
-            {!isMobile && !isAdminPage && !isLivePage && <AnnouncementBanner />}
-            {isMobile && !isAdminPage && !isLivePage && <MobileHeader onOpenSearch={() => setIsSearchOpen(true)} />}
+            {!isMobile && !isHideLayout && <Navbar />}
+            {!isMobile && !isHideLayout && <AnnouncementBanner />}
+            {isMobile && !isHideLayout && <MobileHeader onOpenSearch={() => setIsSearchOpen(true)} />}
 
             <MobileSearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
@@ -81,11 +89,11 @@ export function Layout({ children }: LayoutProps) {
                 {children}
             </main>
 
-            {!isAdminPage && <Footer />}
-            {!isAdminPage && (
+            {!isHideLayout && <Footer />}
+            {!isHideLayout && (
                 <div className="lg:hidden fixed bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black via-black/95 to-transparent z-[90] pointer-events-none" />
             )}
-            {!isAdminPage && <MobileNavbar />}
+            {!isHideLayout && <MobileNavbar />}
         </div>
     );
 }
