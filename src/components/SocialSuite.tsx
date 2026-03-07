@@ -362,224 +362,128 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const centerX = canvas.width / 2;
                 const centerY = (canvas.height / 2);
 
-                // 1. Background Enhancement: Vignette & Aurora
+                // 1. Background Enhancement: Elegant dark vignette and soft color wash
                 const vignetteGrad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, canvas.width);
                 vignetteGrad.addColorStop(0, 'rgba(0,0,0,0)');
                 vignetteGrad.addColorStop(1, 'rgba(0,0,0,0.85)');
                 ctx.fillStyle = vignetteGrad;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                const drawGlow = (x: number, y: number, color: string, size: number) => {
-                    ctx.save();
-                    const g = ctx.createRadialGradient(x, y, 0, x, y, size);
-                    g.addColorStop(0, color);
-                    g.addColorStop(1, 'transparent');
-                    ctx.globalAlpha = 0.5;
-                    ctx.fillStyle = g;
-                    ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill();
-                    ctx.restore();
-                };
-                drawGlow(0, 0, 'rgba(255, 0, 51, 0.4)', 900); // Neon Red glow on top left
-                drawGlow(canvas.width, canvas.height, `rgba(${activeData.grad}, 0.3)`, 900); // Theme color glow on bottom right
+                ctx.fillStyle = `rgba(${activeData.grad}, 0.15)`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-                // 2. The "LIVE" Badge (Top Center)
+                // 2. The "LIVE" Indicator (Ultra minimal)
                 ctx.save();
-                const badgeW = 280;
-                const badgeH = 65;
-                const badgeY = activeTab === 'PUBLICATION' ? 120 : 260;
-                const badgeX = (canvas.width - badgeW) / 2;
+                const badgeY = activeTab === 'PUBLICATION' ? 140 : 280;
 
-                // Glowing Background for Badge - Cyber/Futuristic look
-                ctx.shadowColor = 'rgba(255, 0, 51, 0.9)';
-                ctx.shadowBlur = 40;
-                ctx.fillStyle = '#ff0033'; // Dropsiders Red
+                const pulse = (Math.sin(Date.now() / 400) + 1) / 2;
 
-                // Futuristic angled badge
+                // Red glowing dot
                 ctx.beginPath();
-                ctx.moveTo(badgeX + 15, badgeY);
-                ctx.lineTo(badgeX + badgeW, badgeY);
-                ctx.lineTo(badgeX + badgeW - 15, badgeY + badgeH);
-                ctx.lineTo(badgeX, badgeY + badgeH);
-                ctx.closePath();
+                ctx.arc(centerX - 80, badgeY, 6 + (pulse * 2), 0, Math.PI * 2);
+                ctx.fillStyle = '#ff0033';
+                ctx.shadowColor = '#ff0033';
+                ctx.shadowBlur = 15;
                 ctx.fill();
 
-                // Pulse dot
-                const pulse = (Math.sin(Date.now() / 250) + 1) / 2;
-                ctx.beginPath();
-                ctx.arc(badgeX + 50, badgeY + badgeH / 2, 7 + (pulse * 3), 0, Math.PI * 2);
-                ctx.fillStyle = '#fff';
-                ctx.fill();
-
-                // Badge Text
-                ctx.textAlign = 'center';
+                // Text "EN DIRECT"
+                ctx.textAlign = 'left';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#fff';
-                ctx.font = '900 italic 38px "Montserrat", sans-serif';
-                ctx.letterSpacing = "2px";
+                ctx.font = '600 24px "Montserrat", sans-serif';
+                ctx.letterSpacing = "8px";
                 ctx.shadowBlur = 0;
-                ctx.fillText('EN DIRECT', centerX + 15, badgeY + badgeH / 2 + 2);
+                ctx.fillText('EN DIRECT', centerX - 55, badgeY);
                 ctx.restore();
 
-                // 3. MAIN TITLE: "TAKEOVER" (Futuristic, smaller)
+                // 3. MAIN TITLE: "TAKEOVER" (Sleek, Wide, High-End)
                 ctx.save();
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
 
-                const takeoverY = centerY - 120;
+                const takeoverY = centerY - 50;
 
-                // Add a cool stroke/outline effect slightly offset (Glitch/Cyberpunk vibe)
-                ctx.lineWidth = 3;
-                ctx.strokeStyle = `rgba(${activeData.grad}, 0.9)`;
-                ctx.font = '900 italic 130px "Montserrat", sans-serif';
-                ctx.strokeText('TAKEOVER', centerX + 8, takeoverY + 8);
-
-                // Core title
                 ctx.fillStyle = '#fff';
-                ctx.shadowColor = `rgba(${activeData.grad}, 0.8)`;
+                ctx.shadowColor = `rgba(${activeData.grad}, 0.6)`;
                 ctx.shadowBlur = 30;
-                ctx.fillText('TAKEOVER', centerX, takeoverY);
 
-                // Futuristic tech lines under title
-                ctx.shadowBlur = 0;
-                ctx.fillStyle = `rgba(${activeData.grad}, 0.6)`;
-                ctx.fillRect(centerX - 250, takeoverY + 80, 500, 4);
-                ctx.fillRect(centerX - 50, takeoverY + 90, 100, 2);
+                ctx.font = '900 italic 140px "Montserrat", sans-serif';
+                ctx.letterSpacing = "20px";
+                ctx.fillText('TAKEOVER', centerX + 10, takeoverY); // offset for letterSpacing centering
                 ctx.restore();
 
-                // 4. INFO SECTION (Premium Glass Card)
+                // 4. INFO SECTION (Minimalist floating typography)
                 if (customText) {
                     const lines = customText.split('\n').filter(l => l.trim() !== '');
                     const mainInfo = lines[0]?.toUpperCase() || '';
                     const subInfo = lines[1]?.toUpperCase() || '';
-                    const extraInfo = lines[2]?.toUpperCase() || ''; // Optional 3rd line
+                    const extraInfo = lines[2]?.toUpperCase() || '';
 
                     ctx.save();
-                    ctx.font = '900 italic 55px "Montserrat", sans-serif';
-                    let maxW = ctx.measureText(mainInfo).width;
-                    if (subInfo) {
-                        ctx.font = '900 italic 35px "Montserrat", sans-serif';
-                        maxW = Math.max(maxW, ctx.measureText(subInfo).width);
-                    }
-                    if (extraInfo) {
-                        ctx.font = '900 italic 28px "Montserrat", sans-serif';
-                        maxW = Math.max(maxW, ctx.measureText(extraInfo).width);
-                    }
+                    const infoY = centerY + 80;
 
-                    const cardW = maxW + 160;
-                    let cardH = 110;
-                    if (subInfo) cardH += 45;
-                    if (extraInfo) cardH += 35;
+                    // Delicate elegant divider line
+                    const lineW = 300;
+                    const gradLine = ctx.createLinearGradient(centerX - lineW, 0, centerX + lineW, 0);
+                    gradLine.addColorStop(0, 'rgba(255,255,255,0)');
+                    gradLine.addColorStop(0.5, `rgb(${activeData.grad})`);
+                    gradLine.addColorStop(1, 'rgba(255,255,255,0)');
+                    ctx.fillStyle = gradLine;
+                    ctx.fillRect(centerX - lineW, infoY, lineW * 2, 2);
 
-                    const cardY = centerY + 30;
-                    const cardX = (canvas.width - cardW) / 2;
-
-                    // Cybernetic Glass background
-                    ctx.fillStyle = 'rgba(5, 5, 8, 0.9)';
-
-                    // Tech-style clipped corner rectangle
-                    ctx.beginPath();
-                    ctx.moveTo(cardX + 20, cardY);
-                    ctx.lineTo(cardX + cardW, cardY);
-                    ctx.lineTo(cardX + cardW, cardY + cardH - 20);
-                    ctx.lineTo(cardX + cardW - 20, cardY + cardH);
-                    ctx.lineTo(cardX, cardY + cardH);
-                    ctx.lineTo(cardX, cardY + 20);
-                    ctx.closePath();
-                    ctx.fill();
-
-                    // Vibrant Tech Accent Line on left 
-                    ctx.lineWidth = 6;
-                    ctx.strokeStyle = `rgb(${activeData.grad})`;
-                    ctx.beginPath();
-                    ctx.moveTo(cardX, cardY + 20);
-                    ctx.lineTo(cardX, cardY + cardH);
-                    ctx.stroke();
-
-                    // Neon wireframe border
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
-                    ctx.lineWidth = 1;
-                    ctx.beginPath();
-                    ctx.moveTo(cardX + 20, cardY);
-                    ctx.lineTo(cardX + cardW, cardY);
-                    ctx.lineTo(cardX + cardW, cardY + cardH - 20);
-                    ctx.lineTo(cardX + cardW - 20, cardY + cardH);
-                    ctx.lineTo(cardX, cardY + cardH);
-                    ctx.stroke();
-
-                    // Corner UI accents
-                    ctx.fillStyle = `rgb(${activeData.grad})`;
-                    ctx.fillRect(cardX + cardW - 10, cardY + 10, 4, 15);
-                    ctx.fillRect(cardX + cardW - 15, cardY + 10, 15, 4);
-
-                    // Texts inside card
+                    // Texts
                     ctx.textAlign = 'center';
 
                     // Main Info
                     ctx.fillStyle = '#fff';
-                    ctx.font = '900 italic 55px "Montserrat", sans-serif';
-                    ctx.fillText(mainInfo, centerX, cardY + 65);
+                    ctx.font = '800 italic 45px "Montserrat", sans-serif';
+                    ctx.letterSpacing = "4px";
+                    ctx.fillText(mainInfo, centerX + 2, infoY + 60);
 
                     // Sub Info
                     if (subInfo) {
-                        ctx.fillStyle = `rgb(${activeData.grad})`;
-                        ctx.font = '900 italic 35px "Montserrat", sans-serif';
-                        ctx.fillText(subInfo, centerX, cardY + 115);
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                        ctx.font = '500 italic 30px "Montserrat", sans-serif';
+                        ctx.letterSpacing = "10px";
+                        ctx.fillText(subInfo, centerX + 5, infoY + 115);
                     }
 
                     // Extra Info
                     if (extraInfo) {
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-                        ctx.font = '900 italic 28px "Montserrat", sans-serif';
-                        ctx.fillText(extraInfo, centerX, cardY + (subInfo ? 155 : 115));
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                        ctx.font = '400 italic 22px "Montserrat", sans-serif';
+                        ctx.letterSpacing = "12px";
+                        ctx.fillText(extraInfo, centerX + 6, infoY + 160);
                     }
                     ctx.restore();
                 }
 
-                // 5. BOTTOM NAVIGATION BAR (Cyberpunk Footer)
+                // 5. BOTTOM NAVIGATION BAR (No background, just elegant floating text)
                 ctx.save();
-                const barH = 140;
-                const barY = canvas.height - barH;
+                const footerY = canvas.height - 100;
 
-                // Striped tech background
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.95)';
-                ctx.fillRect(0, barY, canvas.width, barH);
-
-                // Scanning line / top border
-                const scanGrad = ctx.createLinearGradient(0, barY, canvas.width, barY);
-                scanGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                scanGrad.addColorStop(0.5, `rgba(${activeData.grad}, 1)`);
-                scanGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = scanGrad;
-                ctx.fillRect(0, barY, canvas.width, 2);
-
-                ctx.font = '900 italic 38px "Montserrat", sans-serif';
+                ctx.font = '500 24px "Montserrat", sans-serif';
+                ctx.letterSpacing = "4px";
                 ctx.textAlign = 'center';
 
                 ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
                 const textPart1 = "RENDEZ-VOUS SUR ";
                 const textPart2 = "DROPSIDERS.FR/LIVE";
 
-                // Draw text side by side with different colors
                 const w1 = ctx.measureText(textPart1).width;
                 const w2 = ctx.measureText(textPart2).width;
                 const totalW = w1 + w2;
                 const startX = centerX - totalW / 2;
 
                 ctx.textAlign = 'left';
-                ctx.fillText(textPart1, startX, canvas.height - 60);
+                ctx.fillText(textPart1, startX, footerY);
 
                 ctx.fillStyle = '#fff';
-                ctx.shadowColor = `rgba(${activeData.grad}, 0.8)`;
-                ctx.shadowBlur = 10;
-                ctx.fillText(textPart2, startX + w1, canvas.height - 60);
+                ctx.fillText(textPart2, startX + w1, footerY);
 
-                // Add some tech UI decor
+                // Clean accent line under the link
                 ctx.fillStyle = `rgb(${activeData.grad})`;
-                ctx.fillRect(startX - 40, canvas.height - 75, 20, 4);
-                ctx.fillRect(startX - 40, canvas.height - 65, 10, 4);
-
-                ctx.fillRect(startX + totalW + 20, canvas.height - 75, 20, 4);
-                ctx.fillRect(startX + totalW + 20, canvas.height - 65, 10, 4);
+                ctx.fillRect(startX + w1, footerY + 15, w2, 2);
 
                 ctx.restore();
             } else {
