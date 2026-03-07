@@ -80,5 +80,5 @@ export function LivePage() {
         );
     }
 
-    return <TakeoverPage settings={takeover} />;
+    return <TakeoverPage initialSettings={takeover} />;
 }

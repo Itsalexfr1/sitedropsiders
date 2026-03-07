@@ -32,7 +32,7 @@ interface ShazamTrack {
     image: string;
 }
 
-export const TakeoverPage = () => {
+export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => {
     const navigate = useNavigate();
     const [isAdmin] = useState(true); // À coupler avec votre système auth
     const [showAdminPanel, setShowAdminPanel] = useState(false);
@@ -63,21 +63,21 @@ export const TakeoverPage = () => {
 
     // DB Settings
     const [settings, setSettings] = useState<TakeoverSettings>({
-        title: 'LIVE TAKEOVER',
-        youtubeId: '',
-        mainFluxName: 'MAIN STAGE',
-        currentTrack: 'ID - UNRELEASED',
-        tickerText: 'BIENVENUE SUR LE LIVE DROPSIDERS ! PROFITEZ DE LA MUSIQUE 24/7',
-        showTickerBanner: true,
-        tickerBgColor: '#ff0033',
-        tickerTextColor: '#ffffff',
-        lineup: '',
-        status: 'live',
-        enabled: true,
-        acrHost: 'identify-eu-west-1.acrcloud.com',
-        acrAccessKey: '',
-        acrAccessSecret: '',
-        auddToken: ''
+        title: initialSettings?.title || 'LIVE TAKEOVER',
+        youtubeId: initialSettings?.youtubeId || '',
+        mainFluxName: initialSettings?.mainFluxName || 'MAIN STAGE',
+        currentTrack: initialSettings?.currentTrack || 'ID - UNRELEASED',
+        tickerText: initialSettings?.tickerText || 'BIENVENUE SUR LE LIVE DROPSIDERS ! PROFITEZ DE LA MUSIQUE 24/7',
+        showTickerBanner: initialSettings?.showTickerBanner !== undefined ? initialSettings.showTickerBanner : true,
+        tickerBgColor: initialSettings?.tickerBgColor || '#ff0033',
+        tickerTextColor: initialSettings?.tickerTextColor || '#ffffff',
+        lineup: initialSettings?.lineup || '',
+        status: initialSettings?.status || 'live',
+        enabled: initialSettings?.enabled !== undefined ? initialSettings.enabled : true,
+        acrHost: initialSettings?.acrHost || 'identify-eu-west-1.acrcloud.com',
+        acrAccessKey: initialSettings?.acrAccessKey || '',
+        acrAccessSecret: initialSettings?.acrAccessSecret || '',
+        auddToken: initialSettings?.auddToken || ''
     });
 
     // Admin Panel States
