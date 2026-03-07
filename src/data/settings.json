@@ -4,10 +4,10 @@
   "shop_password_image": "",
   "takeover": {
     "enabled": true,
-    "youtubeId": "DQHSj6cphm0",
+    "youtubeId": "",
     "title": "TOMORROWLAND WINTER 2026",
     "moderators": "",
-    "lineup": "",
+    "lineup": "[]",
     "tickerType": "news",
     "tickerText": "",
     "tickerLink": "",
@@ -48,7 +48,10 @@
     "acrHost": "identify-eu-west-1.acrcloud.com",
     "acrAccessKey": "",
     "acrAccessSecret": "",
-    "auddToken": "0707d622c51645acc2e4fa26ed64538d"
+    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
+    "currentTrack": "ID - UNRELEASED",
+    "streams": [],
+    "activeStreamId": ""
   },
   "socials": {
     "instagram": "dropsiders.eu",
