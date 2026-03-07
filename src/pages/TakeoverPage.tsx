@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    X, Settings, Users, MessageSquare, Send, Zap,
+    X, Settings, Users, MessageSquare, Send, Zap, Video,
     Smile, Save, AlertCircle, ShoppingBag, Music, Trash2, Calendar, Plus, Instagram,
     Pin, Ban, Star, ShieldCheck, UserMinus, Shield
 } from 'lucide-react';
@@ -17,6 +17,12 @@ interface LineupItem {
     instagram: string;
 }
 
+interface StreamItem {
+    id: string;
+    name: string;
+    youtubeId: string;
+}
+
 interface TakeoverSettings {
     title: string;
     youtubeId: string;
@@ -29,6 +35,8 @@ interface TakeoverSettings {
     lineup: string;
     status: 'live' | 'edit' | 'off';
     enabled: boolean;
+    streams?: StreamItem[];
+    activeStreamId?: string;
     acrHost?: string;
     acrAccessKey?: string;
     acrAccessSecret?: string;
@@ -58,23 +66,20 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [pinnedMessage, setPinnedMessage] = useState<any>({
         id: 'welcome',
         user: "DROPSIDERS",
-        text: "BIENVENUE ! PROFITEZ DU FESTIVAL EN DIRECT ! 🔥",
-        isBot: true
+        text: "BIENVENUE SUR LE LIVE ! RESPECTEZ-VOUS DANS LE CHAT 🔥",
+        color: "text-neon-red"
     });
 
-    const [bannedUsers, setBannedUsers] = useState<Record<string, number | 'perm'>>({});
     const [banMenuUser, setBanMenuUser] = useState<string | null>(null);
+    const [bannedUsers, setBannedUsers] = useState<Record<string, number | 'perm'>>({});
+    const [drops, setDrops] = useState(2450);
 
-    const [drops, setDrops] = useState(150);
+    const [shazamStatus, setShazamStatus] = useState<'idle' | 'listening' | 'processing' | 'found'>('idle');
+    const [lastFoundTrack, setLastFoundTrack] = useState<ShazamTrack | null>(null);
     const [shazamHistory, setShazamHistory] = useState<ShazamTrack[]>(() => {
         const saved = localStorage.getItem('shazam_history');
-        return saved ? JSON.parse(saved) : [
-            { id: 1, artist: "Mochakk", title: "Jealous", time: "20:45", image: "https://i1.sndcdn.com/artworks-000666066666-666666-t500x500.jpg" },
-            { id: 2, artist: "Vintage Culture", title: "Fractions", time: "20:38", image: "https://i.scdn.co/image/ab67616d0000b2738f6b6b6b6b6b6b6b6b6b6b6b" }
-        ];
+        return saved ? JSON.parse(saved) : [];
     });
-    const [shazamStatus, setShazamStatus] = useState<'idle' | 'listening' | 'processing' | 'found'>('idle');
-    const [lastFoundTrack, setLastFoundTrack] = useState<any>(null);
 
     useEffect(() => {
         localStorage.setItem('shazam_history', JSON.stringify(shazamHistory));
@@ -100,26 +105,19 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         lineup: initialSettings?.lineup || '',
         status: initialSettings?.status || 'live',
         enabled: initialSettings?.enabled !== undefined ? initialSettings.enabled : true,
-        acrHost: initialSettings?.acrHost || 'identify-eu-west-1.acrcloud.com',
-        acrAccessKey: initialSettings?.acrAccessKey || '',
-        acrAccessSecret: initialSettings?.acrAccessSecret || '',
-        auddToken: initialSettings?.auddToken || ''
+        streams: initialSettings?.streams || [],
+        activeStreamId: initialSettings?.activeStreamId || ''
     });
 
     // Admin Panel States
     const [editTitle, setEditTitle] = useState(settings.title);
-    const [editYoutubeId, setEditYoutubeId] = useState(settings.youtubeId);
-    const [editMainFluxName, setEditMainFluxName] = useState(settings.mainFluxName);
-    const [editCurrentTrack, setEditCurrentTrack] = useState(settings.currentTrack);
+    const [editStreams, setEditStreams] = useState<StreamItem[]>(settings.streams || []);
+    const [editActiveStreamId, setEditActiveStreamId] = useState(settings.activeStreamId || '');
     const [editAnnText, setEditAnnText] = useState(settings.tickerText);
     const [editAnnEnabled, setEditAnnEnabled] = useState(settings.showTickerBanner);
     const [editStatus, setEditStatus] = useState(settings.status);
     const [editTickerBg, setEditTickerBg] = useState(settings.tickerBgColor);
     const [editTickerTextC, setEditTickerTextC] = useState(settings.tickerTextColor);
-    const [editAcrHost, setEditAcrHost] = useState(settings.acrHost || '');
-    const [editAcrKey, setEditAcrKey] = useState(settings.acrAccessKey || '');
-    const [editAcrSecret, setEditAcrSecret] = useState(settings.acrAccessSecret || '');
-    const [editAuddToken, setEditAuddToken] = useState(settings.auddToken || '');
     const [adminActiveTab, setAdminActiveTab] = useState('general');
     const [isSaving, setIsSaving] = useState(false);
 
@@ -138,19 +136,17 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [lineupItems, setLineupItems] = useState<LineupItem[]>(() => {
         try {
             return JSON.parse(settings.lineup);
-        } catch (e) {
-            return [];
-        }
+        } catch (e) { return []; }
     });
+
     const [newLineupItem, setNewLineupItem] = useState<LineupItem>({
         id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: ''
     });
 
     const extractYoutubeId = (url: string) => {
         if (!url) return '';
-        const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
-        const match = url.match(regExp);
-        return (match && match[7].length === 11) ? match[7] : url;
+        const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w-]{11})/);
+        return match ? match[1] : url.trim();
     };
 
     const extractInstagramUsername = (url: string) => {
@@ -176,19 +172,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             if (data) {
                 setSettings(data);
                 setEditTitle(data.title);
-                setEditYoutubeId(data.youtubeId);
-                setEditMainFluxName(data.mainFluxName);
-                setEditCurrentTrack(data.currentTrack || 'ID - UNRELEASED');
+                setEditStreams(data.streams || []);
+                setEditActiveStreamId(data.activeStreamId || '');
                 setEditAnnText(data.tickerText);
                 setEditAnnEnabled(data.showTickerBanner);
                 setEditTickerBg(data.tickerBgColor || '#ff0033');
                 setEditTickerTextC(data.tickerTextColor || '#ffffff');
                 setEditStatus(data.status);
-                setEditAcrHost(data.acrHost || 'identify-eu-west-1.acrcloud.com');
-                setEditAcrKey(data.acrAccessKey || '');
-                setEditAcrSecret(data.acrAccessSecret || '');
-                setEditAuddToken(data.auddToken || '');
-
                 try {
                     const parsed = JSON.parse(data.lineup);
                     setLineupItems(Array.isArray(parsed) ? parsed : []);
@@ -201,11 +191,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const handleSaveSettings = async () => {
         setIsSaving(true);
+        const activeStream = editStreams.find(s => s.id === editActiveStreamId);
         const updatedTakeover: TakeoverSettings = {
             title: editTitle,
-            youtubeId: extractYoutubeId(editYoutubeId),
-            mainFluxName: editMainFluxName,
-            currentTrack: editCurrentTrack,
+            youtubeId: activeStream?.youtubeId || '',
+            mainFluxName: activeStream?.name || '',
+            currentTrack: 'ID - UNRELEASED',
             tickerText: editAnnText,
             showTickerBanner: editAnnEnabled,
             tickerBgColor: editTickerBg,
@@ -213,10 +204,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             lineup: JSON.stringify(lineupItems),
             status: editStatus,
             enabled: editStatus !== 'off',
-            acrHost: editAcrHost,
-            acrAccessKey: editAcrKey,
-            acrAccessSecret: editAcrSecret,
-            auddToken: editAuddToken
+            streams: editStreams,
+            activeStreamId: editActiveStreamId
         };
 
         try {
@@ -228,7 +217,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             if (saveRes.ok) {
                 setSettings(updatedTakeover);
                 showNotification('Paramètres mis à jour !', 'success');
-                setShowAdminPanel(false);
             } else {
                 showNotification('Erreur lors de la sauvegarde', 'error');
             }
@@ -244,315 +232,95 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
     };
 
-    const sendBotMessage = (text: string) => {
-        const botMsg = {
-            id: Date.now() + Math.random(),
-            user: "DROPSIDERS BOT",
-            text,
-            color: "text-neon-red", // Red
-            isBot: true
-        };
-        setChatMessages(prev => [...prev.slice(-49), botMsg]);
-    };
-
     const handleSendMessage = () => {
         if (!newMessage.trim()) return;
-
-        // Check if user is banned
-        const banExpiry = bannedUsers["VOUS"];
-        if (banExpiry) {
-            if (banExpiry === 'perm') {
-                showNotification("Vous êtes banni de façon permanente.", "error"); return;
-            } else if (Date.now() < banExpiry) {
-                const remaining = Math.ceil((banExpiry - Date.now()) / 60000);
-                showNotification(`Vous êtes banni pendant encore ${remaining} min.`, "error"); return;
-            }
-        }
-
-        // 1. Check for links (Security/Bot)
-        const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
-        if (urlRegex.test(newMessage)) {
-            sendBotMessage("⚠️ Les liens sont interdits dans le chat pour votre sécurité.");
-            setNewMessage('');
-            return;
-        }
-
-        // Check for highlight
-        if (isHighlightChecked && drops < highlightCost) {
-            showNotification(`Besoin de ${highlightCost} Drops pour mettre en avant !`, 'error');
-            setIsHighlightChecked(false);
-            return;
-        }
-
-        if (isHighlightChecked) {
-            setDrops(d => d - highlightCost);
-            showNotification(`Message mis en avant ! (-${highlightCost} Drops)`, 'success');
-        }
-
-        // 2. Add user message
         const msg = {
             id: Date.now(),
-            user: "VOUS",
-            text: newMessage.trim(),
-            color: "text-neon-red",
-            role: userRole,
+            user: "ALEX_FR1",
+            text: newMessage,
+            color: "text-neon-cyan",
+            role: "admin",
             isHighlighted: isHighlightChecked
         };
-        const newChat = [...chatMessages, msg];
-        setChatMessages(newChat.slice(-50)); // Keep last 50 messages
+        setChatMessages(prev => [...prev.slice(-49), msg]);
         setNewMessage('');
         setIsHighlightChecked(false);
-
-        // 3. Check for Bot Commands
-        const trimmedMsg = newMessage.trim().toLowerCase();
-        if (trimmedMsg.startsWith('!')) {
-            const foundCmd = botCommands.find(c => c.command.toLowerCase() === trimmedMsg);
-            if (foundCmd) {
-                setTimeout(() => {
-                    sendBotMessage(foundCmd.response);
-                }, 500);
-            } else if (trimmedMsg === '!help' || trimmedMsg === '!commandes') {
-                setTimeout(() => {
-                    const cmds = botCommands.map(c => c.command).join(', ');
-                    sendBotMessage(`Commandes disponibles : !help, !commandes, ${cmds}`);
-                }, 500);
-            }
-        }
     };
 
-    const deleteMessage = (id: number) => {
-        setChatMessages(chatMessages.filter(m => m.id !== id));
+    const clearChat = () => setChatMessages([]);
+    const deleteMessage = (id: number) => setChatMessages(prev => prev.filter(m => m.id !== id));
+
+    const handleShazamAction = async () => {
+        setShazamStatus('listening');
+        setTimeout(() => setShazamStatus('processing'), 3000);
+        setTimeout(() => {
+            const mockTrack = { id: Date.now(), artist: "MOCHAKK", title: "JEALOUS (ORIGINAL MIX)", time: "22:45", image: "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=cover" };
+            setLastFoundTrack(mockTrack);
+            setShazamHistory(prev => [mockTrack, ...prev.slice(0, 19)]);
+            setShazamStatus('found');
+            setTimeout(() => setShazamStatus('idle'), 3000);
+        }, 6000);
     };
 
-    const clearChat = () => {
-        setChatMessages([]);
-        showNotification('Chat réinitialisé', 'success');
-    };
+    const lineupData = lineupItems.map(item => ({
+        time: item.startTime,
+        artist: item.artist,
+        stage: item.stage
+    }));
 
-    // --- Lineup Logic ---
-    const parseLineup = (text: string) => {
-        if (!text) return [];
-        try {
-            // Try to parse as JSON first
-            return JSON.parse(text);
-        } catch (e) {
-            // Fallback to legacy line parsing
-            return text.split('\n').map(line => {
-                const match = line.match(/\[(.*?)\] (.*?) \| (.*)/);
-                if (match) {
-                    const time = match[1];
-                    const artistPart = match[2];
-                    const stage = match[3];
-
-                    let artist = artistPart;
-                    let track = '';
-
-                    if (artistPart.includes(' - ')) {
-                        const parts = artistPart.split(' - ');
-                        artist = parts[0].trim();
-                        track = parts[1].trim();
-                    }
-
-                    return { startTime: time, day: 'DIRECT', artist, track, stage, id: Math.random().toString() };
-                }
-                return null;
-            }).filter(Boolean);
-        }
-    };
-
-    const getCurrentArtist = () => {
+    const fluxCurrentArtist = lineupItems.find(item => {
         const now = new Date();
-        const currentTimeString = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
-        const lineup = parseLineup(settings.lineup);
-
-        // Find artist active NOW
-        const current = lineup.find((item: any) => {
-            if (item.startTime && item.endTime) {
-                return currentTimeString >= item.startTime && currentTimeString <= item.endTime;
-            }
-            return item.startTime <= currentTimeString;
-        });
-
-        if (current) {
-            return {
-                artist: current.artist,
-                track: current.track || settings.currentTrack || 'ID - UNRELEASED',
-                stage: current.stage,
-                instagram: current.instagram
-            };
-        }
-
-        return {
-            artist: settings.mainFluxName,
-            track: settings.currentTrack || 'ID - UNRELEASED',
-            stage: 'MAIN STAGE'
-        };
-    };
-
-    const recordAndIdentify = async () => {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mediaRecorder = new MediaRecorder(stream);
-            const chunks: Blob[] = [];
-
-            mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(chunks, { type: 'audio/wav' });
-                stream.getTracks().forEach(track => track.stop());
-
-                setShazamStatus('processing');
-
-                try {
-                    const formData = new FormData();
-                    formData.append('audio', audioBlob);
-
-                    const resp = await fetch('/api/shazam/identify', {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if (resp.ok) {
-                        const data = await resp.json();
-                        if (data.status === 'success' && data.metadata) {
-                            const track = data.metadata;
-                            const newTrack: ShazamTrack = {
-                                id: Date.now(),
-                                artist: track.artist,
-                                title: track.title,
-                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                image: track.image || `https://avatar.vercel.sh/${track.artist}.svg`
-                            };
-                            setLastFoundTrack(newTrack);
-                            setShazamStatus('found');
-                            setShazamHistory([newTrack, ...shazamHistory]);
-                            setDrops(d => d + 50);
-                            showNotification(`Titre identifié : ${track.artist} - ${track.title} ! +50 Drops`, 'success');
-                        } else {
-                            throw new Error(data.error || 'Aucun titre trouvé');
-                        }
-                    } else {
-                        const errorData = await resp.json().catch(() => ({ error: 'Erreur API identification' }));
-                        throw new Error(errorData.error || 'Erreur API identification');
-                    }
-                } catch (err: any) {
-                    showNotification(err.message || "Impossible d'identifier ce titre", 'error');
-                    setShazamStatus('idle');
-                }
-
-                setTimeout(() => setShazamStatus('idle'), 3000);
-            };
-
-            mediaRecorder.start();
-            setShazamStatus('listening');
-
-            // Record for 6 seconds
-            setTimeout(() => {
-                if (mediaRecorder.state === 'recording') {
-                    mediaRecorder.stop();
-                }
-            }, 6000);
-
-        } catch (err) {
-            showNotification("Permission micro refusée ou non supportée", 'error');
-            setShazamStatus('idle');
-        }
-    };
-
-    const handleShazamAction = () => {
-        if (settings.auddToken || (settings.acrAccessKey && settings.acrAccessSecret)) {
-            recordAndIdentify();
-        } else {
-            // Fallback for demo if no keys
-            setShazamStatus('listening');
-            setTimeout(() => {
-                setShazamStatus('processing');
-                setTimeout(() => {
-                    const current = getCurrentArtist();
-                    const newTrack: ShazamTrack = {
-                        id: Date.now(),
-                        artist: current.artist,
-                        title: current.track,
-                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                        image: `https://avatar.vercel.sh/${current.artist}.svg`
-                    };
-                    setLastFoundTrack(newTrack);
-                    setShazamStatus('found');
-                    setShazamHistory([newTrack, ...shazamHistory]);
-                    setDrops(d => d + 25);
-                    showNotification(`Identifié (Simulé) : ${current.artist} ! +25 Drops`, 'success');
-                    setTimeout(() => setShazamStatus('idle'), 3000);
-                }, 1500);
-            }, 2000);
-        }
-    };
-
-    const lineupData = parseLineup(settings.lineup);
-    const fluxCurrentArtist = getCurrentArtist();
+        const [h, m] = item.startTime.split(':').map(Number);
+        const [eh, em] = item.endTime.split(':').map(Number);
+        const startTime = new Date(); startTime.setHours(h, m, 0);
+        const endTime = new Date(); endTime.setHours(eh, em, 0);
+        return now >= startTime && now <= endTime;
+    }) || { artist: 'DROPSIDERS LIVE', stage: 'MAIN STAGE' };
 
     return (
-        <div className="fixed inset-0 bg-dark-bg/60 backdrop-blur-xl z-[101] flex flex-col overflow-hidden select-none">
-            {/* 1. TICKER BANNER */}
-            {settings.showTickerBanner && (
-                <div
-                    className="h-8 w-full border-b border-white/5 flex items-center overflow-hidden z-[100]"
-                    style={{ backgroundColor: settings.tickerBgColor }}
-                >
-                    <div className="flex animate-ticker whitespace-nowrap">
-                        {Array(10).fill(0).map((_, i) => (
-                            <div key={i} className="flex items-center">
-                                <span
-                                    className="text-[10px] font-black uppercase tracking-[0.4em] italic mx-12"
-                                    style={{ color: settings.tickerTextColor }}
-                                >
-                                    {settings.tickerText}
-                                </span>
-                                <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
-                            </div>
-                        ))}
+        <div className="fixed inset-0 bg-dark-bg flex flex-col font-sans select-none overflow-hidden">
+            {/* 1. TOP ANNOUNCER (Ticker) */}
+            <AnimatePresence>
+                {settings.showTickerBanner && (
+                    <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden z-50">
+                        <div style={{ backgroundColor: settings.tickerBgColor, color: settings.tickerTextColor }} className="py-2.5 flex items-center whitespace-nowrap overflow-hidden relative shadow-[0_5px_20px_rgba(0,0,0,0.4)]">
+                            <motion.div animate={{ x: [0, -2000] }} transition={{ repeat: Infinity, duration: 40, ease: "linear" }} className="flex items-center gap-16 px-4">
+                                {[...Array(10)].map((_, i) => (
+                                    <div key={i} className="flex items-center gap-4">
+                                        <Zap className="w-4 h-4 fill-current animate-pulse" />
+                                        <span className="text-[11px] font-black uppercase tracking-[0.2em]">{settings.tickerText}</span>
+                                    </div>
+                                ))}
+                            </motion.div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* 2. HEADER */}
+            <div className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-black/40 backdrop-blur-md relative z-40">
+                <div className="flex items-center gap-8">
+                    <div className="flex flex-col">
+                        <h1 className="text-lg font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="w-1.5 h-1.5 bg-neon-red rounded-full animate-pulse" />
+                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">VRAI TEMPS RÉEL</span>
+                        </div>
                     </div>
                 </div>
-            )}
 
-            {/* 2. LIVE INFO BAR */}
-            <div className="h-12 w-full bg-dark-bg/40 backdrop-blur-md border-b border-white/10 px-6 flex items-center justify-between z-[90] shrink-0 shadow-lg">
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 px-3 py-1 bg-red-600 rounded-full shadow-[0_0_15px_rgba(255,0,0,0.4)]">
-                        <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white">LIVE</span>
+                    <div className="flex items-center gap-4 px-4 py-2 bg-white/5 border border-white/10 rounded-xl">
+                        <div className="flex items-center gap-2">
+                            <Users className="w-4 h-4 text-neon-cyan" />
+                            <span className="text-xs font-black text-white">{viewersCount}</span>
+                        </div>
                     </div>
-                    <h1 className="text-xl font-display font-black italic tracking-tighter uppercase">{settings.title || "LIVE TAKEOVER"}</h1>
-                </div>
-
-                <div className="flex items-center gap-6">
-                    {isAdmin && (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
-                            <ShieldCheck className="w-4 h-4 text-neon-purple" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-neon-purple">ADMIN LOGIN</span>
-                        </div>
-                    )}
-                    {isMod && !isAdmin && (
-                        <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
-                            <Shield className="w-4 h-4 text-neon-cyan" />
-                            <span className="text-[9px] font-black uppercase tracking-widest text-neon-cyan">MOD LOGIN</span>
-                        </div>
-                    )}
                     {isMod && (
-                        <button
-                            onClick={() => setShowAdminPanel(!showAdminPanel)}
-                            className={`flex items-center gap-2 px-3 py-1.5 rounded-full border transition-all ${showAdminPanel ? 'bg-neon-purple border-neon-purple text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:bg-white/10'}`}
-                        >
-                            <Settings className="w-4 h-4" />
-                            <span className="text-[9px] font-black uppercase tracking-widest">MENU ADMIN</span>
+                        <button onClick={() => setShowAdminPanel(!showAdminPanel)} className={`p-3 rounded-xl transition-all border ${showAdminPanel ? 'bg-neon-purple border-neon-purple shadow-[0_0_15px_rgba(168,85,247,0.4)] text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}>
+                            <Settings className="w-5 h-5" />
                         </button>
                     )}
-                    <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all">
-                        <Users className="w-4 h-4 text-neon-red" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{viewersCount} SPECTATEURS</span>
-                    </div>
-                    <div className="flex items-center gap-2 px-3 py-1 bg-neon-red/10 border border-neon-red/20 rounded-full group cursor-pointer hover:bg-neon-red/20 transition-all">
-                        <Zap className="w-4 h-4 text-neon-red group-hover:animate-bounce" />
-                        <span className="text-[10px] font-black uppercase tracking-widest text-white">{drops} DROPS</span>
-                    </div>
                     <button onClick={() => navigate('/')} className="p-2 hover:bg-white/5 rounded-full transition-all">
                         <X className="w-5 h-5 text-gray-500" />
                     </button>
@@ -588,41 +356,103 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     </div>
 
                                     {adminActiveTab === 'general' ? (
-                                        <>
-                                            <div className="grid grid-cols-2 gap-8">
+                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                 <div className="space-y-6">
                                                     <div>
                                                         <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre du Live</label>
                                                         <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: MAIN STAGE LIVE" />
                                                     </div>
-                                                </div>
-                                                <div className="pt-6 border-t border-white/5 space-y-6">
-                                                    <div className="flex items-center gap-2 mb-2">
-                                                        <Zap className="w-4 h-4 text-neon-cyan" />
-                                                        <h3 className="text-xs font-black text-white uppercase tracking-widest">Config Vrai Shazam (AudD.io ou ACRCloud)</h3>
+
+                                                    <div className="pt-6 border-t border-white/5 space-y-6">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <Video className="w-4 h-4 text-neon-purple" />
+                                                            <h3 className="text-xs font-black text-white uppercase tracking-widest font-display italic">Gestion des Flux (Multiple)</h3>
+                                                        </div>
+                                                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                                            {editStreams.map((stream, idx) => (
+                                                                <div key={stream.id || idx} className={`p-4 rounded-2xl border transition-all ${editActiveStreamId === stream.id ? 'bg-neon-purple/10 border-neon-purple shadow-[0_0_20px_rgba(168,85,247,0.15)]' : 'bg-white/5 border-white/10 opacity-70 hover:opacity-100'}`}>
+                                                                    <div className="flex items-center justify-between mb-4">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${editActiveStreamId === stream.id ? 'bg-neon-purple text-white' : 'bg-white/10 text-gray-500'}`}>
+                                                                                {idx + 1}
+                                                                            </div>
+                                                                            <span className="text-[10px] font-black text-white uppercase tracking-widest">{stream.name || "Nouveau Flux"}</span>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <button onClick={() => setEditActiveStreamId(stream.id)} className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${editActiveStreamId === stream.id ? 'bg-neon-purple text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
+                                                                                {editActiveStreamId === stream.id ? 'ACTIF' : 'ACTIVER'}
+                                                                            </button>
+                                                                            <button onClick={() => setEditStreams(editStreams.filter(s => s.id !== stream.id))} className="p-1.5 text-gray-500 hover:text-red-500 transition-all bg-white/5 rounded-lg">
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                        <div className="space-y-2">
+                                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-2">Nom de la scène</label>
+                                                                            <input type="text" value={stream.name} onChange={e => {
+                                                                                const ns = [...editStreams];
+                                                                                ns[idx].name = e.target.value.toUpperCase();
+                                                                                setEditStreams(ns);
+                                                                            }} className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-purple uppercase" placeholder="MAIN STAGE" />
+                                                                        </div>
+                                                                        <div className="space-y-2">
+                                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-2">YouTube (Link or ID)</label>
+                                                                            <input type="text" value={stream.youtubeId} onChange={e => {
+                                                                                const ns = [...editStreams];
+                                                                                ns[idx].youtubeId = extractYoutubeId(e.target.value);
+                                                                                setEditStreams(ns);
+                                                                            }} className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-purple" placeholder="Link or ID" />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            <button onClick={() => setEditStreams([...editStreams, { id: Math.random().toString(36).substr(2, 9), name: '', youtubeId: '' }])} className="w-full py-4 bg-white/5 border border-dashed border-white/20 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-widest hover:border-white/40 hover:text-white transition-all flex items-center justify-center gap-2">
+                                                                <Plus className="w-4 h-4" /> Ajouter un autre flux
+                                                            </button>
+                                                        </div>
                                                     </div>
-                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                        <div>
-                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">AudD API Token (Simple)</label>
-                                                            <input type="password" value={editAuddToken} onChange={e => setEditAuddToken(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="API Token AudD" />
+                                                </div>
+
+                                                <div className="space-y-6">
+                                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <p className="text-[10px] font-black text-white uppercase tracking-widest">Bandeau d'annonce</p>
+                                                                <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">Activer le message défilant</p>
+                                                            </div>
+                                                            <button onClick={() => setEditAnnEnabled(!editAnnEnabled)} className={`w-12 h-6 rounded-full relative transition-all ${editAnnEnabled ? 'bg-neon-red' : 'bg-white/10'}`}>
+                                                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editAnnEnabled ? 'left-7' : 'left-1'}`} />
+                                                            </button>
                                                         </div>
-                                                        <div>
-                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">ACRCloud Host</label>
-                                                            <input type="text" value={editAcrHost} onChange={e => setEditAcrHost(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all" placeholder="identify-eu-west-1..." />
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">ACRCloud Access Key</label>
-                                                            <input type="text" value={editAcrKey} onChange={e => setEditAcrKey(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all" />
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">ACRCloud Access Secret</label>
-                                                            <input type="password" value={editAcrSecret} onChange={e => setEditAcrSecret(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all" />
+
+                                                        <div className="space-y-4">
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <div>
+                                                                    <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-2">Couleur Fond</label>
+                                                                    <div className="flex gap-2">
+                                                                        <input type="color" value={editTickerBg} onChange={e => setEditTickerBg(e.target.value)} className="w-10 h-10 bg-black/40 border border-white/10 rounded-lg outline-none cursor-pointer p-1" />
+                                                                        <input type="text" value={editTickerBg} onChange={e => setEditTickerBg(e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono text-white outline-none" />
+                                                                    </div>
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-2">Couleur Texte</label>
+                                                                    <div className="flex gap-2">
+                                                                        <input type="color" value={editTickerTextC} onChange={e => setEditTickerTextC(e.target.value)} className="w-10 h-10 bg-black/40 border border-white/10 rounded-lg outline-none cursor-pointer p-1" />
+                                                                        <input type="text" value={editTickerTextC} onChange={e => setEditTickerTextC(e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono text-white outline-none" />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-2">Message du bandeau</label>
+                                                                <textarea value={editAnnText} onChange={e => setEditAnnText(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all min-h-[100px] uppercase" placeholder="TEXTE À DÉFILER..." />
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <div className="space-y-6 pt-6 border-t border-white/5">
-                                                    <div>
-                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Mode de Diffusion</label>
+
+                                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Statut de la diffusion</label>
                                                         <div className="flex gap-2 p-1 bg-black/40 border border-white/10 rounded-xl">
                                                             {(['live', 'edit', 'off'] as const).map(s => (
                                                                 <button
@@ -633,43 +463,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                         : 'text-gray-500 hover:text-white hover:bg-white/5'
                                                                         }`}
                                                                 >
-                                                                    {s === 'live' ? 'EN DIRECT' : s === 'edit' ? 'PRÉPARATION' : 'HORS LIGNE'}
+                                                                    {s === 'live' ? 'EN DIRECT' : s === 'edit' ? 'PRÉPARAT.' : 'OFFLINE'}
                                                                 </button>
                                                             ))}
                                                         </div>
                                                     </div>
-                                                    <div>
-                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">ID Vidéo YouTube</label>
-                                                        <input type="text" value={editYoutubeId} onChange={e => setEditYoutubeId(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all" placeholder="EX: dQw4w9WgXcQ" />
-                                                    </div>
-                                                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
-                                                        <div>
-                                                            <p className="text-[10px] font-black text-white uppercase tracking-widest">Bandeau d'annonce</p>
-                                                            <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">Activer le ticker banner</p>
-                                                        </div>
-                                                        <button onClick={() => setEditAnnEnabled(!editAnnEnabled)} className={`w-12 h-6 rounded-full relative transition-all ${editAnnEnabled ? 'bg-neon-red' : 'bg-white/10'}`}>
-                                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editAnnEnabled ? 'left-7' : 'left-1'}`} />
-                                                        </button>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 gap-4">
-                                                        <div>
-                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Couleur Fond</label>
-                                                            <input type="color" value={editTickerBg} onChange={e => setEditTickerBg(e.target.value)} className="w-full h-10 bg-black/40 border border-white/10 rounded-lg outline-none cursor-pointer" />
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Couleur Texte</label>
-                                                            <input type="color" value={editTickerTextC} onChange={e => setEditTickerTextC(e.target.value)} className="w-full h-10 bg-black/40 border border-white/10 rounded-lg outline-none cursor-pointer" />
-                                                        </div>
-                                                    </div>
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                                <div className="space-y-4">
-                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Texte du Bandeau</label>
-                                                    <textarea value={editAnnText} onChange={e => setEditAnnText(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all min-h-[120px] uppercase" placeholder="MESSAGE BANDEAU..." />
-                                                </div>
-                                            </div>
-                                        </>
+                                        </div>
                                     ) : adminActiveTab === 'planning' ? (
                                         <div className="space-y-10">
                                             {/* Formulaire d'ajout */}
@@ -684,11 +485,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                                                     <div className="space-y-2">
                                                         <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Jour (Mandatoire)</label>
-                                                        <input type="text" placeholder="Logo du jour, LUNDI..." value={newLineupItem.day} onChange={e => setNewLineupItem({ ...newLineupItem, day: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                        <input type="text" placeholder="LUNDI..." value={newLineupItem.day} onChange={e => setNewLineupItem({ ...newLineupItem, day: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all uppercase" />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Artiste (Mandatoire)</label>
-                                                        <input type="text" placeholder="MOCHAKK" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, artist: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                        <input type="text" placeholder="MOCHAKK" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, artist: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all uppercase" />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Heure Début (Mandatoire)</label>
@@ -700,7 +501,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Scène (Mandatoire)</label>
-                                                        <input type="text" placeholder="MAIN STAGE" value={newLineupItem.stage} onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all" />
+                                                        <input type="text" placeholder="MAIN STAGE" value={newLineupItem.stage} onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all uppercase" />
                                                     </div>
                                                     <div className="col-span-2 md:col-span-3 space-y-2">
                                                         <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-2">Instagram (Mandatoire)</label>
@@ -736,7 +537,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             <div className="space-y-4">
                                                 <div className="flex items-center justify-between px-6 pb-2 border-b border-white/5">
                                                     <h3 className="text-xs font-black text-gray-500 uppercase tracking-widest">Sessions Programmées ({lineupItems.length})</h3>
-                                                    <p className="text-[9px] text-gray-600 font-bold uppercase italic">* L'ordre n'importe pas, la détection est automatique</p>
                                                 </div>
 
                                                 <div className="space-y-3">
@@ -756,7 +556,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 <div className="flex-1 space-y-1">
                                                                     <div className="flex items-center gap-3">
                                                                         <p className="text-sm font-black text-white uppercase italic tracking-tighter">{item.artist}</p>
-                                                                        <span className="px-2 py-0.5 bg-neon-cyan/10 text-neon-cyan text-[8px] font-black rounded-lg border border-neon-cyan/20">{item.stage}</span>
+                                                                        <span className="px-2 py-0.5 bg-neon-cyan/10 text-neon-cyan text-[8px] font-black rounded-lg border border-neon-cyan/20 uppercase">{item.stage}</span>
                                                                     </div>
                                                                     <div className="flex items-center gap-4">
                                                                         <p className="text-[9px] text-gray-500 font-bold uppercase">{item.startTime} — {item.endTime}</p>
@@ -915,7 +715,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     </AnimatePresence>
                 </div>
 
-                {/* B. CHAT PANEL (30%) */}
+                {/* B. CHAT PANEL (40%) */}
                 <div className="flex-1 h-full bg-dark-bg/20 backdrop-blur-sm flex flex-col relative z-10 border-r border-white/10 shadow-2xl">
                     <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
                         <div className="flex items-center gap-3">
@@ -929,7 +729,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 <button
                                     onClick={() => setUserRole(userRole === 'admin' ? 'mod' : userRole === 'mod' ? 'user' : 'admin')}
                                     className="px-2 py-1 bg-white/5 rounded text-[8px] font-black text-gray-600 hover:text-white transition-all uppercase"
-                                    title="Toggle Role (Debug Test)"
                                 >
                                     {userRole}
                                 </button>
@@ -938,7 +737,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 <button
                                     onClick={clearChat}
                                     className="p-2 text-gray-500 hover:text-neon-red hover:bg-neon-red/10 rounded-lg transition-all"
-                                    title="Vider le chat"
                                 >
                                     <Trash2 className="w-4 h-4" />
                                 </button>
@@ -958,9 +756,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 <motion.div key="chat-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
                                     {pinnedMessage && (
                                         <div className="p-3 bg-neon-red/10 border border-neon-red/20 rounded-xl relative overflow-hidden group">
-                                            <div className="absolute top-0 right-0 p-2 opacity-10 group-hover:opacity-100 transition-all">
-                                                <Pin className="w-4 h-4 text-neon-red rotate-45" />
-                                            </div>
                                             <div className="flex items-center justify-between mb-1">
                                                 <p className="text-[10px] text-neon-red font-black uppercase flex items-center gap-2">
                                                     <Pin className="w-3 h-3" /> Message Épinglé
@@ -979,64 +774,22 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     )}
 
                                     {chatMessages.map((msg: any) => (
-                                        <div key={msg.id} className={`group flex flex-col gap-1 animate-slide-in relative ${msg.isBot ? 'bg-neon-red/5 p-2 rounded-xl border border-neon-red/10 overflow-hidden' : msg.isHighlighted ? 'bg-amber-500/5 p-3 rounded-xl border border-amber-500/20 shadow-[0_0_20px_rgba(245,158,11,0.05)]' : ''}`}>
-                                            {msg.isHighlighted && (
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                                                    <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">⭐ MESSAGE À LA UNE</span>
-                                                </div>
-                                            )}
+                                        <div key={msg.id} className={`group flex flex-col gap-1 animate-slide-in relative ${msg.isBot ? 'bg-neon-red/5 p-2 rounded-xl border border-neon-red/10 overflow-hidden' : msg.isHighlighted ? 'bg-amber-500/5 p-3 rounded-xl border border-amber-500/20' : ''}`}>
                                             <div className="flex gap-3 relative">
-                                                <div className={`w-8 h-8 rounded-full border border-white/10 shrink-0 flex items-center justify-center ${msg.isBot ? 'bg-neon-red/10 text-neon-red' : 'bg-white/5'}`}>
-                                                    {msg.isBot ? <Zap className="w-4 h-4" /> : <div className="text-[10px] font-black text-gray-500">{msg.user[0]}</div>}
+                                                <div className={`w-8 h-8 rounded-full border border-white/10 shrink-0 flex items-center justify-center bg-white/5`}>
+                                                    <div className="text-[10px] font-black text-gray-500">{msg.user[0]}</div>
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 mb-0.5">
                                                         <span className={`text-[10px] font-black uppercase italic ${msg.color || 'text-white'}`}>{msg.user}</span>
                                                         {msg.role === 'admin' && <ShieldCheck className="w-3 h-3 text-neon-purple" />}
-                                                        {msg.role === 'mod' && <Shield className="w-3 h-3 text-neon-cyan" />}
                                                     </div>
                                                     <p className="text-xs text-gray-400 leading-relaxed font-bold break-all">{msg.text}</p>
                                                 </div>
-
-                                                {/* Moderation Actions */}
-                                                {isMod && !msg.isBot && (
-                                                    <div className="absolute right-0 top-0 hidden group-hover:flex items-center gap-1 bg-black/80 backdrop-blur-md p-1 rounded-lg border border-white/10 shadow-2xl z-20">
-                                                        <button
-                                                            onClick={() => setPinnedMessage(msg)}
-                                                            className="p-1.5 text-gray-500 hover:text-neon-red transition-all"
-                                                            title="Épingler"
-                                                        >
-                                                            <Pin className="w-3 h-3" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => setBanMenuUser(banMenuUser === msg.id ? null : msg.id)}
-                                                            className="p-1.5 text-gray-500 hover:text-red-500 transition-all"
-                                                            title="Bannir"
-                                                        >
-                                                            <Ban className="w-3 h-3" />
-                                                        </button>
-                                                        <button onClick={() => deleteMessage(msg.id)} className="p-1.5 text-gray-500 hover:text-red-500 transition-all">
-                                                            <X className="w-3 h-3" />
-                                                        </button>
-                                                    </div>
-                                                )}
-
-                                                {/* Ban Popup Menu */}
-                                                {banMenuUser === msg.id && (
-                                                    <div className="absolute right-0 top-10 bg-black/95 backdrop-blur-xl p-3 border border-white/10 rounded-2xl shadow-2xl z-50 min-w-[180px] space-y-2 animate-in fade-in zoom-in duration-200">
-                                                        <div className="flex items-center gap-2 pb-2 border-b border-white/5 mb-2">
-                                                            <UserMinus className="w-3 h-3 text-red-500" />
-                                                            <span className="text-[9px] font-black text-white uppercase italic">Modération: {msg.user}</span>
-                                                        </div>
-                                                        <div className="grid grid-cols-2 gap-2">
-                                                            {[1, 5, 10, 60].map(m => (
-                                                                <button key={m} onClick={() => { setBannedUsers({ ...bannedUsers, [msg.user]: Date.now() + m * 60000 }); setBanMenuUser(null); showNotification(`${msg.user} banni ${m} min`, 'error'); }} className="py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[8px] font-black text-white uppercase transition-all">{m} MIN</button>
-                                                            ))}
-                                                        </div>
-                                                        <button onClick={() => { setBannedUsers({ ...bannedUsers, [msg.user]: 'perm' }); setBanMenuUser(null); showNotification(`${msg.user} banni DEFINITIVEMENT`, 'error'); }} className="w-full py-2 bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white rounded-lg text-[8px] font-black uppercase transition-all flex items-center justify-center gap-2">
-                                                            <Ban className="w-3 h-3" /> BAN DÉFINITIF
-                                                        </button>
+                                                {isMod && (
+                                                    <div className="absolute right-0 top-0 hidden group-hover:flex items-center gap-1 bg-black/80 backdrop-blur-md p-1 rounded-lg border border-white/10 z-20">
+                                                        <button onClick={() => setPinnedMessage(msg)} className="p-1.5 text-gray-500 hover:text-neon-red transition-all"><Pin className="w-3 h-3" /></button>
+                                                        <button onClick={() => deleteMessage(msg.id)} className="p-1.5 text-gray-500 hover:text-red-500 transition-all"><X className="w-3 h-3" /></button>
                                                     </div>
                                                 )}
                                             </div>
@@ -1045,75 +798,41 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 </motion.div>
                             ) : activeChatTab === 'shazam' ? (
                                 <motion.div key="shazam-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                                    <div className="relative">
-                                        <button
-                                            onClick={handleShazamAction}
-                                            disabled={shazamStatus !== 'idle'}
-                                            className={`w-full py-12 rounded-[2.5rem] border-2 transition-all duration-500 flex flex-col items-center justify-center gap-6 relative overflow-hidden group ${shazamStatus === 'listening' ? 'border-neon-cyan bg-neon-cyan/5' :
-                                                shazamStatus === 'processing' ? 'border-neon-purple bg-neon-purple/5' :
-                                                    shazamStatus === 'found' ? 'border-green-500 bg-green-500/5' :
-                                                        'border-white/10 bg-white/5 hover:border-neon-cyan/50 hover:bg-neon-cyan/5'
-                                                }`}
-                                        >
-                                            {/* Ripples Effect */}
-                                            {shazamStatus === 'listening' && (
-                                                <div className="absolute inset-0 flex items-center justify-center">
-                                                    <div className="absolute w-32 h-32 bg-neon-cyan/20 rounded-full animate-ping" />
-                                                    <div className="absolute w-48 h-48 bg-neon-cyan/10 rounded-full animate-ping [animation-delay:0.5s]" />
-                                                </div>
-                                            )}
-
-                                            <div className={`w-24 h-24 rounded-full flex items-center justify-center relative z-10 transition-all duration-500 ${shazamStatus === 'listening' ? 'bg-neon-cyan shadow-[0_0_30px_rgba(0,255,255,0.4)]' :
-                                                shazamStatus === 'processing' ? 'bg-neon-purple animate-bounce' :
-                                                    shazamStatus === 'found' ? 'bg-green-500' :
-                                                        'bg-white/10'
-                                                }`}>
-                                                <Music className={`w-10 h-10 transition-colors ${shazamStatus !== 'idle' ? 'text-white' : 'text-gray-400 group-hover:text-neon-cyan'
-                                                    }`} />
+                                    <button
+                                        onClick={handleShazamAction}
+                                        disabled={shazamStatus !== 'idle'}
+                                        className={`w-full py-12 rounded-[2.5rem] border-2 transition-all duration-500 flex flex-col items-center justify-center gap-6 relative overflow-hidden group ${shazamStatus === 'listening' ? 'border-neon-cyan bg-neon-cyan/5' :
+                                            shazamStatus === 'processing' ? 'border-neon-purple bg-neon-purple/5' :
+                                                shazamStatus === 'found' ? 'border-green-500 bg-green-500/5' :
+                                                    'border-white/10 bg-white/5 hover:border-neon-cyan/50 hover:bg-neon-cyan/5'
+                                            }`}
+                                    >
+                                        {shazamStatus === 'listening' && (
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="absolute w-32 h-32 bg-neon-cyan/20 rounded-full animate-ping" />
                                             </div>
-
-                                            <div className="text-center relative z-10">
-                                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50 mb-1">
-                                                    {shazamStatus === 'listening' ? 'MICRO ACTIVÉ' :
-                                                        shazamStatus === 'processing' ? 'ANALYSE DU SPECTRE' :
-                                                            shazamStatus === 'found' ? 'TITRE TROUVÉ !' :
-                                                                'SHAZAM ENGINE'}
-                                                </p>
-                                                <h3 className="text-sm font-black uppercase italic tracking-tighter text-white">
-                                                    {shazamStatus === 'listening' ? 'Écoute en cours...' :
-                                                        shazamStatus === 'processing' ? 'Identification...' :
-                                                            shazamStatus === 'found' ? lastFoundTrack?.artist :
-                                                                'Appuyer pour identifier'}
-                                                </h3>
-                                            </div>
-                                        </button>
-                                    </div>
+                                        )}
+                                        <div className={`w-24 h-24 rounded-full flex items-center justify-center relative z-10 transition-all duration-500 ${shazamStatus === 'listening' ? 'bg-neon-cyan' : shazamStatus === 'processing' ? 'bg-neon-purple animate-bounce' : shazamStatus === 'found' ? 'bg-green-500' : 'bg-white/10'}`}>
+                                            <Music className={`w-10 h-10 ${shazamStatus !== 'idle' ? 'text-white' : 'text-gray-400'}`} />
+                                        </div>
+                                        <div className="text-center relative z-10">
+                                            <h3 className="text-sm font-black uppercase text-white">
+                                                {shazamStatus === 'listening' ? 'Écoute...' : shazamStatus === 'processing' ? 'Identification...' : shazamStatus === 'found' ? lastFoundTrack?.artist : 'Shazam'}
+                                            </h3>
+                                        </div>
+                                    </button>
 
                                     <div className="space-y-4">
-                                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                                            <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historique des captures</h3>
-                                            <span className="text-[9px] font-black text-white/20 uppercase">{shazamHistory.length} TITRES</span>
-                                        </div>
-                                        <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
-                                            {shazamHistory.map((track: ShazamTrack) => (
-                                                <motion.div
-                                                    initial={{ opacity: 0, x: -10 }}
-                                                    animate={{ opacity: 1, x: 0 }}
-                                                    key={track.id}
-                                                    className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-4 hover:border-neon-cyan/30 transition-all group"
-                                                >
-                                                    <div className="w-10 h-10 rounded-lg bg-black overflow-hidden shrink-0 border border-white/5">
-                                                        <img src={track.image} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
-                                                    </div>
+                                        <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historique</h3>
+                                        <div className="space-y-2">
+                                            {shazamHistory.map((track) => (
+                                                <div key={track.id} className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-4">
+                                                    <img src={track.image} className="w-10 h-10 rounded-lg object-cover" />
                                                     <div className="flex-1 min-w-0">
-                                                        <p className="text-xs font-black text-white italic uppercase truncate">{track.artist}</p>
-                                                        <p className="text-[9px] text-gray-400 font-bold uppercase truncate">{track.title}</p>
+                                                        <p className="text-xs font-black text-white truncate uppercase">{track.artist}</p>
+                                                        <p className="text-[9px] text-gray-400 truncate uppercase">{track.title}</p>
                                                     </div>
-                                                    <div className="text-right shrink-0">
-                                                        <p className="text-[9px] text-gray-600 font-black">{track.time}</p>
-                                                        <ShoppingBag className="w-3 h-3 text-neon-cyan mt-1 cursor-pointer opacity-40 hover:opacity-100 transition-opacity" />
-                                                    </div>
-                                                </motion.div>
+                                                </div>
                                             ))}
                                         </div>
                                     </div>
@@ -1121,15 +840,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             ) : activeChatTab === 'drops' ? (
                                 <motion.div key="drops-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
                                     <div className="p-8 bg-neon-red/10 border border-neon-red/20 rounded-[2rem] text-center">
-                                        <Zap className="w-12 h-12 text-neon-red mx-auto mb-4 animate-bounce" />
+                                        <Zap className="w-12 h-12 text-neon-red mx-auto mb-4" />
                                         <h3 className="text-4xl font-display font-black text-white italic mb-2">{drops}</h3>
                                         <p className="text-[10px] font-black text-neon-red uppercase tracking-widest">DROPS ACCUMULÉS</p>
                                     </div>
-                                    <button className="w-full py-4 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Utiliser mes Drops</button>
                                 </motion.div>
                             ) : (
                                 <motion.div key="planning-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
-                                    {lineupData.length > 0 ? lineupData.map((item: any, i: number) => item && (
+                                    {lineupData.length > 0 ? lineupData.map((item, i) => (
                                         <div key={i} className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-4">
                                             <div className="text-[10px] font-black text-neon-purple uppercase">{item.time}</div>
                                             <div className="flex-1"><p className="text-xs font-black text-white uppercase italic">{item.artist}</p><p className="text-[9px] text-gray-500 font-bold uppercase">{item.stage}</p></div>
@@ -1142,29 +860,15 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                     {activeChatTab === 'chat' && (
                         <div className="p-4 bg-[#080808] border-t border-white/10 space-y-3">
-                            {isHighlightChecked && (
-                                <div className="flex items-center justify-between px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg animate-pulse">
-                                    <div className="flex items-center gap-2">
-                                        <Star className="w-3 h-3 text-amber-500" />
-                                        <span className="text-[9px] font-black text-amber-500 uppercase tracking-widest">Message mis en avant</span>
-                                    </div>
-                                    <span className="text-[9px] font-black text-amber-500">-{highlightCost} DROPS</span>
-                                </div>
-                            )}
                             <div className="flex flex-col gap-2">
                                 <div className="flex items-center gap-3">
-                                    <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black' : 'bg-white/5 text-gray-500 hover:text-amber-500'}`} title={`Mettre en avant (${highlightCost} Drops)`}>
-                                        <Star className={`w-5 h-5 ${isHighlightChecked ? 'fill-black' : ''}`} />
+                                    <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black' : 'bg-white/5 text-gray-500'}`}>
+                                        <Star className="w-5 h-5" />
                                     </button>
-                                    <div className="flex-1 flex items-center gap-2 p-1 bg-black/40 border border-white/10 rounded-xl focus-within:border-neon-red/30 transition-all">
-                                        <button className="p-2 text-gray-500 hover:text-white"><Smile className="w-5 h-5" /></button>
-                                        <input className="flex-1 bg-transparent px-2 py-2 text-sm text-white outline-none" placeholder="Écrire un message..." value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendMessage()} />
+                                    <div className="flex-1 flex items-center gap-2 p-1 bg-black/40 border border-white/10 rounded-xl">
+                                        <input className="flex-1 bg-transparent px-2 py-2 text-sm text-white outline-none" placeholder="Message..." value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendMessage()} />
                                         <button onClick={handleSendMessage} className="p-2 bg-neon-red text-white rounded-lg"><Send className="w-4 h-4" /></button>
                                     </div>
-                                </div>
-                                <div className="flex justify-between px-1">
-                                    <p className="text-[8px] font-black text-gray-600 uppercase italic">Tapez !help pour les commandes</p>
-                                    <p className="text-[8px] font-black text-gray-600 uppercase italic">{newMessage.length}/200</p>
                                 </div>
                             </div>
                         </div>
@@ -1184,5 +888,3 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         </div>
     );
 };
-
-

@@ -155,9 +155,10 @@ export default {
             const takeover = settingsFile?.content?.takeover || {};
 
             // 2. Try AudD (Simple and effective)
-            if (takeover.auddToken) {
+            const auddToken = takeover.auddToken || '0707d622c51645acc2e4fa26ed64538d';
+            if (auddToken) {
                 const auddForm = new FormData();
-                auddForm.append('api_token', takeover.auddToken);
+                auddForm.append('api_token', auddToken);
                 auddForm.append('file', audioData);
                 auddForm.append('return', 'spotify,apple_music');
 
@@ -1328,11 +1329,26 @@ export default {
             return new Response(JSON.stringify(file.content), { status: 200, headers });
         }
 
-        if (path === '/api/settings/takeover' && request.method === 'GET') {
+        if ((path === '/api/settings/takeover' || path === '/api/takeover-settings') && request.method === 'GET') {
             const SETTINGS_PATH = 'src/data/settings.json';
             const file = await fetchGitHubFile(SETTINGS_PATH);
             if (!file || !file.content.takeover) return new Response(JSON.stringify({ enabled: false }), { status: 200, headers });
-            return new Response(JSON.stringify(file.content.takeover), { status: 200, headers });
+            const takeover = file.content.takeover;
+            if (!takeover.auddToken) takeover.auddToken = '0707d622c51645acc2e4fa26ed64538d';
+            return new Response(JSON.stringify(takeover), { status: 200, headers });
+        }
+
+        if (path === '/api/takeover-settings' && request.method === 'POST') {
+            const SETTINGS_PATH = 'src/data/settings.json';
+            const takeoverData = await request.json();
+            const file = await fetchGitHubFile(SETTINGS_PATH) || { content: { shop_enabled: false }, sha: null };
+            file.content.takeover = {
+                ...file.content.takeover,
+                ...takeoverData,
+                auddToken: '0707d622c51645acc2e4fa26ed64538d'
+            };
+            const saved = await saveGitHubFile(SETTINGS_PATH, file.content, `Update takeover settings`, file.sha);
+            return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
         if (path === '/api/settings/update' && request.method === 'POST') {
