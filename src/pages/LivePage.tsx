@@ -31,7 +31,7 @@ export function LivePage() {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center gap-6">
+            <div className="min-h-screen bg-transparent flex flex-col items-center justify-center gap-6">
                 <EqualizerLoader count={8} />
                 <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] animate-pulse">Syncing with satellite...</p>
             </div>
@@ -43,7 +43,7 @@ export function LivePage() {
     // Case: Off
     if (status === 'off' || !takeover || (!takeover.enabled && !isAdmin)) {
         return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
+            <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4">
                 <h1 className="text-4xl font-black text-white uppercase italic tracking-tighter mb-4">
                     Live <span className="text-neon-red">Indisponible</span>
                 </h1>
@@ -60,7 +60,7 @@ export function LivePage() {
     // Case: Edit mode (Preparation)
     if (status === 'edit' && !isAdmin) {
         return (
-            <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
+            <div className="min-h-screen bg-transparent flex flex-col items-center justify-center p-4">
                 <div className="w-20 h-20 bg-orange-500/10 rounded-full flex items-center justify-center mb-8 border border-orange-500/20">
                     <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
                 </div>

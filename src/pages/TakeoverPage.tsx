@@ -136,7 +136,7 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
     const parsedLineup = getLineupProgress(parseLineup(settings.lineup));
 
     return (
-        <div className="fixed inset-0 bg-black text-white flex flex-col overflow-hidden font-sans selection:bg-neon-red selection:text-white z-[9999]">
+        <div className="fixed top-16 lg:top-20 left-0 right-0 bottom-0 bg-dark-bg/60 backdrop-blur-xl text-white flex flex-col overflow-hidden font-sans selection:bg-neon-red selection:text-white z-[50]">
 
             {/* 1. TOP TICKER BANNER */}
             {settings.showTickerBanner && settings.tickerText && (
@@ -156,7 +156,7 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
             )}
 
             {/* 2. LIVE INFO BAR */}
-            <div className="h-12 w-full bg-[#080808] border-b border-white/10 px-6 flex items-center justify-between z-[90] shrink-0 shadow-lg">
+            <div className="h-12 w-full bg-dark-bg/40 backdrop-blur-md border-b border-white/10 px-6 flex items-center justify-between z-[90] shrink-0 shadow-lg">
                 <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2 px-3 py-1 bg-red-600 rounded-full shadow-[0_0_15px_rgba(255,0,0,0.4)]">
                         <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
@@ -190,13 +190,13 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
             <div className="flex-1 flex flex-row overflow-hidden relative">
 
                 {/* A. VIDEO PANEL (60%) */}
-                <div className="w-[60%] h-full bg-black border-r border-white/10 relative flex flex-col shrink-0">
+                <div className="w-[60%] h-full bg-transparent border-r border-white/10 relative flex flex-col shrink-0">
                     <AnimatePresence mode="wait">
                         {showAdminPanel ? (
                             <motion.div
                                 key="admin-panel"
                                 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                                className="flex-1 bg-[#0a0a0a] p-8 overflow-y-auto custom-scrollbar"
+                                className="flex-1 bg-dark-bg/80 backdrop-blur-xl p-8 overflow-y-auto custom-scrollbar"
                             >
                                 <div className="max-w-3xl mx-auto space-y-10">
                                     <div className="flex items-center justify-between border-b border-white/10 pb-6">
@@ -224,8 +224,8 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                                                             key={s}
                                                             onClick={() => setEditStatus(s)}
                                                             className={`flex-1 py-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${editStatus === s
-                                                                    ? (s === 'live' ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : s === 'edit' ? 'bg-orange-600 text-white' : 'bg-gray-600 text-white')
-                                                                    : 'text-gray-500 hover:text-white hover:bg-white/5'
+                                                                ? (s === 'live' ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : s === 'edit' ? 'bg-orange-600 text-white' : 'bg-gray-600 text-white')
+                                                                : 'text-gray-500 hover:text-white hover:bg-white/5'
                                                                 }`}
                                                         >
                                                             {s === 'live' ? 'EN DIRECT' : s === 'edit' ? 'PRÉPARATION' : 'HORS LIGNE'}
@@ -284,7 +284,7 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                 </div>
 
                 {/* B. CHAT PANEL (30%) */}
-                <div className="flex-1 h-full bg-[#0d0d0d] flex flex-col relative z-10 border-r border-white/10 shadow-2xl">
+                <div className="flex-1 h-full bg-dark-bg/20 backdrop-blur-sm flex flex-col relative z-10 border-r border-white/10 shadow-2xl">
                     <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red">

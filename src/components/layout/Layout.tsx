@@ -40,17 +40,18 @@ export function Layout({ children }: LayoutProps) {
 
     const isHome = location.pathname === '/';
     const isMini = new URLSearchParams(location.search).get('mini') === 'true';
-    const isAdminPage = location.pathname.startsWith('/admin') ||
+    const isLivePage = location.pathname === '/live';
+    const isAdminPage = (location.pathname.startsWith('/admin') ||
         location.pathname.startsWith('/newsletter/admin') ||
         location.pathname.startsWith('/newsletter/studio') ||
         location.pathname.startsWith('/social-studio') ||
-        location.pathname === '/live' ||
         location.pathname.includes('/create') ||
-        isMini;
+        isMini) && !isLivePage;
 
 
     const ptClass = isAdminPage ? 'pt-0' :
-        (isMobile ? 'pt-16' : (bannerEnabled ? 'pt-[112px]' : (isHome ? 'pt-0' : 'pt-20')));
+        (isLivePage ? (isMobile ? 'pt-16' : 'pt-20') :
+            (isMobile ? 'pt-16' : (bannerEnabled ? 'pt-[112px]' : (isHome ? 'pt-0' : 'pt-20'))));
 
     return (
         <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white pb-24 lg:pb-0 overflow-x-hidden">
