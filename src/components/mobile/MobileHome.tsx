@@ -24,9 +24,9 @@ export function MobileHome() {
     }, []);
 
     const featuredNews = useMemo(() => {
-        const featured = sortedNews.filter(n => n.isFeatured).slice(0, 5);
+        const featured = sortedNews.filter(n => n.isFeatured).slice(0, 1);
         if (featured.length > 0) return featured;
-        return sortedNews.slice(0, 5);
+        return sortedNews.slice(0, 1);
     }, [sortedNews]);
 
     // 2. Filter News (exclude interviews/musique for this block)
