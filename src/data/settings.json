@@ -5,7 +5,7 @@
   "shop_password_image": "",
   "takeover": {
     "enabled": true,
-    "youtubeId": "",
+    "youtubeId": "DQHSj6cphm0",
     "title": "TOMORROWLAND WINTER 2026",
     "moderators": "",
     "lineup": "[]",
@@ -45,14 +45,20 @@
     "botBgColor": "rgba(0, 255, 204, 0.05)",
     "adminColor": "#ff0033",
     "adminBgColor": "rgba(255, 0, 51, 0.05)",
-    "mainFluxName": "",
+    "mainFluxName": "DAYBREAH SESSION",
     "acrHost": "identify-eu-west-1.acrcloud.com",
     "acrAccessKey": "",
     "acrAccessSecret": "",
     "auddToken": "0707d622c51645acc2e4fa26ed64538d",
     "currentTrack": "ID - UNRELEASED",
-    "streams": [],
-    "activeStreamId": ""
+    "streams": [
+      {
+        "id": "oxcwg9la3",
+        "name": "DAYBREAH SESSION",
+        "youtubeId": "DQHSj6cphm0"
+      }
+    ],
+    "activeStreamId": "oxcwg9la3"
   },
   "socials": {
     "instagram": "dropsiders.eu",
