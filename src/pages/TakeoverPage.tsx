@@ -2400,7 +2400,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
             )}
 
-            <div className={`relative lg:fixed top-0 ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'lg:top-[128px]' : 'lg:top-20') : 'lg:top-0'} inset-x-0 lg:bottom-0 min-h-screen lg:min-h-0 flex flex-col bg-black z-[50] pb-20 lg:pb-0 transition-all duration-700 ease-in-out ${isOverdrive ? 'overdrive-active bg-aurora border-[4px] border-neon-red shadow-[inset_0_0_100px_rgba(255,18,65,0.4)]' : ''}`}>
+            <div className={`relative lg:fixed top-0 ${showTopBanner && !isFullScreen ? (annBannerEnabled && annBannerText ? 'lg:top-[128px]' : 'lg:top-20') : 'lg:top-0'} inset-x-0 lg:bottom-0 min-h-screen lg:min-h-0 flex flex-col bg-black z-[50] pb-20 lg:pb-0 lg:overflow-hidden transition-all duration-700 ease-in-out ${isOverdrive ? 'overdrive-active bg-aurora border-[4px] border-neon-red shadow-[inset_0_0_100px_rgba(255,18,65,0.4)]' : ''}`}>
                 {/* OFFLINE VIEW FOR NON-ADMINS - FULL PAGE BLANKET */}
                 {(!settings.isOnline && !isServerAdmin && isJoined) && (
                     <div className="fixed inset-0 z-[10000] bg-black flex flex-col items-center justify-center p-6 text-center">
@@ -2558,9 +2558,9 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                     </button>
                 )}
 
-                <div className="flex-1 flex flex-col lg:flex-row lg:h-full min-h-0 bg-black gap-0 relative">
+                <div className="flex-1 flex flex-col lg:flex-row lg:flex-nowrap lg:h-full min-h-0 bg-black gap-0 relative">
                     {/* Video Section */}
-                    <div className={`order-1 shrink-0 w-full aspect-video lg:aspect-auto lg:h-auto lg:w-[60%] lg:flex-none bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden shadow-2xl ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
+                    <div className={`order-1 shrink-0 w-full aspect-video lg:aspect-auto lg:h-full lg:w-[60%] lg:flex-none bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden shadow-2xl ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
 
                         <div ref={videoPlayerRef} className="w-full h-full lg:flex-1 relative bg-black group overflow-hidden">
                             <div className="absolute inset-0 z-0">
@@ -4204,7 +4204,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
 
                 {/* Chat Section */}
-                <div className="order-2 lg:order-2 flex-1 lg:flex-1 bg-[#080808] flex flex-col min-h-[50vh] lg:min-h-0 relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]" >
+                <div className="order-2 lg:order-2 flex-1 lg:h-full bg-[#080808] flex flex-col min-h-[50vh] lg:min-h-0 relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]" >
                     {/* MULTIVUE - hidden on mobile, visible on desktop */}
                     {channelItems.length >= 2 && !isFocusMode && (
                         <div className="hidden lg:block p-3 border-b border-white/10 bg-black/40 shrink-0 z-30">
