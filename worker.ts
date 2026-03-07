@@ -1,4 +1,4 @@
-﻿// @ts-nocheck
+// @ts-nocheck
 
 const utf8Encode = (str) => {
     const bytes = new TextEncoder().encode(str);
@@ -443,12 +443,6 @@ export default {
                 text: 'Tous les serveurs sont temporairement occupés ou limités par Instagram. Réessayez dans quelques secondes ou avec un autre lien.'
             }), { status: 500, headers });
         }
-
-        if (request.method === 'OPTIONS') {
-            return new Response(null, { headers });
-        }
-
-        const gitConfig = { OWNER, REPO, TOKEN };
 
         const extractMetadata = (content) => {
             if (!content) return { images: [], youtubeId: '' };
@@ -3518,10 +3512,10 @@ export default {
         const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
         const REPO = env.GITHUB_REPO || 'sitedropsiders';
         const TOKEN = env.GITHUB_TOKEN;
-        const gitConfig = { OWNER, REPO, TOKEN };
+        const scheduledGitConfig = { OWNER, REPO, TOKEN };
 
         // 1. Fetch current settings to get the lineup
-        const res = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
+        const res = await fetchGitHubFile(SETTINGS_PATH, scheduledGitConfig);
         if (!res) return;
         const content = res.content;
         const fileData = { sha: res.sha };
@@ -3552,7 +3546,7 @@ export default {
         const lineupText = content?.takeover?.lineup;
         if (!lineupText) {
             if (settingsChanged) {
-                await saveGitHubFile(SETTINGS_PATH, content, 'Auto-switch live status (Scheduled)', fileData.sha, gitConfig);
+                await saveGitHubFile(SETTINGS_PATH, content, 'Auto-switch live status (Scheduled)', fileData.sha, scheduledGitConfig);
             }
             return;
         }
@@ -3622,7 +3616,7 @@ export default {
         }
 
         if (settingsChanged || lineupChanged) {
-            await saveGitHubFile(SETTINGS_PATH, content, 'Auto-cleanup & switch (Scheduled)', fileData.sha);
+            await saveGitHubFile(SETTINGS_PATH, content, 'Auto-cleanup & switch (Scheduled)', fileData.sha, scheduledGitConfig);
         }
 
         // --- NOTIFICATIONS ---
