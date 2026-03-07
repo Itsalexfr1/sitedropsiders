@@ -185,19 +185,57 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const showNotification = (message: string, type: 'success' | 'error') => {
         setToast({ show: true, message, type });
-        setTimeout(() => setToast({ ...toast, show: false }), 3000);
+        setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
+    };
+
+    const sendBotMessage = (text: string) => {
+        const botMsg = {
+            id: Date.now() + Math.random(),
+            user: "DROPSIDERS BOT",
+            text,
+            color: "text-[#39ff14]", // Neon Green
+            isBot: true
+        };
+        setChatMessages(prev => [...prev.slice(-49), botMsg]);
     };
 
     const handleSendMessage = () => {
         if (!newMessage.trim()) return;
+
+        // 1. Check for links (Security/Bot)
+        const urlRegex = /(https?:\/\/[^\s]+)|(www\.[^\s]+)/gi;
+        if (urlRegex.test(newMessage)) {
+            sendBotMessage("⚠️ Les liens sont interdits dans le chat pour votre sécurité.");
+            setNewMessage('');
+            return;
+        }
+
+        // 2. Add user message
         const msg = {
             id: Date.now(),
             user: "VOUS",
             text: newMessage.trim(),
             color: "text-neon-red"
         };
-        setChatMessages([...chatMessages, msg]);
+        const newChat = [...chatMessages, msg];
+        setChatMessages(newChat.slice(-50)); // Keep last 50 messages
         setNewMessage('');
+
+        // 3. Check for Bot Commands
+        const trimmedMsg = newMessage.trim().toLowerCase();
+        if (trimmedMsg.startsWith('!')) {
+            const foundCmd = botCommands.find(c => c.command.toLowerCase() === trimmedMsg);
+            if (foundCmd) {
+                setTimeout(() => {
+                    sendBotMessage(foundCmd.response);
+                }, 500);
+            } else if (trimmedMsg === '!help' || trimmedMsg === '!commandes') {
+                setTimeout(() => {
+                    const cmds = botCommands.map(c => c.command).join(', ');
+                    sendBotMessage(`Commandes disponibles : !help, !commandes, ${cmds}`);
+                }, 500);
+            }
+        }
     };
 
     const deleteMessage = (id: number) => {
@@ -657,9 +695,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         <p className="text-[10px] text-neon-red font-black uppercase mb-1">Épinglé</p>
                                         <p className="text-xs text-white">Bienvenue ! Profitez du festival en direct ! 🔥</p>
                                     </div>
-                                    {chatMessages.map((msg) => (
-                                        <div key={msg.id} className="group flex gap-3 animate-slide-in relative">
-                                            <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 shrink-0" />
+                                    {chatMessages.map((msg: any) => (
+                                        <div key={msg.id} className={`group flex gap-3 animate-slide-in relative ${msg.isBot ? 'bg-white/[0.03] p-2 rounded-xl border border-white/5' : ''}`}>
+                                            <div className={`w-8 h-8 rounded-full border border-white/10 shrink-0 flex items-center justify-center ${msg.isBot ? 'bg-[#39ff14]/10 text-[#39ff14]' : 'bg-white/5'}`}>
+                                                {msg.isBot ? <Zap className="w-4 h-4" /> : null}
+                                            </div>
                                             <div className="flex-1 min-w-0">
                                                 <div className="flex items-center justify-between">
                                                     <p className={`text-[10px] font-black uppercase tracking-wider mb-0.5 ${msg.color}`}>{msg.user}</p>
