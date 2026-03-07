@@ -1400,8 +1400,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-8 text-center">Enregistrez-la pour vos réseaux</p>
 
                             <div className="w-full aspect-[9/16] max-h-[300px] mb-8 rounded-2xl overflow-hidden bg-black border border-white/5 relative group">
-                                <video src={readyVideoUrl} className="w-full h-full object-cover" autoPlay loop muted playsInline />
-                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+                                <video src={readyVideoUrl} className="w-full h-full object-cover" autoPlay loop muted playsInline controls />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent pointer-events-none" />
                             </div>
 
                             <div className="w-full space-y-3">
@@ -1417,7 +1417,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                                 await navigator.share({
                                                     files: [file],
                                                     title: 'Dropsiders Video',
-                                                    text: 'Ma vidéo générée'
+                                                    text: 'Ma vidéo générée via Dropsiders Social Studio'
                                                 });
                                             } catch (err) {
                                                 console.warn("Share failed:", err);
@@ -1433,15 +1433,15 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                             a.click();
                                             document.body.removeChild(a);
 
-                                            if (isIOS) {
-                                                alert("Maintenez la vidéo qui va s'ouvrir pour l'enregistrer.");
-                                                window.location.href = readyVideoUrl;
+                                            if (isIOS || /OPR\/|Opera\/|Edition\sGX/.test(navigator.userAgent)) {
+                                                alert("L'enregistrement direct est bloqué. Cliquez sur OK, puis maintenez la vidéo qui s'ouvre pour l'enregistrer.");
+                                                window.open(readyVideoUrl, '_blank');
                                             }
                                         }
                                     }}
                                     className="w-full py-5 bg-white text-black font-black rounded-2xl uppercase tracking-widest text-[11px] shadow-[0_10px_30px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all"
                                 >
-                                    Enregistrer dans mes photos
+                                    💾 Enregistrer dans la pellicule
                                 </button>
 
                                 <button
