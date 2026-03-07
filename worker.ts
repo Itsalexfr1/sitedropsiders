@@ -8,6 +8,33 @@ export default {
             path = path.slice(0, -1);
         }
 
+        // Configuration
+        const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
+        const REPO = env.GITHUB_REPO || 'sitedropsiders';
+        const PATH = env.GITHUB_FILE_PATH || 'src/data/subscribers.json';
+        const TOKEN = env.GITHUB_TOKEN;
+
+        // CORS Headers
+        const headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, DELETE',
+            'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Password, X-Admin-Username, X-Google-Token, X-Session-ID',
+            'Content-Type': 'application/json'
+        };
+
+        // --- CONTENT SPLITTING CONFIG ---
+        const NEWS_CONTENT_TARGET = 'src/data/news_content_3.json';
+        const RECAPS_CONTENT_TARGET = 'src/data/recaps_content_2.json';
+        const NEWS_CONTENT_FILES = ['src/data/news_content_3.json', 'src/data/news_content_2.json', 'src/data/news_content_1.json'];
+        const RECAPS_CONTENT_FILES = ['src/data/recaps_content_2.json', 'src/data/recaps_content_1.json'];
+        const EDITORS_PATH = 'src/data/editors.json';
+        const PENDING_SUBMISSIONS_PATH = 'src/data/pending_submissions.json';
+        const GALERIE_PATH = 'src/data/galerie.json';
+
+        if (request.method === 'OPTIONS') {
+            return new Response(null, { headers });
+        }
+
         // Serve ads.txt directly for Google AdSense verification
         if (path === '/ads.txt') {
             const adsResponse = await env.ASSETS.fetch(request);
@@ -335,39 +362,6 @@ export default {
                 text: 'Tous les serveurs sont temporairement occupés ou limités par Instagram. Réessayez dans quelques secondes ou avec un autre lien.'
             }), { status: 500, headers });
         }
-
-        // Configuration
-        const OWNER = env.GITHUB_OWNER || 'Itsalexfr1';
-        const REPO = env.GITHUB_REPO || 'sitedropsiders';
-        const PATH = env.GITHUB_FILE_PATH || 'src/data/subscribers.json';
-        const TOKEN = env.GITHUB_TOKEN;
-
-        // --- CONTENT SPLITTING CONFIG ---
-        // Fichiers cibles pour les nouveaux contenus (à mettre à jour manuellement si taille > 1MB)
-        const NEWS_CONTENT_TARGET = 'src/data/news_content_3.json';
-        const RECAPS_CONTENT_TARGET = 'src/data/recaps_content_2.json';
-
-        // Listes des fichiers à scanner pour Updates/Deletes
-        const NEWS_CONTENT_FILES = [
-            'src/data/news_content_3.json',
-            'src/data/news_content_2.json',
-            'src/data/news_content_1.json'
-        ];
-        const RECAPS_CONTENT_FILES = [
-            'src/data/recaps_content_2.json',
-            'src/data/recaps_content_1.json'
-        ];
-        const EDITORS_PATH = 'src/data/editors.json';
-        const PENDING_SUBMISSIONS_PATH = 'src/data/pending_submissions.json';
-        const GALERIE_PATH = 'src/data/galerie.json';
-
-        // CORS Headers
-        const headers = {
-            'Access-Control-Allow-Origin': '*',
-            'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, DELETE',
-            'Access-Control-Allow-Headers': 'Content-Type, X-Admin-Password, X-Admin-Username, X-Google-Token, X-Session-ID',
-            'Content-Type': 'application/json'
-        };
 
         if (request.method === 'OPTIONS') {
             return new Response(null, { headers });
