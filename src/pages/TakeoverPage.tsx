@@ -36,7 +36,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const navigate = useNavigate();
     const [isAdmin] = useState(true); // À coupler avec votre système auth
     const [showAdminPanel, setShowAdminPanel] = useState(false);
-    const [viewersCount] = useState(1284);
+    const [viewersCount] = useState(1);
     const [activeChatTab, setActiveChatTab] = useState('chat');
     const [newMessage, setNewMessage] = useState('');
     const [drops, setDrops] = useState(150);
@@ -193,7 +193,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             id: Date.now() + Math.random(),
             user: "DROPSIDERS BOT",
             text,
-            color: "text-[#39ff14]", // Neon Green
+            color: "text-neon-red", // Red
             isBot: true
         };
         setChatMessages(prev => [...prev.slice(-49), botMsg]);
@@ -679,6 +679,15 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             </div>
                             <h2 className="text-xs font-black uppercase italic tracking-tighter text-white">LIVE INTERACTIF</h2>
                         </div>
+                        {isAdmin && (
+                            <button
+                                onClick={clearChat}
+                                className="p-2 text-gray-500 hover:text-neon-red hover:bg-neon-red/10 rounded-lg transition-all"
+                                title="Vider le chat"
+                            >
+                                <Trash2 className="w-4 h-4" />
+                            </button>
+                        )}
                     </div>
 
                     <div className="flex gap-1 p-2 bg-black/20 border-b border-white/10 overflow-x-auto no-scrollbar">
@@ -696,8 +705,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         <p className="text-xs text-white">Bienvenue ! Profitez du festival en direct ! 🔥</p>
                                     </div>
                                     {chatMessages.map((msg: any) => (
-                                        <div key={msg.id} className={`group flex gap-3 animate-slide-in relative ${msg.isBot ? 'bg-white/[0.03] p-2 rounded-xl border border-white/5' : ''}`}>
-                                            <div className={`w-8 h-8 rounded-full border border-white/10 shrink-0 flex items-center justify-center ${msg.isBot ? 'bg-[#39ff14]/10 text-[#39ff14]' : 'bg-white/5'}`}>
+                                        <div key={msg.id} className={`group flex gap-3 animate-slide-in relative ${msg.isBot ? 'bg-neon-red/5 p-2 rounded-xl border border-neon-red/10' : ''}`}>
+                                            <div className={`w-8 h-8 rounded-full border border-white/10 shrink-0 flex items-center justify-center ${msg.isBot ? 'bg-neon-red/10 text-neon-red' : 'bg-white/5'}`}>
                                                 {msg.isBot ? <Zap className="w-4 h-4" /> : null}
                                             </div>
                                             <div className="flex-1 min-w-0">
