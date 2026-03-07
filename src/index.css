@@ -798,16 +798,6 @@
     gap: 1rem !important;
   }
 
-  /* Optimize touch elements */
-  button,
-  a {
-    min-height: 44px;
-    min-width: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-  }
-
   /* Section spacing + containment for rendering isolation */
   section {
     padding-top: 3rem !important;
@@ -825,7 +815,7 @@
 
 /* Fix for Safari/iOS Notch */
 @supports (padding: env(safe-area-inset-bottom)) {
-  .fixed.bottom-0 {
-    padding-bottom: calc(1.5rem + env(safe-area-inset-bottom)) !important;
+  .fixed.bottom-0:not(.no-safe-padding) {
+    padding-bottom: env(safe-area-inset-bottom) !important;
   }
 }
