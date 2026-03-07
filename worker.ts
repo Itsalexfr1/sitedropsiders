@@ -117,6 +117,95 @@ export default {
             });
         }
 
+        // --- API: SHAZAM IDENTIFY (VRAI SHAZAM) ---
+        if (path === '/api/shazam/identify' && request.method === 'POST') {
+            const formData = await request.formData();
+            const audioData = formData.get('audio');
+            if (!audioData) return new Response(JSON.stringify({ error: 'Audio requis' }), { status: 400, headers });
+
+            // 1. Get Keys from settings
+            const settingsFile = await fetchGitHubFile('src/data/settings.json');
+            const takeover = settingsFile?.content?.takeover || {};
+
+            // 2. Try AudD (Simple and effective)
+            if (takeover.auddToken) {
+                const auddForm = new FormData();
+                auddForm.append('api_token', takeover.auddToken);
+                auddForm.append('file', audioData);
+                auddForm.append('return', 'spotify,apple_music');
+
+                const auddRes = await fetch('https://api.audd.io/', { method: 'POST', body: auddForm });
+                const auddData = await auddRes.json();
+
+                if (auddData.status === 'success' && auddData.result) {
+                    const res = auddData.result;
+                    return new Response(JSON.stringify({
+                        status: 'success',
+                        metadata: {
+                            artist: res.artist,
+                            title: res.title,
+                            album: res.album,
+                            image: res.spotify?.album?.images?.[0]?.url || res.apple_music?.artwork?.url?.replace('{w}x{h}', '500x500') || '',
+                            spotify: res.spotify?.external_urls?.spotify || ''
+                        }
+                    }), { headers });
+                }
+            }
+
+            // 3. Try ACRCloud (Professional Standard)
+            if (takeover.acrAccessKey && takeover.acrAccessSecret) {
+                const host = takeover.acrHost || 'identify-eu-west-1.acrcloud.com';
+                const accessKey = takeover.acrAccessKey;
+                const accessSecret = takeover.acrAccessSecret;
+                const timestamp = Math.floor(Date.now() / 1000);
+                const signatureVersion = '1';
+                const dataType = 'audio';
+                const endpoint = '/v1/identify';
+
+                const stringToSign = `POST\n${endpoint}\n${accessKey}\n${dataType}\n${signatureVersion}\n${timestamp}`;
+
+                // HMAC-SHA1 signature using Web Crypto API
+                async function sign(secret, message) {
+                    const encoder = new TextEncoder();
+                    const keyData = encoder.encode(secret);
+                    const msgData = encoder.encode(message);
+                    const key = await crypto.subtle.importKey('raw', keyData, { name: 'HMAC', hash: 'SHA-1' }, false, ['sign']);
+                    const sig = await crypto.subtle.sign('HMAC', key, msgData);
+                    return btoa(String.fromCharCode(...new Uint8Array(sig)));
+                }
+
+                const signature = await sign(accessSecret, stringToSign);
+
+                const acrForm = new FormData();
+                acrForm.append('sample', audioData);
+                acrForm.append('access_key', accessKey);
+                acrForm.append('data_type', dataType);
+                acrForm.append('signature_version', signatureVersion);
+                acrForm.append('signature', signature);
+                acrForm.append('sample_bytes', (audioData as Blob).size.toString());
+                acrForm.append('timestamp', timestamp.toString());
+
+                const acrRes = await fetch(`https://${host}${endpoint}`, { method: 'POST', body: acrForm });
+                const acrData = await acrRes.json();
+
+                if (acrData.status && acrData.status.code === 0 && acrData.metadata && acrData.metadata.music) {
+                    const music = acrData.metadata.music[0];
+                    return new Response(JSON.stringify({
+                        status: 'success',
+                        metadata: {
+                            artist: music.artists?.map(a => a.name).join(', '),
+                            title: music.title,
+                            album: music.album?.name,
+                            image: '', // ACRCloud handles artwork differently or via external IDs
+                            spotify: music.external_metadata?.spotify?.track?.id ? `https://open.spotify.com/track/${music.external_metadata.spotify.track.id}` : ''
+                        }
+                    }), { headers });
+                }
+            }
+
+            return new Response(JSON.stringify({ error: 'Aucun match trouvé ou API non configurée' }), { status: 404, headers });
+        }
+
         // --- API: SHAZAM HISTORY ---
         if (path === '/api/shazam/history' && request.method === 'GET') {
             const history = await env.CHAT_KV.get('shazam_history') || '[]';

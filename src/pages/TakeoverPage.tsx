@@ -3,13 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Settings, Users, MessageSquare, Send, Zap,
-    Smile, Save, AlertCircle, Music, Trash2
+    Smile, Save, AlertCircle, ShoppingBag, Music, Trash2
 } from 'lucide-react';
 
 interface TakeoverSettings {
     title: string;
     youtubeId: string;
     mainFluxName: string;
+    currentTrack: string;
     tickerText: string;
     showTickerBanner: boolean;
     tickerBgColor: string;
@@ -17,6 +18,18 @@ interface TakeoverSettings {
     lineup: string;
     status: 'live' | 'edit' | 'off';
     enabled: boolean;
+    acrHost?: string;
+    acrAccessKey?: string;
+    acrAccessSecret?: string;
+    auddToken?: string;
+}
+
+interface ShazamTrack {
+    id: number;
+    artist: string;
+    title: string;
+    time: string;
+    image: string;
 }
 
 const TakeoverPage = () => {
@@ -27,11 +40,19 @@ const TakeoverPage = () => {
     const [activeChatTab, setActiveChatTab] = useState('chat');
     const [newMessage, setNewMessage] = useState('');
     const [drops, setDrops] = useState(150);
-    const [shazamHistory, setShazamHistory] = useState([
-        { id: 1, artist: "Mochakk", title: "Jealous", time: "20:45" },
-        { id: 2, artist: "Vintage Culture", title: "Fractions", time: "20:38" }
-    ]);
-    const [isShazamming, setIsShazamming] = useState(false);
+    const [shazamHistory, setShazamHistory] = useState<ShazamTrack[]>(() => {
+        const saved = localStorage.getItem('shazam_history');
+        return saved ? JSON.parse(saved) : [
+            { id: 1, artist: "Mochakk", title: "Jealous", time: "20:45", image: "https://i1.sndcdn.com/artworks-000666066666-666666-t500x500.jpg" },
+            { id: 2, artist: "Vintage Culture", title: "Fractions", time: "20:38", image: "https://i.scdn.co/image/ab67616d0000b2738f6b6b6b6b6b6b6b6b6b6b6b" }
+        ];
+    });
+    const [shazamStatus, setShazamStatus] = useState<'idle' | 'listening' | 'processing' | 'found'>('idle');
+    const [lastFoundTrack, setLastFoundTrack] = useState<any>(null);
+
+    useEffect(() => {
+        localStorage.setItem('shazam_history', JSON.stringify(shazamHistory));
+    }, [shazamHistory]);
 
     // Chat State
     const [chatMessages, setChatMessages] = useState([
@@ -45,25 +66,35 @@ const TakeoverPage = () => {
         title: 'LIVE TAKEOVER',
         youtubeId: '',
         mainFluxName: 'MAIN STAGE',
+        currentTrack: 'ID - UNRELEASED',
         tickerText: 'BIENVENUE SUR LE LIVE DROPSIDERS ! PROFITEZ DE LA MUSIQUE 24/7',
         showTickerBanner: true,
         tickerBgColor: '#ff0033',
         tickerTextColor: '#ffffff',
         lineup: '',
         status: 'live',
-        enabled: true
+        enabled: true,
+        acrHost: 'identify-eu-west-1.acrcloud.com',
+        acrAccessKey: '',
+        acrAccessSecret: '',
+        auddToken: ''
     });
 
     // Admin Panel States
     const [editTitle, setEditTitle] = useState(settings.title);
     const [editYoutubeId, setEditYoutubeId] = useState(settings.youtubeId);
     const [editMainFluxName, setEditMainFluxName] = useState(settings.mainFluxName);
+    const [editCurrentTrack, setEditCurrentTrack] = useState(settings.currentTrack);
     const [editAnnText, setEditAnnText] = useState(settings.tickerText);
     const [editAnnEnabled, setEditAnnEnabled] = useState(settings.showTickerBanner);
     const [editLineup, setEditLineup] = useState(settings.lineup);
     const [editStatus, setEditStatus] = useState(settings.status);
     const [editTickerBg, setEditTickerBg] = useState(settings.tickerBgColor);
     const [editTickerTextC, setEditTickerTextC] = useState(settings.tickerTextColor);
+    const [editAcrHost, setEditAcrHost] = useState(settings.acrHost || '');
+    const [editAcrKey, setEditAcrKey] = useState(settings.acrAccessKey || '');
+    const [editAcrSecret, setEditAcrSecret] = useState(settings.acrAccessSecret || '');
+    const [editAuddToken, setEditAuddToken] = useState(settings.auddToken || '');
     const [adminActiveTab, setAdminActiveTab] = useState('general');
     const [isSaving, setIsSaving] = useState(false);
 
@@ -97,12 +128,17 @@ const TakeoverPage = () => {
                 setEditTitle(data.title);
                 setEditYoutubeId(data.youtubeId);
                 setEditMainFluxName(data.mainFluxName);
+                setEditCurrentTrack(data.currentTrack || 'ID - UNRELEASED');
                 setEditAnnText(data.tickerText);
                 setEditAnnEnabled(data.showTickerBanner);
                 setEditTickerBg(data.tickerBgColor || '#ff0033');
                 setEditTickerTextC(data.tickerTextColor || '#ffffff');
                 setEditLineup(data.lineup);
                 setEditStatus(data.status);
+                setEditAcrHost(data.acrHost || 'identify-eu-west-1.acrcloud.com');
+                setEditAcrKey(data.acrAccessKey || '');
+                setEditAcrSecret(data.acrAccessSecret || '');
+                setEditAuddToken(data.auddToken || '');
             }
         } catch (e) { console.error("Error loading settings:", e); }
     };
@@ -113,13 +149,18 @@ const TakeoverPage = () => {
             title: editTitle,
             youtubeId: editYoutubeId,
             mainFluxName: editMainFluxName,
+            currentTrack: editCurrentTrack,
             tickerText: editAnnText,
             showTickerBanner: editAnnEnabled,
             tickerBgColor: editTickerBg,
             tickerTextColor: editTickerTextC,
             lineup: editLineup,
             status: editStatus,
-            enabled: editStatus !== 'off'
+            enabled: editStatus !== 'off',
+            acrHost: editAcrHost,
+            acrAccessKey: editAcrKey,
+            acrAccessSecret: editAcrSecret,
+            auddToken: editAuddToken
         };
 
         try {
@@ -173,13 +214,147 @@ const TakeoverPage = () => {
         if (!text) return [];
         return text.split('\n').map(line => {
             const match = line.match(/\[(.*?)\] (.*?) \| (.*)/);
-            if (match) return { time: match[1], artist: match[2], stage: match[3] };
+            if (match) {
+                const time = match[1];
+                const artistPart = match[2];
+                const stage = match[3];
+
+                let artist = artistPart;
+                let track = '';
+
+                if (artistPart.includes(' - ')) {
+                    const parts = artistPart.split(' - ');
+                    artist = parts[0].trim();
+                    track = parts[1].trim();
+                }
+
+                return { time, artist, track, stage };
+            }
             return null;
         }).filter(Boolean);
     };
 
+    const getCurrentArtist = () => {
+        const now = new Date();
+        const currentTimeString = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        const lineup = parseLineup(settings.lineup);
+
+        // Trouver l'artiste dont l'heure de début est la plus proche avant l'heure actuelle
+        const current = [...lineup].reverse().find(item => item && item.time <= currentTimeString);
+
+        if (current) {
+            return {
+                artist: current.artist,
+                track: current.track || settings.currentTrack || 'ID - UNRELEASED',
+                stage: current.stage
+            };
+        }
+
+        return {
+            artist: settings.mainFluxName,
+            track: settings.currentTrack || 'ID - UNRELEASED',
+            stage: 'MAIN STAGE'
+        };
+    };
+
+    const recordAndIdentify = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            const chunks: Blob[] = [];
+
+            mediaRecorder.ondataavailable = (e) => chunks.push(e.data);
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(chunks, { type: 'audio/wav' });
+                stream.getTracks().forEach(track => track.stop());
+
+                setShazamStatus('processing');
+
+                try {
+                    const formData = new FormData();
+                    formData.append('audio', audioBlob);
+
+                    const resp = await fetch('/api/shazam/identify', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (resp.ok) {
+                        const data = await resp.json();
+                        if (data.status === 'success' && data.metadata) {
+                            const track = data.metadata;
+                            const newTrack: ShazamTrack = {
+                                id: Date.now(),
+                                artist: track.artist,
+                                title: track.title,
+                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                image: track.image || `https://avatar.vercel.sh/${track.artist}.svg`
+                            };
+                            setLastFoundTrack(newTrack);
+                            setShazamStatus('found');
+                            setShazamHistory([newTrack, ...shazamHistory]);
+                            setDrops(d => d + 50);
+                            showNotification(`Titre identifié : ${track.artist} - ${track.title} ! +50 Drops`, 'success');
+                        } else {
+                            throw new Error(data.error || 'Aucun titre trouvé');
+                        }
+                    } else {
+                        throw new Error('Erreur API identification');
+                    }
+                } catch (err: any) {
+                    showNotification(err.message || "Impossible d'identifier ce titre", 'error');
+                    setShazamStatus('idle');
+                }
+
+                setTimeout(() => setShazamStatus('idle'), 3000);
+            };
+
+            mediaRecorder.start();
+            setShazamStatus('listening');
+
+            // Record for 6 seconds
+            setTimeout(() => {
+                if (mediaRecorder.state === 'recording') {
+                    mediaRecorder.stop();
+                }
+            }, 6000);
+
+        } catch (err) {
+            showNotification("Permission micro refusée ou non supportée", 'error');
+            setShazamStatus('idle');
+        }
+    };
+
+    const handleShazamAction = () => {
+        if (settings.auddToken || (settings.acrAccessKey && settings.acrAccessSecret)) {
+            recordAndIdentify();
+        } else {
+            // Fallback for demo if no keys
+            setShazamStatus('listening');
+            setTimeout(() => {
+                setShazamStatus('processing');
+                setTimeout(() => {
+                    const current = getCurrentArtist();
+                    const newTrack: ShazamTrack = {
+                        id: Date.now(),
+                        artist: current.artist,
+                        title: current.track,
+                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                        image: `https://avatar.vercel.sh/${current.artist}.svg`
+                    };
+                    setLastFoundTrack(newTrack);
+                    setShazamStatus('found');
+                    setShazamHistory([newTrack, ...shazamHistory]);
+                    setDrops(d => d + 25);
+                    showNotification(`Identifié (Simulé) : ${current.artist} ! +25 Drops`, 'success');
+                    setTimeout(() => setShazamStatus('idle'), 3000);
+                }, 1500);
+            }, 2000);
+        }
+    };
+
     const lineupData = parseLineup(settings.lineup);
-    const fluxCurrentArtist = lineupData[0] || { artist: settings.mainFluxName };
+    const fluxCurrentArtist = getCurrentArtist();
 
     return (
         <div className="fixed inset-0 bg-dark-bg/60 backdrop-blur-xl z-[101] flex flex-col overflow-hidden select-none">
@@ -279,8 +454,36 @@ const TakeoverPage = () => {
                                                         <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Artiste Actuel (Bandeau)</label>
                                                         <input type="text" value={editMainFluxName} onChange={e => setEditMainFluxName(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: DEBORAH DE LUCA" />
                                                     </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre Actuel (Shazam)</label>
+                                                        <input type="text" value={editCurrentTrack} onChange={e => setEditCurrentTrack(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: JEALOUS (ORIGINAL MIX)" />
+                                                    </div>
                                                 </div>
-                                                <div className="space-y-6">
+                                                <div className="pt-6 border-t border-white/5 space-y-6">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <Zap className="w-4 h-4 text-neon-cyan" />
+                                                        <h3 className="text-xs font-black text-white uppercase tracking-widest">Config Vrai Shazam (AudD.io ou ACRCloud)</h3>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        <div>
+                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">AudD API Token (Simple)</label>
+                                                            <input type="password" value={editAuddToken} onChange={e => setEditAuddToken(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-cyan transition-all" placeholder="API Token AudD" />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">ACRCloud Host</label>
+                                                            <input type="text" value={editAcrHost} onChange={e => setEditAcrHost(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all" placeholder="identify-eu-west-1..." />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">ACRCloud Access Key</label>
+                                                            <input type="text" value={editAcrKey} onChange={e => setEditAcrKey(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all" />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">ACRCloud Access Secret</label>
+                                                            <input type="password" value={editAcrSecret} onChange={e => setEditAcrSecret(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all" />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-6 pt-6 border-t border-white/5">
                                                     <div>
                                                         <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Mode de Diffusion</label>
                                                         <div className="flex gap-2 p-1 bg-black/40 border border-white/10 rounded-xl">
@@ -473,20 +676,77 @@ const TakeoverPage = () => {
                                 </motion.div>
                             ) : activeChatTab === 'shazam' ? (
                                 <motion.div key="shazam-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                                    <button onClick={() => { setIsShazamming(true); setTimeout(() => { setIsShazamming(false); const newT = { id: Date.now(), artist: fluxCurrentArtist.artist, title: "Identification...", time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }; setShazamHistory([newT, ...shazamHistory]); setDrops(d => d + 10); }, 2000); }} disabled={isShazamming} className="w-full py-8 rounded-3xl border-2 border-white/10 bg-white/5 flex flex-col items-center justify-center gap-4 hover:border-neon-cyan/50 hover:bg-neon-cyan/5 transition-all group">
-                                        <div className={`w-20 h-20 rounded-full flex items-center justify-center ${isShazamming ? 'animate-pulse bg-neon-cyan/20' : 'bg-white/10'}`}>
-                                            <Music className={`w-10 h-10 ${isShazamming ? 'text-neon-cyan animate-spin' : 'text-gray-400 group-hover:text-neon-cyan'}`} />
-                                        </div>
-                                        <p className="text-xs font-black uppercase tracking-widest">{isShazamming ? 'Identification...' : 'Shazam ce son'}</p>
-                                    </button>
-                                    <div className="space-y-4">
-                                        <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/10 pb-2">Historique</h3>
-                                        {shazamHistory.map(track => (
-                                            <div key={track.id} className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between">
-                                                <div><p className="text-xs font-black text-white italic uppercase">{track.artist}</p><p className="text-[10px] text-gray-400 font-bold uppercase">{track.title}</p></div>
-                                                <span className="text-[9px] text-gray-600 font-black">{track.time}</span>
+                                    <div className="relative">
+                                        <button
+                                            onClick={handleShazamAction}
+                                            disabled={shazamStatus !== 'idle'}
+                                            className={`w-full py-12 rounded-[2.5rem] border-2 transition-all duration-500 flex flex-col items-center justify-center gap-6 relative overflow-hidden group ${shazamStatus === 'listening' ? 'border-neon-cyan bg-neon-cyan/5' :
+                                                shazamStatus === 'processing' ? 'border-neon-purple bg-neon-purple/5' :
+                                                    shazamStatus === 'found' ? 'border-green-500 bg-green-500/5' :
+                                                        'border-white/10 bg-white/5 hover:border-neon-cyan/50 hover:bg-neon-cyan/5'
+                                                }`}
+                                        >
+                                            {/* Ripples Effect */}
+                                            {shazamStatus === 'listening' && (
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <div className="absolute w-32 h-32 bg-neon-cyan/20 rounded-full animate-ping" />
+                                                    <div className="absolute w-48 h-48 bg-neon-cyan/10 rounded-full animate-ping [animation-delay:0.5s]" />
+                                                </div>
+                                            )}
+
+                                            <div className={`w-24 h-24 rounded-full flex items-center justify-center relative z-10 transition-all duration-500 ${shazamStatus === 'listening' ? 'bg-neon-cyan shadow-[0_0_30px_rgba(0,255,255,0.4)]' :
+                                                shazamStatus === 'processing' ? 'bg-neon-purple animate-bounce' :
+                                                    shazamStatus === 'found' ? 'bg-green-500' :
+                                                        'bg-white/10'
+                                                }`}>
+                                                <Music className={`w-10 h-10 transition-colors ${shazamStatus !== 'idle' ? 'text-white' : 'text-gray-400 group-hover:text-neon-cyan'
+                                                    }`} />
                                             </div>
-                                        ))}
+
+                                            <div className="text-center relative z-10">
+                                                <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/50 mb-1">
+                                                    {shazamStatus === 'listening' ? 'MICRO ACTIVÉ' :
+                                                        shazamStatus === 'processing' ? 'ANALYSE DU SPECTRE' :
+                                                            shazamStatus === 'found' ? 'TITRE TROUVÉ !' :
+                                                                'SHAZAM ENGINE'}
+                                                </p>
+                                                <h3 className="text-sm font-black uppercase italic tracking-tighter text-white">
+                                                    {shazamStatus === 'listening' ? 'Écoute en cours...' :
+                                                        shazamStatus === 'processing' ? 'Identification...' :
+                                                            shazamStatus === 'found' ? lastFoundTrack?.artist :
+                                                                'Appuyer pour identifier'}
+                                                </h3>
+                                            </div>
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                                            <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Historique des captures</h3>
+                                            <span className="text-[9px] font-black text-white/20 uppercase">{shazamHistory.length} TITRES</span>
+                                        </div>
+                                        <div className="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
+                                            {shazamHistory.map((track: ShazamTrack) => (
+                                                <motion.div
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    key={track.id}
+                                                    className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-4 hover:border-neon-cyan/30 transition-all group"
+                                                >
+                                                    <div className="w-10 h-10 rounded-lg bg-black overflow-hidden shrink-0 border border-white/5">
+                                                        <img src={track.image} alt="" className="w-full h-full object-cover opacity-60 group-hover:opacity-100 transition-opacity" />
+                                                    </div>
+                                                    <div className="flex-1 min-w-0">
+                                                        <p className="text-xs font-black text-white italic uppercase truncate">{track.artist}</p>
+                                                        <p className="text-[9px] text-gray-400 font-bold uppercase truncate">{track.title}</p>
+                                                    </div>
+                                                    <div className="text-right shrink-0">
+                                                        <p className="text-[9px] text-gray-600 font-black">{track.time}</p>
+                                                        <ShoppingBag className="w-3 h-3 text-neon-cyan mt-1 cursor-pointer opacity-40 hover:opacity-100 transition-opacity" />
+                                                    </div>
+                                                </motion.div>
+                                            ))}
+                                        </div>
                                     </div>
                                 </motion.div>
                             ) : activeChatTab === 'drops' ? (
