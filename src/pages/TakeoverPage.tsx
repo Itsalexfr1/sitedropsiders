@@ -948,7 +948,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
     const [adminBgColor, setAdminBgColor] = useState(settings.adminBgColor || 'rgba(255, 0, 51, 0.05)');
 
     // Collapsible Chat
-    const [showUsersPanel, setShowUsersPanel] = useState(false); // Hidden by default (Request 10.7)
+    const [showUsersPanel, setShowUsersPanel] = useState(false); // Closed by default at user request
 
     const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
@@ -2560,7 +2560,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
 
                 <div className="flex-1 flex flex-col lg:flex-row min-h-0 bg-black gap-0 relative">
                     {/* Video Section */}
-                    <div className={`order-1 shrink-0 w-full aspect-video lg:aspect-auto lg:h-auto lg:w-auto lg:flex-[2] bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden shadow-2xl ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
+                    <div className={`order-1 shrink-0 w-full aspect-video lg:aspect-auto lg:h-auto lg:w-[60%] lg:flex-none bg-black flex flex-col relative border-b lg:border-b-0 lg:border-r border-white/10 group overflow-hidden shadow-2xl ${!isJoined ? 'blur-[8px] grayscale brightness-50 pointer-events-none' : ''}`}>
 
                         <div ref={videoPlayerRef} className="w-full h-full lg:flex-1 relative bg-black group overflow-hidden">
                             <div className="absolute inset-0 z-0">
@@ -4204,7 +4204,7 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                 </div>
 
                 {/* Chat Section */}
-                <div className="order-2 lg:order-2 flex-1 lg:w-[480px] lg:flex-none bg-[#080808] flex flex-col min-h-[50vh] lg:min-h-0 relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]" >
+                <div className="order-2 lg:order-2 flex-1 lg:flex-1 bg-[#080808] flex flex-col min-h-[50vh] lg:min-h-0 relative z-[150] border-t lg:border-t-0 lg:border-l border-white/15 pointer-events-auto shadow-[-30px_0_60px_rgba(0,0,0,0.6)]" >
                     {/* MULTIVUE - hidden on mobile, visible on desktop */}
                     {channelItems.length >= 2 && !isFocusMode && (
                         <div className="hidden lg:block p-3 border-b border-white/10 bg-black/40 shrink-0 z-30">
@@ -5478,11 +5478,11 @@ export function TakeoverPage({ settings }: TakeoverProps) {
                                 {!isFocusMode && showUsersPanel && (
                                     <motion.div
                                         initial={{ width: 0, opacity: 0 }}
-                                        animate={{ width: 200, opacity: 1 }}
+                                        animate={{ width: showUsersPanel ? (typeof window !== 'undefined' && window.innerWidth >= 1024 ? '10%' : 280) : 0, opacity: showUsersPanel ? 1 : 0 }}
                                         exit={{ width: 0, opacity: 0 }}
-                                        className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden"
+                                        className="hidden md:flex flex-col bg-[#0a0a0a] border-l border-white/10 relative z-20 shrink-0 overflow-hidden lg:order-3"
                                     >
-                                        <div className="w-[200px] flex flex-col h-full">
+                                        <div className="w-full flex flex-col h-full">
                                             <div className="p-4 lg:p-6 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]">
                                                 <h2 className="text-sm font-black text-white uppercase italic tracking-widest flex items-center gap-2">
                                                     <Users className="w-4 h-4 text-neon-red" /> Utilisateurs

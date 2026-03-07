@@ -281,34 +281,6 @@ export function MobileHome() {
             </motion.section>
 
 
-            {/* 6. Newsletter Section */}
-            <motion.section variants={itemVariants} className="mobile-safe-container">
-                <div className="bg-gradient-to-br from-[#111] to-[#050505] p-10 rounded-[3.5rem] relative overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)] border border-white/10">
-                    <div className="absolute -top-24 -right-24 w-64 h-64 bg-neon-red/10 blur-[100px] rounded-full" />
-                    <div className="absolute -bottom-24 -left-24 w-64 h-64 bg-neon-purple/10 blur-[100px] rounded-full" />
-
-                    <div className="relative z-10">
-                        <div className="w-12 h-12 rounded-2xl bg-neon-red/20 flex items-center justify-center mb-6 border border-neon-red/30">
-                            <Newspaper className="w-6 h-6 text-neon-red shadow-[0_0_15px_rgba(255,0,51,0.5)]" />
-                        </div>
-                        <h3 className="text-3xl font-display font-black text-white italic uppercase leading-[0.9] mb-4 tracking-tighter">DROPSIDERS<br /><span className="text-neon-red">NEWSLETTER</span></h3>
-                        <p className="text-white/40 text-[10px] font-bold uppercase tracking-widest mb-8 leading-relaxed max-w-[220px]">
-                            REÇOIS LE MEILLEUR DE L'ÉLECTRO DIRECTEMENT DANS TA BOÎTE MAIL.
-                        </p>
-
-                        <div className="flex flex-col gap-3">
-                            <input
-                                type="email"
-                                placeholder="TON EMAIL ICI..."
-                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-xs font-black text-white uppercase tracking-widest outline-none focus:border-neon-red transition-all"
-                            />
-                            <button className="w-full py-4 bg-neon-red text-white rounded-2xl text-[11px] font-black uppercase tracking-[0.25em] active:scale-95 transition-all shadow-xl shadow-neon-red/20">
-                                S'inscrire
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </motion.section>
         </motion.div>
     );
 }

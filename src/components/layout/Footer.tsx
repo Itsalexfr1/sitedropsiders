@@ -215,6 +215,13 @@ export function Footer() {
                         </Link>
                     </div>
                 </div>
+
+                {/* Powered By Section */}
+                <div className="mt-12 pt-8 border-t border-white/5 flex justify-center">
+                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em] flex items-center gap-2">
+                        Powered by <span className="text-neon-red">WebSiders</span>
+                    </p>
+                </div>
             </div>
             {/* Corner Accent */}
             <div className="absolute bottom-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] pointer-events-none" />

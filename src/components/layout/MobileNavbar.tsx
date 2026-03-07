@@ -33,23 +33,19 @@ export function MobileNavbar() {
         return () => clearInterval(interval);
     }, []);
 
+    const isLiveActive = takeoverEnabled && takeoverStatus === 'live';
+
     const mainItems = [
+        { icon: Home, label: 'Accueil', path: '/' },
         { icon: Newspaper, label: 'News', path: '/news' },
-        { icon: Calendar, label: 'Agenda', path: '/agenda' },
         {
-            icon: Users,
-            label: 'Communaute',
-            path: '/communaute',
+            icon: isLiveActive ? Video : Users,
+            label: isLiveActive ? 'LIVE' : 'Communaute',
+            path: isLiveActive ? '/live' : '/communaute',
             isCenter: true,
-            color: 'neon-pink'
+            color: isLiveActive ? 'neon-red' : 'neon-pink'
         },
-        {
-            icon: Video,
-            label: 'LIVE',
-            path: '/live',
-            isLive: takeoverEnabled && takeoverStatus === 'live',
-            color: 'neon-red'
-        },
+        { icon: Calendar, label: 'Agenda', path: '/agenda' },
         {
             icon: MoreHorizontal,
             label: 'Plus',
@@ -59,7 +55,7 @@ export function MobileNavbar() {
     ];
 
     const menuItems = [
-        { icon: Home, label: 'Accueil', path: '/', color: 'text-white' },
+        // Live moved to center if active
         { icon: Music, label: t('nav.music'), path: '/musique', color: 'text-neon-green' },
         { icon: Newspaper, label: t('nav.recaps'), path: '/recaps', color: 'text-neon-purple' },
         { icon: Info, label: t('nav.interviews'), path: '/interviews', color: 'text-neon-blue' },
@@ -71,65 +67,63 @@ export function MobileNavbar() {
     return (
         <>
             {/* Bottom Bar */}
-            <div className="lg:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[110] w-[92%] max-w-[400px]">
-                <motion.div
-                    initial={{ y: 100, x: "-50%", opacity: 0 }}
-                    animate={{ y: 0, x: "-50%", opacity: 1 }}
-                    className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-black/40 backdrop-blur-2xl border border-white/10 h-16 rounded-[2rem] flex items-center justify-around px-2 shadow-[0_20px_50px_rgba(0,0,0,0.5)] pointer-events-auto w-[92%] max-w-[400px]"
-                >
-                    {mainItems.map((item) => {
-                        const isActive = location.pathname === item.path;
-                        const Icon = item.icon;
+            <motion.div
+                initial={{ y: 100, opacity: 0 }}
+                animate={{ y: 0, opacity: 1 }}
+                className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] w-full bg-black/90 backdrop-blur-xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] flex items-center justify-around px-2 pt-3 pb-1"
+            >
+                {mainItems.map((item) => {
+                    const isActive = location.pathname === item.path;
+                    const Icon = item.icon;
 
-                        if (item.isCenter) {
-                            return (
-                                <Link
-                                    key={item.label}
-                                    to={item.path}
-                                    className="relative flex items-center justify-center -mt-12"
-                                >
-                                    <div className="w-16 h-16 rounded-full flex items-center justify-center relative transition-all bg-neon-pink/40 backdrop-blur-2xl border border-neon-pink/50 shadow-[0_0_30px_rgba(255,105,180,0.4)] animate-pulse group">
-                                        <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent" />
-                                        <Icon className="w-8 h-8 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] group-active:scale-90 transition-transform" />
-                                    </div>
-                                </Link>
-                            );
-                        }
-
-                        if (item.isMenuTrigger) {
-                            return (
-                                <button
-                                    key={item.label}
-                                    onClick={() => setIsMenuOpen(true)}
-                                    className="flex flex-col items-center justify-center transition-all relative py-2 px-3 rounded-2xl min-w-[60px] text-gray-500"
-                                >
-                                    <Icon className="w-6 h-6 scale-90 opacity-60" />
-                                </button>
-                            );
-                        }
-
-                        if (item.isLive && !(takeoverEnabled && takeoverStatus === 'live')) {
-                            return null;
-                        }
+                    if (item.isCenter) {
+                        const styleClasses = isLiveActive
+                            ? "bg-neon-red/40 border-neon-red/50 shadow-[0_0_30px_rgba(255,0,51,0.4)]"
+                            : "bg-neon-pink/40 border-neon-pink/50 shadow-[0_0_30px_rgba(255,105,180,0.4)]";
 
                         return (
                             <Link
                                 key={item.label}
                                 to={item.path}
-                                className={`flex flex-col items-center justify-center transition-all relative py-2 px-3 rounded-2xl min-w-[60px] ${isActive ? 'text-white' : 'text-gray-500'}`}
+                                className="relative flex items-center justify-center -mt-14"
                             >
-                                {isActive && (
-                                    <motion.div
-                                        layoutId="global-tab-glass"
-                                        className="absolute inset-0 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl -z-10 shadow-[0_4px_15px_rgba(0,0,0,0.3)]"
-                                    />
-                                )}
-                                <Icon className={`w-6 h-6 transition-all duration-300 ${isActive ? 'scale-110 text-neon-red drop-shadow-[0_0_8px_rgba(255,0,51,0.5)]' : 'scale-90 group-active:scale-75 opacity-60'}`} />
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center relative transition-all backdrop-blur-2xl border animate-pulse group ${styleClasses}`}>
+                                    <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent" />
+                                    <Icon className="w-8 h-8 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] group-active:scale-90 transition-transform" />
+                                </div>
                             </Link>
                         );
-                    })}
-                </motion.div>
-            </div>
+                    }
+
+                    if (item.isMenuTrigger) {
+                        return (
+                            <button
+                                key={item.label}
+                                onClick={() => setIsMenuOpen(true)}
+                                className="flex flex-col items-center justify-center transition-all relative py-2 px-3 rounded-2xl min-w-[60px] text-gray-500"
+                            >
+                                <Icon className="w-6 h-6 scale-90 opacity-60" />
+                            </button>
+                        );
+                    }
+
+                    return (
+                        <Link
+                            key={item.label}
+                            to={item.path}
+                            className={`flex flex-col items-center justify-center transition-all relative py-2 px-3 rounded-2xl min-w-[60px] ${isActive ? 'text-white' : 'text-gray-500'}`}
+                        >
+                            {isActive && (
+                                <motion.div
+                                    layoutId="global-tab-glass"
+                                    className="absolute inset-0 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl -z-10 shadow-[0_4px_15px_rgba(0,0,0,0.3)]"
+                                />
+                            )}
+                            <Icon className={`w-6 h-6 transition-all duration-300 ${isActive ? 'scale-110 text-neon-red drop-shadow-[0_0_8px_rgba(255,0,51,0.5)]' : 'scale-90 group-active:scale-75 opacity-60'}`} />
+                        </Link>
+                    );
+                })}
+            </motion.div>
 
             {/* Expanded Menu Modal */}
             <AnimatePresence>
