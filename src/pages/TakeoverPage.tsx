@@ -32,7 +32,7 @@ interface ShazamTrack {
     image: string;
 }
 
-const TakeoverPage = () => {
+export const TakeoverPage = () => {
     const navigate = useNavigate();
     const [isAdmin] = useState(true); // À coupler avec votre système auth
     const [showAdminPanel, setShowAdminPanel] = useState(false);
@@ -796,4 +796,4 @@ const TakeoverPage = () => {
     );
 };
 
-export default TakeoverPage;
+
