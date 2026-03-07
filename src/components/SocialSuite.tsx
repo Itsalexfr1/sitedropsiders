@@ -362,11 +362,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const centerX = canvas.width / 2;
                 const centerY = (canvas.height / 2);
 
-                // 1. Background Enhancement: Aurora Glows & Atmosphere
-                const auroraGrad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, canvas.width);
-                auroraGrad.addColorStop(0, `rgba(${activeData.grad}, 0.2)`);
-                auroraGrad.addColorStop(0.6, 'rgba(0,0,0,0)');
-                ctx.fillStyle = auroraGrad;
+                // 1. Background Enhancement: Vignette & Aurora
+                const vignetteGrad = ctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, canvas.width);
+                vignetteGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                vignetteGrad.addColorStop(1, 'rgba(0,0,0,0.85)');
+                ctx.fillStyle = vignetteGrad;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 const drawGlow = (x: number, y: number, color: string, size: number) => {
@@ -374,33 +374,33 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     const g = ctx.createRadialGradient(x, y, 0, x, y, size);
                     g.addColorStop(0, color);
                     g.addColorStop(1, 'transparent');
-                    ctx.globalAlpha = 0.4;
+                    ctx.globalAlpha = 0.5;
                     ctx.fillStyle = g;
                     ctx.beginPath(); ctx.arc(x, y, size, 0, Math.PI * 2); ctx.fill();
                     ctx.restore();
                 };
-                drawGlow(0, 0, `rgba(${activeData.grad}, 0.5)`, 800);
-                drawGlow(canvas.width, canvas.height, 'rgba(0, 255, 255, 0.3)', 800);
+                drawGlow(0, 0, 'rgba(255, 0, 51, 0.4)', 900); // Neon Red glow on top left
+                drawGlow(canvas.width, canvas.height, `rgba(${activeData.grad}, 0.3)`, 900); // Theme color glow on bottom right
 
-                // 2. The "LIVE" Badge (Site Style)
+                // 2. The "LIVE" Badge (Top Center)
                 ctx.save();
-                const badgeW = 260;
-                const badgeH = 74;
-                const badgeY = activeTab === 'PUBLICATION' ? 140 : 280;
+                const badgeW = 320;
+                const badgeH = 80;
+                const badgeY = activeTab === 'PUBLICATION' ? 100 : 250;
                 const badgeX = (canvas.width - badgeW) / 2;
 
-                // Shadow for premium feel
-                ctx.shadowColor = 'rgba(255, 0, 51, 0.6)';
-                ctx.shadowBlur = 40;
+                // Glowing Background for Badge
+                ctx.shadowColor = 'rgba(255, 0, 51, 0.8)';
+                ctx.shadowBlur = 35;
                 ctx.fillStyle = '#ff0033'; // Dropsiders Red
                 ctx.beginPath();
-                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 37);
+                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 40);
                 ctx.fill();
 
                 // Pulse dot
-                const pulse = (Math.sin(Date.now() / 400) + 1) / 2;
+                const pulse = (Math.sin(Date.now() / 300) + 1) / 2;
                 ctx.beginPath();
-                ctx.arc(badgeX + 55, badgeY + badgeH / 2, 8 + (pulse * 3), 0, Math.PI * 2);
+                ctx.arc(badgeX + 60, badgeY + badgeH / 2, 10 + (pulse * 4), 0, Math.PI * 2);
                 ctx.fillStyle = '#fff';
                 ctx.fill();
 
@@ -408,92 +408,138 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillStyle = '#fff';
-                ctx.font = '900 italic 42px "Montserrat", sans-serif';
+                ctx.font = '900 italic 46px "Montserrat", sans-serif';
                 ctx.shadowBlur = 0;
-                ctx.fillText('LIVE', centerX + 15, badgeY + badgeH / 2 + 3);
+                ctx.fillText('EN DIRECT', centerX + 20, badgeY + badgeH / 2 + 4);
                 ctx.restore();
 
-                // 3. MAIN TITLE: "TAKEOVER" (Large, Italic, Impactful)
+                // 3. MAIN TITLE: "TAKEOVER" (Huge, Stroke & Fill styling)
                 ctx.save();
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#fff';
-                ctx.font = '900 italic 180px "Montserrat", sans-serif';
-                ctx.shadowColor = 'rgba(255, 255, 255, 0.2)';
-                ctx.shadowBlur = 20;
-                ctx.fillText('TAKEOVER', centerX, centerY - 60);
 
-                // Subtle underline
-                const lineW = 600;
-                ctx.fillStyle = `rgba(${activeData.grad}, 0.5)`;
-                ctx.fillRect(centerX - lineW / 2, centerY + 30, lineW, 8);
+                // Shadow / Glow behind title
+                ctx.shadowColor = `rgba(${activeData.grad}, 0.6)`;
+                ctx.shadowBlur = 40;
+
+                ctx.fillStyle = '#fff';
+                ctx.font = '900 italic 200px "Montserrat", sans-serif';
+
+                const takeoverY = centerY - 100;
+                ctx.fillText('TAKEOVER', centerX, takeoverY);
+
+                // Add a cool stroke/outline effect slightly offset
+                ctx.lineWidth = 4;
+                ctx.strokeStyle = `rgba(${activeData.grad}, 0.8)`;
+                ctx.shadowBlur = 0;
+                ctx.strokeText('TAKEOVER', centerX + 10, takeoverY + 10);
                 ctx.restore();
 
-                // 4. FESTIVAL / INFO SECTION (Large Card)
+                // 4. INFO SECTION (Premium Glass Card)
                 if (customText) {
-                    const lines = customText.split('\n');
-                    const festivalName = lines[0].toUpperCase();
-                    const location = lines[1] ? lines[1].toUpperCase() : '';
+                    const lines = customText.split('\n').filter(l => l.trim() !== '');
+                    const mainInfo = lines[0]?.toUpperCase() || '';
+                    const subInfo = lines[1]?.toUpperCase() || '';
+                    const extraInfo = lines[2]?.toUpperCase() || ''; // Optional 3rd line
 
                     ctx.save();
-                    ctx.font = '900 italic 72px "Montserrat", sans-serif';
-                    const nameW = Math.max(ctx.measureText(festivalName).width, ctx.measureText(location).width) + 160;
-                    const cardH = location ? 180 : 130;
-                    const cardY = centerY + 120;
+                    ctx.font = '900 italic 75px "Montserrat", sans-serif';
+                    let maxW = ctx.measureText(mainInfo).width;
+                    if (subInfo) {
+                        ctx.font = '900 italic 45px "Montserrat", sans-serif';
+                        maxW = Math.max(maxW, ctx.measureText(subInfo).width);
+                    }
+                    if (extraInfo) {
+                        ctx.font = '900 italic 35px "Montserrat", sans-serif';
+                        maxW = Math.max(maxW, ctx.measureText(extraInfo).width);
+                    }
 
-                    // Glassmorphism card - Wider for festivals
-                    ctx.fillStyle = 'rgba(255, 255, 255, 0.05)';
+                    const cardW = maxW + 200;
+                    let cardH = 140;
+                    if (subInfo) cardH += 60;
+                    if (extraInfo) cardH += 50;
+
+                    const cardY = centerY + 80;
+                    const cardX = (canvas.width - cardW) / 2;
+
+                    // Sleek Dark Glass
+                    ctx.fillStyle = 'rgba(10, 10, 10, 0.85)';
                     ctx.beginPath();
-                    ctx.roundRect((canvas.width - nameW) / 2, cardY, nameW, cardH, 30);
+                    ctx.roundRect(cardX, cardY, cardW, cardH, 20);
                     ctx.fill();
 
-                    // Dual accent border
-                    ctx.strokeStyle = `rgba(${activeData.grad}, 0.8)`;
-                    ctx.lineWidth = 4;
+                    // Vibrant Accent Line on the Left side of the card
+                    ctx.fillStyle = `rgb(${activeData.grad})`;
+                    ctx.beginPath();
+                    // Need a standard fillRect for the edge if roundRect partial radius isn't supported perfectly on old canvas
+                    ctx.roundRect(cardX, cardY, 20, cardH, { tl: 20, bl: 20, tr: 0, br: 0 } as any);
+                    ctx.fill();
+
+                    // Border around the whole card
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.roundRect(cardX, cardY, cardW, cardH, 20);
                     ctx.stroke();
 
-                    // Festival name
+                    // Texts inside card
+                    ctx.textAlign = 'center';
+
+                    // Main Info
                     ctx.fillStyle = '#fff';
                     ctx.font = '900 italic 75px "Montserrat", sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.shadowColor = `rgba(${activeData.grad}, 0.5)`;
-                    ctx.shadowBlur = 20;
-                    ctx.fillText(festivalName, centerX, cardY + (location ? 75 : cardH / 2 + 5));
+                    ctx.fillText(mainInfo, centerX, cardY + 75);
 
-                    // Location (if present)
-                    if (location) {
-                        ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
-                        ctx.font = '900 italic 32px "Montserrat", sans-serif';
-                        ctx.shadowBlur = 0;
-                        ctx.fillText(location, centerX, cardY + 135);
+                    // Sub Info
+                    if (subInfo) {
+                        ctx.fillStyle = `rgb(${activeData.grad})`;
+                        ctx.font = '900 italic 45px "Montserrat", sans-serif';
+                        ctx.fillText(subInfo, centerX, cardY + 140);
+                    }
+
+                    // Extra Info
+                    if (extraInfo) {
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                        ctx.font = '900 italic 35px "Montserrat", sans-serif';
+                        ctx.fillText(extraInfo, centerX, cardY + (subInfo ? 195 : 140));
                     }
                     ctx.restore();
                 }
 
-                // 5. BOTTOM NAVIGATION BAR
+                // 5. BOTTOM NAVIGATION BAR (Sleek Modern Footer)
                 ctx.save();
-                const barH = 180;
+                const barH = 160;
                 const barY = canvas.height - barH;
 
-                // Gradient base for the bar
-                const barGrad = ctx.createLinearGradient(0, barY, 0, canvas.height);
-                barGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                barGrad.addColorStop(1, 'rgba(0,0,0,0.8)');
-                ctx.fillStyle = barGrad;
+                // Solid dark blur footer
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.9)';
                 ctx.fillRect(0, barY, canvas.width, barH);
 
-                ctx.font = '900 italic 42px "Inter", sans-serif';
+                // Top border for the footer
+                ctx.fillStyle = `rgba(${activeData.grad}, 0.5)`;
+                ctx.fillRect(0, barY, canvas.width, 3);
+
+                ctx.font = '900 italic 45px "Montserrat", sans-serif';
                 ctx.textAlign = 'center';
 
-                // Glow text effect
-                ctx.shadowColor = `rgba(${activeData.grad}, 0.5)`;
-                ctx.shadowBlur = 20;
-                ctx.fillStyle = '#fff';
-                ctx.fillText('RENDEZ-VOUS SUR DROPSIDERS.FR/LIVE', centerX, canvas.height - 80);
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+                const textPart1 = "RENDEZ-VOUS SUR ";
+                const textPart2 = "DROPSIDERS.FR/LIVE";
 
-                // Cyan mini-border indicator
-                ctx.fillStyle = '#00ffff';
-                ctx.fillRect(centerX - 100, canvas.height - 40, 200, 4);
+                // Draw text side by side with different colors
+                const w1 = ctx.measureText(textPart1).width;
+                const w2 = ctx.measureText(textPart2).width;
+                const totalW = w1 + w2;
+                const startX = centerX - totalW / 2;
+
+                ctx.textAlign = 'left';
+                ctx.fillText(textPart1, startX, canvas.height - 70);
+
+                ctx.fillStyle = '#fff';
+                ctx.shadowColor = '#fff';
+                ctx.shadowBlur = 15;
+                ctx.fillText(textPart2, startX + w1, canvas.height - 70);
+
                 ctx.restore();
             } else {
                 const fontSize = activeTab === 'PUBLICATION' ? 55 : 78; const lineHeight = fontSize * 1.15;
