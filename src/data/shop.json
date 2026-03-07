@@ -1,6 +1,29 @@
 {
   "products": [
     {
+      "name": "Jacket Dropsiders",
+      "price": "44",
+      "image": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772902856994-38e0fa61-41ee-495d-a650-2cce341ff077.avif",
+      "description": "",
+      "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/jacket-dropsiders",
+      "colors": [
+        "#161712",
+        "#2b65ec",
+        "#F62B32",
+        "#6b7280"
+      ],
+      "colorImages": {
+        "#2b65ec": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772902944046-536dba21-989b-4052-83c0-3a324ca6e599.avif",
+        "#F62B32": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772902965424-dc886740-ef1d-40ed-958c-19e62114c0a8.avif",
+        "#6b7280": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772902980492-31e9e7ef-d326-465c-997f-76e82181fb7b.avif"
+      },
+      "images": [],
+      "category": "Vetements",
+      "imageBack": "https://cdn.jsdelivr.net/gh/Itsalexfr1/sitedropsiders@main/public/uploads/1772902881119-23e33ab2-028e-43ae-9342-1d85e3d438c9.avif",
+      "id": 26,
+      "createdAt": "2026-03-07T17:03:10.107Z"
+    },
+    {
       "name": "Mug Dropsiders White x Couleurs",
       "price": "13.00",
       "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126215/dropsiders/lehdotiwamhhdvj8vlaf.avif",
