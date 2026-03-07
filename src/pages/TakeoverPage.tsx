@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Settings, Users, MessageSquare, Send, Zap, Video,
-    Smile, Save, AlertCircle, ShoppingBag, Music, Trash2, Calendar, Plus, Instagram,
-    Pin, Ban, Star, ShieldCheck, UserMinus, Shield
+    Save, AlertCircle, Music, Trash2, Calendar, Plus, Instagram,
+    Pin, Star, ShieldCheck, UserMinus
 } from 'lucide-react';
 
 interface LineupItem {
@@ -61,7 +61,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [activeChatTab, setActiveChatTab] = useState('chat');
     const [newMessage, setNewMessage] = useState('');
     const [isHighlightChecked, setIsHighlightChecked] = useState(false);
-    const highlightCost = 100;
 
     const [pinnedMessage, setPinnedMessage] = useState<any>({
         id: 'welcome',
@@ -70,9 +69,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         color: "text-neon-red"
     });
 
-    const [banMenuUser, setBanMenuUser] = useState<string | null>(null);
     const [bannedUsers, setBannedUsers] = useState<Record<string, number | 'perm'>>({});
-    const [drops, setDrops] = useState(2450);
+    const [drops] = useState(2450);
 
     const [shazamStatus, setShazamStatus] = useState<'idle' | 'listening' | 'processing' | 'found'>('idle');
     const [lastFoundTrack, setLastFoundTrack] = useState<ShazamTrack | null>(null);
@@ -336,7 +334,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             <motion.div
                                 key="admin-panel"
                                 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}
-                                className="flex-1 bg-dark-bg/80 backdrop-blur-xl p-8 overflow-y-auto custom-scrollbar"
+                                className="flex-1 bg-dark-bg/50 backdrop-blur-xl p-8 overflow-y-auto custom-scrollbar"
                             >
                                 <div className="max-w-3xl mx-auto space-y-10">
                                     <div className="flex items-center justify-between border-b border-white/10 pb-6">
