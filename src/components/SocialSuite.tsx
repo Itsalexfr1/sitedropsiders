@@ -735,7 +735,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         ];
 
         const mimeType = formats.find(f => MediaRecorder.isTypeSupported(f)) || 'video/webm';
-        const extension = mimeType.length > 0 && mimeType.includes('mp4') ? 'mp4' : 'webm';
 
         const fps = isMobile ? 30 : 60;
         const canvasStream = (canvas as any).captureStream ? (canvas as any).captureStream(fps) : (canvas as any).mozCaptureStream ? (canvas as any).mozCaptureStream(fps) : null;
