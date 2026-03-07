@@ -1,21 +1,31 @@
-
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Users, MessageSquare, Send, Smile, X, Settings, Save, AlertCircle, CheckCircle2, Calendar, Zap, ChevronRight, ChevronLeft
+    X, Settings, Users, MessageSquare, Send, Zap,
+    Smile, Save, AlertCircle, Music, Trash2
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import { getAuthHeaders, apiFetch } from '../utils/auth';
 
-export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
+interface TakeoverSettings {
+    title: string;
+    youtubeId: string;
+    mainFluxName: string;
+    tickerText: string;
+    showTickerBanner: boolean;
+    tickerBgColor: string;
+    tickerTextColor: string;
+    lineup: string;
+    status: 'live' | 'edit' | 'off';
+    enabled: boolean;
+}
+
+const TakeoverPage = () => {
     const navigate = useNavigate();
-
-    // --- State ---
-    const [settings, setSettings] = useState(initialSettings);
-    const [showUsersPanel, setShowUsersPanel] = useState(false);
+    const [isAdmin] = useState(true); // À coupler avec votre système auth
+    const [showAdminPanel, setShowAdminPanel] = useState(false);
+    const [viewersCount] = useState(1284);
     const [activeChatTab, setActiveChatTab] = useState('chat');
     const [newMessage, setNewMessage] = useState('');
-    const [currentTime, setCurrentTime] = useState(new Date());
     const [drops, setDrops] = useState(150);
     const [shazamHistory, setShazamHistory] = useState([
         { id: 1, artist: "Mochakk", title: "Jealous", time: "20:45" },
@@ -23,69 +33,101 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
     ]);
     const [isShazamming, setIsShazamming] = useState(false);
 
-    // Admin Panel States
-    const [showAdminPanel, setShowAdminPanel] = useState(false);
-    const [isSaving, setIsSaving] = useState(false);
-    const [editTitle, setEditTitle] = useState(initialSettings.title || '');
-    const [editYoutubeId, setEditYoutubeId] = useState(initialSettings.youtubeId || '');
-    const [editMainFluxName, setEditMainFluxName] = useState(initialSettings.mainFluxName || '');
-    const [editAnnText, setEditAnnText] = useState(initialSettings.tickerText || '');
-    const [editAnnEnabled, setEditAnnEnabled] = useState(initialSettings.showTickerBanner || false);
-    const [editLineup, setEditLineup] = useState(initialSettings.lineup || '');
+    // Chat State
+    const [chatMessages, setChatMessages] = useState([
+        { id: 1, user: "Lucas_92", text: "INCROYABLE CETTE LINEUP ! 🔥🔥🔥", color: "text-neon-cyan" },
+        { id: 2, user: "Sophie_DJ", text: "Le son est dingue, merci Dropsiders !", color: "text-neon-purple" },
+        { id: 3, user: "TechnoLover", text: "Qui va à Tomorrowland ici ?", color: "text-neon-red" },
+    ]);
 
-    const [editStatus, setEditStatus] = useState(initialSettings.status || 'off');
-    const [editTickerBg, setEditTickerBg] = useState(initialSettings.tickerBgColor || '#ff0033');
-    const [editTickerTextC, setEditTickerTextC] = useState(initialSettings.tickerTextColor || '#ffffff');
+    // DB Settings
+    const [settings, setSettings] = useState<TakeoverSettings>({
+        title: 'LIVE TAKEOVER',
+        youtubeId: '',
+        mainFluxName: 'MAIN STAGE',
+        tickerText: 'BIENVENUE SUR LE LIVE DROPSIDERS ! PROFITEZ DE LA MUSIQUE 24/7',
+        showTickerBanner: true,
+        tickerBgColor: '#ff0033',
+        tickerTextColor: '#ffffff',
+        lineup: '',
+        status: 'live',
+        enabled: true
+    });
+
+    // Admin Panel States
+    const [editTitle, setEditTitle] = useState(settings.title);
+    const [editYoutubeId, setEditYoutubeId] = useState(settings.youtubeId);
+    const [editMainFluxName, setEditMainFluxName] = useState(settings.mainFluxName);
+    const [editAnnText, setEditAnnText] = useState(settings.tickerText);
+    const [editAnnEnabled, setEditAnnEnabled] = useState(settings.showTickerBanner);
+    const [editLineup, setEditLineup] = useState(settings.lineup);
+    const [editStatus, setEditStatus] = useState(settings.status);
+    const [editTickerBg, setEditTickerBg] = useState(settings.tickerBgColor);
+    const [editTickerTextC, setEditTickerTextC] = useState(settings.tickerTextColor);
+    const [adminActiveTab, setAdminActiveTab] = useState('general');
+    const [isSaving, setIsSaving] = useState(false);
+
+    const [dropsLots, setDropsLots] = useState([
+        { id: 1, name: "Pass VIP Tomorrowland", price: 5000, stock: 2 },
+        { id: 2, name: "T-shirt Dropsiders", price: 800, stock: 15 }
+    ]);
+    const [botCommands, setBotCommands] = useState([
+        { command: "!insta", response: "Suivez-nous sur @dropsiders.eu !" },
+        { command: "!lineup", response: "La lineup est disponible dans l'onglet PLANNING." }
+    ]);
+
+    // Admin Form States
+    const [newLot, setNewLot] = useState({ name: '', price: '', stock: '' });
+    const [newCmd, setNewCmd] = useState({ command: '', response: '' });
 
     const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({
         show: false, message: '', type: 'success'
     });
 
-    const isAdmin = localStorage.getItem('admin_auth') === 'true';
-
-    // Update time for the progress bar
     useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date()), 10000); // Update every 10s
-        return () => clearInterval(timer);
+        fetchSettings();
     }, []);
 
-    const viewersCount = 1245;
-    const allActiveUsers = Array(12).fill({ pseudo: "User", country: "FR" });
-    const fluxCurrentArtist = { artist: settings.mainFluxName || "EN ATTENTE" };
-
-    const showNotification = (message: string, type: 'success' | 'error' = 'success') => {
-        setToast({ show: true, message, type });
-        setTimeout(() => setToast(prev => ({ ...prev, show: false })), 4000);
+    const fetchSettings = async () => {
+        try {
+            const res = await fetch('https://api.dropsiders.fr/api/takeover-settings');
+            const data = await res.json();
+            if (data) {
+                setSettings(data);
+                setEditTitle(data.title);
+                setEditYoutubeId(data.youtubeId);
+                setEditMainFluxName(data.mainFluxName);
+                setEditAnnText(data.tickerText);
+                setEditAnnEnabled(data.showTickerBanner);
+                setEditTickerBg(data.tickerBgColor || '#ff0033');
+                setEditTickerTextC(data.tickerTextColor || '#ffffff');
+                setEditLineup(data.lineup);
+                setEditStatus(data.status);
+            }
+        } catch (e) { console.error("Error loading settings:", e); }
     };
 
     const handleSaveSettings = async () => {
         setIsSaving(true);
+        const updatedTakeover: TakeoverSettings = {
+            title: editTitle,
+            youtubeId: editYoutubeId,
+            mainFluxName: editMainFluxName,
+            tickerText: editAnnText,
+            showTickerBanner: editAnnEnabled,
+            tickerBgColor: editTickerBg,
+            tickerTextColor: editTickerTextC,
+            lineup: editLineup,
+            status: editStatus,
+            enabled: editStatus !== 'off'
+        };
+
         try {
-            const res = await apiFetch('/api/settings', { headers: getAuthHeaders() });
-            const globalSettings = res.ok ? await res.json() : {};
-
-            const updatedTakeover = {
-                ...globalSettings.takeover,
-                title: editTitle,
-                youtubeId: editYoutubeId,
-                mainFluxName: editMainFluxName,
-                tickerText: editAnnText,
-                showTickerBanner: editAnnEnabled,
-                tickerBgColor: editTickerBg,
-                tickerTextColor: editTickerTextC,
-                lineup: editLineup,
-                status: editStatus,
-                enabled: editStatus !== 'off'
-            };
-
-            const updatedSettings = { ...globalSettings, takeover: updatedTakeover };
-
-            const saveRes = await apiFetch('/api/settings/update', {
+            const saveRes = await fetch('https://api.dropsiders.fr/api/takeover-settings', {
                 method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify(updatedSettings)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updatedTakeover)
             });
-
             if (saveRes.ok) {
                 setSettings(updatedTakeover);
                 showNotification('Paramètres mis à jour !', 'success');
@@ -100,62 +142,60 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
         }
     };
 
+    const showNotification = (message: string, type: 'success' | 'error') => {
+        setToast({ show: true, message, type });
+        setTimeout(() => setToast({ ...toast, show: false }), 3000);
+    };
+
+    const handleSendMessage = () => {
+        if (!newMessage.trim()) return;
+        const msg = {
+            id: Date.now(),
+            user: "VOUS",
+            text: newMessage.trim(),
+            color: "text-neon-red"
+        };
+        setChatMessages([...chatMessages, msg]);
+        setNewMessage('');
+    };
+
+    const deleteMessage = (id: number) => {
+        setChatMessages(chatMessages.filter(m => m.id !== id));
+    };
+
+    const clearChat = () => {
+        setChatMessages([]);
+        showNotification('Chat réinitialisé', 'success');
+    };
+
     // --- Lineup Logic ---
     const parseLineup = (text: string) => {
         if (!text) return [];
-        return text.split('\n').filter(l => l.trim()).map(line => {
-            const timeMatch = line.match(/^\[(.*?)\]/);
-            const timePart = timeMatch ? timeMatch[1] : '';
-            const rest = line.replace(/^\[.*?\]/, '').trim();
-            const [artist, stage] = rest.split('|').map(s => s.trim());
-
-            // Convert time to minutes for comparison
-            let minutes = 0;
-            if (timePart.includes(':')) {
-                const [h, m] = timePart.split(':').map(Number);
-                minutes = h * 60 + m;
-            } else if (timePart.toLowerCase().includes('h')) {
-                const [h, m] = timePart.toLowerCase().split('h').map(Number);
-                minutes = h * 60 + (m || 0);
-            }
-
-            return { time: timePart, artist, stage: stage || 'Main Stage', minutes };
-        }).sort((a, b) => a.minutes - b.minutes);
+        return text.split('\n').map(line => {
+            const match = line.match(/\[(.*?)\] (.*?) \| (.*)/);
+            if (match) return { time: match[1], artist: match[2], stage: match[3] };
+            return null;
+        }).filter(Boolean);
     };
 
-    const getLineupProgress = (lineup: any[]) => {
-        const now = currentTime.getHours() * 60 + currentTime.getMinutes();
-
-        return lineup.map((item, index) => {
-            const nextItem = lineup[index + 1];
-            const start = item.minutes;
-            // If it's the last item, we assume it's a 1-hour set or end of day (1439 mins)
-            const end = nextItem ? nextItem.minutes : Math.min(start + 60, 1439);
-
-            let progress = 0;
-            if (now >= start && now < end) {
-                progress = ((now - start) / (end - start)) * 100;
-            } else if (now >= end) {
-                progress = 100;
-            }
-
-            return { ...item, progress, isCurrent: now >= start && now < end };
-        });
-    };
-
-    const parsedLineup = getLineupProgress(parseLineup(settings.lineup));
+    const lineupData = parseLineup(settings.lineup);
+    const fluxCurrentArtist = lineupData[0] || { artist: settings.mainFluxName };
 
     return (
-        <div className="fixed top-16 lg:top-20 left-0 right-0 bottom-0 bg-dark-bg/60 backdrop-blur-xl text-white flex flex-col overflow-hidden font-sans selection:bg-neon-red selection:text-white z-[50]">
-
-            {/* 1. TOP TICKER BANNER */}
-            {settings.showTickerBanner && settings.tickerText && (
-                <div className="h-12 w-full bg-neon-red flex items-center overflow-hidden border-b border-white/10 z-[100] shrink-0"
-                    style={{ backgroundColor: settings.tickerBgColor || '#ff0000', color: settings.tickerTextColor || '#ffffff' }}>
-                    <div className="flex whitespace-nowrap animate-ticker items-center">
-                        {Array(5).fill(0).map((_, i) => (
-                            <div key={i} className="flex items-center mx-12 shrink-0">
-                                <span className="text-[12px] font-black uppercase italic tracking-[0.3em]">
+        <div className="fixed inset-0 bg-dark-bg/60 backdrop-blur-xl z-[101] flex flex-col overflow-hidden select-none">
+            {/* 1. TICKER BANNER */}
+            {settings.showTickerBanner && (
+                <div
+                    className="h-8 w-full border-b border-white/5 flex items-center overflow-hidden z-[100]"
+                    style={{ backgroundColor: settings.tickerBgColor }}
+                >
+                    <div className="flex animate-ticker whitespace-nowrap">
+                        {Array(10).fill(0).map((_, i) => (
+                            <div key={i} className="flex items-center">
+                                <span
+                                    className="text-[10px] font-black uppercase tracking-[0.4em] italic mx-12"
+                                    style={{ color: settings.tickerTextColor }}
+                                >
                                     {settings.tickerText}
                                 </span>
                                 <div className="w-2 h-2 rounded-full bg-white/30 ml-12" />
@@ -185,8 +225,7 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                             <span className="text-[9px] font-black uppercase tracking-widest">ADMIN</span>
                         </button>
                     )}
-                    <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all"
-                        onClick={() => setShowUsersPanel(!showUsersPanel)}>
+                    <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full cursor-pointer hover:bg-white/10 transition-all">
                         <Users className="w-4 h-4 text-neon-red" />
                         <span className="text-[10px] font-black uppercase tracking-widest">{viewersCount} SPECTATEURS</span>
                     </div>
@@ -202,7 +241,6 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
 
             {/* 3. MAIN CONTENT AREA */}
             <div className="flex-1 flex flex-row overflow-hidden relative">
-
                 {/* A. VIDEO PANEL (60%) */}
                 <div className="w-[60%] h-full bg-transparent border-r border-white/10 relative flex flex-col shrink-0">
                     <AnimatePresence mode="wait">
@@ -215,81 +253,158 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                                 <div className="max-w-3xl mx-auto space-y-10">
                                     <div className="flex items-center justify-between border-b border-white/10 pb-6">
                                         <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Configuration <span className="text-neon-purple">Studio</span></h2>
+                                        <div className="flex gap-2">
+                                            {['GENERAL', 'DROPS', 'BOT', 'MODERATION'].map(t => (
+                                                <button
+                                                    key={t}
+                                                    onClick={() => setAdminActiveTab(t.toLowerCase())}
+                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminActiveTab === t.toLowerCase() ? 'bg-white/10 text-white border border-white/20' : 'text-gray-500 hover:text-white'}`}
+                                                >
+                                                    {t}
+                                                </button>
+                                            ))}
+                                        </div>
                                         <button onClick={() => setShowAdminPanel(false)} className="p-2 hover:bg-white/5 rounded-full"><X className="w-6 h-6 text-gray-500" /></button>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-8">
-                                        <div className="space-y-6">
-                                            <div>
-                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre du Live</label>
-                                                <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: MAIN STAGE LIVE" />
-                                            </div>
-                                            <div>
-                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Artiste Actuel (Bandeau)</label>
-                                                <input type="text" value={editMainFluxName} onChange={e => setEditMainFluxName(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: DEBORAH DE LUCA" />
-                                            </div>
-                                        </div>
-                                        <div className="space-y-6">
-                                            <div>
-                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Mode de Diffusion</label>
-                                                <div className="flex gap-2 p-1 bg-black/40 border border-white/10 rounded-xl">
-                                                    {(['live', 'edit', 'off'] as const).map(s => (
-                                                        <button
-                                                            key={s}
-                                                            onClick={() => setEditStatus(s)}
-                                                            className={`flex-1 py-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${editStatus === s
-                                                                ? (s === 'live' ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : s === 'edit' ? 'bg-orange-600 text-white' : 'bg-gray-600 text-white')
-                                                                : 'text-gray-500 hover:text-white hover:bg-white/5'
-                                                                }`}
-                                                        >
-                                                            {s === 'live' ? 'EN DIRECT' : s === 'edit' ? 'PRÉPARATION' : 'HORS LIGNE'}
+                                    {adminActiveTab === 'general' ? (
+                                        <>
+                                            <div className="grid grid-cols-2 gap-8">
+                                                <div className="space-y-6">
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre du Live</label>
+                                                        <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: MAIN STAGE LIVE" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Artiste Actuel (Bandeau)</label>
+                                                        <input type="text" value={editMainFluxName} onChange={e => setEditMainFluxName(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: DEBORAH DE LUCA" />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-6">
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Mode de Diffusion</label>
+                                                        <div className="flex gap-2 p-1 bg-black/40 border border-white/10 rounded-xl">
+                                                            {(['live', 'edit', 'off'] as const).map(s => (
+                                                                <button
+                                                                    key={s}
+                                                                    onClick={() => setEditStatus(s)}
+                                                                    className={`flex-1 py-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${editStatus === s
+                                                                        ? (s === 'live' ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : s === 'edit' ? 'bg-orange-600 text-white' : 'bg-gray-600 text-white')
+                                                                        : 'text-gray-500 hover:text-white hover:bg-white/5'
+                                                                        }`}
+                                                                >
+                                                                    {s === 'live' ? 'EN DIRECT' : s === 'edit' ? 'PRÉPARATION' : 'HORS LIGNE'}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">ID Vidéo YouTube</label>
+                                                        <input type="text" value={editYoutubeId} onChange={e => setEditYoutubeId(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all" placeholder="EX: dQw4w9WgXcQ" />
+                                                    </div>
+                                                    <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-white uppercase tracking-widest">Bandeau d'annonce</p>
+                                                            <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">Activer le ticker banner</p>
+                                                        </div>
+                                                        <button onClick={() => setEditAnnEnabled(!editAnnEnabled)} className={`w-12 h-6 rounded-full relative transition-all ${editAnnEnabled ? 'bg-neon-red' : 'bg-white/10'}`}>
+                                                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editAnnEnabled ? 'left-7' : 'left-1'}`} />
                                                         </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                            <div>
-                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">ID Vidéo YouTube</label>
-                                                <input type="text" value={editYoutubeId} onChange={e => setEditYoutubeId(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all" placeholder="EX: dQw4w9WgXcQ" />
-                                            </div>
-                                            <div className="flex items-center justify-between p-4 bg-white/5 rounded-xl border border-white/10">
-                                                <div>
-                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Bandeau d'annonce</p>
-                                                    <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">Activer le ticker banner</p>
-                                                </div>
-                                                <button onClick={() => setEditAnnEnabled(!editAnnEnabled)} className={`w-12 h-6 rounded-full relative transition-all ${editAnnEnabled ? 'bg-neon-red' : 'bg-white/10'}`}>
-                                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editAnnEnabled ? 'left-7' : 'left-1'}`} />
-                                                </button>
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div>
-                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Couleur Fond</label>
-                                                    <div className="flex items-center gap-2">
-                                                        <input type="color" value={editTickerBg} onChange={e => setEditTickerBg(e.target.value)} className="w-10 h-10 bg-transparent border-none cursor-pointer" />
-                                                        <input type="text" value={editTickerBg} onChange={e => setEditTickerBg(e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white uppercase" />
                                                     </div>
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Couleur Texte</label>
-                                                    <div className="flex items-center gap-2">
-                                                        <input type="color" value={editTickerTextC} onChange={e => setEditTickerTextC(e.target.value)} className="w-10 h-10 bg-transparent border-none cursor-pointer" />
-                                                        <input type="text" value={editTickerTextC} onChange={e => setEditTickerTextC(e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-[10px] text-white uppercase" />
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <div>
+                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Couleur Fond</label>
+                                                            <input type="color" value={editTickerBg} onChange={e => setEditTickerBg(e.target.value)} className="w-full h-10 bg-black/40 border border-white/10 rounded-lg outline-none cursor-pointer" />
+                                                        </div>
+                                                        <div>
+                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Couleur Texte</label>
+                                                            <input type="color" value={editTickerTextC} onChange={e => setEditTickerTextC(e.target.value)} className="w-full h-10 bg-black/40 border border-white/10 rounded-lg outline-none cursor-pointer" />
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
+                                            <div className="grid grid-cols-2 gap-8">
+                                                <div className="space-y-4">
+                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Texte du Bandeau</label>
+                                                    <textarea value={editAnnText} onChange={e => setEditAnnText(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all min-h-[120px] uppercase" placeholder="MESSAGE BANDEAU..." />
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Planning</label>
+                                                    <textarea value={editLineup} onChange={e => setEditLineup(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all min-h-[120px] uppercase font-mono" placeholder="[HH:mm] Artist | Stage" />
+                                                </div>
+                                            </div>
+                                        </>
+                                    ) : adminActiveTab === 'drops' ? (
+                                        <div className="space-y-8">
+                                            <div className="grid grid-cols-2 gap-8">
+                                                <div className="space-y-4">
+                                                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Ajouter un Lot</h3>
+                                                    <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+                                                        <input type="text" placeholder="NOM DU LOT" value={newLot.name} onChange={e => setNewLot({ ...newLot, name: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-red" />
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <input type="number" placeholder="PRIX" value={newLot.price} onChange={e => setNewLot({ ...newLot, price: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-red" />
+                                                            <input type="number" placeholder="STOCK" value={newLot.stock} onChange={e => setNewLot({ ...newLot, stock: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-red" />
+                                                        </div>
+                                                        <button onClick={() => { if (newLot.name) { setDropsLots([...dropsLots, { id: Date.now(), name: newLot.name, price: Number(newLot.price), stock: Number(newLot.stock) }]); setNewLot({ name: '', price: '', stock: '' }); } }} className="w-full py-3 bg-neon-red/20 text-neon-red border border-neon-red/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all">Ajouter</button>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Lots Actifs</h3>
+                                                    <div className="space-y-2">
+                                                        {dropsLots.map(lot => (
+                                                            <div key={lot.id} className="p-4 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between">
+                                                                <div>
+                                                                    <p className="text-xs font-black text-white uppercase">{lot.name}</p>
+                                                                    <p className="text-[9px] text-gray-500 font-bold uppercase">{lot.price} DROPS • STOCK: {lot.stock}</p>
+                                                                </div>
+                                                                <button onClick={() => setDropsLots(dropsLots.filter(l => l.id !== lot.id))} className="text-red-500 hover:bg-red-500/10 p-2 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-8">
-                                        <div className="space-y-4">
-                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Texte du Bandeau</label>
-                                            <textarea value={editAnnText} onChange={e => setEditAnnText(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all min-h-[120px] uppercase" placeholder="MESSAGE BANDEAU..." />
+                                    ) : adminActiveTab === 'bot' ? (
+                                        <div className="space-y-8">
+                                            <div className="grid grid-cols-2 gap-8">
+                                                <div className="space-y-4">
+                                                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Nouvelle Commande</h3>
+                                                    <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+                                                        <input type="text" placeholder="!COMMANDE" value={newCmd.command} onChange={e => setNewCmd({ ...newCmd, command: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-cyan" />
+                                                        <textarea placeholder="RÉPONSE..." value={newCmd.response} onChange={e => setNewCmd({ ...newCmd, response: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-cyan min-h-[80px]" />
+                                                        <button onClick={() => { if (newCmd.command) { setBotCommands([...botCommands, { command: newCmd.command, response: newCmd.response }]); setNewCmd({ command: '', response: '' }); } }} className="w-full py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-cyan hover:text-white transition-all">Enregistrer</button>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Commandes Actives</h3>
+                                                    <div className="space-y-2">
+                                                        {botCommands.map((cmd, i) => (
+                                                            <div key={i} className="p-4 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between">
+                                                                <div>
+                                                                    <p className="text-xs font-black text-neon-cyan uppercase font-mono">{cmd.command}</p>
+                                                                    <p className="text-[9px] text-gray-500 font-bold uppercase truncate max-w-[150px]">{cmd.response}</p>
+                                                                </div>
+                                                                <button onClick={() => setBotCommands(botCommands.filter((_, idx) => idx !== i))} className="text-red-500 hover:bg-red-500/10 p-2 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div className="space-y-4">
-                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Planning (Format: [HH:mm] Artiste | Stage)</label>
-                                            <textarea value={editLineup} onChange={e => setEditLineup(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all min-h-[200px] uppercase font-mono" placeholder="[21:00] Artist A | Main Stage&#10;[22:00] Artist B | Main Stage" />
+                                    ) : (
+                                        <div className="space-y-8">
+                                            <div className="max-w-md mx-auto p-12 border-2 border-dashed border-white/10 rounded-[4rem] text-center space-y-8">
+                                                <div className="w-20 h-20 bg-red-600/20 rounded-full flex items-center justify-center mx-auto">
+                                                    <MessageSquare className="w-10 h-10 text-red-500" />
+                                                </div>
+                                                <div>
+                                                    <h3 className="text-2xl font-black text-white uppercase italic">Modération Chat</h3>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase mt-2">Suppression définitive du flux</p>
+                                                </div>
+                                                <button onClick={clearChat} className="w-full py-5 bg-red-600/10 text-red-500 border border-red-500/20 rounded-2xl text-xs font-black uppercase tracking-widest hover:bg-red-600 hover:text-white transition-all shadow-xl hover:shadow-red-600/30">Vider le Chat</button>
+                                            </div>
                                         </div>
-                                    </div>
+                                    )}
 
                                     <div className="flex gap-4 pt-6">
                                         <button onClick={handleSaveSettings} disabled={isSaving} className="flex-1 py-4 bg-neon-purple text-white font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-purple/80 transition-all shadow-xl shadow-neon-purple/20 flex items-center justify-center gap-3 disabled:opacity-50">
@@ -339,187 +454,86 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                                         <p className="text-[10px] text-neon-red font-black uppercase mb-1">Épinglé</p>
                                         <p className="text-xs text-white">Bienvenue ! Profitez du festival en direct ! 🔥</p>
                                     </div>
-                                    {Array(15).fill(0).map((_, i) => (
-                                        <div key={i} className="flex gap-3 animate-slide-in">
+                                    {chatMessages.map((msg) => (
+                                        <div key={msg.id} className="group flex gap-3 animate-slide-in relative">
                                             <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 shrink-0" />
                                             <div className="flex-1 min-w-0">
-                                                <p className="text-[10px] font-black text-neon-cyan uppercase tracking-wider mb-0.5">SPECTATEUR_{i}</p>
-                                                <p className="text-sm text-gray-300">INCROYABLE ! 🔥🔥🔥</p>
+                                                <div className="flex items-center justify-between">
+                                                    <p className={`text-[10px] font-black uppercase tracking-wider mb-0.5 ${msg.color}`}>{msg.user}</p>
+                                                    {isAdmin && (
+                                                        <button onClick={() => deleteMessage(msg.id)} className="opacity-0 group-hover:opacity-100 p-1 text-red-500 hover:bg-red-500/10 rounded transition-all">
+                                                            <X className="w-3 h-3" />
+                                                        </button>
+                                                    )}
+                                                </div>
+                                                <p className="text-sm text-gray-300">{msg.text}</p>
                                             </div>
                                         </div>
                                     ))}
                                 </motion.div>
-                            ) : activeChatTab === 'planning' ? (
-                                <motion.div key="planning-view" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} className="space-y-4">
-                                    <div className="flex items-center gap-3 mb-6">
-                                        <Calendar className="w-5 h-5 text-neon-purple" />
-                                        <h3 className="text-sm font-black uppercase italic tracking-tighter">Lineup Officielle</h3>
-                                    </div>
-
-                                    {parsedLineup.length > 0 ? parsedLineup.map((item, i) => (
-                                        <div key={i} className={`p-4 rounded-2xl border transition-all relative overflow-hidden group ${item.isCurrent ? 'bg-neon-purple/10 border-neon-purple shadow-[0_0_20px_rgba(188,19,254,0.1)]' : 'bg-white/5 border-white/10 hover:border-white/20'}`}>
-                                            {/* PROGRESS BAR BACKGROUND */}
-                                            {item.isCurrent && (
-                                                <div className="absolute bottom-0 left-0 h-1 bg-neon-purple shadow-[0_0_10px_#bc13fe]" style={{ width: `${item.progress}%` }} />
-                                            )}
-                                            {item.progress === 100 && !item.isCurrent && (
-                                                <div className="absolute bottom-0 left-0 h-1 bg-gray-600/30 w-full" />
-                                            )}
-
-                                            <div className="flex items-center justify-between mb-2">
-                                                <span className={`text-[10px] font-black uppercase tracking-widest ${item.isCurrent ? 'text-neon-purple' : 'text-gray-500'}`}>
-                                                    {item.time} {item.isCurrent && "• EN COURS"}
-                                                </span>
-                                                {item.isCurrent && <Zap className="w-3.5 h-3.5 text-neon-purple animate-pulse" />}
-                                            </div>
-
-                                            <div className="space-y-0.5">
-                                                <h4 className={`text-sm font-black uppercase italic tracking-tighter ${item.isCurrent ? 'text-white' : 'text-gray-400 group-hover:text-white'}`}>
-                                                    {item.artist}
-                                                </h4>
-                                                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">{item.stage}</p>
-                                            </div>
-
-
-                                        </div>
-                                    )) : (
-                                        <div className="text-center py-10 opacity-30">
-                                            <Calendar className="w-10 h-10 mx-auto mb-4" />
-                                            <p className="text-[10px] font-black uppercase">Aucun planning disponible</p>
-                                        </div>
-                                    )}
-                                </motion.div>
                             ) : activeChatTab === 'shazam' ? (
-                                <motion.div key="shazam-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="space-y-6">
-                                    <button
-                                        onClick={() => {
-                                            setIsShazamming(true);
-                                            setTimeout(() => {
-                                                setIsShazamming(false);
-                                                const newTrack = { id: Date.now(), artist: fluxCurrentArtist.artist, title: "Track Identification...", time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) };
-                                                setShazamHistory([newTrack, ...shazamHistory]);
-                                                setDrops(d => d + 10);
-                                            }, 3000);
-                                        }}
-                                        disabled={isShazamming}
-                                        className={`w-full py-8 rounded-3xl border-2 flex flex-col items-center justify-center gap-4 transition-all group ${isShazamming ? 'border-neon-cyan bg-neon-cyan/5' : 'border-white/10 bg-white/5 hover:border-neon-cyan/50 hover:bg-neon-cyan/5'}`}
-                                    >
-                                        <div className={`w-20 h-20 rounded-full flex items-center justify-center relative ${isShazamming ? 'animate-pulse bg-neon-cyan/20' : 'bg-white/10'}`}>
-                                            <svg viewBox="0 0 24 24" className={`w-10 h-10 ${isShazamming ? 'text-neon-cyan animate-spin' : 'text-gray-400 group-hover:text-neon-cyan'}`} fill="currentColor">
-                                                <path d="M19.11 17.11c-1.12 1.12-2.9 1.12-4.02 0l-7.98-7.98c-1.12-1.12-1.12-2.9 0-4.02s2.9-1.12 4.02 0l7.98 7.98c1.1 1.1 1.1 2.9 0 4.02zm-14.22-14.22c1.12-1.12 2.9-1.12 4.02 0l7.98 7.98c1.12 1.12 1.12 2.9 0 4.02s-2.9 1.12-4.02 0l-7.98-7.98c-1.11-1.11-1.11-2.9 0-4.02z" />
-                                            </svg>
+                                <motion.div key="shazam-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                                    <button onClick={() => { setIsShazamming(true); setTimeout(() => { setIsShazamming(false); const newT = { id: Date.now(), artist: fluxCurrentArtist.artist, title: "Identification...", time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }) }; setShazamHistory([newT, ...shazamHistory]); setDrops(d => d + 10); }, 2000); }} disabled={isShazamming} className="w-full py-8 rounded-3xl border-2 border-white/10 bg-white/5 flex flex-col items-center justify-center gap-4 hover:border-neon-cyan/50 hover:bg-neon-cyan/5 transition-all group">
+                                        <div className={`w-20 h-20 rounded-full flex items-center justify-center ${isShazamming ? 'animate-pulse bg-neon-cyan/20' : 'bg-white/10'}`}>
+                                            <Music className={`w-10 h-10 ${isShazamming ? 'text-neon-cyan animate-spin' : 'text-gray-400 group-hover:text-neon-cyan'}`} />
                                         </div>
-                                        <p className="text-xs font-black uppercase tracking-[0.2em]">{isShazamming ? 'Identification...' : 'Shazam ce son'}</p>
+                                        <p className="text-xs font-black uppercase tracking-widest">{isShazamming ? 'Identification...' : 'Shazam ce son'}</p>
                                     </button>
-
                                     <div className="space-y-4">
-                                        <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/10 pb-2">Historique des captures</h3>
-                                        <div className="space-y-2">
-                                            {shazamHistory.map(track => (
-                                                <div key={track.id} className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between group hover:border-neon-cyan/30 transition-all">
-                                                    <div>
-                                                        <p className="text-xs font-black text-white uppercase italic">{track.artist}</p>
-                                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{track.title}</p>
-                                                    </div>
-                                                    <span className="text-[9px] text-gray-600 font-black">{track.time}</span>
-                                                </div>
-                                            ))}
-                                        </div>
+                                        <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/10 pb-2">Historique</h3>
+                                        {shazamHistory.map(track => (
+                                            <div key={track.id} className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center justify-between">
+                                                <div><p className="text-xs font-black text-white italic uppercase">{track.artist}</p><p className="text-[10px] text-gray-400 font-bold uppercase">{track.title}</p></div>
+                                                <span className="text-[9px] text-gray-600 font-black">{track.time}</span>
+                                            </div>
+                                        ))}
                                     </div>
                                 </motion.div>
                             ) : activeChatTab === 'drops' ? (
                                 <motion.div key="drops-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
-                                    <div className="p-8 bg-neon-red/10 border border-neon-red/20 rounded-[2rem] text-center relative overflow-hidden group">
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-red/10 blur-[50px] -mr-16 -mt-16" />
+                                    <div className="p-8 bg-neon-red/10 border border-neon-red/20 rounded-[2rem] text-center">
                                         <Zap className="w-12 h-12 text-neon-red mx-auto mb-4 animate-bounce" />
-                                        <h3 className="text-4xl font-display font-black text-white italic tracking-tighter mb-2">{drops}</h3>
-                                        <p className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em]">DROPS ACCUMULÉS</p>
+                                        <h3 className="text-4xl font-display font-black text-white italic mb-2">{drops}</h3>
+                                        <p className="text-[10px] font-black text-neon-red uppercase tracking-widest">DROPS ACCUMULÉS</p>
                                     </div>
-
-                                    <div className="grid grid-cols-1 gap-3">
-                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
-                                            <div>
-                                                <p className="text-[10px] font-black text-white uppercase tracking-wider">Bonus Quotidien</p>
-                                                <p className="text-[9px] text-gray-500 font-bold">Réclamé aujourd'hui</p>
-                                            </div>
-                                            <span className="text-xs font-black text-green-500">+50</span>
-                                        </div>
-                                        <div className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between opacity-50">
-                                            <div>
-                                                <p className="text-[10px] font-black text-white uppercase tracking-wider">Parrainage</p>
-                                                <p className="text-[9px] text-gray-400 font-bold">Invite tes amis</p>
-                                            </div>
-                                            <span className="text-xs font-black text-neon-red">+100</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="pt-4">
-                                        <button className="w-full py-4 bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all">
-                                            Utiliser mes Drops
-                                        </button>
-                                    </div>
+                                    <button className="w-full py-4 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Utiliser mes Drops</button>
                                 </motion.div>
                             ) : (
-                                <div className="text-center py-20 opacity-20 uppercase font-black text-xs tracking-widest">Contenu en attente</div>
+                                <motion.div key="planning-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-3">
+                                    {lineupData.length > 0 ? lineupData.map((item, i) => item && (
+                                        <div key={i} className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center gap-4">
+                                            <div className="text-[10px] font-black text-neon-purple uppercase">{item.time}</div>
+                                            <div className="flex-1"><p className="text-xs font-black text-white uppercase italic">{item.artist}</p><p className="text-[9px] text-gray-500 font-bold uppercase">{item.stage}</p></div>
+                                        </div>
+                                    )) : <div className="text-center py-20 opacity-20 uppercase font-black text-xs">Pas de planning</div>}
+                                </motion.div>
                             )}
                         </AnimatePresence>
                     </div>
 
                     {activeChatTab === 'chat' && (
                         <div className="p-4 bg-[#080808] border-t border-white/10">
-                            <div className="flex items-center gap-2 p-1 bg-black/40 border border-white/10 rounded-xl lg:rounded-2xl focus-within:border-neon-red/30 transition-all">
+                            <div className="flex items-center gap-2 p-1 bg-black/40 border border-white/10 rounded-xl focus-within:border-neon-red/30 transition-all">
                                 <button className="p-2 text-gray-500 hover:text-white"><Smile className="w-5 h-5" /></button>
-                                <input className="flex-1 bg-transparent px-2 py-2 text-sm text-white outline-none placeholder:text-gray-700" placeholder="Écrire un message..." value={newMessage} onChange={e => setNewMessage(e.target.value)} />
-                                <button className="p-2 bg-neon-red text-white rounded-lg shadow-lg shadow-neon-red/20"><Send className="w-4 h-4" /></button>
+                                <input className="flex-1 bg-transparent px-2 py-2 text-sm text-white outline-none" placeholder="Écrire un message..." value={newMessage} onChange={e => setNewMessage(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSendMessage()} />
+                                <button onClick={handleSendMessage} className="p-2 bg-neon-red text-white rounded-lg"><Send className="w-4 h-4" /></button>
                             </div>
                         </div>
                     )}
                 </div>
-
-                {/* C. VIEWER PANEL (10%) */}
-                <AnimatePresence>
-                    {showUsersPanel && (
-                        <motion.div initial={{ width: 0, opacity: 0 }} animate={{ width: '10%', opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="h-full bg-[#0a0a0a] border-l border-white/10 flex flex-col shrink-0 overflow-hidden">
-                            <div className="p-4 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]"><h2 className="text-[10px] font-black text-white uppercase italic tracking-widest flex items-center gap-2"><Users className="w-3.5 h-3.5 text-neon-red" /> VIEWERS</h2></div>
-                            <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                                {allActiveUsers.map((_, i) => (
-                                    <div key={i} className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors border border-white/[0.02]">
-                                        <span className="text-[10px]">🇫🇷</span><span className="text-[10px] font-bold text-gray-400 uppercase truncate">User_{i}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-                <button onClick={() => setShowUsersPanel(!showUsersPanel)} className="absolute right-0 top-1/2 -translate-y-1/2 w-4 h-16 bg-white/5 hover:bg-white/10 border border-white/10 rounded-l-md flex items-center justify-center z-[100] transition-all">
-                    {showUsersPanel ? <ChevronRight className="w-3 h-3 text-gray-500" /> : <ChevronLeft className="w-3 h-3 text-gray-500" />}
-                </button>
             </div>
 
+            {/* Toast Notifications */}
             <AnimatePresence>
                 {toast.show && (
-                    <motion.div initial={{ opacity: 0, y: 50, x: '-50%' }} animate={{ opacity: 1, y: 0, x: '-50%' }} exit={{ opacity: 0, y: 20, x: '-50%' }} className="fixed bottom-12 left-1/2 z-[200]">
-                        <div className={`flex items-center gap-4 px-6 py-4 rounded-[2rem] shadow-2xl backdrop-blur-3xl border ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-400' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
-                            {toast.type === 'success' ? <CheckCircle2 className="w-5 h-5" /> : <AlertCircle className="w-5 h-5" />}
-                            <span className="text-xs font-black uppercase tracking-widest text-white">{toast.message}</span>
-                        </div>
+                    <motion.div initial={{ opacity: 0, y: 50 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 50 }} className={`fixed bottom-8 left-8 z-[200] px-6 py-4 rounded-2xl border flex items-center gap-3 backdrop-blur-xl ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
+                        <AlertCircle className="w-5 h-5" />
+                        <span className="text-xs font-black uppercase tracking-widest">{toast.message}</span>
                     </motion.div>
                 )}
             </AnimatePresence>
-
-            <style>{`
-                @keyframes ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-20%); } }
-                .animate-ticker { animation: ticker 30s linear infinite; }
-                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.1); border-radius: 10px; }
-                .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(255, 17, 17, 0.5); }
-                @font-face { font-family: 'DisplayFont'; src: url('/fonts/Stardust.woff2') format('woff2'); }
-                .font-display { font-family: 'DisplayFont', 'Inter', sans-serif; }
-                .no-scrollbar::-webkit-scrollbar { display: none; }
-                .animate-slide-in { animation: slideIn 0.3s ease-out forwards; }
-                @keyframes slideIn { from { transform: translateX(10px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-            `}</style>
         </div>
     );
-}
+};
+
+export default TakeoverPage;

@@ -49,12 +49,11 @@ export function Layout({ children }: LayoutProps) {
         isMini) && !isLivePage;
 
 
-    const ptClass = isAdminPage ? 'pt-0' :
-        (isLivePage ? (isMobile ? 'pt-16' : 'pt-20') :
-            (isMobile ? 'pt-16' : (bannerEnabled ? 'pt-[112px]' : (isHome ? 'pt-0' : 'pt-20'))));
+    const ptClass = (isAdminPage || isLivePage) ? 'pt-0' :
+        (isMobile ? 'pt-16' : (bannerEnabled ? 'pt-[112px]' : (isHome ? 'pt-0' : 'pt-20')));
 
     return (
-        <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white pb-24 lg:pb-0 overflow-x-hidden">
+        <div className={`min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white pb-24 lg:pb-0 overflow-x-hidden ${isLivePage ? 'h-screen overflow-hidden' : ''}`}>
 
             {/* Background Effects - Desktop */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden hidden md:block">
@@ -72,9 +71,9 @@ export function Layout({ children }: LayoutProps) {
 
             {!isMobile && !isAdminPage && <VinylCursor />}
 
-            {!isMobile && !isAdminPage && <Navbar />}
-            {!isMobile && !isAdminPage && <AnnouncementBanner />}
-            {isMobile && !isAdminPage && <MobileHeader onOpenSearch={() => setIsSearchOpen(true)} />}
+            {!isMobile && !isAdminPage && !isLivePage && <Navbar />}
+            {!isMobile && !isAdminPage && !isLivePage && <AnnouncementBanner />}
+            {isMobile && !isAdminPage && !isLivePage && <MobileHeader onOpenSearch={() => setIsSearchOpen(true)} />}
 
             <MobileSearchOverlay isOpen={isSearchOpen} onClose={() => setIsSearchOpen(false)} />
 
