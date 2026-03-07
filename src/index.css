@@ -639,9 +639,6 @@
 
   body {
     background-color: var(--color-dark-bg) !important;
-    /* Safari: Force GPU compositing on the root to prevent full-page repaints */
-    -webkit-transform: translate3d(0, 0, 0);
-    transform: translate3d(0, 0, 0);
   }
 
   .bg-dark-bg {
@@ -649,25 +646,19 @@
   }
 
   /* Force GPU acceleration ONLY for scroll containers */
-  .layout-main,
-  .article-card,
-  .news-card {
+  .layout-main {
     -webkit-transform: translateZ(0);
     transform: translateZ(0);
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
   }
 
   /* ===== BACKDROP BLUR REMOVAL ===== */
-  /* Use explicit class targets instead of expensive [class*=] wildcard selectors */
-  /* Safari recalculates styles on every frame with attribute selectors */
   .backdrop-blur-sm,
   .backdrop-blur-md,
   .backdrop-blur-lg,
   .backdrop-blur-xl,
   .backdrop-blur-2xl {
-    -webkit-backdrop-filter: none !important;
-    backdrop-filter: none !important;
+    -webkit-backdrop-filter: blur(8px) !important;
+    backdrop-filter: blur(8px) !important;
   }
 
   /* Targeted opaque fallbacks - don't blanket all elements with same bg */
@@ -802,8 +793,6 @@
   section {
     padding-top: 3rem !important;
     padding-bottom: 3rem !important;
-    /* contain: layout style paint; isolates each section for rendering */
-    contain: layout style;
   }
 
   /* Lazy rendering for offscreen images */

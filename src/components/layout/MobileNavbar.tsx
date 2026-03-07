@@ -66,8 +66,7 @@ export function MobileNavbar() {
         <>
             {/* Bottom Bar */}
             <div
-                className="lg:hidden fixed bottom-4 left-1/2 -translate-x-1/2 z-[9999] w-[92%] border border-white/10 flex items-center justify-around px-2 pt-3 pb-safe rounded-[2rem] shadow-[0_10px_40px_rgba(0,0,0,0.8)]"
-                style={{ backgroundColor: 'rgba(5,5,5,0.98)' }}
+                className="lg:hidden fixed bottom-0 left-0 right-0 z-[99999] w-full bg-black border-t border-white/10 flex items-center justify-around px-2 pt-3 pb-safe"
             >
                 {mainItems.map((item) => {
                     const isActive = location.pathname === item.path;
