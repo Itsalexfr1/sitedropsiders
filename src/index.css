@@ -629,7 +629,7 @@
 
   /* Eclaircir légèrement le fond sur mobile */
   :root {
-    --color-dark-bg: #141414;
+    --color-dark-bg: #1c1c1c;
   }
 
   body {

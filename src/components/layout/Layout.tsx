@@ -55,11 +55,18 @@ export function Layout({ children }: LayoutProps) {
     return (
         <div className="min-h-screen flex flex-col bg-dark-bg text-white selection:bg-neon-red selection:text-white pb-24 lg:pb-0 overflow-x-hidden">
 
-            {/* Background Effects - Hidden on mobile for performance */}
+            {/* Background Effects - Desktop */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden hidden md:block">
                 <div className="absolute top-0 left-1/4 w-96 h-96 bg-neon-red/10 rounded-full blur-[100px]" />
                 <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-neon-red/10 rounded-full blur-[100px]" />
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
+            </div>
+
+            {/* Background Effects - Mobile (Optimized glows for smaller screens) */}
+            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden md:hidden">
+                <div className="absolute top-[-5%] left-[-20%] w-[140%] h-64 bg-neon-red/15 rounded-[100%] blur-[60px] opacity-80" />
+                <div className="absolute bottom-[-5%] right-[-20%] w-[140%] h-64 bg-neon-red/15 rounded-[100%] blur-[60px] opacity-80" />
+                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.15]" />
             </div>
 
             {!isMobile && !isAdminPage && <VinylCursor />}
