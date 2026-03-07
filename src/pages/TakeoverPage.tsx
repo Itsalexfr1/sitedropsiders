@@ -385,7 +385,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
                                 animate={{ opacity: 1, backdropFilter: 'blur(16px)' }}
                                 exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-                                className="absolute inset-0 z-50 bg-black/40 backdrop-blur-xl p-8 overflow-y-auto custom-scrollbar"
+                                className="absolute inset-0 z-50 bg-black/80 backdrop-blur-xl p-8 overflow-y-auto custom-scrollbar"
                             >
                                 <div className="max-w-3xl mx-auto space-y-10">
                                     <div className="flex items-center justify-between border-b border-white/10 pb-6">
