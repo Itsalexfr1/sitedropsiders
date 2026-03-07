@@ -1315,9 +1315,11 @@ export default {
 
         if (path === '/api/settings/update' && request.method === 'POST') {
             const SETTINGS_PATH = 'src/data/settings.json';
-            const settings = await request.json();
+            const newSettings = await request.json();
             const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig) || { content: { shop_enabled: false }, sha: null };
-            const saved = await saveGitHubFile(SETTINGS_PATH, settings, `Update site settings`, file.sha, gitConfig);
+            // Merge: preserve master_session_id and other critical fields
+            const merged = { ...file.content, ...newSettings, master_session_id: file.content.master_session_id || 'initial-session-id' };
+            const saved = await saveGitHubFile(SETTINGS_PATH, merged, `Update site settings`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
