@@ -73,10 +73,10 @@ function Root() {
         <AnimatePresence mode="wait">
           <motion.div
             key={location.pathname}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
             className="w-full"
           >
             <Suspense fallback={<LoadingPage />}>
@@ -150,14 +150,20 @@ const router = createBrowserRouter([
 
 function App() {
   const [initialLoad, setInitialLoad] = useState(true);
+  const isMobile = window.innerWidth < 1024;
 
   useEffect(() => {
+    // Shorter splash on mobile for faster time-to-interactive
     const timer = setTimeout(() => {
       setInitialLoad(false);
-    }, 2000);
+    }, isMobile ? 800 : 2000);
     return () => clearTimeout(timer);
   }, []);
+
   useEffect(() => {
+    // Disable scrolling title on mobile - saves CPU cycles from constant DOM mutations
+    if (isMobile) return;
+
     const originalTitle = document.title;
     const scrollText = "DROPSIDERS : L'actu de tous les festivals ";
 
@@ -166,7 +172,7 @@ function App() {
       document.title = scrollText.substring(position) + scrollText.substring(0, position);
       position++;
       if (position >= scrollText.length) position = 0;
-    }, 200);
+    }, 500);
 
     return () => {
       clearInterval(interval);

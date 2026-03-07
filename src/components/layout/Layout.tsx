@@ -70,12 +70,12 @@ export function Layout({ children }: LayoutProps) {
                 <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20" />
             </div>
 
-            {/* Background Effects - Mobile (Optimized glows for smaller screens) */}
-            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden md:hidden">
-                <div className="absolute top-[-5%] left-[-20%] w-[140%] h-64 bg-neon-red/15 rounded-[100%] blur-[60px] opacity-80" />
-                <div className="absolute bottom-[-5%] right-[-20%] w-[140%] h-64 bg-neon-red/15 rounded-[100%] blur-[60px] opacity-80" />
-                <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-[0.15]" />
-            </div>
+            {/* Background Effects - Mobile (Static gradient - no blur for Safari perf) */}
+            <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden md:hidden"
+                style={{
+                    background: 'radial-gradient(ellipse at top, rgba(255,0,51,0.08) 0%, transparent 60%), radial-gradient(ellipse at bottom, rgba(255,0,51,0.06) 0%, transparent 60%)'
+                }}
+            />
 
             {!isMobile && !isAdminPage && <VinylCursor />}
 

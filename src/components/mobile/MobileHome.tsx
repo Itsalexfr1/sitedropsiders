@@ -5,19 +5,12 @@ import agendaData from '../../data/agenda.json';
 import recapsData from '../../data/recaps.json';
 import { getArticleLink, getAgendaLink, getRecapLink } from '../../utils/slugify';
 import { useLanguage } from '../../context/LanguageContext';
-import { useMemo, useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Skeleton } from '../ui/Skeleton';
+import { useMemo } from 'react';
 
 export function MobileHome() {
     const { t, language } = useLanguage();
-    const [isLoading, setIsLoading] = useState(true);
 
-    useEffect(() => {
-        // Simulate initial data loading
-        const timer = setTimeout(() => setIsLoading(false), 800);
-        return () => clearTimeout(timer);
-    }, []);
+
 
     const sortedNews = useMemo(() => {
         return [...newsData].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
@@ -63,53 +56,14 @@ export function MobileHome() {
             .slice(0, 8);
     }, []);
 
-    const containerVariants = {
-        hidden: { opacity: 0 },
-        visible: {
-            opacity: 1,
-            transition: { staggerChildren: 0.1 }
-        }
-    };
 
-    const itemVariants = {
-        hidden: { opacity: 0, y: 20 },
-        visible: { opacity: 1, y: 0 }
-    };
-
-    if (isLoading) {
-        return (
-            <div className="flex flex-col gap-10 p-6 bg-black min-h-screen">
-                <div className="space-y-4">
-                    <Skeleton className="h-4 w-32" />
-                    <div className="flex gap-4 overflow-hidden">
-                        <Skeleton className="h-48 w-72 flex-shrink-0" />
-                        <Skeleton className="h-48 w-72 flex-shrink-0" />
-                    </div>
-                </div>
-                <div className="space-y-4">
-                    <Skeleton className="h-4 w-40" />
-                    <div className="flex gap-4 overflow-hidden">
-                        <Skeleton className="h-24 w-32 flex-shrink-0" />
-                        <Skeleton className="h-24 w-32 flex-shrink-0" />
-                        <Skeleton className="h-24 w-32 flex-shrink-0" />
-                    </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                    {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-40 w-full" />)}
-                </div>
-            </div>
-        );
-    }
 
     return (
-        <motion.div
-            variants={containerVariants}
-            initial="hidden"
-            animate="visible"
+        <div
             className="flex flex-col gap-12 pb-32 bg-black min-h-screen overflow-x-hidden"
         >
             {/* 1. Hero / Top News - Horizontal Scroll */}
-            <motion.section variants={itemVariants} className="pt-8">
+            <section className="pt-8">
                 <div className="mobile-safe-container mb-5 flex items-center justify-between">
                     <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
                         <TrendingUp className="w-4 h-4 text-neon-red shadow-[0_0_10px_rgba(255,0,51,0.5)]" />
@@ -122,9 +76,9 @@ export function MobileHome() {
                         <Link
                             key={news.id}
                             to={getArticleLink(news)}
-                            className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden snap-center border border-white/10 group shadow-[0_20px_50px_rgba(0,0,0,0.5)] active:scale-95 transition-transform"
+                            className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden snap-center border border-white/10 group active:scale-95 transition-transform"
                         >
-                            <img src={news.image} className="absolute inset-0 w-full h-full object-cover group-active:scale-105 transition-transform duration-700" alt="" />
+                            <img src={news.image} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" alt="" />
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
                             <div className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
                                 <span className="text-xs font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
@@ -138,10 +92,10 @@ export function MobileHome() {
                     ))}
                     <div className="min-w-[20px] shrink-0" />
                 </div>
-            </motion.section>
+            </section>
 
             {/* 2. Dropsiders NEWS - Swipe Slider */}
-            <motion.section variants={itemVariants} className="pt-8 border-t border-white/5">
+            <section className="pt-8 border-t border-white/5">
                 <div className="mobile-safe-container mb-5 flex items-center justify-between">
                     <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
                         <Newspaper className="w-4 h-4 text-neon-red shadow-[0_0_10px_rgba(255,0,51,0.5)]" />
@@ -154,9 +108,9 @@ export function MobileHome() {
                         <Link
                             key={news.id}
                             to={getArticleLink(news)}
-                            className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 active:scale-95 transition-transform"
+                            className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center border border-white/10 active:scale-95 transition-transform"
                         >
-                            <img src={news.image} className="absolute inset-0 w-full h-full object-cover group-active:scale-105 transition-transform duration-700" alt="" />
+                            <img src={news.image} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" alt="" />
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
                             <div className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
                                 <span className="text-xs font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
@@ -172,10 +126,10 @@ export function MobileHome() {
                     ))}
                     <div className="min-w-[20px] shrink-0" />
                 </div>
-            </motion.section>
+            </section>
 
             {/* 3. Agenda Slider - Moved below News */}
-            <motion.section variants={itemVariants} className="pt-8 border-t border-white/5">
+            <section className="pt-8 border-t border-white/5">
                 <div className="mobile-safe-container mb-5 flex items-center justify-between">
                     <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
                         <Calendar className="w-4 h-4 text-neon-cyan shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
@@ -193,7 +147,9 @@ export function MobileHome() {
                             {/* Événement Photo en fond */}
                             <img
                                 src={event.image}
-                                className="absolute inset-0 w-full h-full object-cover opacity-50 group-hover:scale-110 transition-transform duration-700"
+                                className="absolute inset-0 w-full h-full object-cover opacity-50"
+                                loading="lazy"
+                                decoding="async"
                                 alt=""
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/40 to-transparent opacity-80" />
@@ -214,10 +170,10 @@ export function MobileHome() {
                     ))}
                     <div className="min-w-[20px] shrink-0" />
                 </div>
-            </motion.section>
+            </section>
 
             {/* 4. RECAPS - Swipe Slider */}
-            <motion.section variants={itemVariants} className="pt-8 border-t border-white/5">
+            <section className="pt-8 border-t border-white/5">
                 <div className="mobile-safe-container mb-5 flex items-center justify-between">
                     <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
                         <Play className="w-4 h-4 text-neon-purple shadow-[0_0_10px_rgba(189,0,255,0.5)]" />
@@ -230,9 +186,9 @@ export function MobileHome() {
                         <Link
                             key={recap.id}
                             to={getRecapLink(recap)}
-                            className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 active:scale-95 transition-transform"
+                            className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center border border-white/10 active:scale-95 transition-transform"
                         >
-                            <img src={(recap as any).image} className="absolute inset-0 w-full h-full object-cover group-active:scale-105 transition-transform duration-700" alt="" />
+                            <img src={(recap as any).image} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" alt="" />
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
                             <div className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
                                 <span className="text-xs font-black text-neon-purple uppercase tracking-[0.2em]">{recap.festival || 'RECAP'}</span>
@@ -248,10 +204,10 @@ export function MobileHome() {
                     ))}
                     <div className="min-w-[20px] shrink-0" />
                 </div>
-            </motion.section>
+            </section>
 
             {/* 5. INTERVIEWS - Swipe Slider */}
-            <motion.section variants={itemVariants} className="pt-8 border-t border-white/5">
+            <section className="pt-8 border-t border-white/5">
                 <div className="mobile-safe-container mb-5 flex items-center justify-between">
                     <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
                         <MessageSquare className="w-4 h-4 text-neon-blue shadow-[0_0_10px_rgba(0,100,255,0.5)]" />
@@ -264,9 +220,9 @@ export function MobileHome() {
                         <Link
                             key={interview.id}
                             to={getArticleLink(interview)}
-                            className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 active:scale-95 transition-transform"
+                            className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center border border-white/10 active:scale-95 transition-transform"
                         >
-                            <img src={interview.image} className="absolute inset-0 w-full h-full object-cover group-active:scale-105 transition-transform duration-700" alt="" />
+                            <img src={interview.image} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" alt="" />
                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-90" />
                             <div className="absolute top-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
                                 <span className="text-xs font-black text-neon-blue uppercase tracking-[0.2em]">{interview.category}</span>
@@ -282,9 +238,9 @@ export function MobileHome() {
                     ))}
                     <div className="min-w-[20px] shrink-0" />
                 </div>
-            </motion.section>
+            </section>
 
 
-        </motion.div>
+        </div>
     );
 }

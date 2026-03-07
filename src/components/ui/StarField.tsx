@@ -12,7 +12,8 @@ export const StarField: React.FC = () => {
 
         let animationFrameId: number;
         let stars: Star[] = [];
-        const starCount = 150;
+        const isMobile = window.innerWidth < 1024;
+        const starCount = isMobile ? 50 : 150;
 
         class Star {
             x: number;

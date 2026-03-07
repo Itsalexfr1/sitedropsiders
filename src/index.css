@@ -629,7 +629,7 @@
   animation: marquee 30s linear infinite;
 }
 
-/* --- MOBILE PERFORMANCE OPTIMIZATIONS --- */
+/* --- MOBILE PERFORMANCE OPTIMIZATIONS (Safari-Optimized) --- */
 @media (max-width: 1024px) {
 
   /* Eclaircir légèrement le fond sur mobile */
@@ -639,39 +639,63 @@
 
   body {
     background-color: var(--color-dark-bg) !important;
+    /* Safari: Force GPU compositing on the root to prevent full-page repaints */
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
   }
 
   .bg-dark-bg {
     background-color: var(--color-dark-bg) !important;
   }
 
-  /* Force GPU acceleration for smooth transitions */
+  /* Force GPU acceleration ONLY for scroll containers */
   .layout-main,
   .article-card,
   .news-card {
+    -webkit-transform: translateZ(0);
     transform: translateZ(0);
+    -webkit-backface-visibility: hidden;
     backface-visibility: hidden;
-    perspective: 1000;
   }
 
-  /* Disable heavy visual effects on mobile to maintain 60FPS */
-
-  /* Backdrop blur is extremely expensive on mobile GPUs */
+  /* ===== BACKDROP BLUR REMOVAL ===== */
+  /* Use explicit class targets instead of expensive [class*=] wildcard selectors */
+  /* Safari recalculates styles on every frame with attribute selectors */
   .backdrop-blur-sm,
   .backdrop-blur-md,
   .backdrop-blur-lg,
   .backdrop-blur-xl,
-  [class*="backdrop-blur"] {
-    backdrop-filter: none !important;
+  .backdrop-blur-2xl {
     -webkit-backdrop-filter: none !important;
-    /* Use a semi-transparent background as fallback */
-    background-color: rgba(10, 10, 10, 0.85) !important;
+    backdrop-filter: none !important;
   }
 
-  /* Reduce shadow complexity */
+  /* Targeted opaque fallbacks - don't blanket all elements with same bg */
+  nav .backdrop-blur-xl,
+  nav .backdrop-blur-md,
+  header .backdrop-blur-md {
+    background-color: rgba(10, 10, 10, 0.95) !important;
+  }
+
+  .backdrop-blur-2xl {
+    background-color: rgba(10, 10, 10, 0.92) !important;
+  }
+
+  /* Reduce shadow complexity - Safari composites each shadow layer */
   .shadow-2xl,
   .shadow-xl {
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4) !important;
+  }
+
+  /* Kill neon drop-shadows on mobile - extremely GPU-intensive on WebKit */
+  [class*="drop-shadow-"] {
+    filter: none !important;
+    -webkit-filter: none !important;
+  }
+
+  /* Kill neon box-shadows (0_0_Xpx patterns) on mobile */
+  [class*="shadow-\\["] {
+    box-shadow: none !important;
   }
 
   /* Simplify or disable background animations */
@@ -683,34 +707,37 @@
     animation: none !important;
   }
 
-  /* Disable the heavy global filter for light mode on mobile if it exists */
-  /* This is a major source of lag on mobile devices */
+  /* Disable pulse animations on mobile - they cause constant repaints */
+  .animate-pulse {
+    animation: none !important;
+  }
+
+  /* Disable spin animations unless inside a loading indicator */
+  .animate-spin:not(.loading-spinner) {
+    animation: none !important;
+  }
+
+  /* Disable the heavy global filter for light mode on mobile */
   html.light-mode {
     filter: none !important;
   }
 
   html.light-mode .logo-img {
     filter: invert(1) !important;
-    /* Invert logo since it's white to make it dark */
   }
 
   html.light-mode .navbar-indicator {
     filter: none !important;
   }
 
-  /* Optimize scrolling and touch */
+  /* Safari-safe touch optimizations */
   * {
     -webkit-tap-highlight-color: transparent;
-    -webkit-overflow-scrolling: touch;
-  }
-
-  /* Prevent layout shifts from images */
-  img {
-    content-visibility: auto;
   }
 
   /* Reduce glassmorphism intensity in specific widgets */
   .gallery-red-overlay {
+    -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
     background-color: rgba(255, 0, 51, 0.9) !important;
   }
@@ -718,7 +745,6 @@
   /* Article specific mobile adjustments */
   .article-body-premium p {
     margin-bottom: 25px !important;
-    /* Smaller spacing for mobile */
   }
 
   .drop-cap {
@@ -727,8 +753,8 @@
   }
 
   /* Spotify & Social widgets optimization */
-  .spotify-playlist-container,
-  [class*="snap-center"] {
+  .spotify-playlist-container {
+    -webkit-backdrop-filter: none !important;
     backdrop-filter: none !important;
     background-color: #121212 !important;
   }
@@ -782,20 +808,18 @@
     justify-content: center;
   }
 
-  /* Section spacing */
+  /* Section spacing + containment for rendering isolation */
   section {
     padding-top: 3rem !important;
     padding-bottom: 3rem !important;
-    content-visibility: auto;
-    /* Browser optimizes rendering of off-screen sections */
-    contain-intrinsic-size: 0 500px;
+    /* contain: layout style paint; isolates each section for rendering */
+    contain: layout style;
   }
 
-  /* GPU Acceleration for main components */
-  .layout-main,
-  canvas,
-  .fixed {
-    will-change: transform;
+  /* Lazy rendering for offscreen images */
+  img {
+    /* Safari supports decoding=async for non-blocking image decode */
+    image-rendering: auto;
   }
 }
 

@@ -29,8 +29,6 @@ export function MobileNavbar() {
             } catch (e) { }
         };
         fetchSettings();
-        const interval = setInterval(fetchSettings, 30000);
-        return () => clearInterval(interval);
     }, []);
 
     const isLiveActive = takeoverEnabled && takeoverStatus === 'live';
@@ -67,10 +65,9 @@ export function MobileNavbar() {
     return (
         <>
             {/* Bottom Bar */}
-            <motion.div
-                initial={{ y: 100, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] w-full bg-dark-bg/90 backdrop-blur-xl border-t border-white/10 shadow-[0_-10px_40px_rgba(0,0,0,0.4)] flex items-center justify-around px-2 pt-3 pb-1"
+            <div
+                className="lg:hidden fixed bottom-0 left-0 right-0 z-[110] w-full bg-dark-bg/90 border-t border-white/10 flex items-center justify-around px-2 pt-3 pb-1"
+                style={{ backgroundColor: 'rgba(10,10,10,0.95)' }}
             >
                 {mainItems.map((item) => {
                     const isActive = location.pathname === item.path;
@@ -87,9 +84,9 @@ export function MobileNavbar() {
                                 to={item.path}
                                 className="relative flex items-center justify-center -mt-14"
                             >
-                                <div className={`w-16 h-16 rounded-full flex items-center justify-center relative transition-all backdrop-blur-2xl border animate-pulse group ${styleClasses}`}>
+                                <div className={`w-16 h-16 rounded-full flex items-center justify-center relative transition-all border group ${styleClasses}`}>
                                     <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/20 to-transparent" />
-                                    <Icon className="w-8 h-8 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.8)] group-active:scale-90 transition-transform" />
+                                    <Icon className="w-8 h-8 text-white group-active:scale-90 transition-transform" />
                                 </div>
                             </Link>
                         );
@@ -114,16 +111,15 @@ export function MobileNavbar() {
                             className={`flex flex-col items-center justify-center transition-all relative py-2 px-3 rounded-2xl min-w-[60px] ${isActive ? 'text-white' : 'text-gray-500'}`}
                         >
                             {isActive && (
-                                <motion.div
-                                    layoutId="global-tab-glass"
-                                    className="absolute inset-0 bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl -z-10 shadow-[0_4px_15px_rgba(0,0,0,0.3)]"
+                                <div
+                                    className="absolute inset-0 bg-white/5 border border-white/10 rounded-2xl -z-10"
                                 />
                             )}
-                            <Icon className={`w-6 h-6 transition-all duration-300 ${isActive ? 'scale-110 text-neon-red drop-shadow-[0_0_8px_rgba(255,0,51,0.5)]' : 'scale-90 group-active:scale-75 opacity-60'}`} />
+                            <Icon className={`w-6 h-6 transition-all duration-300 ${isActive ? 'scale-110 text-neon-red' : 'scale-90 group-active:scale-75 opacity-60'}`} />
                         </Link>
                     );
                 })}
-            </motion.div>
+            </div>
 
             {/* Expanded Menu Modal */}
             <AnimatePresence>

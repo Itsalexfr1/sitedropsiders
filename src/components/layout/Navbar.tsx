@@ -28,9 +28,11 @@ export function Navbar() {
     const [socials, setSocials] = useState((settings as any).socials || {});
     const [takeoverEnabled, setTakeoverEnabled] = useState(settings.takeover?.enabled || false);
     const [takeoverSettings, setTakeoverSettings] = useState(settings.takeover);
+    const isMobile = window.innerWidth < 1024;
     const [isAdmin, setIsAdmin] = useState(false);
 
     useEffect(() => {
+        if (isMobile) return;
         const checkAuth = () => {
             const auth = localStorage.getItem('admin_auth');
             setIsAdmin(auth === 'true');
@@ -84,7 +86,7 @@ export function Navbar() {
 
 
     const searchResults = useMemo(() => {
-        if (!searchQuery.trim()) return [];
+        if (isMobile || !searchQuery.trim()) return [];
 
         let query = searchQuery.toLowerCase();
         if (query === 'multistyle') query = 'multi-';
