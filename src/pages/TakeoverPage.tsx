@@ -1,12 +1,8 @@
 
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Users, MessageSquare, Headphones, ShoppingBag, Trophy, Video,
-    Zap, Shield, Clock, Plus, Hash, Mic, MicOff, Volume2, LogOut,
-    Minimize, Maximize, Send, Smile, Bell, ArrowLeft, ArrowRight,
-    ChevronRight, ChevronLeft, MoreHorizontal, Trash2, Pin, X,
-    LayoutGrid, List, Power, Save, Edit3, Settings, AlertCircle, CheckCircle2, Calendar
+    Users, MessageSquare, Send, Smile, X, Settings, Save, AlertCircle, CheckCircle2, Calendar, Zap, ChevronRight, ChevronLeft
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -332,12 +328,7 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                                                 <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest">{item.stage}</p>
                                             </div>
 
-                                            {/* PERCENTAGE TEXT */}
-                                            {item.isCurrent && (
-                                                <div className="mt-3 flex justify-end">
-                                                    <span className="text-[8px] font-black text-neon-purple uppercase">{Math.round(item.progress)}% COMPLÉTÉ</span>
-                                                </div>
-                                            )}
+
                                         </div>
                                     )) : (
                                         <div className="text-center py-10 opacity-30">
@@ -369,7 +360,7 @@ export function TakeoverPage({ settings: initialSettings }: { settings: any }) {
                         <motion.div initial={{ width: 0, opacity: 0 }} animate={{ width: '10%', opacity: 1 }} exit={{ width: 0, opacity: 0 }} className="h-full bg-[#0a0a0a] border-l border-white/10 flex flex-col shrink-0 overflow-hidden">
                             <div className="p-4 border-b border-white/10 shrink-0 flex justify-between items-center bg-white/[0.02]"><h2 className="text-[10px] font-black text-white uppercase italic tracking-widest flex items-center gap-2"><Users className="w-3.5 h-3.5 text-neon-red" /> VIEWERS</h2></div>
                             <div className="flex-1 overflow-y-auto p-2 space-y-1 custom-scrollbar">
-                                {allActiveUsers.map((u, i) => (
+                                {allActiveUsers.map((_, i) => (
                                     <div key={i} className="flex items-center gap-2 p-2 rounded-lg hover:bg-white/5 transition-colors border border-white/[0.02]">
                                         <span className="text-[10px]">🇫🇷</span><span className="text-[10px] font-bold text-gray-400 uppercase truncate">User_{i}</span>
                                     </div>
