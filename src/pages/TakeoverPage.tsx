@@ -146,6 +146,21 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: ''
     });
 
+    const extractYoutubeId = (url: string) => {
+        if (!url) return '';
+        const regExp = /^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/;
+        const match = url.match(regExp);
+        return (match && match[7].length === 11) ? match[7] : url;
+    };
+
+    const extractInstagramUsername = (url: string) => {
+        if (!url) return '';
+        const cleanUrl = url.split('?')[0];
+        const match = cleanUrl.match(/(?:instagram\.com\/|instagr\.am\/|instagram\.com\/reels?\/|instagram\.com\/p\/|instagram\.com\/tv\/)([a-zA-Z0-9._]+)/);
+        if (match) return match[1];
+        return url.replace('@', '').trim();
+    };
+
     const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({
         show: false, message: '', type: 'success'
     });
@@ -188,7 +203,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         setIsSaving(true);
         const updatedTakeover: TakeoverSettings = {
             title: editTitle,
-            youtubeId: editYoutubeId,
+            youtubeId: extractYoutubeId(editYoutubeId),
             mainFluxName: editMainFluxName,
             currentTrack: editCurrentTrack,
             tickerText: editAnnText,
@@ -699,7 +714,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 <button
                                                     onClick={() => {
                                                         if (newLineupItem.day && newLineupItem.artist && newLineupItem.startTime && newLineupItem.endTime && newLineupItem.stage && newLineupItem.instagram) {
-                                                            setLineupItems([...lineupItems, { ...newLineupItem, id: Date.now().toString() }]);
+                                                            const processedItem = {
+                                                                ...newLineupItem,
+                                                                id: Date.now().toString(),
+                                                                instagram: extractInstagramUsername(newLineupItem.instagram)
+                                                            };
+                                                            setLineupItems([...lineupItems, processedItem]);
                                                             setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '' });
                                                             showNotification('Session ajoutée', 'success');
                                                         } else {
