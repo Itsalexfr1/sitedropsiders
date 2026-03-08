@@ -1106,23 +1106,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     return (
         <div className="fixed inset-0 bg-[#050505] flex flex-col font-sans select-none overflow-hidden z-[100]">
-            {/* 1. TOP ANNOUNCER (Ticker) */}
-            <AnimatePresence>
-                {settings.showTickerBanner && (
-                    <motion.div initial={{ height: 0 }} animate={{ height: 'auto' }} exit={{ height: 0 }} className="overflow-hidden z-50">
-                        <div style={{ backgroundColor: settings.tickerBgColor, color: settings.tickerTextColor }} className="py-2.5 flex items-center whitespace-nowrap overflow-hidden relative shadow-[0_5px_20px_rgba(0,0,0,0.4)]">
-                            <motion.div animate={{ x: [0, -2000] }} transition={{ repeat: Infinity, duration: 40, ease: "linear" }} className="flex items-center gap-16 px-4">
-                                {[...Array(10)].map((_, i) => (
-                                    <div key={i} className="flex items-center gap-4">
-                                        <Zap className="w-4 h-4 fill-current animate-pulse" />
-                                        <span className="text-[11px] font-black uppercase tracking-[0.2em]">{settings.tickerText}</span>
-                                    </div>
-                                ))}
-                            </motion.div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+            {/* 1. TOP ANNOUNCER (Ticker Removed) */}
 
             {/* 2. HEADER */}
             <div className="h-10 lg:h-16 border-b border-white/5 flex items-center justify-between px-3 lg:px-6 bg-black/40 backdrop-blur-md relative z-40">
@@ -1262,7 +1246,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 <div className={`transition-all duration-700 ease-in-out ${isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[40%] lg:h-full'} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
                     {/* Always render the video behind to allow blur effect */}
                     <div className="absolute inset-0 z-0">
-                        <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${settings.youtubeId || 'dQw4w9WgXcQ'}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                        <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${settings.streams?.find((s: any) => s.id === settings.activeStreamId)?.youtubeId || settings.youtubeId || 'dQw4w9WgXcQ'}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
 
                     </div>
 
@@ -1608,7 +1592,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         )}
                                                     </div>
                                                 </div>
-</div>
+                                            </div>
                                         ) : adminActiveTab === 'shazam' ? (
                                             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                                 <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
@@ -1863,8 +1847,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     {/* MULTI-CAM SELECTOR */}
                     {
                         settings.streams && settings.streams.length > 1 && (
-                            <div className="absolute top-2 left-2 z-[40] flex flex-col gap-1.5 p-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl">
-                                <p className="text-[6px] font-black text-white/40 uppercase tracking-widest mb-1 text-center">MULTI-CAM</p>
+                            <div className="absolute top-4 right-4 z-[40] flex gap-2 p-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl transition-all">
                                 {settings.streams.map((s: any) => (
                                     <button
                                         key={s.id}
