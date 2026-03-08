@@ -1133,6 +1133,22 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     </div>
                 </div>
 
+                {/* MULTI-CAM SELECTOR IN HEADER */}
+                {settings.streams && settings.streams.length > 1 && (
+                    <div className="hidden lg:flex gap-1 md:gap-2 p-1.5 bg-white/5 border border-white/10 rounded-2xl mx-auto overflow-hidden shadow-lg">
+                        {settings.streams.map((s: any) => (
+                            <button
+                                key={s.id}
+                                onClick={() => setSettings(prev => ({ ...prev, activeStreamId: s.id }))}
+                                className={`px-2 py-1 md:px-4 md:py-2 rounded-xl text-[8px] md:text-[10px] font-black uppercase transition-all flex items-center gap-2 truncate ${settings.activeStreamId === s.id ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                            >
+                                <Video className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0" />
+                                <span className="truncate max-w-[80px] md:max-w-none">{s.name}</span>
+                            </button>
+                        ))}
+                    </div>
+                )}
+
                 <div className="flex items-center gap-4">
                     <button
                         onClick={() => {
@@ -1243,7 +1259,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             {/* 3. MAIN CONTENT AREA */}
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
                 {/* A. VIDEO PANEL (40% Mobile / 60% Desktop) */}
-                <div className={`transition-all duration-700 ease-in-out ${isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[40%] lg:h-full'} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden group/video`}>
+                <div className={`transition-all duration-700 ease-in-out ${isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[40%] lg:h-full'} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
                     {/* Always render the video behind to allow blur effect */}
                     <div className="absolute inset-0 z-0">
                         <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${settings.streams?.find((s: any) => s.id === settings.activeStreamId)?.youtubeId || settings.youtubeId || 'dQw4w9WgXcQ'}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
@@ -1844,23 +1860,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     </AnimatePresence>
 
 
-                    {/* MULTI-CAM SELECTOR */}
-                    {
-                        settings.streams && settings.streams.length > 1 && (
-                            <div className="absolute top-4 right-4 z-[40] flex gap-2 p-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl transition-all opacity-0 group-hover/video:opacity-100">
-                                {settings.streams.map((s: any) => (
-                                    <button
-                                        key={s.id}
-                                        onClick={() => setSettings(prev => ({ ...prev, activeStreamId: s.id }))}
-                                        className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-2 ${settings.activeStreamId === s.id ? 'bg-neon-red text-white shadow-[0_0_10px_rgba(255,0,51,0.5)]' : 'bg-white/5 text-gray-400 hover:text-white hover:bg-white/10'}`}
-                                    >
-                                        <Video className="w-2.5 h-2.5" />
-                                        {s.name}
-                                    </button>
-                                ))}
-                            </div>
-                        )
-                    }
+
                     {/* Profile Overlay Card */}
                     <AnimatePresence>
                         {selectedProfile && (
