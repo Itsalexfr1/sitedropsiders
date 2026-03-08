@@ -1122,13 +1122,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
                                     <span className="text-[6px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
                                 </div>
-                                <h1 className="text-[11px] lg:text-xl font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
+                                <h1 className="text-[13px] lg:text-2xl font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
                             </div>
                         </div>
                         <div className="flex items-center gap-1 lg:gap-2 mt-1">
                             <div className="w-1 h-1 lg:w-1.5 lg:h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
                             <span className="text-[7px] lg:text-[9px] font-black text-gray-500 uppercase tracking-widest leading-none">NOW &gt;&gt;</span>
-                            <span className="text-[8px] lg:text-[10px] font-black text-white uppercase italic tracking-tighter truncate max-w-[120px] lg:max-w-none">{fluxCurrentArtist.artist}</span>
+                            <span className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter truncate max-w-[120px] lg:max-w-none">{fluxCurrentArtist.artist}</span>
                         </div>
                     </div>
                 </div>
@@ -1243,7 +1243,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             {/* 3. MAIN CONTENT AREA */}
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
                 {/* A. VIDEO PANEL (40% Mobile / 60% Desktop) */}
-                <div className={`transition-all duration-700 ease-in-out ${isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[40%] lg:h-full'} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
+                <div className={`transition-all duration-700 ease-in-out ${isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[40%] lg:h-full'} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden group/video`}>
                     {/* Always render the video behind to allow blur effect */}
                     <div className="absolute inset-0 z-0">
                         <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${settings.streams?.find((s: any) => s.id === settings.activeStreamId)?.youtubeId || settings.youtubeId || 'dQw4w9WgXcQ'}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
@@ -1847,7 +1847,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     {/* MULTI-CAM SELECTOR */}
                     {
                         settings.streams && settings.streams.length > 1 && (
-                            <div className="absolute top-4 right-4 z-[40] flex gap-2 p-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl transition-all">
+                            <div className="absolute top-4 right-4 z-[40] flex gap-2 p-2 bg-black/60 backdrop-blur-md border border-white/10 rounded-2xl transition-all opacity-0 group-hover/video:opacity-100">
                                 {settings.streams.map((s: any) => (
                                     <button
                                         key={s.id}
