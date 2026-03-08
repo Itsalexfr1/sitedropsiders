@@ -118,6 +118,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [chatMessages, setChatMessages] = useState<any[]>([]);
     const [userCountry, setUserCountry] = useState('FR');
     const [isBanned, setIsBanned] = useState(false);
+    const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
 
     // DB Settings
     const [settings, setSettings] = useState<TakeoverSettings>({
@@ -1038,33 +1039,85 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         </div>
                                     )}
 
-                                    {chatMessages.map((msg: any) => (
-                                        <div key={msg.id} className="group flex flex-col gap-1 relative p-2 rounded-xl transition-all" style={msg.bgColor ? { backgroundColor: `${msg.bgColor}15`, border: `1px solid ${msg.bgColor}30` } : {}}>
-                                            <div className="flex gap-3 relative">
-                                                <div className="w-8 h-8 rounded-full border border-white/10 shrink-0 flex items-center justify-center bg-white/5">
-                                                    <div className="text-[10px] font-black text-gray-500">{(msg.pseudo || msg.user || 'V')[0]}</div>
-                                                </div>
-                                                <div className="flex-1 min-w-0">
-                                                    <div className="flex items-center gap-2 mb-0.5">
-                                                        {msg.country && <FlagIcon location={msg.country} className="w-3 h-2" />}
-                                                        <span className={`text-[10px] font-black uppercase italic ${msg.color || 'text-white'}`}>{msg.pseudo || msg.user}</span>
-                                                        {(msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') && <ShieldCheck className="w-3 h-3 text-neon-purple" />}
-                                                        {msg.time && <span className="text-[8px] text-gray-600 font-mono ml-auto">{msg.time}</span>}
-                                                    </div>
-                                                    <p className="text-xs text-gray-400 leading-relaxed font-bold break-all">{msg.message || msg.text}</p>
-                                                </div>
-                                                {isMod && (
-                                                    <div className="absolute right-0 top-0 hidden group-hover:flex items-center gap-1 bg-black/80 backdrop-blur-md p-1 rounded-lg border border-white/10 z-20 shadow-2xl">
-                                                        <button onClick={() => setPinnedMessage(msg)} title="Épingler" className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"><Pin className="w-3 h-3" /></button>
-                                                        <button onClick={() => deleteMessage(msg.id)} title="Supprimer" className="p-1.5 text-gray-400 hover:text-red-500 transition-all"><X className="w-3 h-3" /></button>
-                                                        {isAdmin && msg.pseudo !== 'ALEX_FR1' && (
-                                                            <button onClick={() => handleBanUser(msg.pseudo)} title="Bannir" className="p-1.5 text-gray-400 hover:text-orange-500 transition-all border-l border-white/10 ml-1"><Ban className="w-3 h-3" /></button>
+                                    <AnimatePresence initial={false}>
+                                        {chatMessages.map((msg: any) => {
+                                            const isHovered = hoveredMessageId === msg.id;
+                                            const isDimmed = hoveredMessageId !== null && !isHovered;
+
+                                            return (
+                                                <motion.div
+                                                    key={msg.id}
+                                                    layout
+                                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                    animate={{
+                                                        opacity: isDimmed ? 0.3 : 1,
+                                                        y: 0,
+                                                        scale: 1,
+                                                        filter: isDimmed ? 'grayscale(0.5) blur(0.5px)' : 'none'
+                                                    }}
+                                                    onMouseEnter={() => setHoveredMessageId(msg.id)}
+                                                    onMouseLeave={() => setHoveredMessageId(null)}
+                                                    onDoubleClick={() => {
+                                                        // Future redirect to profile or open mini-modal
+                                                        alert(`Profil de ${msg.pseudo || msg.user}`);
+                                                    }}
+                                                    className={`group flex flex-col gap-1 relative p-3 rounded-2xl transition-all duration-300 cursor-pointer ${isHovered ? 'bg-white/[0.05] shadow-xl' : ''}`}
+                                                    style={msg.bgColor ? {
+                                                        backgroundColor: isHovered ? `${msg.bgColor}25` : `${msg.bgColor}15`,
+                                                        border: `1px solid ${msg.bgColor}${isHovered ? '60' : '30'}`
+                                                    } : {}}
+                                                >
+                                                    <div className="flex gap-3 relative">
+                                                        <div className="w-9 h-9 rounded-xl border border-white/10 shrink-0 flex items-center justify-center bg-white/5 relative overflow-hidden group-hover:border-neon-red/30 transition-all">
+                                                            <div className="text-[10px] font-black text-gray-400 group-hover:text-white transition-colors">{(msg.pseudo || msg.user || 'V')[0]}</div>
+                                                            {isHovered && <motion.div layoutId="bg-glow" className="absolute inset-0 bg-neon-red/5 blur-md" />}
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                {msg.country && <FlagIcon location={msg.country} className="w-3 h-2" />}
+                                                                <span className={`text-[11px] font-black uppercase italic tracking-tight ${msg.color || 'text-white'}`}>{msg.pseudo || msg.user}</span>
+
+                                                                {/* Animated Badges */}
+                                                                {(msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') && (
+                                                                    <motion.div
+                                                                        animate={{ rotate: [0, 10, -10, 0] }}
+                                                                        transition={{ repeat: Infinity, duration: 2 }}
+                                                                        className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-neon-purple/20 border border-neon-purple/30"
+                                                                    >
+                                                                        <ShieldCheck className="w-3 h-3 text-neon-purple" />
+                                                                        <span className="text-[7px] font-black text-neon-purple uppercase">ADMIN</span>
+                                                                    </motion.div>
+                                                                )}
+                                                                {msg.bgColor && (
+                                                                    <motion.div
+                                                                        animate={{ scale: [1, 1.1, 1] }}
+                                                                        transition={{ repeat: Infinity, duration: 1.5 }}
+                                                                    >
+                                                                        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                                                                    </motion.div>
+                                                                )}
+
+                                                                {msg.time && <span className="text-[8px] text-gray-600 font-mono ml-auto opacity-0 group-hover:opacity-100 transition-opacity">{msg.time}</span>}
+                                                            </div>
+                                                            <p className={`text-[11px] leading-relaxed break-all font-medium transition-colors ${isHovered ? 'text-white' : 'text-gray-400'}`}>
+                                                                {msg.message || msg.text}
+                                                            </p>
+                                                        </div>
+
+                                                        {isMod && (
+                                                            <div className="absolute right-0 top-0 hidden group-hover:flex items-center gap-1 bg-black/80 backdrop-blur-md p-1.5 rounded-xl border border-white/10 z-20 shadow-2xl">
+                                                                <button onClick={(e) => { e.stopPropagation(); setPinnedMessage(msg); }} title="Épingler" className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"><Pin className="w-3 h-3" /></button>
+                                                                <button onClick={(e) => { e.stopPropagation(); deleteMessage(msg.id); }} title="Supprimer" className="p-1.5 text-gray-400 hover:text-red-500 transition-all"><X className="w-3 h-3" /></button>
+                                                                {isAdmin && msg.pseudo !== 'ALEX_FR1' && (
+                                                                    <button onClick={(e) => { e.stopPropagation(); handleBanUser(msg.pseudo); }} title="Bannir" className="p-1.5 text-gray-400 hover:text-orange-500 transition-all border-l border-white/10 ml-1"><Ban className="w-3 h-3" /></button>
+                                                                )}
+                                                            </div>
                                                         )}
                                                     </div>
-                                                )}
-                                            </div>
-                                        </div>
-                                    ))}
+                                                </motion.div>
+                                            );
+                                        })}
+                                    </AnimatePresence>
                                 </motion.div>
                             ) : activeChatTab === 'shazam' ? (
                                 <motion.div key="shazam-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
