@@ -119,6 +119,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [userCountry, setUserCountry] = useState('FR');
     const [isBanned, setIsBanned] = useState(false);
     const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
+    const [slowModeEnabled, setSlowModeEnabled] = useState(false);
+    const [lastMessageTime, setLastMessageTime] = useState(0);
+    const [activeQuiz, setActiveQuiz] = useState<any>(null);
+    const [userHasAnswered, setUserHasAnswered] = useState(false);
 
     // DB Settings
     const [settings, setSettings] = useState<TakeoverSettings>({
@@ -266,6 +270,25 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             bgColor: response.payload.bgColor
                         }];
                     });
+
+                    // Handle System / Logic Commands from Chat
+                    const msgText = response.payload.message;
+                    if (msgText.startsWith('[SYSTEM]:')) {
+                        const cmd = msgText.replace('[SYSTEM]:', '');
+                        if (cmd === 'SLOW_ON') setSlowModeEnabled(true);
+                        if (cmd === 'SLOW_OFF') setSlowModeEnabled(false);
+                        if (cmd === 'CLEAR_QUIZ') setActiveQuiz(null);
+                    } else if (msgText.startsWith('[QUIZ]:')) {
+                        const content = msgText.replace('[QUIZ]:', '');
+                        const [question, o1, o2, o3, o4, correct] = content.split('|');
+                        setActiveQuiz({
+                            question,
+                            options: [o1, o2, o3, o4],
+                            correct: parseInt(correct),
+                            id: response.payload.$id
+                        });
+                        setUserHasAnswered(false);
+                    }
                 }
                 if (response.events.includes('databases.*.collections.*.documents.*.delete')) {
                     setChatMessages(prev => prev.filter(m => m.id !== response.payload.$id));
@@ -428,7 +451,47 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }
 
         const pseudo = localStorage.getItem('chat_pseudo') || (isMod ? "ALEX_FR1" : "VISITEUR");
-        const messageText = newMessage;
+        const messageText = newMessage.trim();
+
+        // Command Interception (Admin/Mod only)
+        if (isMod && messageText.startsWith('!slow ')) {
+            const toggle = messageText.replace('!slow ', '').toLowerCase();
+            const sysMsg = toggle === 'on' ? '[SYSTEM]:SLOW_ON' : '[SYSTEM]:SLOW_OFF';
+            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                pseudo: "BOT_SYSTEM",
+                message: sysMsg,
+                color: "text-neon-purple",
+                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                country: "FR"
+            });
+            setNewMessage('');
+            return;
+        }
+
+        if (isMod && messageText.startsWith('!quizz ')) {
+            const quizData = messageText.replace('!quizz ', '');
+            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                pseudo: "BOT_QUIZ",
+                message: `[QUIZ]:${quizData}`,
+                color: "text-neon-purple",
+                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                country: "FR"
+            });
+            setNewMessage('');
+            return;
+        }
+
+        // Slow Mode Logic
+        if (slowModeEnabled && !isMod) {
+            const now = Date.now();
+            const diff = (now - lastMessageTime) / 1000;
+            if (diff < 10) {
+                showNotification(`MODE LENT ACTIVÉ : Attend encore ${Math.ceil(10 - diff)}s`, 'error');
+                return;
+            }
+            setLastMessageTime(now);
+        }
+
         const color = isMod ? "text-neon-red" : "text-neon-cyan text-white";
         const time = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
 
@@ -942,6 +1005,68 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     )}
 
                     <div className="flex-1 overflow-y-auto p-4 custom-scrollbar relative">
+                        {/* Interactive Quiz Component */}
+                        <AnimatePresence>
+                            {activeQuiz && (
+                                <motion.div
+                                    initial={{ opacity: 0, y: -20, scale: 0.9 }}
+                                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                                    exit={{ opacity: 0, y: -20, scale: 0.9 }}
+                                    className="absolute top-4 left-4 right-4 z-[40] bg-[#0a0a0a] border-2 border-neon-purple rounded-[2rem] p-6 shadow-[0_0_30px_rgba(168,85,247,0.3)] overflow-hidden"
+                                >
+                                    <div className="absolute top-0 right-0 p-4">
+                                        <div className="w-2 h-2 bg-neon-purple rounded-full animate-pulse" />
+                                    </div>
+                                    <h4 className="text-[10px] font-black text-neon-purple uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
+                                        <Zap className="w-3 h-3" /> Quiz en cours !
+                                    </h4>
+                                    <p className="text-sm font-black text-white uppercase italic mb-6 leading-tight">
+                                        {activeQuiz.question}
+                                    </p>
+
+                                    {!userHasAnswered ? (
+                                        <div className="grid grid-cols-1 gap-2">
+                                            {activeQuiz.options.map((opt: string, idx: number) => (
+                                                <button
+                                                    key={idx}
+                                                    onClick={() => {
+                                                        setUserHasAnswered(true);
+                                                        if (idx === activeQuiz.correct) {
+                                                            const reward = 100;
+                                                            setUserDrops(prev => {
+                                                                const next = prev + reward;
+                                                                localStorage.setItem('user_drops', next.toString());
+                                                                return next;
+                                                            });
+                                                            showNotification(`Bravo ! Tu gagnes ${reward} DROPS !`, 'success');
+                                                        } else {
+                                                            showNotification(`Mauvaise réponse...`, 'error');
+                                                        }
+                                                        setTimeout(() => setActiveQuiz(null), 3000);
+                                                    }}
+                                                    className="w-full py-3 px-4 bg-white/5 hover:bg-neon-purple text-white text-[10px] font-black uppercase rounded-xl transition-all border border-white/10 hover:border-transparent text-left truncate"
+                                                >
+                                                    {opt}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="py-6 text-center">
+                                            <p className="text-xs font-black text-white uppercase animate-pulse">Merci d'avoir participé !</p>
+                                        </div>
+                                    )}
+                                    {isMod && (
+                                        <button
+                                            onClick={() => setActiveQuiz(null)}
+                                            className="mt-4 w-full py-2 bg-white/5 text-gray-500 text-[8px] font-black uppercase rounded-lg hover:text-white transition-all"
+                                        >
+                                            Fermer (Admin)
+                                        </button>
+                                    )}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
                         <AnimatePresence mode="wait">
                             {!isConnected ? (
                                 <motion.div
