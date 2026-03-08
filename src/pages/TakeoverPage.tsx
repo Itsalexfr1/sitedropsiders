@@ -2646,6 +2646,28 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 </div>
             </div>
 
+            {/* Flash Message Overlay */}
+            <AnimatePresence>
+                {flashMessage && (
+                    <motion.div
+                        initial={{ opacity: 0, y: -50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: -50 }}
+                        className="fixed top-24 left-1/2 -translate-x-1/2 z-[200]"
+                    >
+                        <div className={`px-8 py-4 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl border-2 flex items-center gap-4 ${flashMessage.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500 shadow-green-500/20' :
+                                flashMessage.type === 'warn' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 shadow-amber-500/20' :
+                                    'bg-blue-500/10 border-blue-500/20 text-blue-500 shadow-blue-500/20'
+                            }`}>
+                            {flashMessage.type === 'success' ? <ShieldCheck className="w-6 h-6" /> :
+                                flashMessage.type === 'warn' ? <AlertCircle className="w-6 h-6 animate-pulse" /> :
+                                    <Megaphone className="w-6 h-6" />}
+                            <span className="text-sm font-black uppercase tracking-widest">{flashMessage.text}</span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
             {/* Notification Toast */}
             <AnimatePresence>
                 {toast.show && (
