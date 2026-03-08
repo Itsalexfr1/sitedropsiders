@@ -186,11 +186,31 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             fetchInitialMessages();
 
             const savedPseudo = localStorage.getItem('chat_pseudo');
+            const savedEmail = localStorage.getItem('chat_email');
             const savedCountry = localStorage.getItem('chat_country');
-            if (savedPseudo) setIsConnected(true);
-            if (savedCountry) setUserCountry(savedCountry);
-            else fetchUserCountry();
 
+            if (savedPseudo) {
+                setIsConnected(true);
+                setLoginPseudo(savedPseudo);
+                if (savedEmail) setLoginEmail(savedEmail);
+                if (savedCountry) {
+                    setLoginCountry(savedCountry);
+                    setUserCountry(savedCountry);
+                }
+            } else if (isMod) {
+                // Auto-connect admins/mods with defaults
+                const defaultPseudo = "ALEX_FR1";
+                localStorage.setItem('chat_pseudo', defaultPseudo);
+                localStorage.setItem('chat_email', 'admin@dropsiders.fr');
+                localStorage.setItem('chat_country', 'FR');
+                setLoginPseudo(defaultPseudo);
+                setLoginEmail('admin@dropsiders.fr');
+                setLoginCountry('FR');
+                setUserCountry('FR');
+                setIsConnected(true);
+            }
+
+            if (!savedCountry && !isMod) fetchUserCountry();
             checkBanStatus();
         };
         init();
@@ -371,9 +391,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 time,
                 country: userCountry
             });
-        } catch (e) {
-            console.error("Appwrite send error:", e);
-            showNotification('Erreur d\'envoi', 'error');
+        } catch (e: any) {
+            console.error("Appwrite send error details:", e);
+            showNotification(`Erreur d'envoi: ${e.message || 'Problème serveur'}`, 'error');
         }
     };
 
