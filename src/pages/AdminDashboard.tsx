@@ -4788,7 +4788,7 @@ export function AdminDashboard() {
                                                         <p className="text-[10px] text-white font-black uppercase">Pré-écoute du Blind Test</p>
                                                     </div>
                                                 </div>
-                                                <audio src={testQuiz.audioUrl} controls className="w-full h-8 custom-audio-player" />
+                                                <audio src={`${testQuiz.audioUrl}#t=${testQuiz.startTime || 0},${(testQuiz.startTime || 0) + 30}`} controls className="w-full h-8 custom-audio-player" />
                                             </div>
                                         )}
 

@@ -49,12 +49,12 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/res\.cloudinary\.com\/.*/i,
+            urlPattern: /^https:\/\/dropsiders\.fr\/uploads\/.*/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'cloudinary-images-cache',
+              cacheName: 'r2-images-cache',
               expiration: {
-                maxEntries: 100,
+                maxEntries: 500,
                 maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
               },
               cacheableResponse: {

@@ -1500,7 +1500,7 @@ export default {
                         httpMetadata: { contentType: type || 'image/jpeg' }
                     });
 
-                    const url = `https://${urlHost}/uploads/${key}`;
+                    const url = `https://${url.host}/uploads/${key}`;
                     return new Response(JSON.stringify({ success: true, url }), { status: 200, headers });
                 } catch (e) {
                     console.error('R2 Upload Error:', e);

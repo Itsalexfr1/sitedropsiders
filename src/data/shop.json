@@ -26,7 +26,7 @@
     {
       "name": "Mug Dropsiders White x Couleurs",
       "price": "13.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126215/dropsiders/lehdotiwamhhdvj8vlaf.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/lehdotiwamhhdvj8vlaf.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/mug-dropsiders-white-x-couleurs",
       "colors": [
@@ -39,14 +39,14 @@
         "#facc15"
       ],
       "colorImages": {
-        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126226/dropsiders/pievswgbczlcgygbkagd.avif",
-        "#0042FF": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126250/dropsiders/g1kkchr8kg0azfcxoc0u.avif",
-        "#16a34a": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126259/dropsiders/mlts1ryiewc4zifya1jq.avif",
-        "#22c55e": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126280/dropsiders/mli897h4xthpodzorhmr.avif",
-        "#F62B32": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126295/dropsiders/p8gdwavd41ebzix7xfll.avif",
-        "#fb923c": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126305/dropsiders/hpzrkios5dgachopsfuh.avif",
-        "#38bdf8": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126315/dropsiders/myfzvjghnxmmpbvwdwdl.avif",
-        "#facc15": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126326/dropsiders/t0tqe50iyvgp48ub08yn.avif"
+        "#000000": "https://dropsiders.fr/uploads/migrated/dropsiders/pievswgbczlcgygbkagd.avif",
+        "#0042FF": "https://dropsiders.fr/uploads/migrated/dropsiders/g1kkchr8kg0azfcxoc0u.avif",
+        "#16a34a": "https://dropsiders.fr/uploads/migrated/dropsiders/mlts1ryiewc4zifya1jq.avif",
+        "#22c55e": "https://dropsiders.fr/uploads/migrated/dropsiders/mli897h4xthpodzorhmr.avif",
+        "#F62B32": "https://dropsiders.fr/uploads/migrated/dropsiders/p8gdwavd41ebzix7xfll.avif",
+        "#fb923c": "https://dropsiders.fr/uploads/migrated/dropsiders/hpzrkios5dgachopsfuh.avif",
+        "#38bdf8": "https://dropsiders.fr/uploads/migrated/dropsiders/myfzvjghnxmmpbvwdwdl.avif",
+        "#facc15": "https://dropsiders.fr/uploads/migrated/dropsiders/t0tqe50iyvgp48ub08yn.avif"
       },
       "images": [],
       "category": "Accessoires",
@@ -57,14 +57,14 @@
     {
       "name": "Mug Dropsiders White",
       "price": "10.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126405/dropsiders/klsuqpr2lggzasr9m52p.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/klsuqpr2lggzasr9m52p.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/mug-dropsiders-white",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Accessoires",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126414/dropsiders/qn6ezysg86qm1krl9r6w.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/qn6ezysg86qm1krl9r6w.avif",
       "id": 25,
       "createdAt": "2026-02-26T17:20:26.749Z",
       "updatedAt": "2026-03-01T19:37:49.182Z"
@@ -72,98 +72,98 @@
     {
       "name": "Gourde Dropsiders Black",
       "price": "20.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126028/dropsiders/d4r31tkpg6nkrsob4gkv.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/d4r31tkpg6nkrsob4gkv.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gourde-dropsiders-black",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Accessoires",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772126035/dropsiders/u7e6qadwbgx6txqoy21f.png",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/u7e6qadwbgx6txqoy21f.png",
       "id": 23,
       "createdAt": "2026-02-26T17:13:59.250Z"
     },
     {
       "name": "Gourde Dropsiders White",
       "price": "20.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772125962/dropsiders/hzan5bksqmchi72kslwv.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/hzan5bksqmchi72kslwv.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gourde-dropsiders-white",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Accessoires",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772125969/dropsiders/pr3l8otqzxtiqbtztlmg.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/pr3l8otqzxtiqbtztlmg.avif",
       "id": 22,
       "createdAt": "2026-02-26T17:12:57.230Z"
     },
     {
       "name": "Protection Airpods",
       "price": "12.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124941/dropsiders/et8pobbabog1lizmhxfe.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/et8pobbabog1lizmhxfe.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/protection-airpods",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Accessoires",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124948/dropsiders/bfks0gxgsyxoejbbijsp.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/bfks0gxgsyxoejbbijsp.avif",
       "id": 21,
       "createdAt": "2026-02-26T16:55:53.520Z"
     },
     {
       "name": "Gobelet Dropsiders White",
       "price": "12.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124860/dropsiders/ly8b9corktfw3eflzn8f.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/ly8b9corktfw3eflzn8f.avif",
       "description": "",
       "url": "",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Accessoires",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124868/dropsiders/g2hw8d6ud8jmhbskw8ae.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/g2hw8d6ud8jmhbskw8ae.avif",
       "id": 20,
       "createdAt": "2026-02-26T16:54:35.105Z"
     },
     {
       "name": "Gobelet Dropsiders Red",
       "price": "12.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124800/dropsiders/ouzzmelzfzaxwmv6emsq.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/ouzzmelzfzaxwmv6emsq.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gobelet-dropsiders-red",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Accessoires",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124806/dropsiders/yqp7uwux6fsjyfwilvhi.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/yqp7uwux6fsjyfwilvhi.avif",
       "id": 19,
       "createdAt": "2026-02-26T16:53:31.366Z"
     },
     {
       "name": "Gobelet Dropsiders Blue",
       "price": "12.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124705/dropsiders/shhqmz364fuvcqtuyuau.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/shhqmz364fuvcqtuyuau.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gobelet-dropsiders-blue",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Accessoires",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124711/dropsiders/dovn2fxnrineqwguo1wi.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/dovn2fxnrineqwguo1wi.avif",
       "id": 18,
       "createdAt": "2026-02-26T16:51:55.488Z"
     },
     {
       "name": "Gobelet Dropsiders GREEN YELLOW",
       "price": "12.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124652/dropsiders/angxa5nnpgfhslpyzkno.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/angxa5nnpgfhslpyzkno.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gobelet-dropsiders-yellow",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Accessoires",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124659/dropsiders/cedj54oqenvgzpe8ixmd.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/cedj54oqenvgzpe8ixmd.avif",
       "id": 17,
       "createdAt": "2026-02-26T16:51:03.401Z",
       "updatedAt": "2026-02-26T16:52:06.687Z"
@@ -171,28 +171,28 @@
     {
       "name": "Gobelet Dropsiders RED 2",
       "price": "12.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124586/dropsiders/vclq1hdulghlpgpe5fqn.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/vclq1hdulghlpgpe5fqn.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/gobelet-dropsiders-red-2",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Accessoires",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124593/dropsiders/sjbu4ny4rrnut2liqcfc.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/sjbu4ny4rrnut2liqcfc.avif",
       "id": 16,
       "createdAt": "2026-02-26T16:49:58.003Z"
     },
     {
       "name": "Coque Iphone Red 2 ",
       "price": "13.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124463/dropsiders/d6ewe2fk9iwqcy2yitud.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/d6ewe2fk9iwqcy2yitud.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/coque-iphone-red-orange",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Accessoires",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124471/dropsiders/kmpyq2lejbtbeeuq1j0m.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/kmpyq2lejbtbeeuq1j0m.avif",
       "id": 15,
       "createdAt": "2026-02-26T16:47:57.538Z",
       "updatedAt": "2026-02-26T16:52:16.997Z"
@@ -200,77 +200,77 @@
     {
       "name": "COQUE IPHone Red",
       "price": "13.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124376/dropsiders/t509ase44wmodnvdw7pt.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/t509ase44wmodnvdw7pt.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/coque-iphone-red-black",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Accessoires",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124383/dropsiders/l3yq0oepbqpszyebq7jv.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/l3yq0oepbqpszyebq7jv.avif",
       "id": 14,
       "createdAt": "2026-02-26T16:46:29.517Z"
     },
     {
       "name": "Coque Iphone Guetta Troll",
       "price": "13.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124303/dropsiders/qk8nhdwe5dr9zsjojfcf.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/qk8nhdwe5dr9zsjojfcf.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/coque-iphone-guetta-troll",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Accessoires",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124309/dropsiders/phcxqf18ib33aroqn8st.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/phcxqf18ib33aroqn8st.avif",
       "id": 13,
       "createdAt": "2026-02-26T16:45:17.822Z"
     },
     {
       "name": "Sacoche Dropsiders",
       "price": "20.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124219/dropsiders/labycqqcgqla9meybnie.png",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/labycqqcgqla9meybnie.png",
       "description": "WHERE IS THE DROP ?",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/sacoche-dropsiders",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Accessoires",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124225/dropsiders/ake3zh4x15s9s2awwkeo.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/ake3zh4x15s9s2awwkeo.avif",
       "id": 12,
       "createdAt": "2026-02-26T16:43:54.689Z"
     },
     {
       "name": "Casquette Dropsiders (White)",
       "price": "13.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124115/dropsiders/ud4l9ddpuiuojewo617g.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/ud4l9ddpuiuojewo617g.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/casquette-dropsiders-white",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Vetements",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124122/dropsiders/wa10cbgii5avudmhkmty.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/wa10cbgii5avudmhkmty.avif",
       "id": 11,
       "createdAt": "2026-02-26T16:42:10.833Z"
     },
     {
       "name": "Casquette Dropsiders (Black)",
       "price": "13.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124046/dropsiders/lhldcpayigtxkznqh9gp.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/lhldcpayigtxkznqh9gp.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/casquette-dropsiders-black",
       "colors": [],
       "colorImages": {},
       "images": [],
       "category": "Vetements",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772124053/dropsiders/r9zavjxawduzp6aov9yf.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/r9zavjxawduzp6aov9yf.avif",
       "id": 10,
       "createdAt": "2026-02-26T16:41:00.736Z"
     },
     {
       "name": "Bonnet Dropsiders (Logo Black)",
       "price": "15.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123899/dropsiders/hpjiwj4hde4yn6170c2k.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/hpjiwj4hde4yn6170c2k.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/bonnet-dropsiders-logo-black",
       "colors": [
@@ -279,20 +279,20 @@
         "#000000"
       ],
       "colorImages": {
-        "#f5f5dc": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123931/dropsiders/sdmojichefed59rgi712.avif",
-        "#6b7280": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123949/dropsiders/o80hr8nkxdpxi0kzrnsx.avif",
-        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123958/dropsiders/mfn0eyxxde2l1bxmfshs.avif"
+        "#f5f5dc": "https://dropsiders.fr/uploads/migrated/dropsiders/sdmojichefed59rgi712.avif",
+        "#6b7280": "https://dropsiders.fr/uploads/migrated/dropsiders/o80hr8nkxdpxi0kzrnsx.avif",
+        "#000000": "https://dropsiders.fr/uploads/migrated/dropsiders/mfn0eyxxde2l1bxmfshs.avif"
       },
       "images": [],
       "category": "Vetements",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123907/dropsiders/gcjh8a8przaqk4bc7g3k.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/gcjh8a8przaqk4bc7g3k.avif",
       "id": 9,
       "createdAt": "2026-02-26T16:39:25.368Z"
     },
     {
       "name": "Bonnet Dropsiders (Logo White)",
       "price": "16.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123701/dropsiders/cglpuqq7a2ltnfxphxcr.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/cglpuqq7a2ltnfxphxcr.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/bonnet-dropsiders-logo-white",
       "colors": [
@@ -301,20 +301,20 @@
         "#6b7280"
       ],
       "colorImages": {
-        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123744/dropsiders/xlscd2ev4pwp5mepz2qu.avif",
-        "#0042FF": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123761/dropsiders/vjapac0pogoxv3qmktl8.avif",
-        "#6b7280": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123772/dropsiders/jk2sxlqn1wr94i7ufwya.avif"
+        "#000000": "https://dropsiders.fr/uploads/migrated/dropsiders/xlscd2ev4pwp5mepz2qu.avif",
+        "#0042FF": "https://dropsiders.fr/uploads/migrated/dropsiders/vjapac0pogoxv3qmktl8.avif",
+        "#6b7280": "https://dropsiders.fr/uploads/migrated/dropsiders/jk2sxlqn1wr94i7ufwya.avif"
       },
       "images": [],
       "category": "Vetements",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123709/dropsiders/q6dxpzagndztsmhezz1p.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/q6dxpzagndztsmhezz1p.avif",
       "id": 8,
       "createdAt": "2026-02-26T16:36:18.337Z"
     },
     {
       "name": "Tee Shirt Logo Black Simple",
       "price": "15.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123454/dropsiders/jc4816eij0ubybbnrfry.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/jc4816eij0ubybbnrfry.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-black-simple",
       "colors": [
@@ -326,16 +326,16 @@
         "#facc15"
       ],
       "colorImages": {
-        "#ffffff": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123482/dropsiders/sldovlzmfjfptrlasxlp.avif",
-        "#38bdf8": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123491/dropsiders/yivgrrqshmbb1hvotopa.avif",
-        "#16a34a": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123502/dropsiders/im89jvgf9ytz7mf764ct.avif",
-        "#2dd4bf": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123525/dropsiders/envpecz0vxej9vaf6mgc.avif",
-        "#f87171": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123533/dropsiders/vim0ub5fxbykeo99o9o9.avif",
-        "#facc15": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123544/dropsiders/fmu6dvf3pi24mostyr2m.avif"
+        "#ffffff": "https://dropsiders.fr/uploads/migrated/dropsiders/sldovlzmfjfptrlasxlp.avif",
+        "#38bdf8": "https://dropsiders.fr/uploads/migrated/dropsiders/yivgrrqshmbb1hvotopa.avif",
+        "#16a34a": "https://dropsiders.fr/uploads/migrated/dropsiders/im89jvgf9ytz7mf764ct.avif",
+        "#2dd4bf": "https://dropsiders.fr/uploads/migrated/dropsiders/envpecz0vxej9vaf6mgc.avif",
+        "#f87171": "https://dropsiders.fr/uploads/migrated/dropsiders/vim0ub5fxbykeo99o9o9.avif",
+        "#facc15": "https://dropsiders.fr/uploads/migrated/dropsiders/fmu6dvf3pi24mostyr2m.avif"
       },
       "images": [],
       "category": "Vetements",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123465/dropsiders/tihdeqohvft0lfjhiudt.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/tihdeqohvft0lfjhiudt.avif",
       "id": 7,
       "createdAt": "2026-02-26T16:32:30.129Z",
       "updatedAt": "2026-02-26T17:04:41.959Z"
@@ -343,7 +343,7 @@
     {
       "name": "Polo Dropsiders Logo White",
       "price": "19.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123189/dropsiders/mvuesulylauh5udwqaqq.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/mvuesulylauh5udwqaqq.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/polo-dropsiders-logo-white",
       "colors": [
@@ -351,19 +351,19 @@
         "#2b65ec"
       ],
       "colorImages": {
-        "#2b65ec": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123206/dropsiders/qbytegevukg4mcoexnsh.avif",
-        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123213/dropsiders/znczrsdelb2eqxriadhh.avif"
+        "#2b65ec": "https://dropsiders.fr/uploads/migrated/dropsiders/qbytegevukg4mcoexnsh.avif",
+        "#000000": "https://dropsiders.fr/uploads/migrated/dropsiders/znczrsdelb2eqxriadhh.avif"
       },
       "images": [],
       "category": "Vetements",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123195/dropsiders/o9jwvld3riudv8ahxa0n.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/o9jwvld3riudv8ahxa0n.avif",
       "id": 6,
       "createdAt": "2026-02-26T16:27:02.213Z"
     },
     {
       "name": "Tee Shirt Logo White Simple",
       "price": "15.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123107/dropsiders/wni6xjsp2aj4gnjzhu08.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/wni6xjsp2aj4gnjzhu08.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-white-simple",
       "colors": [
@@ -376,17 +376,17 @@
         "#16a34a"
       ],
       "colorImages": {
-        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123008/dropsiders/onax7v78pzdjae7j8juo.avif",
-        "#2C2F3D": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123030/dropsiders/aonar1bydroa9ch5yjvb.avif",
-        "#592B8C": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123039/dropsiders/kwuygwgkfgf6rdawxj6y.avif",
-        "#6b7280": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123061/dropsiders/cnsh9w2fjoarukrdzypn.avif",
-        "#F62B32": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123070/dropsiders/brbk15w13nnhitapdwpg.avif",
-        "#FF4D8D": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123081/dropsiders/jbeusyvdoe0dsrnu7lvt.avif",
-        "#16a34a": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772123090/dropsiders/snbcytvi0ywpjdbv7owv.avif"
+        "#000000": "https://dropsiders.fr/uploads/migrated/dropsiders/onax7v78pzdjae7j8juo.avif",
+        "#2C2F3D": "https://dropsiders.fr/uploads/migrated/dropsiders/aonar1bydroa9ch5yjvb.avif",
+        "#592B8C": "https://dropsiders.fr/uploads/migrated/dropsiders/kwuygwgkfgf6rdawxj6y.avif",
+        "#6b7280": "https://dropsiders.fr/uploads/migrated/dropsiders/cnsh9w2fjoarukrdzypn.avif",
+        "#F62B32": "https://dropsiders.fr/uploads/migrated/dropsiders/brbk15w13nnhitapdwpg.avif",
+        "#FF4D8D": "https://dropsiders.fr/uploads/migrated/dropsiders/jbeusyvdoe0dsrnu7lvt.avif",
+        "#16a34a": "https://dropsiders.fr/uploads/migrated/dropsiders/snbcytvi0ywpjdbv7owv.avif"
       },
       "images": [],
       "category": "Vetements",
-      "imageBack": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122971/dropsiders/jtw1gtuyzgiumjdi6ijn.avif",
+      "imageBack": "https://dropsiders.fr/uploads/migrated/dropsiders/jtw1gtuyzgiumjdi6ijn.avif",
       "id": 5,
       "createdAt": "2026-02-26T16:25:11.194Z",
       "updatedAt": "2026-02-26T17:02:20.178Z"
@@ -394,7 +394,7 @@
     {
       "name": "Tee Shirt Logo White ",
       "price": "19.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122621/dropsiders/ogj8g1hzbfknycbascvn.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/ogj8g1hzbfknycbascvn.avif",
       "description": "The 2010 - 2015 Soundtrack ",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-white-the-2010-2015-soundtrack",
       "colors": [
@@ -408,14 +408,14 @@
         "#fca5a5"
       ],
       "colorImages": {
-        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122631/dropsiders/szrhu10q2weooun1wb7w.avif",
-        "#592B8C": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122642/dropsiders/de09tmza65whplfgrd7q.avif",
-        "#6b7280": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122655/dropsiders/paelc2pc9kfskogexxvo.avif",
-        "#F62B32": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122669/dropsiders/jm1wbahrciumf8jufhzf.avif",
-        "#38bdf8": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122684/dropsiders/heygskjpipngmwdv6dod.avif",
-        "#00fff3": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122699/dropsiders/p3canmovzli2eequo9b1.avif",
-        "#FF4D8D": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122711/dropsiders/zqssgs8f9jtxj5uvhvf9.avif",
-        "#fca5a5": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122747/dropsiders/dxx70lfkgvu9pkfal0dp.avif"
+        "#000000": "https://dropsiders.fr/uploads/migrated/dropsiders/szrhu10q2weooun1wb7w.avif",
+        "#592B8C": "https://dropsiders.fr/uploads/migrated/dropsiders/de09tmza65whplfgrd7q.avif",
+        "#6b7280": "https://dropsiders.fr/uploads/migrated/dropsiders/paelc2pc9kfskogexxvo.avif",
+        "#F62B32": "https://dropsiders.fr/uploads/migrated/dropsiders/jm1wbahrciumf8jufhzf.avif",
+        "#38bdf8": "https://dropsiders.fr/uploads/migrated/dropsiders/heygskjpipngmwdv6dod.avif",
+        "#00fff3": "https://dropsiders.fr/uploads/migrated/dropsiders/p3canmovzli2eequo9b1.avif",
+        "#FF4D8D": "https://dropsiders.fr/uploads/migrated/dropsiders/zqssgs8f9jtxj5uvhvf9.avif",
+        "#fca5a5": "https://dropsiders.fr/uploads/migrated/dropsiders/dxx70lfkgvu9pkfal0dp.avif"
       },
       "images": [],
       "category": "Vetements",
@@ -427,7 +427,7 @@
     {
       "name": "Tee Shirt Logo White ",
       "price": "19.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122285/dropsiders/mduv8vqolts2wsuvbfck.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/mduv8vqolts2wsuvbfck.avif",
       "description": "I'm Here Only For The Techno",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-white-im-here-only-for-the-techno",
       "colors": [
@@ -437,10 +437,10 @@
         "#F62B32"
       ],
       "colorImages": {
-        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122293/dropsiders/apyq3tt7r8ekq2zwyxsv.avif",
-        "#592B8C": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122306/dropsiders/e42qad6lnj3h9x1bmbfy.avif",
-        "#6b7280": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122315/dropsiders/xww0j9rax1rwkrqrozxt.avif",
-        "#F62B32": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772122325/dropsiders/hl6svxpus7qan5sgccda.avif"
+        "#000000": "https://dropsiders.fr/uploads/migrated/dropsiders/apyq3tt7r8ekq2zwyxsv.avif",
+        "#592B8C": "https://dropsiders.fr/uploads/migrated/dropsiders/e42qad6lnj3h9x1bmbfy.avif",
+        "#6b7280": "https://dropsiders.fr/uploads/migrated/dropsiders/xww0j9rax1rwkrqrozxt.avif",
+        "#F62B32": "https://dropsiders.fr/uploads/migrated/dropsiders/hl6svxpus7qan5sgccda.avif"
       },
       "images": [],
       "category": "Vetements",
@@ -452,7 +452,7 @@
     {
       "name": "Tee Shirt Logo White",
       "price": "18.00",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121901/dropsiders/cbjcdz7jmwvqgq4ohzvh.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/cbjcdz7jmwvqgq4ohzvh.avif",
       "description": "Where Is The Drop ?",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/tee-shirt-logo-white-where-is-the-drop",
       "colors": [
@@ -464,12 +464,12 @@
         "#FF4D8D"
       ],
       "colorImages": {
-        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121919/dropsiders/rvvdljgekhyhgduyv2xj.avif",
-        "#991b1b": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121942/dropsiders/igrpzw4e8t7nlrbsy4ke.avif",
-        "#592B8C": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121964/dropsiders/pm0i52ruxofuwzxiinpj.avif",
-        "#7c3aed": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121979/dropsiders/vh78nwovtkbfxpqhtnr4.avif",
-        "#38bdf8": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121992/dropsiders/u4j7zoslek7zu3z4xl0w.avif",
-        "#FF4D8D": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121999/dropsiders/ggukprjmw00jhlwn2nxz.avif"
+        "#000000": "https://dropsiders.fr/uploads/migrated/dropsiders/rvvdljgekhyhgduyv2xj.avif",
+        "#991b1b": "https://dropsiders.fr/uploads/migrated/dropsiders/igrpzw4e8t7nlrbsy4ke.avif",
+        "#592B8C": "https://dropsiders.fr/uploads/migrated/dropsiders/pm0i52ruxofuwzxiinpj.avif",
+        "#7c3aed": "https://dropsiders.fr/uploads/migrated/dropsiders/vh78nwovtkbfxpqhtnr4.avif",
+        "#38bdf8": "https://dropsiders.fr/uploads/migrated/dropsiders/u4j7zoslek7zu3z4xl0w.avif",
+        "#FF4D8D": "https://dropsiders.fr/uploads/migrated/dropsiders/ggukprjmw00jhlwn2nxz.avif"
       },
       "images": [],
       "category": "Vetements",
@@ -480,7 +480,7 @@
     {
       "name": "Hoodie Dropsiders Logo White",
       "price": "30",
-      "image": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121469/dropsiders/gvqps1r0ardd3udhiqbi.avif",
+      "image": "https://dropsiders.fr/uploads/migrated/dropsiders/gvqps1r0ardd3udhiqbi.avif",
       "description": "",
       "url": "https://dropsiders-shop.fourthwall.com/en-eur/products/hoodie-dropsiders-logo-white",
       "colors": [
@@ -492,12 +492,12 @@
         "#fb923c"
       ],
       "colorImages": {
-        "#000000": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121459/dropsiders/wx8qlvfxfaud2ihpbk1z.avif",
-        "#63051F": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121497/dropsiders/xudeba1gcrkvz7du4au4.avif",
-        "#592B8C": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121561/dropsiders/hrnpb2m5fscncpybnqkc.avif",
-        "#6b7280": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121574/dropsiders/balbpyqypvxkq2mzx9yd.avif",
-        "#FF4D8D": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121589/dropsiders/i5zchslqvtnw0knqazyb.avif",
-        "#fb923c": "https://res.cloudinary.com/djnvjsmvr/image/upload/v1772121631/dropsiders/yvrib9j48icw08s2num5.avif"
+        "#000000": "https://dropsiders.fr/uploads/migrated/dropsiders/wx8qlvfxfaud2ihpbk1z.avif",
+        "#63051F": "https://dropsiders.fr/uploads/migrated/dropsiders/xudeba1gcrkvz7du4au4.avif",
+        "#592B8C": "https://dropsiders.fr/uploads/migrated/dropsiders/hrnpb2m5fscncpybnqkc.avif",
+        "#6b7280": "https://dropsiders.fr/uploads/migrated/dropsiders/balbpyqypvxkq2mzx9yd.avif",
+        "#FF4D8D": "https://dropsiders.fr/uploads/migrated/dropsiders/i5zchslqvtnw0knqazyb.avif",
+        "#fb923c": "https://dropsiders.fr/uploads/migrated/dropsiders/yvrib9j48icw08s2num5.avif"
       },
       "images": [],
       "category": "Vetements",

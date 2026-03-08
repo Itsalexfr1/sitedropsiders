@@ -241,7 +241,7 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, onClear, ac
                                             <span className="text-xs font-black text-white uppercase tracking-widest">
                                                 {isUploading ? 'Envoi...' : (isVideo ? "Confirmer l'envoi" : 'Direct')}
                                             </span>
-                                            <span className="text-[10px] text-gray-500 text-center">{isVideo ? "Uploader sur Cloudinary" : "Uploader sans recadrer"}</span>
+                                            <span className="text-[10px] text-gray-500 text-center">{isVideo ? "Uploader sur le Cloud" : "Uploader sans recadrer"}</span>
                                         </button>
                                     </div>
                                     {/* Action buttons */}

@@ -560,7 +560,7 @@ export function QuizSection() {
                                                         <audio
                                                             ref={audioRef}
                                                             key={`${gameQuizzes[currentQuizIndex].id}-audio`}
-                                                            src={gameQuizzes[currentQuizIndex].audioUrl}
+                                                            src={`${gameQuizzes[currentQuizIndex].audioUrl}#t=${gameQuizzes[currentQuizIndex].startTime || 0},${(gameQuizzes[currentQuizIndex].startTime || 0) + 30}`}
                                                         />
                                                     )}
                                                 </div>
