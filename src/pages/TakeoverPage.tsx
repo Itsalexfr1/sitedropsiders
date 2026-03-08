@@ -1058,8 +1058,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     onMouseEnter={() => setHoveredMessageId(msg.id)}
                                                     onMouseLeave={() => setHoveredMessageId(null)}
                                                     onDoubleClick={() => {
-                                                        // Future redirect to profile or open mini-modal
-                                                        alert(`Profil de ${msg.pseudo || msg.user}`);
+                                                        const pseudo = msg.pseudo || msg.user;
+                                                        const country = msg.country ? `[${msg.country}]` : '';
+                                                        alert(`PROFIL : ${pseudo} ${country}\n(Accès futur au profil complet)`);
                                                     }}
                                                     className={`group flex flex-col gap-1 relative p-3 rounded-2xl transition-all duration-300 cursor-pointer ${isHovered ? 'bg-white/[0.05] shadow-xl' : ''}`}
                                                     style={msg.bgColor ? {
