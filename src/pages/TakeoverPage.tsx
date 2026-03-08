@@ -591,9 +591,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             </div>
 
             {/* 3. MAIN CONTENT AREA */}
-            <div className="flex-1 flex flex-row overflow-hidden relative">
-                {/* A. VIDEO PANEL (60%) */}
-                <div className="w-[60%] h-full bg-black border-r border-white/10 relative flex flex-col shrink-0 overflow-hidden">
+            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+                {/* A. VIDEO PANEL (40% Mobile / 60% Desktop) */}
+                <div className="w-full lg:w-[60%] h-[40%] lg:h-full bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden">
                     {/* Always render the video behind to allow blur effect */}
                     <div className="absolute inset-0 z-0">
                         <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${settings.youtubeId || 'dQw4w9WgXcQ'}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
@@ -870,8 +870,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     </AnimatePresence>
                 </div>
 
-                {/* B. CHAT PANEL (40%) */}
-                <div className="flex-1 h-full bg-[#080808] flex flex-col relative z-10 border-l border-white/10 shadow-2xl">
+                {/* B. CHAT PANEL (60% Mobile / 40% Desktop) */}
+                <div className="flex-1 lg:flex-1 h-[60%] lg:h-full bg-[#080808] flex flex-col relative z-10 lg:border-l border-white/10 shadow-2xl overflow-hidden max-w-full">
                     <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
                         <div className="flex items-center gap-3">
                             <div className="w-8 h-8 rounded-lg bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red">
