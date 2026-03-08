@@ -45,6 +45,8 @@ interface TakeoverSettings {
     auddToken?: string;
     highlightPrice?: number;
     lots?: any[];
+    dropsAmount?: number;
+    dropsInterval?: number;
 }
 
 interface ShazamTrack {
@@ -147,6 +149,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editTickerTextC, setEditTickerTextC] = useState(settings.tickerTextColor);
     const [editHighlightPrice, setEditHighlightPrice] = useState(settings.highlightPrice || 100);
     const [editAuddToken, setEditAuddToken] = useState(settings.auddToken || '');
+    const [editDropsAmount, setEditDropsAmount] = useState(settings.dropsAmount || 10);
+    const [editDropsInterval, setEditDropsInterval] = useState(settings.dropsInterval || 5);
     const [adminActiveTab, setAdminActiveTab] = useState('general');
     const [isSaving, setIsSaving] = useState(false);
 
@@ -176,6 +180,24 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             return JSON.parse(settings.lineup || '[]');
         } catch (e) { return []; }
     });
+
+    const [userDrops, setUserDrops] = useState(() => {
+        const saved = localStorage.getItem('user_drops');
+        return saved ? Number(saved) : 0;
+    });
+
+    useEffect(() => {
+        if (!isConnected) return;
+        const intervalMs = (settings.dropsInterval || 5) * 60 * 1000;
+        const timer = setInterval(() => {
+            setUserDrops(prev => {
+                const next = prev + (settings.dropsAmount || 10);
+                localStorage.setItem('user_drops', next.toString());
+                return next;
+            });
+        }, intervalMs);
+        return () => clearInterval(timer);
+    }, [isConnected, settings.dropsInterval, settings.dropsAmount]);
 
     const [newLineupItem, setNewLineupItem] = useState<LineupItem>({
         id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: ''
@@ -313,6 +335,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     if (data.lots) setDropsLots(data.lots);
                     if (data.highlightPrice) setEditHighlightPrice(data.highlightPrice);
                     if (data.auddToken) setEditAuddToken(data.auddToken);
+                    if (data.dropsAmount) setEditDropsAmount(data.dropsAmount);
+                    if (data.dropsInterval) setEditDropsInterval(data.dropsInterval);
                 }
             }
         } catch (e) { console.error("Error loading settings:", e); }
@@ -364,7 +388,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             activeStreamId: editActiveStreamId,
             highlightPrice: Number(editHighlightPrice),
             lots: dropsLots,
-            auddToken: editAuddToken
+            auddToken: editAuddToken,
+            dropsAmount: Number(editDropsAmount),
+            dropsInterval: Number(editDropsInterval)
         };
 
         try {
@@ -394,10 +420,24 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const handleSendMessage = async () => {
         if (!newMessage.trim() || isBanned) return;
 
+        const price = settings.highlightPrice || 100;
+        if (isHighlightChecked && userDrops < price) {
+            showNotification(`Pas assez de DROPS (${price} requis)`, 'error');
+            return;
+        }
+
         const pseudo = localStorage.getItem('chat_pseudo') || (isMod ? "ALEX_FR1" : "VISITEUR");
         const messageText = newMessage;
-        const color = isMod ? "text-neon-red" : "text-neon-cyan";
+        const color = isMod ? "text-neon-red" : "text-neon-cyan text-white";
         const time = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        if (isHighlightChecked) {
+            setUserDrops(prev => {
+                const next = prev - price;
+                localStorage.setItem('user_drops', next.toString());
+                return next;
+            });
+        }
 
         setNewMessage('');
         setIsHighlightChecked(false);
@@ -824,7 +864,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
                                                             <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">Prix Message Couleur (Drops)</label>
                                                             <input type="number" placeholder="PRIX HIGHLIGHT" value={editHighlightPrice} onChange={e => setEditHighlightPrice(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-red outline-none" />
-                                                            <p className="text-[10px] text-gray-500 font-bold uppercase leading-tight italic">C'est le prix que les utilisateurs paieront pour envoyer un message avec fond personnalisé.</p>
+
+                                                            <div className="grid grid-cols-2 gap-4 mt-4">
+                                                                <div>
+                                                                    <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">Gains (Drops)</label>
+                                                                    <input type="number" placeholder="MONTANT" value={editDropsAmount} onChange={e => setEditDropsAmount(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-red outline-none" />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">Toutes les (Min)</label>
+                                                                    <input type="number" placeholder="INTERVALLE" value={editDropsInterval} onChange={e => setEditDropsInterval(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-red outline-none" />
+                                                                </div>
+                                                            </div>
+                                                            <p className="text-[9px] text-gray-500 font-bold uppercase leading-tight italic mt-2">Configurez combien de drops les utilisateurs gagnent et tous les combien de temps.</p>
                                                         </div>
                                                     </div>
                                                     <div className="space-y-4">
@@ -1099,9 +1150,25 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             <p className="text-[9px] text-gray-500 font-bold uppercase">Ton message avec le fond de ton choix !</p>
                                         </button>
                                         {dropsLots.map(lot => (
-                                            <button key={lot.id} className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-white/10 transition-all border-dashed border-2">
-                                                <p className="text-xs font-black text-white uppercase">{lot.name}</p>
+                                            <button
+                                                key={lot.id}
+                                                onClick={() => {
+                                                    if (userDrops < lot.price) {
+                                                        showNotification(`Pas assez de DROPS (${lot.price} requis)`, 'error');
+                                                        return;
+                                                    }
+                                                    setUserDrops(prev => {
+                                                        const next = prev - lot.price;
+                                                        localStorage.setItem('user_drops', next.toString());
+                                                        return next;
+                                                    });
+                                                    showNotification(`Achat réussi: ${lot.name}`, 'success');
+                                                }}
+                                                className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-3 hover:bg-white/10 transition-all border-dashed border-2 group"
+                                            >
+                                                <p className="text-xs font-black text-white uppercase group-hover:text-neon-cyan transition-colors">{lot.name}</p>
                                                 <div className="px-4 py-1.5 bg-amber-500 text-black text-[10px] font-black rounded-lg uppercase">{lot.price} DROPS</div>
+                                                <p className="text-[9px] text-gray-500 font-bold uppercase">Cliquez pour échanger vos DROPS</p>
                                             </button>
                                         ))}
                                     </div>
@@ -1141,7 +1208,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             <div className="flex items-center justify-between px-2">
                                 <div className="flex items-center gap-1.5">
                                     <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                                    <span className="text-[10px] font-black text-white">{2450} <span className="text-gray-600 ml-0.5 uppercase">DROPS</span></span>
+                                    <span className="text-[10px] font-black text-white">{userDrops} <span className="text-gray-600 ml-0.5 uppercase">DROPS</span></span>
                                 </div>
                                 <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">Powered by Dropsiders</span>
                             </div>
