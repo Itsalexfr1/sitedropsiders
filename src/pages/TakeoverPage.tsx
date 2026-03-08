@@ -480,6 +480,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         setTimeout(() => setMentionNotify(false), 5000);
                     }
                 }
+
                 if (response.events.includes('databases.*.collections.*.documents.*.delete')) {
                     setChatMessages(prev => prev.filter(m => m.id !== response.payload.$id));
                 }
@@ -1135,13 +1136,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
                                     <span className="text-[6px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
                                 </div>
-                                <h1 className="text-[14px] lg:text-[26px] font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
+                                <h1 className="text-[18px] lg:text-[32px] font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
                             </div>
                         </div>
-                        <div className="flex items-center gap-1 lg:gap-2 mt-0.5">
+                        <div className="flex items-center gap-1 lg:gap-2 mt-2">
                             <div className="w-1 h-1 lg:w-1.5 lg:h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
-                            <span className="text-[8px] lg:text-[10px] font-black text-gray-500 uppercase tracking-widest leading-none">NOW &gt;&gt;</span>
-                            <span className="text-[11px] lg:text-[13px] font-black text-white uppercase italic tracking-tighter truncate max-w-[150px] lg:max-w-none">{fluxCurrentArtist.artist}</span>
+                            <span className="text-[10px] lg:text-[11px] font-black text-gray-500 uppercase tracking-widest leading-none">NOW &gt;&gt;</span>
+                            <span className="text-[14px] lg:text-[16px] font-black text-white uppercase italic tracking-tighter truncate max-w-[150px] lg:max-w-none">{fluxCurrentArtist.artist}</span>
                         </div>
                     </div>
                 </div>
@@ -2561,7 +2562,55 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 )}
             </AnimatePresence>
 
-            {/* News Marquee removed as requested */}
+            {/* News Marquee (Bottom) */}
+            <AnimatePresence>
+                {showNewsMarquee && marqueeItems.some(i => i.text) && (
+                    <motion.div
+                        initial={{ y: 100 }}
+                        animate={{ y: 0 }}
+                        className="fixed bottom-0 left-0 right-0 h-10 bg-neon-red/10 backdrop-blur-md border-t border-neon-red/30 z-[90] flex items-center overflow-hidden group"
+                    >
+                        <div className="bg-neon-red px-4 h-full flex items-center shrink-0 z-10 relative shadow-[0_0_15px_rgba(255,0,51,0.5)]">
+                            <Megaphone className="w-4 h-4 text-white" />
+                            <span className="ml-2 text-[10px] font-black text-white uppercase tracking-tighter cursor-default">NEWS FLUX</span>
+                        </div>
+                        <motion.div
+                            animate={{ x: [0, -2000] }}
+                            transition={{ repeat: Infinity, duration: 40, ease: "linear" }}
+                            className="flex items-center gap-16 whitespace-nowrap pl-6 group-hover:[animation-play-state:paused]"
+                        >
+                            {[...Array(3)].map((_, loopIdx) => (
+                                <div key={loopIdx} className="flex gap-16">
+                                    {marqueeItems.filter(i => i.text).map((item, idx) => {
+                                        const isExternal = item.link?.startsWith('http') || item.link?.startsWith('www');
+                                        const fullLink = isExternal ? (item.link?.startsWith('http') ? item.link : `https://${item.link}`) : item.link;
+                                        return (
+                                            <a
+                                                key={`${loopIdx}-${idx}`}
+                                                href={fullLink}
+                                                target={isExternal ? "_blank" : "_self"}
+                                                rel={isExternal ? "noopener noreferrer" : ""}
+                                                className="text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 hover:text-neon-red transition-colors drop-shadow-md cursor-pointer group/newsitem"
+                                            >
+                                                <Stars className="w-3 h-3 text-neon-red group-hover/newsitem:text-white transition-colors" />
+                                                <span className="group-hover/newsitem:text-neon-red transition-colors">{item.text}</span>
+                                            </a>
+                                        );
+                                    })}
+                                </div>
+                            ))}
+                        </motion.div>
+                        <button
+                            onClick={() => setShowNewsMarquee(false)}
+                            className="ml-auto bg-black/60 h-full px-4 hover:bg-neon-red hover:text-white transition-all text-white/50 z-10 relative border-l border-white/10"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
+
+export default TakeoverPage;
