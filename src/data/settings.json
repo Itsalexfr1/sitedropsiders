@@ -47,8 +47,8 @@
     "highlightPrice": 100,
     "lots": [],
     "auddToken": "0707d622c51645acc2e4fa26ed64538d",
-    "dropsAmount": 10,
-    "dropsInterval": 5
+    "dropsAmount": 125,
+    "dropsInterval": 10
   },
   "socials": {
     "instagram": "dropsiders.eu",
