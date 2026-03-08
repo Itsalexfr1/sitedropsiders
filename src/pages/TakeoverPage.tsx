@@ -121,8 +121,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
     const [slowModeEnabled, setSlowModeEnabled] = useState(false);
     const [lastMessageTime, setLastMessageTime] = useState(0);
-    const [activeQuiz, setActiveQuiz] = useState<string | null>(null);
-    const [quizResponders, setQuizResponders] = useState<string[]>([]);
+    const [activeQuiz, setActiveQuiz] = useState<any>(null);
     const [userHasAnswered, setUserHasAnswered] = useState(false);
 
     // DB Settings
@@ -280,13 +279,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         if (cmd === 'SLOW_OFF') setSlowModeEnabled(false);
                         if (cmd === 'CLEAR_QUIZ') {
                             setActiveQuiz(null);
-                            setQuizResponders([]);
                         }
                     } else if (msgText.startsWith('[QUIZ_START]:')) {
-                        const correct = msgText.replace('[QUIZ_START]:', '');
-                        setActiveQuiz(correct);
-                        setQuizResponders([]);
-                        setUserHasAnswered(false);
+                        const content = msgText.replace('[QUIZ_START]:', '');
+                        const parts = content.split('|').map((p: string) => p.trim());
+                        if (parts.length >= 6) {
+                            setActiveQuiz({
+                                question: parts[0],
+                                options: [parts[1], parts[2], parts[3], parts[4]],
+                                correct: parts[5]
+                            });
+                            setUserHasAnswered(false);
+                        }
                     }
                 }
                 if (response.events.includes('databases.*.collections.*.documents.*.delete')) {
@@ -494,10 +498,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
         // Quiz Logic for users
         if (activeQuiz && !isMod && !userHasAnswered) {
-            const isDigit = /^\d+$/.test(messageText);
+            const isDigit = /^[1-4]$/.test(messageText);
             if (isDigit) {
                 setUserHasAnswered(true);
-                if (messageText === activeQuiz) {
+                if (messageText === activeQuiz.correct) {
                     const reward = 100;
                     setUserDrops(prev => {
                         const next = prev + reward;
@@ -506,7 +510,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     });
                     showNotification(`BRAVO ! +${reward} DROPS !`, 'success');
                 } else {
-                    showNotification(`MAUVAISE RÉPONSE !`, 'error');
+                    showNotification(`MAUVAISE RÉPONSE ! C'était le n°${activeQuiz.correct}`, 'error');
                 }
             }
         }
@@ -1042,22 +1046,36 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     initial={{ opacity: 0, y: -10 }}
                                     animate={{ opacity: 1, y: 0 }}
                                     exit={{ opacity: 0 }}
-                                    className="sticky top-0 z-[40] bg-neon-purple/20 backdrop-blur-md border border-neon-purple/30 rounded-2xl p-4 mb-4 flex items-center justify-between"
+                                    className="sticky top-0 z-[40] bg-[#0a0a0a] border-2 border-neon-purple/50 rounded-3xl p-5 mb-6 shadow-[0_0_40px_rgba(168,85,247,0.2)]"
                                 >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-8 h-8 rounded-full bg-neon-purple flex items-center justify-center animate-pulse">
-                                            <Zap className="w-4 h-4 text-white" />
+                                    <div className="flex items-start justify-between gap-4 mb-4">
+                                        <div className="flex items-center gap-3">
+                                            <div className="w-10 h-10 rounded-2xl bg-neon-purple flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+                                                <Zap className="w-5 h-5 text-white" />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black text-neon-purple uppercase tracking-[0.2em] mb-1">QUIZ DROPSIDERS</p>
+                                                <h4 className="text-sm font-black text-white uppercase italic leading-tight">{activeQuiz.question}</h4>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="text-[10px] font-black text-white uppercase tracking-widest leading-none mb-1">QUIZ ACTIF !</p>
-                                            <p className="text-[8px] font-bold text-neon-purple uppercase">Répondez avec un chiffre dans le chat</p>
-                                        </div>
+                                        <div className="px-3 py-1 bg-amber-500 text-black text-[9px] font-black rounded-lg uppercase animate-pulse shrink-0">100 DROPS</div>
                                     </div>
-                                    {userHasAnswered ? (
-                                        <div className="px-3 py-1 bg-white/10 rounded-lg text-[8px] font-black text-white uppercase italic">Participation validée</div>
-                                    ) : (
-                                        <div className="px-3 py-1 bg-neon-purple text-white text-[8px] font-black rounded-lg uppercase animate-bounce">100 DROPS À GAGNER</div>
-                                    )}
+
+                                    <div className="grid grid-cols-2 gap-2">
+                                        {activeQuiz.options.map((opt: string, idx: number) => (
+                                            <div key={idx} className="bg-white/[0.03] border border-white/10 rounded-xl p-3 flex items-center gap-3">
+                                                <span className="w-6 h-6 rounded-lg bg-white/5 flex items-center justify-center text-[10px] font-black text-neon-purple border border-neon-purple/20">{idx + 1}</span>
+                                                <span className="text-[10px] font-bold text-white uppercase truncate">{opt}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                                        <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Répondez par 1, 2, 3 ou 4 dans le chat</p>
+                                        {userHasAnswered && (
+                                            <span className="text-[8px] font-black text-neon-cyan uppercase">Participation enregistrée ✔</span>
+                                        )}
+                                    </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
