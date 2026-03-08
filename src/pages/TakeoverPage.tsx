@@ -4,8 +4,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Settings, Users, MessageSquare, Send, Zap, Video,
     Save, AlertCircle, Music, Trash2, Plus,
-    Pin, Star, ShieldCheck
+    Pin, Star, ShieldCheck, Ban
 } from 'lucide-react';
+import { Client, Databases, ID, Query } from 'appwrite';
+import { FlagIcon } from '../components/ui/FlagIcon';
 
 interface LineupItem {
     id: string;
@@ -53,13 +55,47 @@ interface ShazamTrack {
 
 export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => {
     const navigate = useNavigate();
-    const [userRole] = useState<'admin' | 'mod' | 'user'>('admin');
-    const [isMod] = useState(userRole === 'admin' || userRole === 'mod');
+
+    // Appwrite Config
+    const client = new Client()
+        .setEndpoint('https://fra.cloud.appwrite.io/v1')
+        .setProject('69adc19b0027cb3b46d4');
+    const databases = new Databases(client);
+    const DATABASE_ID = 'ChatDB';
+    const COLLECTION_CHAT = 'live_messages';
+    const COLLECTION_BANS = 'bans';
+
+    const isAdmin = localStorage.getItem('admin_auth') === 'true';
+    const [userRole] = useState<'admin' | 'mod' | 'user'>(isAdmin ? 'admin' : 'user');
+    const isMod = userRole === 'admin' || userRole === 'mod';
     const [showAdminPanel, setShowAdminPanel] = useState(false);
     const [viewersCount] = useState(Math.floor(Math.random() * 50) + 10);
     const [activeChatTab, setActiveChatTab] = useState('chat');
     const [newMessage, setNewMessage] = useState('');
     const [isHighlightChecked, setIsHighlightChecked] = useState(false);
+    const [isConnected, setIsConnected] = useState(!!localStorage.getItem('chat_pseudo'));
+
+    // Form States
+    const [loginPseudo, setLoginPseudo] = useState('');
+    const [loginEmail, setLoginEmail] = useState('');
+    const [loginCountry, setLoginCountry] = useState('FR');
+    const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
+
+    const countryOptions = [
+        { code: 'FR', name: 'France' },
+        { code: 'BE', name: 'Belgique' },
+        { code: 'CH', name: 'Suisse' },
+        { code: 'CA', name: 'Canada' },
+        { code: 'ES', name: 'Espagne' },
+        { code: 'PT', name: 'Portugal' },
+        { code: 'IT', name: 'Italie' },
+        { code: 'DE', name: 'Allemagne' },
+        { code: 'GB', name: 'UK' },
+        { code: 'US', name: 'USA' },
+        { code: 'MA', name: 'Maroc' },
+        { code: 'DZ', name: 'Algérie' },
+        { code: 'TN', name: 'Tunisie' }
+    ];
 
     const [pinnedMessage, setPinnedMessage] = useState<any>({
         id: 'welcome',
@@ -79,11 +115,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     }, [shazamHistory]);
 
     // Chat State
-    const [chatMessages, setChatMessages] = useState([
-        { id: 1, user: "Lucas_92", text: "INCROYABLE CETTE LINEUP ! 🔥🔥🔥", color: "text-neon-cyan" },
-        { id: 2, user: "Sophie_DJ", text: "Le son est dingue, merci Dropsiders !", color: "text-neon-purple" },
-        { id: 3, user: "TechnoLover", text: "Qui va à Tomorrowland ici ?", color: "text-neon-red" },
-    ]);
+    const [chatMessages, setChatMessages] = useState<any[]>([]);
+    const [userCountry, setUserCountry] = useState('FR');
+    const [isBanned, setIsBanned] = useState(false);
 
     // DB Settings
     const [settings, setSettings] = useState<TakeoverSettings>({
@@ -147,8 +181,82 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     });
 
     useEffect(() => {
-        fetchSettings();
+        const init = async () => {
+            fetchSettings();
+            fetchInitialMessages();
+
+            const savedPseudo = localStorage.getItem('chat_pseudo');
+            const savedCountry = localStorage.getItem('chat_country');
+            if (savedPseudo) setIsConnected(true);
+            if (savedCountry) setUserCountry(savedCountry);
+            else fetchUserCountry();
+
+            checkBanStatus();
+        };
+        init();
+
+        // Appwrite Realtime Subscription
+        const unsubscribe = client.subscribe(
+            `databases.${DATABASE_ID}.collections.${COLLECTION_CHAT}.documents`,
+            (response: any) => {
+                if (response.events.includes('databases.*.collections.*.documents.*.create')) {
+                    setChatMessages(prev => {
+                        if (prev.find(m => m.id === response.payload.$id)) return prev;
+                        return [...prev, {
+                            id: response.payload.$id,
+                            pseudo: response.payload.pseudo,
+                            message: response.payload.message,
+                            color: response.payload.color,
+                            time: response.payload.time,
+                            country: response.payload.country
+                        }];
+                    });
+                }
+                if (response.events.includes('databases.*.collections.*.documents.*.delete')) {
+                    setChatMessages(prev => prev.filter(m => m.id !== response.payload.$id));
+                }
+            }
+        );
+
+        return () => unsubscribe();
     }, []);
+
+    const fetchUserCountry = async () => {
+        try {
+            const res = await fetch('https://ipapi.co/json/');
+            const data = await res.json();
+            if (data.country_code) setUserCountry(data.country_code);
+        } catch (e) { console.error("Could not fetch country", e); }
+    };
+
+    const checkBanStatus = async () => {
+        const pseudo = localStorage.getItem('chat_pseudo');
+        if (!pseudo) return;
+        try {
+            const res = await databases.listDocuments(DATABASE_ID, COLLECTION_BANS, [
+                Query.equal('pseudo', pseudo)
+            ]);
+            if (res.documents.length > 0) setIsBanned(true);
+        } catch (e) { console.error("Ban check failed", e); }
+    };
+
+    const fetchInitialMessages = async () => {
+        try {
+            const res = await databases.listDocuments(DATABASE_ID, COLLECTION_CHAT, [
+                Query.orderDesc('$createdAt'),
+                Query.limit(50)
+            ]);
+            const msgs = res.documents.reverse().map(doc => ({
+                id: doc.$id,
+                pseudo: doc.pseudo,
+                message: doc.message,
+                color: doc.color,
+                time: doc.time,
+                country: doc.country
+            }));
+            setChatMessages(msgs);
+        } catch (e) { console.error("Error fetching initial chat messages:", e); }
+    };
 
     const fetchSettings = async () => {
         try {
@@ -168,12 +276,37 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     try {
                         const parsed = JSON.parse(data.lineup || '[]');
                         setLineupItems(Array.isArray(parsed) ? parsed : []);
-                    } catch (e) {
-                        setLineupItems([]);
-                    }
+                    } catch (e) { setLineupItems([]); }
                 }
             }
         } catch (e) { console.error("Error loading settings:", e); }
+    };
+
+    const handleConnect = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!loginPseudo.trim() || !loginEmail.trim()) {
+            showNotification('Veuillez remplir tous les champs', 'error');
+            return;
+        }
+
+        localStorage.setItem('chat_pseudo', loginPseudo.trim());
+        localStorage.setItem('chat_email', loginEmail.trim());
+        localStorage.setItem('chat_country', loginCountry);
+
+        setUserCountry(loginCountry);
+        setIsConnected(true);
+
+        if (subscribeNewsletter) {
+            try {
+                await fetch('/api/subscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: loginEmail, firstName: loginPseudo })
+                });
+            } catch (e) { console.error("Newsletter sub failed", e); }
+        }
+
+        showNotification('Connexion réussie !', 'success');
     };
 
     const handleSaveSettings = async () => {
@@ -219,23 +352,63 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
     };
 
-    const handleSendMessage = () => {
-        if (!newMessage.trim()) return;
-        const msg = {
-            id: Date.now(),
-            user: "ALEX_FR1",
-            text: newMessage,
-            color: "text-neon-cyan",
-            role: "admin",
-            isHighlighted: isHighlightChecked
-        };
-        setChatMessages(prev => [...prev.slice(-49), msg]);
+    const handleSendMessage = async () => {
+        if (!newMessage.trim() || isBanned) return;
+
+        const pseudo = localStorage.getItem('chat_pseudo') || (isMod ? "ALEX_FR1" : "VISITEUR");
+        const messageText = newMessage;
+        const color = isMod ? "text-neon-red" : "text-neon-cyan";
+        const time = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
         setNewMessage('');
         setIsHighlightChecked(false);
+
+        try {
+            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                pseudo,
+                message: messageText,
+                color,
+                time,
+                country: userCountry
+            });
+        } catch (e) {
+            console.error("Appwrite send error:", e);
+            showNotification('Erreur d\'envoi', 'error');
+        }
     };
 
-    const clearChat = () => setChatMessages([]);
-    const deleteMessage = (id: number) => setChatMessages(prev => prev.filter(m => m.id !== id));
+    const handleBanUser = async (pseudo: string) => {
+        if (!isAdmin) return;
+        try {
+            await databases.createDocument(DATABASE_ID, COLLECTION_BANS, ID.unique(), { pseudo });
+            showNotification(`Utilisateur ${pseudo} banni !`, 'success');
+        } catch (e) {
+            showNotification('Erreur bannissement', 'error');
+        }
+    };
+
+    const clearChat = async () => {
+        if (!isAdmin) return;
+        if (!confirm('Voulez-vous vraiment vider le chat ?')) return;
+        try {
+            const res = await databases.listDocuments(DATABASE_ID, COLLECTION_CHAT, [Query.limit(100)]);
+            for (const doc of res.documents) {
+                await databases.deleteDocument(DATABASE_ID, COLLECTION_CHAT, doc.$id);
+            }
+            showNotification('Chat vidé !', 'success');
+        } catch (e) {
+            showNotification('Erreur nettoyage', 'error');
+        }
+    };
+
+    const deleteMessage = async (id: string) => {
+        if (!isMod) return;
+        try {
+            await databases.deleteDocument(DATABASE_ID, COLLECTION_CHAT, id);
+        } catch (e) {
+            showNotification('Erreur suppression', 'error');
+        }
+    };
 
     const handleShazamAction = async () => {
         try {
@@ -611,15 +784,92 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         </div>
                     </div>
 
-                    <div className="flex gap-1 p-2 bg-black/20 border-b border-white/10">
-                        {['CHAT', 'PLANNING', 'SHAZAM', 'DROPS'].map(tab => (
-                            <button key={tab} onClick={() => setActiveChatTab(tab.toLowerCase())} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === tab.toLowerCase() ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{tab}</button>
-                        ))}
-                    </div>
+                    {isConnected && (
+                        <div className="flex gap-1 p-2 bg-black/20 border-b border-white/10">
+                            {['CHAT', 'PLANNING', 'SHAZAM', 'DROPS'].map(tab => (
+                                <button key={tab} onClick={() => setActiveChatTab(tab.toLowerCase())} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === tab.toLowerCase() ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{tab}</button>
+                            ))}
+                        </div>
+                    )}
 
-                    <div className="flex-1 overflow-y-auto p-4 custom-scrollbar">
+                    <div className="flex-1 overflow-y-auto p-4 custom-scrollbar relative">
                         <AnimatePresence mode="wait">
-                            {activeChatTab === 'chat' ? (
+                            {!isConnected ? (
+                                <motion.div
+                                    key="login-view"
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="h-full flex flex-col items-center justify-center p-6 space-y-8 bg-black/40 backdrop-blur-sm rounded-3xl"
+                                >
+                                    <div className="text-center space-y-2">
+                                        <div className="w-16 h-16 bg-neon-red/10 border border-neon-red/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                            <Users className="w-8 h-8 text-neon-red" />
+                                        </div>
+                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Rejoindre le chat</h3>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">Entrez vos infos pour interagir en live</p>
+                                    </div>
+
+                                    <form onSubmit={handleConnect} className="w-full space-y-4">
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Pseudo</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={loginPseudo}
+                                                onChange={e => setLoginPseudo(e.target.value)}
+                                                placeholder="TON PSEUDO"
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-red outline-none transition-all uppercase font-bold"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Email</label>
+                                            <input
+                                                type="email"
+                                                required
+                                                value={loginEmail}
+                                                onChange={e => setLoginEmail(e.target.value)}
+                                                placeholder="TON@EMAIL.COM"
+                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-red outline-none transition-all uppercase font-bold"
+                                            />
+                                        </div>
+
+                                        <div className="space-y-1.5">
+                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Pays</label>
+                                            <div className="relative">
+                                                <select
+                                                    value={loginCountry}
+                                                    onChange={e => setLoginCountry(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-red outline-none transition-all appearance-none font-bold uppercase"
+                                                >
+                                                    {countryOptions.map(c => (
+                                                        <option key={c.code} value={c.code} className="bg-[#080808] text-white">
+                                                            {c.name}
+                                                        </option>
+                                                    ))}
+                                                </select>
+                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <FlagIcon location={loginCountry} className="w-4 h-3" />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <label className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:bg-white/10 transition-all group">
+                                            <input
+                                                type="checkbox"
+                                                checked={subscribeNewsletter}
+                                                onChange={e => setSubscribeNewsletter(e.target.checked)}
+                                                className="w-4 h-4 rounded border-white/10 bg-black/40 text-neon-red focus:ring-neon-red"
+                                            />
+                                            <span className="text-[9px] text-gray-400 font-bold uppercase group-hover:text-white transition-colors">S'abonner à la newsletter et aux alertes live</span>
+                                        </label>
+
+                                        <button type="submit" className="w-full py-4 bg-neon-red text-white font-black uppercase italic tracking-widest rounded-2xl hover:shadow-[0_0_25px_rgba(255,0,51,0.4)] transition-all transform active:scale-95 shadow-xl">
+                                            C'est parti !
+                                        </button>
+                                    </form>
+                                </motion.div>
+                            ) : activeChatTab === 'chat' ? (
                                 <motion.div key="chat-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
                                     {pinnedMessage && (
                                         <div className="p-3 bg-neon-red/10 border border-neon-red/20 rounded-xl relative overflow-hidden group">
@@ -644,19 +894,24 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         <div key={msg.id} className="group flex flex-col gap-1 relative">
                                             <div className="flex gap-3 relative">
                                                 <div className="w-8 h-8 rounded-full border border-white/10 shrink-0 flex items-center justify-center bg-white/5">
-                                                    <div className="text-[10px] font-black text-gray-500">{msg.user[0]}</div>
+                                                    <div className="text-[10px] font-black text-gray-500">{(msg.pseudo || msg.user || 'V')[0]}</div>
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 mb-0.5">
-                                                        <span className={`text-[10px] font-black uppercase italic ${msg.color || 'text-white'}`}>{msg.user}</span>
-                                                        {msg.role === 'admin' && <ShieldCheck className="w-3 h-3 text-neon-purple" />}
+                                                        {msg.country && <FlagIcon location={msg.country} className="w-3 h-2" />}
+                                                        <span className={`text-[10px] font-black uppercase italic ${msg.color || 'text-white'}`}>{msg.pseudo || msg.user}</span>
+                                                        {(msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') && <ShieldCheck className="w-3 h-3 text-neon-purple" />}
+                                                        {msg.time && <span className="text-[8px] text-gray-600 font-mono ml-auto">{msg.time}</span>}
                                                     </div>
-                                                    <p className="text-xs text-gray-400 leading-relaxed font-bold break-all">{msg.text}</p>
+                                                    <p className="text-xs text-gray-400 leading-relaxed font-bold break-all">{msg.message || msg.text}</p>
                                                 </div>
                                                 {isMod && (
-                                                    <div className="absolute right-0 top-0 hidden group-hover:flex items-center gap-1 bg-black/80 backdrop-blur-md p-1 rounded-lg border border-white/10 z-20">
-                                                        <button onClick={() => setPinnedMessage(msg)} className="p-1.5 text-gray-500 hover:text-neon-red transition-all"><Pin className="w-3 h-3" /></button>
-                                                        <button onClick={() => deleteMessage(msg.id)} className="p-1.5 text-gray-500 hover:text-red-500 transition-all"><X className="w-3 h-3" /></button>
+                                                    <div className="absolute right-0 top-0 hidden group-hover:flex items-center gap-1 bg-black/80 backdrop-blur-md p-1 rounded-lg border border-white/10 z-20 shadow-2xl">
+                                                        <button onClick={() => setPinnedMessage(msg)} title="Épingler" className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"><Pin className="w-3 h-3" /></button>
+                                                        <button onClick={() => deleteMessage(msg.id)} title="Supprimer" className="p-1.5 text-gray-400 hover:text-red-500 transition-all"><X className="w-3 h-3" /></button>
+                                                        {isAdmin && msg.pseudo !== 'ALEX_FR1' && (
+                                                            <button onClick={() => handleBanUser(msg.pseudo)} title="Bannir" className="p-1.5 text-gray-400 hover:text-orange-500 transition-all border-l border-white/10 ml-1"><Ban className="w-3 h-3" /></button>
+                                                        )}
                                                     </div>
                                                 )}
                                             </div>
@@ -715,37 +970,40 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         </AnimatePresence>
                     </div>
 
-                    <div className="p-4 bg-black/40 border-t border-white/5 space-y-3">
-                        {isHighlightChecked && (
-                            <div className="flex items-center justify-between px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                                <span className="text-[10px] font-black text-amber-500 uppercase">Mise en avant (Highlight)</span>
-                                <span className="text-[10px] font-black text-amber-500">100 DROPS</span>
+                    {isConnected && (
+                        <div className="p-4 bg-black/40 border-t border-white/5 space-y-3">
+                            {isHighlightChecked && (
+                                <div className="flex items-center justify-between px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
+                                    <span className="text-[10px] font-black text-amber-500 uppercase">Mise en avant (Highlight)</span>
+                                    <span className="text-[10px] font-black text-amber-500">100 DROPS</span>
+                                </div>
+                            )}
+                            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 group focus-within:border-neon-red/50 transition-all">
+                                <input
+                                    type="text"
+                                    value={isBanned ? "VOUS ÊTES BANNI" : newMessage}
+                                    onChange={e => setNewMessage(e.target.value)}
+                                    disabled={isBanned}
+                                    onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
+                                    placeholder={isBanned ? "ACCÈS REFUSÉ..." : "VOTRE MESSAGE..."}
+                                    className={`flex-1 bg-transparent text-xs font-bold outline-none uppercase tracking-wider ${isBanned ? 'text-red-500' : 'text-white placeholder:text-gray-600'}`}
+                                />
+                                <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
+                                    <Zap className="w-4 h-4" />
+                                </button>
+                                <button onClick={handleSendMessage} className="p-2 bg-neon-red text-white rounded-xl shadow-[0_0_15px_rgba(255,0,51,0.3)] hover:scale-105 active:scale-95 transition-all">
+                                    <Send className="w-4 h-4" />
+                                </button>
                             </div>
-                        )}
-                        <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 group focus-within:border-neon-red/50 transition-all">
-                            <input
-                                type="text"
-                                value={newMessage}
-                                onChange={e => setNewMessage(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && handleSendMessage()}
-                                placeholder="Envoyer un message..."
-                                className="flex-1 bg-transparent border-none outline-none text-xs font-bold text-white placeholder:text-gray-600 uppercase"
-                            />
-                            <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
-                                <Zap className="w-4 h-4" />
-                            </button>
-                            <button onClick={handleSendMessage} className="p-2 bg-neon-red text-white rounded-xl shadow-[0_0_15px_rgba(255,0,51,0.3)] hover:scale-105 active:scale-95 transition-all">
-                                <Send className="w-4 h-4" />
-                            </button>
-                        </div>
-                        <div className="flex items-center justify-between px-2">
-                            <div className="flex items-center gap-1.5">
-                                <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                                <span className="text-[10px] font-black text-white">{2450} <span className="text-gray-600 ml-0.5 uppercase">DROPS</span></span>
+                            <div className="flex items-center justify-between px-2">
+                                <div className="flex items-center gap-1.5">
+                                    <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                                    <span className="text-[10px] font-black text-white">{2450} <span className="text-gray-600 ml-0.5 uppercase">DROPS</span></span>
+                                </div>
+                                <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">Powered by Dropsiders</span>
                             </div>
-                            <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">Powered by Dropsiders</span>
                         </div>
-                    </div>
+                    )}
                 </div>
             </div>
 
