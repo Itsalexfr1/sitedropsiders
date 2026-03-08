@@ -212,6 +212,17 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [userLevel, setUserLevel] = useState(() => parseInt(localStorage.getItem('user_level') || '1'));
     const [activeHeist, setActiveHeist] = useState<{ participants: { pseudo: string, bet: number }[], timeLeft: number } | null>(null);
     const [activeBoss, setActiveBoss] = useState<{ hp: number, maxHp: number, name: string } | null>(null);
+    const [chatTheme, setChatTheme] = useState<'neon' | 'synthwave' | 'cyberpunk'>('neon');
+    const [captchaChallenge, setCaptchaChallenge] = useState<{ q: string, a: number } | null>(null);
+    const [captchaInput, setCaptchaInput] = useState('');
+    const [isFirstConnection, setIsFirstConnection] = useState(false);
+    const [userCity, setUserCity] = useState('📍 PARIS');
+    const [hypeTrain, setHypeTrain] = useState({ active: false, level: 0, progress: 0 });
+    const [isMuted, setIsMuted] = useState(false);
+    const [muteTimeLeft, setMuteTimeLeft] = useState(0);
+    const [userTitle, setUserTitle] = useState(localStorage.getItem('user_chat_title') || '');
+    const [profileBorder, setProfileBorder] = useState(localStorage.getItem('user_profile_border') || 'none');
+    const [specialFontStyle, setSpecialFontStyle] = useState(localStorage.getItem('user_font_style') || 'normal');
 
     // 🎁 RECOMPENSE QUOTIDIENNE
     useEffect(() => {
@@ -425,6 +436,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
             if (!savedCountry && !isMod) fetchUserCountry();
             checkBanStatus();
+            generateCaptcha();
+
+            // First Connect Badge Check
+            const isFirst = localStorage.getItem('is_first_connect') === null;
+            if (isFirst) {
+                setIsFirstConnection(true);
+                localStorage.setItem('is_first_connect', 'done');
+            }
         };
         init();
 
@@ -444,6 +463,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             country: response.payload.country,
                             bgColor: response.payload.bgColor
                         }];
+                    });
+
+                    // Update Hype Train
+                    setHypeTrain(prev => {
+                        const newProgress = prev.progress + 2;
+                        if (newProgress >= 100) {
+                            triggerConfetti();
+                            return { active: true, level: prev.level + 1, progress: 0 };
+                        }
+                        return { ...prev, progress: newProgress };
                     });
 
                     // Handle System / Logic Commands from Chat
@@ -586,11 +615,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         return () => clearInterval(interval);
     }, []);
 
+    const generateCaptcha = () => {
+        const a = Math.floor(Math.random() * 10);
+        const b = Math.floor(Math.random() * 10);
+        setCaptchaChallenge({ q: `${a} + ${b} = ?`, a: a + b });
+    };
+
     const fetchUserCountry = async () => {
         try {
             const res = await fetch('https://ipapi.co/json/');
             const data = await res.json();
             if (data.country_code) setUserCountry(data.country_code);
+            if (data.city) setUserCity(`📍 ${data.city.toUpperCase()}`);
         } catch (e) { console.error("Could not fetch country", e); }
     };
 
@@ -676,6 +712,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         localStorage.setItem('chat_email', loginEmail.trim());
         localStorage.setItem('chat_country', loginCountry);
 
+        if (parseInt(captchaInput) !== captchaChallenge?.a) {
+            showNotification('CAPTCHA INCORRECT ! 🤖', 'error');
+            generateCaptcha();
+            return;
+        }
+
         setUserCountry(loginCountry);
         setIsConnected(true);
 
@@ -757,7 +799,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const handleSendMessage = async (customText?: string) => {
         const messageToSend = customText || newMessage;
-        if (!messageToSend.trim() || isBanned) return;
+        if (!messageToSend.trim() || isBanned || isMuted) {
+            if (isMuted) showNotification(`MUTE : Encore ${muteTimeLeft}s`, 'error');
+            return;
+        }
 
         const price = settings.highlightPrice || 100;
         if (isHighlightChecked && userDrops < price) {
@@ -770,310 +815,22 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
         // 🛡️ Auto-Mod Intelligence
         if (!isMod) {
-            // Bad words filter (simple list)
             const badWords = ['pd', 'fdp', 'salope', 'connard', 'pute'];
             if (badWords.some(w => messageText.toLowerCase().includes(w))) {
                 showNotification("MESSAGE BLOQUÉ : Langage inapproprié", 'error');
                 return;
             }
-            // Links filter
             if (/(https?:\/\/[^\s]+)/g.test(messageText)) {
                 showNotification("MESSAGE BLOQUÉ : Liens interdits", 'error');
                 return;
             }
-            // CAPS Spam
             const capsCount = (messageText.match(/[A-Z]/g) || []).length;
             if (messageText.length > 10 && capsCount > messageText.length * 0.7) {
                 showNotification("MESSAGE BLOQUÉ : Trop de MAJUSCULES", 'error');
                 return;
             }
-        }
 
-        // Command Interception (Admin/Mod only)
-        if (isMod) {
-            if (messageText.startsWith('!dé')) {
-                const res = Math.floor(Math.random() * 6) + 1;
-                messageText = `🎲 LANCE UN DÉ : Résultat ${res} !`;
-            } else if (messageText.startsWith('!matrix')) {
-                messageText = `[SYSTEM]:MATRIX`;
-            } else if (messageText.startsWith('!flash ')) {
-                messageText = `[SYSTEM]:FLASH:${messageText.replace('!flash ', '')}`;
-            } else if (messageText === '!boss' && isMod) {
-                messageText = `[SYSTEM]:BOSS_SPAWN`;
-            } else if (messageText.startsWith('!braquage ') || messageText === '!braquage') {
-                const amount = parseInt(messageText.split(' ')[1]) || 50;
-                if (userDrops < amount) {
-                    showNotification("Pas assez de Drops !", 'error');
-                    return;
-                }
-                setUserDrops(prev => prev - amount);
-                messageText = `[SYSTEM]:HEIST_JOIN:${JSON.stringify({ pseudo, bet: amount })}`;
-            } else if (messageText === '!hit' && activeBoss) {
-                const dmg = Math.floor(Math.random() * 25) + 5;
-                messageText = `[SYSTEM]:BOSS_HIT:${dmg}`;
-            } else if (messageText.startsWith('!confettis')) {
-                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                    pseudo: "BOT_SYSTEM",
-                    message: '[SYSTEM]:CONFETHI',
-                    color: "text-neon-purple",
-                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    country: "FR"
-                });
-                setNewMessage('');
-                return;
-            } else if (messageText.startsWith('!rate')) {
-                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                    pseudo: "BOT_SYSTEM",
-                    message: '[SYSTEM]:RATE_SET',
-                    color: "text-neon-cyan",
-                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    country: "FR"
-                });
-                setNewMessage('');
-                return;
-            }
-        }
-
-        if (isMod && messageText.startsWith('!vip ')) {
-            const userVIP = messageText.replace('!vip ', '').replace('@', '').trim();
-            if (userVIP) {
-                setVipsList(prev => [...prev.filter(u => u !== userVIP), userVIP]);
-                showNotification(`${userVIP} a été promu VIP !`, 'success');
-            }
-            setNewMessage('');
-            return;
-        }
-
-        if (isMod && messageText.startsWith('!unvip ')) {
-            const userVIP = messageText.replace('!unvip ', '').replace('@', '').trim();
-            if (userVIP) {
-                setVipsList(prev => prev.filter(u => u !== userVIP));
-                showNotification(`${userVIP} n'est plus VIP.`, 'success');
-            }
-            setNewMessage('');
-            return;
-        }
-
-        if (isMod && messageText.startsWith('!fireworks')) {
-            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                pseudo: "BOT_SYSTEM",
-                message: '[SYSTEM]:FIREWORKS',
-                color: "text-neon-purple",
-                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                country: "FR"
-            });
-            setNewMessage('');
-            return;
-        }
-
-        if (messageText.startsWith('!vol ')) {
-            const target = messageText.replace('!vol ', '').replace('@', '').trim();
-            if (target.toLowerCase() === pseudo.toLowerCase()) {
-                showNotification("Impossible de se voler soi-même !", 'error');
-                return;
-            }
-            if (userDrops < 100) {
-                showNotification("Minimum 100 DROPS requis pour voler !", 'error');
-                return;
-            }
-            const success = Math.random() > 0.6;
-            const amount = Math.floor(Math.random() * 200) + 50;
-            if (success) {
-                setUserDrops(prev => prev + amount);
-                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                    pseudo: "BOT_VOL",
-                    message: `💰 @${pseudo} a volé ${amount} DROPS à @${target} !`,
-                    color: "text-green-500",
-                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    country: "FR"
-                });
-            } else {
-                setUserDrops(prev => Math.max(0, prev - amount));
-                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                    pseudo: "BOT_VOL",
-                    message: `❌ @${pseudo} a été attrapé ! Retrait de ${amount} DROPS.`,
-                    color: "text-red-500",
-                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    country: "FR"
-                });
-            }
-            setNewMessage('');
-            return;
-        }
-
-        if (messageText.startsWith('!dons ')) {
-            const args = messageText.replace('!dons ', '').trim().split(' ');
-            const target = args[0].replace('@', '');
-            const amount = parseInt(args[1]);
-            if (!isNaN(amount) && amount > 0 && userDrops >= amount) {
-                setUserDrops(prev => prev - amount);
-                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                    pseudo: "BOT_DONS",
-                    message: `🎁 @${pseudo} a donné ${amount} DROPS à @${target} !`,
-                    color: "text-neon-cyan",
-                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    country: "FR"
-                });
-            }
-            setNewMessage('');
-            return;
-        }
-
-        if (messageText.startsWith('!rps ')) {
-            const choices = ['pierre', 'papier', 'ciseau'];
-            const userChoice = messageText.replace('!rps ', '').trim().toLowerCase();
-            if (choices.includes(userChoice)) {
-                const botChoice = choices[Math.floor(Math.random() * 3)];
-                const win = (userChoice === 'pierre' && botChoice === 'ciseau') || (userChoice === 'papier' && botChoice === 'pierre') || (userChoice === 'ciseau' && botChoice === 'papier');
-                const draw = userChoice === botChoice;
-                const result = draw ? 'ÉGALITÉ' : win ? 'GAGNÉ (+50 DROPS)' : 'PERDU';
-                if (win) setUserDrops(prev => prev + 50);
-                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                    pseudo: "BOT_GAME",
-                    message: `🎮 @${pseudo} joue ${userChoice} vs BOT ${botChoice} -> ${result}`,
-                    color: "text-neon-purple",
-                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    country: "FR"
-                });
-            }
-            setNewMessage('');
-            return;
-        }
-
-        if (isMod && messageText.startsWith('!slow ')) {
-            const toggle = messageText.replace('!slow ', '').toLowerCase();
-            const sysMsg = toggle === 'on' ? '[SYSTEM]:SLOW_ON' : '[SYSTEM]:SLOW_OFF';
-            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                pseudo: "BOT_SYSTEM",
-                message: sysMsg,
-                color: "text-neon-purple",
-                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                country: "FR"
-            });
-            setNewMessage('');
-            return;
-        }
-
-        if (isMod && messageText.startsWith('!poll ')) {
-            const pollStr = messageText.replace('!poll ', '');
-            const [question, ...options] = pollStr.split('|').map(s => s.trim());
-            const pollData = {
-                question,
-                options: options.map(o => ({ text: o, votes: 0 })),
-                active: true
-            };
-            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                pseudo: "BOT_POLL",
-                message: `[SYSTEM]:POLL:${JSON.stringify(pollData)}`,
-                color: "text-neon-purple",
-                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                country: "FR"
-            });
-            setNewMessage('');
-            return;
-        }
-
-        if (isMod && messageText === '!pollstop') {
-            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                pseudo: "BOT_SYSTEM",
-                message: '[SYSTEM]:CLEAR_POLL',
-                color: "text-neon-purple",
-                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                country: "FR"
-            });
-            setNewMessage('');
-            return;
-        }
-
-        if (isMod && messageText.startsWith('!quizz')) {
-            const args = messageText.replace('!quizz', '').trim();
-            let quizMsg = '';
-
-            if (args) {
-                quizMsg = args; // Manual mode
-            } else {
-                // Auto mode from database
-                if (predefinedQuizzes.length === 0) {
-                    showNotification("Aucun QCM chargé depuis la base !", "error");
-                    return;
-                }
-                const randomQ = predefinedQuizzes[Math.floor(Math.random() * predefinedQuizzes.length)];
-                const correctIdx = randomQ.options.findIndex((o: string) => o === randomQ.correctAnswer) + 1;
-
-                // Format: Question | O1 | O2 | O3 | O4 | CorrectIdx (1-4)
-                quizMsg = `${randomQ.question} | ${randomQ.options[0] || '?'} | ${randomQ.options[1] || '?'} | ${randomQ.options[2] || '?'} | ${randomQ.options[3] || '?'} | ${correctIdx || 1}`;
-            }
-
-            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                pseudo: "BOT_QUIZ",
-                message: `[QUIZ_START]:${quizMsg}`,
-                color: "text-neon-purple",
-                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                country: "FR"
-            });
-            setNewMessage('');
-            return;
-        }
-
-        if (isMod && messageText === '!stop') {
-            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                pseudo: "BOT_SYSTEM",
-                message: '[SYSTEM]:CLEAR_QUIZ',
-                color: "text-neon-purple",
-                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                country: "FR"
-            });
-            setNewMessage('');
-            return;
-        }
-
-        // Quiz Logic for users
-        if (activeQuiz && !isMod && !userHasAnswered) {
-            const isDigit = /^[1-4]$/.test(messageText);
-            if (isDigit) {
-                const choiceIdx = parseInt(messageText) - 1;
-                setUserHasAnswered(true);
-                // Broadcast CHOICE for progress bars
-                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                    pseudo: "BOT_SYSTEM",
-                    message: `[SYSTEM]:QUIZ_VOTE:${choiceIdx}`,
-                    color: "text-neon-purple",
-                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    country: "FR"
-                });
-
-                if (messageText === activeQuiz.correct) {
-                    const reward = 100;
-                    setUserDrops(prev => {
-                        const next = prev + reward;
-                        localStorage.setItem('user_drops', next.toString());
-                        return next;
-                    });
-                    showNotification(`BRAVO ! +${reward} DROPS !`, 'success');
-                } else {
-                    showNotification(`MAUVAISE RÉPONSE ! C'était le n°${activeQuiz.correct}`, 'error');
-                }
-            }
-        }
-
-        // XP & Leveling Logic
-        if (!isMod) {
-            const xpGain = 10;
-            const nextXP = userXP + xpGain;
-            const nextLevel = Math.floor(Math.sqrt(nextXP / 100)) + 1;
-
-            setUserXP(nextXP);
-            localStorage.setItem('user_xp', nextXP.toString());
-
-            if (nextLevel > userLevel) {
-                setUserLevel(nextLevel);
-                localStorage.setItem('user_level', nextLevel.toString());
-                showNotification(`🌟 NIVEAU SUPÉRIEUR ! Vous êtes maintenant Niveau ${nextLevel} !`, 'success');
-            }
-        }
-
-        // Slow Mode Logic
-        if (!isMod) {
+            // Slow Mode Logic
             const now = Date.now();
             if (slowModeEnabled) {
                 const diff = (now - lastMessageTime) / 1000;
@@ -1085,41 +842,220 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             setLastMessageTime(now);
         }
 
-        const color = isMod ? "text-neon-red" : "text-neon-cyan text-white";
-        const time = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        // Command Interception
+        if (messageText.startsWith('!')) {
+            const cmdParts = messageText.split(' ');
+            const mainCmd = cmdParts[0].toLowerCase();
 
-        if (isHighlightChecked) {
-            setUserDrops(prev => {
-                const next = prev - price;
-                localStorage.setItem('user_drops', next.toString());
-                return next;
-            });
+            if (mainCmd === '!roulette') {
+                const dead = Math.floor(Math.random() * 6) === 0;
+                if (dead) {
+                    messageText = `💥 ROULETTE RUSSE : @${pseudo} a perdu ! MUTE 60s !`;
+                    setIsMuted(true);
+                    setMuteTimeLeft(60);
+                } else {
+                    messageText = `🔫 ROULETTE RUSSE : @${pseudo} a survécu... pour l'instant.`;
+                }
+            } else if (mainCmd === '!dé') {
+                const res = Math.floor(Math.random() * 20) + 1;
+                if (res === 20) {
+                    setUserDrops(prev => prev + 1000);
+                    messageText = `🎲 DÉ DE LA DESTINÉE : CRITIQUE ! @${pseudo} gagne 1000 DROPS !`;
+                } else if (res === 1) {
+                    messageText = `🎲 DÉ DE LA DESTINÉE : ÉCHEC CRITIQUE ! @${pseudo} est banni... (nan je rigole)`;
+                } else {
+                    messageText = `🎲 DÉ DE LA DESTINÉE : Résultat ${res}.`;
+                }
+            } else if (mainCmd === '!purge' && isMod) {
+                const target = cmdParts[1]?.replace('@', '') || '';
+                if (target) {
+                    setChatMessages(prev => prev.filter(m => m.pseudo !== target));
+                    messageText = `[SYSTEM]:PURGE:${target}`;
+                }
+            } else if (mainCmd === '!matrix') {
+                messageText = `[SYSTEM]:MATRIX`;
+            } else if (mainCmd === '!flash' && isMod) {
+                messageText = `[SYSTEM]:FLASH:${messageText.replace('!flash ', '')}`;
+            } else if (mainCmd === '!boss' && isMod) {
+                messageText = `[SYSTEM]:BOSS_SPAWN`;
+            } else if (mainCmd === '!braquage') {
+                const amount = parseInt(cmdParts[1]) || 50;
+                if (userDrops < amount) {
+                    showNotification("Pas assez de Drops !", 'error');
+                    return;
+                }
+                setUserDrops(prev => prev - amount);
+                messageText = `[SYSTEM]:HEIST_JOIN:${JSON.stringify({ pseudo, bet: amount })}`;
+            } else if (mainCmd === '!hit' && activeBoss) {
+                const dmg = Math.floor(Math.random() * 25) + 5;
+                messageText = `[SYSTEM]:BOSS_HIT:${dmg}`;
+            } else if (mainCmd === '!vip' && isMod) {
+                const userVIP = cmdParts[1]?.replace('@', '').trim();
+                if (userVIP) {
+                    setVipsList(prev => [...prev.filter(u => u !== userVIP), userVIP]);
+                    showNotification(`${userVIP} a été promu VIP !`, 'success');
+                }
+                setNewMessage('');
+                return;
+            } else if (mainCmd === '!unvip' && isMod) {
+                const userVIP = cmdParts[1]?.replace('@', '').trim();
+                if (userVIP) {
+                    setVipsList(prev => prev.filter(u => u !== userVIP));
+                    showNotification(`${userVIP} n'est plus VIP.`, 'success');
+                }
+                setNewMessage('');
+                return;
+            } else if (mainCmd === '!vol') {
+                const target = cmdParts[1]?.replace('@', '').trim();
+                if (!target || target.toLowerCase() === pseudo.toLowerCase()) {
+                    showNotification("Cible invalide !", 'error');
+                    return;
+                }
+                if (userDrops < 100) {
+                    showNotification("Minimum 100 DROPS requis pour voler !", 'error');
+                    return;
+                }
+                const success = Math.random() > 0.6;
+                const amount = Math.floor(Math.random() * 200) + 50;
+                if (success) {
+                    setUserDrops(prev => prev + amount);
+                    messageText = `💰 @${pseudo} a volé ${amount} DROPS à @${target} !`;
+                } else {
+                    setUserDrops(prev => Math.max(0, prev - amount));
+                    messageText = `❌ @${pseudo} a été attrapé ! Retrait de ${amount} DROPS.`;
+                }
+            } else if (mainCmd === '!dons') {
+                const target = cmdParts[1]?.replace('@', '');
+                const amount = parseInt(cmdParts[2]);
+                if (target && !isNaN(amount) && amount > 0 && userDrops >= amount) {
+                    setUserDrops(prev => prev - amount);
+                    messageText = `🎁 @${pseudo} a donné ${amount} DROPS à @${target} !`;
+                } else {
+                    showNotification("Don invalide ou fonds insuffisants", "error");
+                    return;
+                }
+            } else if (mainCmd === '!rps') {
+                const choices = ['pierre', 'papier', 'ciseau'];
+                const userChoice = cmdParts[1]?.toLowerCase();
+                if (choices.includes(userChoice)) {
+                    const botChoice = choices[Math.floor(Math.random() * 3)];
+                    const win = (userChoice === 'pierre' && botChoice === 'ciseau') || (userChoice === 'papier' && botChoice === 'pierre') || (userChoice === 'ciseau' && botChoice === 'papier');
+                    const draw = userChoice === botChoice;
+                    const result = draw ? 'ÉGALITÉ' : win ? 'GAGNÉ (+50 DROPS)' : 'PERDU';
+                    if (win) setUserDrops(prev => prev + 50);
+                    messageText = `🎮 @${pseudo} joue ${userChoice} vs BOT ${botChoice} -> ${result}`;
+                } else {
+                    showNotification("Usage: !rps [pierre|papier|ciseau]", "error");
+                    return;
+                }
+            } else if (mainCmd === '!slow' && isMod) {
+                const toggle = cmdParts[1]?.toLowerCase();
+                messageText = toggle === 'on' ? '[SYSTEM]:SLOW_ON' : '[SYSTEM]:SLOW_OFF';
+            } else if (mainCmd === '!poll' && isMod) {
+                const pollStr = messageText.replace('!poll ', '');
+                const [question, ...options] = pollStr.split('|').map(s => s.trim());
+                if (question && options.length >= 2) {
+                    const pollData = { question, options: options.map(o => ({ text: o, votes: 0 })), active: true };
+                    messageText = `[SYSTEM]:POLL:${JSON.stringify(pollData)}`;
+                }
+            } else if (mainCmd === '!pollstop' && isMod) {
+                messageText = '[SYSTEM]:CLEAR_POLL';
+            } else if (mainCmd === '!quizz' && isMod) {
+                const args = messageText.replace('!quizz', '').trim();
+                let quizMsg = '';
+                if (args) {
+                    quizMsg = args;
+                } else {
+                    if (predefinedQuizzes.length === 0) {
+                        showNotification("Aucun QCM chargé !", "error");
+                        return;
+                    }
+                    const randomQ = predefinedQuizzes[Math.floor(Math.random() * predefinedQuizzes.length)];
+                    const correctIdx = randomQ.options.findIndex((o: string) => o === randomQ.correctAnswer) + 1;
+                    quizMsg = `${randomQ.question} | ${randomQ.options[0] || '?'} | ${randomQ.options[1] || '?'} | ${randomQ.options[2] || '?'} | ${randomQ.options[3] || '?'} | ${correctIdx || 1}`;
+                }
+                messageText = `[QUIZ_START]:${quizMsg}`;
+            } else if (mainCmd === '!stop' && isMod) {
+                messageText = '[SYSTEM]:CLEAR_QUIZ';
+            }
         }
 
-        setNewMessage('');
-        setIsHighlightChecked(false);
-
-        try {
+        // Quiz participation (non-commands)
+        if (activeQuiz && !isMod && !userHasAnswered && /^[1-4]$/.test(messageText)) {
+            const choiceIdx = parseInt(messageText) - 1;
+            setUserHasAnswered(true);
             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                pseudo,
-                message: messageText,
-                color,
-                time,
-                country: userCountry,
-                bgColor: isHighlightChecked ? highlightColor : null,
-                xp: userXP
+                pseudo: "BOT_SYSTEM",
+                message: `[SYSTEM]:QUIZ_VOTE:${choiceIdx}`,
+                color: "text-neon-purple",
+                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                country: "FR"
             });
 
-            // 📣 TTS Broadcast (if enabled and not a command)
+            if (messageText === activeQuiz.correct) {
+                const reward = 100;
+                setUserDrops(prev => {
+                    const next = prev + reward;
+                    localStorage.setItem('user_drops', next.toString());
+                    return next;
+                });
+                showNotification(`BRAVO ! +${reward} DROPS !`, 'success');
+            } else {
+                showNotification(`MAUVAISE RÉPONSE ! C'était le n°${activeQuiz.correct}`, 'error');
+            }
+        }
+
+        try {
+            if (isHighlightChecked) {
+                setUserDrops(prev => prev - price);
+                localStorage.setItem('user_drops', (userDrops - price).toString());
+            }
+
+            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                pseudo: userTitle ? `[${userTitle}] ${pseudo}` : pseudo,
+                message: messageText,
+                color: isHighlightChecked ? highlightColor : (isMod ? "text-neon-red" : "text-white"),
+                isHighlight: isHighlightChecked,
+                bgColor: isHighlightChecked ? highlightColor : null,
+                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                country: userCountry,
+                isMod,
+                isVip: vipsList.includes(pseudo),
+                xp: userXP,
+                role: userRole,
+                border: profileBorder,
+                font: specialFontStyle
+            });
+
+            // Leveling System
+            if (!isMod) {
+                const xpGain = 10;
+                const nextXP = userXP + xpGain;
+                const nextLevel = Math.floor(Math.sqrt(nextXP / 100)) + 1;
+                setUserXP(nextXP);
+                localStorage.setItem('user_xp', nextXP.toString());
+                if (nextLevel > userLevel) {
+                    setUserLevel(nextLevel);
+                    localStorage.setItem('user_level', nextLevel.toString());
+                    showNotification(`🌟 NIVEAU SUPÉRIEUR ! Niveau ${nextLevel} !`, 'success');
+                }
+            }
+
+            // 📣 TTS Broadcast
             if (isTTSActive && !messageText.startsWith('[SYSTEM]') && !messageText.startsWith('!')) {
                 await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                     pseudo: "BOT_TTS",
                     message: `[SYSTEM]:TTS:${pseudo} dit : ${messageText}`,
                     color: "text-neon-cyan",
-                    time,
+                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                     country: "FR"
                 });
             }
+
+            setNewMessage('');
+            setIsHighlightChecked(false);
+            setLastMessageTime(Date.now());
+
         } catch (e: any) {
             console.error("Appwrite send error details:", e);
             showNotification(`Erreur d'envoi: ${e.message || 'Problème serveur'}`, 'error');
@@ -2074,8 +2010,27 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         )
                     }
 
-                    <div className="flex-1 overflow-y-auto p-4 custom-scrollbar relative">
-                        {/* Mention Notification */}
+                    <div className={`flex-1 overflow-y-auto px-4 lg:px-6 py-6 custom-scrollbar scroll-smooth flex flex-col gap-6 relative transition-all duration-500 ${chatTheme === 'synthwave' ? 'bg-[#050014] text-pink-500' :
+                        chatTheme === 'cyberpunk' ? 'bg-[#0a0f0a] text-yellow-500' : 'bg-transparent'
+                        }`}>
+                        {chatTheme === 'synthwave' && <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(transparent 0, rgba(255,0,255,0.05) 2px, transparent 4px)' }} />}
+
+                        <div className="flex items-center justify-between mb-2">
+                            <div className="flex gap-2">
+                                {(['neon', 'synthwave', 'cyberpunk'] as const).map(t => (
+                                    <button key={t} onClick={() => setChatTheme(t)} className={`px-2 py-1 text-[8px] font-black rounded-lg border transition-all ${chatTheme === t ? 'bg-white/10 border-white/20 text-white' : 'border-white/5 text-gray-500 hover:text-white'}`}>
+                                        {t.toUpperCase()}
+                                    </button>
+                                ))}
+                            </div>
+                            <div className="bg-white/5 px-3 py-1 rounded-full border border-white/10 flex items-center gap-2">
+                                <span className="text-[8px] font-black uppercase text-gray-500">Hype Train</span>
+                                <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
+                                    <motion.div animate={{ width: `${hypeTrain.progress}%` }} className="h-full bg-neon-cyan" />
+                                </div>
+                            </div>
+                        </div>
+
                         <AnimatePresence>
                             {mentionNotify && (
                                 <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="absolute bottom-4 right-4 z-[50] bg-neon-red text-white text-[10px] font-black px-4 py-2 rounded-full shadow-[0_0_20px_rgba(255,0,51,0.5)]">
@@ -2328,6 +2283,26 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             </div>
                                         </div>
 
+                                        {/* Captcha Section */}
+                                        {captchaChallenge && (
+                                            <div className="space-y-1.5 bg-black/40 p-4 rounded-xl border border-white/5">
+                                                <label className="text-[9px] font-black text-neon-red uppercase tracking-[0.2em] mb-2 block">Vérification humaine (CAPTCHA)</label>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-center">
+                                                        <span className="text-sm font-black text-white italic tracking-widest">{captchaChallenge.q}</span>
+                                                    </div>
+                                                    <input
+                                                        type="text"
+                                                        required
+                                                        value={captchaInput}
+                                                        onChange={e => setCaptchaInput(e.target.value)}
+                                                        placeholder="?"
+                                                        className="w-20 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-red outline-none transition-all text-center font-black"
+                                                    />
+                                                </div>
+                                            </div>
+                                        )}
+
                                         <label className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:bg-white/10 transition-all group">
                                             <input
                                                 type="checkbox"
@@ -2403,8 +2378,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 {msg.country && <FlagIcon location={msg.country} className="w-3 h-2" />}
+                                                                <span className="text-[8px] font-black text-gray-600 ml-1">{userCity}</span>
                                                                 <span className="text-[9px] font-black text-neon-cyan/60 shrink-0 uppercase tracking-tighter mr-1">LVL {Math.floor(Math.sqrt((msg.xp || 0) / 100)) + 1}</span>
-                                                                <span className={`text-[11px] font-black uppercase italic tracking-tight ${msg.color || 'text-white'}`}>{msg.pseudo || msg.user}</span>
+                                                                <span className={`text-[11px] font-black uppercase italic tracking-tight ${msg.xp > 5000 ? 'bg-gradient-to-r from-red-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent animate-gradient' : msg.color || 'text-white'}`}>{msg.pseudo || msg.user}</span>
+                                                                {isFirstConnection && msg.pseudo === localStorage.getItem('chat_pseudo') && <span className="bg-neon-cyan text-black text-[7px] font-black px-1 rounded">PREMS</span>}
 
                                                                 {/* Mod/VIP Badges */}
                                                                 {showBadgesAdmin && msg.isMod && <Sword className="w-2.5 h-2.5 text-neon-red" />}
@@ -2583,7 +2560,25 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         localStorage.setItem('user_drops', next.toString());
                                                         return next;
                                                     });
-                                                    showNotification(`Achat réussi: ${lot.name}`, 'success');
+
+                                                    // Apply effect based on lot name
+                                                    if (lot.name.startsWith('TITRE:')) {
+                                                        const title = lot.name.replace('TITRE: ', '');
+                                                        setUserTitle(title);
+                                                        localStorage.setItem('user_chat_title', title);
+                                                        showNotification(`Nouveau titre : ${title}`, 'success');
+                                                    } else if (lot.name.startsWith('BORDURE:')) {
+                                                        const color = lot.name.includes('NEON') ? 'neon-cyan' : 'amber-500';
+                                                        setProfileBorder(color);
+                                                        localStorage.setItem('user_profile_border', color);
+                                                        showNotification(`Bordure équipée !`, 'success');
+                                                    } else if (lot.name.startsWith('FONTS')) {
+                                                        setSpecialFontStyle('italic-bold');
+                                                        localStorage.setItem('user_font_style', 'italic-bold');
+                                                        showNotification(`Style de police activé !`, 'success');
+                                                    } else {
+                                                        showNotification(`Achat réussi: ${lot.name}`, 'success');
+                                                    }
                                                 }}
                                                 className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-3 hover:bg-white/10 transition-all border-dashed border-2 group"
                                             >
@@ -2591,6 +2586,39 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 <div className="px-4 py-1.5 bg-amber-500 text-black text-[10px] font-black rounded-lg uppercase">{lot.price} DROPS</div>
                                             </button>
                                         ))}
+
+                                        {/* Static default items if list is empty or for demo */}
+                                        {dropsLots.length === 0 && (
+                                            <>
+                                                {[
+                                                    { id: 'sh1', name: 'TITRE: ALPHA', price: 2000 },
+                                                    { id: 'sh2', name: 'TITRE: LÉGENDE', price: 5000 },
+                                                    { id: 'sh3', name: 'BORDURE: NEON CYAN', price: 3000 },
+                                                    { id: 'sh4', name: 'FONTS: SPECIAL', price: 1500 }
+                                                ].map(lot => (
+                                                    <button
+                                                        key={lot.id}
+                                                        onClick={() => {
+                                                            if (userDrops < lot.price) {
+                                                                showNotification(`Pas assez de DROPS (${lot.price} requis)`, 'error');
+                                                                return;
+                                                            }
+                                                            setUserDrops(prev => prev - lot.price);
+                                                            if (lot.name.startsWith('TITRE:')) {
+                                                                const t = lot.name.replace('TITRE: ', '');
+                                                                setUserTitle(t);
+                                                                localStorage.setItem('user_chat_title', t);
+                                                            }
+                                                            showNotification(`Achat réussi : ${lot.name}`, 'success');
+                                                        }}
+                                                        className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-3 hover:bg-white/10 transition-all border-dashed border-2 group"
+                                                    >
+                                                        <p className="text-xs font-black text-white uppercase">{lot.name}</p>
+                                                        <div className="px-4 py-1.5 bg-amber-500 text-black text-[10px] font-black rounded-lg uppercase">{lot.price} DROPS</div>
+                                                    </button>
+                                                ))}
+                                            </>
+                                        )}
                                     </div>
                                 </motion.div>
                             ) : null}
@@ -2656,8 +2684,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         className="fixed top-24 left-1/2 -translate-x-1/2 z-[200]"
                     >
                         <div className={`px-8 py-4 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl border-2 flex items-center gap-4 ${flashMessage.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500 shadow-green-500/20' :
-                                flashMessage.type === 'warn' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 shadow-amber-500/20' :
-                                    'bg-blue-500/10 border-blue-500/20 text-blue-500 shadow-blue-500/20'
+                            flashMessage.type === 'warn' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 shadow-amber-500/20' :
+                                'bg-blue-500/10 border-blue-500/20 text-blue-500 shadow-blue-500/20'
                             }`}>
                             {flashMessage.type === 'success' ? <ShieldCheck className="w-6 h-6" /> :
                                 flashMessage.type === 'warn' ? <AlertCircle className="w-6 h-6 animate-pulse" /> :
