@@ -838,6 +838,15 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
     };
 
+    const unlockAchievement = (name: string) => {
+        if (!achievements.includes(name)) {
+            const next = [...achievements, name];
+            setAchievements(next);
+            localStorage.setItem('user_achievements', JSON.stringify(next));
+            showNotification(`🏆 SUCCÈS : ${name}`, 'success');
+        }
+    };
+
     const handleSendMessage = async (customText?: string) => {
         const messageToSend = customText || newMessage;
         if (!messageToSend.trim() || isBanned || isMuted) {
@@ -1111,6 +1120,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     setUserLevel(nextLevel);
                     localStorage.setItem('user_level', nextLevel.toString());
                     showNotification(`🌟 NIVEAU SUPÉRIEUR ! Niveau ${nextLevel} !`, 'success');
+                    unlockAchievement(`Niveau ${nextLevel}`);
                 }
             }
 
@@ -2434,8 +2444,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     className={`group flex flex-col gap-1 relative p-3 rounded-2xl transition-all duration-300 cursor-pointer ${msg.pseudo === localStorage.getItem('chat_pseudo') ? 'bg-white/5 ml-4 lg:ml-8' : 'hover:bg-white/[0.02]'}`}
                                                     style={{
                                                         backgroundColor: msg.bgColor ? `${msg.bgColor}15` : undefined,
-                                                        borderColor: msg.bgColor ? `${msg.bgColor}30` : undefined,
-                                                        borderWidth: msg.bgColor ? '1px' : '0px',
+                                                        borderColor: msg.pseudo === localStorage.getItem('chat_pseudo') && profileBorder !== 'none' ? profileBorder : (msg.bgColor ? `${msg.bgColor}30` : undefined),
+                                                        borderWidth: (msg.pseudo === localStorage.getItem('chat_pseudo') && profileBorder !== 'none') || msg.bgColor ? '1px' : '0px',
                                                         boxShadow: msg.bgColor ? `0 0 15px ${msg.bgColor}10` : 'none'
                                                     }}
                                                 >
@@ -2484,7 +2494,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 {msg.time && <span className="text-[8px] text-gray-600 font-mono ml-auto opacity-0 group-hover:opacity-100 transition-opacity">{msg.time}</span>}
                                                             </div>
                                                             {/* Reply support removed */}
-                                                            <p className={`text-[11px] leading-relaxed break-all font-medium transition-colors ${isHovered ? 'text-white' : 'text-gray-400'}`}>
+                                                            <p className={`text-[11px] leading-relaxed break-all font-medium transition-colors ${isHovered ? 'text-white' : 'text-gray-400'} ${msg.pseudo === localStorage.getItem('chat_pseudo') ? specialFontStyle : ''}`}>
                                                                 {msg.message || msg.text}
                                                             </p>
                                                             <div className="flex gap-1 mt-2">
@@ -2878,6 +2888,32 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             <div>
                                 <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none">Nouvel arrivant</p>
                                 <p className="text-sm font-black text-white uppercase italic tracking-tighter">{newArrival} vient d'arriver !</p>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* PACMAN ANIMATION */}
+            <AnimatePresence>
+                {isPacmanActive && (
+                    <motion.div
+                        initial={{ x: '110vw' }}
+                        animate={{ x: '-110vw' }}
+                        transition={{ duration: 5, ease: "linear" }}
+                        className="fixed top-1/2 left-0 z-[2000] pointer-events-none"
+                    >
+                        <div className="flex items-center gap-4 text-yellow-400">
+                            <motion.div
+                                animate={{ rotate: [0, 30, 0] }}
+                                transition={{ repeat: Infinity, duration: 0.2 }}
+                                className="w-16 h-16 bg-yellow-400 rounded-full relative"
+                                style={{ clipPath: 'polygon(100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 50%)' }}
+                            />
+                            <div className="flex gap-8">
+                                {[...Array(5)].map((_, i) => (
+                                    <div key={i} className="w-4 h-4 bg-white rounded-full opacity-50" />
+                                ))}
                             </div>
                         </div>
                     </motion.div>
