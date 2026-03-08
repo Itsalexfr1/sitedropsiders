@@ -1005,8 +1005,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 color,
                 time,
                 country: userCountry,
-                bgColor: isHighlightChecked ? highlightColor : null,
-                replyTo: replyContext ? JSON.stringify({ pseudo: replyContext.pseudo, message: replyContext.message }) : null
+                bgColor: isHighlightChecked ? highlightColor : null
             });
 
             // 📣 TTS Broadcast (if enabled and not a command)
@@ -1137,13 +1136,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
                                     <span className="text-[6px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
                                 </div>
-                                <h1 className="text-[13px] lg:text-2xl font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
+                                <h1 className="text-[24px] lg:text-[44px] font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
                             </div>
                         </div>
-                        <div className="flex items-center gap-1 lg:gap-2 mt-1">
-                            <div className="w-1 h-1 lg:w-1.5 lg:h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
-                            <span className="text-[7px] lg:text-[9px] font-black text-gray-500 uppercase tracking-widest leading-none">NOW &gt;&gt;</span>
-                            <span className="text-[10px] lg:text-xs font-black text-white uppercase italic tracking-tighter truncate max-w-[120px] lg:max-w-none">{fluxCurrentArtist.artist}</span>
+                        <div className="flex items-center gap-1 lg:gap-3 mt-3">
+                            <div className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
+                            <span className="text-[12px] lg:text-[14px] font-black text-gray-500 uppercase tracking-widest leading-none">NOW &gt;&gt;</span>
+                            <span className="text-[18px] lg:text-[22px] font-black text-white uppercase italic tracking-tighter truncate max-w-[200px] lg:max-w-none">{fluxCurrentArtist.artist}</span>
                         </div>
                     </div>
                 </div>
@@ -1369,40 +1368,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     </div>
 
                                                     <div className="space-y-6">
-                                                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-6">
-                                                            <div className="flex items-center justify-between">
-                                                                <div>
-                                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Bandeau d'annonce</p>
-                                                                    <p className="text-[9px] text-gray-500 font-bold uppercase mt-1">Activer le message défilant</p>
-                                                                </div>
-                                                                <button onClick={() => setEditAnnEnabled(!editAnnEnabled)} className={`w-12 h-6 rounded-full relative transition-all ${editAnnEnabled ? 'bg-neon-red' : 'bg-white/10'}`}>
-                                                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${editAnnEnabled ? 'left-7' : 'left-1'}`} />
-                                                                </button>
-                                                            </div>
 
-                                                            <div className="space-y-4">
-                                                                <div className="grid grid-cols-2 gap-4">
-                                                                    <div>
-                                                                        <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-2">Couleur Fond</label>
-                                                                        <div className="flex gap-2">
-                                                                            <input type="color" value={editTickerBg} onChange={e => setEditTickerBg(e.target.value)} className="w-10 h-10 bg-black/40 border border-white/10 rounded-lg outline-none cursor-pointer p-1" />
-                                                                            <input type="text" value={editTickerBg} onChange={e => setEditTickerBg(e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono text-white outline-none" />
-                                                                        </div>
-                                                                    </div>
-                                                                    <div>
-                                                                        <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-2">Couleur Texte</label>
-                                                                        <div className="flex gap-2">
-                                                                            <input type="color" value={editTickerTextC} onChange={e => setEditTickerTextC(e.target.value)} className="w-10 h-10 bg-black/40 border border-white/10 rounded-lg outline-none cursor-pointer p-1" />
-                                                                            <input type="text" value={editTickerTextC} onChange={e => setEditTickerTextC(e.target.value)} className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] font-mono text-white outline-none" />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                                <div className="space-y-2">
-                                                                    <label className="block text-[8px] font-black text-gray-500 uppercase tracking-widest mb-2 pl-2">Message du bandeau</label>
-                                                                    <textarea value={editAnnText} onChange={e => setEditAnnText(e.target.value)} className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-red transition-all min-h-[100px] uppercase" placeholder="TEXTE À DÉFILER..." />
-                                                                </div>
-                                                            </div>
-                                                        </div>
 
                                                         <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
                                                             <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Statut de la diffusion</label>
