@@ -991,7 +991,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 time,
                 country: userCountry,
                 bgColor: isHighlightChecked ? highlightColor : null,
-                isModOnly: isModChat,
                 replyTo: replyContext ? JSON.stringify({ pseudo: replyContext.pseudo, message: replyContext.message }) : null
             });
 
