@@ -1027,7 +1027,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">Historique</h3>
                                         {shazamHistory.map(track => (
                                             <div key={track.id} className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-4 group">
-                                                <img src={track.image} className="w-12 h-12 rounded-lg shrink-0 object-cover" alt="" />
+                                                <img
+                                                    src={track.image}
+                                                    onError={(e) => e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=cover"}
+                                                    className="w-12 h-12 rounded-lg shrink-0 object-cover"
+                                                    alt=""
+                                                />
                                                 <div className="flex-1 min-w-0">
                                                     <p className="text-xs font-black text-white uppercase truncate">{track.title}</p>
                                                     <p className="text-[9px] text-gray-500 font-bold uppercase truncate">{track.artist}</p>
@@ -1039,15 +1044,38 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 </motion.div>
                             ) : activeChatTab === 'planning' ? (
                                 <motion.div key="planning-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                                    {lineupItems.map(item => (
-                                        <div key={item.id} className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-[10px] font-black text-neon-cyan uppercase">{item.stage}</span>
-                                                <span className="text-[10px] font-mono text-gray-500">{item.startTime} - {item.endTime}</span>
+                                    {lineupItems.map(item => {
+                                        const now = new Date();
+                                        const [h, m] = (item.startTime || "00:00").split(':').map(Number);
+                                        const [eh, em] = (item.endTime || "00:00").split(':').map(Number);
+                                        const start = new Date(); start.setHours(h, m, 0);
+                                        const end = new Date(); end.setHours(eh, em, 0);
+                                        const isNow = now >= start && now <= end;
+                                        const progress = isNow ? Math.min(100, Math.max(0, ((now.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100)) : 0;
+
+                                        return (
+                                            <div key={item.id} className={`p-4 border rounded-2xl space-y-3 transition-all ${isNow ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,255,255,0.05)]' : 'bg-white/5 border-white/10'}`}>
+                                                <div className="flex items-center justify-between">
+                                                    <span className={`text-[10px] font-black uppercase ${isNow ? 'text-neon-cyan' : 'text-gray-500'}`}>{item.stage}</span>
+                                                    <span className="text-[10px] font-mono text-gray-500">{item.startTime} - {item.endTime}</span>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <p className="text-lg font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-2">
+                                                        {isNow && <span className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse" />}
+                                                        {item.artist}
+                                                    </p>
+                                                    {isNow && (
+                                                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mt-2">
+                                                            <div
+                                                                className="h-full bg-neon-cyan shadow-[0_0_10px_#00ffff] transition-all duration-1000"
+                                                                style={{ width: `${progress}%` }}
+                                                            />
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <p className="text-lg font-display font-black text-white uppercase italic tracking-tighter">{item.artist}</p>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </motion.div>
                             ) : activeChatTab === 'drops' ? (
                                 <motion.div key="drops-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 text-center py-10 px-6">
