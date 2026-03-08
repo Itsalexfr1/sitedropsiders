@@ -546,20 +546,20 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             </AnimatePresence>
 
             {/* 2. HEADER */}
-            <div className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-black/40 backdrop-blur-md relative z-40">
+            <div className="h-10 lg:h-16 border-b border-white/5 flex items-center justify-between px-4 lg:px-6 bg-black/40 backdrop-blur-md relative z-40">
                 <div className="flex items-center gap-8">
                     <div className="flex flex-col">
                         <div className="flex items-center gap-3 mb-1">
-                            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md">
-                                <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse" />
-                                <span className="text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
+                            <div className="flex items-center gap-1.5 px-1.5 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md">
+                                <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
+                                <span className="text-[7px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
                             </div>
-                            <h1 className="text-xl font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
+                            <h1 className="text-sm lg:text-xl font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
                         </div>
-                        <div className="flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
-                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest leading-none">NOW &gt;&gt;</span>
-                            <span className="text-[10px] font-black text-white uppercase italic tracking-tighter">{fluxCurrentArtist.artist}</span>
+                        <div className="flex items-center gap-1.5 lg:gap-2">
+                            <div className="w-1 h-1 lg:w-1.5 lg:h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
+                            <span className="text-[7px] lg:text-[9px] font-black text-gray-500 uppercase tracking-widest leading-none">NOW &gt;&gt;</span>
+                            <span className="text-[8px] lg:text-[10px] font-black text-white uppercase italic tracking-tighter truncate max-w-[120px] lg:max-w-none">{fluxCurrentArtist.artist}</span>
                         </div>
                     </div>
                 </div>
@@ -572,16 +572,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 setAdminActiveTab('moderation');
                             }
                         }}
-                        className={`flex items-center gap-4 px-4 py-2 bg-white/5 border border-white/10 rounded-xl transition-all ${isMod ? 'hover:bg-white/10 cursor-pointer' : ''}`}
+                        className={`flex items-center gap-2 lg:gap-4 px-2 lg:px-4 py-1.5 lg:py-2 bg-white/5 border border-white/10 rounded-xl transition-all ${isMod ? 'hover:bg-white/10 cursor-pointer' : ''}`}
                     >
-                        <div className="flex items-center gap-2">
-                            <Users className="w-4 h-4 text-neon-cyan" />
-                            <span className="text-xs font-black text-white">{settings.status === 'off' ? 0 : viewersCount}</span>
+                        <div className="flex items-center gap-1.5 lg:gap-2">
+                            <Users className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-neon-cyan" />
+                            <span className="text-[11px] lg:text-xs font-black text-white">{settings.status === 'off' ? 0 : viewersCount}</span>
                         </div>
                     </button>
                     {isMod && (
-                        <button onClick={() => setShowAdminPanel(!showAdminPanel)} className={`p-3 rounded-xl transition-all border ${showAdminPanel ? 'bg-neon-purple border-neon-purple shadow-[0_0_15px_rgba(168,85,247,0.4)] text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}>
-                            <Settings className="w-5 h-5" />
+                        <button onClick={() => setShowAdminPanel(!showAdminPanel)} className={`p-2 lg:p-3 rounded-xl transition-all border ${showAdminPanel ? 'bg-neon-purple border-neon-purple shadow-[0_0_15px_rgba(168,85,247,0.4)] text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}>
+                            <Settings className="w-4 h-4 lg:w-5 lg:h-5" />
                         </button>
                     )}
                     <button onClick={() => navigate('/')} className="p-2 hover:bg-white/5 rounded-full transition-all">
@@ -872,19 +872,19 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                 {/* B. CHAT PANEL (60% Mobile / 40% Desktop) */}
                 <div className="flex-1 lg:flex-1 h-[60%] lg:h-full bg-[#080808] flex flex-col relative z-10 lg:border-l border-white/10 shadow-2xl overflow-hidden max-w-full">
-                    <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-lg bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red">
-                                <MessageSquare className="w-4 h-4" />
+                    <div className="p-2 lg:p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+                        <div className="flex items-center gap-2 lg:gap-3">
+                            <div className="w-6 h-6 lg:w-8 lg:h-8 rounded-lg bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red">
+                                <MessageSquare className="w-3.5 h-3.5 lg:w-4 lg:h-4" />
                             </div>
-                            <h2 className="text-xs font-black uppercase italic tracking-tighter text-white">LIVE INTERACTIF</h2>
+                            <h2 className="text-[10px] lg:text-xs font-black uppercase italic tracking-tighter text-white">LIVE INTERACTIF</h2>
                         </div>
                     </div>
 
                     {isConnected && (
-                        <div className="flex gap-1 p-2 bg-black/20 border-b border-white/10">
+                        <div className="flex gap-1 p-1 lg:p-2 bg-black/20 border-b border-white/10">
                             {['CHAT', 'PLANNING', 'SHAZAM', 'BOUTIQUE'].map(tab => (
-                                <button key={tab} onClick={() => setActiveChatTab(tab === 'BOUTIQUE' ? 'drops' : tab.toLowerCase())} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === (tab === 'BOUTIQUE' ? 'drops' : tab.toLowerCase()) ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{tab}</button>
+                                <button key={tab} onClick={() => setActiveChatTab(tab === 'BOUTIQUE' ? 'drops' : tab.toLowerCase())} className={`px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg text-[8px] lg:text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === (tab === 'BOUTIQUE' ? 'drops' : tab.toLowerCase()) ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{tab}</button>
                             ))}
                         </div>
                     )}
