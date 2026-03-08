@@ -61,7 +61,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         .setEndpoint('https://fra.cloud.appwrite.io/v1')
         .setProject('69adc19b0027cb3b46d4');
     const databases = new Databases(client);
-    const DATABASE_ID = 'ChatDB';
+    const DATABASE_ID = 'live_chat';
     const COLLECTION_CHAT = 'live_messages';
     const COLLECTION_BANS = 'bans';
 
