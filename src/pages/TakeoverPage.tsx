@@ -6,7 +6,7 @@ import {
     Save, AlertCircle, Music, Trash2, Plus,
     Pin, Star, ShieldCheck, Ban, Megaphone, User,
     BarChart3, Bell, Clock, Sword, Crown, Maximize2, Minimize2,
-    Quote, Reply, Trophy, Stars, Heart, Volume2, Timer
+    Trophy, Stars, Heart, Volume2, Timer
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
@@ -200,7 +200,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         { pseudo: 'DJ_KOROS', drops: 12200, country: 'BE' },
         { pseudo: 'RAVER_99', drops: 9800, country: 'DE' }
     ]);
-    const [replyTo, setReplyTo] = useState<any>(null);
     const [newArrival, setNewArrival] = useState<string | null>(null);
     const [setRatings, setSetRatings] = useState<{ [artist: string]: number }>({});
     const [showRatingPrompt, setShowRatingPrompt] = useState(false);
@@ -690,7 +689,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
     };
 
-    const handleSendMessage = async (customText?: string, replyContext?: any) => {
+    const handleSendMessage = async (customText?: string) => {
         const messageToSend = customText || newMessage;
         if (!messageToSend.trim() || isBanned) return;
 
@@ -2309,20 +2308,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                                                     {msg.time && <span className="text-[8px] text-gray-600 font-mono ml-auto opacity-0 group-hover:opacity-100 transition-opacity">{msg.time}</span>}
                                                                 </div>
-                                                                {msg.replyTo && (
-                                                                    <div className="mb-2 p-2 bg-white/5 border-l-2 border-white/20 rounded-r-lg opacity-60 flex items-center gap-2">
-                                                                        <Quote className="w-2 h-2 text-gray-400" />
-                                                                        <span className="text-[9px] font-black text-white/50">{JSON.parse(msg.replyTo).pseudo} :</span>
-                                                                        <span className="text-[9px] text-gray-400 italic truncate max-w-[150px]">{JSON.parse(msg.replyTo).message}</span>
-                                                                    </div>
-                                                                )}
+                                                                {/* Reply support removed */}
                                                                 <p className={`text-[11px] leading-relaxed break-all font-medium transition-colors ${isHovered ? 'text-white' : 'text-gray-400'}`}>
                                                                     {msg.message || msg.text}
                                                                 </p>
                                                             </div>
 
                                                             <div className="absolute right-0 top-0 hidden group-hover:flex items-center gap-1 bg-black/80 backdrop-blur-md p-1.5 rounded-xl border border-white/10 z-20 shadow-2xl">
-                                                                <button onClick={(e) => { e.stopPropagation(); setReplyTo(msg); }} title="Répondre" className="p-1.5 text-gray-400 hover:text-white transition-all"><Reply className="w-3 h-3" /></button>
+                                                                {/* Reply capability removed as DB schema doesn't support it */}
                                                                 {isMod && (
                                                                     <>
                                                                         <button onClick={(e) => { e.stopPropagation(); setPinnedMessage(msg); }} title="Épingler" className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"><Pin className="w-3 h-3" /></button>
@@ -2482,18 +2475,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         {
                             isConnected && (
                                 <div className="p-4 bg-black/40 border-t border-white/5 space-y-3">
-                                    {replyTo && (
-                                        <div className="bg-white/5 border border-white/10 p-3 rounded-2xl flex items-center justify-between gap-4 animate-in slide-in-from-bottom-2">
-                                            <div className="flex items-center gap-3 truncate">
-                                                <Quote className="w-4 h-4 text-neon-cyan" />
-                                                <div className="truncate">
-                                                    <p className="text-[10px] font-black text-neon-cyan uppercase leading-none mb-1">En réponse à @{replyTo.pseudo}</p>
-                                                    <p className="text-[10px] text-gray-400 italic truncate opacity-60">"{replyTo.message}"</p>
-                                                </div>
-                                            </div>
-                                            <button onClick={() => setReplyTo(null)} className="p-1 hover:bg-white/10 rounded-md"><X className="w-4 h-4 text-gray-400" /></button>
-                                        </div>
-                                    )}
+                                    {/* Reply support removed from footer */}
                                     {isHighlightChecked && (
                                         <div className="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all border" style={{ backgroundColor: `${highlightColor}20`, borderColor: `${highlightColor}40` }}>
                                             <div className="flex items-center gap-3">
@@ -2515,14 +2497,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             value={isBanned ? "VOUS ÊTES BANNI" : newMessage}
                                             onChange={e => setNewMessage(e.target.value)}
                                             disabled={isBanned}
-                                            onKeyDown={e => e.key === 'Enter' && (handleSendMessage(newMessage, replyTo), setReplyTo(null))}
+                                            onKeyDown={e => e.key === 'Enter' && handleSendMessage(newMessage)}
                                             placeholder={isBanned ? "ACCÈS REFUSÉ..." : slowModeEnabled && !isMod ? "MODE LENT ACTIF..." : "VOTRE MESSAGE..."}
                                             className={`flex-1 bg-transparent text-xs font-bold outline-none uppercase tracking-wider ${isBanned ? 'text-red-500' : 'text-white placeholder:text-gray-600'}`}
                                         />
                                         <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
                                             <Zap className="w-4 h-4" />
                                         </button>
-                                        <button onClick={() => { handleSendMessage(newMessage, replyTo); setReplyTo(null); }} className="p-2 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all" style={{ backgroundColor: accentColor }}>
+                                        <button onClick={() => handleSendMessage(newMessage)} className="p-2 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all" style={{ backgroundColor: accentColor }}>
                                             <Send className="w-4 h-4" />
                                         </button>
                                     </div>
