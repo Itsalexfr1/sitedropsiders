@@ -97,12 +97,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         { code: 'TN', name: 'Tunisie' }
     ];
 
-    const [pinnedMessage, setPinnedMessage] = useState<any>({
-        id: 'welcome',
-        user: "DROPSIDERS",
-        text: "BIENVENUE SUR LE LIVE ! RESPECTEZ-VOUS DANS LE CHAT 🔥",
-        color: "text-neon-red"
-    });
+    const [pinnedMessage, setPinnedMessage] = useState<any>(null);
 
     const [shazamStatus, setShazamStatus] = useState<'idle' | 'listening' | 'processing' | 'found'>('idle');
     const [shazamHistory, setShazamHistory] = useState<ShazamTrack[]>(() => {
@@ -545,12 +540,20 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 </div>
 
                 <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-4 px-4 py-2 bg-white/5 border border-white/10 rounded-xl">
+                    <button
+                        onClick={() => {
+                            if (isMod) {
+                                setShowAdminPanel(true);
+                                setAdminActiveTab('moderation');
+                            }
+                        }}
+                        className={`flex items-center gap-4 px-4 py-2 bg-white/5 border border-white/10 rounded-xl transition-all ${isMod ? 'hover:bg-white/10 cursor-pointer' : ''}`}
+                    >
                         <div className="flex items-center gap-2">
                             <Users className="w-4 h-4 text-neon-cyan" />
-                            <span className="text-xs font-black text-white">{viewersCount}</span>
+                            <span className="text-xs font-black text-white">{settings.status === 'off' ? 0 : viewersCount}</span>
                         </div>
-                    </div>
+                    </button>
                     {isMod && (
                         <button onClick={() => setShowAdminPanel(!showAdminPanel)} className={`p-3 rounded-xl transition-all border ${showAdminPanel ? 'bg-neon-purple border-neon-purple shadow-[0_0_15px_rgba(168,85,247,0.4)] text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}>
                             <Settings className="w-5 h-5" />
