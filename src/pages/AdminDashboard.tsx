@@ -7,7 +7,7 @@ import {
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type,
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram, Bell, Zap,
-    RotateCcw, VideoOff, Play, Download, Gamepad2, Upload, Activity, Star
+    Play, Gamepad2, Upload, Activity, Star
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -50,6 +50,7 @@ export function AdminDashboard() {
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
     const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
+    const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
     const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
     const [isDownloaderOpen, setIsDownloaderOpen] = useState(false);
     const [pushSubscribersCount, setPushSubscribersCount] = useState<number | null>(null);
