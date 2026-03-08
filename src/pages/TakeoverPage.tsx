@@ -546,17 +546,17 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             </AnimatePresence>
 
             {/* 2. HEADER */}
-            <div className="h-10 lg:h-16 border-b border-white/5 flex items-center justify-between px-4 lg:px-6 bg-black/40 backdrop-blur-md relative z-40">
-                <div className="flex items-center gap-8">
+            <div className="h-10 lg:h-16 border-b border-white/5 flex items-center justify-between px-3 lg:px-6 bg-black/40 backdrop-blur-md relative z-40">
+                <div className="flex items-center gap-4 lg:gap-8">
                     <div className="flex flex-col">
-                        <div className="flex items-center gap-3 mb-1">
-                            <div className="flex items-center gap-1.5 px-1.5 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md">
+                        <div className="flex items-center gap-2 lg:gap-3 mb-1">
+                            <div className="flex items-center gap-1 px-1 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md">
                                 <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
-                                <span className="text-[7px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
+                                <span className="text-[6px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
                             </div>
-                            <h1 className="text-sm lg:text-xl font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
+                            <h1 className="text-[11px] lg:text-xl font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
                         </div>
-                        <div className="flex items-center gap-1.5 lg:gap-2">
+                        <div className="flex items-center gap-1 lg:gap-2">
                             <div className="w-1 h-1 lg:w-1.5 lg:h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
                             <span className="text-[7px] lg:text-[9px] font-black text-gray-500 uppercase tracking-widest leading-none">NOW &gt;&gt;</span>
                             <span className="text-[8px] lg:text-[10px] font-black text-white uppercase italic tracking-tighter truncate max-w-[120px] lg:max-w-none">{fluxCurrentArtist.artist}</span>
