@@ -509,10 +509,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             <div className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-black/40 backdrop-blur-md relative z-40">
                 <div className="flex items-center gap-8">
                     <div className="flex flex-col">
-                        <h1 className="text-lg font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="w-1.5 h-1.5 bg-neon-red rounded-full animate-pulse" />
-                            <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest leading-none">VRAI TEMPS RÉEL</span>
+                        <h1 className="text-xl font-display font-black text-white italic tracking-tighter leading-none border-b border-white/10 pb-1 mb-1">{settings.title}</h1>
+                        <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
+                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest leading-none">NOW &gt;&gt;</span>
+                            <span className="text-[10px] font-black text-white uppercase italic tracking-tighter">{fluxCurrentArtist.artist}</span>
                         </div>
                     </div>
                 </div>
@@ -542,13 +543,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     {/* Always render the video behind to allow blur effect */}
                     <div className="absolute inset-0 z-0">
                         <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${settings.youtubeId || 'dQw4w9WgXcQ'}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
-                        <div className="absolute top-4 left-4 z-20 flex gap-2">
-                            <div className="px-4 py-2 bg-black/60 backdrop-blur-xl border border-white/10 rounded-lg flex items-center gap-3 text-white">
-                                <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_10px_#00ffff]" />
-                                <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">ACTUALLEMENT:</span>
-                                <span className="text-xs font-black uppercase italic tracking-tighter">{fluxCurrentArtist.artist}</span>
-                            </div>
-                        </div>
+
                     </div>
 
                     <AnimatePresence>
