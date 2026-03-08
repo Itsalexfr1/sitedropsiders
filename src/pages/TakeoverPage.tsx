@@ -43,6 +43,8 @@ interface TakeoverSettings {
     acrAccessKey?: string;
     acrAccessSecret?: string;
     auddToken?: string;
+    highlightPrice?: number;
+    lots?: any[];
 }
 
 interface ShazamTrack {
@@ -129,7 +131,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         status: initialSettings?.status || 'live',
         enabled: initialSettings?.enabled !== undefined ? initialSettings.enabled : true,
         streams: initialSettings?.streams || [],
-        activeStreamId: initialSettings?.activeStreamId || ''
+        activeStreamId: initialSettings?.activeStreamId || '',
+        highlightPrice: initialSettings?.highlightPrice || 100,
+        lots: initialSettings?.lots || []
     });
 
     // Admin Panel States
@@ -141,10 +145,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editStatus, setEditStatus] = useState(settings.status);
     const [editTickerBg, setEditTickerBg] = useState(settings.tickerBgColor);
     const [editTickerTextC, setEditTickerTextC] = useState(settings.tickerTextColor);
+    const [editHighlightPrice, setEditHighlightPrice] = useState(settings.highlightPrice || 100);
     const [adminActiveTab, setAdminActiveTab] = useState('general');
     const [isSaving, setIsSaving] = useState(false);
 
-    const [dropsLots, setDropsLots] = useState<any[]>([]);
+    const [dropsLots, setDropsLots] = useState<any[]>(settings.lots || []);
     const [botCommands, setBotCommands] = useState([
         { command: "!insta", response: "Suivez-nous sur @dropsiders.eu !" },
         { command: "!lineup", response: "La lineup est disponible dans l'onglet PLANNING." }
@@ -292,6 +297,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         const parsed = JSON.parse(data.lineup || '[]');
                         setLineupItems(Array.isArray(parsed) ? parsed : []);
                     } catch (e) { setLineupItems([]); }
+                    if (data.lots) setDropsLots(data.lots);
+                    if (data.highlightPrice) setEditHighlightPrice(data.highlightPrice);
                 }
             }
         } catch (e) { console.error("Error loading settings:", e); }
@@ -340,7 +347,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             status: editStatus,
             enabled: editStatus !== 'off',
             streams: editStreams,
-            activeStreamId: editActiveStreamId
+            activeStreamId: editActiveStreamId,
+            highlightPrice: Number(editHighlightPrice),
+            lots: dropsLots
         };
 
         try {
@@ -758,9 +767,17 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     <div className="space-y-4">
                                                         <h3 className="text-xs font-black text-white uppercase tracking-widest">Nouveau Lot</h3>
                                                         <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
-                                                            <input type="text" placeholder="NOM" value={newLot.name} onChange={e => setNewLot({ ...newLot, name: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
-                                                            <input type="number" placeholder="PRIX" value={newLot.price} onChange={e => setNewLot({ ...newLot, price: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
-                                                            <button onClick={() => { if (newLot.name) { setDropsLots([...dropsLots, { id: Date.now(), name: newLot.name, price: Number(newLot.price), stock: 10 }]); setNewLot({ name: '', price: '', stock: '' }); } }} className="w-full py-3 bg-neon-red text-white font-black rounded-xl">Ajouter</button>
+                                                            <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">Prix Message Couleur (Drops)</label>
+                                                            <input type="number" placeholder="PRIX HIGHLIGHT" value={editHighlightPrice} onChange={e => setEditHighlightPrice(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-red outline-none" />
+                                                            <p className="text-[10px] text-gray-500 font-bold uppercase leading-tight italic">C'est le prix que les utilisateurs paieront pour envoyer un message avec fond personnalisé.</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-4">
+                                                        <h3 className="text-xs font-black text-white uppercase tracking-widest">Nouveau Lot Boutique</h3>
+                                                        <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+                                                            <input type="text" placeholder="NOM DU LOT" value={newLot.name} onChange={e => setNewLot({ ...newLot, name: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
+                                                            <input type="number" placeholder="PRIX EN DROPS" value={newLot.price} onChange={e => setNewLot({ ...newLot, price: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
+                                                            <button onClick={() => { if (newLot.name) { setDropsLots([...dropsLots, { id: Date.now(), name: newLot.name, price: Number(newLot.price), stock: 10 }]); setNewLot({ name: '', price: '', stock: '' }); } }} className="w-full py-3 bg-neon-red text-white font-black rounded-xl hover:bg-neon-red/80 transition-all">Ajouter à la boutique</button>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -981,8 +998,23 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 <motion.div key="drops-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 text-center py-10 px-6">
                                     <Star className="w-12 h-12 text-amber-500 mx-auto mb-4 animate-bounce" />
                                     <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Boutique Drops</h3>
-                                    <p className="text-xs text-gray-500 font-bold uppercase mb-8">{dropsLots.length > 0 ? 'Obtenez des récompenses exclusives !' : 'La boutique sera bientôt réapprovisionnée...'}</p>
+                                    <p className="text-xs text-gray-500 font-bold uppercase mb-8">Obtenez des récompenses avec vos drops !</p>
                                     <div className="grid grid-cols-1 gap-4">
+                                        <button
+                                            onClick={() => {
+                                                setActiveChatTab('chat');
+                                                setIsHighlightChecked(true);
+                                                showNotification("Activez l'éclair dans le chat pour choisir votre couleur !", 'success');
+                                            }}
+                                            className="p-6 bg-amber-500/10 border-2 border-amber-500/40 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-amber-500/20 transition-all border-dashed relative overflow-hidden group"
+                                        >
+                                            <div className="absolute top-2 right-4">
+                                                <Zap className="w-4 h-4 text-amber-500 animate-pulse" />
+                                            </div>
+                                            <p className="text-xs font-black text-white uppercase tracking-widest">MESSAGE EN COULEUR 🌈</p>
+                                            <div className="px-4 py-1.5 bg-amber-500 text-black text-[10px] font-black rounded-lg uppercase">{settings.highlightPrice || 100} DROPS</div>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase">Ton message avec le fond de ton choix !</p>
+                                        </button>
                                         {dropsLots.map(lot => (
                                             <button key={lot.id} className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-white/10 transition-all border-dashed border-2">
                                                 <p className="text-xs font-black text-white uppercase">{lot.name}</p>
@@ -1003,7 +1035,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         <span className="text-[10px] font-black uppercase" style={{ color: highlightColor }}>Mise en avant</span>
                                         <input type="color" value={highlightColor} onChange={(e) => setHighlightColor(e.target.value)} className="w-5 h-4 bg-transparent border-none outline-none cursor-pointer p-0" />
                                     </div>
-                                    <span className="text-[10px] font-black" style={{ color: highlightColor }}>100 DROPS</span>
+                                    <span className="text-[10px] font-black" style={{ color: highlightColor }}>{settings.highlightPrice || 100} DROPS</span>
                                 </div>
                             )}
                             <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 group focus-within:border-neon-red/50 transition-all">
