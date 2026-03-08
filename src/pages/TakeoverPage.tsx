@@ -1279,11 +1279,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <div className="flex items-center justify-between border-b border-white/10 pb-6">
                                         <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Configuration <span className="text-neon-purple">Studio</span></h2>
                                         <div className="flex gap-2">
-                                            {['GENERAL', 'PLANNING', 'SHAZAM', 'SONDAGES', 'QUIZ', 'DROPS', 'BOT', 'MODERATION'].map(t => (
+                                            {['GENERAL', 'PLANNING', 'SHAZAM', 'SONDAGES / QUIZ', 'DROPS', 'BOT', 'MODERATION'].map(t => (
                                                 <button
                                                     key={t}
-                                                    onClick={() => setAdminActiveTab(t.toLowerCase())}
-                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminActiveTab === t.toLowerCase() ? 'bg-white/10 text-white border border-white/20' : 'text-gray-500 hover:text-white'}`}
+                                                    onClick={() => setAdminActiveTab(t === 'SONDAGES / QUIZ' ? 'sondages' : t.toLowerCase())}
+                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminActiveTab === (t === 'SONDAGES / QUIZ' ? 'sondages' : t.toLowerCase()) ? 'bg-white/10 text-white border border-white/20' : 'text-gray-500 hover:text-white'}`}
                                                 >
                                                     {t}
                                                 </button>
@@ -1544,7 +1544,71 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         )}
                                                     </div>
                                                 </div>
-                                            </div>
+                                                <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-8">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center">
+                                                            <Zap className="w-6 h-6 text-neon-purple" />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion des Quiz</h3>
+                                                            <p className="text-[10px] text-gray-500 font-bold uppercase">Lancez des questions avec récompense (+100 DROPS)</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-6 pt-4 border-t border-white/5">
+                                                        {activeQuiz ? (
+                                                            <div className="bg-neon-purple/10 border-2 border-neon-purple/30 rounded-3xl p-8 flex items-center justify-between">
+                                                                <div>
+                                                                    <span className="px-3 py-1 bg-neon-purple text-white text-[8px] font-black rounded-lg uppercase mb-2 inline-block">QUIZ EN COURS</span>
+                                                                    <h4 className="text-xl font-black text-white uppercase italic">{activeQuiz.question}</h4>
+                                                                </div>
+                                                                <button
+                                                                    onClick={async () => {
+                                                                        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                                            pseudo: "BOT_SYSTEM",
+                                                                            message: '[SYSTEM]:CLEAR_QUIZ',
+                                                                            color: "text-neon-purple",
+                                                                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                            country: "FR"
+                                                                        });
+                                                                    }}
+                                                                    className="px-6 py-3 bg-red-600 text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
+                                                                >
+                                                                    Arrêter le quiz
+                                                                </button>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                {predefinedQuizzes.length > 0 ? (
+                                                                    predefinedQuizzes.map((q, idx) => (
+                                                                        <button
+                                                                            key={idx}
+                                                                            onClick={async () => {
+                                                                                const msg = `[QUIZ_START]:${q.question}|${q.options.join('|')}|${q.correct}`;
+                                                                                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                                                    pseudo: "BOT_QUIZ",
+                                                                                    message: msg,
+                                                                                    color: "text-neon-purple",
+                                                                                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                                    country: "FR"
+                                                                                });
+                                                                            }}
+                                                                            className="p-6 bg-white/5 border border-white/10 rounded-2xl text-left hover:border-neon-purple/50 hover:bg-white/10 transition-all group"
+                                                                        >
+                                                                            <p className="text-[10px] font-black text-neon-purple uppercase mb-1 tracking-widest">QUIZ PRÉDÉFINI #{idx + 1}</p>
+                                                                            <p className="text-sm font-bold text-white uppercase line-clamp-2">{q.question}</p>
+                                                                        </button>
+                                                                    ))
+                                                                ) : (
+                                                                    <div className="col-span-2 text-center py-10 border border-dashed border-white/10 rounded-3xl">
+                                                                        <p className="text-xs font-bold text-gray-500 uppercase">Aucun quiz prédéfini dispo.</p>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </div>
+</div>
                                         ) : adminActiveTab === 'shazam' ? (
                                             <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                                 <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
@@ -1647,73 +1711,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             <input type="number" placeholder="PRIX EN DROPS" value={newLot.price} onChange={e => setNewLot({ ...newLot, price: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
                                                             <button onClick={() => { if (newLot.name) { setDropsLots([...dropsLots, { id: Date.now(), name: newLot.name, price: Number(newLot.price), stock: 10 }]); setNewLot({ name: '', price: '', stock: '' }); } }} className="w-full py-3 bg-neon-red text-white font-black rounded-xl hover:bg-neon-red/80 transition-all">Ajouter à la boutique</button>
                                                         </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ) : adminActiveTab === 'quiz' ? (
-                                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                                <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-8">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center">
-                                                            <Zap className="w-6 h-6 text-neon-purple" />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion des Quiz</h3>
-                                                            <p className="text-[10px] text-gray-500 font-bold uppercase">Lancez des questions avec récompense (+100 DROPS)</p>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="space-y-6 pt-4 border-t border-white/5">
-                                                        {activeQuiz ? (
-                                                            <div className="bg-neon-purple/10 border-2 border-neon-purple/30 rounded-3xl p-8 flex items-center justify-between">
-                                                                <div>
-                                                                    <span className="px-3 py-1 bg-neon-purple text-white text-[8px] font-black rounded-lg uppercase mb-2 inline-block">QUIZ EN COURS</span>
-                                                                    <h4 className="text-xl font-black text-white uppercase italic">{activeQuiz.question}</h4>
-                                                                </div>
-                                                                <button
-                                                                    onClick={async () => {
-                                                                        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                            pseudo: "BOT_SYSTEM",
-                                                                            message: '[SYSTEM]:CLEAR_QUIZ',
-                                                                            color: "text-neon-purple",
-                                                                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                            country: "FR"
-                                                                        });
-                                                                    }}
-                                                                    className="px-6 py-3 bg-red-600 text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
-                                                                >
-                                                                    Arrêter le quiz
-                                                                </button>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                {predefinedQuizzes.length > 0 ? (
-                                                                    predefinedQuizzes.map((q, idx) => (
-                                                                        <button
-                                                                            key={idx}
-                                                                            onClick={async () => {
-                                                                                const msg = `[QUIZ_START]:${q.question}|${q.options.join('|')}|${q.correct}`;
-                                                                                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                                    pseudo: "BOT_QUIZ",
-                                                                                    message: msg,
-                                                                                    color: "text-neon-purple",
-                                                                                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                                    country: "FR"
-                                                                                });
-                                                                            }}
-                                                                            className="p-6 bg-white/5 border border-white/10 rounded-2xl text-left hover:border-neon-purple/50 hover:bg-white/10 transition-all group"
-                                                                        >
-                                                                            <p className="text-[10px] font-black text-neon-purple uppercase mb-1 tracking-widest">QUIZ PRÉDÉFINI #{idx + 1}</p>
-                                                                            <p className="text-sm font-bold text-white uppercase line-clamp-2">{q.question}</p>
-                                                                        </button>
-                                                                    ))
-                                                                ) : (
-                                                                    <div className="col-span-2 text-center py-10 border border-dashed border-white/10 rounded-3xl">
-                                                                        <p className="text-xs font-bold text-gray-500 uppercase">Aucun quiz prédéfini dispo.</p>
-                                                                    </div>
-                                                                )}
-                                                            </div>
-                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
@@ -1957,7 +1954,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         </div>
 
                         {
-                            isConnected && activeChatTab === 'chat' && (
+                            isConnected && (
                                 <div className="flex gap-1 p-1 lg:p-2 bg-black/20 border-b border-white/10">
                                     {['CHAT', 'PLANNING', 'SHAZAM', 'BOUTIQUE'].map(tab => (
                                         <button key={tab} onClick={() => setActiveChatTab(tab === 'BOUTIQUE' ? 'drops' : tab.toLowerCase())} className={`px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg text-[8px] lg:text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === (tab === 'BOUTIQUE' ? 'drops' : tab.toLowerCase()) ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{tab}</button>
