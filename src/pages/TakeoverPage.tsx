@@ -169,7 +169,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [selectedProfile, setSelectedProfile] = useState<any>(null);
     const [mentionNotify, setMentionNotify] = useState(false);
     const [isCinemaMode, setIsCinemaMode] = useState(false);
-    const [showNewsMarquee, setShowNewsMarquee] = useState(true);
     const [showBadgesAdmin, setShowBadgesAdmin] = useState(() => {
         const saved = localStorage.getItem('chat_show_badges');
         return saved !== null ? saved === 'true' : true;
@@ -452,7 +451,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 const parsed = JSON.parse(cmd.replace('MARQUEE_UPDATE:', ''));
                                 setMarqueeItems(parsed);
                                 setEditMarqueeItems(parsed);
-                                setShowNewsMarquee(true);
                             } catch (e) { }
                         } else if (cmd.startsWith('TTS:')) {
                             const text = cmd.replace('TTS:', '');
@@ -1203,17 +1201,38 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 </div>
             </div>
 
-            {/* ANNOUNCEMENT BANNER */}
-            <div className="h-6 bg-neon-red/10 border-b border-white/5 flex items-center overflow-hidden">
-                <div className="whitespace-nowrap animate-marquee flex items-center gap-12">
-                    {[1, 2, 3].map(i => (
-                        <div key={i} className="flex items-center gap-4 text-[8px] font-black text-white uppercase tracking-[0.3em]">
-                            <Megaphone className="w-3 h-3 text-neon-red" />
-                            {settings.tickerText}
-                            <Star className="w-2 h-2 text-amber-500 fill-amber-500" />
+            {/* TOP NEWS MARQUEE (Replacing small ticker) */}
+            <div className="h-8 lg:h-10 bg-neon-red/10 backdrop-blur-md border-b border-neon-red/30 flex items-center overflow-hidden group">
+                <div className="bg-neon-red px-3 h-full flex items-center shrink-0 z-10 relative shadow-[0_0_15px_rgba(255,0,51,0.5)]">
+                    <Megaphone className="w-3.5 h-3.5 text-white" />
+                    <span className="ml-2 text-[9px] font-black text-white uppercase tracking-tighter cursor-default">NEWS FLUX</span>
+                </div>
+                <motion.div
+                    animate={{ x: [0, -2000] }}
+                    transition={{ repeat: Infinity, duration: 50, ease: "linear" }}
+                    className="flex items-center gap-16 whitespace-nowrap pl-6 group-hover:[animation-play-state:paused]"
+                >
+                    {[...Array(3)].map((_, loopIdx) => (
+                        <div key={loopIdx} className="flex gap-16">
+                            {(marqueeItems.length > 0 ? marqueeItems : [{ text: settings.tickerText, link: '#' }]).filter(i => i.text).map((item, idx) => {
+                                const isExternal = item.link?.startsWith('http') || item.link?.startsWith('www');
+                                const fullLink = isExternal ? (item.link?.startsWith('http') ? item.link : `https://${item.link}`) : item.link;
+                                return (
+                                    <a
+                                        key={`${loopIdx}-${idx}`}
+                                        href={fullLink}
+                                        target={isExternal ? "_blank" : "_self"}
+                                        rel={isExternal ? "noopener noreferrer" : ""}
+                                        className="text-[10px] lg:text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 hover:text-neon-red transition-colors drop-shadow-md cursor-pointer group/newsitem"
+                                    >
+                                        <Stars className="w-3 h-3 text-neon-red group-hover/newsitem:text-white transition-colors" />
+                                        <span className="group-hover/newsitem:text-neon-red transition-colors">{item.text}</span>
+                                    </a>
+                                );
+                            })}
                         </div>
                     ))}
-                </div>
+                </motion.div>
             </div>
 
             {/* Viewers List Overlay (Mobile / Desktop floating) */}
@@ -2558,54 +2577,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 <p className="text-sm font-black text-white uppercase italic tracking-tighter">{newArrival} vient d'arriver !</p>
                             </div>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* News Marquee (Bottom) */}
-            <AnimatePresence>
-                {showNewsMarquee && marqueeItems.some(i => i.text) && (
-                    <motion.div
-                        initial={{ y: 100 }}
-                        animate={{ y: 0 }}
-                        className="fixed bottom-0 left-0 right-0 h-10 bg-neon-red/10 backdrop-blur-md border-t border-neon-red/30 z-[90] flex items-center overflow-hidden group"
-                    >
-                        <div className="bg-neon-red px-4 h-full flex items-center shrink-0 z-10 relative shadow-[0_0_15px_rgba(255,0,51,0.5)]">
-                            <Megaphone className="w-4 h-4 text-white" />
-                            <span className="ml-2 text-[10px] font-black text-white uppercase tracking-tighter cursor-default">NEWS FLUX</span>
-                        </div>
-                        <motion.div
-                            animate={{ x: [0, -2000] }}
-                            transition={{ repeat: Infinity, duration: 40, ease: "linear" }}
-                            className="flex items-center gap-16 whitespace-nowrap pl-6 group-hover:[animation-play-state:paused]"
-                        >
-                            {[...Array(3)].map((_, loopIdx) => (
-                                <div key={loopIdx} className="flex gap-16">
-                                    {marqueeItems.filter(i => i.text).map((item, idx) => {
-                                        const isExternal = item.link?.startsWith('http') || item.link?.startsWith('www');
-                                        const fullLink = isExternal ? (item.link?.startsWith('http') ? item.link : `https://${item.link}`) : item.link;
-                                        return (
-                                            <a
-                                                key={`${loopIdx}-${idx}`}
-                                                href={fullLink}
-                                                target={isExternal ? "_blank" : "_self"}
-                                                rel={isExternal ? "noopener noreferrer" : ""}
-                                                className="text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 hover:text-neon-red transition-colors drop-shadow-md cursor-pointer group/newsitem"
-                                            >
-                                                <Stars className="w-3 h-3 text-neon-red group-hover/newsitem:text-white transition-colors" />
-                                                <span className="group-hover/newsitem:text-neon-red transition-colors">{item.text}</span>
-                                            </a>
-                                        );
-                                    })}
-                                </div>
-                            ))}
-                        </motion.div>
-                        <button
-                            onClick={() => setShowNewsMarquee(false)}
-                            className="ml-auto bg-black/60 h-full px-4 hover:bg-neon-red hover:text-white transition-all text-white/50 z-10 relative border-l border-white/10"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
                     </motion.div>
                 )}
             </AnimatePresence>
