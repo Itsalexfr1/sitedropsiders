@@ -123,6 +123,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [lastMessageTime, setLastMessageTime] = useState(0);
     const [activeQuiz, setActiveQuiz] = useState<any>(null);
     const [userHasAnswered, setUserHasAnswered] = useState(false);
+    const [predefinedQuizzes, setPredefinedQuizzes] = useState<any[]>([]);
 
     // DB Settings
     const [settings, setSettings] = useState<TakeoverSettings>({
@@ -222,6 +223,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         const init = async () => {
             fetchSettings();
             fetchInitialMessages();
+            fetchPredefinedQuizzes();
 
             const savedPseudo = localStorage.getItem('chat_pseudo');
             const savedEmail = localStorage.getItem('chat_email');
@@ -338,6 +340,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             }));
             setChatMessages(msgs);
         } catch (e) { console.error("Error fetching initial chat messages:", e); }
+    };
+
+    const fetchPredefinedQuizzes = async () => {
+        try {
+            const res = await fetch('/api/quiz/active');
+            if (res.ok) {
+                const data = await res.json();
+                setPredefinedQuizzes(Array.isArray(data) ? data.filter((q: any) => q.type === 'QCM') : []);
+            }
+        } catch (e) {
+            console.error("Error fetching quizzes:", e);
+        }
     };
 
     const fetchSettings = async () => {
@@ -471,11 +485,28 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             return;
         }
 
-        if (isMod && messageText.startsWith('!quizz ')) {
-            const answer = messageText.replace('!quizz ', '').trim();
+        if (isMod && messageText.startsWith('!quizz')) {
+            const args = messageText.replace('!quizz', '').trim();
+            let quizMsg = '';
+
+            if (args) {
+                quizMsg = args; // Manual mode
+            } else {
+                // Auto mode from database
+                if (predefinedQuizzes.length === 0) {
+                    showNotification("Aucun QCM chargé depuis la base !", "error");
+                    return;
+                }
+                const randomQ = predefinedQuizzes[Math.floor(Math.random() * predefinedQuizzes.length)];
+                const correctIdx = randomQ.options.findIndex((o: string) => o === randomQ.correctAnswer) + 1;
+
+                // Format: Question | O1 | O2 | O3 | O4 | CorrectIdx (1-4)
+                quizMsg = `${randomQ.question} | ${randomQ.options[0] || '?'} | ${randomQ.options[1] || '?'} | ${randomQ.options[2] || '?'} | ${randomQ.options[3] || '?'} | ${correctIdx || 1}`;
+            }
+
             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                 pseudo: "BOT_QUIZ",
-                message: `[QUIZ_START]:${answer}`,
+                message: `[QUIZ_START]:${quizMsg}`,
                 color: "text-neon-purple",
                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                 country: "FR"
