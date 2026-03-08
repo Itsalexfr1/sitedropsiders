@@ -146,8 +146,21 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editTickerBg, setEditTickerBg] = useState(settings.tickerBgColor);
     const [editTickerTextC, setEditTickerTextC] = useState(settings.tickerTextColor);
     const [editHighlightPrice, setEditHighlightPrice] = useState(settings.highlightPrice || 100);
+    const [editAuddToken, setEditAuddToken] = useState(settings.auddToken || '');
     const [adminActiveTab, setAdminActiveTab] = useState('general');
     const [isSaving, setIsSaving] = useState(false);
+
+    const clearShazamHistory = async () => {
+        if (!confirm('Voulez-vous vraiment vider l\'historique Shazam ?')) return;
+        try {
+            await fetch('/api/shazam/history', { method: 'DELETE' });
+            setShazamHistory([]);
+            localStorage.removeItem('shazam_history');
+            showNotification('Historique Shazam vidé !', 'success');
+        } catch (e) {
+            showNotification('Erreur nettoyage history', 'error');
+        }
+    };
 
     const [dropsLots, setDropsLots] = useState<any[]>(settings.lots || []);
     const [botCommands, setBotCommands] = useState([
@@ -299,6 +312,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     } catch (e) { setLineupItems([]); }
                     if (data.lots) setDropsLots(data.lots);
                     if (data.highlightPrice) setEditHighlightPrice(data.highlightPrice);
+                    if (data.auddToken) setEditAuddToken(data.auddToken);
                 }
             }
         } catch (e) { console.error("Error loading settings:", e); }
@@ -349,7 +363,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             streams: editStreams,
             activeStreamId: editActiveStreamId,
             highlightPrice: Number(editHighlightPrice),
-            lots: dropsLots
+            lots: dropsLots,
+            auddToken: editAuddToken
         };
 
         try {
@@ -598,7 +613,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <div className="flex items-center justify-between border-b border-white/10 pb-6">
                                         <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Configuration <span className="text-neon-purple">Studio</span></h2>
                                         <div className="flex gap-2">
-                                            {['GENERAL', 'PLANNING', 'DROPS', 'BOT', 'MODERATION'].map(t => (
+                                            {['GENERAL', 'PLANNING', 'SHAZAM', 'DROPS', 'BOT', 'MODERATION'].map(t => (
                                                 <button
                                                     key={t}
                                                     onClick={() => setAdminActiveTab(t.toLowerCase())}
@@ -724,6 +739,46 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     </button>
                                                                 ))}
                                                             </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        ) : adminActiveTab === 'shazam' ? (
+                                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                                <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center">
+                                                            <Music className="w-6 h-6 text-neon-purple" />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Configuration Shazam</h3>
+                                                            <p className="text-[10px] text-gray-500 font-bold uppercase">Gérez la reconnaissance musicale et l'historique</p>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="space-y-4 pt-4 border-t border-white/5">
+                                                        <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 flex items-center justify-between">
+                                                            <div>
+                                                                <p className="text-xs font-black text-white uppercase mb-1">Vider l'historique</p>
+                                                                <p className="text-[9px] text-gray-400 font-bold uppercase">Supprime tous les morceaux identifiés du site</p>
+                                                            </div>
+                                                            <button
+                                                                onClick={clearShazamHistory}
+                                                                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase rounded-xl transition-all shadow-lg shadow-red-600/20"
+                                                            >
+                                                                Vider Shazam
+                                                            </button>
+                                                        </div>
+
+                                                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">AudD API Token</label>
+                                                            <input
+                                                                type="password"
+                                                                placeholder="VOTRE TOKEN AUDD.IO"
+                                                                value={editAuddToken}
+                                                                onChange={e => setEditAuddToken(e.target.value)}
+                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-purple outline-none transition-all"
+                                                            />
                                                         </div>
                                                     </div>
                                                 </div>

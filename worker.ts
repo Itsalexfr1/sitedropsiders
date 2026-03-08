@@ -326,6 +326,13 @@ export default {
             });
         }
 
+        if (path === '/api/shazam/history' && request.method === 'DELETE') {
+            await env.CHAT_KV.delete('shazam_history');
+            return new Response(JSON.stringify({ success: true }), {
+                headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+            });
+        }
+
         if (path === '/api/shazam/history' && request.method === 'POST') {
             const body = await request.json();
             const { title, artist, image, spotify, user, playedBy } = body;
