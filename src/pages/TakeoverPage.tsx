@@ -509,7 +509,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             <div className="h-16 border-b border-white/5 flex items-center justify-between px-6 bg-black/40 backdrop-blur-md relative z-40">
                 <div className="flex items-center gap-8">
                     <div className="flex flex-col">
-                        <h1 className="text-xl font-display font-black text-white italic tracking-tighter leading-none border-b border-white/10 pb-1 mb-1">{settings.title}</h1>
+                        <div className="flex items-center gap-3 mb-1">
+                            <div className="flex items-center gap-1.5 px-2 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md">
+                                <span className="w-1.5 h-1.5 bg-red-600 rounded-full animate-pulse" />
+                                <span className="text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
+                            </div>
+                            <h1 className="text-xl font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
+                        </div>
                         <div className="flex items-center gap-2">
                             <div className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
                             <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest leading-none">NOW &gt;&gt;</span>
