@@ -5,10 +5,10 @@
   "shop_password_image": "",
   "takeover": {
     "enabled": true,
-    "youtubeId": "325m8PqVH74",
+    "youtubeId": "DQHSj6cphm0",
     "title": "TOMORROWLAND WINTER 2026",
     "moderators": "",
-    "lineup": "[{\"id\":\"1772999074428\",\"day\":\"\",\"startTime\":\"20:30\",\"endTime\":\"22:00\",\"artist\":\"ONE WORLD RADIO\",\"stage\":\"ONE WORLD RADIO\",\"instagram\":\"\"}]",
+    "lineup": "[]",
     "tickerType": "news",
     "tickerText": "",
     "tickerLink": "",
@@ -29,19 +29,26 @@
     "startDate": "",
     "endDate": "",
     "status": "edit",
-    "mainFluxName": "",
+    "mainFluxName": "DAYBREAK",
     "currentTrack": "ID - UNRELEASED",
     "streams": [
       {
         "id": "qlew10auz",
         "name": "",
         "youtubeId": "325m8PqVH74"
+      },
+      {
+        "id": "evqofoyb7",
+        "name": "DAYBREAK",
+        "youtubeId": "DQHSj6cphm0"
       }
     ],
-    "activeStreamId": "qlew10auz",
+    "activeStreamId": "evqofoyb7",
     "highlightPrice": 100,
     "lots": [],
-    "auddToken": "0707d622c51645acc2e4fa26ed64538d"
+    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
+    "dropsAmount": 10,
+    "dropsInterval": 5
   },
   "socials": {
     "instagram": "dropsiders.eu",
