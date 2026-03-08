@@ -121,7 +121,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
     const [slowModeEnabled, setSlowModeEnabled] = useState(false);
     const [lastMessageTime, setLastMessageTime] = useState(0);
-    const [activeQuiz, setActiveQuiz] = useState<any>(null);
+    const [activeQuiz, setActiveQuiz] = useState<string | null>(null);
+    const [quizResponders, setQuizResponders] = useState<string[]>([]);
     const [userHasAnswered, setUserHasAnswered] = useState(false);
 
     // DB Settings
@@ -277,16 +278,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         const cmd = msgText.replace('[SYSTEM]:', '');
                         if (cmd === 'SLOW_ON') setSlowModeEnabled(true);
                         if (cmd === 'SLOW_OFF') setSlowModeEnabled(false);
-                        if (cmd === 'CLEAR_QUIZ') setActiveQuiz(null);
-                    } else if (msgText.startsWith('[QUIZ]:')) {
-                        const content = msgText.replace('[QUIZ]:', '');
-                        const [question, o1, o2, o3, o4, correct] = content.split('|');
-                        setActiveQuiz({
-                            question,
-                            options: [o1, o2, o3, o4],
-                            correct: parseInt(correct),
-                            id: response.payload.$id
-                        });
+                        if (cmd === 'CLEAR_QUIZ') {
+                            setActiveQuiz(null);
+                            setQuizResponders([]);
+                        }
+                    } else if (msgText.startsWith('[QUIZ_START]:')) {
+                        const correct = msgText.replace('[QUIZ_START]:', '');
+                        setActiveQuiz(correct);
+                        setQuizResponders([]);
                         setUserHasAnswered(false);
                     }
                 }
@@ -469,16 +468,47 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }
 
         if (isMod && messageText.startsWith('!quizz ')) {
-            const quizData = messageText.replace('!quizz ', '');
+            const answer = messageText.replace('!quizz ', '').trim();
             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                 pseudo: "BOT_QUIZ",
-                message: `[QUIZ]:${quizData}`,
+                message: `[QUIZ_START]:${answer}`,
                 color: "text-neon-purple",
                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                 country: "FR"
             });
             setNewMessage('');
             return;
+        }
+
+        if (isMod && messageText === '!stop') {
+            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                pseudo: "BOT_SYSTEM",
+                message: '[SYSTEM]:CLEAR_QUIZ',
+                color: "text-neon-purple",
+                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                country: "FR"
+            });
+            setNewMessage('');
+            return;
+        }
+
+        // Quiz Logic for users
+        if (activeQuiz && !isMod && !userHasAnswered) {
+            const isDigit = /^\d+$/.test(messageText);
+            if (isDigit) {
+                setUserHasAnswered(true);
+                if (messageText === activeQuiz) {
+                    const reward = 100;
+                    setUserDrops(prev => {
+                        const next = prev + reward;
+                        localStorage.setItem('user_drops', next.toString());
+                        return next;
+                    });
+                    showNotification(`BRAVO ! +${reward} DROPS !`, 'success');
+                } else {
+                    showNotification(`MAUVAISE RÉPONSE !`, 'error');
+                }
+            }
         }
 
         // Slow Mode Logic
@@ -1005,63 +1035,28 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     )}
 
                     <div className="flex-1 overflow-y-auto p-4 custom-scrollbar relative">
-                        {/* Interactive Quiz Component */}
+                        {/* Simple Quiz Banner */}
                         <AnimatePresence>
                             {activeQuiz && (
                                 <motion.div
-                                    initial={{ opacity: 0, y: -20, scale: 0.9 }}
-                                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                                    exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                                    className="absolute top-4 left-4 right-4 z-[40] bg-[#0a0a0a] border-2 border-neon-purple rounded-[2rem] p-6 shadow-[0_0_30px_rgba(168,85,247,0.3)] overflow-hidden"
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    exit={{ opacity: 0 }}
+                                    className="sticky top-0 z-[40] bg-neon-purple/20 backdrop-blur-md border border-neon-purple/30 rounded-2xl p-4 mb-4 flex items-center justify-between"
                                 >
-                                    <div className="absolute top-0 right-0 p-4">
-                                        <div className="w-2 h-2 bg-neon-purple rounded-full animate-pulse" />
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-8 h-8 rounded-full bg-neon-purple flex items-center justify-center animate-pulse">
+                                            <Zap className="w-4 h-4 text-white" />
+                                        </div>
+                                        <div>
+                                            <p className="text-[10px] font-black text-white uppercase tracking-widest leading-none mb-1">QUIZ ACTIF !</p>
+                                            <p className="text-[8px] font-bold text-neon-purple uppercase">Répondez avec un chiffre dans le chat</p>
+                                        </div>
                                     </div>
-                                    <h4 className="text-[10px] font-black text-neon-purple uppercase tracking-[0.3em] mb-4 flex items-center gap-2">
-                                        <Zap className="w-3 h-3" /> Quiz en cours !
-                                    </h4>
-                                    <p className="text-sm font-black text-white uppercase italic mb-6 leading-tight">
-                                        {activeQuiz.question}
-                                    </p>
-
-                                    {!userHasAnswered ? (
-                                        <div className="grid grid-cols-1 gap-2">
-                                            {activeQuiz.options.map((opt: string, idx: number) => (
-                                                <button
-                                                    key={idx}
-                                                    onClick={() => {
-                                                        setUserHasAnswered(true);
-                                                        if (idx === activeQuiz.correct) {
-                                                            const reward = 100;
-                                                            setUserDrops(prev => {
-                                                                const next = prev + reward;
-                                                                localStorage.setItem('user_drops', next.toString());
-                                                                return next;
-                                                            });
-                                                            showNotification(`Bravo ! Tu gagnes ${reward} DROPS !`, 'success');
-                                                        } else {
-                                                            showNotification(`Mauvaise réponse...`, 'error');
-                                                        }
-                                                        setTimeout(() => setActiveQuiz(null), 3000);
-                                                    }}
-                                                    className="w-full py-3 px-4 bg-white/5 hover:bg-neon-purple text-white text-[10px] font-black uppercase rounded-xl transition-all border border-white/10 hover:border-transparent text-left truncate"
-                                                >
-                                                    {opt}
-                                                </button>
-                                            ))}
-                                        </div>
+                                    {userHasAnswered ? (
+                                        <div className="px-3 py-1 bg-white/10 rounded-lg text-[8px] font-black text-white uppercase italic">Participation validée</div>
                                     ) : (
-                                        <div className="py-6 text-center">
-                                            <p className="text-xs font-black text-white uppercase animate-pulse">Merci d'avoir participé !</p>
-                                        </div>
-                                    )}
-                                    {isMod && (
-                                        <button
-                                            onClick={() => setActiveQuiz(null)}
-                                            className="mt-4 w-full py-2 bg-white/5 text-gray-500 text-[8px] font-black uppercase rounded-lg hover:text-white transition-all"
-                                        >
-                                            Fermer (Admin)
-                                        </button>
+                                        <div className="px-3 py-1 bg-neon-purple text-white text-[8px] font-black rounded-lg uppercase animate-bounce">100 DROPS À GAGNER</div>
                                     )}
                                 </motion.div>
                             )}
