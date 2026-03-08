@@ -73,6 +73,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [activeChatTab, setActiveChatTab] = useState('chat');
     const [newMessage, setNewMessage] = useState('');
     const [isHighlightChecked, setIsHighlightChecked] = useState(false);
+    const [highlightColor, setHighlightColor] = useState('#f59e0b');
     const [isConnected, setIsConnected] = useState(!!localStorage.getItem('chat_pseudo'));
 
     // Form States
@@ -143,10 +144,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [adminActiveTab, setAdminActiveTab] = useState('general');
     const [isSaving, setIsSaving] = useState(false);
 
-    const [dropsLots, setDropsLots] = useState([
-        { id: 1, name: "Pass VIP Tomorrowland", price: 5000, stock: 2 },
-        { id: 2, name: "T-shirt Dropsiders", price: 800, stock: 15 }
-    ]);
+    const [dropsLots, setDropsLots] = useState<any[]>([]);
     const [botCommands, setBotCommands] = useState([
         { command: "!insta", response: "Suivez-nous sur @dropsiders.eu !" },
         { command: "!lineup", response: "La lineup est disponible dans l'onglet PLANNING." }
@@ -223,7 +221,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             message: response.payload.message,
                             color: response.payload.color,
                             time: response.payload.time,
-                            country: response.payload.country
+                            country: response.payload.country,
+                            bgColor: response.payload.bgColor
                         }];
                     });
                 }
@@ -267,7 +266,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 message: doc.message,
                 color: doc.color,
                 time: doc.time,
-                country: doc.country
+                country: doc.country,
+                bgColor: doc.bgColor
             }));
             setChatMessages(msgs);
         } catch (e) { console.error("Error fetching initial chat messages:", e); }
@@ -384,7 +384,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 message: messageText,
                 color,
                 time,
-                country: userCountry
+                country: userCountry,
+                bgColor: isHighlightChecked ? highlightColor : null
             });
         } catch (e: any) {
             console.error("Appwrite send error details:", e);
@@ -810,8 +811,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                     {isConnected && (
                         <div className="flex gap-1 p-2 bg-black/20 border-b border-white/10">
-                            {['CHAT', 'PLANNING', 'SHAZAM', 'DROPS'].map(tab => (
-                                <button key={tab} onClick={() => setActiveChatTab(tab.toLowerCase())} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === tab.toLowerCase() ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{tab}</button>
+                            {['CHAT', 'PLANNING', 'SHAZAM', 'BOUTIQUE'].map(tab => (
+                                <button key={tab} onClick={() => setActiveChatTab(tab === 'BOUTIQUE' ? 'drops' : tab.toLowerCase())} className={`px-4 py-2 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === (tab === 'BOUTIQUE' ? 'drops' : tab.toLowerCase()) ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{tab}</button>
                             ))}
                         </div>
                     )}
@@ -915,7 +916,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     )}
 
                                     {chatMessages.map((msg: any) => (
-                                        <div key={msg.id} className="group flex flex-col gap-1 relative">
+                                        <div key={msg.id} className="group flex flex-col gap-1 relative p-2 rounded-xl transition-all" style={msg.bgColor ? { backgroundColor: `${msg.bgColor}15`, border: `1px solid ${msg.bgColor}30` } : {}}>
                                             <div className="flex gap-3 relative">
                                                 <div className="w-8 h-8 rounded-full border border-white/10 shrink-0 flex items-center justify-center bg-white/5">
                                                     <div className="text-[10px] font-black text-gray-500">{(msg.pseudo || msg.user || 'V')[0]}</div>
@@ -976,11 +977,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         </div>
                                     ))}
                                 </motion.div>
-                            ) : (
+                            ) : activeChatTab === 'drops' ? (
                                 <motion.div key="drops-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 text-center py-10 px-6">
                                     <Star className="w-12 h-12 text-amber-500 mx-auto mb-4 animate-bounce" />
                                     <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Boutique Drops</h3>
-                                    <p className="text-xs text-gray-500 font-bold uppercase mb-8">Obtenez des récompenses exclusives avec vos drops !</p>
+                                    <p className="text-xs text-gray-500 font-bold uppercase mb-8">{dropsLots.length > 0 ? 'Obtenez des récompenses exclusives !' : 'La boutique sera bientôt réapprovisionnée...'}</p>
                                     <div className="grid grid-cols-1 gap-4">
                                         {dropsLots.map(lot => (
                                             <button key={lot.id} className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-white/10 transition-all border-dashed border-2">
@@ -990,16 +991,19 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         ))}
                                     </div>
                                 </motion.div>
-                            )}
+                            ) : null}
                         </AnimatePresence>
                     </div>
 
                     {isConnected && (
                         <div className="p-4 bg-black/40 border-t border-white/5 space-y-3">
                             {isHighlightChecked && (
-                                <div className="flex items-center justify-between px-3 py-1.5 bg-amber-500/10 border border-amber-500/20 rounded-lg">
-                                    <span className="text-[10px] font-black text-amber-500 uppercase">Mise en avant (Highlight)</span>
-                                    <span className="text-[10px] font-black text-amber-500">100 DROPS</span>
+                                <div className="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all border" style={{ backgroundColor: `${highlightColor}20`, borderColor: `${highlightColor}40` }}>
+                                    <div className="flex items-center gap-3">
+                                        <span className="text-[10px] font-black uppercase" style={{ color: highlightColor }}>Mise en avant</span>
+                                        <input type="color" value={highlightColor} onChange={(e) => setHighlightColor(e.target.value)} className="w-5 h-4 bg-transparent border-none outline-none cursor-pointer p-0" />
+                                    </div>
+                                    <span className="text-[10px] font-black" style={{ color: highlightColor }}>100 DROPS</span>
                                 </div>
                             )}
                             <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 group focus-within:border-neon-red/50 transition-all">
