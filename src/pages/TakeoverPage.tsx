@@ -6,7 +6,7 @@ import {
     Save, AlertCircle, Music, Trash2, Plus,
     Pin, Star, ShieldCheck, Ban, Megaphone, User,
     BarChart3, Bell, Clock, Sword, Crown, Maximize2, Minimize2,
-    Trophy, Stars, Heart, Volume2, Timer
+    Trophy, Stars, Heart, Volume2, Timer, ShieldAlert
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
@@ -223,6 +223,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [userTitle, setUserTitle] = useState(localStorage.getItem('user_chat_title') || '');
     const [profileBorder, setProfileBorder] = useState(localStorage.getItem('user_profile_border') || 'none');
     const [specialFontStyle, setSpecialFontStyle] = useState(localStorage.getItem('user_font_style') || 'normal');
+    const [showGifPicker, setShowGifPicker] = useState(false);
+    const [activeQTE, setActiveQTE] = useState<{ id: string, type: 'click', reward: number } | null>(null);
+    const [achievements, setAchievements] = useState<string[]>(JSON.parse(localStorage.getItem('user_achievements') || '[]'));
+    const [isPacmanActive, setIsPacmanActive] = useState(false);
+    const [showHeistOverlay, setShowHeistOverlay] = useState(false);
 
     // 🎁 RECOMPENSE QUOTIDIENNE
     useEffect(() => {
@@ -368,11 +373,38 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }, 250);
     };
 
-    const speakMessage = (text: string) => {
+    const triggerPACMAN = () => {
+        setIsPacmanActive(true);
+        setIsMatrixActive(true);
+        setTimeout(() => {
+            setIsPacmanActive(false);
+            setIsMatrixActive(false);
+        }, 5000);
+        showNotification("PACMAN TRAVERSE LE CHAT !", 'success');
+    };
+
+    const speakMessage = (text: string, voiceType: 'normal' | 'robot' | 'monster' | 'echo' = 'normal') => {
         if (!isTTSActive || !window.speechSynthesis) return;
         const utterance = new SpeechSynthesisUtterance(text);
         utterance.lang = 'fr-FR';
-        utterance.rate = 1.0;
+
+        if (voiceType === 'robot') {
+            utterance.pitch = 0.5;
+            utterance.rate = 0.8;
+        } else if (voiceType === 'monster') {
+            utterance.pitch = 0.1;
+            utterance.rate = 0.5;
+        } else if (voiceType === 'echo') {
+            // Echo simulation by repeating with delay (basic)
+            window.speechSynthesis.speak(utterance);
+            setTimeout(() => {
+                const echo = new SpeechSynthesisUtterance(text);
+                echo.volume = 0.3;
+                window.speechSynthesis.speak(echo);
+            }, 300);
+            return;
+        }
+
         window.speechSynthesis.speak(utterance);
     };
 
@@ -548,8 +580,17 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             const data = JSON.parse(cmd.replace('HEIST_START:', ''));
                             setActiveHeist({ participants: data, timeLeft: 30 });
                         } else if (cmd.startsWith('TTS:')) {
-                            const text = cmd.replace('TTS:', '');
-                            speakMessage(text);
+                            const [v, ...t] = cmd.replace('TTS:', '').split(':');
+                            const voice = ['robot', 'monster', 'echo'].includes(v) ? v as any : 'normal';
+                            const finalMsg = voice === 'normal' ? cmd.replace('TTS:', '') : t.join(':');
+                            speakMessage(finalMsg, voice);
+                        } else if (cmd.startsWith('QTE_SPAWN:')) {
+                            const data = JSON.parse(cmd.replace('QTE_SPAWN:', ''));
+                            setActiveQTE(data);
+                            setTimeout(() => setActiveQTE(null), 10000);
+                        } else if (cmd.startsWith('REACTION:')) {
+                            const [msgId, emoji] = cmd.replace('REACTION:', '').split(':');
+                            setChatMessages(prev => prev.map(m => m.id === msgId ? { ...m, reactions: { ...(m.reactions || {}), [emoji]: (m.reactions?.[emoji] || 0) + 1 } } : m));
                         }
                     } else if (msgText.startsWith('[QUIZ_START]:')) {
                         const content = msgText.replace('[QUIZ_START]:', '');
@@ -977,7 +1018,46 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 messageText = `[QUIZ_START]:${quizMsg}`;
             } else if (mainCmd === '!stop' && isMod) {
                 messageText = '[SYSTEM]:CLEAR_QUIZ';
+            } else if (mainCmd === '!mute') {
+                const target = cmdParts[1]?.replace('@', '').trim();
+                const cost = 5000;
+                if (target && userDrops >= cost) {
+                    setUserDrops(prev => prev - cost);
+                    messageText = `[SYSTEM]:MUTE_USER:${target}`;
+                    showNotification(`MUTE ACHETÉ pour @${target} ! (-5000 Drops)`, 'success');
+                } else {
+                    showNotification("Besoin de 5000 DROPS pour mute !", "error");
+                    return;
+                }
+            } else if (mainCmd === '!tts' && isMod) {
+                const voice = ['robot', 'monster', 'echo'].includes(cmdParts[1]) ? cmdParts[1] : 'normal';
+                const text = voice === 'normal' ? cmdParts.slice(1).join(' ') : cmdParts.slice(2).join(' ');
+                messageText = `[SYSTEM]:TTS:${voice}:${text}`;
+            } else if (mainCmd === '!pacman') {
+                messageText = `🍕 WAKA WAKA ! [PACMAN INCOMING]`;
+                triggerPACMAN();
             }
+        }
+
+        // 🤖 ChatGPT Dropsiders Bot-4 Logic
+        if (messageText.toLowerCase().includes('@botdrops') || messageText.toLowerCase().includes('@bot')) {
+            setTimeout(async () => {
+                const responses = [
+                    "Je suis là ! On fait quoi ? 😎",
+                    "Les Dropsiders sont les meilleurs, non ? 🔥",
+                    "Désolé, je suis occupé à miner des Drops. 💎",
+                    "C'est moi l'IA du futur ! 🤖",
+                    "Bip Boup... Message reçu !"
+                ];
+                const botReply = responses[Math.floor(Math.random() * responses.length)];
+                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                    pseudo: "DROPS_BOT_4",
+                    message: botReply,
+                    color: "text-neon-cyan",
+                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                    country: "FR"
+                });
+            }, 1000);
         }
 
         // Quiz participation (non-commands)
@@ -1015,16 +1095,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 pseudo: userTitle ? `[${userTitle}] ${pseudo}` : pseudo,
                 message: messageText,
                 color: isHighlightChecked ? highlightColor : (isMod ? "text-neon-red" : "text-white"),
-                isHighlight: isHighlightChecked,
                 bgColor: isHighlightChecked ? highlightColor : null,
                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                country: userCountry,
-                isMod,
-                isVip: vipsList.includes(pseudo),
-                xp: userXP,
-                role: userRole,
-                border: profileBorder,
-                font: specialFontStyle
+                country: userCountry || "FR"
             });
 
             // Leveling System
@@ -2414,6 +2487,26 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             <p className={`text-[11px] leading-relaxed break-all font-medium transition-colors ${isHovered ? 'text-white' : 'text-gray-400'}`}>
                                                                 {msg.message || msg.text}
                                                             </p>
+                                                            <div className="flex gap-1 mt-2">
+                                                                {['👍', '🔥', '😂', '👑'].map(emoji => (
+                                                                    <button
+                                                                        key={emoji}
+                                                                        onClick={async (e) => {
+                                                                            e.stopPropagation();
+                                                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                                                pseudo: "BOT_SYSTEM",
+                                                                                message: `[SYSTEM]:REACTION:${msg.id}:${emoji}`,
+                                                                                color: "text-neon-purple",
+                                                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                                country: "FR"
+                                                                            });
+                                                                        }}
+                                                                        className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded-lg text-[10px] hover:bg-white/20 transition-all flex items-center gap-1"
+                                                                    >
+                                                                        {emoji} <span className="opacity-50">{msg.reactions?.[emoji] || 0}</span>
+                                                                    </button>
+                                                                ))}
+                                                            </div>
                                                         </div>
 
                                                         <div className="absolute right-0 top-0 hidden group-hover:flex items-center gap-1 bg-black/80 backdrop-blur-md p-1.5 rounded-xl border border-white/10 z-20 shadow-2xl">
@@ -2432,6 +2525,49 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 </motion.div>
                                             );
                                         })}
+                                    </AnimatePresence>
+                                    {/* HEIST Overlay */}
+                                    <AnimatePresence>
+                                        {showHeistOverlay && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: 20 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0, y: 20 }}
+                                                className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                                            >
+                                                <motion.div
+                                                    initial={{ scale: 0.8 }}
+                                                    animate={{ scale: 1 }}
+                                                    exit={{ scale: 0.8 }}
+                                                    className="bg-gradient-to-br from-gray-900 to-black border border-neon-red/50 rounded-3xl p-8 text-center shadow-2xl max-w-md w-full relative"
+                                                >
+                                                    <button
+                                                        onClick={() => setShowHeistOverlay(false)}
+                                                        className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                                                    >
+                                                        <X className="w-6 h-6" />
+                                                    </button>
+                                                    <div className="flex flex-col items-center justify-center space-y-4">
+                                                        <ShieldAlert className="w-16 h-16 text-neon-red animate-pulse" />
+                                                        <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">ALERTE BRAQUAGE !</h3>
+                                                        <p className="text-sm text-gray-300">
+                                                            Un braquage est en cours ! Participez pour tenter de gagner des DROPS.
+                                                            Tapez <span className="font-mono text-neon-cyan">/braquage [montant]</span> dans le chat pour rejoindre.
+                                                        </p>
+                                                        <button
+                                                            onClick={() => {
+                                                                setShowHeistOverlay(false);
+                                                                triggerPACMAN();
+                                                                handleSendMessage("!braquage");
+                                                            }}
+                                                            className="mt-6 px-8 py-3 bg-neon-red text-white font-black uppercase italic tracking-widest rounded-xl hover:shadow-[0_0_25px_rgba(255,0,51,0.4)] transition-all transform active:scale-95"
+                                                        >
+                                                            Participer !
+                                                        </button>
+                                                    </div>
+                                                </motion.div>
+                                            </motion.div>
+                                        )}
                                     </AnimatePresence>
                                 </motion.div>
                             ) : activeChatTab === 'shazam' ? (
@@ -2654,13 +2790,26 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         placeholder={isBanned ? "ACCÈS REFUSÉ..." : slowModeEnabled && !isMod ? "MODE LENT ACTIF..." : "VOTRE MESSAGE..."}
                                         className={`flex-1 bg-transparent text-xs font-bold outline-none uppercase tracking-wider ${isBanned ? 'text-red-500' : 'text-white placeholder:text-gray-600'}`}
                                     />
+                                    <button onClick={() => setShowGifPicker(!showGifPicker)} className="p-2 text-gray-500 hover:text-white transition-all">
+                                        <Stars className="w-4 h-4" />
+                                    </button>
                                     <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
                                         <Zap className="w-4 h-4" />
+                                    </button>
+                                    <button onClick={() => window.open(window.location.href, 'Chat', 'width=400,height=800')} className="p-2 text-gray-500 hover:text-white transition-all" title="Détacher le chat">
+                                        <Maximize2 className="w-4 h-4" />
                                     </button>
                                     <button onClick={() => handleSendMessage(newMessage)} className="p-2 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all" style={{ backgroundColor: accentColor }}>
                                         <Send className="w-4 h-4" />
                                     </button>
                                 </div>
+                                {showGifPicker && (
+                                    <div className="grid grid-cols-3 gap-2 p-3 bg-black/60 rounded-2xl border border-white/10 animate-in fade-in slide-in-from-bottom-2">
+                                        {['https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/3o7TKMGpxVfPtoog3m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/LScqP82pdBAlC7xs6m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/clotJgshs6nUUXf2i6/giphy.gif'].map((gif, i) => (
+                                            <img key={i} src={gif} onClick={() => { handleSendMessage(gif); setShowGifPicker(false); }} className="w-full h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform" />
+                                        ))}
+                                    </div>
+                                )}
                                 <div className="flex items-center justify-between px-2">
                                     <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80" onClick={() => setActiveChatTab('drops')}>
                                         <Trophy className="w-3 h-3 text-amber-500" />
@@ -2807,12 +2956,47 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             <ShieldCheck className="w-6 h-6 text-neon-cyan animate-bounce" />
                             <div>
                                 <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">BRAQUAGE EN COURS</p>
-                                <p className="text-xs font-bold text-white uppercase">{activeHeist.participants.length} Braqueurs prêts</p>
+                                <p className="text-xs font-bold text-white uppercase">{activeHeist?.participants?.length || 0} Braqueurs prêts</p>
                             </div>
                         </div>
-                        <div className="text-[9px] font-black text-white/50 mb-2 uppercase">TOTAL MISÉ : {activeHeist.participants.reduce((a, b) => a + b.bet, 0)} DROPS</div>
+                        <div className="text-[9px] font-black text-white/50 mb-2 uppercase">TOTAL MISÉ : {activeHeist?.participants?.reduce((a, b) => a + (b?.bet || 0), 0) || 0} DROPS</div>
                         <div className="text-center py-1 bg-neon-cyan/10 rounded-lg">
                             <span className="text-neon-cyan font-black animate-pulse">!braquage [montant] pour rejoindre</span>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* QTE (Quick Time Event) Overlay */}
+            <AnimatePresence>
+                {activeQTE && (
+                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1.2 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500]">
+                        <button
+                            onClick={() => {
+                                const reward = activeQTE?.reward || 0;
+                                setUserDrops(prev => prev + reward);
+                                showNotification(`FAST CLICK ! +${reward} DROPS ! ⚡`, 'success');
+                                setActiveQTE(null);
+                            }}
+                            className="p-10 bg-gradient-to-br from-neon-cyan to-neon-purple rounded-full shadow-[0_0_50px_#00ffff] animate-pulse group"
+                        >
+                            <Zap className="w-12 h-12 text-white group-hover:scale-125 transition-transform" />
+                            <p className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-white font-black uppercase italic tracking-widest whitespace-nowrap">CLIQUE VITE !</p>
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Achievement Popup */}
+            <AnimatePresence>
+                {achievements.length > 0 && (
+                    <motion.div initial={{ x: 300 }} animate={{ x: 0 }} exit={{ x: 300 }} className="fixed top-24 right-4 z-[300] bg-black/90 border-2 border-amber-500 p-4 rounded-2xl flex items-center gap-4 shadow-[#f59e0b20] shadow-2xl">
+                        <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center">
+                            <Trophy className="w-7 h-7 text-black" />
+                        </div>
+                        <div>
+                            <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Succès Débloqué !</p>
+                            <p className="text-xs font-black text-white uppercase italic">{achievements[achievements.length - 1]}</p>
                         </div>
                     </motion.div>
                 )}
