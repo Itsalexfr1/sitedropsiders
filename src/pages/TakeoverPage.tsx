@@ -174,12 +174,27 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         const saved = localStorage.getItem('chat_show_badges');
         return saved !== null ? saved === 'true' : true;
     });
-    const [marqueeItems, setMarqueeItems] = useState<{ text: string, link: string }[]>([
-        { text: 'BIENVENUE SUR SITE DROPSIDERS V2 - NOUVELLE COLLECTION DISPONIBLE ! 👕', link: '' },
-        { text: '', link: '' },
-        { text: '', link: '' }
-    ]);
-    const [editMarqueeItems, setEditMarqueeItems] = useState([...marqueeItems]);
+    const [marqueeItems, setMarqueeItems] = useState<{ text: string, link: string }[]>([]);
+    const [editMarqueeItems, setEditMarqueeItems] = useState<{ text: string, link: string }[]>([]);
+
+    // Fetch real site news to populate the marquee
+    useEffect(() => {
+        fetch('/api/news')
+            .then(r => r.json())
+            .then((data: any[]) => {
+                if (Array.isArray(data) && data.length > 0) {
+                    const items = data.slice(0, 8).map((n: any) => ({
+                        text: n.title || n.name || '',
+                        link: n.slug ? `/news/${n.slug}` : (n.url || '')
+                    })).filter(i => i.text);
+                    if (items.length > 0) {
+                        setMarqueeItems(items);
+                        setEditMarqueeItems(items);
+                    }
+                }
+            })
+            .catch(() => { });
+    }, []);
     const [leaderboard] = useState<{ pseudo: string, drops: number, country: string }[]>([
         { pseudo: 'ALEX_FR1', drops: 15400, country: 'FR' },
         { pseudo: 'DJ_KOROS', drops: 12200, country: 'BE' },
@@ -1717,9 +1732,33 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         ) : adminActiveTab === 'bot' ? (
                                             <div className="space-y-8">
                                                 <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+                                                    <h4 className="text-xs font-black text-neon-cyan uppercase tracking-widest">➕ Nouvelle Commande</h4>
                                                     <input type="text" placeholder="!COMMANDE" value={newCmd.command} onChange={e => setNewCmd({ ...newCmd, command: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
                                                     <textarea placeholder="REPONSE" value={newCmd.response} onChange={e => setNewCmd({ ...newCmd, response: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white min-h-[80px]" />
-                                                    <button onClick={() => { if (newCmd.command) { setBotCommands([...botCommands, { command: newCmd.command, response: newCmd.response }]); setNewCmd({ command: '', response: '' }); } }} className="w-full py-3 bg-neon-cyan text-black font-black rounded-xl">Enregistrer</button>
+                                                    <button onClick={() => { if (newCmd.command) { setBotCommands([...botCommands, { command: newCmd.command, response: newCmd.response }]); setNewCmd({ command: '', response: '' }); } }} className="w-full py-3 bg-neon-cyan text-black font-black rounded-xl hover:scale-[1.02] transition-all">Enregistrer</button>
+                                                </div>
+
+                                                {/* List of existing commands */}
+                                                <div className="space-y-3">
+                                                    <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">📋 Commandes Actives ({botCommands.length})</h4>
+                                                    {botCommands.length === 0 ? (
+                                                        <div className="text-center py-8 bg-white/5 border border-white/5 rounded-2xl">
+                                                            <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande configurée</p>
+                                                        </div>
+                                                    ) : (
+                                                        botCommands.map((cmd, idx) => (
+                                                            <div key={idx} className="flex items-center gap-3 bg-white/[0.03] border border-white/5 hover:border-neon-cyan/20 p-4 rounded-2xl transition-all group">
+                                                                <span className="text-neon-cyan font-black text-xs uppercase tracking-tight shrink-0 min-w-[100px]">{cmd.command}</span>
+                                                                <span className="text-gray-400 text-xs font-bold flex-1 truncate">{cmd.response}</span>
+                                                                <button
+                                                                    onClick={() => setBotCommands(botCommands.filter((_, i) => i !== idx))}
+                                                                    className="opacity-0 group-hover:opacity-100 p-2 text-gray-600 hover:text-neon-red transition-all rounded-lg hover:bg-red-500/10"
+                                                                >
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        ))
+                                                    )}
                                                 </div>
                                             </div>
                                         ) : adminActiveTab === 'moderation' ? (
@@ -2595,12 +2634,17 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 <div key={loopIdx} className="flex gap-16">
                                     {marqueeItems.filter(i => i.text).map((item, idx) => (
                                         item.link ? (
-                                            <a key={`${loopIdx}-${idx}`} href={item.link.startsWith('http') ? item.link : `https://${item.link}`} target="_blank" rel="noopener noreferrer" className="text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 hover:text-red-500 transition-colors drop-shadow-md">
-                                                <Stars className="w-3 h-3 text-neon-red" />
-                                                {item.text}
+                                            <a
+                                                key={`${loopIdx}-${idx}`}
+                                                href={item.link.startsWith('http') ? item.link : item.link}
+                                                onClick={e => { if (!item.link.startsWith('http')) { e.preventDefault(); window.location.href = item.link; } }}
+                                                className="text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 hover:text-neon-red transition-colors drop-shadow-md cursor-pointer group/newsitem"
+                                            >
+                                                <Stars className="w-3 h-3 text-neon-red group-hover/newsitem:text-white transition-colors" />
+                                                <span className="group-hover/newsitem:text-neon-red transition-colors">{item.text}</span>
                                             </a>
                                         ) : (
-                                            <span key={`${loopIdx}-${idx}`} className="text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 hover:text-red-500 transition-colors cursor-pointer drop-shadow-md">
+                                            <span key={`${loopIdx}-${idx}`} className="text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 drop-shadow-md">
                                                 <Stars className="w-3 h-3 text-neon-red" />
                                                 {item.text}
                                             </span>
