@@ -3144,14 +3144,9 @@ export default {
             const activeRaw = await env.CHAT_KV.get('quiz_active') || "[]";
             let active = JSON.parse(activeRaw);
 
-            // Always sync default quizzes to ensure French translations are applied
+            // Cleanup and sync logic
             {
-                const now = new Date().toISOString();
-                const defaultQuizzes = [
-                    { id: 'q1', type: 'QCM', question: 'Quelle est la couleur principale de Dropsiders ?', options: ['Rouge Néon', 'Vert', 'Bleu', 'Jaune'], correctAnswer: 'Rouge Néon', category: 'General', author: 'Dropsiders', timestamp: now },
-                    { id: 'bt1', type: 'BLIND_TEST', question: 'Quel est ce morceau ?', options: ['Carl Cox - I Want You', 'Adam Beyer - Your Mind', 'Nina Kraviz - Ghetto Kraviz', 'Amelie Lens - Follow'], correctAnswer: 'Carl Cox - I Want You', category: 'Blind Test', audioUrl: 'https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3', author: 'Dropsiders', timestamp: now },
-                    { id: 'img1', type: 'IMAGE', question: 'Quel festival est-ce ?', options: ['Tomorrowland', 'Ultra Miami', 'Awakenings', 'Time Warp'], correctAnswer: 'Tomorrowland', category: 'Festivals', imageUrl: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?auto=format&fit=crop&q=80&w=400', author: 'Dropsiders', timestamp: now }
-                ];
+                const defaultQuizzes = []; // Removed all example quizzes
 
                 const musicTitlesPool = [
                     "Carl Cox - I Want You", "Nina Kraviz - Ghetto Kraviz", "Amelie Lens - Follow",
@@ -3162,29 +3157,10 @@ export default {
                     "Ummet Ozcan - Xanadu"
                 ];
 
-                // Build a map of default quizzes by ID for fast lookup
-                const defaultMap = new Map();
-                for (const dq of defaultQuizzes) {
-                    defaultMap.set(dq.id, dq);
-                }
-
-                // Filter out any existing 'Dropsiders' quizzes to purge old English content
-                // and keep only user-submitted or other non-default quizzes for now
-                const existingNonDefault = active.filter((q: any) =>
-                    q.author !== 'Dropsiders' && !defaultMap.has(q.id)
+                // Remove only the specific 'Dropsiders' default IDs if they exist
+                const finalQuizzes = active.filter((q: any) =>
+                    !['q1', 'bt1', 'img1'].includes(q.id)
                 );
-
-                // Merge: start with our fresh French default set
-                const merged = [...defaultQuizzes];
-
-                // Add back user-submitted quizzes
-                for (const userQuiz of existingNonDefault) {
-                    merged.push(userQuiz);
-                }
-
-                // Filtering: No longer removing ALEX blind tests automatically. 
-                // Any removals should be done via actual deletions or moderation now.
-                const finalQuizzes = merged;
 
                 await env.CHAT_KV.put('quiz_active', JSON.stringify(finalQuizzes));
                 active = finalQuizzes;
