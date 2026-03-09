@@ -138,6 +138,22 @@ export function AdminMessages() {
                     message: replyBody
                 })
             });
+
+            // Send copy to contact@dropsiders.fr if the sender is not contact@dropsiders.fr
+            if (res.ok && senderEmail !== 'contact@dropsiders.fr') {
+                fetch('/api/contacts/reply', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({
+                        to: 'contact@dropsiders.fr',
+                        from: senderEmail,
+                        name: `[COPIE] ${isNewMail ? 'Partenaire' : selected?.name}`,
+                        subject: `[COPIE] ${isNewMail ? mailSubject : `Re: ${selected?.subject}`}`,
+                        message: `--- COPIE DU MESSAGE ENVOYÉ À: ${to} ---\n\n${replyBody}`
+                    })
+                }).catch(err => console.error("Copy to admin failed", err));
+            }
+
             if (res.ok) {
                 setReplyStatus('success');
                 setReplyBody('');

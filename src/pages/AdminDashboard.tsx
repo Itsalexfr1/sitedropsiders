@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+Ôªøimport { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -146,14 +146,14 @@ export function AdminDashboard() {
     const [isUpdatingTakeover, setIsUpdatingTakeover] = useState(false);
     const [takeoverTab, setTakeoverTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'blocked' | 'access'>('general');
     const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
-    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'CONTENU' | 'STUDIO' | 'COMMUNAUT…' | 'SHOP'>('ALL');
+    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'CONTENU' | 'STUDIO' | 'COMMUNAUT√â' | 'SHOP'>('ALL');
 
     const DASHBOARD_TABS = [
         { id: 'ALL', label: 'Tout' },
         { id: 'NEWS', label: 'News' },
-        { id: 'CONTENU', label: '…ditorial' },
+        { id: 'CONTENU', label: '√âditorial' },
         { id: 'STUDIO', label: 'Studio' },
-        { id: 'COMMUNAUT…', label: 'CommunautÈ' },
+        { id: 'COMMUNAUT√â', label: 'Communaut√©' },
         { id: 'SHOP', label: 'Shop' }
     ];
     const [confirmModal, setConfirmModal] = useState<{
@@ -253,7 +253,7 @@ export function AdminDashboard() {
             setConfirmModal({
                 isOpen: true,
                 title: 'Supprimer Quizz',
-                message: 'Voulez-vous vraiment supprimer Èfinitivement cette question ?',
+                message: 'Voulez-vous vraiment supprimer √©finitivement cette question ?',
                 type: 'danger',
                 onConfirm: () => performModerateQuiz(id, action)
             });
@@ -336,7 +336,7 @@ export function AdminDashboard() {
             });
 
             if (resp.ok) {
-                alert('Notification envoyÈe avec succËs ‡ tous les abonnÈs !');
+                alert('Notification envoy√©e avec succ√®s √† tous les abonn√©s !');
                 setIsNotificationModalOpen(false);
             } else {
                 throw new Error('Erreur lors de l\'envoi');
@@ -679,29 +679,29 @@ export function AdminDashboard() {
     };
 
     const getFallbackActions = () => [
-        // CONTENU & ¿âDITORIAL
-        { title: "Contenu", description: "News, Musique, Interviews...", icon: "FileText", category: "CONTENU & ¿âDITORIAL", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news", baseColor: "cyan", columns: 2 },
-        { title: "Agenda", description: "Programmation", icon: "Calendar", category: "CONTENU & ¿âDITORIAL", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
+        // CONTENU & √Ä‚Ä∞DITORIAL
+        { title: "Contenu", description: "News, Musique, Interviews...", icon: "FileText", category: "CONTENU & √Ä‚Ä∞DITORIAL", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news", baseColor: "cyan", columns: 2 },
+        { title: "Agenda", description: "Programmation", icon: "Calendar", category: "CONTENU & √Ä‚Ä∞DITORIAL", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
 
         // STUDIO & ANALYTICS
         { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
 
-        // COMMUNAUT¿â & ENGAGEMENT
-        { title: "CommunautÈ", description: "MoÈration & Jeux", icon: "ImageIcon", category: "COMMUNAUT¿â & ENGAGEMENT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
-        { title: "Notifications", description: "Alertes Push", icon: "Bell", category: "COMMUNAUT¿â & ENGAGEMENT", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
+        // COMMUNAUT√â & ENGAGEMENT
+        { title: "Communaut√©", description: "Mo√©ration & Jeux", icon: "ImageIcon", category: "COMMUNAUT√â & ENGAGEMENT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
+        { title: "Notifications", description: "Alertes Push", icon: "Bell", category: "COMMUNAUT√â & ENGAGEMENT", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
 
         // SHOP & CONTACT
         { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP & CONTACT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
         { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "messages", baseColor: "green", columns: 1 },
-        { title: "MESSAGERIE & CONTACT", description: "Emails ReÁus & Factures", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
+        { title: "MESSAGERIE & CONTACT", description: "Emails Re√ßus & Factures", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
 
-        // SYST¿àME & TEAM
-        { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "SYST¿àME & TEAM", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
-        { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "SYST¿àME & TEAM", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
-        { title: "Team", description: "¿âquipe & AccËs", icon: "Users", category: "SYST¿àME & TEAM", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
-        { title: "News Focus", description: "Focus de la semaine", icon: "Zap", category: "CONTENU & …DITORIAL", link: "/news/create?tab=Focus", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "news", baseColor: "purple", columns: 1 },
+        // SYST√ÄÀÜME & TEAM
+        { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "SYST√ÄÀÜME & TEAM", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
+        { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "SYST√ÄÀÜME & TEAM", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
+        { title: "Team", description: "√âquipe & Acc√®s", icon: "Users", category: "SYST√ÄÀÜME & TEAM", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
+        { title: "News Focus", description: "Focus de la semaine", icon: "Zap", category: "CONTENU & √âDITORIAL", link: "/news/create?tab=Focus", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "news", baseColor: "purple", columns: 1 },
     ];
 
 
@@ -733,7 +733,7 @@ export function AdminDashboard() {
                 }
             }
 
-            // Si l'API rÈpond avec une erreur explicite
+            // Si l'API r√©pond avec une erreur explicite
             if (response.status === 401) {
                 setError('Identifiants incorrects');
                 return;
@@ -745,7 +745,7 @@ export function AdminDashboard() {
             // FALLBACK LOCAL (DEV MODE)
             console.log("API Login failed, trying local check...", err);
 
-            if ((username === 'contact@dropsiders.fr' || username === 'alex') && password === '01061988') {
+            if ((username === 'contact@dropsiders.fr' || username === 'alex' || username === 'alexflex30@gmail.com') && password === '01061988') {
                 setIsAuthenticated(true);
                 localStorage.setItem('admin_auth', 'true');
                 localStorage.setItem('admin_password', password);
@@ -786,10 +786,10 @@ export function AdminDashboard() {
                         </div>
 
                         <h2 className="text-2xl font-display font-black text-white text-center mb-2 uppercase italic">
-                            AccËs Restreint
+                            Acc√®s Restreint
                         </h2>
                         <p className="text-center text-gray-400 text-sm mb-8">
-                            Veuillez vous identifier pour accÈder au tableau de bord.
+                            Veuillez vous identifier pour acc√©der au tableau de bord.
                         </p>
 
                         <form onSubmit={handleLogin} className="space-y-4">
@@ -839,8 +839,8 @@ export function AdminDashboard() {
 
                         <div className="mt-8 pt-6 border-t border-white/5">
                             <p className="text-[9px] text-gray-400 uppercase tracking-[0.2em] text-center leading-relaxed">
-                                Espace d'administration rÈservÈ ‡ l'Èquipe Dropsiders.
-                                Ce portail permet la gestion des actualitÈs, des reportages festivals,
+                                Espace d'administration r√©serv√© √† l'√©quipe Dropsiders.
+                                Ce portail permet la gestion des actualit√©s, des reportages festivals,
                                 de la billetterie et des statistiques d'audience du site.
                             </p>
                         </div>
@@ -864,12 +864,12 @@ export function AdminDashboard() {
     const isAlex = localStorage.getItem('admin_user') === 'alex' || localStorage.getItem('admin_user') === 'contact@dropsiders.fr';
 
     const hasPermission = (p: string) => {
-        // Permission MaÓtre (Alex ou Administrateur "all" pour superadmin)
+        // Permission Ma√Ætre (Alex ou Administrateur "all" pour superadmin)
         if (p === 'superadmin') return isAlex || storedPermissions.includes('all');
 
         if (storedPermissions.includes('all')) return true;
 
-        // SÈparation des permissions d'action (create, edit, delete)
+        // S√©paration des permissions d'action (create, edit, delete)
         const actionPermissions = ['create', 'edit', 'delete'];
         if (actionPermissions.includes(p)) {
             return storedPermissions.includes(p);
@@ -877,13 +877,13 @@ export function AdminDashboard() {
 
         if (storedPermissions.includes(p)) return true;
 
-        // Si l'utilisateur possËde 'publications', il a accËs par Èfaut aux sous-sections Èditoriales
+        // Si l'utilisateur poss√®de 'publications', il a acc√®s par √©faut aux sous-sections √©ditoriales
         if (storedPermissions.includes('publications')) {
             const editorialSubsets = ['news', 'recaps', 'agenda', 'galeries', 'social_studio'];
             if (editorialSubsets.includes(p)) return true;
         }
 
-        // AccËs complet au Live Takeover par Èfaut si on a takeover_full
+        // Acc√®s complet au Live Takeover par √©faut si on a takeover_full
         if (storedPermissions.includes('takeover_full')) {
             const liveSubsets = ['takeover_modo', 'audio_rooms', 'hype_drops', 'shazam'];
             if (liveSubsets.includes(p)) return true;
@@ -996,7 +996,7 @@ export function AdminDashboard() {
 
         if (dashboardTab === 'CONTENU') return action.category?.includes('CONTENU');
         if (dashboardTab === 'STUDIO') return action.category?.includes('STUDIO');
-        if (dashboardTab === 'COMMUNAUT…') return action.category?.includes('COMMUNAUT…');
+        if (dashboardTab === 'COMMUNAUT√â') return action.category?.includes('COMMUNAUT√â');
         if (dashboardTab === 'SHOP') return action.category?.includes('SHOP');
 
         return true;
@@ -1034,7 +1034,7 @@ export function AdminDashboard() {
                                 className="inline-flex items-center gap-2 text-red-500/60 hover:text-red-500 text-xs uppercase tracking-widest font-black transition-all group"
                             >
                                 <LogOut className="w-3.5 h-3.5" />
-                                DÈconnexion
+                                D√©connexion
                             </button>
                         </div>
                     </div>
@@ -1066,7 +1066,7 @@ export function AdminDashboard() {
                                             className="px-6 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase text-gray-400 flex items-center gap-2"
                                         >
                                             <Paintbrush className="w-3.5 h-3.5" />
-                                            Mode …dition
+                                            Mode √âdition
                                         </button>
                                     )}
                                 </>
@@ -1081,7 +1081,7 @@ export function AdminDashboard() {
                                 type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="RECHERCHER UN ACC»S..."
+                                placeholder="RECHERCHER UN ACC√àS..."
                                 className="w-full bg-black/40 border border-white/10 rounded-xl md:rounded-full py-3 md:py-2 pl-12 pr-4 text-white text-xs font-black uppercase tracking-widest focus:border-neon-red outline-none transition-all placeholder:text-gray-700"
                             />
                             {searchTerm && (
@@ -1097,7 +1097,7 @@ export function AdminDashboard() {
                             <button
                                 onClick={fetchActions}
                                 className="w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl md:rounded-full text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all gap-2"
-                                title="RafraÓchir les donnÈes"
+                                title="Rafra√Æchir les donn√©es"
                             >
                                 <RefreshCw className="w-4 h-4 md:w-4 md:h-4" />
                                 <span className="hidden md:inline">Actualiser</span>
@@ -1115,7 +1115,7 @@ export function AdminDashboard() {
                                     </button>
                                     <Link
                                         to="/live"
-                                        title="AccËs Live"
+                                        title="Acc√®s Live"
                                         className={`w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center rounded-xl md:rounded-full text-xs font-black uppercase tracking-widest transition-all gap-2 border ${takeoverState.enabled ? 'bg-neon-red/10 border-neon-red/40 text-neon-red hover:bg-neon-red hover:text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
                                     >
                                         <Youtube className="w-4 h-4" />
@@ -1136,7 +1136,7 @@ export function AdminDashboard() {
                                             disabled={isUpdatingTakeover}
                                             className={`flex-1 md:flex-none px-4 py-2 md:py-1.5 rounded-lg md:rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'edit' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-white'}`}
                                         >
-                                            …DIT
+                                            √âDIT
                                         </button>
                                         <button
                                             onClick={() => updateLiveStatus('live')}
@@ -1305,7 +1305,7 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'Agenda') {
                                                     e.preventDefault();
                                                     setIsAgendaModalOpen(true);
-                                                } else if (action.title === 'CommunautÈ') {
+                                                } else if (action.title === 'Communaut√©') {
                                                     e.preventDefault();
                                                     setIsCommunauteModalOpen(true);
                                                 } else if (action.title === 'Team') {
@@ -1315,7 +1315,7 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'Contenu') {
                                                     e.preventDefault();
                                                     setIsContenuModalOpen(true);
-                                                } else if (action.title === 'Newsletter' || action.title === 'AbonnÈs') {
+                                                } else if (action.title === 'Newsletter' || action.title === 'Abonn√©s') {
                                                     e.preventDefault();
                                                     setIsNewsletterModalOpen(true);
                                                 } else if (action.title === 'LIVE / TAKEOVER') {
@@ -1369,7 +1369,7 @@ export function AdminDashboard() {
                                             <div className="flex justify-between items-start mb-4">
                                                 <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors relative">
                                                     {getIcon(action.icon, action.baseColor)}
-                                                    {action.title === 'MoÈration' && pendingPhotosCount > 0 && (
+                                                    {action.title === 'Mo√©ration' && pendingPhotosCount > 0 && (
                                                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
                                                             <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
                                                         </div>
@@ -1384,7 +1384,7 @@ export function AdminDashboard() {
                                                             <span className="text-[9px] font-black text-white">{pendingMessagesCount}</span>
                                                         </div>
                                                     )}
-                                                    {action.title === 'CommunautÈ' && (pendingPhotosCount > 0 || pendingQuizzesCount > 0 || pendingMessagesCount > 0) && (
+                                                    {action.title === 'Communaut√©' && (pendingPhotosCount > 0 || pendingQuizzesCount > 0 || pendingMessagesCount > 0) && (
                                                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
                                                             <span className="text-[9px] font-black text-white">{pendingPhotosCount + pendingMessagesCount + (pendingQuizzesCount > 0 ? 1 : 0)}</span>
                                                         </div>
@@ -1471,7 +1471,7 @@ export function AdminDashboard() {
                                                     value={bannerState.text}
                                                     onChange={(e) => setBannerState({ ...bannerState, text: e.target.value.toUpperCase() })}
                                                     className="w-full bg-black border border-white/10 rounded-2xl px-4 py-3 text-white text-sm focus:outline-none focus:border-neon-orange transition-all min-h-[80px] resize-none"
-                                                    placeholder="Message en FranÁais..."
+                                                    placeholder="Message en Fran√ßais..."
                                                 />
                                             </div>
                                             <div className="space-y-2">
@@ -1494,7 +1494,7 @@ export function AdminDashboard() {
                                             </label>
                                             <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
                                                 {[
-                                                    { label: 'Aucun (ÈsactivÈ)', val: '' },
+                                                    { label: 'Aucun (√©sactiv√©)', val: '' },
                                                     { label: 'Accueil', val: '/' },
                                                     { label: 'News', val: '/news' },
                                                     { label: 'Agenda', val: '/agenda' },
@@ -1513,7 +1513,7 @@ export function AdminDashboard() {
                                             <div className="relative">
                                                 <input
                                                     type="text"
-                                                    placeholder="URL personnalisÈe ou lien externe (https://...)"
+                                                    placeholder="URL personnalis√©e ou lien externe (https://...)"
                                                     value={bannerState.link}
                                                     onChange={(e) => setBannerState({ ...bannerState, link: e.target.value })}
                                                     className="w-full bg-black border border-white/10 rounded-xl px-4 py-3 text-white text-[11px] focus:outline-none focus:border-neon-orange transition-all font-mono"
@@ -1591,7 +1591,7 @@ export function AdminDashboard() {
 
                                         {/* Preview */}
                                         <div className="pt-4 border-t border-white/5">
-                                            <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3 text-center">AperÁu direct (taille approx.)</div>
+                                            <div className="text-[10px] font-black text-gray-600 uppercase tracking-widest mb-3 text-center">Aper√ßu direct (taille approx.)</div>
                                             <div
                                                 className={`rounded-lg overflow-hidden flex items-center px-4 border border-white/5 relative ${bannerState.size === 'small' ? 'h-6' : bannerState.size === 'large' ? 'h-12' : 'h-8'}`}
                                                 style={{
@@ -1667,7 +1667,7 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-purple/30 group-hover:scale-110 transition-transform">
                                             <FileText className="w-6 h-6 text-neon-purple" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">¿âcrite</h3>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">√Ä‚Ä∞crite</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouveau format texte</p>
                                     </Link>
 
@@ -1678,8 +1678,8 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-red/30 group-hover:scale-110 transition-transform">
                                             <Youtube className="w-6 h-6 text-neon-red" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">ViÈo</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouveau format viÈo</p>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Vi√©o</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouveau format vi√©o</p>
                                     </Link>
                                 </div>
 
@@ -1692,20 +1692,20 @@ export function AdminDashboard() {
                                             <Settings2 className="w-5 h-5 text-gray-400" />
                                         </div>
                                         <div className="text-left">
-                                            <h3 className="font-bold text-white uppercase italic tracking-tight">GÈrer mes interviews</h3>
+                                            <h3 className="font-bold text-white uppercase italic tracking-tight">G√©rer mes interviews</h3>
                                             <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
                                         </div>
                                     </div>
                                     <ArrowRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
                                 </Link>
 
-                                {/* Section SÈlection Home */}
+                                {/* Section S√©lection Home */}
                                 <div className="pt-8 border-t border-white/5">
                                     <div className="flex items-center justify-between mb-6">
                                         <div>
-                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tight">¿Ä la une sur l'accueil</h3>
+                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tight">√Ä‚Ç¨ la une sur l'accueil</h3>
                                             <div className="flex items-center gap-4 mt-1">
-                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Choisissez les 4 interviews ‡ afficher</p>
+                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Choisissez les 4 interviews √† afficher</p>
                                                 <div className="flex gap-2">
                                                     <button
                                                         onClick={() => setSelectedInterviews([])}
@@ -1717,7 +1717,7 @@ export function AdminDashboard() {
                                                         onClick={() => setSelectedInterviews(allInterviews.slice(0, 4).map(i => i.id))}
                                                         className="text-[9px] font-black text-gray-400 hover:text-white transition-colors uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded border border-white/10"
                                                     >
-                                                        4 DerniËres
+                                                        4 Derni√®res
                                                     </button>
                                                 </div>
                                             </div>
@@ -1832,7 +1832,7 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-blue/30 group-hover:scale-110 transition-transform">
                                             <FileText className="w-6 h-6 text-neon-blue" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">ActualitÈ</h3>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Actualit√©</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouvel article news</p>
                                     </Link>
 
@@ -1872,7 +1872,7 @@ export function AdminDashboard() {
                                                 <Settings2 className="w-5 h-5 text-gray-400" />
                                             </div>
                                             <div className="text-left">
-                                                <h3 className="font-bold text-white uppercase italic tracking-tight">GÈrer les News</h3>
+                                                <h3 className="font-bold text-white uppercase italic tracking-tight">G√©rer les News</h3>
                                                 <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
                                             </div>
                                         </div>
@@ -1889,8 +1889,8 @@ export function AdminDashboard() {
                                                 <Star className="w-5 h-5 text-neon-yellow fill-neon-yellow" />
                                             </div>
                                             <div className="text-left">
-                                                <h3 className="font-bold text-white uppercase italic tracking-tight text-neon-yellow">GÈrer les Focus</h3>
-                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir les articles ÈpinglÈs</p>
+                                                <h3 className="font-bold text-white uppercase italic tracking-tight text-neon-yellow">G√©rer les Focus</h3>
+                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir les articles √©pingl√©s</p>
                                             </div>
                                         </div>
                                         <ArrowRight className="w-5 h-5 text-neon-yellow group-hover:translate-x-1 transition-transform" />
@@ -1918,7 +1918,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Social <span className="text-neon-pink">Studio</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">GÈnÈrez des visuels pour vos rÈseaux</p>
+                                        <p className="text-gray-400 font-medium">G√©n√©rez des visuels pour vos r√©seaux</p>
                                     </div>
                                     <button
                                         onClick={() => setIsSocialModalOpen(false)}
@@ -1929,7 +1929,7 @@ export function AdminDashboard() {
                                 </div>
 
                                 <div className="space-y-6">
-                                    <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">SÈlectionner un article rÈcent ou crÈer ‡ vide</div>
+                                    <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-2">S√©lectionner un article r√©cent ou cr√©er √† vide</div>
                                     <div className="space-y-3 max-h-[50vh] overflow-y-auto pr-2 custom-scrollbar">
                                         <button
                                             onClick={() => {
@@ -1943,7 +1943,7 @@ export function AdminDashboard() {
                                             </div>
                                             <div className="flex-1">
                                                 <h3 className="font-black text-white uppercase italic text-lg tracking-tighter">Visuel Vide / Manuel</h3>
-                                                <p className="text-[10px] text-neon-pink/60 font-black uppercase tracking-widest">Èmarrer sans article</p>
+                                                <p className="text-[10px] text-neon-pink/60 font-black uppercase tracking-widest">√©marrer sans article</p>
                                             </div>
                                             <ArrowRight className="w-6 h-6 text-neon-pink" />
                                         </button>
@@ -1973,7 +1973,7 @@ export function AdminDashboard() {
                                                 </button>
                                             ))
                                         ) : (
-                                            <div className="py-10 text-center text-gray-600 uppercase text-xs font-bold tracking-widest">Aucun article trouvÈ</div>
+                                            <div className="py-10 text-center text-gray-600 uppercase text-xs font-bold tracking-widest">Aucun article trouv√©</div>
                                         )}
                                     </div>
 
@@ -2038,7 +2038,7 @@ export function AdminDashboard() {
                                             <Plus className="w-6 h-6 text-neon-yellow" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel ÈvÈnement</h3>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel √©v√©nement</h3>
                                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Ajouter une date</p>
                                         </div>
                                     </Link>
@@ -2053,7 +2053,7 @@ export function AdminDashboard() {
                                                 <Settings2 className="w-5 h-5 text-gray-400" />
                                             </div>
                                             <div className="text-left">
-                                                <h3 className="font-bold text-white uppercase italic tracking-tight">GÈrer l'agenda</h3>
+                                                <h3 className="font-bold text-white uppercase italic tracking-tight">G√©rer l'agenda</h3>
                                                 <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
                                             </div>
                                         </div>
@@ -2065,7 +2065,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal CommunautÈ */}
+                {/* Modal Communaut√© */}
                 <AnimatePresence>
                     {isGalerieModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
@@ -2080,7 +2080,7 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Gestion <span className="text-neon-pink">CommunautÈ</span>
+                                            Gestion <span className="text-neon-pink">Communaut√©</span>
                                         </h2>
                                         <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
                                     </div>
@@ -2103,12 +2103,12 @@ export function AdminDashboard() {
                                         </div>
                                         <div className="text-left">
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouvel album</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">CrÈer une galerie photo</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Cr√©er une galerie photo</p>
                                         </div>
                                     </Link>
 
                                     <Link
-                                        to="/admin/manage?tab=CommunautÈ"
+                                        to="/admin/manage?tab=Communaut√©"
                                         onClick={() => setIsGalerieModalOpen(false)}
                                         className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-white/10 transition-all group"
                                     >
@@ -2117,7 +2117,7 @@ export function AdminDashboard() {
                                                 <Settings2 className="w-5 h-5 text-gray-400" />
                                             </div>
                                             <div className="text-left">
-                                                <h3 className="font-bold text-white uppercase italic tracking-tight">GÈrer les galeries</h3>
+                                                <h3 className="font-bold text-white uppercase italic tracking-tight">G√©rer les galeries</h3>
                                                 <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Voir, modifier ou supprimer</p>
                                             </div>
                                         </div>
@@ -2176,7 +2176,7 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
                                             <Settings2 className="w-6 h-6 text-white" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">GÈrer</h3>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">G√©rer</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Voir tous les articles</p>
                                     </Link>
                                 </div>
@@ -2185,7 +2185,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal RÈcaps */}
+                {/* Modal R√©caps */}
                 <AnimatePresence>
                     {isRecapModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
@@ -2200,7 +2200,7 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Gestion <span className="text-neon-red">RÈcaps</span>
+                                            Gestion <span className="text-neon-red">R√©caps</span>
                                         </h2>
                                         <p className="text-gray-400 font-medium">Que souhaitez-vous faire ?</p>
                                     </div>
@@ -2221,7 +2221,7 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-red/30 group-hover:scale-110 transition-transform">
                                             <Plus className="w-6 h-6 text-neon-red" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouveau RÈcap</h3>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Nouveau R√©cap</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Reportage Festival</p>
                                     </Link>
 
@@ -2233,8 +2233,8 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
                                             <Settings2 className="w-6 h-6 text-white" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">GÈrer</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les rÈcaps</p>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">G√©rer</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les r√©caps</p>
                                     </Link>
                                 </div>
                             </motion.div>
@@ -2259,7 +2259,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Gestion <span className="text-neon-orange">Messages</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">AccËs directs</p>
+                                        <p className="text-gray-400 font-medium">Acc√®s directs</p>
                                     </div>
                                     <button
                                         onClick={() => setIsMessagesModalOpen(false)}
@@ -2279,7 +2279,7 @@ export function AdminDashboard() {
                                             <Mail className="w-6 h-6 text-neon-orange" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">BoÓte de rÈception</h3>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Bo√Æte de r√©ception</h3>
                                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Voir tous les messages</p>
                                         </div>
                                     </Link>
@@ -2293,7 +2293,7 @@ export function AdminDashboard() {
                                             <Settings2 className="w-6 h-6 text-white" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">ParamËtres Contact</h3>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Param√®tres Contact</h3>
                                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Emails & Destinataires</p>
                                         </div>
                                     </Link>
@@ -2402,7 +2402,7 @@ export function AdminDashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Vues Accueil</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">GÈrer les sections & le live</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">G√©rer les sections & le live</p>
                                         </div>
                                     </Link>
                                 </div>
@@ -2464,7 +2464,7 @@ export function AdminDashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Google Analytics</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Analyse ÈtaillÈe</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Analyse √©taill√©e</p>
                                         </div>
                                     </a>
                                 </div>
@@ -2511,7 +2511,7 @@ export function AdminDashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Playlists Accueil</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">GÈrer le top 10 hebdo</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">G√©rer le top 10 hebdo</p>
                                         </div>
                                     </Link>
                                 </div>
@@ -2537,7 +2537,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Gestion <span className="text-green-400">Newsletter</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">Campagnes & AbonnÈs</p>
+                                        <p className="text-gray-400 font-medium">Campagnes & Abonn√©s</p>
                                     </div>
                                     <button
                                         onClick={() => setIsNewsletterModalOpen(false)}
@@ -2557,7 +2557,7 @@ export function AdminDashboard() {
                                             <Mail className="w-6 h-6 text-green-400" />
                                         </div>
                                         <h3 className="text-xl font-bold text-white uppercase italic mb-1">Studio</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">CrÈer une campagne</p>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Cr√©er une campagne</p>
                                     </Link>
 
                                     <Link
@@ -2568,8 +2568,8 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
                                             <Users className="w-6 h-6 text-white" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">AbonnÈs</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">GÈrer la liste mail</p>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Abonn√©s</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">G√©rer la liste mail</p>
                                     </Link>
                                 </div>
                             </motion.div>
@@ -2614,8 +2614,8 @@ export function AdminDashboard() {
                                             <Mail className="w-8 h-8 text-neon-orange" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-xl font-bold text-white uppercase italic">BoÓte de rÈception</h3>
-                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">GÈrer les contacts</p>
+                                            <h3 className="text-xl font-bold text-white uppercase italic">Bo√Æte de r√©ception</h3>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">G√©rer les contacts</p>
                                         </div>
                                         {pendingMessagesCount > 0 && (
                                             <div className="absolute top-4 right-4 w-6 h-6 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
@@ -2624,7 +2624,7 @@ export function AdminDashboard() {
                                         )}
                                     </Link>
 
-                                    {(username.toLowerCase() === 'alex' || username.toLowerCase() === 'contact@dropsiders.fr') && (
+                                    {(username.toLowerCase() === 'alex' || username.toLowerCase() === 'contact@dropsiders.fr' || username.toLowerCase() === 'alexflex30@gmail.com') && (
                                         <Link
                                             to="/admin/factures"
                                             onClick={() => setIsMessagesModalOpen(false)}
@@ -2635,7 +2635,7 @@ export function AdminDashboard() {
                                             </div>
                                             <div className="text-center">
                                                 <h3 className="text-xl font-bold text-white uppercase italic">Facturation</h3>
-                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">GÈnÈrer vos facures</p>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">G√©n√©rer vos facures</p>
                                             </div>
                                         </Link>
                                     )}
@@ -2645,7 +2645,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal Contenu (¿âditorial) */}
+                {/* Modal Contenu (√Ä‚Ä∞ditorial) */}
                 <AnimatePresence>
                     {isContenuModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
@@ -2662,7 +2662,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Gestion <span className="text-neon-cyan">Contenu Editorial</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">ContrÙle des articles et mÈdias</p>
+                                        <p className="text-gray-400 font-medium">Contr√¥le des articles et m√©dias</p>
                                     </div>
                                     <button
                                         onClick={() => setIsContenuModalOpen(false)}
@@ -2720,7 +2720,7 @@ export function AdminDashboard() {
                                             <Video className="w-6 h-6 text-neon-red" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">RÈcaps</h3>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">R√©caps</h3>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Reportages</p>
                                         </div>
                                     </button>
@@ -2744,7 +2744,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal CommunautÈ */}
+                {/* Modal Communaut√© */}
                 <AnimatePresence>
                     {isCommunauteModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
@@ -2759,7 +2759,7 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            COMMUNAUT¿â
+                                            COMMUNAUT√â
                                         </h2>
                                         <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Espace de partage et galeries</p>
                                     </div>
@@ -2807,7 +2807,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             TEAM
                                         </h2>
-                                        <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Gestion interne et accËs</p>
+                                        <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Gestion interne et acc√®s</p>
                                     </div>
                                     <button
                                         onClick={() => setIsTeamModalOpen(false)}
@@ -2844,32 +2844,34 @@ export function AdminDashboard() {
                                             <Users className="w-6 h-6 text-neon-blue" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">¿âquipe</h3>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">√âquipe</h3>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Membres Actifs</p>
                                         </div>
                                     </button>
 
                                     <button
+                                        onClick={() => { setIsEditorsModalOpen(true); setIsTeamModalOpen(false); }}
                                         className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
                                     >
                                         <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
                                             <Pencil className="w-6 h-6 text-neon-purple" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">¿âditeurs</h3>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">√âditeurs</h3>
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Droits & Profils</p>
                                         </div>
                                     </button>
 
                                     <button
+                                        onClick={() => { setIsSettingsModalOpen(true); setIsTeamModalOpen(false); }}
                                         className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
                                     >
                                         <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
                                             <Shield className="w-6 h-6 text-neon-cyan" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">SÈcuritÈ</h3>
-                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Logs & Banlist</p>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">S√©curit√©</h3>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Acc√®s & Cl√©s</p>
                                         </div>
                                     </button>
                                 </div>
@@ -2878,7 +2880,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal ¿âditeurs */}
+                {/* Modal √âditeurs */}
                 <AnimatePresence>
                     {isEditorsModalOpen && (
                         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
@@ -2893,9 +2895,9 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Gestion <span className="text-neon-red">¿âditeurs</span>
+                                            Gestion <span className="text-neon-red">√âditeurs</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">ContrÙle des accËs</p>
+                                        <p className="text-gray-400 font-medium">Contr√¥le des acc√®s</p>
                                     </div>
                                     <button
                                         onClick={() => setIsEditorsModalOpen(false)}
@@ -2915,8 +2917,8 @@ export function AdminDashboard() {
                                             <Lock className="w-6 h-6 text-neon-red" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Comptes ¿âditeurs</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">CrÈer & GÈrer les permissions</p>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Comptes √âditeurs</h3>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Cr√©er & G√©rer les permissions</p>
                                         </div>
                                     </Link>
                                 </div>
@@ -2940,9 +2942,9 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-12">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            SÈcuritÈ <span className="text-neon-purple">& AccËs</span>
+                                            S√©curit√© <span className="text-neon-purple">& Acc√®s</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">ParamËtres systËme</p>
+                                        <p className="text-gray-400 font-medium">Param√®tres syst√®me</p>
                                     </div>
                                     <button
                                         onClick={() => setIsSettingsModalOpen(false)}
@@ -2963,7 +2965,7 @@ export function AdminDashboard() {
                                         </div>
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Mots de passe</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les accËs globaux</p>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les acc√®s globaux</p>
                                         </div>
                                     </Link>
                                 </div>
@@ -2988,7 +2990,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-1">
                                             Live <span className="text-neon-red">Takeover</span>
                                         </h2>
-                                        <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">Prendre le contrÙle de la page d'accueil</p>
+                                        <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">Prendre le contr√¥le de la page d'accueil</p>
                                     </div>
                                     <button
                                         onClick={() => { }}
@@ -3000,13 +3002,13 @@ export function AdminDashboard() {
 
                                 <div className="flex bg-black/50 border border-white/10 rounded-2xl p-1 mb-6 overflow-x-auto z-20 relative no-scrollbar">
                                     <div className="flex min-w-max">
-                                        <button onClick={() => setTakeoverTab('general')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'general' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>LIVE / VID¿âO</button>
+                                        <button onClick={() => setTakeoverTab('general')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'general' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>LIVE / VID√Ä‚Ä∞O</button>
                                         <button onClick={() => setTakeoverTab('ticker')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'ticker' ? 'bg-neon-red/10 text-neon-red shadow-lg' : 'text-gray-500 hover:text-white'}`}>BANDEAU</button>
-                                        <button onClick={() => setTakeoverTab('moderation')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'moderation' ? 'bg-yellow-500/10 text-yellow-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>MOD¿âRATION</button>
+                                        <button onClick={() => setTakeoverTab('moderation')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'moderation' ? 'bg-yellow-500/10 text-yellow-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>MOD√Ä‚Ä∞RATION</button>
                                         <button onClick={() => setTakeoverTab('planning')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'planning' ? 'bg-neon-purple/10 text-neon-purple shadow-lg' : 'text-gray-500 hover:text-white'}`}>PLANNING</button>
-                                        <button onClick={() => setTakeoverTab('mods')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'mods' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}>¿âQUIPE</button>
+                                        <button onClick={() => setTakeoverTab('mods')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'mods' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}>√âquipe</button>
                                         <button onClick={() => setTakeoverTab('bot')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'bot' ? 'bg-neon-cyan/10 text-neon-cyan shadow-lg' : 'text-gray-500 hover:text-white'}`}>BOT</button>
-                                        <button onClick={() => setTakeoverTab('access')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'access' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>ACC¿àS</button>
+                                        <button onClick={() => setTakeoverTab('access')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'access' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>ACC√ÄÀÜS</button>
                                     </div>
                                 </div>
 
@@ -3020,7 +3022,7 @@ export function AdminDashboard() {
                                                     </div>
                                                     <div>
                                                         <p className="text-white font-black uppercase italic tracking-wider">Activer le Mode Live</p>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Le systËme Live est opÈrationnel</p>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Le syst√®me Live est op√©rationnel</p>
                                                     </div>
                                                 </div>
                                                 <button
@@ -3052,7 +3054,7 @@ export function AdminDashboard() {
                                                 <div className="flex items-center justify-between p-5 bg-white/[0.02] rounded-2xl border border-white/5">
                                                     <div className="flex flex-col">
                                                         <p className="text-[11px] font-black text-white uppercase tracking-widest">Afficher dans le Menu</p>
-                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">IcÙne Video en haut du site</p>
+                                                        <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Ic√¥ne Video en haut du site</p>
                                                     </div>
                                                     <button
                                                         onClick={() => setTakeoverState({ ...takeoverState, showInNavbar: !takeoverState.showInNavbar })}
@@ -3100,7 +3102,7 @@ export function AdminDashboard() {
                                                 <div className="flex items-center justify-between mb-4">
                                                     <div className="flex items-center gap-2">
                                                         <Video className="w-5 h-5 text-neon-red" />
-                                                        <h3 className="text-[11px] font-black text-white uppercase tracking-widest">ChaÓnes / CamÈras</h3>
+                                                        <h3 className="text-[11px] font-black text-white uppercase tracking-widest">Cha√Ænes / Cam√©ras</h3>
                                                     </div>
                                                     <button
                                                         onClick={() => {
@@ -3137,7 +3139,7 @@ export function AdminDashboard() {
                                                             <div key={idx} className="grid grid-cols-12 gap-2 bg-black/20 p-2 rounded-xl border border-white/5 group">
                                                                 <div className="col-span-5">
                                                                     <div className="flex flex-col gap-1">
-                                                                        <label className="text-[7px] text-gray-500 font-black uppercase tracking-widest ml-1">ID ViÈo / Lien</label>
+                                                                        <label className="text-[7px] text-gray-500 font-black uppercase tracking-widest ml-1">ID Vi√©o / Lien</label>
                                                                         <input
                                                                             type="text"
                                                                             value={id}
@@ -3149,7 +3151,7 @@ export function AdminDashboard() {
                                                                 </div>
                                                                 <div className="col-span-6">
                                                                     <div className="flex flex-col gap-1">
-                                                                        <label className="text-[7px] text-gray-500 font-black uppercase tracking-widest ml-1">Titre CamÈra</label>
+                                                                        <label className="text-[7px] text-gray-500 font-black uppercase tracking-widest ml-1">Titre Cam√©ra</label>
                                                                         <input
                                                                             type="text"
                                                                             value={title}
@@ -3170,7 +3172,7 @@ export function AdminDashboard() {
 
                                                     {(!takeoverState.channels || takeoverState.channels.trim() === '') && (
                                                         <div className="p-4 bg-black/20 border border-dashed border-white/10 rounded-xl text-center">
-                                                            <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest italic">Aucune camÈra configurÈe</p>
+                                                            <p className="text-[8px] text-gray-600 font-bold uppercase tracking-widest italic">Aucune cam√©ra configur√©e</p>
                                                         </div>
                                                     )}
                                                 </div>
@@ -3193,7 +3195,7 @@ export function AdminDashboard() {
                                                 <div className="space-y-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
                                                     <div className="flex items-center gap-2 mb-1">
                                                         <Calendar className="w-4 h-4 text-neon-cyan" />
-                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Date de Èbut</label>
+                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Date de √©but</label>
                                                     </div>
                                                     <input
                                                         type="datetime-local"
@@ -3258,7 +3260,7 @@ export function AdminDashboard() {
                                                     <p className="text-white font-black uppercase italic tracking-wider flex items-center gap-3">
                                                         <Activity className="w-5 h-5 text-neon-red" /> Activer le Bandeau
                                                     </p>
-                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Bandeau Èfilant sous le player</p>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Bandeau √©filant sous le player</p>
                                                 </div>
                                                 <button
                                                     onClick={() => setTakeoverState({ ...takeoverState, showTickerBanner: !takeoverState.showTickerBanner })}
@@ -3297,7 +3299,7 @@ export function AdminDashboard() {
                                                 <div className="grid grid-cols-1 gap-4 bg-white/[0.02] p-5 rounded-2xl border border-white/5">
                                                     <div className="space-y-2">
                                                         <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Message Perso</label>
-                                                        <input type="text" value={takeoverState.tickerText} onChange={e => setTakeoverState({ ...takeoverState, tickerText: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-neon-red" placeholder="Texte ‡ faire Èfiler..." />
+                                                        <input type="text" value={takeoverState.tickerText} onChange={e => setTakeoverState({ ...takeoverState, tickerText: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-xs text-white outline-none focus:border-neon-red" placeholder="Texte √† faire √©filer..." />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest block ml-1">Lien au clic (Optionnel)</label>
@@ -3312,13 +3314,13 @@ export function AdminDashboard() {
                                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                                             <div className="p-6 bg-red-500/5 border border-red-500/10 rounded-3xl">
                                                 <p className="text-white font-black uppercase italic tracking-wider flex items-center gap-3 mb-4">
-                                                    <ShieldAlert className="w-5 h-5 text-red-500" /> SÈcuritÈ des Liens
+                                                    <ShieldAlert className="w-5 h-5 text-red-500" /> S√©curit√© des Liens
                                                 </p>
                                                 <div className="flex items-center justify-between p-4 bg-black/40 border border-white/5 rounded-2xl">
                                                     <span className="text-[11px] font-black text-gray-400 uppercase tracking-widest">Bloqueur auto de liens</span>
                                                     <span className="px-3 py-1 bg-green-500/10 text-green-500 rounded-lg text-[9px] font-black uppercase border border-green-500/20">Toujours Actif</span>
                                                 </div>
-                                                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest mt-3 italic px-1">* Seule l'administration et les moÈrateurs peuvent partager des liens.</p>
+                                                <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest mt-3 italic px-1">* Seule l'administration et les mo√©rateurs peuvent partager des liens.</p>
                                             </div>
 
                                             <div className="p-6 bg-white/5 border border-white/5 rounded-3xl space-y-4">
@@ -3326,7 +3328,7 @@ export function AdminDashboard() {
                                                     <div className="p-2 bg-neon-red/10 rounded-xl">
                                                         <Pin className="w-5 h-5 text-neon-red" />
                                                     </div>
-                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Message <span className="text-neon-red">¿âpinglÈ</span></h3>
+                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Message <span className="text-neon-red">√Ä‚Ä∞pingl√©</span></h3>
                                                 </div>
 
                                                 <div className="space-y-3">
@@ -3335,7 +3337,7 @@ export function AdminDashboard() {
                                                         <textarea
                                                             value={takeoverState.pinnedMessage || ''}
                                                             onChange={(e) => setTakeoverState({ ...takeoverState, pinnedMessage: e.target.value })}
-                                                            placeholder="Ex: ‚ö†Ô∏è Èbut du set dans 5 minutes ! ‚ö†Ô∏è"
+                                                            placeholder="Ex: √¢≈°¬†√Ø¬∏¬è √©but du set dans 5 minutes ! √¢≈°¬†√Ø¬∏¬è"
                                                             className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-xs text-white font-bold focus:border-neon-red outline-none min-h-[80px] resize-none"
                                                         />
                                                     </div>
@@ -3345,10 +3347,10 @@ export function AdminDashboard() {
                                                             className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-red-500/20 border border-white/10 hover:border-red-500/30 rounded-xl text-[9px] font-black text-gray-400 hover:text-red-500 transition-all uppercase"
                                                         >
                                                             <PinOff className="w-3.5 h-3.5" />
-                                                            Retirer l'Èpingle
+                                                            Retirer l'√©pingle
                                                         </button>
                                                     )}
-                                                    <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest italic px-1">Ce message apparaÓtra en haut du chat pour tous les utilisateurs.</p>
+                                                    <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest italic px-1">Ce message appara√Ætra en haut du chat pour tous les utilisateurs.</p>
                                                 </div>
                                             </div>
                                         </div>
@@ -3357,7 +3359,7 @@ export function AdminDashboard() {
                                     {takeoverTab === 'planning' && (
                                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                                             <div className="flex items-center justify-between mb-2">
-                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">¿âditeur de <span className="text-neon-red">Planning</span></h3>
+                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">√Ä‚Ä∞diteur de <span className="text-neon-red">Planning</span></h3>
                                                 <button
                                                     onClick={() => {
                                                         const currentLines = (takeoverState.lineup || '').split('\n');
@@ -3389,10 +3391,10 @@ export function AdminDashboard() {
                                             <div className="space-y-2">
                                                 {takeoverState.lineup && takeoverState.lineup.trim() !== '' && (
                                                     <div className="grid grid-cols-12 gap-2 px-3 pb-1">
-                                                        <div className="col-span-1 text-[9px] text-gray-500 font-black uppercase tracking-widest text-center">Èbut</div>
+                                                        <div className="col-span-1 text-[9px] text-gray-500 font-black uppercase tracking-widest text-center">√©but</div>
                                                         <div className="col-span-1 text-[9px] text-gray-500 font-black uppercase tracking-widest text-center">Fin</div>
                                                         <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Artiste</div>
-                                                        <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">ScËne</div>
+                                                        <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Sc√®ne</div>
                                                         <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Instagram</div>
                                                         <div className="col-span-1"></div>
                                                     </div>
@@ -3473,7 +3475,7 @@ export function AdminDashboard() {
                                                                     type="text"
                                                                     value={row.stage}
                                                                     onChange={e => updateRow({ stage: e.target.value })}
-                                                                    placeholder="ScËne"
+                                                                    placeholder="Sc√®ne"
                                                                     className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white font-bold uppercase focus:border-neon-red outline-none"
                                                                 />
                                                             </div>
@@ -3517,14 +3519,14 @@ export function AdminDashboard() {
 
                                                 {(!takeoverState.lineup || takeoverState.lineup.trim() === '') && (
                                                     <div className="text-center py-6 bg-white/5 border border-white/5 rounded-2xl">
-                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucun programme configurÈ</p>
+                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucun programme configur√©</p>
                                                     </div>
                                                 )}
                                             </div>
 
                                             <div className="p-4 bg-neon-red/5 border border-neon-red/10 rounded-2xl">
                                                 <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest text-center italic">
-                                                    * Le planning sera affichÈ sur le player et accessible via la commande chat !lineup.
+                                                    * Le planning sera affich√© sur le player et accessible via la commande chat !lineup.
                                                 </p>
                                             </div>
                                         </div>
@@ -3535,21 +3537,21 @@ export function AdminDashboard() {
                                             <div className="space-y-4">
                                                 <div className="flex items-center gap-3 mb-2">
                                                     <Shield className="w-5 h-5 text-neon-red" />
-                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Noms des <span className="text-neon-red">MoÈrateurs</span></h3>
+                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Noms des <span className="text-neon-red">Mo√©rateurs</span></h3>
                                                 </div>
                                                 <input
                                                     type="text"
                                                     value={takeoverState.moderators}
                                                     onChange={(e) => setTakeoverState({ ...takeoverState, moderators: e.target.value.toUpperCase() })}
                                                     className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white focus:border-neon-red outline-none"
-                                                    placeholder="SÈparez par des virgules (EX: ALEX, TANGUY, EMMA)"
+                                                    placeholder="S√©parez par des virgules (EX: ALEX, TANGUY, EMMA)"
                                                 />
                                                 <div className="p-4 bg-white/5 border border-white/5 rounded-2xl">
                                                     <p className="text-[10px] text-gray-500 font-bold uppercase leading-relaxed tracking-widest">
-                                                        LES UTILISATEURS LIST¿âS ICI AURONT AUTOMATIQUEMENT LE DROIT DE :
-                                                        <br /><span className="text-white">‚Ä¢ SUPPRIMER DES MESSAGES</span>
-                                                        <br /><span className="text-white">‚Ä¢ ENVOYER DES LIENS</span>
-                                                        <br /><span className="text-white">‚Ä¢ BANNIR DES VIEWERS (SI ADMIN)</span>
+                                                        LES UTILISATEURS LIST√Ä‚Ä∞S ICI AURONT AUTOMATIQUEMENT LE DROIT DE :
+                                                        <br /><span className="text-white">√¢‚Ç¨¬¢ SUPPRIMER DES MESSAGES</span>
+                                                        <br /><span className="text-white">√¢‚Ç¨¬¢ ENVOYER DES LIENS</span>
+                                                        <br /><span className="text-white">√¢‚Ç¨¬¢ BANNIR DES VIEWERS (SI ADMIN)</span>
                                                     </p>
                                                 </div>
                                             </div>
@@ -3592,7 +3594,7 @@ export function AdminDashboard() {
                                                     </div>
                                                 </div>
                                                 <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest italic text-center">
-                                                    * LAISSEZ LE MESSAGE VIDE POUR D¿âSACTIVER L'AUTO-MESSAGE.
+                                                    * LAISSEZ LE MESSAGE VIDE POUR D√Ä‚Ä∞SACTIVER L'AUTO-MESSAGE.
                                                 </p>
                                             </div>
 
@@ -3604,14 +3606,14 @@ export function AdminDashboard() {
                                                             const parts = line.split(':');
                                                             return { cmd: parts[0] || '', res: parts[1] || '' };
                                                         });
-                                                        const newRow = { cmd: '!nouveau', res: 'Votre rÈponse ici' };
+                                                        const newRow = { cmd: '!nouveau', res: 'Votre r√©ponse ici' };
                                                         const newRows = [...rows, newRow];
                                                         const newText = newRows.map(r => `${r.cmd}:${r.res}`).join('\n');
                                                         setTakeoverState({ ...takeoverState, customCommands: newText });
                                                     }}
                                                     className="px-4 py-2 bg-neon-cyan text-black text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-cyan/20"
                                                 >
-                                                    + CrÈer une commande
+                                                    + Cr√©er une commande
                                                 </button>
                                             </div>
 
@@ -3656,7 +3658,7 @@ export function AdminDashboard() {
                                                             </div>
                                                             <div className="col-span-8">
                                                                 <div className="flex flex-col gap-1.5">
-                                                                    <label className="text-[10px] text-gray-400 font-black uppercase tracking-widest ml-1">RÈponse du bot</label>
+                                                                    <label className="text-[10px] text-gray-400 font-black uppercase tracking-widest ml-1">R√©ponse du bot</label>
                                                                     <input
                                                                         type="text"
                                                                         value={row.res}
@@ -3679,7 +3681,7 @@ export function AdminDashboard() {
 
                                                 {(!takeoverState.customCommands || takeoverState.customCommands.trim() === '') && (
                                                     <div className="text-center py-10 bg-white/5 border border-white/5 rounded-3xl">
-                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande personnalisÈe</p>
+                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande personnalis√©e</p>
                                                     </div>
                                                 )}
                                             </div>
@@ -3693,7 +3695,7 @@ export function AdminDashboard() {
                                                     <div className="p-2 bg-neon-purple/20 rounded-xl">
                                                         <Lock className="w-5 h-5 text-neon-purple" />
                                                     </div>
-                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">AccËs <span className="text-neon-purple">Restreint</span></h3>
+                                                    <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Acc√®s <span className="text-neon-purple">Restreint</span></h3>
                                                 </div>
 
                                                 <div className="space-y-4">
@@ -3711,7 +3713,7 @@ export function AdminDashboard() {
                                                     </div>
 
                                                     <div className="space-y-2">
-                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Code d'accËs secret</label>
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Code d'acc√®s secret</label>
                                                         <input
                                                             type="text"
                                                             value={takeoverState.password}
@@ -3768,7 +3770,7 @@ export function AdminDashboard() {
                                                             }}
                                                             className="px-4 py-2 bg-white/5 hover:bg-green-500 text-gray-400 hover:text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all"
                                                         >
-                                                            Èbloquer
+                                                            √©bloquer
                                                         </button>
                                                     </div>
                                                 ))
@@ -3784,9 +3786,9 @@ export function AdminDashboard() {
                                     className="w-full mt-8 py-5 bg-neon-red hover:bg-neon-red/80 text-white font-black uppercase tracking-widest rounded-[2rem] transition-all shadow-2xl flex items-center justify-center gap-3 disabled:opacity-50 relative z-30"
                                 >
                                     {isUpdatingTakeover ? (
-                                        <><Loader2 className="w-5 h-5 animate-spin" /> Mise ‡ jour...</>
+                                        <><Loader2 className="w-5 h-5 animate-spin" /> Mise √† jour...</>
                                     ) : (
-                                        <><Save className="w-5 h-5" /> Enregistrer les rÈglages</>
+                                        <><Save className="w-5 h-5" /> Enregistrer les r√©glages</>
                                     )}
                                 </button>
                             </motion.div>
@@ -3812,7 +3814,7 @@ export function AdminDashboard() {
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
                                             Push <span className="text-neon-red">Notifications</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium">GÈrer les alertes en direct</p>
+                                        <p className="text-gray-400 font-medium">G√©rer les alertes en direct</p>
                                     </div>
                                     <button
                                         onClick={() => setIsNotificationModalOpen(false)}
@@ -3828,8 +3830,8 @@ export function AdminDashboard() {
                                         <div className="w-16 h-16 bg-neon-red/10 rounded-2xl flex items-center justify-center border border-neon-red/30 mx-auto mb-4 group-hover:scale-110 transition-transform duration-500">
                                             <Bell className="w-8 h-8 text-neon-red" />
                                         </div>
-                                        <h3 className="text-2xl font-bold text-white uppercase italic mb-1">SystËme Actif</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Le service de push est opÈrationnel</p>
+                                        <h3 className="text-2xl font-bold text-white uppercase italic mb-1">Syst√®me Actif</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Le service de push est op√©rationnel</p>
                                     </div>
 
                                     <div className="grid grid-cols-2 gap-3">
@@ -3856,7 +3858,7 @@ export function AdminDashboard() {
                                     <div className="p-4 bg-neon-purple/5 border border-neon-purple/20 rounded-2xl flex gap-4 items-start">
                                         <Zap className="w-5 h-5 text-neon-purple shrink-0 mt-0.5" />
                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-relaxed">
-                                            Le nouveau systËme demande Èsormais l'accord pour les notifications et la newsletter dËs l'entrÈe sur le site.
+                                            Le nouveau syst√®me demande √©sormais l'accord pour les notifications et la newsletter d√®s l'entr√©e sur le site.
                                         </p>
                                     </div>
 
@@ -3866,7 +3868,7 @@ export function AdminDashboard() {
                                             <h4 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Envoi Manuel Sur Mesure</h4>
                                         </div>
 
-                                        {/* SÈlecteur de News */}
+                                        {/* S√©lecteur de News */}
                                         <div className="space-y-2">
                                             <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-1">1. Cible (Optionnel)</label>
                                             <div className="relative group/select">
@@ -3905,7 +3907,7 @@ export function AdminDashboard() {
                                             <textarea
                                                 value={pushCustomBody}
                                                 onChange={(e) => setPushCustomBody(e.target.value)}
-                                                placeholder="Message personnalisÈ pour les abonnÈs..."
+                                                placeholder="Message personnalis√© pour les abonn√©s..."
                                                 rows={2}
                                                 className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-xs font-bold text-white placeholder:text-gray-700 outline-none focus:border-neon-red/50 transition-all resize-none"
                                             />
@@ -3928,7 +3930,7 @@ export function AdminDashboard() {
                                             ) : (
                                                 <>
                                                     <Zap className="w-4 h-4" />
-                                                    Diffuser aux {pushSubscribersCount || 0} abonnÈs
+                                                    Diffuser aux {pushSubscribersCount || 0} abonn√©s
                                                     <ArrowRight className="w-4 h-4 group-hover/push:translate-x-1 transition-transform" />
                                                 </>
                                             )}
@@ -3939,7 +3941,7 @@ export function AdminDashboard() {
                                         onClick={() => setIsNotificationModalOpen(false)}
                                         className="w-full py-4 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white rounded-[1.5rem] font-black uppercase tracking-[0.2em] text-[8px] transition-all border border-white/10"
                                     >
-                                        Annuler l'opÈration
+                                        Annuler l'op√©ration
                                     </button>
                                 </div>
                             </motion.div>
@@ -3981,7 +3983,7 @@ export function AdminDashboard() {
                                                 <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
                                                     Social <span className="text-neon-cyan">Downloader</span>
                                                 </h2>
-                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1">Instagram ï TikTok ï YouTube ï Twitter</p>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1">Instagram ‚Ä¢ TikTok ‚Ä¢ YouTube ‚Ä¢ Twitter</p>
                                             </div>
                                         </div>
                                         <button
@@ -3996,7 +3998,7 @@ export function AdminDashboard() {
                                         <Downloader
                                             isPopup={true}
                                             onSelect={(url) => {
-                                                setSelectedSocialArticle({ title: 'MÈdia TÈlÈchargÈ', image: url });
+                                                setSelectedSocialArticle({ title: 'M√©dia T√©l√©charg√©', image: url });
                                                 setIsDownloaderOpen(false);
                                                 setIsSocialModalOpen(false); // If it came from Social Studio, we replace
                                             }}
@@ -4035,7 +4037,7 @@ export function AdminDashboard() {
                                                 <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
                                                     Gestion <span className="text-neon-red">Quizz</span>
                                                 </h2>
-                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Questions actives & proposÈes</p>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Questions actives & propos√©es</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
@@ -4048,7 +4050,7 @@ export function AdminDashboard() {
                                             </button>
                                             <button
                                                 onClick={async () => {
-                                                    if (!window.confirm('?? Voulez-vous vraiment supprimer TOUTES les questions Blind Test ? Cette action est irrÈversible.')) return;
+                                                    if (!window.confirm('?? Voulez-vous vraiment supprimer TOUTES les questions Blind Test ? Cette action est irr√©versible.')) return;
                                                     try {
                                                         const res = await apiFetch('/api/quiz/reset-blind-test', {
                                                             method: 'POST',
@@ -4056,7 +4058,7 @@ export function AdminDashboard() {
                                                         });
                                                         if (res.ok) {
                                                             const data = await res.json();
-                                                            alert(`? ${data.removed} questions Blind Test supprimÈes !`);
+                                                            alert(`? ${data.removed} questions Blind Test supprim√©es !`);
                                                             fetchQuizzes();
                                                         }
                                                     } catch (err) { console.error('Reset BT error:', err); }
@@ -4093,7 +4095,7 @@ export function AdminDashboard() {
 
                                         <div className="flex items-center gap-3 px-3 py-2 bg-black/60 border border-white/10 rounded-xl mx-2 shadow-xl group">
                                             <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">
-                                                Progression : <span className={quizCounts.blindTest < 30 ? 'text-neon-red' : 'text-neon-green'}>{quizCounts.blindTest}/30 BT</span> ï <span className={quizCounts.image < 30 ? 'text-neon-red' : 'text-neon-green'}>{quizCounts.image}/30 Image</span>
+                                                Progression : <span className={quizCounts.blindTest < 30 ? 'text-neon-red' : 'text-neon-green'}>{quizCounts.blindTest}/30 BT</span> ‚Ä¢ <span className={quizCounts.image < 30 ? 'text-neon-red' : 'text-neon-green'}>{quizCounts.image}/30 Image</span>
                                             </span>
                                         </div>
 
@@ -4116,7 +4118,7 @@ export function AdminDashboard() {
                                         <div className="relative">
                                             <input
                                                 type="text"
-                                                placeholder="FILTRER PAR TH¿àME / ARTISTE..."
+                                                placeholder="FILTRER PAR TH√ÄÀÜME / ARTISTE..."
                                                 value={quizSearch}
                                                 onChange={(e) => setQuizSearch(e.target.value)}
                                                 className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[9px] font-black text-white w-48 outline-none focus:border-neon-cyan transition-all uppercase placeholder:text-gray-700"
@@ -4199,7 +4201,7 @@ export function AdminDashboard() {
                                                                         <button
                                                                             onClick={() => { setTestQuiz(quiz); setIsTestingModalOpen(true); }}
                                                                             className="p-3 bg-purple-500/20 text-purple-500 border border-purple-500/30 rounded-2xl hover:bg-purple-500 hover:text-white transition-all shadow-xl shadow-purple-500/10"
-                                                                            title="Tester (AperÁu)"
+                                                                            title="Tester (Aper√ßu)"
                                                                         >
                                                                             <Play className="w-5 h-5" />
                                                                         </button>
@@ -4279,7 +4281,7 @@ export function AdminDashboard() {
                                 <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
                                     {/* THEME SELECTION - AUTO FILLS QUESTION */}
                                     <div>
-                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">ThËme / Genre</label>
+                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Th√®me / Genre</label>
                                         <div className="grid grid-cols-3 gap-2">
                                             {['Festivals', 'DJs', 'Classics', 'Techno', 'Bass Music', 'Hardcore', 'Tech House', 'Big Room', 'Trance', 'Hardstyle', 'Afro House', 'Progressive', 'House', 'Production'].map(t => (
                                                 <button
@@ -4316,7 +4318,7 @@ export function AdminDashboard() {
 
                                     <div>
                                         <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">
-                                            {quizToEdit.type === 'BLIND_TEST' ? 'Titre (UtilisÈe comme Bonne RÈponse)' : 'Question'}
+                                            {quizToEdit.type === 'BLIND_TEST' ? 'Titre (Utilis√©e comme Bonne R√©ponse)' : 'Question'}
                                         </label>
                                         <input
                                             type="text"
@@ -4421,7 +4423,7 @@ export function AdminDashboard() {
                                                                         };
                                                                     }
                                                                     if (files.length > 1) {
-                                                                        alert(`${files.length} fichiers traitÈs ! Les quiz supplÈmentaires ont ÈtÈ crÈÈs automatiquement.`);
+                                                                        alert(`${files.length} fichiers trait√©s ! Les quiz suppl√©mentaires ont √©t√© cr√©√©s automatiquement.`);
                                                                     }
                                                                 } catch (err) {
                                                                     alert('Erreur lors du traitement bulk');
@@ -4447,7 +4449,7 @@ export function AdminDashboard() {
                                             {/* Fallback manual input when no audio */}
                                             {!quizToEdit.audioUrl && (
                                                 <div>
-                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5 font-display italic">DÈbut de l'extrait (Sec)</label>
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-1.5 font-display italic">D√©but de l'extrait (Sec)</label>
                                                     <input
                                                         type="number"
                                                         value={quizToEdit.startTime || 0}
@@ -4514,7 +4516,7 @@ export function AdminDashboard() {
                                                     <select value={quizToEdit.revealEffect} onChange={(e) => setQuizToEdit({ ...quizToEdit, revealEffect: e.target.value })}
                                                         className="w-full bg-black border border-white/10 rounded-xl p-2.5 text-white focus:border-neon-red outline-none text-[10px]">
                                                         <option value="BLUR">FLOU</option>
-                                                        <option value="MOSAIC">MOSAœQUE</option>
+                                                        <option value="MOSAIC">MOSA√èQUE</option>
                                                         <option value="SILHOUETTE">SILHOUETTE</option>
                                                     </select>
                                                 </div>
@@ -4549,7 +4551,7 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-8">
                                     <div>
                                         <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Test de Question</h2>
-                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">AperÁu du rendu final pour les utilisateurs</p>
+                                        <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Aper√ßu du rendu final pour les utilisateurs</p>
                                     </div>
                                     <button onClick={() => { setTestQuiz(null); setIsTestingModalOpen(false); }} className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all">
                                         <X className="w-6 h-6" />
@@ -4575,7 +4577,7 @@ export function AdminDashboard() {
                                                 {testQuiz.imageType === 'PIXEL' && (
                                                     <div className="absolute inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center">
                                                         <div className="px-4 py-2 bg-black/60 border border-white/20 rounded-xl">
-                                                            <p className="text-[8px] font-black text-white uppercase tracking-[0.2em]">Effet Pixel ActivÈ</p>
+                                                            <p className="text-[8px] font-black text-white uppercase tracking-[0.2em]">Effet Pixel Activ√©</p>
                                                         </div>
                                                     </div>
                                                 )}
@@ -4590,7 +4592,7 @@ export function AdminDashboard() {
                                                     </div>
                                                     <div>
                                                         <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">Extrait Audio</p>
-                                                        <p className="text-[10px] text-white font-black uppercase">PrÈ-Ècoute du Blind Test</p>
+                                                        <p className="text-[10px] text-white font-black uppercase">Pr√©-√©coute du Blind Test</p>
                                                     </div>
                                                 </div>
                                                 <audio src={`${testQuiz.audioUrl}#t=${testQuiz.startTime || 0},${(testQuiz.startTime || 0) + 30}`} controls className="w-full h-8 custom-audio-player" />
@@ -4614,7 +4616,7 @@ export function AdminDashboard() {
                                         onClick={() => { setTestQuiz(null); setIsTestingModalOpen(false); }}
                                         className="w-full py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-[1.5rem] transition-all"
                                     >
-                                        Fermer l'aperÁu
+                                        Fermer l'aper√ßu
                                     </button>
                                 </div>
                             </motion.div>

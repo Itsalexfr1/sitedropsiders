@@ -677,8 +677,8 @@ export default {
 
         // --- DEPLOY: Trigger GitHub Actions workflow_dispatch ---
         if (path === '/api/deploy' && request.method === 'POST') {
-            // Only alex can trigger a deploy
-            if ((requestUsername !== 'alex' && requestUsername !== 'contact@dropsiders.fr') || requestPassword !== adminPassword) {
+            // Only allow 'alex' (or 'contact@dropsiders.fr' or 'alexflex30@gmail.com') to access this page
+            if ((requestUsername !== 'alex' && requestUsername !== 'contact@dropsiders.fr' && requestUsername !== 'alexflex30@gmail.com') || requestPassword !== adminPassword) {
                 return new Response(JSON.stringify({ error: 'Accès réservé à l\'administrateur principal' }), { status: 403, headers });
             }
 
@@ -2461,7 +2461,12 @@ export default {
                             </div>
                         </div>
                     `,
-                    replyTo: { email: 'contact@dropsiders.fr', name: 'Dropsiders' }
+                    replyTo: {
+                        email: (from && from !== 'contact@dropsiders.fr')
+                            ? `${from.trim()}, contact@dropsiders.fr`
+                            : 'contact@dropsiders.fr',
+                        name: 'Support Dropsiders'
+                    }
                 };
 
                 const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -2518,7 +2523,7 @@ export default {
                 const base64Content = pdfBase64.includes('base64,') ? pdfBase64.split('base64,')[1] : pdfBase64;
 
                 const payload = {
-                    sender: { name: 'CUENCA ALEXANDRE', email: 'contact@dropsiders.fr' },
+                    sender: { name: 'CUENCA ALEXANDRE', email: 'alexflex30@gmail.com' },
                     to: [{ email: to }],
                     bcc: [{ email: 'alexflex30@gmail.com' }],
                     replyTo: { email: 'alexflex30@gmail.com', name: 'CUENCA ALEXANDRE' },

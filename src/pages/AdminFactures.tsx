@@ -11,8 +11,8 @@ export function AdminFactures() {
         setCurrentUser(localStorage.getItem('admin_user')?.toLowerCase() || '');
     }, []);
 
-    // Only allow 'alex' (or 'contact@dropsiders.fr') to access this page
-    if (currentUser !== 'alex' && currentUser !== 'contact@dropsiders.fr') {
+    // Only allow 'alex' (or 'contact@dropsiders.fr' or 'alexflex30@gmail.com') to access this page
+    if (currentUser !== 'alex' && currentUser !== 'contact@dropsiders.fr' && currentUser !== 'alexflex30@gmail.com') {
         return <Navigate to="/admin" replace />;
     }
 

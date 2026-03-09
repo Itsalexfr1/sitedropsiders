@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Printer, Trash2, Send, Loader, X, Mail, BookUser, Save, Eye, Phone, Building2, ChevronRight, History, CheckCircle, Clock, Upload, ShieldCheck, Palette, FileSearch, Edit2 } from 'lucide-react';
+import { Plus, Printer, Trash2, Send, Loader, X, Mail, BookUser, Save, Eye, Phone, Building2, ChevronRight, History, CheckCircle, Clock, Upload, ShieldCheck, Palette, FileSearch, Edit2, Image as ImageIcon, FileText } from 'lucide-react';
 import '../styles/article-premium.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import html2canvas from 'html2canvas';
@@ -407,6 +407,33 @@ export function InvoiceGenerator() {
         }
     };
 
+    const handleDownloadPNG = async () => {
+        try {
+            const dataUrl = await runVirtualCapture();
+            const link = document.createElement('a');
+            link.download = `Facture_${formattedInvoiceNumber}.png`;
+            link.href = dataUrl;
+            link.click();
+        } catch (e: any) {
+            console.error('PNG Download Error:', e);
+            alert('Erreur lors de la génération du PNG: ' + e.message);
+        }
+    };
+
+    const handleDownloadPDF = async () => {
+        try {
+            const dataUrl = await runVirtualCapture();
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+            const pageWidth = pdf.internal.pageSize.getWidth();
+            const pageHeight = pdf.internal.pageSize.getHeight();
+            pdf.addImage(dataUrl, 'PNG', 0, 0, pageWidth, pageHeight, undefined, 'FAST');
+            pdf.save(`Facture_${formattedInvoiceNumber}.pdf`);
+        } catch (e: any) {
+            console.error('PDF Download Error:', e);
+            alert('Erreur lors de la génération du PDF: ' + e.message);
+        }
+    };
+
     const generateAndSendPDF = async () => {
         if (!emailTo) {
             setSendError('Veuillez renseigner un email destinataire.');
@@ -417,47 +444,15 @@ export function InvoiceGenerator() {
         setSendError('');
 
         try {
-            const invoiceEl = invoiceRef.current;
-            if (!invoiceEl) throw new Error('Introuvable');
-
-            // Capture the same way as preview for consistency and reliable rendering
-            const canvas = await html2canvas(invoiceEl, {
-                scale: 2,
-                useCORS: true,
-                allowTaint: true,
-                backgroundColor: '#ffffff',
-                logging: false,
-                onclone: (clonedDoc) => {
-                    const clonedInvoice = clonedDoc.getElementById('printable-invoice');
-                    if (clonedInvoice) {
-                        clonedInvoice.style.display = 'block';
-                        clonedInvoice.style.visibility = 'visible';
-                        clonedInvoice.style.position = 'relative';
-                        clonedInvoice.style.top = '0';
-                        clonedInvoice.style.left = '0';
-                        clonedInvoice.style.width = '794px';
-                        clonedInvoice.style.padding = '60px';
-                        clonedInvoice.style.backgroundColor = '#ffffff';
-                    }
-                    sanitizeColors(clonedDoc);
-                }
-            });
-
-            if (!canvas || canvas.width < 100) {
-                throw new Error('Échec technique de capture (Canevas nul ou trop petit)');
-            }
-
-            const imgData = canvas.toDataURL('image/png', 1.0);
-            if (imgData.length < 30000) {
-                throw new Error('Le rendu PDF est trop petit. Erreur de rendu probable.');
-            }
+            const imgData = await runVirtualCapture();
 
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
             const pageWidth = pdf.internal.pageSize.getWidth();
-            const imgHeight = (canvas.height * pageWidth) / canvas.width;
+            // Assuming aspect ratio from A4 (794x1123)
+            const imgHeight = (1123 * pageWidth) / 794;
 
             // Use PNG for maximum fidelity
-            pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, imgHeight);
+            pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, imgHeight, undefined, 'FAST');
             const pdfBase64 = pdf.output('datauristring');
 
             setSendStatus('sending');
@@ -617,6 +612,23 @@ export function InvoiceGenerator() {
                         <Eye className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
                         <span className="text-[10px] font-black uppercase tracking-[0.2em]">{previewLoading ? 'CALCUL...' : 'SCANNER APERÇU'}</span>
                     </button>
+
+                    <div className="flex items-center gap-2 p-1 bg-white/[0.02] border border-white/5 rounded-2xl">
+                        <button
+                            onClick={handleDownloadPNG}
+                            title="Télécharger PNG"
+                            className="p-3 hover:bg-white/5 rounded-xl transition-all group"
+                        >
+                            <ImageIcon className="w-4 h-4 text-white/20 group-hover:text-white" />
+                        </button>
+                        <button
+                            onClick={handleDownloadPDF}
+                            title="Télécharger PDF"
+                            className="p-3 hover:bg-white/5 rounded-xl transition-all group"
+                        >
+                            <FileText className="w-4 h-4 text-white/20 group-hover:text-white" />
+                        </button>
+                    </div>
 
                     <button
                         onClick={handlePrint}
@@ -1181,10 +1193,21 @@ export function InvoiceGenerator() {
                                 )}
                             </div>
 
-                            <div className="flex gap-10 mt-2 shrink-0 px-4">
-                                <button onClick={() => { setShowPreview(false); handlePrint(); }} className="flex-1 py-10 bg-white/5 border border-white/10 rounded-[48px] font-black uppercase tracking-[0.4em] text-[11px] hover:bg-white/10 transition-all active:scale-95">Imprimer Hardware</button>
-                                <button onClick={() => { setShowPreview(false); setShowEmailModal(true); }} className="flex-1 py-10 bg-white text-black rounded-[48px] font-black uppercase tracking-[0.4em] text-[11px] hover:bg-white/90 transition-all shadow-[0_20px_40px_rgba(255,255,255,0.05)] active:scale-95">Executer le Dispatch</button>
+                            <div className="flex gap-4 shrink-0 px-4">
+                                <button onClick={handleDownloadPNG} className="flex-1 py-6 bg-white/5 border border-white/10 rounded-[32px] font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white/10 transition-all flex items-center justify-center gap-3 active:scale-95">
+                                    <ImageIcon className="w-4 h-4" /> Sauver PNG
+                                </button>
+                                <button onClick={handleDownloadPDF} className="flex-1 py-6 bg-white/5 border border-white/10 rounded-[32px] font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white/10 transition-all flex items-center justify-center gap-3 active:scale-95">
+                                    <FileText className="w-4 h-4" /> Sauver PDF
+                                </button>
+                                <button onClick={() => { setShowPreview(false); handlePrint(); }} className="flex-1 py-6 bg-white/5 border border-white/10 rounded-[32px] font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white/10 transition-all flex items-center justify-center gap-3 active:scale-95">
+                                    <Printer className="w-4 h-4" /> Imprimer
+                                </button>
                             </div>
+
+                            <button onClick={() => { setShowPreview(false); setShowEmailModal(true); }} className="w-full py-10 bg-white text-black rounded-[48px] font-black uppercase tracking-[0.4em] text-[11px] hover:bg-white/90 transition-all shadow-[0_20px_40px_rgba(255,255,255,0.05)] active:scale-95">
+                                Executer le Dispatch
+                            </button>
                         </motion.div>
                     </div>
                 )}
@@ -1384,7 +1407,7 @@ export function InvoiceGenerator() {
                             <p>30000 Nîmes, France</p>
                             <p>SIRET : 805131828 00010</p>
                             <p>Tél : {userPhone}</p>
-                            <p>Email : alexlight3034@icloud.com</p>
+                            <p>Email : alexflex30@gmail.com</p>
                         </div>
                     </div>
                     <div style={{ textAlign: 'right', flex: 1 }}>
