@@ -30,6 +30,7 @@ interface TracklistContent {
 export function Musique() {
     const [activeTab, setActiveTab] = useState('beatport');
     const [chartsData, setChartsData] = useState<Record<string, Track[]>>({});
+    const [lastUpdate, setLastUpdate] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
@@ -41,7 +42,9 @@ export function Musique() {
         fetch('/api/musique/charts')
             .then(res => res.json())
             .then(data => {
-                setChartsData(data);
+                const { lastUpdate, ...charts } = data;
+                setChartsData(charts);
+                setLastUpdate(lastUpdate);
                 setIsLoading(false);
             })
             .catch(err => {
@@ -127,8 +130,14 @@ export function Musique() {
                     <h1 className="text-5xl md:text-8xl font-black italic tracking-tighter uppercase leading-none">
                         DROPSIDERS CHARTS
                     </h1>
-                    <p className="text-gray-500 max-w-2xl mx-auto text-xs md:text-sm font-black uppercase tracking-[0.3em]">
-                        LES CHARTS LES PLUS INFLUENTS DE LA PLANÈTE
+                    <p className="text-gray-500 max-w-2xl mx-auto text-[10px] md:text-xs font-black uppercase tracking-[0.2em] mb-2 flex flex-col md:flex-row items-center justify-center gap-2">
+                        <span className="text-neon-cyan">LES CHARTS LES PLUS INFLUENTS DE LA PLANÈTE</span>
+                        {lastUpdate && (
+                            <>
+                                <span className="hidden md:inline w-1 h-1 rounded-full bg-white/20" />
+                                <span className="text-white/40">MIS À JOUR LE {new Date(parseInt(lastUpdate)).toLocaleDateString('fr-FR')}</span>
+                            </>
+                        )}
                     </p>
                 </div>
 

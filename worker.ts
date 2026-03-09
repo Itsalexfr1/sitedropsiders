@@ -6391,7 +6391,8 @@ export default {
 
             // Force update if incomplete (we want top 10)
             if (charts && charts.beatport && charts.beatport.length >= 10) {
-                return new Response(JSON.stringify(charts), { status: 200, headers });
+                const lastUpdate = await env.CHAT_KV.get('last_charts_update');
+                return new Response(JSON.stringify({ ...charts, lastUpdate }), { status: 200, headers });
             }
 
             // Initial default if KV is empty
