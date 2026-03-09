@@ -579,6 +579,19 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             `databases.${DATABASE_ID}.collections.${COLLECTION_CHAT}.documents`,
             (response: any) => {
                 if (response.events.includes('databases.*.collections.*.documents.*.create')) {
+                    // Handle System / Logic Commands from Chat
+                    const msgText = response.payload.message;
+
+                    if (msgText.startsWith('[SYSTEM]:REACTION:')) {
+                        const parts = msgText.replace('[SYSTEM]:REACTION:', '').split(':');
+                        const msgId = parts[0];
+                        const emoji = parts[1];
+                        setChatMessages(prev => prev.map(m =>
+                            m.id === msgId ? { ...m, reactions: { ...(m.reactions || {}), [emoji]: (m.reactions?.[emoji] || 0) + 1 } } : m
+                        ));
+                        return; // Don't add to chat
+                    }
+
                     setChatMessages(prev => {
                         if (prev.find(m => m.id === response.payload.$id)) return prev;
                         return [...prev, {
@@ -588,22 +601,25 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             color: response.payload.color,
                             time: response.payload.time,
                             country: response.payload.country,
-                            bgColor: response.payload.bgColor
+                            bgColor: response.payload.bgColor,
+                            xp: response.payload.xp || 0
                         }];
                     });
 
                     // Update Hype Train
                     setHypeTrain(prev => {
-                        const newProgress = prev.progress + 2;
+                        let boost = 2; // Default per message
+                        if (msgText.includes('donné') && msgText.includes('DROPS')) boost = 25; // Donation boost
+
+                        const newProgress = prev.progress + boost;
                         if (newProgress >= 100) {
-                            triggerConfetti();
+                            showNotification(`🔥 TRAIN DE LA HYPE NIVEAU ${prev.level + 1} ! 🎉`, 'success');
+                            triggerFireworks();
                             return { active: true, level: prev.level + 1, progress: 0 };
                         }
-                        return { ...prev, progress: newProgress };
+                        return { ...prev, active: true, progress: newProgress };
                     });
 
-                    // Handle System / Logic Commands from Chat
-                    const msgText = response.payload.message;
                     if (msgText.startsWith('[SYSTEM]:')) {
                         const cmd = msgText.replace('[SYSTEM]:', '');
                         if (cmd === 'SLOW_ON') setSlowModeEnabled(true);
@@ -1156,6 +1172,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 const cost = voice === 'normal' ? 50 : 200;
                 if (userDrops >= cost) {
                     setUserDrops(prev => prev - cost);
+                    if (voice !== 'normal') setHypeTrain(prev => ({ ...prev, progress: Math.min(100, prev.progress + 5), active: true }));
                     const text = voice === 'normal' ? cmdParts.slice(1).join(' ') : cmdParts.slice(2).join(' ');
                     messageText = `[SYSTEM]:TTS:${voice}:${text}`;
                 } else {
@@ -1175,6 +1192,22 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 setUserDrops(prev => prev - 50);
                 messageText = `[SYSTEM]:JACKPOT_JOIN:${pseudo}`;
                 showNotification("Ticket de Jackpot acheté ! 🎰", 'success');
+            } else if (mainCmd === '!dé') {
+                const roll = Math.floor(Math.random() * 6) + 1;
+                const outcomes = [
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et gagne 100 DROPS !`, action: () => setUserDrops(prev => prev + 100) },
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et perd 50 DROPS ! 📉`, action: () => setUserDrops(prev => Math.max(0, prev - 50)) },
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et se fait MUTE 10s pour l'audace ! 🤐`, action: () => { setIsMuted(true); setMuteTimeLeft(10); } },
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et obtient un bonus d'XP ! ✨`, action: () => setUserXP(prev => prev + 50) },
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et ne gagne absolument rien. Dommage !`, action: () => { } },
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et déclenche des CONFETTIS ! 🎉`, action: () => triggerConfetti() }
+                ];
+                const finalOutcome = outcomes[roll - 1];
+                finalOutcome.action();
+                messageText = finalOutcome.msg;
+            } else if (mainCmd === '!qte' && isMod) {
+                const data = { id: Math.random().toString(), type: 'click', reward: 500 };
+                messageText = `[SYSTEM]:QTE_SPAWN:${JSON.stringify(data)}`;
             }
         }
 
@@ -1228,6 +1261,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             if (isHighlightChecked) {
                 setUserDrops(prev => prev - price);
                 localStorage.setItem('user_drops', (userDrops - price).toString());
+                setHypeTrain(prev => ({ ...prev, progress: Math.min(100, prev.progress + 10), active: true }));
             }
 
             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
@@ -1236,7 +1270,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 color: isHighlightChecked ? highlightColor : (isMod ? "text-neon-red" : "text-white"),
                 bgColor: isHighlightChecked ? highlightColor : null,
                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                country: userCountry || "FR"
+                country: userCountry || "FR",
+                xp: userXP
             });
 
             // Leveling System
@@ -2610,7 +2645,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 {msg.country && <FlagIcon location={msg.country} className="w-3 h-2" />}
                                                                 <span className="text-[8px] font-black text-gray-600 ml-1">{userCity}</span>
-                                                                <span className="text-[9px] font-black text-neon-cyan/60 shrink-0 uppercase tracking-tighter mr-1">LVL {Math.floor(Math.sqrt((msg.xp || 0) / 100)) + 1}</span>
+                                                                <span className="text-[9px] font-black text-neon-cyan/60 shrink-0 uppercase tracking-tighter mr-1 text-xs">[Lvl {Math.floor(Math.sqrt((msg.xp || 0) / 100)) + 1}]</span>
                                                                 <span className={`text-[11px] font-black uppercase italic tracking-tight ${msg.xp > 5000 ? 'bg-gradient-to-r from-red-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent animate-gradient' : msg.color || 'text-white'}`}>{msg.pseudo || msg.user}</span>
                                                                 {isFirstConnection && msg.pseudo === localStorage.getItem('chat_pseudo') && <span className="bg-neon-cyan text-black text-[7px] font-black px-1 rounded">PREMS</span>}
 
@@ -3177,8 +3212,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         <button
                             onClick={() => {
                                 const reward = activeQTE?.reward || 0;
-                                setUserDrops(prev => prev + reward);
-                                showNotification(`FAST CLICK ! +${reward} DROPS ! ⚡`, 'success');
+                                const isVipReward = Math.random() > 0.8;
+                                if (isVipReward) {
+                                    setVipsList(prev => [...prev, localStorage.getItem('chat_pseudo') || '']);
+                                    showNotification(`⚡ RÉFLEXE DE GÉNIE ! TU ES VIP TEMPORAIRE ! 👑`, 'success');
+                                } else {
+                                    setUserDrops(prev => prev + reward);
+                                    showNotification(`⚡ FAST CLICK ! +${reward} DROPS ! ⚡`, 'success');
+                                }
                                 setActiveQTE(null);
                             }}
                             className="p-10 bg-gradient-to-br from-neon-cyan to-neon-purple rounded-full shadow-[0_0_50px_#00ffff] animate-pulse group"
