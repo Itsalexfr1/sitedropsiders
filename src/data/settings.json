@@ -48,7 +48,9 @@
     "lots": [],
     "auddToken": "0707d622c51645acc2e4fa26ed64538d",
     "dropsAmount": 125,
-    "dropsInterval": 10
+    "dropsInterval": 10,
+    "sponsorText": "",
+    "sponsorLink": ""
   },
   "socials": {
     "instagram": "dropsiders.eu",
