@@ -232,6 +232,17 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [takeoverAlert, setTakeoverAlert] = useState<{ text: string } | null>(null);
     const [userWarnings, setUserWarnings] = useState<{ [pseudo: string]: number }>({});
     const [showUserLogs, setShowUserLogs] = useState<string | null>(null);
+    const [isRouletteTimeout, setIsRouletteTimeout] = useState(false);
+    const [topTalkers, setTopTalkers] = useState<{ pseudo: string, count: number }[]>([]);
+    const [clashPoll, setClashPoll] = useState<{ active: boolean, teamA: string, teamB: string, votesA: string[], votesB: string[] } | null>(null);
+    const [shopItems] = useState([
+        { id: 1, name: 'T-Shirt Classic', price: 2500, image: 'https://placehold.co/100x120?text=TSHIRT' },
+        { id: 2, name: 'Hoodie Neon', price: 5000, image: 'https://placehold.co/100x120?text=HOODIE' },
+        { id: 3, name: 'Casquette Drops', price: 1500, image: 'https://placehold.co/100x120?text=CAP' },
+        { id: 4, name: 'Pack Stickers', price: 500, image: 'https://placehold.co/100x120?text=STICKERS' }
+    ]);
+    const [showLegendsWall, setShowLegendsWall] = useState(false);
+    const [qteActive, setQteActive] = useState(false);
 
     // 🎁 RECOMPENSE QUOTIDIENNE (Paliers)
     useEffect(() => {
@@ -687,9 +698,25 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             triggerFlash(cmd.replace('FLASH:', ''), 'warn');
                         } else if (cmd.startsWith('BOSS_SPAWN')) {
                             setActiveBoss({ hp: 1000, maxHp: 1000, name: 'MEGABOT 3000' });
+                            setTimeout(() => setActiveBoss(prev => {
+                                if (prev && prev.hp > 0) showNotification("LE BOSS S'EST ÉCHAPPÉ ! 💨", 'error');
+                                return null;
+                            }), 60000);
                         } else if (cmd.startsWith('BOSS_HIT:')) {
                             const dmg = parseInt(cmd.replace('BOSS_HIT:', ''));
-                            setActiveBoss(prev => prev ? { ...prev, hp: Math.max(0, prev.hp - dmg) } : null);
+                            setActiveBoss(prev => {
+                                if (!prev) return null;
+                                const nextHp = Math.max(0, prev.hp - dmg);
+                                if (nextHp === 0 && prev.hp > 0) {
+                                    showNotification("VICTOIRE ! PLUIE DE DROPS (+500) ! 💎", 'success');
+                                    triggerFireworks();
+                                    setUserDrops(d => d + 500);
+                                }
+                                return { ...prev, hp: nextHp };
+                            });
+                        } else if (cmd === 'QTE_SPAWN') {
+                            setQteActive(true);
+                            setTimeout(() => setQteActive(false), 5000);
                         } else if (cmd.startsWith('MUTE_USER:')) {
                             const target = cmd.replace('MUTE_USER:', '');
                             const myPs = localStorage.getItem('chat_pseudo') || '';
@@ -728,6 +755,23 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         } else if (cmd.startsWith('JACKPOT_JOIN:')) {
                             const joiner = cmd.replace('JACKPOT_JOIN:', '');
                             setActiveSlots(prev => prev ? { ...prev, participants: [...new Set([...prev.participants, joiner])] } : null);
+                        } else if (cmd.startsWith('CLASH_START:')) {
+                            const data = JSON.parse(cmd.replace('CLASH_START:', ''));
+                            setClashPoll({ active: true, teamA: data.teamA, teamB: data.teamB, votesA: [], votesB: [] });
+                        } else if (cmd.startsWith('CLASH_VOTE:')) {
+                            const [team, ps] = cmd.replace('CLASH_VOTE:', '').split(':');
+                            setClashPoll(prev => {
+                                if (!prev) return prev;
+                                const isA = team === 'A';
+                                return {
+                                    ...prev,
+                                    votesA: isA ? [...new Set([...prev.votesA, ps])] : prev.votesA,
+                                    votesB: !isA ? [...new Set([...prev.votesB, ps])] : prev.votesB
+                                };
+                            });
+                        } else if (cmd === 'LEGENDS_WALL') {
+                            setShowLegendsWall(true);
+                            setTimeout(() => setShowLegendsWall(false), 15000);
                         }
                     } else if (msgText.startsWith('[QUIZ_START]:')) {
                         const content = msgText.replace('[QUIZ_START]:', '');
@@ -784,14 +828,26 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     if (!item.endTime) return true;
                     return item.endTime > currentTimeStr;
                 });
-                if (filtered.length !== prev.length) {
-                    localStorage.setItem('takeover_lineup', JSON.stringify(filtered));
-                }
                 return filtered;
             });
         }, 60000);
         return () => clearInterval(interval);
     }, []);
+
+    // 🏆 Top Talkers Tracking
+    useEffect(() => {
+        const counts: { [pseudo: string]: number } = {};
+        chatMessages.forEach(m => {
+            if (m.pseudo && !m.pseudo.startsWith('BOT_')) {
+                counts[m.pseudo] = (counts[m.pseudo] || 0) + 1;
+            }
+        });
+        const sorted = Object.entries(counts)
+            .map(([pseudo, count]) => ({ pseudo, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 10);
+        setTopTalkers(sorted);
+    }, [chatMessages]);
 
     const generateCaptcha = () => {
         const a = Math.floor(Math.random() * 10);
@@ -986,8 +1042,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const handleSendMessage = async (customText?: string) => {
         const messageToSend = customText || newMessage;
-        if (!messageToSend.trim() || isBanned || isMuted) {
-            if (isMuted) showNotification(`MUTE : Encore ${muteTimeLeft}s`, 'error');
+        if (!messageToSend.trim() || isBanned || isMuted || isRouletteTimeout) {
+            if (isRouletteTimeout) showNotification("TIMEOUT (ROULETTE) 💥", 'error');
+            else if (isMuted) showNotification(`MUTE : Encore ${muteTimeLeft}s`, 'error');
             return;
         }
 
@@ -1047,11 +1104,21 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 const dead = Math.floor(Math.random() * 6) === 0;
                 if (dead) {
                     messageText = `💥 ROULETTE RUSSE : @${pseudo} a perdu ! MUTE 60s !`;
+                    setIsRouletteTimeout(true);
                     setIsMuted(true);
                     setMuteTimeLeft(60);
                 } else {
                     messageText = `🔫 ROULETTE RUSSE : @${pseudo} a survécu... pour l'instant.`;
                 }
+            } else if (mainCmd === '!clash' && isMod) {
+                const [teamA, teamB] = messageText.replace('!clash ', '').split(' vs ');
+                if (teamA && teamB) messageText = `[SYSTEM]:CLASH_START:${JSON.stringify({ teamA, teamB })}`;
+                else { showNotification("Usage: !clash TeamA vs TeamB", 'error'); return; }
+            } else if (mainCmd === '!top') {
+                const tText = topTalkers.slice(0, 3).map((t, i) => `${i + 1}. ${t.pseudo}`).join(' | ');
+                messageText = `👑 TOP TALKERS : ${tText || 'Aucun message.'}`;
+            } else if (mainCmd === '!legends' && isMod) {
+                messageText = `[SYSTEM]:LEGENDS_WALL`;
             } else if (mainCmd === '!dé') {
                 const res = Math.floor(Math.random() * 20) + 1;
                 if (res === 20) {
@@ -1226,8 +1293,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 finalOutcome.action();
                 messageText = finalOutcome.msg;
             } else if (mainCmd === '!qte' && isMod) {
-                const data = { id: Math.random().toString(), type: 'click', reward: 500 };
-                messageText = `[SYSTEM]:QTE_SPAWN:${JSON.stringify(data)}`;
+                messageText = `[SYSTEM]:QTE_SPAWN`;
             }
         }
 
@@ -2368,7 +2434,96 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             )}
                         </AnimatePresence>
 
+                        {/* ⚔️ Clash Poll Banner */}
+                        <AnimatePresence>
+                            {clashPoll && clashPoll.active && (
+                                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="sticky top-0 z-[45] bg-black/95 border-2 border-white/20 rounded-3xl p-6 mb-6 shadow-2xl relative overflow-hidden">
+                                    <div className="absolute inset-x-0 top-0 h-1 flex">
+                                        <div className="flex-1 bg-red-600 shadow-[0_0_10px_#ef4444]" />
+                                        <div className="flex-1 bg-blue-600 shadow-[0_0_10px_#2563eb]" />
+                                    </div>
+                                    <div className="flex items-center justify-between gap-6">
+                                        <div className="flex-1 text-center space-y-2">
+                                            <p className="text-[9px] font-black text-red-500 uppercase tracking-widest">{clashPoll.teamA}</p>
+                                            <div className="text-xl font-black text-white uppercase italic">{clashPoll.votesA.length}</div>
+                                            <button onClick={() => handleSendMessage(`!voter A`)} className="w-full py-2 bg-red-600/20 border border-red-600/40 text-red-500 text-[10px] font-black rounded-xl hover:bg-red-600/30 transition-all uppercase">VOTER A</button>
+                                        </div>
+                                        <div className="text-2xl font-black text-white italic opacity-20">VS</div>
+                                        <div className="flex-1 text-center space-y-2">
+                                            <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">{clashPoll.teamB}</p>
+                                            <div className="text-xl font-black text-white uppercase italic">{clashPoll.votesB.length}</div>
+                                            <button onClick={() => handleSendMessage(`!voter B`)} className="w-full py-2 bg-blue-600/20 border border-blue-600/40 text-blue-500 text-[10px] font-black rounded-xl hover:bg-blue-600/30 transition-all uppercase">VOTER B</button>
+                                        </div>
+                                    </div>
+                                    {isMod && (
+                                        <button onClick={() => setClashPoll(null)} className="absolute top-2 right-2 text-[8px] text-gray-600 font-bold uppercase hover:text-white transition-all">STOP</button>
+                                    )}
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
+                        {/* 📜 Legends Wall Overlay */}
+                        <AnimatePresence>
+                            {showLegendsWall && (
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-10 overflow-hidden">
+                                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at center, #ff0033 0%, transparent 70%)' }} />
+                                    <motion.div initial={{ y: 500 }} animate={{ y: -800 }} transition={{ duration: 15, ease: "linear" }} className="flex flex-col items-center space-y-20">
+                                        <div className="flex flex-col items-center space-y-4">
+                                            <Stars className="w-20 h-20 text-yellow-400 animate-spin-slow" />
+                                            <h1 className="text-5xl font-display font-black text-white uppercase italic tracking-tighter">MUR DES LÉGENDES</h1>
+                                            <p className="text-xl font-black text-neon-cyan uppercase tracking-[0.5em]">HALL OF FAME</p>
+                                        </div>
+
+                                        <div className="flex flex-col items-center space-y-12">
+                                            {topTalkers.map((t, i) => (
+                                                <div key={i} className="flex flex-col items-center space-y-2">
+                                                    <div className="flex items-center gap-4">
+                                                        {i === 0 && <Crown className="w-8 h-8 text-yellow-500" />}
+                                                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tight">{t.pseudo}</h2>
+                                                        {i === 0 && <Crown className="w-8 h-8 text-yellow-500" />}
+                                                    </div>
+                                                    <p className="text-neon-cyan font-black uppercase tracking-widest text-lg">LEGENDE DU CHAT {i + 1}</p>
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="flex flex-col items-center space-y-8 mt-20">
+                                            <p className="text-gray-500 font-black uppercase tracking-[0.3em]">DROPSIDERS LIVE // 2026</p>
+                                            <div className="w-40 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                                        </div>
+                                    </motion.div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
                         {/* Live Poll Banner */}
+                        {/* ⚡ Quick Time Event (QTE) */}
+                        <AnimatePresence>
+                            {qteActive && (
+                                <motion.div initial={{ scale: 0, rotate: -20, x: '-50%', y: '-50%' }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 z-[200]">
+                                    <button
+                                        onClick={async () => {
+                                            const myPseudo = localStorage.getItem('chat_pseudo') || "VISITEUR";
+                                            setQteActive(false);
+                                            showNotification("TU AS GAGNÉ LE QTE ! ⚡ (+500 DROPS)", 'success');
+                                            triggerConfetti();
+                                            setUserDrops(prev => prev + 500);
+                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                pseudo: "BOT_SYSTEM",
+                                                message: `[SYSTEM]:QTE_WINNER:${myPseudo}`,
+                                                color: "text-neon-cyan",
+                                                time: new Date().toLocaleTimeString(),
+                                                country: "FR"
+                                            });
+                                        }}
+                                        className="w-32 h-32 bg-neon-cyan rounded-full border-8 border-white animate-bounce shadow-[0_0_50px_#00ffff] flex items-center justify-center group"
+                                    >
+                                        <Zap className="w-16 h-16 text-black group-active:scale-150 transition-transform" />
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
                         <AnimatePresence>
                             {activePoll && (
                                 <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="sticky top-0 z-[40] bg-[#0a0a0a] border-2 border-neon-cyan/50 rounded-2xl p-4 mb-4">
@@ -2687,7 +2842,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     onMouseEnter={() => setHoveredMessageId(msg.id)}
                                                     onMouseLeave={() => setHoveredMessageId(null)}
                                                     onDoubleClick={() => setSelectedProfile({ pseudo: msg.pseudo, country: msg.country, color: msg.color })}
-                                                    className={`group flex flex-col gap-1 relative p-3 rounded-2xl transition-all duration-300 cursor-pointer ${msg.pseudo === localStorage.getItem('chat_pseudo') ? 'bg-white/5 ml-4 lg:ml-8' : 'hover:bg-white/[0.02]'}`}
+                                                    className={`group flex flex-col gap-1 relative p-3 rounded-2xl transition-all duration-300 cursor-pointer ${clashPoll?.active
+                                                        ? (clashPoll.votesA.includes(msg.pseudo) ? 'mr-12 border-l-2 border-red-500' : clashPoll.votesB.includes(msg.pseudo) ? 'ml-12 border-r-2 border-blue-500 text-right items-end' : 'hover:bg-white/[0.02]')
+                                                        : (msg.pseudo === localStorage.getItem('chat_pseudo') ? 'bg-white/5 ml-4 lg:ml-8' : 'hover:bg-white/[0.02]')
+                                                        }`}
                                                     style={{
                                                         backgroundColor: msg.bgColor ? `${msg.bgColor}15` : undefined,
                                                         borderColor: msg.pseudo === localStorage.getItem('chat_pseudo') && profileBorder !== 'none' ? profileBorder : (msg.bgColor ? `${msg.bgColor}30` : undefined),
@@ -2711,6 +2869,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 <span className="text-[9px] font-black text-neon-cyan/60 shrink-0 uppercase tracking-tighter mr-1 text-xs">[Lvl {Math.floor(Math.sqrt((msg.xp || 0) / 100)) + 1}]</span>
                                                                 <span className={`text-[11px] font-black uppercase italic tracking-tight ${msg.xp > 5000 ? 'bg-gradient-to-r from-red-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent animate-gradient' : msg.color || 'text-white'}`}>{msg.pseudo || msg.user}</span>
                                                                 {isFirstConnection && msg.pseudo === localStorage.getItem('chat_pseudo') && <span className="bg-neon-cyan text-black text-[7px] font-black px-1 rounded">PREMS</span>}
+                                                                {topTalkers[0]?.pseudo === msg.pseudo && <Crown className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500 animate-bounce" title="TOP 1" />}
+                                                                {topTalkers[1]?.pseudo === msg.pseudo && <Trophy className="w-2.5 h-2.5 text-gray-300 fill-gray-300" title="TOP 2" />}
+                                                                {topTalkers[2]?.pseudo === msg.pseudo && <Trophy className="w-2.5 h-2.5 text-amber-600 fill-amber-600" title="TOP 3" />}
+
 
                                                                 {/* Mod/VIP Badges */}
                                                                 {showBadgesAdmin && msg.isMod && <Sword className="w-2.5 h-2.5 text-neon-red" />}
@@ -2867,7 +3029,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         return (
                                             <div key={item.id} className={`p-4 border rounded-2xl space-y-3 transition-all ${isNow ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,255,255,0.05)]' : 'bg-white/5 border-white/10'}`}>
                                                 <div className="flex items-center justify-between">
-                                                    <span className={`text-[10px] font-black uppercase ${isNow ? 'text-neon-cyan' : 'text-gray-500'}`}>{item.stage}</span>
+                                                    <div className="flex items-center gap-2">
+                                                        <Calendar className="w-3 h-3 text-gray-500" />
+                                                        <span className={`text-[10px] font-black uppercase ${isNow ? 'text-neon-cyan' : 'text-gray-500'}`}>{item.stage}</span>
+                                                    </div>
                                                     <div className="flex flex-col items-end">
                                                         <span className="text-[10px] font-mono text-white/80">{item.day}</span>
                                                         <span className="text-[10px] font-mono text-gray-500">{item.startTime} - {item.endTime}</span>
@@ -2926,6 +3091,25 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     </div>
 
                                     <p className="text-xs text-gray-500 font-bold uppercase mb-8">Obtenez des récompenses avec vos drops !</p>
+
+                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-8 text-left">
+                                        <div className="flex items-center gap-2 mb-4">
+                                            <Stars className="w-5 h-5 text-neon-cyan" />
+                                            <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Shop Officiel Dropsiders</h4>
+                                        </div>
+                                        <div className="space-y-4">
+                                            {shopItems.map(item => (
+                                                <div key={item.id} className="flex items-center gap-4 p-3 bg-black/40 rounded-2xl border border-white/5 group hover:border-neon-cyan/30 transition-all cursor-pointer">
+                                                    <img src={item.image} alt={item.name} className="w-12 h-14 rounded-lg object-cover" />
+                                                    <div className="flex-1">
+                                                        <p className="text-xs font-black text-white uppercase">{item.name}</p>
+                                                        <p className="text-[10px] text-neon-cyan font-bold">{item.price} DROPS</p>
+                                                    </div>
+                                                    <button onClick={() => showNotification(`ACHETER : ${item.name}`, 'success')} className="px-3 py-1.5 bg-white/5 border border-white/10 text-[9px] font-black uppercase rounded-lg hover:bg-white/10 text-white">VOIR</button>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    </div>
                                     <div className="grid grid-cols-1 gap-4">
                                         <button
                                             onClick={() => {
