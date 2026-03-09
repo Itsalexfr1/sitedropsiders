@@ -3351,26 +3351,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             ) : null}
                         </AnimatePresence >
 
-                        {/* 🏢 Bottom Sponsor Banner (Optional) */}
-                        {settings.showSponsorBanner && (
-                            <div className="bg-black/40 border-t border-white/5 py-3 px-6 flex items-center justify-between backdrop-blur-md shadow-inner">
-                                <div className="flex items-center gap-3">
-                                    <div className="px-2 py-0.5 bg-neon-purple/20 border border-neon-purple/40 rounded text-[7px] font-black text-neon-purple uppercase tracking-[0.2em] italic">PARTENAIRE</div>
-                                    <a
-                                        href={settings.sponsorLink || 'https://dropsiders.fr'}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        className="text-[10px] font-black text-white hover:text-neon-purple transition-all uppercase italic tracking-tighter"
-                                    >
-                                        {settings.sponsorText || 'DROPSIDERS STUDIO V2'}
-                                    </a>
-                                </div>
-                                <div className="flex items-center gap-2">
-                                    <ShieldCheck className="w-3 h-3 text-gray-600" />
-                                    <span className="text-[8px] font-bold text-gray-600 uppercase tracking-widest opacity-50">LIVE SÉCURISÉ</span>
-                                </div>
-                            </div>
-                        )}
+
 
                         {
                             isConnected && (
