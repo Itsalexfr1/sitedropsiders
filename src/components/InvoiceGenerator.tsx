@@ -18,15 +18,6 @@ interface SavedClient {
     email: string;
 }
 
-// Helper to ensure colors are preserved and backgrounds are white
-const sanitizeColors = (doc: Document) => {
-    const el = doc.getElementById('printable-invoice');
-    if (el) {
-        el.style.backgroundColor = '#ffffff';
-        el.style.color = '#000000';
-    }
-};
-
 export function InvoiceGenerator() {
     const [invoiceNumber, setInvoiceNumber] = useState<number>(66);
     const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
