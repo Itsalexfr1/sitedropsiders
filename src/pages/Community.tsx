@@ -21,64 +21,95 @@ import confetti from 'canvas-confetti';
 // --- STAGE & LOCATION DATA ---
 const FESTIVAL_LOCATIONS = [
     // TOMORROWLAND
-    { id: 'boom', name: 'Boom - De Schorre (TML)', cost: 450000 },
-    { id: 'alpe-dhuez', name: "Alpe d'Huez (TML Winter)", cost: 280000 },
-    { id: 'itu', name: 'Itu - São Paulo (TML BR)', cost: 180000 },
+    { id: 'boom', name: 'Boom - De Schorre (TML)', cost: 450000, prestige: 10, capacity: 200000 },
+    { id: 'alpe-dhuez', name: "Alpe d'Huez (TML Winter)", cost: 280000, prestige: 8, capacity: 25000 },
+    { id: 'itu', name: 'Itu - São Paulo (TML BR)', cost: 180000, prestige: 6, capacity: 150000 },
 
     // ULTRA MUSIC FESTIVAL
-    { id: 'miami', name: 'Miami - Bayfront Park (UMF)', cost: 550000 },
-    { id: 'split', name: 'Split - Park Mladeži (Ultra EU)', cost: 220000 },
-    { id: 'johannesburg', name: 'Jo\'burg - Expo Centre (Ultra SA)', cost: 140000 },
-    { id: 'sejong', name: 'Seoul - Olympic Stadium (Ultra KR)', cost: 190000 },
-    { id: 'tokyo', name: 'Tokyo - Odaiba (Ultra JP)', cost: 240000 },
+    { id: 'miami', name: 'Miami - Bayfront Park (UMF)', cost: 550000, prestige: 10, capacity: 165000 },
+    { id: 'split', name: 'Split - Park Mladeži (Ultra EU)', cost: 220000, prestige: 8, capacity: 120000 },
+    { id: 'johannesburg', name: 'Jo\'burg - Expo Centre (Ultra SA)', cost: 140000, prestige: 6, capacity: 80000 },
+    { id: 'sejong', name: 'Seoul - Olympic Stadium (Ultra KR)', cost: 190000, prestige: 7, capacity: 100000 },
+    { id: 'tokyo', name: 'Tokyo - Odaiba (Ultra JP)', cost: 240000, prestige: 8, capacity: 100000 },
 
     // EDC
-    { id: 'vegas', name: 'Vegas - Speedway (EDC LV)', cost: 600000 },
-    { id: 'mexico', name: 'CDMX - Autódromo (EDC MX)', cost: 210000 },
-    { id: 'orlando', name: 'Orlando - Tinker Field (EDC ORL)', cost: 170000 },
+    { id: 'vegas', name: 'Vegas - Speedway (EDC LV)', cost: 600000, prestige: 10, capacity: 450000 },
+    { id: 'mexico', name: 'CDMX - Autódromo (EDC MX)', cost: 210000, prestige: 7, capacity: 120000 },
+    { id: 'orlando', name: 'Orlando - Tinker Field (EDC ORL)', cost: 170000, prestige: 6, capacity: 90000 },
 
     // CONCERT HALLS, STADIUMS & SUPER-CLUBS
-    { id: 'sphere', name: 'Vegas - MSG Sphere', cost: 750000 },
-    { id: 'omnia', name: 'Vegas - Omnia Club', cost: 400000 },
-    { id: 'space-miami', name: 'Miami - Club Space', cost: 350000 },
-    { id: 'ushuaia', name: 'Ibiza - Ushuaïa', cost: 450000 },
-    { id: 'hi-ibiza', name: 'Ibiza - Hï Ibiza', cost: 430000 },
-    { id: 'stade-france', name: 'Paris - Stade de France', cost: 500000 },
-    { id: 'wembley', name: 'London - Wembley Stadium', cost: 550000 },
-    { id: 'msg', name: 'NYC - Madison Sq Garden', cost: 420000 },
-    { id: 'red-rocks', name: 'Colorado - Red Rocks', cost: 220000 },
-    { id: 'berghain', name: 'Berlin - Berghain (Main)', cost: 130000 },
-    { id: 'gashouder', name: 'Amsterdam - Gashouder', cost: 280000 },
+    { id: 'sphere', name: 'Vegas - MSG Sphere', cost: 750000, prestige: 10, capacity: 18000 },
+    { id: 'omnia', name: 'Vegas - Omnia Club', cost: 400000, prestige: 9, capacity: 3500 },
+    { id: 'space-miami', name: 'Miami - Club Space', cost: 350000, prestige: 9, capacity: 2500 },
+    { id: 'ushuaia', name: 'Ibiza - Ushuaïa', cost: 450000, prestige: 10, capacity: 7000 },
+    { id: 'hi-ibiza', name: 'Ibiza - Hï Ibiza', cost: 430000, prestige: 10, capacity: 5000 },
+    { id: 'stade-france', name: 'Paris - Stade de France', cost: 500000, prestige: 9, capacity: 80000 },
+    { id: 'wembley', name: 'London - Wembley Stadium', cost: 550000, prestige: 9, capacity: 90000 },
+    { id: 'msg', name: 'NYC - Madison Sq Garden', cost: 420000, prestige: 9, capacity: 20000 },
+    { id: 'red-rocks', name: 'Colorado - Red Rocks', cost: 220000, prestige: 8, capacity: 9500 },
+    { id: 'berghain', name: 'Berlin - Berghain (Main)', cost: 130000, prestige: 9, capacity: 1500 },
+    { id: 'gashouder', name: 'Amsterdam - Gashouder', cost: 280000, prestige: 8, capacity: 3500 },
 
     // CLASSICS
-    { id: 'paris', name: 'Paris - Longchamp', cost: 150000 },
-    { id: 'ibiza', name: 'Ibiza - Playa d\'en Bossa', cost: 350000 },
-    { id: 'lyon', name: 'Lyon - Eurexpo', cost: 80000 },
-    { id: 'berlin', name: 'Berlin - Tempelhof', cost: 120000 },
+    { id: 'paris', name: 'Paris - Longchamp', cost: 150000, prestige: 7, capacity: 50000 },
+    { id: 'ibiza', name: 'Ibiza - Playa d\'en Bossa', cost: 350000, prestige: 8, capacity: 100000 },
+    { id: 'lyon', name: 'Lyon - Eurexpo', cost: 80000, prestige: 5, capacity: 30000 },
+    { id: 'berlin', name: 'Berlin - Tempelhof', cost: 120000, prestige: 7, capacity: 40000 },
+];
+
+const SPONSORS = [
+    { id: 'redbull', name: 'Red Bull', bonus: 150000, impact: 'hype', desc: '+150k€ & Boost de Hype' },
+    { id: 'pioneer', name: 'Pioneer DJ', bonus: 80000, impact: 'tech', desc: '+80k€ & Scénographie Pro' },
+    { id: 'mercedes', name: 'Mercedes-Benz', bonus: 250000, impact: 'luxury', desc: '+250k€ & Prestige VIP' },
+    { id: 'heineken', name: 'Heineken', bonus: 120000, impact: 'commercial', desc: '+120k€ & Ventes Boissons' },
+];
+
+const RANDOM_EVENTS = [
+    { id: 'rain', name: 'Orage Violent', impact: -0.2, message: 'Un orage frappe le site ! -20% de ventes sur place.' },
+    { id: 'viral', name: 'TikTok Viral', impact: 0.3, message: 'Ta line-up devient virale sur TikTok ! +30% de hype.' },
+    { id: 'cancel', name: 'Grève des Transports', impact: -0.15, message: 'Grève des trains ! Certains fans ne peuvent pas venir. -15%.' },
+    { id: 'soldout', name: 'Sold Out Flash', impact: 0.1, message: 'Les billets s\'arrachent en 2 minutes ! +10% de profit.' },
 ];
 
 const STAGE_COST_PER_UNIT = 100000;
 
 // --- HALL OF FAME MOCK DATA ---
 const HALL_OF_FAME = [
-    { id: 'h1', playerName: 'Alex', festivalName: 'NEON WAVE', djs: ['Boris Brejcha', 'Charlotte de Witte', 'Amelie Lens'], budget: '2.4M€', date: 'Juin 2026' },
-    { id: 'h2', playerName: 'Lucas', festivalName: 'BASS MOUNTAIN', djs: ['Skrillex', 'Fred again..', 'I Hate Models'], budget: '4.1M€', date: 'Août 2026' },
-    { id: 'h3', playerName: 'Emma', festivalName: 'TECHNO GARDEN', djs: ['Nina Kraviz', 'Carl Cox', 'Adam Beyer'], budget: '1.8M€', date: 'Juillet 2026' },
+    { id: 'h1', playerName: 'Alex', festivalName: 'NEON WAVE', djs: ['Boris Brejcha', 'Charlotte de Witte', 'Amelie Lens'], budget: '2.4M€', date: 'Juin 2026', likes: 124, location: 'Ibiza - Hï Ibiza' },
+    { id: 'h2', playerName: 'Lucas', festivalName: 'BASS MOUNTAIN', djs: ['Skrillex', 'Fred again..', 'I Hate Models'], budget: '4.1M€', date: 'Août 2026', likes: 89, location: 'Vegas - Speedway (EDC LV)' },
+    { id: 'h3', playerName: 'Emma', festivalName: 'TECHNO GARDEN', djs: ['Nina Kraviz', 'Carl Cox', 'Adam Beyer'], budget: '1.8M€', date: 'Juillet 2026', likes: 256, location: 'Paris - Stade de France' },
 ];
 
 // --- FESTIVAL CREATOR GAME DATA ---
 const DJ_POOL = [
-    // HEADLINERS / BIG ROOM / MAINSTREAM
+    // --- HEADLINERS & MAINSTREAM ---
     { id: 'dg', name: 'David Guetta', price: 450000, genre: 'Mainstage', popularity: 99 },
     { id: 'tiesto', name: 'Tiësto', price: 400000, genre: 'Big Room', popularity: 99 },
     { id: 'mh', name: 'Martin Garrix', price: 380000, genre: 'Progressive House', popularity: 99 },
     { id: 'av', name: 'Armin van Buuren', price: 320000, genre: 'Trance', popularity: 98 },
-    { id: 'df', name: 'Dillon Francis', price: 150000, genre: 'Moombahton', popularity: 94 },
+    { id: 'alok', name: 'Alok', price: 280000, genre: 'Slap House', popularity: 97 },
+    { id: 'tt', name: 'Timmy Trumpet', price: 250000, genre: 'Psytrance', popularity: 96 },
+    { id: 'aj', name: 'Afrojack', price: 220000, genre: 'Dutch House', popularity: 95 },
+    { id: 'h', name: 'Hardwell', price: 350000, genre: 'Big Room Techno', popularity: 98 },
+    { id: 'sa', name: 'Steve Aoki', price: 280000, genre: 'Electro House', popularity: 97 },
+    { id: 'aw', name: 'Alan Walker', price: 320000, genre: 'Future Bass', popularity: 98 },
+    { id: 'k', name: 'KSHMR', price: 210000, genre: 'Mainstage', popularity: 94 },
+    { id: 'dd', name: 'Don Diablo', price: 190000, genre: 'Future House', popularity: 93 },
+    { id: 'r3', name: 'R3HAB', price: 180000, genre: 'Dance', popularity: 94 },
+    { id: 'lf', name: 'Lost Frequencies', price: 220000, genre: 'Deep House', popularity: 96 },
+    { id: 'ww', name: 'W&W', price: 200000, genre: 'Big Room', popularity: 95 },
+    { id: 'ch', name: 'Calvin Harris', price: 950000, genre: 'Dance Pop', popularity: 99 },
+    { id: 'nr', name: 'Nicky Romero', price: 160000, genre: 'Progressive', popularity: 94 },
+    { id: 'oh', name: 'Oliver Heldens', price: 210000, genre: 'Future House', popularity: 96 },
+    { id: 'ds', name: 'DJ Snake', price: 380000, genre: 'Trap', popularity: 98 },
+    { id: 'ms', name: 'Marshmello', price: 450000, genre: 'Future Bass', popularity: 99 },
+    { id: 'alesso', name: 'Alesso', price: 320000, genre: 'Progressive House', popularity: 98 },
+    { id: 'ep', name: 'Eric Prydz', price: 420000, genre: 'Progressive House', popularity: 99 },
     { id: 'z', name: 'Zedd', price: 280000, genre: 'Electro Pop', popularity: 97 },
-    { id: 'sk', name: 'Skrillex', price: 420000, genre: 'Bass Music', popularity: 99 },
+    { id: 'dvlm', name: 'Dimitri Vegas & Like Mike', price: 350000, genre: 'Big Room', popularity: 98 },
     { id: 'shm', name: 'Swedish House Mafia', price: 850000, genre: 'House', popularity: 99 },
 
-    // TECH HOUSE / HOUSE (The Summit/Mochakk/Summit vibes)
+    // --- TECH HOUSE / HOUSE / MINIMAL ---
     { id: 'js', name: 'John Summit', price: 250000, genre: 'Tech House', popularity: 98 },
     { id: 'm', name: 'Mochakk', price: 220000, genre: 'Tech House', popularity: 97 },
     { id: 'bb', name: 'Michael Bibi', price: 240000, genre: 'Tech House', popularity: 96 },
@@ -89,38 +120,120 @@ const DJ_POOL = [
     { id: 'p', name: 'Pawsa', price: 140000, genre: 'Minimal House', popularity: 93 },
     { id: 'an', name: 'Anotr', price: 160000, genre: 'No Art', popularity: 95 },
     { id: 'cl', name: 'Chris Lake', price: 220000, genre: 'Tech House', popularity: 97 },
+    { id: 'mp', name: 'Mau P', price: 180000, genre: 'Tech House', popularity: 97 },
+    { id: 'jj', name: 'Jamie Jones', price: 200000, genre: 'House', popularity: 96 },
+    { id: 'clap', name: 'Claptone', price: 150000, genre: 'House', popularity: 95 },
+    { id: 'the-martinez', name: 'Martinez Brothers', price: 220000, genre: 'House', popularity: 96 },
+    { id: 'gorgon-city', name: 'Gorgon City', price: 140000, genre: 'House', popularity: 94 },
+    { id: 'vintage-culture', name: 'Vintage Culture', price: 260000, genre: 'House', popularity: 97 },
+    { id: 'dom-dolla', name: 'Dom Dolla', price: 240000, genre: 'Tech House', popularity: 97 },
+    { id: 'cloonee', name: 'Cloonee', price: 130000, genre: 'Tech House', popularity: 93 },
+    { id: 'solardo', name: 'Solardo', price: 110000, genre: 'Tech House', popularity: 92 },
+    { id: 'camelphat', name: 'Camelphat', price: 250000, genre: 'Melodic House', popularity: 97 },
+    { id: 'meduza', name: 'Meduza', price: 240000, genre: 'Tech House', popularity: 97 },
 
-    // TECHNO (Underground/Mainstage Techno)
+    // --- TECHNO ---
     { id: 'cdw', name: 'Charlotte de Witte', price: 300000, genre: 'Techno', popularity: 99 },
     { id: 'al', name: 'Amelie Lens', price: 280000, genre: 'Techno', popularity: 98 },
-    { id: 'cc', name: 'Carl Cox', price: 350000, genre: 'Legendary Techno', popularity: 99 },
-    { id: 'ab', name: 'Adam Beyer', price: 200000, genre: 'Drumcode', popularity: 97 },
-    { id: 'nk', name: 'Nina Kraviz', price: 220000, genre: 'Acid Techno', popularity: 96 },
+    { id: 'cc', name: 'Carl Cox', price: 350000, genre: 'Legendary', popularity: 99 },
+    { id: 'ab', name: 'Adam Beyer', price: 200000, genre: 'Techno', popularity: 97 },
+    { id: 'nk', name: 'Nina Kraviz', price: 220000, genre: 'Techno', popularity: 96 },
     { id: 'ihm', name: 'I Hate Models', price: 180000, genre: 'Industrial', popularity: 95 },
     { id: 'br', name: 'Boris Brejcha', price: 250000, genre: 'High-Tech Minimal', popularity: 98 },
     { id: 'kb', name: 'Klangkuenstler', price: 190000, genre: 'Hard Techno', popularity: 96 },
+    { id: 'ip', name: 'Indira Paganotto', price: 160000, genre: 'Psy-Techno', popularity: 94 },
+    { id: 'sara-landry', name: 'Sara Landry', price: 150000, genre: 'Hard Techno', popularity: 93 },
+    { id: 'deborah-de-luca', name: 'Deborah De Luca', price: 170000, genre: 'Techno', popularity: 95 },
+    { id: 'enrico-sangiuliano', name: 'Enrico Sangiuliano', price: 140000, genre: 'Techno', popularity: 93 },
+    { id: 'reinier-zonneveld', name: 'Reinier Zonneveld', price: 190000, genre: 'Acid Techno', popularity: 96 },
+    { id: 'nicole-moudaber', name: 'Nicole Moudaber', price: 130000, genre: 'Techno', popularity: 92 },
+    { id: 'pan-pot', name: 'Pan-Pot', price: 120000, genre: 'Techno', popularity: 92 },
+    { id: 'maceo-plex', name: 'Maceo Plex', price: 180000, genre: 'Melodic Techno', popularity: 95 },
+    { id: 'tale-of-us', name: 'Tale of Us', price: 450000, genre: 'Afterlife', popularity: 99 },
+    { id: 'anyma', name: 'Anyma', price: 350000, genre: 'Afterlife', popularity: 98 },
+    { id: 'innellea', name: 'Innellea', price: 110000, genre: 'Melodic Techno', popularity: 92 },
+    { id: 'kevin-de-vries', name: 'Kevin de Vries', price: 100000, genre: 'Melodic Techno', popularity: 91 },
 
-    // MELODIC / PROGRESSIVE / AFRO
+    // --- MELODIC / PROGRESSIVE / AFRO ---
     { id: 'ko', name: 'Keinemusik (CRME)', price: 750000, genre: 'Afro House', popularity: 99 },
     { id: 'bo', name: 'Black Coffee', price: 300000, genre: 'Afro House', popularity: 98 },
     { id: 'ru', name: 'Rüfüs Du Sol', price: 600000, genre: 'Live Electronic', popularity: 99 },
     { id: 'at', name: 'Anyma / Tale of Us', price: 550000, genre: 'Afterlife', popularity: 99 },
     { id: 'la', name: 'Lane 8', price: 180000, genre: 'Melodic House', popularity: 95 },
+    { id: 'solomun', name: 'Solomun', price: 350000, genre: 'Deep House', popularity: 98 },
+    { id: 'ben-boehmer', name: 'Ben Böhmer', price: 180000, genre: 'Melodic', popularity: 95 },
+    { id: 'adriatique', name: 'Adriatique', price: 220000, genre: 'Melodic', popularity: 96 },
+    { id: 'monolink', name: 'Monolink', price: 190000, genre: 'Live', popularity: 95 },
+    { id: 'artbat', name: 'Artbat', price: 260000, genre: 'Melodic Techno', popularity: 97 },
+    { id: 'yotto', name: 'Yotto', price: 95000, genre: 'Melodic', popularity: 91 },
+    { id: 'tinlicker', name: 'Tinlicker', price: 110000, genre: 'Melodic', popularity: 92 },
+    { id: 'gioli-assia', name: 'Giolì & Assia', price: 130000, genre: 'Live', popularity: 93 },
 
-    // BASS / DUBSTEP / TRAP
+    // --- BASS / DUBSTEP / TRAP ---
+    { id: 'sk', name: 'Skrillex', price: 420000, genre: 'Bass Music', popularity: 99 },
     { id: 'ex', name: 'Excision', price: 350000, genre: 'Dubstep', popularity: 98 },
     { id: 'su', name: 'Subtronics', price: 220000, genre: 'Bass', popularity: 97 },
     { id: 'ng', name: 'NGHTMRE', price: 140000, genre: 'Trap', popularity: 94 },
+    { id: 'illumineum', name: 'Illenium', price: 350000, genre: 'Future Bass', popularity: 98 },
+    { id: 'rezz', name: 'Rezz', price: 240000, genre: 'Mid-Tempo', popularity: 96 },
+    { id: 'zeds-dead', name: 'Zeds Dead', price: 220000, genre: 'Bass House', popularity: 96 },
+    { id: 'liquid-stranger', name: 'Liquid Stranger', price: 150000, genre: 'Freeform Bass', popularity: 93 },
+    { id: 'peekaboo', name: 'Peekaboo', price: 90000, genre: 'Dubstep', popularity: 90 },
+    { id: 'slander', name: 'Slander', price: 280000, genre: 'Heaven Trap', popularity: 97 },
+    { id: 'isoxo', name: 'IsoXo', price: 110000, genre: 'Trap', popularity: 92 },
+    { id: 'knock2', name: 'Knock2', price: 120000, genre: 'Bass House', popularity: 93 },
 
-    // SMALLER / RISING / FUTURE
+    // --- RISING STARS / FUTURE HEROES ---
     { id: 'me', name: 'Mesto', price: 45000, genre: 'Future House', popularity: 88 },
     { id: 'jo', name: 'Joel Corry', price: 120000, genre: 'Dance', popularity: 96 },
-    { id: 'ma', name: 'Mau P', price: 180000, genre: 'Tech House', popularity: 97 },
     { id: 'hu', name: 'Hugel', price: 95000, genre: 'Latin House', popularity: 93 },
-    { id: 'ac', name: 'Acraze', price: 110000, genre: 'House', popularity: 94 },
-    { id: 'mi', name: 'Meduza', price: 240000, genre: 'Tech House', popularity: 97 },
     { id: 'of', name: 'Öwnboss', price: 85000, genre: 'Bass House', popularity: 91 },
-    { id: 'tc', name: 'Topic', price: 130000, genre: 'Dance Pop', popularity: 95 },
+    { id: 'azim', name: 'Azzecca', price: 40000, genre: 'House', popularity: 85 },
+    { id: 'adamten', name: 'Adam Ten', price: 45000, genre: 'Indie Dance', popularity: 86 },
+    { id: 'zorza', name: 'Zorza', price: 35000, genre: 'Techno', popularity: 82 },
+    { id: 'sam-wolfe', name: 'Sam WOLFE', price: 40000, genre: 'Techno', popularity: 84 },
+    { id: 'nitti', name: 'NITTI', price: 65000, genre: 'House', popularity: 88 },
+    { id: 'meduso', name: 'Meduso', price: 35000, genre: 'Bass', popularity: 82 },
+    { id: 'eliminate', name: 'Eliminate', price: 55000, genre: 'Bass', popularity: 87 },
+    { id: 'fairlane', name: 'Fairlane', price: 45000, genre: 'Future Bass', popularity: 86 },
+    { id: 'acraze', name: 'Acraze', price: 110000, genre: 'House', popularity: 94 },
+    { id: 'topic', name: 'Topic', price: 130000, genre: 'Dance Pop', popularity: 95 },
+    { id: 'sigala', name: 'Sigala', price: 110000, genre: 'Dance Pop', popularity: 94 },
+    { id: 'jonas-blue', name: 'Jonas Blue', price: 140000, genre: 'Tropical House', popularity: 95 },
+    { id: 'kygo', name: 'Kygo', price: 650000, genre: 'Tropical House', popularity: 99 },
+    { id: 'chainsmokers', name: 'The Chainsmokers', price: 700000, genre: 'Electro Pop', popularity: 99 },
+    { id: 'marsh', name: 'Marsh', price: 65000, genre: 'Progressive House', popularity: 89 },
+    { id: 'cristoph', name: 'Cristoph', price: 75000, genre: 'Progressive', popularity: 90 },
+    { id: 'franky-wah', name: 'Franky Wah', price: 85000, genre: 'Melodic House', popularity: 92 },
+    { id: 'korolova', name: 'Korolova', price: 130000, genre: 'Melodic Techno', popularity: 94 },
+    { id: 'miss-monique', name: 'Miss Monique', price: 140000, genre: 'Melodic Techno', popularity: 95 },
+    { id: 'camel-phat', name: 'CamelPhat', price: 260000, genre: 'Melodic House', popularity: 97 },
+    { id: 'solardo-v2', name: 'Solardo', price: 110000, genre: 'Tech House', popularity: 92 },
+    { id: 'wade', name: 'Wade', price: 150000, genre: 'Tech House', popularity: 95 },
+    { id: 'tita-lau', name: 'Tita Lau', price: 70000, genre: 'Tech House', popularity: 90 },
+    { id: 'james-hype', name: 'James Hype', price: 280000, genre: 'Tech House', popularity: 98 },
+    { id: 'meduza-v2', name: 'Meduza', price: 240000, genre: 'Dance', popularity: 97 },
+    { id: 'vintage-culture-v2', name: 'Vintage Culture', price: 250000, genre: 'House', popularity: 97 },
+    { id: 'joshwa', name: 'Joshwa', price: 60000, genre: 'Tech House', popularity: 88 },
+    { id: 'walker-royce', name: 'Walker & Royce', price: 95000, genre: 'House', popularity: 92 },
+    { id: 'sidepiece', name: 'SIDEPIECE', price: 130000, genre: 'House', popularity: 95 },
+    { id: 'claudia-leo', name: 'Claudia Leon', price: 45000, genre: 'Techno', popularity: 84 },
+    { id: 'stella-bossi', name: 'Stella Bossi', price: 90000, genre: 'Techno', popularity: 92 },
+    { id: 'nina-kraviz-v2', name: 'Nina Kraviz', price: 220000, genre: 'Techno', popularity: 96 },
+    { id: 'fja', name: 'FJAAK', price: 115000, genre: 'Techno', popularity: 92 },
+    { id: 'kobosil', name: 'Kobosil', price: 140000, genre: 'Techno', popularity: 94 },
+    { id: 'dax-j', name: 'Dax J', price: 110000, genre: 'Techno', popularity: 91 },
+    { id: 'shd', name: 'SPFDJ', price: 85000, genre: 'Industrial Techno', popularity: 89 },
+    { id: 'vtss', name: 'VTSS', price: 95000, genre: 'Techno', popularity: 91 },
+    { id: 'hector-oaks', name: 'Hector Oaks', price: 100000, genre: 'Techno', popularity: 91 },
+    { id: 'ellen-allien', name: 'Ellen Allien', price: 120000, genre: 'Techno', popularity: 93 },
+    { id: 'rodhad', name: 'Rødhåd', price: 110000, genre: 'Techno', popularity: 91 },
+    { id: 'ben-klock', name: 'Ben Klock', price: 180000, genre: 'Berghain Techno', popularity: 96 },
+    { id: 'marcel-dettmann', name: 'Marcel Dettmann', price: 170000, genre: 'Techno', popularity: 95 },
+    { id: 'dj-nobu', name: 'DJ Nobu', price: 90000, genre: 'Deep Techno', popularity: 90 },
+    { id: 'djs', name: 'DJ Stingray 313', price: 100000, genre: 'Electro Techno', popularity: 91 },
+    { id: 'jeff-mills', name: 'Jeff Mills', price: 250000, genre: 'Legendary', popularity: 98 },
+    { id: 'richie-hawtin', name: 'Richie Hawtin', price: 260000, genre: 'Legend', popularity: 98 },
 ];
 
 const FIX_COSTS = [
@@ -144,6 +257,8 @@ export function Community() {
     const [selectedDjs, setSelectedDjs] = useState<typeof DJ_POOL>([]);
     const [selectedCosts, setSelectedCosts] = useState<string[]>([]);
     const [gameState, setGameState] = useState<'SETUP' | 'ONBOARDING' | 'BOOKING' | 'POSTER'>('SETUP');
+    const [bookingStatus, setBookingStatus] = useState<{ djId: string; status: 'PENDING' | 'ACCEPTED' | 'REJECTED'; message: string } | null>(null);
+    const [hallOfFame, setHallOfFame] = useState(HALL_OF_FAME);
 
     // Player Info
     const [playerName, setPlayerName] = useState('');
@@ -152,9 +267,19 @@ export function Community() {
     const [selectedLocation, setSelectedLocation] = useState(FESTIVAL_LOCATIONS[0]);
     const [stageCount, setStageCount] = useState(1);
     const [festivalDuration, setFestivalDuration] = useState(1); // Days
+    const [ticketPrice, setTicketPrice] = useState(150);
+    const [selectedSponsors, setSelectedSponsors] = useState<string[]>([]);
+    const [randomEvent, setRandomEvent] = useState<typeof RANDOM_EVENTS[0] | null>(null);
 
     // Stats
-    const totalDjsCost = useMemo(() => selectedDjs.reduce((acc, dj) => acc + dj.price, 0), [selectedDjs]);
+    const sponsorsBonus = useMemo(() => {
+        return SPONSORS.filter(s => selectedSponsors.includes(s.id)).reduce((acc, s) => acc + s.bonus, 0);
+    }, [selectedSponsors]);
+
+    const totalDjsCost = useMemo(() => {
+        // Riders cost: +15% for top DJs
+        return selectedDjs.reduce((acc, dj) => acc + (dj.price * (dj.popularity > 95 ? 1.15 : 1)), 0);
+    }, [selectedDjs]);
     const totalExtraCost = useMemo(() => {
         return FIX_COSTS
             .filter(c => selectedCosts.includes(c.id))
@@ -163,13 +288,65 @@ export function Community() {
     const locationCost = selectedLocation.cost;
     const stagesCost = stageCount * STAGE_COST_PER_UNIT;
     const totalSpent = (totalDjsCost + totalExtraCost + locationCost + stagesCost) * (1 + (festivalDuration - 1) * 0.4);
-    const remainingBudget = budget - totalSpent;
+    const totalBudgetWithSponsors = budget + sponsorsBonus;
+    const remainingBudget = totalBudgetWithSponsors - totalSpent;
+
+    // Simulation logic
+    const { attendance, revenue, profit, hype } = useMemo(() => {
+        const prestigeBase = (selectedLocation as any).prestige || 5;
+        const lineupPower = selectedDjs.reduce((acc, dj) => acc + (dj.popularity / 10), 0);
+
+        // Genre Synergy: +5% hype for each DJ of the same genre if more than 2
+        const genreCounts: { [key: string]: number } = {};
+        selectedDjs.forEach(d => { genreCounts[d.genre] = (genreCounts[d.genre] || 0) + 1; });
+        const genreSynergy = Object.values(genreCounts).reduce((acc, count) => acc + (count > 2 ? count * 0.05 : 0), 0);
+
+        // Hype formula: Lineup + Prestige + Marketing + Synergies
+        let currentHype = (lineupPower * 2) + (prestigeBase * 5);
+        currentHype *= (1 + genreSynergy);
+        if (selectedCosts.includes('marketing')) currentHype *= 1.3;
+        if (selectedSponsors.includes('redbull')) currentHype *= 1.15;
+        if (randomEvent?.id === 'viral') currentHype *= 1.3;
+
+        // Pricing sensitivity
+        const optimalPrice = 50 + (prestigeBase * 15) + (lineupPower * 5);
+        const pricePenalty = Math.max(0, (ticketPrice - optimalPrice) / 100);
+
+        let finalAttendance = Math.floor(selectedLocation.capacity * (currentHype / 150) * (1 - pricePenalty));
+        finalAttendance = Math.min(finalAttendance, selectedLocation.capacity);
+        if (randomEvent?.id === 'rain') finalAttendance *= 0.8;
+        if (randomEvent?.id === 'cancel') finalAttendance *= 0.85;
+
+        const currentRevenue = finalAttendance * ticketPrice;
+        const currentProfit = currentRevenue - totalSpent;
+
+        return {
+            attendance: finalAttendance,
+            revenue: currentRevenue,
+            profit: currentProfit,
+            hype: currentHype
+        };
+    }, [selectedLocation, selectedDjs, selectedCosts, selectedSponsors, ticketPrice, totalSpent, randomEvent]);
+
+    const sortedHallOfFame = useMemo(() => {
+        return [...hallOfFame].sort((a, b) => (b.likes || 0) - (a.likes || 0));
+    }, [hallOfFame]);
 
     const startNewGame = () => {
         const randomBudget = Math.floor(Math.random() * (5000000 - 500000 + 1)) + 500000;
         setBudget(randomBudget);
         setSelectedDjs([]);
         setSelectedCosts([]);
+        setSelectedSponsors([]);
+        setTicketPrice(150);
+
+        // Random event chance
+        if (Math.random() > 0.5) {
+            setRandomEvent(RANDOM_EVENTS[Math.floor(Math.random() * RANDOM_EVENTS.length)]);
+        } else {
+            setRandomEvent(null);
+        }
+
         setGameState('ONBOARDING');
         setGameStarted(true);
     };
@@ -179,16 +356,50 @@ export function Community() {
         setGameState('BOOKING');
     };
 
-    const toggleDj = (dj: typeof DJ_POOL[0]) => {
+    const toggleDj = async (dj: typeof DJ_POOL[0]) => {
         if (selectedDjs.find(d => d.id === dj.id)) {
             setSelectedDjs(prev => prev.filter(d => d.id !== dj.id));
-        } else {
-            if (totalSpent + dj.price > budget) {
-                // Flash Budget error
-                return;
-            }
-            setSelectedDjs(prev => [...prev, dj]);
+            setBookingStatus(null);
+            return;
         }
+
+        if (totalSpent + dj.price > budget) return;
+
+        setBookingStatus({ djId: dj.id, status: 'PENDING', message: `Négociation avec l'agent de ${dj.name}...` });
+
+        // AI Thinking delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        const prestigeScore = (selectedLocation as any).prestige || 5;
+        const lineupScore = Math.min(selectedDjs.length, 5);
+        const successChance = (prestigeScore + lineupScore + (dj.popularity / 10)) / 25;
+
+        if (Math.random() < successChance || dj.price < 100000) {
+            setSelectedDjs(prev => [...prev, dj]);
+            setBookingStatus({
+                djId: dj.id,
+                status: 'ACCEPTED',
+                message: `L'artiste accepte ! Le prestige de ${selectedLocation.name} et ta vision l'ont convaincu.`
+            });
+        } else {
+            setBookingStatus({
+                djId: dj.id,
+                status: 'REJECTED',
+                message: `L'agent de ${dj.name} refuse. Il estime que le festival n'a pas encore assez de prestige pour son talent.`
+            });
+        }
+
+        setTimeout(() => setBookingStatus(null), 4000);
+    };
+
+    const handleLike = (id: string) => {
+        setHallOfFame(prev => prev.map(p => p.id === id ? { ...p, likes: (p.likes || 0) + 1 } : p));
+        confetti({
+            particleCount: 40,
+            spread: 50,
+            origin: { y: 0.8 },
+            colors: ['#ff0033']
+        });
     };
 
     const generatePoster = () => {
@@ -213,6 +424,7 @@ export function Community() {
         setFestivalDuration(1);
         setSelectedDjs([]);
         setSelectedCosts([]);
+        setBookingStatus(null);
     };
 
     return (
@@ -276,7 +488,7 @@ export function Community() {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id as any)}
-                                className={`flex items - center gap - 3 px - 6 py - 3.5 rounded - 2xl text - [10px] font - black uppercase tracking - [0.2em] transition - all relative group ${activeTab === tab.id ? 'text-black' : 'text-white/40 hover:text-white'} `}
+                                className={`flex items-center gap-3 px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all relative group ${activeTab === tab.id ? 'text-black' : 'text-white/40 hover:text-white'}`}
                             >
                                 {activeTab === tab.id && (
                                     <motion.div
@@ -356,7 +568,7 @@ export function Community() {
                                     <motion.button
                                         whileHover={{ scale: 1.1 }}
                                         className="absolute top-6 right-6 w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                        onClick={() => navigate(`/ galerie / ${album.id} `)}
+                                        onClick={() => navigate(`/galerie/${album.id}`)}
                                     >
                                         <Plus className="w-5 h-5 text-white" />
                                     </motion.button>
@@ -399,33 +611,48 @@ export function Community() {
                                             <div className="h-[1px] flex-1 bg-white/10" />
                                         </div>
                                         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                                            {HALL_OF_FAME.map((poster) => (
+                                            {sortedHallOfFame.map((poster) => (
                                                 <motion.div
                                                     key={poster.id}
                                                     whileHover={{ y: -10, rotate: 1 }}
                                                     className="group relative aspect-[1.3/2] bg-[#111] border-[6px] border-white shadow-2xl rounded-2xl p-6 overflow-hidden flex flex-col items-center text-center"
                                                 >
-                                                    <div className="absolute inset-0 opacity-10 flex items-center justify-center -rotate-12 pointer-events-none text-2xl font-black">DROPSIDERS</div>
+                                                    <div className="absolute inset-0 opacity-10 flex items-center justify-center -rotate-12 pointer-events-none text-2xl font-black uppercase tracking-tighter leading-none">DROPS<br />IDERS</div>
 
-                                                    <div className="relative z-10 w-full">
+                                                    <div className="relative z-10 w-full h-full flex flex-col">
                                                         <span className="text-[6px] font-black uppercase tracking-[0.3em] text-neon-red block mb-1">Production par {poster.playerName}</span>
                                                         <h4 className="text-xl font-display font-black uppercase italic tracking-tighter text-white leading-none mb-3">{poster.festivalName}</h4>
                                                         <div className="w-10 h-0.5 bg-white mx-auto mb-6" />
 
-                                                        <div className="space-y-1 mb-6">
+                                                        <div className="space-y-1 mb-6 flex-1">
                                                             {(poster as any).djs.map((dj: string, idx: number) => (
                                                                 <p key={dj} className={`text-[7px] font-bold text-white uppercase tracking-widest ${idx === 0 ? 'text-[9px] font-black' : 'opacity-60'}`}>{dj}</p>
                                                             ))}
                                                         </div>
 
-                                                        <div className="pt-4 border-t border-white/10 flex justify-between items-end w-full">
-                                                            <div className="text-left">
-                                                                <p className="text-[5px] font-black text-white/40 uppercase">Budget</p>
-                                                                <p className="text-[7px] font-black text-white uppercase italic">{(poster as any).budget}</p>
+                                                        <div className="pt-4 border-t border-white/10 flex flex-col gap-3 w-full">
+                                                            <div className="flex justify-between items-end">
+                                                                <div className="text-left">
+                                                                    <p className="text-[5px] font-black text-white/40 uppercase tracking-widest leading-none mb-1">Lieu</p>
+                                                                    <p className="text-[7px] font-black text-white uppercase italic truncate max-w-[100px] leading-none mb-2">{poster.location}</p>
+                                                                    <p className="text-[5px] font-black text-white/40 uppercase tracking-widest leading-none">Budget Final</p>
+                                                                    <p className="text-[7px] font-black text-white uppercase italic leading-none">{poster.budget}</p>
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <img src="/Logo.png" className="h-2 w-auto object-contain opacity-50" alt="" />
+                                                                </div>
                                                             </div>
-                                                            <div className="text-right">
-                                                                <img src="/Logo.png" className="h-2 w-auto object-contain opacity-50" alt="" />
-                                                            </div>
+
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleLike(poster.id);
+                                                                }}
+                                                                className="flex items-center justify-center gap-2 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all active:scale-95 group/like"
+                                                            >
+                                                                <Heart className={`w-3 h-3 ${poster.likes && poster.likes > 100 ? 'text-neon-red fill-neon-red' : 'text-white/40 group-hover/like:text-neon-red'}`} />
+                                                                <span className="text-[8px] font-black uppercase tracking-widest text-white/60">{poster.likes || 0} LIKES</span>
+                                                            </button>
                                                         </div>
                                                     </div>
                                                 </motion.div>
@@ -435,48 +662,104 @@ export function Community() {
                                 </div>
                             ) : gameState === 'ONBOARDING' ? (
                                 <motion.div
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="max-w-2xl mx-auto p-12 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem]"
+                                    initial={{ opacity: 0, x: 20 }}
+                                    animate={{ opacity: 1, x: 0 }}
+                                    className="max-w-4xl mx-auto space-y-12"
                                 >
-                                    <h3 className="text-3xl font-black italic tracking-tighter uppercase mb-8 text-center text-amber-400">Dossier de Production</h3>
-                                    <div className="space-y-6">
-                                        <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 ml-2">Prénom de l'organisateur</label>
-                                            <input
-                                                type="text"
-                                                value={playerName}
-                                                onChange={(e) => setPlayerName(e.target.value)}
-                                                className="w-full px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-amber-400 transition-colors"
-                                                placeholder="TON PRÉNOM"
-                                            />
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                        <div className="p-12 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] space-y-6">
+                                            <h3 className="text-3xl font-black italic tracking-tighter uppercase mb-8 text-amber-400">Dossier de Production</h3>
+                                            <div className="space-y-6">
+                                                <div>
+                                                    <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 ml-2">Prénom de l'organisateur</label>
+                                                    <input
+                                                        type="text"
+                                                        value={playerName}
+                                                        onChange={(e) => setPlayerName(e.target.value)}
+                                                        className="w-full px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-amber-400 transition-colors"
+                                                        placeholder="TON PRÉNOM"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 ml-2">Email (pour l'envoi de l'affiche)</label>
+                                                    <input
+                                                        type="email"
+                                                        value={playerEmail}
+                                                        onChange={(e) => setPlayerEmail(e.target.value)}
+                                                        className="w-full px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-amber-400 transition-colors"
+                                                        placeholder="TON@EMAIL.COM"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 ml-2">Nom du Festival</label>
+                                                    <input
+                                                        type="text"
+                                                        value={festivalName}
+                                                        onChange={(e) => setFestivalName(e.target.value)}
+                                                        className="w-full px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-amber-400 transition-colors"
+                                                        placeholder="NOM DE TON FESTIVAL"
+                                                    />
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 ml-2">Email (pour l'envoi de l'affiche)</label>
-                                            <input
-                                                type="email"
-                                                value={playerEmail}
-                                                onChange={(e) => setPlayerEmail(e.target.value)}
-                                                className="w-full px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-amber-400 transition-colors"
-                                                placeholder="TON@EMAIL.COM"
-                                            />
+
+                                        <div className="p-12 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] space-y-8">
+                                            <div className="flex justify-between items-center mb-4">
+                                                <h3 className="text-2xl font-black italic tracking-tighter uppercase text-white">Sponsors & Partenaires</h3>
+                                                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">Bonus Budget</span>
+                                            </div>
+                                            <div className="grid grid-cols-1 gap-4">
+                                                {SPONSORS.map(sponsor => (
+                                                    <button
+                                                        key={sponsor.id}
+                                                        onClick={() => {
+                                                            if (selectedSponsors.includes(sponsor.id)) {
+                                                                setSelectedSponsors(prev => prev.filter(id => id !== sponsor.id));
+                                                            } else if (selectedSponsors.length < 2) {
+                                                                setSelectedSponsors(prev => [...prev, sponsor.id]);
+                                                            }
+                                                        }}
+                                                        className={twMerge(
+                                                            "p-6 rounded-2xl border transition-all text-left flex justify-between items-center group",
+                                                            selectedSponsors.includes(sponsor.id)
+                                                                ? "bg-amber-400 border-amber-400 text-black"
+                                                                : "bg-white/5 border-white/10 text-white/40 hover:border-white/20"
+                                                        )}
+                                                    >
+                                                        <div>
+                                                            <p className="text-sm font-black uppercase italic tracking-tighter mb-1">{sponsor.name}</p>
+                                                            <p className={`text-[8px] font-bold uppercase tracking-widest ${selectedSponsors.includes(sponsor.id) ? 'text-black/60' : 'text-white/20'}`}>{sponsor.desc}</p>
+                                                        </div>
+                                                        <span className={`text-xs font-mono font-black ${selectedSponsors.includes(sponsor.id) ? 'text-black' : 'text-amber-400'}`}>
+                                                            +{sponsor.bonus.toLocaleString()}€
+                                                        </span>
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <div className="pt-6 border-t border-white/10">
+                                                <div className="flex justify-between items-end">
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Budget Total Provisoire</p>
+                                                        <p className="text-2xl font-mono font-black text-white">{(budget + sponsorsBonus).toLocaleString()}€</p>
+                                                    </div>
+                                                    {randomEvent && (
+                                                        <div className="text-right">
+                                                            <p className="text-[8px] font-black text-neon-red uppercase tracking-widest mb-1 animate-pulse">Alerte Marché</p>
+                                                            <p className="text-[10px] font-bold text-white uppercase italic max-w-[150px] leading-tight">{randomEvent.name}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 ml-2">Nom du Festival</label>
-                                            <input
-                                                type="text"
-                                                value={festivalName}
-                                                onChange={(e) => setFestivalName(e.target.value)}
-                                                className="w-full px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-amber-400 transition-colors"
-                                                placeholder="NOM DE TON FESTIVAL"
-                                            />
-                                        </div>
+                                    </div>
+
+                                    <div className="flex justify-center pt-8">
                                         <button
                                             onClick={confirmOnboarding}
                                             disabled={!playerName || !playerEmail || !festivalName}
-                                            className="w-full py-6 mt-6 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-amber-400 transition-all duration-500 disabled:opacity-20"
+                                            className="px-24 py-8 bg-white text-black rounded-3xl font-black text-sm uppercase tracking-[0.4em] hover:bg-amber-400 hover:scale-105 transition-all duration-500 disabled:opacity-20 shadow-[0_20px_60px_rgba(255,255,255,0.1)]"
                                         >
-                                            VALIDER LE DOSSIER
+                                            LANCER LA PRODUCTION
                                         </button>
                                     </div>
                                 </motion.div>
@@ -500,13 +783,13 @@ export function Community() {
                                                     </div>
                                                     <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden">
                                                         <motion.div
-                                                            className={`h - full ${remainingBudget < 0 ? 'bg-red-500' : 'bg-amber-400'} `}
-                                                            animate={{ width: `${(totalSpent / budget) * 100}% ` }}
+                                                            className={`h-full ${remainingBudget < 0 ? 'bg-red-500' : 'bg-amber-400'}`}
+                                                            animate={{ width: `${(totalSpent / budget) * 100}%` }}
                                                         />
                                                     </div>
                                                     <div className="flex justify-between mt-3">
                                                         <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Dépensé: {totalSpent.toLocaleString()}€</span>
-                                                        <span className={`text - [9px] font - black uppercase tracking - widest ${remainingBudget < 0 ? 'text-red-500' : 'text-emerald-400'} `}>
+                                                        <span className={`text-[9px] font-black uppercase tracking-widest ${remainingBudget < 0 ? 'text-red-500' : 'text-emerald-400'}`}>
                                                             Reste: {remainingBudget.toLocaleString()}€
                                                         </span>
                                                     </div>
@@ -539,6 +822,38 @@ export function Community() {
                                                         ))}
                                                     </div>
                                                 </div>
+
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Prix du Pass (Billet)</span>
+                                                        <span className="text-xl font-mono font-black text-white">{ticketPrice}€</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-4 px-6 py-4 bg-white/5 border border-white/10 rounded-2xl">
+                                                        <input
+                                                            type="range"
+                                                            min="50"
+                                                            max="800"
+                                                            step="5"
+                                                            value={ticketPrice}
+                                                            onChange={(e) => setTicketPrice(parseInt(e.target.value))}
+                                                            className="flex-1 accent-white"
+                                                        />
+                                                    </div>
+                                                    <div className="flex justify-between mt-2">
+                                                        <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Low Cost</span>
+                                                        <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Ultra VIP</span>
+                                                    </div>
+                                                </div>
+
+                                                {randomEvent && (
+                                                    <div className="p-6 bg-neon-red/10 border border-neon-red/20 rounded-2xl">
+                                                        <div className="flex items-center gap-3 mb-2 text-neon-red">
+                                                            <AlertCircle className="w-4 h-4" />
+                                                            <span className="text-[10px] font-black uppercase tracking-widest">Market Info</span>
+                                                        </div>
+                                                        <p className="text-[10px] font-bold text-white uppercase italic leading-snug">{randomEvent.name}: {randomEvent.message}</p>
+                                                    </div>
+                                                )}
 
                                                 <div className="space-y-4">
                                                     <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Lieu du Festival (Destinations)</span>
@@ -629,7 +944,50 @@ export function Community() {
                                     </div>
 
                                     {/* Main: DJ List */}
-                                    <div className="lg:col-span-8">
+                                    <div className="lg:col-span-8 flex flex-col min-h-[800px] relative">
+                                        {/* AI Booking Notification Overlay */}
+                                        <AnimatePresence>
+                                            {bookingStatus && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                                    className="absolute top-4 left-4 right-4 z-50 p-6 rounded-3xl backdrop-blur-3xl border shadow-2xl overflow-hidden"
+                                                    style={{
+                                                        backgroundColor: 'rgba(5, 5, 5, 0.9)',
+                                                        borderColor: bookingStatus.status === 'PENDING' ? 'rgba(251, 191, 36, 0.5)' :
+                                                            bookingStatus.status === 'ACCEPTED' ? 'rgba(16, 185, 129, 0.5)' :
+                                                                'rgba(239, 68, 68, 0.5)'
+                                                    }}
+                                                >
+                                                    <div className="flex items-center gap-4">
+                                                        <div className={twMerge(
+                                                            "w-12 h-12 rounded-full flex items-center justify-center relative",
+                                                            bookingStatus.status === 'PENDING' ? "bg-amber-400/20 text-amber-400" :
+                                                                bookingStatus.status === 'ACCEPTED' ? "bg-emerald-400/20 text-emerald-400" :
+                                                                    "bg-red-400/20 text-red-400"
+                                                        )}>
+                                                            {bookingStatus.status === 'PENDING' && <RefreshCw className="w-6 h-6 animate-spin text-amber-400" />}
+                                                            {bookingStatus.status === 'ACCEPTED' && <Check className="w-6 h-6" />}
+                                                            {bookingStatus.status === 'REJECTED' && <X className="w-6 h-6" />}
+                                                        </div>
+                                                        <div className="flex-1">
+                                                            <h5 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">Agent Booking IA</h5>
+                                                            <p className="text-sm font-black uppercase italic tracking-tighter leading-tight text-white">{bookingStatus.message}</p>
+                                                        </div>
+                                                    </div>
+                                                    {bookingStatus.status === 'PENDING' && (
+                                                        <motion.div
+                                                            className="absolute bottom-0 left-0 h-1 bg-amber-400"
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: '100%' }}
+                                                            transition={{ duration: 1.5, ease: "linear" }}
+                                                        />
+                                                    )}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+
                                         <div className="flex items-center justify-between mb-8">
                                             <h3 className="text-3xl font-black italic tracking-tighter uppercase">Booking Gallery</h3>
                                             <div className="flex items-center gap-3 px-6 py-2 bg-white/5 border border-white/10 rounded-full">
@@ -686,7 +1044,7 @@ export function Community() {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="max-w-3xl mx-auto">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
                                     <motion.div
                                         initial={{ scale: 0.9, opacity: 0 }}
                                         animate={{ scale: 1, opacity: 1 }}
@@ -747,58 +1105,121 @@ export function Community() {
                                                     </div>
                                                 </div>
                                                 <div className="text-right flex flex-col items-end gap-1.5 leading-none">
-                                                    <img
-                                                        src="/Logo.png"
-                                                        className="h-10 w-auto object-contain mb-2"
-                                                        alt="DROPSIDERS"
-                                                    />
-                                                    <div className="flex flex-col items-end opacity-40">
-                                                        <span className="text-[7px] font-black uppercase tracking-widest leading-none">Powered by Dropsiders</span>
-                                                        <span className="text-[6px] font-black uppercase tracking-[0.3em] mt-0.5">Lab Production © 2026</span>
-                                                    </div>
+                                                    <img src="/Logo.png" className="h-10 w-auto object-contain mb-2" alt="DROPSIDERS" />
                                                 </div>
                                             </div>
                                         </div>
                                     </motion.div>
 
-                                    <div className="mt-16 flex justify-center gap-6">
-                                        <button
-                                            onClick={resetGame}
-                                            className="px-12 py-5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-3"
+                                    <div className="space-y-8">
+                                        <motion.div
+                                            initial={{ opacity: 0, x: 20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: 1 }}
+                                            className="p-10 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] space-y-8"
                                         >
-                                            <RefreshCw className="w-4 h-4" /> Nouveau Projet
-                                        </button>
-                                        <button
-                                            onClick={() => window.print()}
-                                            className="px-12 py-5 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all flex items-center gap-3"
-                                        >
-                                            <Download className="w-4 h-4" /> Sauvegarder l'Affiche
-                                        </button>
+                                            <h3 className="text-3xl font-black italic tracking-tighter uppercase text-amber-400">Rapport Financier</h3>
+
+                                            <div className="grid grid-cols-2 gap-8">
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Affluence</p>
+                                                    <p className="text-2xl font-mono font-black text-white">{attendance.toLocaleString()} <span className="text-xs text-white/20 font-sans">FANS</span></p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Hype Score</p>
+                                                    <p className="text-2xl font-mono font-black text-white">{Math.floor(hype)} / 100</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Revenus Bruts</p>
+                                                    <p className="text-2xl font-mono font-black text-white">{revenue.toLocaleString()}€</p>
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Dépenses Totales</p>
+                                                    <p className="text-2xl font-mono font-black text-white">{totalSpent.toLocaleString()}€</p>
+                                                </div>
+                                            </div>
+
+                                            <div className={twMerge(
+                                                "p-8 rounded-[2rem] border animate-pulse",
+                                                profit > 0 ? "bg-emerald-500/10 border-emerald-500/20" : "bg-red-500/10 border-red-500/20"
+                                            )}>
+                                                <p className="text-[10px] font-black uppercase tracking-[0.4em] mb-2 opacity-60">Résultat Net</p>
+                                                <p className={twMerge(
+                                                    "text-5xl font-mono font-black tracking-tighter",
+                                                    profit > 0 ? "text-emerald-400" : "text-red-500"
+                                                )}>
+                                                    {profit > 0 ? "+" : ""}{profit.toLocaleString()}€
+                                                </p>
+                                                <p className="text-[10px] font-bold uppercase italic tracking-widest mt-4 opacity-40">
+                                                    {profit > 1000000 ? "MAGNAT DES FESTIVALS" : profit > 0 ? "PROJET RENTABLE" : "DÉFICIT PRODUCTION"}
+                                                </p>
+                                            </div>
+
+                                            <div className="flex flex-col gap-4 pt-6">
+                                                <button
+                                                    onClick={() => window.print()}
+                                                    className="w-full py-6 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-neon-red hover:text-white transition-all duration-500 flex items-center justify-center gap-4"
+                                                >
+                                                    <Download className="w-4 h-4" /> Exporter le Dossier Final
+                                                </button>
+                                                <button
+                                                    onClick={resetGame}
+                                                    className="w-full py-6 bg-white/5 border border-white/10 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-white/10 transition-all flex items-center justify-center gap-4"
+                                                >
+                                                    <RefreshCw className="w-4 h-4" /> Nouvelle Production
+                                                </button>
+                                            </div>
+                                        </motion.div>
                                     </div>
                                 </div>
-                            )
-                            }
-                        </motion.div >
+                            )}
+                        </motion.div>
                     )}
 
-                    {
-                        activeTab === 'AVIS' && (
-                            <motion.div
-                                key="avis"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                            >
-                                <AvisSection />
-                            </motion.div>
-                        )
-                    }
+                    {activeTab === 'AVIS' && (
+                        <motion.div
+                            key="avis"
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                        >
+                            <AvisSection />
+                        </motion.div>
+                    )}
 
-                    {activeTab === 'GUIDE' && <motion.div key="guide" initial={{ opacity: 0 }} animate={{ opacity: 1 }}><GuideSection /></motion.div>}
-                    {activeTab === 'COVOIT' && <motion.div key="covoit" initial={{ opacity: 0 }} animate={{ opacity: 1 }}><CovoitSection /></motion.div>}
-                    {activeTab === 'ALERTS' && <motion.div key="alerts" initial={{ opacity: 0 }} animate={{ opacity: 1 }}><AlertsSection /></motion.div>}
+                    {activeTab === 'GUIDE' && (
+                        <motion.div
+                            key="guide"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                        >
+                            <GuideSection />
+                        </motion.div>
+                    )}
 
-                </AnimatePresence >
+                    {activeTab === 'COVOIT' && (
+                        <motion.div
+                            key="covoit"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                        >
+                            <CovoitSection />
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'ALERTS' && (
+                        <motion.div
+                            key="alerts"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                        >
+                            <AlertsSection />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* Footer CTA */}
                 {
