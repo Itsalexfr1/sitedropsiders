@@ -1,25 +1,37 @@
 {
-    "name": "site-dropsiders-v2",
-    "pages_build_output_dir": "./dist",
-    "compatibility_date": "2024-09-23",
-    "compatibility_flags": [
-        "nodejs_compat"
-    ],
-    "vars": {
-        "GITHUB_OWNER": "Itsalexfr1",
-        "GITHUB_REPO": "sitedropsiders",
-        "GITHUB_FILE_PATH": "src/data/subscribers.json"
-    },
-    "kv_namespaces": [
-        {
-            "binding": "CHAT_KV",
-            "id": "370cf84c95df4d1dba69b292ca30d813"
-        }
-    ],
-    "r2_buckets": [
-        {
-            "binding": "R2",
-            "bucket_name": "dropsiders-assets"
-        }
-    ]
+	"name": "dropsiders",
+	"main": "worker.ts",
+	"compatibility_date": "2024-09-23",
+	"assets": {
+		"directory": "./dist",
+		"binding": "APP_ASSETS"
+	},
+	"observability": {
+		"enabled": true
+	},
+	"triggers": {
+		"crons": [
+			"* * * * *"
+		]
+	},
+	"compatibility_flags": [
+		"nodejs_compat"
+	],
+	"vars": {
+		"GITHUB_OWNER": "Itsalexfr1",
+		"GITHUB_REPO": "sitedropsiders",
+		"GITHUB_FILE_PATH": "src/data/subscribers.json"
+	},
+	"kv_namespaces": [
+		{
+			"binding": "CHAT_KV",
+			"id": "370cf84c95df4d1dba69b292ca30d813"
+		}
+	],
+	"r2_buckets": [
+		{
+			"binding": "R2",
+			"bucket_name": "dropsiders-assets"
+		}
+	]
 }
