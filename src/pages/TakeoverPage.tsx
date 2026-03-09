@@ -1212,7 +1212,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     return;
                 }
                 setUserDrops(prev => prev - 3000);
-                setHasHoloPseudo(true);
                 localStorage.setItem('user_holo_pseudo', 'true');
                 showNotification("PSEUDO HOLOGRAPHIQUE ACTIVÉ ! ✨", 'success');
                 messageText = `✨ @${pseudo} vient de débloquer le PSEUDO HOLOGRAPHIQUE !`;
