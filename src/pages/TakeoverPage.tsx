@@ -56,7 +56,7 @@ interface TakeoverSettings {
 }
 
 interface ShazamTrack {
-    id: number;
+    id: string;
     artist: string;
     title: string;
     time: string;
@@ -93,7 +93,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [loginCountry, setLoginCountry] = useState('FR');
     const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
 
-    const countryOptions = [
+    const countries = [
         { code: 'FR', name: 'France' },
         { code: 'BE', name: 'Belgique' },
         { code: 'CH', name: 'Suisse' },
@@ -229,6 +229,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [muteTimeLeft, setMuteTimeLeft] = useState(0);
     const [userTitle, setUserTitle] = useState(localStorage.getItem('user_chat_title') || '');
     const [profileBorder, setProfileBorder] = useState(localStorage.getItem('user_profile_border') || 'none');
+    const [pseudoColor, setPseudoColor] = useState(localStorage.getItem('user_pseudo_color') || '#ffffff');
     const [specialFontStyle, setSpecialFontStyle] = useState(localStorage.getItem('user_font_style') || 'normal');
     const [showGifPicker, setShowGifPicker] = useState(false);
     const [activeQTE, setActiveQTE] = useState<{ id: string, type: 'click', reward: number } | null>(null);
@@ -252,6 +253,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     ]);
     const [showLegendsWall, setShowLegendsWall] = useState(false);
     const [qteActive, setQteActive] = useState(false);
+
+    // 🆕 New State Features
+    const [userInstagram, setUserInstagram] = useState(localStorage.getItem('user_instagram') || '');
+    const [shazamCount, setShazamCount] = useState(() => parseInt(localStorage.getItem('shazam_count') || '0'));
+    const [timeOnSite, setTimeOnSite] = useState(() => parseInt(localStorage.getItem('time_on_site') || '0'));
+    const [showAchievementPopup, setShowAchievementPopup] = useState<string | null>(null);
+    const [showFeedbackUX, setShowFeedbackUX] = useState(false);
+    const [userRatingUX, setUserRatingUX] = useState(0);
+
+    const [loginInstagram, setLoginInstagram] = useState('');
+    const [loginPseudoColor, setLoginPseudoColor] = useState('#ffffff');
+    const [loginCountrySearch, setLoginCountrySearch] = useState('');
 
     // 🎁 RECOMPENSE QUOTIDIENNE (Paliers)
     useEffect(() => {
@@ -393,11 +406,31 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }
     }, [activeSlots]);
 
-    // ⏲️ Clock
+    // ⏲️ Clock & Time on Site
     useEffect(() => {
-        const timer = setInterval(() => setCurrentTime(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })), 60000);
+        const timer = setInterval(() => {
+            setCurrentTime(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
+            if (isConnected) {
+                setTimeOnSite(prev => {
+                    const next = prev + 60;
+                    localStorage.setItem('time_on_site', next.toString());
+                    return next;
+                });
+            }
+        }, 60000);
         return () => clearInterval(timer);
-    }, []);
+    }, [isConnected]);
+
+    const unlockAchievement = (name: string) => {
+        if (!achievements.includes(name)) {
+            const next = [...achievements, name];
+            setAchievements(next);
+            localStorage.setItem('user_achievements', JSON.stringify(next));
+            setShowAchievementPopup(name);
+            setTimeout(() => setShowAchievementPopup(null), 5000);
+            showNotification(`🏆 SUCCÈS : ${name}`, 'success');
+        }
+    };
 
     // Daily Jackpot
     useEffect(() => {
@@ -959,6 +992,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         localStorage.setItem('chat_pseudo', loginPseudo.trim());
         localStorage.setItem('chat_email', loginEmail.trim());
         localStorage.setItem('chat_country', loginCountry);
+        localStorage.setItem('user_instagram', loginInstagram.trim());
+        localStorage.setItem('user_pseudo_color', loginPseudoColor);
 
         if (parseInt(captchaInput) !== captchaChallenge?.a) {
             showNotification('CAPTCHA INCORRECT ! 🤖', 'error');
@@ -967,6 +1002,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }
 
         setUserCountry(loginCountry);
+        setUserInstagram(loginInstagram.trim());
+        setPseudoColor(loginPseudoColor);
         setIsConnected(true);
 
         if (subscribeNewsletter) {
@@ -980,6 +1017,22 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }
 
         showNotification('Connexion réussie !', 'success');
+    };
+
+    const handleShazamAction = async () => {
+        setShazamStatus('listening');
+        setTimeout(() => {
+            setShazamStatus('found');
+            const newTrack = { id: Date.now().toString(), title: "L'HEURE D'ALEX", artist: "ALEXFR", time: new Date().toLocaleTimeString(), image: "https://placehold.co/200x200" };
+            setShazamHistory(prev => [newTrack, ...prev]);
+            setShazamCount(prev => {
+                const next = prev + 1;
+                localStorage.setItem('shazam_count', next.toString());
+                if (next === 10) unlockAchievement("Shazamer Expert (x10)");
+                return next;
+            });
+            setTimeout(() => setShazamStatus('idle'), 3000);
+        }, 2000);
     };
 
     const handleSaveSettings = async () => {
@@ -1047,14 +1100,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
     };
 
-    const unlockAchievement = (name: string) => {
-        if (!achievements.includes(name)) {
-            const next = [...achievements, name];
-            setAchievements(next);
-            localStorage.setItem('user_achievements', JSON.stringify(next));
-            showNotification(`🏆 SUCCÈS : ${name}`, 'success');
-        }
-    };
+
 
     const handleSendMessage = async (customText?: string) => {
         const messageToSend = customText || newMessage;
@@ -1299,7 +1345,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     messageText = `[SYSTEM]:MUTE_USER:${target}`;
                     showNotification(`MUTE ACHETÉ pour @${target} ! (-5000 Drops)`, 'success');
                 } else {
-                    showNotification("Besoin de 5000 DROPS pour mute !", "error");
+                    showNotification("Besoin de 5000 DROPS pour mute !", 'error');
                     return;
                 }
             } else if (mainCmd === '!tts') {
@@ -1353,15 +1399,19 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
         // 🤖 ChatGPT Dropsiders Bot-4 Logic
         if (messageText.toLowerCase().includes('@botdrops') || messageText.toLowerCase().includes('@bot')) {
+            const lowMsg = messageText.toLowerCase();
             setTimeout(async () => {
-                const responses = [
-                    "Je suis là ! On fait quoi ? 😎",
-                    "Les Dropsiders sont les meilleurs, non ? 🔥",
-                    "Désolé, je suis occupé à miner des Drops. 💎",
-                    "C'est moi l'IA du futur ! 🤖",
-                    "Bip Boup... Message reçu !"
-                ];
-                const botReply = responses[Math.floor(Math.random() * responses.length)];
+                let botReply = '';
+                if (lowMsg.includes('blague') || lowMsg.includes('joke')) {
+                    botReply = "Pourquoi les plongeurs plongent-ils toujours en arrière et jamais en avant ? Parce que sinon ils tombent dans le bateau ! 🤣";
+                } else if (lowMsg.includes('festival') || lowMsg.includes('ambiance')) {
+                    botReply = "L'ambiance est au max ici ! On est les Dropsiders ou on l'est pas ? 🔥";
+                } else if (lowMsg.includes('qui es-tu')) {
+                    botReply = "Je suis BotDrops-4, ton IA préférée, plus rapide qu'un mix d'AlexFR ! 🤖";
+                } else {
+                    botReply = "Bip Boup... Je t'écoute ! Dis-moi tout. 😎";
+                }
+
                 await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                     pseudo: "DROPS_BOT_4",
                     message: botReply,
@@ -1370,6 +1420,27 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     country: "FR"
                 });
             }, 1000);
+        }
+
+        // 🛡️ Intelligent FAQ Assistant
+        const faqTriggers = ['quand', 'heure', 'artist', 'dj', 'lineup', 'programme'];
+        if (faqTriggers.some(t => messageText.toLowerCase().includes(t)) && !messageText.startsWith('!')) {
+            setTimeout(async () => {
+                const nextArtist = lineupItems[0]?.artist || "Bientôt annoncé";
+                const botReply = `🤖 [FAQ]: @${pseudo}, consulte l'onglet PLANNING pour voir toute la programmation. Prochainement : ${nextArtist} !`;
+                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                    pseudo: "BOT_FAQ",
+                    message: botReply,
+                    color: "text-amber-500",
+                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                    country: "FR"
+                });
+            }, 2000);
+        }
+
+        // 🍕 Pixel Art PACMAN trigger
+        if (messageText.toLowerCase().includes('pacman')) {
+            triggerPACMAN();
         }
 
         // Quiz participation (non-commands)
@@ -1414,7 +1485,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                 pseudo: userTitle ? `[${userTitle}] ${pseudo}` : pseudo,
                 message: messageText,
-                color: isHighlightChecked ? highlightColor : (isMod ? "text-neon-red" : "text-white"),
+                color: isHighlightChecked ? highlightColor : (isMod ? "text-neon-red" : pseudoColor),
                 bgColor: isHighlightChecked ? highlightColor : null,
                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                 country: userCountry || "FR",
@@ -1476,72 +1547,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             await databases.deleteDocument(DATABASE_ID, COLLECTION_CHAT, id);
         } catch (e) {
             showNotification('Erreur suppression', 'error');
-        }
-    };
-
-    const handleShazamAction = async () => {
-        try {
-            setShazamStatus('listening');
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mediaRecorder = new MediaRecorder(stream);
-            const audioChunks: Blob[] = [];
-
-            mediaRecorder.ondataavailable = (event) => {
-                audioChunks.push(event.data);
-            };
-
-            mediaRecorder.onstop = async () => {
-                setShazamStatus('processing');
-                const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
-                const formData = new FormData();
-                formData.append('audio', audioBlob, 'shazam.wav');
-
-                try {
-                    const res = await fetch('/api/shazam/identify', {
-                        method: 'POST',
-                        body: formData
-                    });
-                    const data = await res.json();
-                    if (data.status === 'success') {
-                        const track: ShazamTrack = {
-                            id: Date.now(),
-                            artist: data.metadata.artist,
-                            title: data.metadata.title,
-                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                            image: data.metadata.image || "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=cover"
-                        };
-                        setShazamHistory(prev => [track, ...prev.slice(0, 19)]);
-                        setShazamStatus('found');
-                        setTimeout(() => setShazamStatus('idle'), 3000);
-
-                        // Enregistrer dans l'historique serveur
-                        fetch('/api/shazam/history', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ ...data.metadata, user: 'Alex' })
-                        });
-                    } else {
-                        showNotification(data.error || 'Non identifié', 'error');
-                        setShazamStatus('idle');
-                    }
-                } catch (e) {
-                    showNotification('Erreur identification', 'error');
-                    setShazamStatus('idle');
-                } finally {
-                    stream.getTracks().forEach(track => track.stop());
-                }
-            };
-
-            mediaRecorder.start();
-            setTimeout(() => {
-                if (mediaRecorder.state === 'recording') {
-                    mediaRecorder.stop();
-                }
-            }, 6000); // 6 secondes d'écoute
-        } catch (err) {
-            console.error(err);
-            showNotification('Erreur: Micro non accessible', 'error');
-            setShazamStatus('idle');
         }
     };
 
@@ -2018,7 +2023,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                                     setPollOptions(next);
                                                                                 }}
                                                                                 placeholder={`OPTION ${idx + 1}`}
-                                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all uppercase"
+                                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan uppercase"
                                                                             />
                                                                             {pollOptions.length > 2 && (
                                                                                 <button
@@ -2423,64 +2428,52 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             className="absolute bottom-6 left-6 z-[100] w-72 bg-black/90 backdrop-blur-2xl border-2 border-white/10 rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
                         >
                             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple" />
-
-                            <div className="flex flex-col items-center mb-6">
-                                <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-white/5 to-white/10 border border-white/10 flex items-center justify-center mb-4 relative group">
-                                    <User className="w-10 h-10 text-white" />
-                                    <div className="absolute -bottom-1 -right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-black" />
+                            <div className="flex flex-col items-center gap-4 text-center">
+                                <div className={`w-20 h-20 rounded-3xl border-2 flex items-center justify-center bg-white/5 relative overflow-hidden`} style={{ borderColor: selectedProfile.color || '#fff' }}>
+                                    <FlagIcon location={selectedProfile.country} className="absolute inset-0 w-full h-full opacity-30 object-cover" />
+                                    <span className="text-3xl font-black text-white relative z-10">{selectedProfile.pseudo[0]}</span>
                                 </div>
-                                <h4 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter leading-none mb-2">{selectedProfile.pseudo}</h4>
-                                <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
-                                    <FlagIcon location={selectedProfile.country || 'FR'} className="w-3 h-2" />
-                                    <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">{selectedProfile.country || 'FR'}</span>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-2 gap-3 mb-6">
-                                <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center">
-                                    <p className="text-[8px] text-gray-500 font-black uppercase mb-1">Niveau</p>
-                                    <div className="flex items-center justify-center gap-1.5">
-                                        <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                                        <p className="text-xs text-white font-black italic">ELITE</p>
+                                <div>
+                                    <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">{selectedProfile.pseudo}</h3>
+                                    <div className="flex items-center justify-center gap-2 mt-1">
+                                        <FlagIcon location={selectedProfile.country} className="w-4 h-3" />
+                                        <span className="text-[10px] text-gray-400 font-bold uppercase">{countries.find(c => c.code === selectedProfile.country)?.name || 'Unknown'}</span>
                                     </div>
                                 </div>
-                                <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center">
-                                    <p className="text-[8px] text-gray-500 font-black uppercase mb-1">Drops</p>
-                                    <div className="flex items-center justify-center gap-1.5">
-                                        <Zap className="w-3 h-3 text-neon-cyan" />
-                                        <p className="text-xs text-neon-cyan font-black italic">1.2K</p>
+
+                                <div className="grid grid-cols-2 gap-3 w-full">
+                                    <div className="bg-white/5 border border-white/10 p-3 rounded-2xl">
+                                        <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-1">Niveau</p>
+                                        <p className="text-lg font-black text-neon-cyan">
+                                            {Math.floor(Math.sqrt((chatMessages.find(m => m.pseudo === selectedProfile.pseudo)?.xp || 0) / 100)) + 1}
+                                        </p>
+                                    </div>
+                                    <div className="bg-white/5 border border-white/10 p-3 rounded-2xl">
+                                        <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-1">Ratio Crédibilité</p>
+                                        <p className="text-lg font-black text-amber-500">
+                                            {selectedProfile.pseudo === localStorage.getItem('chat_pseudo')
+                                                ? (userDrops / Math.max(1, timeOnSite / 3600)).toFixed(1)
+                                                : (Math.random() * 500).toFixed(1)}
+                                        </p>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="flex gap-2 mb-8 justify-center">
-                                <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center border border-red-500/30" title="Donateur"><Music className="w-4 h-4 text-red-500" /></div>
-                                <div className="w-8 h-8 rounded-lg bg-neon-cyan/20 flex items-center justify-center border border-neon-cyan/30" title="Actif"><BarChart3 className="w-4 h-4 text-neon-cyan" /></div>
-                                <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center border border-amber-500/30" title="Vétéran"><Bell className="w-4 h-4 text-amber-500" /></div>
-                                <div className="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center border border-pink-500/30 cursor-pointer hover:bg-pink-500/40 transition-all" title="Instagram" onClick={() => window.open('https://instagram.com/dropsiders.eu', '_blank')}><Instagram className="w-4 h-4 text-pink-500" /></div>
-                            </div>
+                                {/* Instagram Button if available */}
+                                {(selectedProfile.pseudo === localStorage.getItem('chat_pseudo') ? userInstagram : "dropsiders.fr") && (
+                                    <button
+                                        onClick={() => window.open(`https://instagram.com/${(selectedProfile.pseudo === localStorage.getItem('chat_pseudo') ? userInstagram : "dropsiders.fr").replace('@', '')}`, '_blank')}
+                                        className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black uppercase rounded-xl flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-lg"
+                                    >
+                                        <Instagram className="w-4 h-4" /> Instagram
+                                    </button>
+                                )}
 
-                            {userTitle && (
-                                <button
-                                    onClick={() => {
-                                        setUserTitle('');
-                                        localStorage.removeItem('user_chat_title');
-                                        showNotification("Titre retiré !", 'success');
-                                    }}
-                                    className="w-full py-2 mb-2 bg-red-600/10 border border-red-500/30 text-red-500 text-[10px] font-black rounded-xl hover:bg-red-600/20 transition-all uppercase tracking-widest"
-                                >
-                                    RETIRER MON TITRE
-                                </button>
-                            )}
-                            <button
-                                onClick={() => setSelectedProfile(null)}
-                                className="w-full py-4 bg-white text-black text-[10px] font-black uppercase rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,255,255,0.1)]"
-                            >
-                                FERMER LE PROFIL
-                            </button>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                                <div className="flex gap-2 w-full">
+                                    <button onClick={() => setSelectedProfile(null)} className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white font-black uppercase rounded-xl transition-all">Fermer</button>
+                                    {isMod && selectedProfile.pseudo !== 'ALEX_FR1' && (
+                                        <button onClick={() => handleBanUser(selectedProfile.pseudo)} className="px-4 py-3 bg-red-500/20 hover:bg-red-500/40 text-red-500 rounded-xl transition-all"><Ban className="w-5 h-5" /></button>
+                                    )}
+                                </div></div></motion.div>)}</AnimatePresence>
 
                 {/* B. CHAT PANEL (60% Mobile / 40% Desktop) */}
                 <div className={`${isCinemaMode ? 'hidden' : 'w-full lg:w-[40%] h-[60%] lg:h-full'} bg-black/60 backdrop-blur-2xl flex flex-col relative border-l border-white/5 shadow-2xl z-10`}>
@@ -2665,6 +2658,33 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             )}
                         </AnimatePresence>
 
+                        {/* ⚡ Quick Time Event (QTE) */}
+                        <AnimatePresence>
+                            {qteActive && (
+                                <motion.div initial={{ scale: 0, rotate: -20, x: '-50%', y: '-50%' }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 z-[200]">
+                                    <button
+                                        onClick={async () => {
+                                            const myPseudo = localStorage.getItem('chat_pseudo') || "VISITEUR";
+                                            setQteActive(false);
+                                            showNotification("TU AS GAGNÉ LE QTE ! ⚡ (+500 DROPS)", 'success');
+                                            triggerConfetti();
+                                            setUserDrops(prev => prev + 500);
+                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                pseudo: "BOT_SYSTEM",
+                                                message: `[SYSTEM]:QTE_WINNER:${myPseudo}`,
+                                                color: "text-neon-cyan",
+                                                time: new Date().toLocaleTimeString(),
+                                                country: "FR"
+                                            });
+                                        }}
+                                        className="w-32 h-32 bg-neon-cyan rounded-full border-8 border-white animate-bounce shadow-[0_0_50px_#00ffff] flex items-center justify-center group"
+                                    >
+                                        <Zap className="w-16 h-16 text-black group-active:scale-150 transition-transform" />
+                                    </button>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
+
                         {/* Simple Quiz Banner */}
                         <AnimatePresence>
                             {activeQuiz && (
@@ -2791,98 +2811,99 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         <AnimatePresence mode="wait">
                             {!isConnected ? (
                                 <motion.div
-                                    key="login-view"
-                                    initial={{ opacity: 0, scale: 0.95 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    className="h-full flex flex-col items-center justify-center p-6 space-y-8 bg-black/40 backdrop-blur-sm rounded-3xl"
+                                    key="login-screen"
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    className="absolute inset-0 z-[100] bg-[#0a0a0a]/95 backdrop-blur-xl flex items-center justify-center p-6"
                                 >
-                                    <div className="text-center space-y-2">
-                                        <div className="w-16 h-16 bg-neon-red/10 border border-neon-red/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                            <Users className="w-8 h-8 text-neon-red" />
-                                        </div>
-                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Rejoindre le chat</h3>
-                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-relaxed">Entrez vos infos pour interagir en live</p>
-                                    </div>
-
-                                    <form onSubmit={handleConnect} className="w-full space-y-4">
-                                        <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Pseudo</label>
-                                            <input
-                                                type="text"
-                                                required
-                                                value={loginPseudo}
-                                                onChange={e => setLoginPseudo(e.target.value)}
-                                                placeholder="TON PSEUDO"
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-red outline-none transition-all uppercase font-bold"
-                                            />
+                                    <div className="w-full max-w-md space-y-8">
+                                        <div className="text-center space-y-3">
+                                            <div className="w-20 h-20 bg-neon-red/10 border-2 border-neon-red rounded-[2.5rem] flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(255,0,51,0.2)]">
+                                                <MessageSquare className="w-10 h-10 text-neon-red animate-pulse" />
+                                            </div>
+                                            <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">Live Chat</h2>
+                                            <p className="text-gray-500 text-xs font-black uppercase tracking-[0.3em]">Connectez-vous pour participer</p>
                                         </div>
 
-                                        <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Email</label>
-                                            <input
-                                                type="email"
-                                                required
-                                                value={loginEmail}
-                                                onChange={e => setLoginEmail(e.target.value)}
-                                                placeholder="TON@EMAIL.COM"
-                                                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-red outline-none transition-all uppercase font-bold"
-                                            />
-                                        </div>
-
-                                        <div className="space-y-1.5">
-                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Pays</label>
-                                            <div className="relative">
-                                                <select
-                                                    value={loginCountry}
-                                                    onChange={e => setLoginCountry(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-red outline-none transition-all appearance-none font-bold uppercase"
-                                                >
-                                                    {countryOptions.map(c => (
-                                                        <option key={c.code} value={c.code} className="bg-[#080808] text-white">
-                                                            {c.name}
-                                                        </option>
-                                                    ))}
-                                                </select>
-                                                <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none">
-                                                    <FlagIcon location={loginCountry} className="w-4 h-3" />
+                                        <form onSubmit={handleConnect} className="space-y-4">
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pseudo</label>
+                                                    <input
+                                                        value={loginPseudo}
+                                                        onChange={e => setLoginPseudo(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-black uppercase outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                                        placeholder="DX_RAVER"
+                                                    />
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pseudo Color</label>
+                                                    <div className="flex gap-2 h-[58px]">
+                                                        <input
+                                                            type="color"
+                                                            value={loginPseudoColor}
+                                                            onChange={e => setLoginPseudoColor(e.target.value)}
+                                                            className="w-full h-full bg-white/5 border border-white/10 rounded-2xl p-1 cursor-pointer"
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
 
-                                        {/* Captcha Section */}
-                                        {captchaChallenge && (
-                                            <div className="space-y-1.5 bg-black/40 p-4 rounded-xl border border-white/5">
-                                                <label className="text-[9px] font-black text-neon-red uppercase tracking-[0.2em] mb-2 block">Vérification humaine (CAPTCHA)</label>
-                                                <div className="flex items-center gap-4">
-                                                    <div className="flex-1 px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-center">
-                                                        <span className="text-sm font-black text-white italic tracking-widest">{captchaChallenge.q}</span>
-                                                    </div>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Email (Newsletter)</label>
+                                                <input
+                                                    type="email"
+                                                    value={loginEmail}
+                                                    onChange={e => setLoginEmail(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                                    placeholder="vibe@dropsiders.fr"
+                                                />
+                                            </div>
+
+                                            <div className="grid grid-cols-2 gap-4">
+                                                <div className="space-y-1.5 relative">
+                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pays (Auto-Flag)</label>
                                                     <input
-                                                        type="text"
-                                                        required
-                                                        value={captchaInput}
-                                                        onChange={e => setCaptchaInput(e.target.value)}
-                                                        placeholder="?"
-                                                        className="w-20 bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-red outline-none transition-all text-center font-black"
+                                                        value={loginCountrySearch}
+                                                        onChange={e => {
+                                                            setLoginCountrySearch(e.target.value);
+                                                            const found = countries.find(c => c.name.toLowerCase().includes(e.target.value.toLowerCase()) || c.code.toLowerCase() === e.target.value.toLowerCase());
+                                                            if (found) setLoginCountry(found.code);
+                                                        }}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-black outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                                        placeholder="France, Canada..."
+                                                    />
+                                                    <div className="absolute right-4 top-10">
+                                                        <FlagIcon location={loginCountry} className="w-6 h-4 rounded shadow-sm" />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-1.5">
+                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Instagram</label>
+                                                    <input
+                                                        value={loginInstagram}
+                                                        onChange={e => setLoginInstagram(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                                        placeholder="@user"
                                                     />
                                                 </div>
                                             </div>
-                                        )}
 
-                                        <label className="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:bg-white/10 transition-all group">
-                                            <input
-                                                type="checkbox"
-                                                checked={subscribeNewsletter}
-                                                onChange={e => setSubscribeNewsletter(e.target.checked)}
-                                                className="w-4 h-4 rounded border-white/10 bg-black/40 text-neon-red focus:ring-neon-red"
-                                            />
-                                            <span className="text-[9px] text-gray-400 font-bold uppercase group-hover:text-white transition-colors">S'abonner à la newsletter et aux alertes live</span>
-                                        </label>
+                                            <div className="space-y-1.5">
+                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Captcha : {captchaChallenge?.q}</label>
+                                                <input
+                                                    value={captchaInput}
+                                                    onChange={e => setCaptchaInput(e.target.value)}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-black outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                                    placeholder="Résultat..."
+                                                />
+                                            </div>
 
-                                        <button type="submit" className="w-full py-4 bg-neon-red text-white font-black uppercase italic tracking-widest rounded-2xl hover:shadow-[0_0_25px_rgba(255,0,51,0.4)] transition-all transform active:scale-95 shadow-xl">
-                                            C'est parti !
-                                        </button>
-                                    </form>
+                                            <button type="submit" className="w-full bg-gradient-to-r from-neon-red to-pink-600 py-4 rounded-2xl text-white font-black uppercase italic tracking-widest shadow-lg shadow-neon-red/20 hover:scale-[1.02] active:scale-95 transition-all">
+                                                Rejoindre le live
+                                            </button>
+                                        </form>
+                                    </div>
                                 </motion.div>
                             ) : activeChatTab === 'chat' ? (
                                 <motion.div key="chat-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
@@ -2941,7 +2962,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     )}
                                                     <div className="flex gap-3 relative">
                                                         <div className="w-9 h-9 rounded-xl border border-white/10 shrink-0 flex items-center justify-center bg-white/5 relative overflow-hidden group-hover:border-neon-red/30 transition-all">
-                                                            <div className="text-[10px] font-black text-gray-400 group-hover:text-white transition-colors">{(msg.pseudo || msg.user || 'V')[0]}</div>
+                                                            <FlagIcon location={msg.country} className="absolute inset-0 w-full h-full opacity-30 object-cover grayscale" />
+                                                            <div className="text-[10px] font-black text-gray-400 group-hover:text-white transition-colors relative z-10">{(msg.pseudo || msg.user || 'V')[0]}</div>
                                                             {isHovered && <motion.div layoutId="bg-glow" className="absolute inset-0 bg-neon-red/5 blur-md" />}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
@@ -3338,68 +3360,68 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 <span className="text-[8px] font-bold text-gray-600 uppercase tracking-widest opacity-50">LIVE SÉCURISÉ</span>
                             </div>
                         </div>
-                    </div >
 
-                    {
-                        isConnected && (
-                            <div className="p-4 bg-black/40 border-t border-white/5 space-y-3">
-                                {/* Reply support removed from footer */}
-                                {isHighlightChecked && (
-                                    <div className="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all border" style={{ backgroundColor: `${highlightColor}20`, borderColor: `${highlightColor}40` }}>
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[10px] font-black uppercase" style={{ color: highlightColor }}>Mise en avant</span>
-                                            <input type="color" value={highlightColor} onChange={(e) => setHighlightColor(e.target.value)} className="w-5 h-4 bg-transparent border-none outline-none cursor-pointer p-0" />
-                                        </div>
-                                        <span className="text-[10px] font-black" style={{ color: highlightColor }}>{settings.highlightPrice || 100} DROPS</span>
-                                    </div>
-                                )}
-                                <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 group focus-within:border-opacity-100 transition-all" style={{ borderColor: `${accentColor}40` }}>
-                                    {slowModeEnabled && !isMod && (
-                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full animate-pulse">
-                                            <Clock className="w-3 h-3 text-amber-500" />
-                                            <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">Mode Lent (10s)</span>
+                        {
+                            isConnected && (
+                                <div className="p-4 bg-black/40 border-t border-white/5 space-y-3">
+                                    {/* Reply support removed from footer */}
+                                    {isHighlightChecked && (
+                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all border" style={{ backgroundColor: `${highlightColor}20`, borderColor: `${highlightColor}40` }}>
+                                            <div className="flex items-center gap-3">
+                                                <span className="text-[10px] font-black uppercase" style={{ color: highlightColor }}>Mise en avant</span>
+                                                <input type="color" value={highlightColor} onChange={(e) => setHighlightColor(e.target.value)} className="w-5 h-4 bg-transparent border-none outline-none cursor-pointer p-0" />
+                                            </div>
+                                            <span className="text-[10px] font-black" style={{ color: highlightColor }}>{settings.highlightPrice || 100} DROPS</span>
                                         </div>
                                     )}
-                                    <input
-                                        type="text"
-                                        value={isBanned ? "VOUS ÊTES BANNI" : newMessage}
-                                        onChange={e => setNewMessage(e.target.value)}
-                                        disabled={isBanned}
-                                        onKeyDown={e => e.key === 'Enter' && handleSendMessage(newMessage)}
-                                        placeholder={isBanned ? "ACCÈS REFUSÉ..." : slowModeEnabled && !isMod ? "MODE LENT ACTIF..." : "VOTRE MESSAGE..."}
-                                        className={`flex-1 bg-transparent text-xs font-bold outline-none uppercase tracking-wider ${isBanned ? 'text-red-500' : 'text-white placeholder:text-gray-600'}`}
-                                    />
-                                    <button onClick={() => setShowGifPicker(!showGifPicker)} className="p-2 text-gray-500 hover:text-white transition-all">
-                                        <Stars className="w-4 h-4" />
-                                    </button>
-                                    <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
-                                        <Zap className="w-4 h-4" />
-                                    </button>
-                                    <button onClick={() => window.open(window.location.href, 'Chat', 'width=400,height=800')} className="p-2 text-gray-500 hover:text-white transition-all" title="Détacher le chat">
-                                        <Maximize2 className="w-4 h-4" />
-                                    </button>
-                                    <button onClick={() => handleSendMessage(newMessage)} className="p-2 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all" style={{ backgroundColor: accentColor }}>
-                                        <Send className="w-4 h-4" />
-                                    </button>
-                                </div>
-                                {showGifPicker && (
-                                    <div className="grid grid-cols-3 gap-2 p-3 bg-black/60 rounded-2xl border border-white/10 animate-in fade-in slide-in-from-bottom-2">
-                                        {['https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/3o7TKMGpxVfPtoog3m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/LScqP82pdBAlC7xs6m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/clotJgshs6nUUXf2i6/giphy.gif'].map((gif, i) => (
-                                            <img key={i} src={gif} onClick={() => { handleSendMessage(gif); setShowGifPicker(false); }} className="w-full h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform" />
-                                        ))}
+                                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 group focus-within:border-opacity-100 transition-all" style={{ borderColor: `${accentColor}40` }}>
+                                        {slowModeEnabled && !isMod && (
+                                            <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full animate-pulse">
+                                                <Clock className="w-3 h-3 text-amber-500" />
+                                                <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">Mode Lent (10s)</span>
+                                            </div>
+                                        )}
+                                        <input
+                                            type="text"
+                                            value={isBanned ? "VOUS ÊTES BANNI" : newMessage}
+                                            onChange={e => setNewMessage(e.target.value)}
+                                            disabled={isBanned}
+                                            onKeyDown={e => e.key === 'Enter' && handleSendMessage(newMessage)}
+                                            placeholder={isBanned ? "ACCÈS REFUSÉ..." : slowModeEnabled && !isMod ? "MODE LENT ACTIF..." : "VOTRE MESSAGE..."}
+                                            className={`flex-1 bg-transparent text-xs font-bold outline-none uppercase tracking-wider ${isBanned ? 'text-red-500' : 'text-white placeholder:text-gray-600'}`}
+                                        />
+                                        <button onClick={() => setShowGifPicker(!showGifPicker)} className="p-2 text-gray-500 hover:text-white transition-all">
+                                            <Stars className="w-4 h-4" />
+                                        </button>
+                                        <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
+                                            <Zap className="w-4 h-4" />
+                                        </button>
+                                        <button onClick={() => window.open(window.location.href, 'Chat', 'width=400,height=800')} className="p-2 text-gray-500 hover:text-white transition-all" title="Détacher le chat">
+                                            <Maximize2 className="w-4 h-4" />
+                                        </button>
+                                        <button onClick={() => handleSendMessage(newMessage)} className="p-2 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all" style={{ backgroundColor: accentColor }}>
+                                            <Send className="w-4 h-4" />
+                                        </button>
                                     </div>
-                                )}
-                                <div className="flex items-center justify-between px-2">
-                                    <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80" onClick={() => setActiveChatTab('drops')}>
-                                        <Trophy className="w-3 h-3 text-amber-500" />
-                                        <span className="text-[10px] font-black text-white">{userDrops} <span className="text-gray-600 ml-0.5 uppercase tracking-tighter">DROPS</span></span>
+                                    {showGifPicker && (
+                                        <div className="grid grid-cols-3 gap-2 p-3 bg-black/60 rounded-2xl border border-white/10 animate-in fade-in slide-in-from-bottom-2">
+                                            {['https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/3o7TKMGpxVfPtoog3m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/LScqP82pdBAlC7xs6m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/clotJgshs6nUUXf2i6/giphy.gif'].map((gif, i) => (
+                                                <img key={i} src={gif} onClick={() => { handleSendMessage(gif); setShowGifPicker(false); }} className="w-full h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform" />
+                                            ))}
+                                        </div>
+                                    )}
+                                    <div className="flex items-center justify-between px-2">
+                                        <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80" onClick={() => setActiveChatTab('drops')}>
+                                            <Trophy className="w-3 h-3 text-amber-500" />
+                                            <span className="text-[10px] font-black text-white">{userDrops} <span className="text-gray-600 ml-0.5 uppercase tracking-tighter">DROPS</span></span>
+                                        </div>
+                                        <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">Powered by Dropsiders</span>
                                     </div>
-                                    <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">Powered by Dropsiders</span>
                                 </div>
-                            </div>
-                        )
-                    }
-                </div >
+                            )
+                        }
+                    </div>
+                </div>
 
                 {/* Flash Message Overlay */}
                 <AnimatePresence>
@@ -3690,85 +3712,52 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                 {/* MUR DES LÉGENDES (Legends Wall Overlay) */}
                 <AnimatePresence>
-                    {showLegendsWall && (
-                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1000] bg-black/95 flex flex-col items-center justify-center overflow-hidden">
-                            <div className="absolute top-10 flex flex-col items-center">
-                                <Crown className="w-16 h-16 text-amber-500 mb-4 animate-bounce" />
-                                <h2 className="text-4xl font-black text-white uppercase italic tracking-[0.5em] mb-2">Mur des Légendes</h2>
-                                <p className="text-amber-500/50 text-[10px] font-black uppercase tracking-[0.5em]">Dropsiders Hall of Fame</p>
-                            </div>
-                            <div className="flex-1 w-full max-w-4xl relative">
-                                <motion.div animate={{ y: [-1000, 1000] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="flex flex-col items-center space-y-12 py-32">
-                                    {(topTalkers.length > 0 ? topTalkers : leaderboard).map((user: any, i) => (
-                                        <div key={i} className="flex flex-col items-center group">
-                                            {i < 3 && <Trophy className={`w-8 h-8 mb-2 ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-gray-400' : 'text-amber-700'}`} />}
-                                            <span className="text-3xl font-black text-white hover:text-amber-500 transition-colors uppercase italic">{user.pseudo}</span>
-                                            <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest mt-1">
-                                                <span>{user.drops || user.count || 5000}+ DROPS</span>
-                                                <div className="w-1 h-1 rounded-full bg-white/20" />
-                                                <span>LÉGENDE ACTIVE</span>
+                    {
+                        showLegendsWall && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1000] bg-black/95 flex flex-col items-center justify-center overflow-hidden">
+                                <div className="absolute top-10 flex flex-col items-center">
+                                    <Crown className="w-16 h-16 text-amber-500 mb-4 animate-bounce" />
+                                    <h2 className="text-4xl font-black text-white uppercase italic tracking-[0.5em] mb-2">Mur des Légendes</h2>
+                                    <p className="text-amber-500/50 text-[10px] font-black uppercase tracking-[0.5em]">Dropsiders Hall of Fame</p>
+                                </div>
+                                <div className="flex-1 w-full max-w-4xl relative">
+                                    <motion.div animate={{ y: [-1000, 1000] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="flex flex-col items-center space-y-12 py-32">
+                                        {(topTalkers.length > 0 ? topTalkers : leaderboard).map((user: any, i) => (
+                                            <div key={i} className="flex flex-col items-center group">
+                                                {i < 3 && <Trophy className={`w-8 h-8 mb-2 ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-gray-400' : 'text-amber-700'}`} />}
+                                                <span className="text-3xl font-black text-white hover:text-amber-500 transition-colors uppercase italic">{user.pseudo}</span>
+                                                <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest mt-1">
+                                                    <span>{user.drops || user.count || 5000}+ DROPS</span>
+                                                    <div className="w-1 h-1 rounded-full bg-white/20" />
+                                                    <span>LÉGENDE ACTIVE</span>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
-                                    <div className="h-64" />
-                                    <p className="text-white/20 text-xs font-black uppercase tracking-[1em] italic">Merci d'avoir fait partie de l'expérience Dropsiders</p>
-                                </motion.div>
+                                        ))}
+                                        <div className="h-64" />
+                                        <p className="text-white/20 text-xs font-black uppercase tracking-[1em] italic">Merci d'avoir fait partie de l'expérience Dropsiders</p>
+                                    </motion.div>
+                                </div>
+                                <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black pointer-events-none" />
+                                <button onClick={() => setShowLegendsWall(false)} className="absolute bottom-10 px-8 py-3 bg-white/10 border border-white/20 text-white text-[10px] font-black rounded-full hover:bg-white/20 transition-all uppercase tracking-widest">Fermer</button>
+                            </motion.div>
+                        )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                    {toast.show && (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]">
+                            <div className={`px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
+                                {toast.type === 'success' ? <ShieldCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                                <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>
                             </div>
-                            <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black pointer-events-none" />
-                            <button onClick={() => setShowLegendsWall(false)} className="absolute bottom-10 px-8 py-3 bg-white/10 border border-white/20 text-white text-[10px] font-black rounded-full hover:bg-white/20 transition-all uppercase tracking-widest">Fermer</button>
                         </motion.div>
                     )}
                 </AnimatePresence>
 
-                {/* USER LOGS MODAL */}
-                <AnimatePresence>
-                    {
-                        showUserLogs && (
-                            <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowUserLogs(null)} className="absolute inset-0 bg-black/80 backdrop-blur-md" />
-                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-[#0a0a0a] border-2 border-neon-cyan/30 rounded-[2.5rem] w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-[0_0_50px_rgba(0,255,255,0.1)]">
-                                    <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/5">
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-12 h-12 rounded-2xl bg-neon-cyan/20 flex items-center justify-center text-neon-cyan">
-                                                <MessageSquare className="w-6 h-6" />
-                                            </div>
-                                            <div>
-                                                <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Logs Chat : {showUserLogs}</h3>
-                                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{chatMessages.filter(m => m.pseudo === showUserLogs).length} messages trouvés</p>
-                                            </div>
-                                        </div>
-                                        <button onClick={() => setShowUserLogs(null)} className="p-3 hover:bg-white/10 rounded-full transition-colors"><X className="w-6 h-6 text-gray-500" /></button>
-                                    </div>
-                                    <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-black/20">
-                                        {chatMessages.filter(m => m.pseudo === showUserLogs).map((m, i) => (
-                                            <div key={i} className="group">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="text-[9px] font-black text-neon-cyan/50 tracking-widest">{m.time}</span>
-                                                    <div className="h-px flex-1 bg-white/5" />
-                                                </div>
-                                                <div className="p-3 bg-white/5 border border-white/5 rounded-2xl group-hover:border-neon-cyan/20 transition-colors">
-                                                    <p className="text-sm text-white/90 leading-relaxed font-medium">{m.message}</p>
-                                                </div>
-                                            </div>
-                                        ))}
-                                        {chatMessages.filter(m => m.pseudo === showUserLogs).length === 0 && (
-                                            <div className="flex flex-col items-center justify-center py-20 text-gray-600 space-y-4">
-                                                <Trash2 className="w-12 h-12 opacity-20" />
-                                                <p className="text-sm font-black uppercase italic tracking-widest">Aucun historique disponible</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="p-4 bg-white/5 border-t border-white/10 flex justify-end gap-3">
-                                        <button onClick={() => { if (showUserLogs) handlePurgeTarget(showUserLogs); setShowUserLogs(null); }} className="px-6 py-2 bg-red-600/20 border border-red-500/30 text-red-500 text-[10px] font-black rounded-xl hover:bg-red-600/30 transition-all uppercase tracking-widest">EFFACER HISTORIQUE</button>
-                                        <button onClick={() => setShowUserLogs(null)} className="px-6 py-2 bg-white/5 text-white text-[10px] font-black rounded-xl hover:bg-white/10 transition-all uppercase tracking-widest border border-white/10">FERMER</button>
-                                    </div>
-                                </motion.div>
-                            </div>
-                        )}
-                </AnimatePresence>
             </div>
         </div>
     );
 };
+
 
 export default TakeoverPage;
