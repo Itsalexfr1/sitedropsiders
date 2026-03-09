@@ -245,10 +245,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [isPremsAwarded, setIsPremsAwarded] = useState(false);
     const [clashPoll, setClashPoll] = useState<{ active: boolean, teamA: string, teamB: string, votesA: string[], votesB: string[] } | null>(null);
     const [shopItems] = useState([
-        { id: 1, name: 'T-Shirt Classic', price: 2500, image: 'https://placehold.co/100x120?text=TSHIRT' },
-        { id: 2, name: 'Hoodie Neon', price: 5000, image: 'https://placehold.co/100x120?text=HOODIE' },
-        { id: 3, name: 'Casquette Drops', price: 1500, image: 'https://placehold.co/100x120?text=CAP' },
-        { id: 4, name: 'Pack Stickers', price: 500, image: 'https://placehold.co/100x120?text=STICKERS' }
+        { id: 1, name: 'T-Shirt Classic', price: 29.99, image: '/artifacts/tshirt_dropsiders_mockup_1773023978521.png' },
+        { id: 2, name: 'Hoodie Neon', price: 54.99, image: '/artifacts/hoodie_dropsiders_mockup_1773023992749.png' },
+        { id: 3, name: 'Casquette Drops', price: 19.99, image: '/artifacts/cap_dropsiders_mockup_1773024009139.png' },
+        { id: 4, name: 'Pack Stickers', price: 9.99, image: '/artifacts/stickers_dropsiders_mockup_1773024024798.png' },
+        { id: 5, name: 'Gourde Métal', price: 24.99, image: 'https://placehold.co/100x120?text=GOURDE' },
+        { id: 6, name: 'Sac à Dos', price: 44.99, image: 'https://placehold.co/100x120?text=SAC' },
+        { id: 7, name: 'Beanie', price: 14.99, image: 'https://placehold.co/100x120?text=BEANIE' },
+        { id: 8, name: 'Poster A3', price: 12.99, image: 'https://placehold.co/100x120?text=POSTER' }
     ]);
     const [showLegendsWall, setShowLegendsWall] = useState(false);
     const [qteActive, setQteActive] = useState(false);
@@ -3195,35 +3199,34 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     })}
                                 </motion.div>
                             ) : activeChatTab === 'shop' ? (
-                                <motion.div key="shop-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 py-6 px-4">
+                                <motion.div key="shop-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 overflow-y-auto space-y-6 py-6 px-4 custom-scrollbar">
                                     <div className="text-center mb-8">
-                                        <ShoppingBag className="w-12 h-12 text-neon-cyan mx-auto mb-4 animate-pulse" />
+                                        <ShoppingBag className="w-12 h-12 text-neon-cyan mx-auto mb-4" />
                                         <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Shop Officiel Dropsiders</h3>
                                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2">Merchandising & Accessoires</p>
                                     </div>
-                                    <div className="grid grid-cols-1 gap-4">
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
                                         {shopItems.map(item => (
-                                            <div key={item.id} className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-2xl group hover:border-neon-cyan/30 transition-all cursor-pointer">
-                                                <div className="w-16 h-20 rounded-xl bg-black/40 overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">
+                                            <div key={item.id} className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col group hover:border-neon-cyan/30 transition-all cursor-pointer shadow-xl relative overflow-hidden">
+                                                <div className="aspect-[4/5] rounded-xl bg-black/40 overflow-hidden mb-3 border border-white/10">
                                                     <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                                 </div>
-                                                <div className="flex-1">
-                                                    <p className="text-xs font-black text-white uppercase mb-1 tracking-tight">{item.name}</p>
-                                                    <div className="flex items-center gap-2">
-                                                        <span className="text-[9px] font-black text-neon-cyan uppercase tracking-widest">PRIX :</span>
-                                                        <span className="text-[10px] font-black text-white">{item.price} DROPS</span>
+                                                <div className="flex-1 flex flex-col justify-between">
+                                                    <div>
+                                                        <p className="text-[9px] lg:text-[10px] font-black text-white uppercase mb-1 leading-tight">{item.name}</p>
+                                                        <p className="text-[11px] font-black text-neon-cyan">{item.price} €</p>
                                                     </div>
+                                                    <button onClick={() => showNotification(`ACHETER : ${item.name}`, 'success')} className="w-full mt-3 py-1.5 bg-white/5 border border-white/10 text-[8px] font-black uppercase rounded-lg hover:bg-white/10 text-white transition-all">VOIR</button>
                                                 </div>
-                                                <button onClick={() => showNotification(`ACHETER : ${item.name}`, 'success')} className="px-4 py-2 bg-white/5 border border-white/10 text-[9px] font-black uppercase rounded-xl hover:bg-white/10 text-white transition-all">VOIR</button>
                                             </div>
                                         ))}
                                     </div>
                                     <div className="p-4 bg-neon-cyan/5 border border-neon-cyan/20 rounded-2xl mt-8">
-                                        <p className="text-[9px] font-bold text-neon-cyan/60 uppercase text-center leading-relaxed">Le shop officiel vous permet de commander des articles réels avec vos Drops accumulés sur notre réseau.</p>
+                                        <p className="text-[8px] font-bold text-neon-cyan/60 uppercase text-center leading-relaxed">Les articles officiels sont expédiés sous 48h. Paiement sécurisé.</p>
                                     </div>
                                 </motion.div>
                             ) : activeChatTab === 'drops' ? (
-                                <motion.div key="drops-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 text-center py-6 px-4">
+                                <motion.div key="drops-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 overflow-y-auto space-y-4 text-center py-6 px-4 custom-scrollbar">
                                     <Trophy className="w-12 h-12 text-amber-500 mx-auto mb-4 animate-bounce" />
                                     <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Shop des Drops</h3>
                                     <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-8">Améliorez votre profil avec vos drops</p>
