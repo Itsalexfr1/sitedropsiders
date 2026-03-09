@@ -157,48 +157,55 @@ export function InvoiceGenerator() {
             const invoiceEl = invoiceRef.current;
             if (!invoiceEl) throw new Error('Calculateur introuvable');
 
-            // Force visibility for capture but keep it hidden from user
-            invoiceEl.classList.remove('hidden');
-            invoiceEl.style.position = 'fixed';
-            invoiceEl.style.left = '0';
-            invoiceEl.style.top = '0';
-            invoiceEl.style.zIndex = '-100';
-            invoiceEl.style.visibility = 'visible';
-            invoiceEl.style.opacity = '1';
+            // Force visibility using absolute positioning off-screen
+            // This is more reliable for html2canvas than 'fixed' 
+            const originalStyle = invoiceEl.getAttribute('style') || '';
+            const originalClass = invoiceEl.className;
+
             invoiceEl.style.display = 'block';
+            invoiceEl.style.visibility = 'visible';
+            invoiceEl.style.position = 'absolute';
+            invoiceEl.style.left = '-9999px';
+            invoiceEl.style.top = '0';
+            invoiceEl.style.width = '794px'; // Fixed A4 width
+            invoiceEl.classList.remove('hidden');
 
             // Give extra time for font rendering and styles
-            await new Promise(r => setTimeout(r, 1000));
+            await new Promise(r => setTimeout(r, 1200));
 
             const canvas = await html2canvas(invoiceEl, {
-                scale: 3, // Higher scale for premium look
+                scale: 1.5, // Lowered scale for better stability and speed
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#ffffff',
-                logging: false,
+                logging: true, // Internal logging to help debug if needed
                 width: 794,
-                height: 1123,
                 onclone: (clonedDoc) => {
                     const el = clonedDoc.getElementById('printable-invoice');
                     if (el) {
                         el.style.display = 'block';
                         el.style.visibility = 'visible';
-                        sanitizeColors(clonedDoc);
+                        el.style.position = 'relative';
+                        el.style.left = '0';
+                        // Sanitize in-place
+                        const styles = clonedDoc.querySelectorAll('style');
+                        styles.forEach(s => {
+                            if (s.textContent) {
+                                s.textContent = s.textContent.replace(/oklch\([^)]+\)/g, '#000000');
+                            }
+                        });
                     }
                 }
             });
 
-            // Restore state
-            invoiceEl.classList.add('hidden');
-            invoiceEl.style.position = '';
-            invoiceEl.style.left = '';
-            invoiceEl.style.top = '';
-            invoiceEl.style.zIndex = '';
-            invoiceEl.style.visibility = '';
-            invoiceEl.style.opacity = '';
-            invoiceEl.style.display = '';
+            // Restore original state
+            invoiceEl.setAttribute('style', originalStyle);
+            invoiceEl.className = originalClass;
 
-            setPreviewImage(canvas.toDataURL('image/png'));
+            const dataUrl = canvas.toDataURL('image/png');
+            if (dataUrl === 'data:,') throw new Error('Canevas vide généré');
+
+            setPreviewImage(dataUrl);
         } catch (e: any) {
             console.error('Preview Error:', e);
             setSendError('Rendu échoué: ' + e.message);
@@ -220,32 +227,50 @@ export function InvoiceGenerator() {
             const invoiceEl = invoiceRef.current;
             if (!invoiceEl) throw new Error('Introuvable');
 
-            invoiceEl.style.display = 'block';
-            invoiceEl.style.position = 'fixed';
-            invoiceEl.style.top = '0';
-            invoiceEl.style.left = '-9999px';
-            invoiceEl.style.width = '794px';
+            // Force visibility using absolute positioning off-screen
+            const originalStyle = invoiceEl.getAttribute('style') || '';
+            const originalClass = invoiceEl.className;
 
-            await new Promise(r => setTimeout(r, 600));
+            invoiceEl.style.display = 'block';
+            invoiceEl.style.visibility = 'visible';
+            invoiceEl.style.position = 'absolute';
+            invoiceEl.style.left = '-9999px';
+            invoiceEl.style.top = '0';
+            invoiceEl.style.width = '794px';
+            invoiceEl.classList.remove('hidden');
+
+            await new Promise(r => setTimeout(r, 1200));
 
             const canvas = await html2canvas(invoiceEl, {
-                scale: 2,
+                scale: 1.5,
                 useCORS: true,
+                allowTaint: true,
                 backgroundColor: '#ffffff',
                 width: 794,
-                onclone: (clonedDoc) => sanitizeColors(clonedDoc)
+                onclone: (clonedDoc) => {
+                    const el = clonedDoc.getElementById('printable-invoice');
+                    if (el) {
+                        el.style.display = 'block';
+                        el.style.visibility = 'visible';
+                        el.style.position = 'relative';
+                        el.style.left = '0';
+                        sanitizeColors(clonedDoc);
+                    }
+                }
             });
 
-            invoiceEl.style.display = '';
-            invoiceEl.style.position = '';
+            // Restore original state
+            invoiceEl.setAttribute('style', originalStyle);
+            invoiceEl.className = originalClass;
 
             const imgData = canvas.toDataURL('image/jpeg', 0.95);
+            if (imgData === 'data:,') throw new Error('Canevas vide généré');
+
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
             const pageWidth = pdf.internal.pageSize.getWidth();
-            const imgWidth = pageWidth;
             const imgHeight = (canvas.height * pageWidth) / canvas.width;
 
-            pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
+            pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, imgHeight);
 
             const pdfBase64 = pdf.output('datauristring');
 
@@ -266,24 +291,26 @@ export function InvoiceGenerator() {
                 body: JSON.stringify({
                     to: emailTo,
                     subject: emailSubject,
-                    message: `<p>${emailMessage.replace(/\n/g, '<br>')}</p>`,
-                    pdfBase64,
-                    filename: `${formattedInvoiceNumber}.pdf`,
-                }),
+                    message: emailMessage,
+                    pdfBase64: pdfBase64,
+                    filename: `Facture_${formattedInvoiceNumber}.pdf`
+                })
             });
 
-            const data = await res.json();
-            if (!res.ok || data.error) throw new Error(data.error || 'Erreur envoi (Vérifiez votre connexion admin)');
+            if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.error || 'Erreur serveur');
+            }
 
             setSendStatus('success');
-            saveInvoiceNumber(invoiceNumber + 1);
             setTimeout(() => {
                 setSendStatus('idle');
                 setShowEmailModal(false);
             }, 3000);
         } catch (e: any) {
+            console.error('Send Error:', e);
             setSendStatus('error');
-            setSendError(e.message || 'Erreur inconnue');
+            setSendError(e.message);
         }
     };
 

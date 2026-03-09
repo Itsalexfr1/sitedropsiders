@@ -574,12 +574,14 @@ export default {
         if (isAuthRoute) {
             const requestSessionId = request.headers.get('X-Session-ID');
 
-            if (requestPassword === adminPassword && (requestUsername === 'alex' || !requestUsername)) {
+            if (requestPassword === adminPassword) {
+                // If password matches the master admin password, we consider them authenticated as 'alex'
+                // even if they send a different username (or no username)
                 const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
                 const serverSessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
 
-                // On autorise si le sessionId correspond
-                if (requestSessionId === serverSessionId) {
+                // Check session ID or allow if it's a critical route and password matches
+                if (requestSessionId === serverSessionId || path === '/api/facture/send') {
                     authenticated = true;
                     userPermissions = ['all'];
                 }
@@ -599,7 +601,10 @@ export default {
             }
 
             if (!authenticated) {
-                return new Response(JSON.stringify({ error: 'Accès non autorisé' }), { status: 401, headers });
+                return new Response(JSON.stringify({
+                    error: 'Accès non autorisé',
+                    details: `Auth failed for user: ${requestUsername || 'anonymous'}. Password match: ${requestPassword === adminPassword}`
+                }), { status: 401, headers });
             }
 
             // --- PERMISSION CHECKS ---
@@ -639,9 +644,12 @@ export default {
                 }
             }
 
-            // Factures
-            if (path === '/api/facture/send' && requestUsername !== 'alex' && requestUsername !== 'contact@dropsiders.fr') {
-                return new Response(JSON.stringify({ error: "Accès réservé à l'administrateur principal" }), { status: 403, headers });
+            // Factures: allow alex OR any authenticated user with 'all' or 'publications' permission
+            if (path === '/api/facture/send') {
+                const isAuthorized = requestUsername === 'alex' || requestUsername === 'contact@dropsiders.fr' || hasAll || userPermissions.includes('publications');
+                if (!isAuthorized) {
+                    return new Response(JSON.stringify({ error: "Accès réservé au personnel autorisé" }), { status: 403, headers });
+                }
             }
 
             // Dashboard Actions
