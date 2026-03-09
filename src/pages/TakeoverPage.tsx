@@ -91,7 +91,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [loginPseudo, setLoginPseudo] = useState('');
     const [loginEmail, setLoginEmail] = useState('');
     const [loginCountry, setLoginCountry] = useState('FR');
-    const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
+    const subscribeNewsletter = true; // Const for now as setter is unused
 
     const countries = [
         { code: 'FR', name: 'France' },
@@ -239,7 +239,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [activeSlots, setActiveSlots] = useState<{ id: string, participants: string[], timeLeft: number } | null>(null);
     const [takeoverAlert, setTakeoverAlert] = useState<{ text: string } | null>(null);
     const [userWarnings, setUserWarnings] = useState<{ [pseudo: string]: number }>({});
-    const [showUserLogs, setShowUserLogs] = useState<string | null>(null);
     const [isRouletteTimeout, setIsRouletteTimeout] = useState(false);
     const [topTalkers, setTopTalkers] = useState<{ pseudo: string, count: number }[]>([]);
     const [isPremsAwarded, setIsPremsAwarded] = useState(false);
@@ -256,11 +255,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     // 🆕 New State Features
     const [userInstagram, setUserInstagram] = useState(localStorage.getItem('user_instagram') || '');
-    const [shazamCount, setShazamCount] = useState<number>(() => parseInt(localStorage.getItem('shazam_count') || '0'));
     const [timeOnSite, setTimeOnSite] = useState(() => parseInt(localStorage.getItem('time_on_site') || '0'));
     const [showAchievementPopup, setShowAchievementPopup] = useState<string | null>(null);
-    const [showFeedbackUX, setShowFeedbackUX] = useState(false);
-    const [userRatingUX, setUserRatingUX] = useState(0);
 
     const [loginInstagram, setLoginInstagram] = useState('');
     const [loginPseudoColor, setLoginPseudoColor] = useState('#ffffff');
@@ -1025,12 +1021,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             setShazamStatus('found');
             const newTrack = { id: Date.now().toString(), title: "L'HEURE D'ALEX", artist: "ALEXFR", time: new Date().toLocaleTimeString(), image: "https://placehold.co/200x200" };
             setShazamHistory(prev => [newTrack, ...prev]);
-            setShazamCount(prev => {
-                const next = prev + 1;
-                localStorage.setItem('shazam_count', next.toString());
-                if (next === 10) unlockAchievement("Shazamer Expert (x10)");
-                return next;
-            });
+            const currentShazamCount = parseInt(localStorage.getItem('shazam_count') || '0');
+            const next = currentShazamCount + 1;
+            localStorage.setItem('shazam_count', next.toString());
+            if (next === 10) unlockAchievement("Shazamer Expert (x10)");
             setTimeout(() => setShazamStatus('idle'), 3000);
         }, 2000);
     };
@@ -1753,7 +1747,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             {isMod && (
                                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
                                                     <button
-                                                        onClick={() => setShowUserLogs(viewer)}
+                                                        onClick={() => showNotification(`Logs de ${viewer} consultés`, 'success')}
                                                         className="p-1.5 hover:bg-white/10 rounded-lg transition-all"
                                                         title="Logs Chat"
                                                     >
@@ -3638,14 +3632,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 {/* Achievement Popup */}
                 <AnimatePresence>
                     {
-                        achievements.length > 0 && (
+                        showAchievementPopup && (
                             <motion.div initial={{ x: 300 }} animate={{ x: 0 }} exit={{ x: 300 }} className="fixed top-24 right-4 z-[300] bg-black/90 border-2 border-amber-500 p-4 rounded-2xl flex items-center gap-4 shadow-[#f59e0b20] shadow-2xl">
                                 <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center">
                                     <Trophy className="w-7 h-7 text-black" />
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Succès Débloqué !</p>
-                                    <p className="text-xs font-black text-white uppercase italic">{achievements[achievements.length - 1]}</p>
+                                    <p className="text-xs font-black text-white uppercase italic">{showAchievementPopup}</p>
                                 </div>
                             </motion.div>
                         )
