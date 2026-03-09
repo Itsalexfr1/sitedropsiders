@@ -3,10 +3,11 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Users, Camera, Gamepad2, Star, Info, Car, Bell,
     Sparkles, Trophy, Plus, Check, AlertCircle,
-    Music, Shield, Palette, Megaphone, MapPin,
+    Music, Shield, Palette, Megaphone,
     RefreshCw, X, Download, Heart
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { twMerge } from 'tailwind-merge';
 import { MemoryWall } from '../components/community/MemoryWall';
 import { QuizSection } from '../components/community/QuizSection';
 import { AvisSection } from '../components/community/AvisSection';
@@ -15,6 +16,16 @@ import { CovoitSection } from '../components/community/CovoitSection';
 import { AlertsSection } from '../components/community/AlertsSection';
 import galerieData from '../data/galerie.json';
 import confetti from 'canvas-confetti';
+
+// --- STAGE & LOCATION DATA ---
+const FESTIVAL_LOCATIONS = [
+    { id: 'paris', name: 'Paris - Longchamp', cost: 150000 },
+    { id: 'ibiza', name: 'Ibiza - Playa', cost: 300000 },
+    { id: 'lyon', name: 'Lyon - Eurexpo', cost: 80000 },
+    { id: 'berlin', name: 'Berlin - Tempelhof', cost: 120000 },
+];
+
+const STAGE_COST_PER_UNIT = 100000;
 
 // --- HALL OF FAME MOCK DATA ---
 const HALL_OF_FAME = [
@@ -46,10 +57,12 @@ const DJ_POOL = [
 ];
 
 const FIX_COSTS = [
-    { id: 'security', name: 'Sécurité & Secours', basePrice: 45000, icon: Shield, minPercent: 10 },
-    { id: 'sceno', name: 'Scénographie & VJs', basePrice: 65000, icon: Palette, minPercent: 15 },
-    { id: 'marketing', name: 'Marketing & Pub', basePrice: 25000, icon: Megaphone, minPercent: 5 },
-    { id: 'venue', name: 'Location du lieu', basePrice: 40000, icon: MapPin, minPercent: 8 },
+    { id: 'security', name: 'Sécurité & Secours', basePrice: 45000, icon: Shield },
+    { id: 'sceno', name: 'Scénographie & VJs', basePrice: 65000, icon: Palette },
+    { id: 'marketing', name: 'Marketing & Pub', basePrice: 25000, icon: Megaphone },
+    { id: 'food', name: 'Food Court & Bars', basePrice: 35000, icon: Users },
+    { id: 'screens', name: 'Écrans Géants', basePrice: 50000, icon: Camera },
+    { id: 'camping', name: 'Camping VIP', basePrice: 80000, icon: Heart },
 ];
 
 export function Community() {
@@ -67,6 +80,8 @@ export function Community() {
     const [playerName, setPlayerName] = useState('');
     const [playerEmail, setPlayerEmail] = useState('');
     const [festivalName, setFestivalName] = useState('');
+    const [selectedLocation, setSelectedLocation] = useState(FESTIVAL_LOCATIONS[0]);
+    const [stageCount, setStageCount] = useState(1);
 
     // Stats
     const totalDjsCost = useMemo(() => selectedDjs.reduce((acc, dj) => acc + dj.price, 0), [selectedDjs]);
@@ -75,7 +90,9 @@ export function Community() {
             .filter(c => selectedCosts.includes(c.id))
             .reduce((acc, c) => acc + c.basePrice, 0);
     }, [selectedCosts]);
-    const totalSpent = totalDjsCost + totalExtraCost;
+    const locationCost = selectedLocation.cost;
+    const stagesCost = stageCount * STAGE_COST_PER_UNIT;
+    const totalSpent = totalDjsCost + totalExtraCost + locationCost + stagesCost;
     const remainingBudget = budget - totalSpent;
 
     const startNewGame = () => {
@@ -104,18 +121,8 @@ export function Community() {
         }
     };
 
-    const toggleCost = (costId: string) => {
-        if (selectedCosts.includes(costId)) {
-            setSelectedCosts(prev => prev.filter(id => id !== costId));
-        } else {
-            const cost = FIX_COSTS.find(c => c.id === costId);
-            if (cost && totalSpent + cost.basePrice > budget) return;
-            setSelectedCosts(prev => [...prev, costId]);
-        }
-    };
-
     const generatePoster = () => {
-        if (selectedCosts.length < 4) return; // Need all mandatory units
+        if (selectedCosts.length < 3) return; // Need at least 3 infrastructure units
         confetti({
             particleCount: 150,
             spread: 70,
@@ -128,6 +135,11 @@ export function Community() {
     const resetGame = () => {
         setGameState('SETUP');
         setGameStarted(false);
+        setPlayerName('');
+        setPlayerEmail('');
+        setFestivalName('');
+        setSelectedLocation(FESTIVAL_LOCATIONS[0]);
+        setStageCount(1);
     };
 
     return (
@@ -191,7 +203,7 @@ export function Community() {
                             <button
                                 key={tab.id}
                                 onClick={() => setActiveTab(tab.id as any)}
-                                className={`flex items-center gap-3 px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all relative group ${activeTab === tab.id ? 'text-black' : 'text-white/40 hover:text-white'}`}
+                                className={`flex items - center gap - 3 px - 6 py - 3.5 rounded - 2xl text - [10px] font - black uppercase tracking - [0.2em] transition - all relative group ${activeTab === tab.id ? 'text-black' : 'text-white/40 hover:text-white'} `}
                             >
                                 {activeTab === tab.id && (
                                     <motion.div
@@ -271,7 +283,7 @@ export function Community() {
                                     <motion.button
                                         whileHover={{ scale: 1.1 }}
                                         className="absolute top-6 right-6 w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                        onClick={() => navigate(`/galerie/${album.id}`)}
+                                        onClick={() => navigate(`/ galerie / ${album.id} `)}
                                     >
                                         <Plus className="w-5 h-5 text-white" />
                                     </motion.button>
@@ -415,34 +427,94 @@ export function Community() {
                                                     </div>
                                                     <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden">
                                                         <motion.div
-                                                            className={`h-full ${remainingBudget < 0 ? 'bg-red-500' : 'bg-amber-400'}`}
-                                                            animate={{ width: `${(totalSpent / budget) * 100}%` }}
+                                                            className={`h - full ${remainingBudget < 0 ? 'bg-red-500' : 'bg-amber-400'} `}
+                                                            animate={{ width: `${(totalSpent / budget) * 100}% ` }}
                                                         />
                                                     </div>
                                                     <div className="flex justify-between mt-3">
                                                         <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Dépensé: {totalSpent.toLocaleString()}€</span>
-                                                        <span className={`text-[9px] font-black uppercase tracking-widest ${remainingBudget < 0 ? 'text-red-500' : 'text-emerald-400'}`}>
+                                                        <span className={`text - [9px] font - black uppercase tracking - widest ${remainingBudget < 0 ? 'text-red-500' : 'text-emerald-400'} `}>
                                                             Reste: {remainingBudget.toLocaleString()}€
                                                         </span>
                                                     </div>
                                                 </div>
 
                                                 <div className="space-y-4">
-                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Unités de Sécurité & Logistique</span>
-                                                    <div className="grid grid-cols-2 gap-4">
+                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Infrastructure & Logistique</span>
+                                                    <div className="grid grid-cols-2 gap-3">
                                                         {FIX_COSTS.map(cost => (
                                                             <button
                                                                 key={cost.id}
-                                                                onClick={() => toggleCost(cost.id)}
-                                                                className={`p-6 rounded-3xl border transition-all duration-500 group flex flex-col items-center gap-3 text-center ${selectedCosts.includes(cost.id) ? 'bg-white border-white text-black' : 'bg-white/5 border-white/10 text-white/40 hover:border-white/20'}`}
+                                                                onClick={() => {
+                                                                    if (selectedCosts.includes(cost.id)) {
+                                                                        setSelectedCosts(prev => prev.filter(id => id !== cost.id));
+                                                                    } else if (totalSpent + cost.basePrice <= budget) {
+                                                                        setSelectedCosts(prev => [...prev, cost.id]);
+                                                                    }
+                                                                }}
+                                                                className={twMerge(
+                                                                    "p-4 rounded-2xl border transition-all flex flex-col items-center gap-2",
+                                                                    selectedCosts.includes(cost.id)
+                                                                        ? "bg-amber-400 border-amber-400 text-black shadow-[0_0_20px_rgba(251,191,36,0.2)]"
+                                                                        : "bg-white/5 border-white/10 text-white/40 hover:border-white/20"
+                                                                )}
                                                             >
-                                                                <cost.icon className={`w-6 h-6 ${selectedCosts.includes(cost.id) ? 'text-neon-red' : 'group-hover:text-white'}`} />
-                                                                <div className="flex flex-col gap-1">
-                                                                    <span className="text-[8px] font-black uppercase tracking-tight">{cost.name}</span>
-                                                                    <span className="text-[10px] font-mono font-bold">{cost.basePrice.toLocaleString()}€</span>
-                                                                </div>
+                                                                <cost.icon className="w-5 h-5" />
+                                                                <span className="text-[8px] font-black uppercase tracking-tighter text-center">{cost.name}</span>
+                                                                <span className="text-[7px] font-mono opacity-60">+{cost.basePrice.toLocaleString()}€</span>
                                                             </button>
                                                         ))}
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Lieu du Festival</span>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        {FESTIVAL_LOCATIONS.map(loc => (
+                                                            <button
+                                                                key={loc.id}
+                                                                onClick={() => {
+                                                                    const diff = loc.cost - selectedLocation.cost;
+                                                                    if (totalSpent + diff <= budget) {
+                                                                        setSelectedLocation(loc);
+                                                                    }
+                                                                }}
+                                                                className={twMerge(
+                                                                    "p-3 rounded-xl border transition-all text-center",
+                                                                    selectedLocation.id === loc.id
+                                                                        ? "bg-white text-black border-white"
+                                                                        : "bg-white/5 border-white/10 text-white/40 hover:border-white/20"
+                                                                )}
+                                                            >
+                                                                <span className="text-[8px] font-black uppercase block">{loc.name}</span>
+                                                                <span className="text-[7px] font-mono opacity-60">{loc.cost.toLocaleString()}€</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-between items-center">
+                                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Stages ({stageCount})</span>
+                                                        <span className="text-[9px] font-mono text-amber-400">+{stagesCost.toLocaleString()}€</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-4 px-6 py-4 bg-white/5 border border-white/10 rounded-2xl">
+                                                        <input
+                                                            type="range"
+                                                            min="1"
+                                                            max="5"
+                                                            step="1"
+                                                            value={stageCount}
+                                                            onChange={(e) => {
+                                                                const val = parseInt(e.target.value);
+                                                                const diff = (val - stageCount) * STAGE_COST_PER_UNIT;
+                                                                if (totalSpent + diff <= budget) {
+                                                                    setStageCount(val);
+                                                                }
+                                                            }}
+                                                            className="flex-1 accent-amber-400"
+                                                        />
+                                                        <span className="text-white font-mono font-black">{stageCount}</span>
                                                     </div>
                                                 </div>
 
@@ -476,37 +548,37 @@ export function Community() {
                                                     animate={{ opacity: 1, y: 0 }}
                                                     transition={{ delay: i * 0.05 }}
                                                     onClick={() => toggleDj(dj)}
-                                                    className={`relative group p-8 rounded-[2rem] border transition-all duration-500 text-left overflow-hidden ${selectedDjs.find(d => d.id === dj.id) ? 'bg-amber-400 border-amber-400' : 'bg-white/5 border-white/10 hover:border-amber-400/50'}`}
+                                                    className={`relative group p-8 rounded-[2rem] border transition-all duration-500 text-left overflow-hidden ${selectedDjs.find(d => d.id === dj.id) ? 'bg-amber-400 border-amber-400 text-black shadow-[0_0_30px_rgba(251,191,36,0.3)]' : 'bg-white/5 border-white/10 text-white/40 hover:border-amber-400/50 hover:bg-white/5 shadow-2xl'} `}
                                                 >
                                                     <div className="flex justify-between items-start mb-10">
-                                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-colors ${selectedDjs.find(d => d.id === dj.id) ? 'bg-black/10 border-black/10' : 'bg-white/5 border-white/10'}`}>
-                                                            <Music className={`w-6 h-6 ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-amber-400'}`} />
+                                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-colors ${selectedDjs.find(d => d.id === dj.id) ? 'bg-black/10 border-black/10' : 'bg-white/5 border-white/10'} `}>
+                                                            <Music className={`w-6 h-6 ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-amber-400'} `} />
                                                         </div>
                                                         {selectedDjs.find(d => d.id === dj.id) && <motion.div layoutId={`check-${dj.id}`}><Check className="w-6 h-6 text-black" /></motion.div>}
                                                     </div>
 
-                                                    <h4 className={`text-xl font-black uppercase italic tracking-tighter mb-1 transition-colors ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-white'}`}>
+                                                    <h4 className={`text-xl font-black uppercase italic tracking-tighter mb-1 transition-colors ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-white'} `}>
                                                         {dj.name}
                                                     </h4>
-                                                    <p className={`text-[10px] font-bold uppercase tracking-widest mb-6 transition-colors ${selectedDjs.find(d => d.id === dj.id) ? 'text-black/60' : 'text-white/30'}`}>
+                                                    <p className={`text-[10px] font-bold uppercase tracking-widest mb-6 transition-colors ${selectedDjs.find(d => d.id === dj.id) ? 'text-black/60' : 'text-white/30'} `}>
                                                         {dj.genre}
                                                     </p>
 
                                                     <div className="flex items-center justify-between">
-                                                        <span className={`text-lg font-mono font-black transition-colors ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-amber-400'}`}>
+                                                        <span className={`text-lg font-mono font-black transition-colors ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-amber-400'} `}>
                                                             {dj.price.toLocaleString()}€
                                                         </span>
                                                         <div className="flex items-center gap-1">
-                                                            <Trophy className={`w-3 h-3 ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-white/20'}`} />
-                                                            <span className={`text-[10px] font-black ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-white/20'}`}>{dj.popularity}</span>
+                                                            <Trophy className={`w-3 h-3 ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-white/20'} `} />
+                                                            <span className={`text-[10px] font-black ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-white/20'} `}>{dj.popularity}</span>
                                                         </div>
                                                     </div>
 
                                                     {!selectedDjs.find(d => d.id === dj.id) && dj.price > remainingBudget && (
-                                                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 text-center">
+                                                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 text-center z-20">
                                                             <div className="flex flex-col items-center gap-2">
                                                                 <AlertCircle className="w-8 h-8 text-red-500" />
-                                                                <span className="text-[9px] font-black uppercase tracking-widest text-red-500">Budget Insuffisant</span>
+                                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Budget Insuffisant</span>
                                                             </div>
                                                         </div>
                                                     )}
@@ -554,12 +626,27 @@ export function Community() {
                                                         ))}
                                                     </div>
                                                 </div>
+
+                                                <div className="pt-8 flex flex-wrap justify-center gap-4 opacity-50">
+                                                    {FIX_COSTS.filter(c => selectedCosts.includes(c.id)).map(cost => (
+                                                        <div key={cost.id} className="flex items-center gap-2 px-3 py-1 border border-white/20 rounded-full">
+                                                            <cost.icon className="w-3 h-3 text-neon-red" />
+                                                            <span className="text-[7px] font-black uppercase tracking-widest leading-none">{cost.name.split(' ')[0]}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
                                             </div>
 
                                             <div className="w-full pt-12 border-t border-white/10 flex justify-between items-end">
-                                                <div className="text-left">
-                                                    <p className="text-[9px] font-black text-white/60 uppercase tracking-widest">Date de l'événement</p>
-                                                    <p className="text-xl font-black text-white uppercase italic">Summer 2026</p>
+                                                <div className="text-left space-y-2">
+                                                    <div>
+                                                        <p className="text-[9px] font-black text-white/60 uppercase tracking-widest">Lieu & Stages</p>
+                                                        <p className="text-lg font-black text-white uppercase italic">{selectedLocation.name} • {stageCount} STAGES</p>
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[9px] font-black text-white/60 uppercase tracking-widest">Date</p>
+                                                        <p className="text-lg font-black text-white uppercase italic tracking-tighter">SUMMER 2026</p>
+                                                    </div>
                                                 </div>
                                                 <div className="text-right flex flex-col items-end gap-1.5 leading-none">
                                                     <img
@@ -591,54 +678,59 @@ export function Community() {
                                         </button>
                                     </div>
                                 </div>
-                            )}
-                        </motion.div>
+                            )
+                            }
+                        </motion.div >
                     )}
 
-                    {activeTab === 'AVIS' && (
-                        <motion.div
-                            key="avis"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -20 }}
-                        >
-                            <AvisSection />
-                        </motion.div>
-                    )}
+                    {
+                        activeTab === 'AVIS' && (
+                            <motion.div
+                                key="avis"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                            >
+                                <AvisSection />
+                            </motion.div>
+                        )
+                    }
 
                     {activeTab === 'GUIDE' && <motion.div key="guide" initial={{ opacity: 0 }} animate={{ opacity: 1 }}><GuideSection /></motion.div>}
                     {activeTab === 'COVOIT' && <motion.div key="covoit" initial={{ opacity: 0 }} animate={{ opacity: 1 }}><CovoitSection /></motion.div>}
                     {activeTab === 'ALERTS' && <motion.div key="alerts" initial={{ opacity: 0 }} animate={{ opacity: 1 }}><AlertsSection /></motion.div>}
 
-                </AnimatePresence>
+                </AnimatePresence >
 
                 {/* Footer CTA */}
-                {activeTab !== 'GAME' && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        whileInView={{ opacity: 1 }}
-                        className="mt-32 p-12 md:p-24 bg-gradient-to-br from-neon-red/[0.05] to-neon-cyan/[0.05] border border-white/10 rounded-[4rem] text-center"
-                    >
-                        <h2 className="text-4xl md:text-6xl font-display font-black mb-8 uppercase italic tracking-tighter">
-                            REJOINS LE <span className="text-neon-cyan">MOUVEMENT</span>
-                        </h2>
-                        <p className="text-white/40 max-w-2xl mx-auto text-xs font-black uppercase tracking-[0.3em] leading-loose mb-12">
-                            Abonne-toi à notre newsletter pour ne rien rater des futures extensions du Lab Dropsiders.
-                        </p>
-                        <div className="flex flex-col md:flex-row gap-4 max-w-md mx-auto">
-                            <input
-                                type="email"
-                                placeholder="TON.EMAIL@FESTIVAL.FR"
-                                className="flex-1 px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-colors"
-                            />
-                            <button className="px-10 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all">
-                                OK
-                            </button>
-                        </div>
-                    </motion.div>
-                )}
-            </div>
-        </div>
+                {
+                    activeTab !== 'GAME' && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            whileInView={{ opacity: 1 }}
+                            className="mt-32 p-12 md:p-24 bg-gradient-to-br from-neon-red/[0.05] to-neon-cyan/[0.05] border border-white/10 rounded-[4rem] text-center"
+                        >
+                            <h2 className="text-4xl md:text-6xl font-display font-black mb-8 uppercase italic tracking-tighter">
+                                REJOINS LE <span className="text-neon-cyan">MOUVEMENT</span>
+                            </h2>
+                            <p className="text-white/40 max-w-2xl mx-auto text-xs font-black uppercase tracking-[0.3em] leading-loose mb-12">
+                                Abonne-toi à notre newsletter pour ne rien rater des futures extensions du Lab Dropsiders.
+                            </p>
+                            <div className="flex flex-col md:flex-row gap-4 max-w-md mx-auto">
+                                <input
+                                    type="email"
+                                    placeholder="TON.EMAIL@FESTIVAL.FR"
+                                    className="flex-1 px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-colors"
+                                />
+                                <button className="px-10 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all">
+                                    OK
+                                </button>
+                            </div>
+                        </motion.div>
+                    )
+                }
+            </div >
+        </div >
     );
 }
 
