@@ -6325,10 +6325,10 @@ export default {
         }
 
         if (path === '/api/musique/charts/update' && request.method === 'POST') {
-            const adminPass = request.headers.get('X-Admin-Password');
-            const requiredPass = env.ADMIN_PASSWORD || '01061988';
+            const adminPass = (request.headers.get('X-Admin-Password') || '').trim();
+            const requiredPass = (env.ADMIN_PASSWORD || '01061988').trim();
             if (adminPass !== requiredPass) {
-                return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+                return new Response(JSON.stringify({ error: 'Unauthorized', debug: 'Mismatch Update' }), { status: 401, headers });
             }
 
             try {
