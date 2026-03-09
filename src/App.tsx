@@ -51,6 +51,7 @@ const AdminBanner = lazy(() => import('./pages/AdminBanner').then(m => ({ defaul
 const Contact = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
 const PhotoSubmission = lazy(() => import('./pages/PhotoSubmission').then(m => ({ default: m.PhotoSubmission })));
 const SocialStudioPage = lazy(() => import('./pages/SocialStudioPage').then(m => ({ default: m.SocialStudioPage })));
+const Community = lazy(() => import('./pages/Community').then(m => ({ default: m.Community })));
 
 function LoadingPage() {
   return (
@@ -107,7 +108,7 @@ const router = createBrowserRouter([
       { path: "team", element: <Team /> },
       { path: "shop", element: <Shop /> },
       { path: "galerie", element: <Galerie /> },
-      { path: "communaute", element: <Galerie /> },
+      { path: "communaute", element: <Community /> },
       { path: "communaute/partager", element: <PhotoSubmission /> },
       { path: "galerie/:id", element: <AlbumDetail /> },
       { path: "communaute/:id", element: <AlbumDetail /> },
