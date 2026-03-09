@@ -14,7 +14,6 @@ import { Client, Databases, ID, Query } from 'appwrite';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { getAuthHeaders } from '../utils/auth';
 import { uploadFile } from '../utils/uploadService';
-import { translateText } from '../utils/translate';
 
 interface LineupItem {
     id: string;
@@ -509,7 +508,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     // Admin Form States
     const [newLot, setNewLot] = useState({ name: '', price: '', stock: '' });
     const [newCmd, setNewCmd] = useState({ command: '', response: '' });
-    const [lineupItems, setLineupItems] = useState<LineupItem>(() => {
+    const [lineupItems, setLineupItems] = useState<LineupItem[]>(() => {
         try {
             return JSON.parse(settings.lineup || '[]');
         } catch (e) { return []; }
