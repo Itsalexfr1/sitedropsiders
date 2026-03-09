@@ -1034,18 +1034,90 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         showNotification('Connexion réussie !', 'success');
     };
 
-    const handleShazamAction = async () => {
+        const handleShazamAction = async () => {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            showNotification("Microphone non supporté sur ce navigateur", "error");
+            return;
+        }
+
         setShazamStatus('listening');
-        setTimeout(() => {
-            setShazamStatus('found');
-            const newTrack = { id: Date.now().toString(), title: "L'HEURE D'ALEX", artist: "ALEXFR", time: new Date().toLocaleTimeString(), image: "https://placehold.co/200x200" };
-            setShazamHistory(prev => [newTrack, ...prev]);
-            const currentShazamCount = parseInt(localStorage.getItem('shazam_count') || '0');
-            const next = currentShazamCount + 1;
-            localStorage.setItem('shazam_count', next.toString());
-            if (next === 10) unlockAchievement("Shazamer Expert (x10)");
-            setTimeout(() => setShazamStatus('idle'), 3000);
-        }, 2000);
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const mediaRecorder = new MediaRecorder(stream);
+            const audioChunks = [];
+
+            mediaRecorder.ondataavailable = (event) => {
+                audioChunks.push(event.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                stream.getTracks().forEach(track => track.stop());
+
+                setShazamStatus('searching');
+                try {
+                    const formData = new FormData();
+                    formData.append('audio', audioBlob);
+
+                    const res = await fetch('/api/shazam/identify', {
+                        method: 'POST',
+                        body: formData
+                    });
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data.status === 'success' && data.metadata) {
+                            const newTrack = {
+                                id: Date.now().toString(),
+                                title: data.metadata.title,
+                                artist: data.metadata.artist,
+                                time: new Date().toLocaleTimeString(),
+                                image: data.metadata.image || "https://placehold.co/200x200",
+                                spotify: data.metadata.spotify
+                            };
+                            setShazamHistory(prev => [newTrack, ...prev]);
+                            
+                            // Save to global history if possible
+                            fetch('/api/shazam/history', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ ...newTrack, user: localStorage.getItem('chat_pseudo') || 'Anonyme' })
+                            }).catch(() => {});
+
+                            setShazamStatus('found');
+                            const currentShazamCount = parseInt(localStorage.getItem('shazam_count') || '0');
+                            const next = currentShazamCount + 1;
+                            localStorage.setItem('shazam_count', next.toString());
+                            if (next === 10) unlockAchievement("Shazamer Expert (x10)");
+                        } else {
+                            showNotification(data.error || "Morceau non reconnu", "error");
+                            setShazamStatus('idle');
+                        }
+                    } else {
+                        showNotification("Erreur lors de l'identification", "error");
+                        setShazamStatus('idle');
+                    }
+                } catch (e) {
+                    console.error(e);
+                    showNotification("Erreur réseau", "error");
+                    setShazamStatus('idle');
+                }
+
+                setTimeout(() => setShazamStatus('idle'), 3000);
+            };
+
+            mediaRecorder.start();
+            setTimeout(() => {
+                if (mediaRecorder.state === "recording") {
+                    mediaRecorder.stop();
+                }
+            }, 6000); // 6 seconds of recording
+
+        } catch (err) {
+            console.error(err);
+            showNotification("Veuillez autoriser le micro pour Shazamer", "error");
+            setShazamStatus('idle');
+        }
     };
 
     const handleSaveSettings = async () => {
@@ -1125,7 +1197,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             /\(?radio edit\)?/gi,
             /\[.*?\]/g, // Metadata in brackets
             /\(official video\)/gi,
-            /\(lyric video\)/gi
+            /\(lyric video\)/gi,
+            /\[(FREE DOWNLOAD|OUT NOW|OFFICIAL|HQ|AUDIO|FREE)\]/gi,
+            /\(?Official Music Video\)?/gi,
+            /\(?Lyric Video\)?/gi,
+            /\(?Official Audio\)?/gi
         ];
 
         toRemove.forEach(regex => {
@@ -1145,7 +1221,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             "SVDDEN DEATH - Behemoth", "Excision - Throwin' Elbows", "Subtronics - Griztronics",
             "Boris Brejcha - Gravity", "Laurent Garnier - The Man With The Red Face",
             "Jeff Mills - The Bells", "Derrick May - Strings of Life", "Carl Craig - Sandstorms",
-            "Ummet Ozcan - Xanadu"
+            "Ummet Ozcan - Xanadu", "David Guetta - Titanium", "Martin Garrix - Animals",
+            "Swedish House Mafia - One", "Avicii - Levels", "Tiësto - The Business",
+            "Fisher - Losing It", "Fred again.. - Marea (We’ve Lost Dancing)",
+            "Meduza - Piece Of Your Heart", "Zurb - Mwaki", "James Hype - Ferrari",
+            "Mau P - Drugs From Amsterdam", "Peggy Gou - (It Goes Like) Nanana",
+            "Anyma - Eternity", "Tale Of Us - Afterlife", "Chris Lake - Turn Off The Lights",
+            "Dom Dolla - Rhyme Dust", "John Summit - Where You Are", "Mochakk - Jealous",
+            "Hugel - Morenita", "Vintage Culture - Deep Down", "Alok - Hear Me Now",
+            "Don Diablo - Cutting Shapes", "Oliver Heldens - Gecko", "Tchami - Adieu",
+            "Malaa - Notorious", "DJ Snake - Turn Down For What", "Kungs - This Girl"
         ];
 
         setIsSaving(true);
@@ -1171,8 +1256,28 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 const uploadData = await uploadRes.json();
                 if (!uploadData.success) throw new Error("Upload failed");
 
-                // Get cleaned title from filename
-                const correctTitle = cleanMusicTitle(file.name);
+                
+                
+                // 🔍 Identification automatique du morceau
+                let identifiedTitle = null;
+                try {
+                    const idFormData = new FormData();
+                    // Send first 3MB for recognition
+                    idFormData.append('audio', file.slice(0, 3 * 1024 * 1024));
+                    const idRes = await fetch('/api/shazam/identify', { method: 'POST', body: idFormData });
+                    if (idRes.ok) {
+                        const idData = await idRes.json();
+                        if (idData.status === 'success' && idData.metadata) {
+                            identifiedTitle = `${idData.metadata.artist} - ${idData.metadata.title}`;
+                        }
+                    }
+                } catch (e) {
+                    console.error("ID failed", e);
+                }
+
+                // Get cleaned title from filename as fallback
+                const correctTitle = identifiedTitle || cleanMusicTitle(file.name);
+
 
                 // Get 3 random distractors from the pool (make sure they aren't the same as correct)
                 const distractors = musicTitlesPool

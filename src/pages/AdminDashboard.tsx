@@ -4365,16 +4365,38 @@ export function AdminDashboard() {
                                                                         // 1. Guess Metadata from filename
                                                                         const rawName = file.name.replace(/\.[^/.]+$/, "");
 
-                                                                        // Cleaning Function
-                                                                        const clean = (str: string) => {
-                                                                            return str
-                                                                                .replace(/(\[|\()(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)?\s*(Mix|Edit|Version).*?(\]|\))/gi, "")
-                                                                                .replace(/\s+(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)\s+(Mix|Edit|Version).*?$/gi, "")
-                                                                                .replace(/\s+/g, " ")
-                                                                                .trim();
-                                                                        };
+                                                                                                                                                 const musicTitlesPool = [
+                                                                            "Carl Cox - I Want You", "Nina Kraviz - Ghetto Kraviz", "Amelie Lens - Follow", "Charlotte de Witte - Sgadi Li Mi", "Adam Beyer - Your Mind", "Skrillex - Bangarang", "SVDDEN DEATH - Behemoth", "Excision - Throwin' Elbows", "Subtronics - Griztronics", "Boris Brejcha - Gravity", "Laurent Garnier - The Man With The Red Face", "Jeff Mills - The Bells", "Derrick May - Strings of Life", "Carl Craig - Sandstorms", "Ummet Ozcan - Xanadu", "David Guetta - Titanium", "Martin Garrix - Animals", "Swedish House Mafia - One", "Avicii - Levels", "Tiësto - The Business", "Fisher - Losing It", "Fred again.. - Marea (We’ve Lost Dancing)", "Meduza - Piece Of Your Heart", "Zurb - Mwaki", "James Hype - Ferrari", "Mau P - Drugs From Amsterdam", "Peggy Gou - (It Goes Like) Nanana", "Anyma - Eternity", "Tale Of Us - Afterlife", "Chris Lake - Turn Off The Lights", "Dom Dolla - Rhyme Dust", "John Summit - Where You Are", "Mochakk - Jealous", "Hugel - Morenita", "Vintage Culture - Deep Down", "Alok - Hear Me Now", "Don Diablo - Cutting Shapes", "Oliver Heldens - Gecko", "Tchami - Adieu", "Malaa - Notorious", "DJ Snake - Turn Down For What", "Kungs - This Girl"
+                                                                        ];
 
-                                                                        const cleanName = clean(rawName);
+                                                                         // Cleaning Function
+                                                                         const clean = (str: string) => {
+                                                                             return str
+                                                                                 .replace(/(\[|\()(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)?\s*(Mix|Edit|Version).*?(\]|\))/gi, "")
+                                                                                 .replace(/\s+(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)\s+(Mix|Edit|Version).*?$/gi, "")
+                                                                                 .replace(/\[(FREE DOWNLOAD|OUT NOW|OFFICIAL|HQ|AUDIO)\]/gi, "")
+                                                                                 .replace(/\(?Official Music Video\)?/gi, "")
+                                                                                 .replace(/\(?Lyric Video\)?/gi, "")
+                                                                                 .replace(/\s+/g, " ")
+                                                                                 .trim();
+                                                                         };
+
+
+                                                                        // 🔍 Identification automatique
+                                                                        let identifiedLabel = null;
+                                                                        try {
+                                                                            const idFormData = new FormData();
+                                                                            idFormData.append('audio', file.slice(0, 3 * 1024 * 1024)); // 3MB snippet
+                                                                            const idRes = await fetch('/api/shazam/identify', { method: 'POST', body: idFormData });
+                                                                            if (idRes.ok) {
+                                                                                const idData = await idRes.json();
+                                                                                if (idData.status === 'success' && idData.metadata) {
+                                                                                    identifiedLabel = `${idData.metadata.artist} - ${idData.metadata.title}`;
+                                                                                }
+                                                                            }
+                                                                        } catch (e) { console.error("ID error:", e); }
+
+                                                                        const cleanName = identifiedLabel || clean(rawName);
                                                                         let artist = "";
                                                                         let title = cleanName;
                                                                         if (cleanName.includes(" - ")) {
@@ -4383,6 +4405,12 @@ export function AdminDashboard() {
                                                                             title = parts[1].trim();
                                                                         }
                                                                         const fullLabel = artist ? `${artist} - ${title}` : title;
+
+                                                                         // Distractors
+                                                                         const distractors = musicTitlesPool
+                                                                             .filter(t => t.toLowerCase() !== fullLabel.toLowerCase())
+                                                                             .sort(() => 0.5 - Math.random())
+                                                                             .slice(0, 3);
 
                                                                         // 2. Upload
                                                                         const url = await uploadFile(file);
@@ -4394,19 +4422,18 @@ export function AdminDashboard() {
 
                                                                         // Logic for creation
                                                                         const processFile = (startSec: number) => {
-                                                                            const newOptions = [...quizToEdit.options];
-                                                                            newOptions[0] = fullLabel;
-
-                                                                            const quizData = {
-                                                                                ...quizToEdit,
-                                                                                audioUrl: url,
-                                                                                question: fullLabel,
-                                                                                correctAnswer: fullLabel,
-                                                                                options: newOptions,
-                                                                                startTime: startSec
-                                                                            };
-
-                                                                            if (i === 0) {
+                                                                             const quizData = {
+                                                                                 ...quizToEdit,
+                                                                                 type: 'BLIND_TEST',
+                                                                                 audioUrl: url,
+                                                                                 question: 'Quel est ce morceau ?',
+                                                                                 correctAnswer: fullLabel,
+                                                                                 options: [fullLabel, ...distractors].sort(() => 0.5 - Math.random()),
+                                                                                 startTime: startSec,
+                                                                                 approved: true
+                                                                             };
+                                                                            
+if (i === 0) {
                                                                                 // Update the current modal state for the first one
                                                                                 setQuizToEdit(quizData);
                                                                             } else {
