@@ -675,7 +675,7 @@ export function InvoiceGenerator() {
                             </div>
                         </div>
 
-                        <div style={{ spaceY: '5px' }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
                             <p style={{ fontSize: '9px', fontWeight: '900', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '4px', marginBottom: '15px' }}>EXPÉDITEUR</p>
                             <p style={{ fontSize: '13px', fontWeight: '700', textTransform: 'uppercase' }}>{userPhone}</p>
                             <p style={{ fontSize: '12px', fontWeight: '700', opacity: 0.6 }}>alexflex30@gmail.com</p>
@@ -743,7 +743,7 @@ export function InvoiceGenerator() {
                         <p style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '20px', color: '#a1a1aa' }}>RÈGLEMENT & BANQUE</p>
                         <div style={{ background: '#000', color: '#fff', padding: '30px', borderRadius: '12px' }}>
                             <p style={{ fontSize: '14px', fontWeight: '900', marginBottom: '15px', color: '#fff' }}>REVOLUT STUDIO</p>
-                            <div style={{ spaceY: '8px' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                                 <p style={{ fontSize: '10px', opacity: 0.5, textTransform: 'uppercase' }}>IBAN (ESPAGNE)</p>
                                 <p style={{ fontSize: '13px', fontWeight: '700', color: '#fff', letterSpacing: '1px', marginBottom: '10px' }}>BE59 9675 0891 6526</p>
                                 <p style={{ fontSize: '10px', opacity: 0.5, textTransform: 'uppercase' }}>CODE BIC / SWIFT</p>
@@ -765,7 +765,7 @@ export function InvoiceGenerator() {
 
                             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
                                 <span style={{ fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px' }}>TOTAL NET</span>
-                                <span style={{ fontSize: '42px', fontWeight: '900', letterSpacing: '-2px', textTransform: 'uppercase', italic: 'true', color: '#000' }}>{total.toFixed(2).replace('.', ',')}€</span>
+                                <span style={{ fontSize: '42px', fontWeight: '900', letterSpacing: '-2px', textTransform: 'uppercase', fontStyle: 'italic', color: '#000' }}>{total.toFixed(2).replace('.', ',')}€</span>
                             </div>
                         </div>
                     </div>
@@ -774,8 +774,8 @@ export function InvoiceGenerator() {
                 {/* Footer Legal */}
                 <div style={{ position: 'absolute', bottom: '50px', left: '50px', right: '50px' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid #000', paddingTop: '30px' }}>
-                        <div style={{ maxW: '450px' }}>
-                            <p style={{ fontSize: '8px', fontWeight: '900', color: '#a1a1aa', uppercase: 'true', spacing: '2px', marginBottom: '5px' }}>MENTIONS LÉGALES</p>
+                        <div style={{ maxWidth: '450px' }}>
+                            <p style={{ fontSize: '8px', fontWeight: '900', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '5px' }}>MENTIONS LÉGALES</p>
                             <p style={{ fontSize: '8px', fontWeight: '700', color: '#777', lineHeight: '1.6' }}>
                                 TVA non applicable, article 293 B du Code général des impôts (CGI). En cas de retard de paiement, une indemnité forfaitaire de 40€ pour frais de recouvrement sera appliquée. Pénalités de retard : 10% par mois de retard. SIRET : 805131828 00010.
                             </p>
