@@ -215,7 +215,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [showViewersList, setShowViewersList] = useState(false);
     const [flashMessage, setFlashMessage] = useState<{ text: string, type: 'info' | 'warn' | 'success' } | null>(null);
     const [isMatrixActive, setIsMatrixActive] = useState(false);
-    const [pingAudio] = useState(new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'));
     const [userXP, setUserXP] = useState(() => parseInt(localStorage.getItem('user_xp') || '0'));
     const [userLevel, setUserLevel] = useState(() => parseInt(localStorage.getItem('user_level') || '1'));
     const [activeHeist, setActiveHeist] = useState<{ participants: { pseudo: string, bet: number }[], timeLeft: number } | null>(null);
@@ -606,7 +605,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     const msgText = response.payload.message;
                     if (msgText.startsWith('[SYSTEM]:')) {
                         // Handle System Commands
-                        const cmd = msgText.replace('[SYSTEM]:', '');
                         if (msgText.startsWith('[SYSTEM]:REACTION:')) {
                             const parts = msgText.replace('[SYSTEM]:REACTION:', '').split(':');
                             const msgId = parts[0];
@@ -1147,22 +1145,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 const artistQuery = cmdParts.slice(1).join(' ').toLowerCase();
                 if (artistQuery) {
                     const match = lineupItems.find(item => item.artist.toLowerCase().includes(artistQuery));
+                    const streamMatch = settings.streams?.find((s: any) => s.name.toLowerCase().includes(artistQuery));
+
                     if (match) {
                         messageText = `📅 LINEUP : @${pseudo}, ${match.artist} passera sur ${match.stage} à ${match.startTime} (${match.day}).`;
-                    } else {
-                        showNotification(`Artiste "${artistQuery}" non trouvé dans la lineup.`, 'error');
-                        return;
-                    }
-                } else {
-                    messageText = `📅 LINEUP : @${pseudo}, consulte l'onglet PLANNING pour voir toute la programmation !`;
-                }
-            } else if (mainCmd === '!lineup') {
-                const artistQuery = cmdParts.slice(1).join(' ').toLowerCase();
-                if (artistQuery) {
-                    const match = lineupItems.find(item => item.artist.toLowerCase().includes(artistQuery)) ||
-                        settings.streams?.find((s: any) => s.artist.toLowerCase().includes(artistQuery));
-                    if (match) {
-                        messageText = `📅 LINEUP : @${pseudo}, ${match.artist} passera sur ${match.stage || 'la scène LIVE'} à ${match.startTime} (${match.day || 'aujourd\'hui'}).`;
+                    } else if (streamMatch) {
+                        messageText = `📅 LIVE : @${pseudo}, ${streamMatch.name} est disponible dans la liste des flux !`;
                     } else {
                         showNotification(`Artiste "${artistQuery}" non trouvé dans la lineup.`, 'error');
                         return;
@@ -3650,6 +3638,39 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         )
                     }
                 </AnimatePresence >
+
+                {/* MUR DES LÉGENDES (Legends Wall Overlay) */}
+                <AnimatePresence>
+                    {showLegendsWall && (
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1000] bg-black/95 flex flex-col items-center justify-center overflow-hidden">
+                            <div className="absolute top-10 flex flex-col items-center">
+                                <Crown className="w-16 h-16 text-amber-500 mb-4 animate-bounce" />
+                                <h2 className="text-4xl font-black text-white uppercase italic tracking-[0.5em] mb-2">Mur des Légendes</h2>
+                                <p className="text-amber-500/50 text-[10px] font-black uppercase tracking-[0.5em]">Dropsiders Hall of Fame</p>
+                            </div>
+                            <div className="flex-1 w-full max-w-4xl relative">
+                                <motion.div animate={{ y: [-1000, 1000] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="flex flex-col items-center space-y-12 py-32">
+                                    {(topTalkers.length > 0 ? topTalkers : leaderboard).map((user: any, i) => (
+                                        <div key={i} className="flex flex-col items-center group">
+                                            {i < 3 && <Trophy className={`w-8 h-8 mb-2 ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-gray-400' : 'text-amber-700'}`} />}
+                                            <span className="text-3xl font-black text-white hover:text-amber-500 transition-colors uppercase italic">{user.pseudo}</span>
+                                            <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest mt-1">
+                                                <span>{user.drops || user.count || 5000}+ DROPS</span>
+                                                <div className="w-1 h-1 rounded-full bg-white/20" />
+                                                <span>LÉGENDE ACTIVE</span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    <div className="h-64" />
+                                    <p className="text-white/20 text-xs font-black uppercase tracking-[1em] italic">Merci d'avoir fait partie de l'expérience Dropsiders</p>
+                                </motion.div>
+                            </div>
+                            <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black pointer-events-none" />
+                            <button onClick={() => setShowLegendsWall(false)} className="absolute bottom-10 px-8 py-3 bg-white/10 border border-white/20 text-white text-[10px] font-black rounded-full hover:bg-white/20 transition-all uppercase tracking-widest">Fermer</button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
                 {/* USER LOGS MODAL */}
                 <AnimatePresence>
                     {
@@ -3694,11 +3715,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     </div>
                                 </motion.div>
                             </div>
-                        )
-                    }
-                </AnimatePresence >
-            </div >
-        </div >
+                        )}
+                </AnimatePresence>
+            </div>
+        </div>
     );
 };
 
