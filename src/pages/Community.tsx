@@ -36,6 +36,17 @@ const FESTIVAL_LOCATIONS = [
     { id: 'mexico', name: 'CDMX - Autódromo (EDC MX)', cost: 210000 },
     { id: 'orlando', name: 'Orlando - Tinker Field (EDC ORL)', cost: 170000 },
 
+    // CONCERT HALLS & STADIUMS
+    { id: 'sphere', name: 'Vegas - MSG Sphere', cost: 750000 },
+    { id: 'stade-france', name: 'Paris - Stade de France', cost: 500000 },
+    { id: 'wembley', name: 'London - Wembley Stadium', cost: 550000 },
+    { id: 'msg', name: 'NYC - Madison Sq Garden', cost: 420000 },
+    { id: 'red-rocks', name: 'Colorado - Red Rocks', cost: 220000 },
+    { id: 'mirage', name: 'NYC - Brooklyn Mirage', cost: 200000 },
+    { id: 'berghain', name: 'Berlin - Berghain (Main)', cost: 130000 },
+    { id: 'gashouder', name: 'Amsterdam - Gashouder', cost: 280000 },
+    { id: 'printworks', name: 'London - Printworks (RIP)', cost: 190000 },
+
     // CLASSICS
     { id: 'paris', name: 'Paris - Longchamp', cost: 150000 },
     { id: 'ibiza', name: 'Ibiza - Playa d\'en Bossa', cost: 350000 },
