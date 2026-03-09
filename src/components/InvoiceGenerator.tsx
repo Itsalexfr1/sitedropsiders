@@ -309,9 +309,9 @@ export function InvoiceGenerator() {
 
             setSendStatus('sending');
 
-            const adminUser = localStorage.getItem('admin_user') || '';
-            const adminPass = localStorage.getItem('admin_password') || '';
-            const sessionId = localStorage.getItem('admin_session') || '';
+            const adminUser = (localStorage.getItem('admin_user') || '').trim();
+            const adminPass = (localStorage.getItem('admin_password') || '').trim();
+            const sessionId = (localStorage.getItem('admin_session') || '').trim();
 
             const res = await fetch('/api/facture/send', {
                 method: 'POST',
@@ -784,7 +784,7 @@ export function InvoiceGenerator() {
                                         </div>
 
                                         <div className="space-y-6">
-                                            <p className="text-red-300/80 text-xs italic font-medium max-w-md mx-auto leading-relaxed border-b border-white/5 pb-4">
+                                            <p className="text-red-500 text-sm font-black uppercase text-center bg-red-500/10 p-4 rounded-2xl border border-red-500/20">
                                                 {sendError}
                                             </p>
 
