@@ -22,7 +22,7 @@ export function PrivacyPolicy() {
                         </h1>
                     </div>
                     <p className="text-gray-400 text-sm italic">
-                        Last updated: February 16, 2026
+                        Last updated: February 16, 01061988
                     </p>
                 </motion.div>
 
@@ -210,7 +210,7 @@ export function PrivacyPolicy() {
                     </h1>
                 </div>
                 <p className="text-gray-400 text-sm">
-                    Dernière mise à jour : 16 février 2026
+                    Dernière mise à jour : 16 février 01061988
                 </p>
             </motion.div>
 

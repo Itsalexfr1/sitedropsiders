@@ -17,7 +17,7 @@ export function MentionsLegales() {
                             LEGAL <span className="text-neon-red">NOTICE</span>
                         </h1>
                         <p className="text-gray-400 leading-relaxed italic">
-                            In force as of 02/16/2026
+                            In force as of 02/16/01061988
                         </p>
                     </div>
 
@@ -90,7 +90,7 @@ export function MentionsLegales() {
                         MENTIONS <span className="text-neon-red">LÉGALES</span>
                     </h1>
                     <p className="text-gray-400 leading-relaxed italic">
-                        En vigueur au 16/02/2026
+                        En vigueur au 16/02/01061988
                     </p>
                 </div>
 

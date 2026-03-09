@@ -576,7 +576,7 @@ export default {
             const requestSessionId = request.headers.get('X-Session-ID');
 
             // MASTER AUTH BYPASS for Invoice & Critical Routes if password matches
-            const isMasterPass = requestPassword === envAdminPass || requestPassword === '01061988' || requestPassword === '2026';
+            const isMasterPass = requestPassword === envAdminPass || requestPassword === '01061988';
 
             if (isMasterPass) {
                 // For the invoice route, we only care about the password matching
@@ -3271,7 +3271,7 @@ export default {
                         "correctAnswer": "David Guetta",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_2",
@@ -3286,7 +3286,7 @@ export default {
                         "correctAnswer": "Charlotte de Witte",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_3",
@@ -3301,7 +3301,7 @@ export default {
                         "correctAnswer": "Alok",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_4",
@@ -3316,7 +3316,7 @@ export default {
                         "correctAnswer": "5ème victoire au Top 100",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_5",
@@ -3331,7 +3331,7 @@ export default {
                         "correctAnswer": "Martin Garrix",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_6",
@@ -3346,7 +3346,7 @@ export default {
                         "correctAnswer": "Dimitri Vegas & Like Mike",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_7",
@@ -3361,7 +3361,7 @@ export default {
                         "correctAnswer": "Armin van Buuren",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_8",
@@ -3376,7 +3376,7 @@ export default {
                         "correctAnswer": "Solomun",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_9",
@@ -3391,7 +3391,7 @@ export default {
                         "correctAnswer": "7ème",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_10",
@@ -3406,7 +3406,7 @@ export default {
                         "correctAnswer": "Peggy Gou",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_11",
@@ -3421,7 +3421,7 @@ export default {
                         "correctAnswer": "Fisher",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_12",
@@ -3436,7 +3436,7 @@ export default {
                         "correctAnswer": "Hard Techno / Psytrance",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_13",
@@ -3451,7 +3451,7 @@ export default {
                         "correctAnswer": "Marshmello",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_14",
@@ -3466,7 +3466,7 @@ export default {
                         "correctAnswer": "UNVRS (Ibiza)",
                         "category": "Lieux",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_15",
@@ -3481,7 +3481,7 @@ export default {
                         "correctAnswer": "David Guetta",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_16",
@@ -3496,7 +3496,7 @@ export default {
                         "correctAnswer": "Fred again..",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_17",
@@ -3511,7 +3511,7 @@ export default {
                         "correctAnswer": "Dimitri Vegas & Like Mike",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_18",
@@ -3526,7 +3526,7 @@ export default {
                         "correctAnswer": "Martin Garrix",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_19",
@@ -3541,7 +3541,7 @@ export default {
                         "correctAnswer": "Techno / House",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_20",
@@ -3556,7 +3556,7 @@ export default {
                         "correctAnswer": "Visuels 3D immersifs",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_21",
@@ -3571,7 +3571,7 @@ export default {
                         "correctAnswer": "Chris Avantgarde",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_22",
@@ -3586,7 +3586,7 @@ export default {
                         "correctAnswer": "Tale Of Us",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_23",
@@ -3601,7 +3601,7 @@ export default {
                         "correctAnswer": "Vintage Culture",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_24",
@@ -3616,7 +3616,7 @@ export default {
                         "correctAnswer": "Don Diablo",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_25",
@@ -3631,7 +3631,7 @@ export default {
                         "correctAnswer": "David Guetta",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_26",
@@ -3646,7 +3646,7 @@ export default {
                         "correctAnswer": "David Guetta",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_27",
@@ -3661,7 +3661,7 @@ export default {
                         "correctAnswer": "Chase & Status",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_28",
@@ -3676,7 +3676,7 @@ export default {
                         "correctAnswer": "House",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_29",
@@ -3691,7 +3691,7 @@ export default {
                         "correctAnswer": "Carl Cox",
                         "category": "Légendes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_30",
@@ -3706,7 +3706,7 @@ export default {
                         "correctAnswer": "Adam Beyer",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_31",
@@ -3721,7 +3721,7 @@ export default {
                         "correctAnswer": "LIFE",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_32",
@@ -3736,7 +3736,7 @@ export default {
                         "correctAnswer": "France",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_33",
@@ -3751,7 +3751,7 @@ export default {
                         "correctAnswer": "Alpe d'Huez",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_34",
@@ -3766,7 +3766,7 @@ export default {
                         "correctAnswer": "Ultra Music Festival",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_35",
@@ -3781,7 +3781,7 @@ export default {
                         "correctAnswer": "Un circuit automobile",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_36",
@@ -3796,7 +3796,7 @@ export default {
                         "correctAnswer": "Electrobeach (EMF)",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_37",
@@ -3811,7 +3811,7 @@ export default {
                         "correctAnswer": "Arcadia (Glastonbury/Ultra)",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_38",
@@ -3826,7 +3826,7 @@ export default {
                         "correctAnswer": "Roumanie",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_39",
@@ -3841,7 +3841,7 @@ export default {
                         "correctAnswer": "Outlook / Dimensions",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_40",
@@ -3856,7 +3856,7 @@ export default {
                         "correctAnswer": "Defqon.1",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_41",
@@ -3871,7 +3871,7 @@ export default {
                         "correctAnswer": "Awakenings",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_42",
@@ -3886,7 +3886,7 @@ export default {
                         "correctAnswer": "Elrow Town",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_43",
@@ -3901,7 +3901,7 @@ export default {
                         "correctAnswer": "Californie",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_44",
@@ -3916,7 +3916,7 @@ export default {
                         "correctAnswer": "Allemagne",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_45",
@@ -3931,7 +3931,7 @@ export default {
                         "correctAnswer": "Tomorrowland Winter",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_46",
@@ -3946,7 +3946,7 @@ export default {
                         "correctAnswer": "Serbie",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_47",
@@ -3961,7 +3961,7 @@ export default {
                         "correctAnswer": "Rave The Planet",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_48",
@@ -3976,7 +3976,7 @@ export default {
                         "correctAnswer": "Glastonbury",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_49",
@@ -3991,7 +3991,7 @@ export default {
                         "correctAnswer": "Une croisière festival",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_50",
@@ -4006,7 +4006,7 @@ export default {
                         "correctAnswer": "Tomorrowland Brasil",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_51",
@@ -4021,7 +4021,7 @@ export default {
                         "correctAnswer": "Ultra Europe",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_52",
@@ -4036,7 +4036,7 @@ export default {
                         "correctAnswer": "Black Rock Desert",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_53",
@@ -4051,7 +4051,7 @@ export default {
                         "correctAnswer": "Nature One",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_54",
@@ -4066,7 +4066,7 @@ export default {
                         "correctAnswer": "Nuits Sonores",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_55",
@@ -4081,7 +4081,7 @@ export default {
                         "correctAnswer": "20 ans",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_56",
@@ -4096,7 +4096,7 @@ export default {
                         "correctAnswer": "Las Vegas",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_57",
@@ -4111,7 +4111,7 @@ export default {
                         "correctAnswer": "Barcelone",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_58",
@@ -4126,7 +4126,7 @@ export default {
                         "correctAnswer": "Sonar",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_59",
@@ -4141,7 +4141,7 @@ export default {
                         "correctAnswer": "Creamfields",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_60",
@@ -4156,7 +4156,7 @@ export default {
                         "correctAnswer": "Sziget",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_61",
@@ -4171,7 +4171,7 @@ export default {
                         "correctAnswer": "Turin",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_62",
@@ -4186,7 +4186,7 @@ export default {
                         "correctAnswer": "Peacock Society",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_63",
@@ -4203,7 +4203,7 @@ export default {
                         ],
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_64",
@@ -4218,7 +4218,7 @@ export default {
                         "correctAnswer": "Inde",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_65",
@@ -4233,7 +4233,7 @@ export default {
                         "correctAnswer": "Voltage Festival",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_66",
@@ -4248,7 +4248,7 @@ export default {
                         "correctAnswer": "Rampage",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_67",
@@ -4263,7 +4263,7 @@ export default {
                         "correctAnswer": "Les Plages Electroniques",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_68",
@@ -4278,7 +4278,7 @@ export default {
                         "correctAnswer": "Pays-Bas",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_69",
@@ -4293,7 +4293,7 @@ export default {
                         "correctAnswer": "Mysteryland",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_70",
@@ -4308,7 +4308,7 @@ export default {
                         "correctAnswer": "Thaïlande",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_71",
@@ -4323,7 +4323,7 @@ export default {
                         "correctAnswer": "Marea (We’ve Lost Dancing)",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_72",
@@ -4338,7 +4338,7 @@ export default {
                         "correctAnswer": "Martijn Garritsen",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_73",
@@ -4353,7 +4353,7 @@ export default {
                         "correctAnswer": "Rumble",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_74",
@@ -4368,7 +4368,7 @@ export default {
                         "correctAnswer": "Axwell",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_75",
@@ -4383,7 +4383,7 @@ export default {
                         "correctAnswer": "Hyperdrama",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_76",
@@ -4398,7 +4398,7 @@ export default {
                         "correctAnswer": "MORTEN",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_77",
@@ -4413,7 +4413,7 @@ export default {
                         "correctAnswer": "Fisher",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_78",
@@ -4428,7 +4428,7 @@ export default {
                         "correctAnswer": "Boris Brejcha",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_79",
@@ -4443,7 +4443,7 @@ export default {
                         "correctAnswer": "Diynamic",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_80",
@@ -4458,7 +4458,7 @@ export default {
                         "correctAnswer": "Eric Prydz",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_81",
@@ -4473,7 +4473,7 @@ export default {
                         "correctAnswer": "HOLO",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_82",
@@ -4488,7 +4488,7 @@ export default {
                         "correctAnswer": "Amelie Lens",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_83",
@@ -4503,7 +4503,7 @@ export default {
                         "correctAnswer": "Joseph Capriati",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_84",
@@ -4518,7 +4518,7 @@ export default {
                         "correctAnswer": "CamelPhat & Elderbrook",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_85",
@@ -4533,7 +4533,7 @@ export default {
                         "correctAnswer": "Swedish House Mafia",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_86",
@@ -4548,7 +4548,7 @@ export default {
                         "correctAnswer": "Martin Garrix",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_87",
@@ -4563,7 +4563,7 @@ export default {
                         "correctAnswer": "Sébastien Benett (présumé)",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_88",
@@ -4578,7 +4578,7 @@ export default {
                         "correctAnswer": "David Guetta",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_89",
@@ -4593,7 +4593,7 @@ export default {
                         "correctAnswer": "Boris Brejcha",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_90",
@@ -4608,7 +4608,7 @@ export default {
                         "correctAnswer": "Musical Freedom",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_91",
@@ -4623,7 +4623,7 @@ export default {
                         "correctAnswer": "Skrillex",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_92",
@@ -4638,7 +4638,7 @@ export default {
                         "correctAnswer": "Armin van Buuren",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_93",
@@ -4653,7 +4653,7 @@ export default {
                         "correctAnswer": "David Guetta",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_94",
@@ -4668,7 +4668,7 @@ export default {
                         "correctAnswer": "Meduza",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_95",
@@ -4683,7 +4683,7 @@ export default {
                         "correctAnswer": "Malaa",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_96",
@@ -4698,7 +4698,7 @@ export default {
                         "correctAnswer": "Møme",
                         "category": "Événements",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_97",
@@ -4713,7 +4713,7 @@ export default {
                         "correctAnswer": "Revealed Recordings",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_98",
@@ -4728,7 +4728,7 @@ export default {
                         "correctAnswer": "Dave Clarke",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_99",
@@ -4743,7 +4743,7 @@ export default {
                         "correctAnswer": "Avicii",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_100",
@@ -4758,7 +4758,7 @@ export default {
                         "correctAnswer": "Hexagon",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_101",
@@ -4773,7 +4773,7 @@ export default {
                         "correctAnswer": "Charlotte de Witte",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_102",
@@ -4788,7 +4788,7 @@ export default {
                         "correctAnswer": "Tchami",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_103",
@@ -4803,7 +4803,7 @@ export default {
                         "correctAnswer": "Daft Punk",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_104",
@@ -4818,7 +4818,7 @@ export default {
                         "correctAnswer": "Alok",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_105",
@@ -4833,7 +4833,7 @@ export default {
                         "correctAnswer": "ACRAZE",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_106",
@@ -4848,7 +4848,7 @@ export default {
                         "correctAnswer": "Martin Garrix",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_107",
@@ -4863,7 +4863,7 @@ export default {
                         "correctAnswer": "K-House / Tech House",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_108",
@@ -4878,7 +4878,7 @@ export default {
                         "correctAnswer": "Fred again..",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_109",
@@ -4893,7 +4893,7 @@ export default {
                         "correctAnswer": "Anyma",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_110",
@@ -4908,7 +4908,7 @@ export default {
                         "correctAnswer": "Tiësto",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_111",
@@ -4923,7 +4923,7 @@ export default {
                         "correctAnswer": "Swedish House Mafia",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_112",
@@ -4938,7 +4938,7 @@ export default {
                         "correctAnswer": "Salvatore Ganacci",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_113",
@@ -4953,7 +4953,7 @@ export default {
                         "correctAnswer": "Tiësto",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_114",
@@ -4968,7 +4968,7 @@ export default {
                         "correctAnswer": "Kungs",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_115",
@@ -4983,7 +4983,7 @@ export default {
                         "correctAnswer": "Nu-Disco",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_116",
@@ -4998,7 +4998,7 @@ export default {
                         "correctAnswer": "James Hype",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_117",
@@ -5013,7 +5013,7 @@ export default {
                         "correctAnswer": "Mau P",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_118",
@@ -5028,7 +5028,7 @@ export default {
                         "correctAnswer": "Premiere Classe",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_119",
@@ -5043,7 +5043,7 @@ export default {
                         "correctAnswer": "Dj Snake",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_120",
@@ -5058,7 +5058,7 @@ export default {
                         "correctAnswer": "Swedish House Mafia",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_121",
@@ -5073,7 +5073,7 @@ export default {
                         "correctAnswer": "Laurent Garnier",
                         "category": "Légendes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_122",
@@ -5088,7 +5088,7 @@ export default {
                         "correctAnswer": "Partout dans le monde",
                         "category": "Culture",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_123",
@@ -5103,7 +5103,7 @@ export default {
                         "correctAnswer": "David Guetta",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_124",
@@ -5118,7 +5118,7 @@ export default {
                         "correctAnswer": "Pardon My French",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_125",
@@ -5133,7 +5133,7 @@ export default {
                         "correctAnswer": "Kungs",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_126",
@@ -5148,7 +5148,7 @@ export default {
                         "correctAnswer": "Justice",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_127",
@@ -5163,7 +5163,7 @@ export default {
                         "correctAnswer": "Bob Sinclar",
                         "category": "Scène Française",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_128",
@@ -5178,7 +5178,7 @@ export default {
                         "correctAnswer": "Positiv Festival",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_129",
@@ -5193,7 +5193,7 @@ export default {
                         "correctAnswer": "DJ Snake",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_130",
@@ -5208,7 +5208,7 @@ export default {
                         "correctAnswer": "William Grigahcine",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_131",
@@ -5223,7 +5223,7 @@ export default {
                         "correctAnswer": "Bob Sinclar",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_132",
@@ -5238,7 +5238,7 @@ export default {
                         "correctAnswer": "Musique électronique / Synthétiseurs",
                         "category": "Légendes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_133",
@@ -5253,7 +5253,7 @@ export default {
                         "correctAnswer": "Martin Solveig",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_134",
@@ -5268,7 +5268,7 @@ export default {
                         "correctAnswer": "Tchami",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_135",
@@ -5283,7 +5283,7 @@ export default {
                         "correctAnswer": "Møme",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_136",
@@ -5298,7 +5298,7 @@ export default {
                         "correctAnswer": "Justice",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_137",
@@ -5313,7 +5313,7 @@ export default {
                         "correctAnswer": "Martin Solveig",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_138",
@@ -5328,7 +5328,7 @@ export default {
                         "correctAnswer": "Showcase (devenu Bridge / Faust)",
                         "category": "Lieux",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_139",
@@ -5343,7 +5343,7 @@ export default {
                         "correctAnswer": "Bob Sinclar (parfois)",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_140",
@@ -5358,7 +5358,7 @@ export default {
                         "correctAnswer": "Petit Biscuit",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_141",
@@ -5373,7 +5373,7 @@ export default {
                         "correctAnswer": "Detroit",
                         "category": "Histoire",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_142",
@@ -5388,7 +5388,7 @@ export default {
                         "correctAnswer": "Chicago",
                         "category": "Histoire",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_143",
@@ -5403,7 +5403,7 @@ export default {
                         "correctAnswer": "Berghain",
                         "category": "Lieux",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_144",
@@ -5418,7 +5418,7 @@ export default {
                         "correctAnswer": "Sven Marquardt",
                         "category": "Légendes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_145",
@@ -5433,7 +5433,7 @@ export default {
                         "correctAnswer": "Ushuaïa",
                         "category": "Lieux",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_146",
@@ -5448,7 +5448,7 @@ export default {
                         "correctAnswer": "Pacha",
                         "category": "Lieux",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_147",
@@ -5463,7 +5463,7 @@ export default {
                         "correctAnswer": "Printworks",
                         "category": "Lieux",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_148",
@@ -5478,7 +5478,7 @@ export default {
                         "correctAnswer": "Funktion-One",
                         "category": "Technique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_149",
@@ -5493,7 +5493,7 @@ export default {
                         "correctAnswer": "DJ Snake",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_150",
@@ -5508,7 +5508,7 @@ export default {
                         "correctAnswer": "David Guetta",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_151",
@@ -5523,7 +5523,7 @@ export default {
                         "correctAnswer": "David Guetta & MORTEN",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_152",
@@ -5538,7 +5538,7 @@ export default {
                         "correctAnswer": "Armada Music",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_153",
@@ -5553,7 +5553,7 @@ export default {
                         "correctAnswer": "Armin van Buuren (5 fois)",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_154",
@@ -5568,7 +5568,7 @@ export default {
                         "correctAnswer": "Hugel",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_155",
@@ -5583,7 +5583,7 @@ export default {
                         "correctAnswer": "Hugel",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_156",
@@ -5598,7 +5598,7 @@ export default {
                         "correctAnswer": "Paul Kalkbrenner",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_157",
@@ -5613,7 +5613,7 @@ export default {
                         "correctAnswer": "Paul Kalkbrenner",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_158",
@@ -5628,7 +5628,7 @@ export default {
                         "correctAnswer": "Ultra Music Festival",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_159",
@@ -5643,7 +5643,7 @@ export default {
                         "correctAnswer": "Le Louvre",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_160",
@@ -5658,7 +5658,7 @@ export default {
                         "correctAnswer": "Anyma",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_161",
@@ -5673,7 +5673,7 @@ export default {
                         "correctAnswer": "ARTBAT",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_162",
@@ -5688,7 +5688,7 @@ export default {
                         "correctAnswer": "Ukraine",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_163",
@@ -5703,7 +5703,7 @@ export default {
                         "correctAnswer": "Zerb",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_164",
@@ -5718,7 +5718,7 @@ export default {
                         "correctAnswer": "Afro House",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_165",
@@ -5733,7 +5733,7 @@ export default {
                         "correctAnswer": "Black Coffee",
                         "category": "Légendes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_166",
@@ -5748,7 +5748,7 @@ export default {
                         "correctAnswer": "Black Coffee",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_167",
@@ -5763,7 +5763,7 @@ export default {
                         "correctAnswer": "15-20 scènes",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_168",
@@ -5778,7 +5778,7 @@ export default {
                         "correctAnswer": "Charlotte de Witte",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_169",
@@ -5793,7 +5793,7 @@ export default {
                         "correctAnswer": "Anyma",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_170",
@@ -5808,7 +5808,7 @@ export default {
                         "correctAnswer": "Guillaume et Jonathan Alric",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_171",
@@ -5823,7 +5823,7 @@ export default {
                         "correctAnswer": "Tous ces réponses",
                         "category": "Technique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_172",
@@ -5838,7 +5838,7 @@ export default {
                         "correctAnswer": "Rekordbox",
                         "category": "Technique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_173",
@@ -5853,7 +5853,7 @@ export default {
                         "correctAnswer": "Sync",
                         "category": "Technique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_174",
@@ -5868,7 +5868,7 @@ export default {
                         "correctAnswer": "Le calage (Beatmatching)",
                         "category": "Technique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_175",
@@ -5883,7 +5883,7 @@ export default {
                         "correctAnswer": "Bob Sinclar",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_176",
@@ -5898,7 +5898,7 @@ export default {
                         "correctAnswer": "La Défense",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_177",
@@ -5913,7 +5913,7 @@ export default {
                         "correctAnswer": "125-145 BPM",
                         "category": "Technique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_178",
@@ -5928,7 +5928,7 @@ export default {
                         "correctAnswer": "120-128 BPM",
                         "category": "Technique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_179",
@@ -5943,7 +5943,7 @@ export default {
                         "correctAnswer": "Melodic Techno",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_180",
@@ -5958,7 +5958,7 @@ export default {
                         "correctAnswer": "Afterlife",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_181",
@@ -5973,7 +5973,7 @@ export default {
                         "correctAnswer": "Aucun",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_182",
@@ -5988,7 +5988,7 @@ export default {
                         "correctAnswer": "Johan Cruyff Arena",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_183",
@@ -6003,7 +6003,7 @@ export default {
                         "correctAnswer": "David Guetta",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_184",
@@ -6018,7 +6018,7 @@ export default {
                         "correctAnswer": "Tiësto",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_185",
@@ -6033,7 +6033,7 @@ export default {
                         "correctAnswer": "Just a Little More Love",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_186",
@@ -6048,7 +6048,7 @@ export default {
                         "correctAnswer": "Bob Sinclar",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_187",
@@ -6063,7 +6063,7 @@ export default {
                         "correctAnswer": "Boom Festival",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_188",
@@ -6078,7 +6078,7 @@ export default {
                         "correctAnswer": "Eric Prydz",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_189",
@@ -6093,7 +6093,7 @@ export default {
                         "correctAnswer": "Axwell",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_190",
@@ -6108,7 +6108,7 @@ export default {
                         "correctAnswer": "David Guetta",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_191",
@@ -6123,7 +6123,7 @@ export default {
                         "correctAnswer": "Pays-Bas",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_192",
@@ -6138,7 +6138,7 @@ export default {
                         "correctAnswer": "Size Records",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_193",
@@ -6153,7 +6153,7 @@ export default {
                         "correctAnswer": "Nicky Romero",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_194",
@@ -6168,7 +6168,7 @@ export default {
                         "correctAnswer": "Children",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_195",
@@ -6183,7 +6183,7 @@ export default {
                         "correctAnswer": "Faithless",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_196",
@@ -6198,7 +6198,7 @@ export default {
                         "correctAnswer": "Darude",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_197",
@@ -6213,7 +6213,7 @@ export default {
                         "correctAnswer": "Aucun",
                         "category": "Événements",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_198",
@@ -6228,7 +6228,7 @@ export default {
                         "correctAnswer": "Tale Of Us",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_199",
@@ -6243,7 +6243,7 @@ export default {
                         "correctAnswer": "Justice",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_200",
@@ -6258,7 +6258,7 @@ export default {
                         "correctAnswer": "Electro / Techno / Bass",
                         "category": "General",
                         "author": "Dropsiders",
-                        "timestamp": "2026-03-09T03:54:51.089Z"
+                        "timestamp": "01061988-03-09T03:54:51.089Z"
                     }
                 ];
 

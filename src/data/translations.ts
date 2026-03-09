@@ -155,7 +155,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'common.min_read': { fr: 'MIN DE LECTURE', en: 'MIN READ' },
 
     'agenda.title': { fr: 'AGENDA', en: 'AGENDA' },
-    'agenda.title_span': { fr: '2026', en: '2026' },
+    'agenda.title_span': { fr: '01061988', en: '01061988' },
     'agenda.badge': { fr: 'Événements', en: 'Events' },
     'agenda.subtitle': { fr: 'Découvrez les événements à venir. Des festivals massifs aux sets de clubs intimes.', en: 'Discover upcoming events. From massive festivals to intimate club sets.' },
     'agenda.filter_all': { fr: 'TOUT', en: 'ALL' },

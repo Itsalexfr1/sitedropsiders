@@ -1341,16 +1341,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             return;
         }
 
-        if (!isAuthorConfirmed) {
-            setStatus('error');
-            setMessage("Veuillez confirmer l'éditeur de l'article en cochant la case correspondante.");
-            // Scroll to the editor section
-            const editorLabel = document.querySelector('[data-section="editor-selection"]');
-            if (editorLabel) {
-                editorLabel.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-            return;
-        }
+        // Removed mandatory check to allow user to publish freely
 
         if (isInterviewVideo && !youtubeId) {
             setStatus('error');
@@ -1593,37 +1584,50 @@ ${generateSocialsHtml()}
     };
 
     return (
-        <div className={`min-h-screen bg-dark-bg transition-all duration-500 ${isMobileEditorActive ? 'py-0 px-0' : 'py-8 md:py-20 px-0 md:px-8'}`}>
-            <div className={`max-w-7xl mx-auto ${isMobileEditorActive ? 'px-0' : 'px-4 md:px-0'}`}>
+        <div className={`min-h-screen bg-[#050505] relative overflow-hidden transition-all duration-500 ${isMobileEditorActive ? 'py-0 px-0' : 'py-8 md:py-20 px-0 md:px-8'}`}>
+            {/* Ambient Background Glows */}
+            {!isMobileEditorActive && (
+                <>
+                    <div className="fixed top-0 right-0 w-[500px] h-[500px] bg-neon-red/5 rounded-full blur-[120px] pointer-events-none animate-pulse" />
+                    <div className="fixed bottom-0 left-0 w-[500px] h-[500px] bg-neon-cyan/5 rounded-full blur-[120px] pointer-events-none animate-pulse [animation-delay:2s]" />
+                    <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none" />
+                </>
+            )}
+
+            <div className={`relative z-10 max-w-7xl mx-auto ${isMobileEditorActive ? 'px-0' : 'px-4 md:px-0'}`}>
                 {!isMobileEditorActive && (
-                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
+                    <motion.div
+                        initial={{ opacity: 0, y: -20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12"
+                    >
                         <div className="flex items-center gap-6">
                             <button
                                 onClick={() => navigate(-1)}
-                                className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all text-white group"
+                                className="p-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-white/20 transition-all text-white group backdrop-blur-md"
                             >
                                 <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
                             </button>
                             <div>
                                 <div className="flex items-center gap-3 mb-2">
-                                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${isEditing ? 'bg-neon-cyan/10 border-neon-cyan/30 text-neon-cyan' : 'bg-neon-green/10 border-neon-green/30 text-neon-green'
+                                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border backdrop-blur-md ${isEditing ? 'bg-neon-cyan/10 border-neon-cyan/30 text-neon-cyan' : 'bg-neon-green/10 border-neon-green/30 text-neon-green'
                                         }`}>
                                         {isEditing ? 'Mode Édition' : 'Nouvel Article'}
                                     </span>
-                                    <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full">
+                                    <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full backdrop-blur-md">
                                         <User className="w-3 h-3 text-gray-500" />
-                                        <span className="text-[9px] font-black text-white uppercase tracking-widest">
+                                        <span className="text-[9px] font-black text-white/60 uppercase tracking-widest">
                                             Éditeur : <span style={getAuthorTextStyle(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase())}>{author}</span>
                                         </span>
                                         {isAuthorConfirmed ? (
-                                            <CheckCircle2 className="w-3 h-3 text-neon-green" />
+                                            <CheckCircle2 className="w-3 h-3 text-neon-green ml-1" />
                                         ) : (
-                                            <div className="w-1.5 h-1.5 rounded-full bg-neon-red animate-pulse" />
+                                            <div className="w-1.5 h-1.5 rounded-full bg-neon-red animate-pulse ml-1" />
                                         )}
                                     </div>
                                 </div>
-                                <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter">
-                                    {isEditing ? 'Modifier' : 'Créer'} <span className="text-neon-red">{type === 'Interview' ? 'une Interview' : activeTab === 'Musique' ? 'un article Musique' : 'une Actualité'}</span>
+                                <h1 className="text-4xl md:text-6xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
+                                    {isEditing ? 'Modifier' : 'Créer'} <span className="text-neon-red drop-shadow-[0_0_15px_rgba(255,18,65,0.3)]">{type === 'Interview' ? 'une Interview' : activeTab === 'Musique' ? 'un article Musique' : 'une Actualité'}</span>
                                 </h1>
                             </div>
                         </div>
@@ -1632,12 +1636,12 @@ ${generateSocialsHtml()}
                                 type="button"
                                 onClick={() => handleSubmit(true)}
                                 disabled={status === 'loading'}
-                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
-                                    ? 'bg-gray-600 cursor-not-allowed opacity-50'
-                                    : 'bg-gradient-to-r from-neon-orange to-neon-red hover:scale-105 active:scale-95 text-white'
+                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all shadow-2xl group ${status === 'loading'
+                                    ? 'bg-gray-600/50 cursor-not-allowed opacity-50'
+                                    : 'bg-white text-black hover:scale-105 active:scale-95'
                                     }`}
                             >
-                                <Send className="w-4 h-4" />
+                                <Send className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                                 <span>{status === 'loading' ? 'EN COURS...' : (isEditing ? 'METTRE À JOUR' : 'PUBLIER')}</span>
                             </button>
 
@@ -1645,19 +1649,19 @@ ${generateSocialsHtml()}
                                 type="button"
                                 onClick={() => setShowScheduleModal(true)}
                                 disabled={status === 'loading'}
-                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all shadow-lg ${status === 'loading'
-                                    ? 'bg-gray-600 cursor-not-allowed opacity-50'
-                                    : 'bg-white/5 border border-white/10 text-white hover:bg-white/10 hover:scale-105 active:scale-95'
+                                className={`flex-1 md:flex-none flex items-center justify-center gap-2 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all border backdrop-blur-md ${status === 'loading'
+                                    ? 'bg-gray-600/50 cursor-not-allowed opacity-50'
+                                    : 'bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 hover:scale-105 active:scale-95'
                                     }`}
                             >
                                 <Calendar className="w-4 h-4" />
-                                <span>{status === 'loading' ? 'EN COURS...' : 'PROGRAMMER'}</span>
+                                <span>PROGRAMMER</span>
                             </button>
                             {isEditing && (
                                 <button
                                     type="button"
                                     onClick={() => setShowDeleteConfirm(true)}
-                                    className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl font-black uppercase tracking-widest text-xs transition-all border bg-red-500/10 border-red-500/30 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500`}
+                                    className={`flex items-center justify-center gap-2 px-5 py-4 rounded-2xl font-black uppercase tracking-widest text-[10px] transition-all border bg-red-500/5 border-red-500/20 text-red-500 hover:bg-red-500 hover:text-white hover:border-red-500`}
                                 >
                                     <Trash2 className="w-4 h-4" />
                                     <span className="hidden md:inline">SUPPRIMER</span>
@@ -1666,15 +1670,20 @@ ${generateSocialsHtml()}
                             <StyledCheckbox
                                 checked={isFeatured}
                                 onChange={setIsFeatured}
-                                label={isFeatured ? 'À LA UNE' : 'METTRE À LA UNE'}
+                                label={isFeatured ? 'À LA UNE' : 'UNE'}
                                 icon={Star}
                                 colorClass="neon-yellow"
                             />
                         </div>
-                    </div>
+                    </motion.div>
                 )}
 
-                <div className={`bg-white/5 backdrop-blur-xl transition-all duration-500 ${isMobileEditorActive ? 'min-h-screen rounded-none border-0' : 'rounded-3xl border border-white/10'} p-4 md:p-8`}>
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.98 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1, duration: 0.5 }}
+                    className={`bg-white/[0.03] backdrop-blur-2xl transition-all duration-500 ${isMobileEditorActive ? 'min-h-screen rounded-none border-0' : 'rounded-[2.5rem] border border-white/5 shadow-[0_25px_100px_-25px_rgba(0,0,0,0.5)]'} p-4 md:p-10`}
+                >
                     {/* Tabs Selector - Only for News */}
                     {type === 'News' && (
                         <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 mb-8 w-full md:w-fit mx-auto overflow-x-auto">
@@ -1786,7 +1795,7 @@ ${generateSocialsHtml()}
                                 <User className="w-3 h-3 text-neon-cyan" /> Choisir l'Éditeur <span className="text-neon-red">*</span>
                             </label>
 
-                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                                 {(editorsData as any[]).map((editor: any) => {
                                     const editorColor = getEditorColor(editor.username.toLowerCase());
                                     const isSelected = author === editor.name;
@@ -1798,34 +1807,32 @@ ${generateSocialsHtml()}
                                                 setAuthor(editor.name);
                                                 setIsAuthorConfirmed(false);
                                             }}
-                                            className={`group relative p-3 rounded-2xl border transition-all duration-300 flex flex-col items-center gap-2 ${isSelected
-                                                ? 'bg-white/10'
-                                                : 'bg-black/40 border-white/10 hover:border-white/20'
+                                            className={`relative group p-4 rounded-3xl border transition-all duration-300 flex flex-col items-center gap-3 active:scale-95 ${isSelected
+                                                ? 'bg-white/[0.05] border-white/20'
+                                                : 'bg-black/20 border-white/5 hover:border-white/10 grayscale hover:grayscale-0'
                                                 }`}
-                                            style={{
-                                                borderColor: isSelected ? editorColor : 'rgba(255,255,255,0.1)',
-                                                boxShadow: isSelected ? `0 0 20px ${editorColor}20` : 'none'
-                                            }}
                                         >
                                             <div
-                                                className="w-10 h-10 rounded-full flex items-center justify-center transition-all"
+                                                className={`w-14 h-14 rounded-full flex items-center justify-center text-xl font-black uppercase text-white shadow-2xl transition-all duration-500 ${isSelected ? 'scale-110 shadow-[0_0_20px_rgba(255,255,255,0.1)]' : 'group-hover:scale-105'}`}
                                                 style={{
-                                                    backgroundColor: isSelected ? editorColor : 'rgba(255,255,255,0.05)',
-                                                    color: isSelected ? '#000' : '#666'
+                                                    background: `linear-gradient(135deg, ${editorColor}, #000)`,
+                                                    boxShadow: isSelected ? `0 0 30px ${editorColor}55` : 'none'
                                                 }}
                                             >
-                                                <User className="w-5 h-5" />
+                                                {editor.username.substring(0, 1)}
                                             </div>
-                                            <span
-                                                className="text-[10px] font-black uppercase tracking-widest transition-colors"
-                                                style={getAuthorTextStyle(editor.username)}
-                                            >
-                                                {editor.name}
-                                            </span>
+                                            <div className="text-center">
+                                                <p className={`text-[10px] font-black uppercase tracking-widest ${isSelected ? 'text-white' : 'text-white/30'}`}>
+                                                    {editor.name}
+                                                </p>
+                                                <p className="text-[8px] font-bold text-white/20 uppercase tracking-tighter">@{editor.username}</p>
+                                            </div>
                                             {isSelected && (
-                                                <div className="absolute top-2 right-2">
-                                                    <div className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: editorColor }} />
-                                                </div>
+                                                <motion.div
+                                                    layoutId="editor-selector-glow"
+                                                    className="absolute inset-0 rounded-3xl border-2 border-white/20 pointer-events-none"
+                                                    style={{ borderColor: `${editorColor}33` }}
+                                                />
                                             )}
                                         </button>
                                     );
@@ -1960,8 +1967,8 @@ ${generateSocialsHtml()}
                                         type="number"
                                         value={year}
                                         onChange={(e) => setYear(e.target.value)}
-                                        placeholder="Ex: 2025"
-                                        min="2000"
+                                        placeholder="Ex: 01061988"
+                                        min="1900"
                                         max="2100"
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                     />
@@ -3391,7 +3398,7 @@ ${generateSocialsHtml()}
                         )}
                     </div>
 
-                </div>
+                </motion.div>
             </div>
             <style>{`
                 .admin-editor-container .w-md-editor {
@@ -4142,7 +4149,7 @@ ${generateSocialsHtml()}
                 onCancel={() => blocker.reset?.()}
                 accentColor="neon-red"
             />
-        </div>
+        </div >
     );
 }
 

@@ -255,6 +255,7 @@ export function Agenda() {
         let color = 'cyan';
 
         if (t === 'festival') color = 'red';
+        else if (t === 'concert') color = 'cyan';
         else if (g.includes('melodic')) color = 'yellow';
         else if (g.includes('techno')) color = 'red';
         else if (g.includes('tech house')) color = 'blue';

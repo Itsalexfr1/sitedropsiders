@@ -12,7 +12,7 @@ export function SocialStudioPage() {
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
-        if (password === '2026') {
+        if (password === '01061988') {
             setIsAuthenticated(true);
             localStorage.setItem('admin_auth', 'true');
         } else {

@@ -1,8 +1,15 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Printer, Trash2, Send, Loader, X, Mail, BookUser, Save, Eye, Phone, Building2, ChevronRight, History, CheckCircle, Clock, Upload, ShieldCheck, Palette, FileSearch } from 'lucide-react';
+import { Plus, Printer, Trash2, Send, Loader, X, Mail, BookUser, Save, Eye, Phone, Building2, ChevronRight, History, CheckCircle, Clock, Upload, ShieldCheck, Palette, FileSearch, Edit2 } from 'lucide-react';
+import '../styles/article-premium.css';
 import { motion, AnimatePresence } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
+
+// Load cursive fonts for signature
+const fontLink = document.createElement('link');
+fontLink.href = 'https://fonts.googleapis.com/css2?family=Sacramento&family=Cedarville+Cursive&display=swap';
+fontLink.rel = 'stylesheet';
+document.head.appendChild(fontLink);
 
 interface InvoiceLine {
     id: string;
@@ -40,6 +47,10 @@ export function InvoiceGenerator() {
     const [iban, setIban] = useState(() => localStorage.getItem('dropsiders_iban') || 'BE59 9675 0891 6526');
     const [bic, setBic] = useState(() => localStorage.getItem('dropsiders_bic') || 'TRWIBEB1XXX');
 
+    const [country, setCountry] = useState<'FR' | 'BE' | 'EU'>('FR');
+    const [online, setOnline] = useState(navigator.onLine);
+    const [signature, setSignature] = useState(() => localStorage.getItem('invoice_signature') || 'CUENCA ALEXANDRE');
+
     const [legalDetails, setLegalDetails] = useState<{
         hasSiret: boolean;
         hasTvaMention: boolean;
@@ -48,6 +59,7 @@ export function InvoiceGenerator() {
         hasDates: boolean;
         hasLines: boolean;
         hasUserPhone: boolean;
+        hasCountrySpecific: boolean;
     }>({
         hasSiret: true,
         hasTvaMention: true,
@@ -55,7 +67,8 @@ export function InvoiceGenerator() {
         hasClientName: false,
         hasDates: true,
         hasLines: false,
-        hasUserPhone: true
+        hasUserPhone: true,
+        hasCountrySpecific: true
     });
 
     // Email modal
@@ -102,11 +115,23 @@ export function InvoiceGenerator() {
     };
 
     useEffect(() => {
+        const handleOnline = () => setOnline(true);
+        const handleOffline = () => setOnline(false);
+        window.addEventListener('online', handleOnline);
+        window.addEventListener('offline', handleOffline);
+
         const savedNumber = localStorage.getItem('dropsiders_last_invoice_number');
         if (savedNumber) setInvoiceNumber(parseInt(savedNumber, 10));
         const savedPhone = localStorage.getItem('invoice_user_phone');
         if (savedPhone) setUserPhone(savedPhone);
+        const savedCountry = localStorage.getItem('invoice_country') as any;
+        if (savedCountry) setCountry(savedCountry);
+
         fetchHistory();
+        return () => {
+            window.removeEventListener('online', handleOnline);
+            window.removeEventListener('offline', handleOffline);
+        };
     }, []);
 
     // Auto-save for Offline Mode
@@ -166,6 +191,11 @@ export function InvoiceGenerator() {
     const saveUserPhone = (val: string) => {
         setUserPhone(val);
         localStorage.setItem('invoice_user_phone', val);
+    };
+
+    const saveSignature = (val: string) => {
+        setSignature(val);
+        localStorage.setItem('invoice_signature', val);
     };
 
     const saveCurrentClient = () => {
@@ -264,8 +294,17 @@ export function InvoiceGenerator() {
             hasClientName: !!clientName.trim(),
             hasDates: !!date && !!invoiceNumber,
             hasLines: lines.length > 0 && lines.every(l => l.description.trim() !== '' && l.unitPrice > 0),
-            hasUserPhone: !!userPhone.trim()
+            hasUserPhone: !!userPhone.trim(),
+            hasCountrySpecific: true
         };
+
+        // Specific legal checks per country
+        if (country === 'FR') {
+            details.hasSiret = true; // For France, SIRET is mandatory
+        } else if (country === 'BE') {
+            // For Belgium, VAT number is often mandatory even if exempt
+            details.hasCountrySpecific = iban.startsWith('BE');
+        }
 
         setLegalDetails(details);
         const isValid = Object.values(details).every(v => v === true);
@@ -279,54 +318,73 @@ export function InvoiceGenerator() {
     // VIRTUAL RENDER ENGINE (Solves the "Blank Page" issue)
     const runVirtualCapture = async (): Promise<string> => {
         const invoiceEl = invoiceRef.current;
-        if (!invoiceEl) throw new Error('Ref introuvable');
+        if (!invoiceEl) throw new Error('Cible de capture manquante');
 
-        // Force visible state for capture
+        // Attendre que les polices soient chargées pour éviter le texte invisible
+        if (typeof document !== 'undefined' && 'fonts' in document) {
+            await (document as any).fonts.ready;
+        }
+
+        // Préparation de l'élément pour la capture sans perturber le scroll
         const originalStyle = invoiceEl.getAttribute('style') || '';
+
+        // On rend l'élément "physiquement" présent mais invisible à l'œil
         invoiceEl.classList.remove('hidden');
         invoiceEl.style.display = 'block';
+        invoiceEl.style.visibility = 'visible';
         invoiceEl.style.position = 'fixed';
-        invoiceEl.style.left = '-5000px';
+        invoiceEl.style.left = '-10000px';
         invoiceEl.style.top = '0';
-        invoiceEl.style.zIndex = '9999';
+        invoiceEl.style.width = '794px';
+        invoiceEl.style.minHeight = '1123px';
+        invoiceEl.style.opacity = '1';
+        invoiceEl.style.zIndex = '99999';
 
-        await new Promise(r => setTimeout(r, 600));
+        // Délai plus long pour laisser le navigateur recalculer le layout (grid/flex)
+        await new Promise(r => setTimeout(r, 1000));
 
         try {
             const canvas = await html2canvas(invoiceEl, {
-                scale: 2.5,
+                scale: 3, // Haute définition pour le PDF
                 useCORS: true,
                 allowTaint: true,
+                logging: false, // On désactive pour plus de perf
                 backgroundColor: theme === 'stealth' ? '#0a0a0a' : '#ffffff',
                 onclone: (clonedDoc) => {
                     const clonedInvoice = clonedDoc.getElementById('printable-invoice');
                     if (clonedInvoice) {
                         clonedInvoice.style.display = 'block';
                         clonedInvoice.style.visibility = 'visible';
-                        clonedInvoice.style.width = '794px';
-                        clonedInvoice.style.padding = '60px';
+                        clonedInvoice.style.opacity = '1';
+                        clonedInvoice.style.position = 'relative';
+                        clonedInvoice.style.left = '0';
 
-                        // Theme Overrides
-                        if (theme === 'stealth') {
-                            clonedInvoice.style.backgroundColor = '#0a0a0a';
-                            clonedInvoice.style.color = '#ffffff';
-                        } else if (theme === 'gold') {
-                            clonedInvoice.style.borderTop = '20px solid #D4AF37';
-                            clonedInvoice.style.backgroundColor = '#ffffff';
-                            clonedInvoice.style.color = '#000000';
-                        } else {
-                            clonedInvoice.style.backgroundColor = '#ffffff';
-                            clonedInvoice.style.color = '#000000';
-                        }
+                        // Forçage agressif des styles du thème dans le clone
+                        const baseColor = theme === 'stealth' ? '#ffffff' : '#000000';
+                        const bgColor = theme === 'stealth' ? '#0a0a0a' : '#ffffff';
+                        clonedInvoice.style.color = baseColor;
+                        clonedInvoice.style.backgroundColor = bgColor;
+
+                        // On s'assure que tout le texte hérite bien du contraste
+                        clonedInvoice.querySelectorAll('p, h1, h2, h3, span').forEach(el => {
+                            if (el instanceof HTMLElement) {
+                                // Forçage du noir/blanc pur pour contrer les modes sombres forcés par certains navigateurs
+                                if (theme !== 'stealth' && (el.style.color === '' || el.style.color.includes('white'))) {
+                                    el.style.color = '#000000';
+                                }
+                                el.style.fontFamily = 'Inter, ui-sans-serif, system-ui, sans-serif';
+                            }
+                        });
                     }
                     sanitizeColors(clonedDoc);
                 }
             });
 
             const dataUrl = canvas.toDataURL('image/png', 1.0);
-            if (dataUrl.length < 20000) throw new Error('Capture vide');
+            if (dataUrl.length < 30000) throw new Error('Données visuelles insuffisantes (capture corrompue)');
             return dataUrl;
         } finally {
+            // Restauration de l'état initial
             invoiceEl.setAttribute('style', originalStyle);
             invoiceEl.classList.add('hidden');
         }
@@ -466,8 +524,8 @@ export function InvoiceGenerator() {
                             STUDIO <span className="text-white/40 italic">EXPANSION</span>
                         </h1>
                         <div className="flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
-                            <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Sytème de Facturation v2.0</p>
+                            <div className={`w-1.5 h-1.5 rounded-full ${online ? 'bg-green-500 animate-pulse' : 'bg-red-500'}`} />
+                            <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">{online ? 'Système Connecté' : 'Mode Hors Ligne Actif'}</p>
                         </div>
                     </div>
 
@@ -500,6 +558,23 @@ export function InvoiceGenerator() {
                                 title={`Mode ${t}`}
                             >
                                 <Palette className="w-4 h-4" />
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className="w-px h-8 bg-white/5 mx-2" />
+
+                    <div className="flex items-center gap-2 bg-white/[0.02] border border-white/5 p-1 rounded-2xl">
+                        {(['FR', 'BE', 'EU'] as const).map(c => (
+                            <button
+                                key={c}
+                                onClick={() => {
+                                    setCountry(c);
+                                    localStorage.setItem('invoice_country', c);
+                                }}
+                                className={`px-3 py-2 rounded-xl text-[9px] font-black transition-all ${country === c ? 'bg-white text-black' : 'text-white/20 hover:text-white/40'}`}
+                            >
+                                {c}
                             </button>
                         ))}
                     </div>
@@ -558,6 +633,38 @@ export function InvoiceGenerator() {
                     </button>
                 </div>
             </div>
+
+            {/* SCANNING OVERLAY */}
+            <AnimatePresence>
+                {ribLoading && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[1000] bg-black/80 backdrop-blur-2xl flex flex-col items-center justify-center gap-10"
+                    >
+                        <div className="relative w-80 h-48 border border-white/20 rounded-3xl overflow-hidden bg-white/5">
+                            <motion.div
+                                animate={{ y: [0, 192, 0] }}
+                                transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
+                                className="absolute top-0 left-0 w-full h-1 bg-blue-500 shadow-[0_0_20px_#3B82F6]"
+                            />
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <FileSearch className="w-16 h-16 text-white/20 animate-pulse" />
+                            </div>
+                        </div>
+                        <div className="text-center space-y-4">
+                            <h3 className="text-3xl font-black uppercase italic tracking-widest text-white">IA EXTRACTION EN COURS</h3>
+                            <div className="flex items-center gap-4 justify-center">
+                                <div className="w-4 h-1 bg-blue-500 rounded-full animate-bounce" />
+                                <div className="w-4 h-1 bg-blue-500 rounded-full animate-bounce delay-100" />
+                                <div className="w-4 h-1 bg-blue-500 rounded-full animate-bounce delay-200" />
+                            </div>
+                            <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.5em]">Synchronisation avec le registre bancaire européen</p>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="flex-1 overflow-y-auto no-scrollbar bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.02),transparent)]">
                 <AnimatePresence mode="wait">
@@ -618,6 +725,19 @@ export function InvoiceGenerator() {
                                                     value={date}
                                                     onChange={e => setDate(e.target.value)}
                                                     className="bg-transparent border-none outline-none text-sm font-bold w-full [color-scheme:dark] text-white/80"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <label className="text-[9px] font-black text-white/20 uppercase tracking-widest ml-1">Signature Numérique</label>
+                                            <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex items-center gap-4 focus-within:border-white/20 transition-all">
+                                                <Edit2 className="w-4 h-4 text-white/20" size={14} />
+                                                <input
+                                                    type="text"
+                                                    value={signature}
+                                                    onChange={e => saveSignature(e.target.value)}
+                                                    className="bg-transparent border-none outline-none text-xs font-black w-full text-white/60 tracking-widest uppercase"
                                                 />
                                             </div>
                                         </div>
@@ -688,7 +808,19 @@ export function InvoiceGenerator() {
                                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-50" />
 
                                     <div className="flex items-center justify-between">
-                                        <h3 className="text-[10px] font-black uppercase tracking-[0.6em] text-white/20">CLIENT & DESTINATION</h3>
+                                        <div className="flex items-center gap-4">
+                                            <h3 className="text-[10px] font-black uppercase tracking-[0.6em] text-white/20">CLIENT & DESTINATION</h3>
+                                            {clientName && clientEmail && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, x: -10 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    className="px-3 py-1 bg-blue-500/10 border border-blue-500/20 rounded-full flex items-center gap-2"
+                                                >
+                                                    <div className="w-1 h-1 rounded-full bg-blue-500 animate-pulse" />
+                                                    <span className="text-[8px] font-black text-blue-400 uppercase tracking-widest">Client Vérifié</span>
+                                                </motion.div>
+                                            )}
+                                        </div>
                                         <div className="flex items-center gap-4">
                                             {savedClients.length > 0 && (
                                                 <div className="relative">
@@ -1193,11 +1325,12 @@ export function InvoiceGenerator() {
 
                             <div className="space-y-4">
                                 {[
-                                    { label: "Numéro SIRET (Émetteur)", status: legalDetails.hasSiret, desc: "Requis pour identifier votre entreprise." },
+                                    { label: "Numéro SIRET (Émetteur)", status: legalDetails.hasSiret, desc: country === 'FR' ? "Requis en France pour identifier votre entreprise." : "Identifiant fiscal entreprise." },
                                     { label: "Mention TVA non-applicable", status: legalDetails.hasTvaMention, desc: "Art. 293 B du CGI requis pour les auto-entrepreneurs." },
                                     { label: "Coordonnées Client", status: legalDetails.hasClientAddress && legalDetails.hasClientName, desc: "Nom et adresse complète du destinataire." },
                                     { label: "Détails de Prestation", status: legalDetails.hasLines, desc: "Description précise et prix des services." },
                                     { label: "Informations Temporelles", status: legalDetails.hasDates, desc: "Date d'émission et numéro de facture unique." },
+                                    { label: `Spécificités ${country}`, status: legalDetails.hasCountrySpecific, desc: country === 'BE' ? "Vérification du format de l'IBAN Belge." : "Vérifications régionales OK." },
                                 ].map((item, i) => (
                                     <div key={i} className="group p-5 bg-white/[0.02] border border-white/[0.05] rounded-3xl flex items-start gap-4 transition-all hover:bg-white/[0.04]">
                                         <div className={`mt-1 shrink-0 w-5 h-5 rounded-full flex items-center justify-center ${item.status ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}`}>
@@ -1348,11 +1481,29 @@ export function InvoiceGenerator() {
                                 <span style={{ fontWeight: '800', color: theme === 'stealth' ? '#fff' : '#000' }}>Merci pour votre confiance.</span>
                             </p>
                         </div>
-                        <div style={{ backgroundColor: theme === 'stealth' ? '#111' : '#f9f9f9', padding: '20px', borderRadius: '8px', border: `1px solid ${theme === 'stealth' ? '#222' : '#eee'}` }}>
+                        <div style={{ backgroundColor: theme === 'stealth' ? '#111' : '#f9f9f9', padding: '20px', borderRadius: '8px', border: `1px solid ${theme === 'stealth' ? '#222' : '#eee'}`, position: 'relative' }}>
                             <p style={{ fontSize: '10px', fontWeight: '900', letterSpacing: '1px', marginBottom: '10px' }}>COORDONNÉES BANCAIRES (RIB) :</p>
                             <div style={{ fontSize: '11px', fontWeight: '700', fontFamily: 'monospace' }}>
                                 <p style={{ marginBottom: '5px' }}>IBAN : <span style={{ color: theme === 'gold' ? '#D4AF37' : (theme === 'stealth' ? '#fff' : '#4A90E2') }}>{iban}</span></p>
                                 <p>BIC : <span style={{ color: theme === 'gold' ? '#D4AF37' : (theme === 'stealth' ? '#fff' : '#4A90E2') }}>{bic}</span></p>
+                            </div>
+                            <div style={{
+                                position: 'absolute',
+                                right: '20px',
+                                bottom: '20px',
+                                textAlign: 'right',
+                                opacity: 0.8
+                            }}>
+                                <p style={{ fontSize: '8px', fontWeight: '900', color: theme === 'gold' ? '#D4AF37' : '#999', textTransform: 'uppercase', marginBottom: '2px' }}>Signature :</p>
+                                <p style={{
+                                    fontFamily: '"Sacramento", "Cedarville Cursive", cursive',
+                                    fontSize: '24px',
+                                    margin: 0,
+                                    color: theme === 'stealth' ? '#fff' : '#000',
+                                    transform: 'rotate(-2deg)'
+                                }}>
+                                    {signature}
+                                </p>
                             </div>
                         </div>
                     </div>

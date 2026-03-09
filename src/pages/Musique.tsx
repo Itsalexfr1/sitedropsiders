@@ -375,7 +375,7 @@ export function Musique() {
                         ))}
                     </div>
                     <p className="text-gray-700 text-[10px] font-black uppercase tracking-[0.3em]">
-                        DATA UPDATE EVERY 3 DAYS • DROPSIDERS NETWORK 2026
+                        DATA UPDATE EVERY 3 DAYS • DROPSIDERS NETWORK 01061988
                     </p>
                 </div>
             </motion.div>

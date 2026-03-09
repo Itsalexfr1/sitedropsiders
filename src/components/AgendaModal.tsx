@@ -247,6 +247,7 @@ export function AgendaModal({ isOpen, onClose, onSuccess, editingItem }: AgendaM
                                     >
                                         <option value="Festival">Festival</option>
                                         <option value="Showcase">Showcase</option>
+                                        <option value="Concert">Concert</option>
                                         <option value="Résidence">Résidence</option>
                                         <option value="Opening">Opening</option>
                                         <option value="Events">Events</option>

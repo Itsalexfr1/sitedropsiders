@@ -14,7 +14,7 @@ export function Shop() {
     const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('shop_auth') === 'true');
     const [passwordInput, setPasswordInput] = useState(localStorage.getItem('shop_password_saved') || '');
     const [passwordError, setPasswordError] = useState(false);
-    const [shopAuthPassword, setShopAuthPassword] = useState((initialSettings as any).shop_password || '2026');
+    const [shopAuthPassword, setShopAuthPassword] = useState((initialSettings as any).shop_password || '01061988');
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState<'Tous' | 'Vetements' | 'Accessoires'>('Tous');
@@ -33,7 +33,7 @@ export function Shop() {
                     setIsEnabled(data.shop_enabled);
                     setIsPasswordProtected(data.shop_password_protected || false);
                     setPasswordImage(data.shop_password_image || '');
-                    setShopAuthPassword(data.shop_password || '2026');
+                    setShopAuthPassword(data.shop_password || '01061988');
                 }
 
                 if (productsRes.ok) {
@@ -196,7 +196,7 @@ export function Shop() {
                         initial={{ opacity: 0, y: -20 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
-                        <span className="text-neon-red font-display font-black uppercase tracking-[0.3em] text-xs mb-4 block underline decoration-4 underline-offset-8">COLLECTION 2026</span>
+                        <span className="text-neon-red font-display font-black uppercase tracking-[0.3em] text-xs mb-4 block underline decoration-4 underline-offset-8">COLLECTION 01061988</span>
                         <h1 className={`${isMini ? 'text-4xl md:text-5xl' : 'text-6xl md:text-8xl'} font-display font-black text-white uppercase italic tracking-tighter leading-none mb-6`}>
                             SHOP <span className="text-neon-red">OFFICIEL</span>
                         </h1>

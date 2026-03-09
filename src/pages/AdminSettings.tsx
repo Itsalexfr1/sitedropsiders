@@ -237,7 +237,7 @@ export function AdminSettings() {
                                         value={shopPassword}
                                         onChange={(e) => setShopPassword(e.target.value)}
                                         className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-14 py-5 text-white font-black tracking-[0.3em] focus:outline-none focus:border-neon-red transition-all"
-                                        placeholder="EX: DROPSIDERS2026"
+                                        placeholder="EX: DROPSIDERS01061988"
                                     />
                                     <button
                                         type="button"
