@@ -7,7 +7,7 @@ import {
     Pin, Star, ShieldCheck, Ban, Megaphone, User,
     BarChart3, Clock, Sword, Crown, Maximize2, Minimize2,
     Trophy, Stars, Heart, Volume2, Timer, ShieldAlert, Calendar,
-    Languages, Instagram, MapPin, ShoppingBag
+    Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
@@ -86,6 +86,20 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [highlightColor, setHighlightColor] = useState('#f59e0b');
     const [isConnected, setIsConnected] = useState(!!localStorage.getItem('chat_pseudo'));
     const [pingAudio] = useState(new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'));
+
+    const renderMessageContent = (content: string) => {
+        const urlRegex = /(https?:\/\/[^\s]+)/g;
+        return content.split(urlRegex).map((part, i) => {
+            if (part.match(urlRegex)) {
+                return (
+                    <a key={i} href={part} target="_blank" rel="noopener noreferrer" className="text-neon-cyan underline hover:text-white transition-colors" onClick={(e) => e.stopPropagation()}>
+                        {part}
+                    </a>
+                );
+            }
+            return part;
+        });
+    };
 
     // Form States
     const [loginPseudo, setLoginPseudo] = useState('');
@@ -2140,88 +2154,86 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     )}
                                                 </div>
                                             </div>
-                                        </div>
-                                    ) : adminActiveTab === 'shazam' ? (
-                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center">
-                                                        <Music className="w-6 h-6 text-neon-purple" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Configuration Shazam</h3>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Gérez la reconnaissance musicale et l'historique</p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-4 pt-4 border-t border-white/5">
-                                                    <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 flex items-center justify-between">
+                                            ) : adminActiveTab === 'shazam' ? (
+                                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                                <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center">
+                                                            <Music className="w-6 h-6 text-neon-purple" />
+                                                        </div>
                                                         <div>
-                                                            <p className="text-xs font-black text-white uppercase mb-1">Vider l'historique</p>
-                                                            <p className="text-[9px] text-gray-400 font-bold uppercase">Supprime tous les morceaux identifiés du site</p>
+                                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Configuration Shazam</h3>
+                                                            <p className="text-[10px] text-gray-500 font-bold uppercase">Gérez la reconnaissance musicale et l'historique</p>
                                                         </div>
-                                                        <button
-                                                            onClick={clearShazamHistory}
-                                                            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase rounded-xl transition-all shadow-lg shadow-red-600/20"
-                                                        >
-                                                            Vider Shazam
-                                                        </button>
                                                     </div>
 
-                                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">AudD API Token</label>
-                                                        <input
-                                                            type="password"
-                                                            placeholder="VOTRE TOKEN AUDD.IO"
-                                                            value={editAuddToken}
-                                                            onChange={e => setEditAuddToken(e.target.value)}
-                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-purple outline-none transition-all"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : adminActiveTab === 'planning' ? (
-                                        <div className="space-y-10">
-                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    <Plus className="w-6 h-6 text-neon-cyan" />
-                                                    <h3 className="text-sm font-black text-white uppercase tracking-widest">Ajouter une session</h3>
-                                                </div>
-                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                                    <div className="flex flex-col gap-1.5">
-                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Date / Agenda</label>
-                                                        <input type="date" value={newLineupItem.day} onChange={e => setNewLineupItem({ ...newLineupItem, day: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-cyan transition-all" />
-                                                    </div>
-                                                    <input type="text" placeholder="ARTISTE" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, artist: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                    <input type="text" placeholder="DEBUT" value={newLineupItem.startTime} onChange={e => setNewLineupItem({ ...newLineupItem, startTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                    <input type="text" placeholder="FIN" value={newLineupItem.endTime} onChange={e => setNewLineupItem({ ...newLineupItem, endTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                    <input type="text" placeholder="SCÈNE" value={newLineupItem.stage} onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                    <input type="text" placeholder="INSTAGRAM" value={newLineupItem.instagram} onChange={e => setNewLineupItem({ ...newLineupItem, instagram: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                </div>
-                                                <button onClick={() => { if (newLineupItem.artist) { setLineupItems([...lineupItems, { ...newLineupItem, id: Date.now().toString() }]); setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '' }); } }} className="w-full py-4 bg-neon-cyan text-black font-black uppercase rounded-2xl hover:bg-neon-cyan/80 transition-all">Ajouter</button>
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                {lineupItems.map((item, i) => (
-                                                    <div key={item.id} className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
-                                                        <div className="flex items-center gap-4">
-                                                            <div className="text-gray-500 font-mono text-xs">{item.startTime}</div>
+                                                    <div className="space-y-4 pt-4 border-t border-white/5">
+                                                        <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 flex items-center justify-between">
                                                             <div>
-                                                                <p className="text-white font-black uppercase text-sm">{item.artist}</p>
-                                                                <p className="text-[10px] text-neon-cyan font-bold uppercase">{item.stage}</p>
+                                                                <p className="text-xs font-black text-white uppercase mb-1">Vider l'historique</p>
+                                                                <p className="text-[9px] text-gray-400 font-bold uppercase">Supprime tous les morceaux identifiés du site</p>
                                                             </div>
+                                                            <button
+                                                                onClick={clearShazamHistory}
+                                                                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase rounded-xl transition-all shadow-lg shadow-red-600/20"
+                                                            >
+                                                                Vider Shazam
+                                                            </button>
                                                         </div>
-                                                        <button onClick={() => setLineupItems(lineupItems.filter((_, idx) => idx !== i))} className="text-red-500 p-2 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+
+                                                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">AudD API Token</label>
+                                                            <input
+                                                                type="password"
+                                                                placeholder="VOTRE TOKEN AUDD.IO"
+                                                                value={editAuddToken}
+                                                                onChange={e => setEditAuddToken(e.target.value)}
+                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-purple outline-none transition-all"
+                                                            />
+                                                        </div>
                                                     </div>
-                                                ))}
+                                                </div>
                                             </div>
-                                        </div>
-                                    ) : adminActiveTab === 'drops' ? (
-                                        <div className="space-y-8">
-                                            <div className="grid grid-cols-2 gap-8">
+                                            ) : adminActiveTab === 'planning' ? (
+                                            <div className="space-y-10">
+                                                <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                    <div className="flex items-center gap-3 mb-2">
+                                                        <Plus className="w-6 h-6 text-neon-cyan" />
+                                                        <h3 className="text-sm font-black text-white uppercase tracking-widest">Ajouter une session</h3>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                                        <div className="flex flex-col gap-1.5">
+                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Date / Agenda</label>
+                                                            <input type="date" value={newLineupItem.day} onChange={e => setNewLineupItem({ ...newLineupItem, day: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-cyan transition-all" />
+                                                        </div>
+                                                        <input type="text" placeholder="ARTISTE" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, artist: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                        <input type="text" placeholder="DEBUT" value={newLineupItem.startTime} onChange={e => setNewLineupItem({ ...newLineupItem, startTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                        <input type="text" placeholder="FIN" value={newLineupItem.endTime} onChange={e => setNewLineupItem({ ...newLineupItem, endTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                        <input type="text" placeholder="SCÈNE" value={newLineupItem.stage} onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                        <input type="text" placeholder="INSTAGRAM" value={newLineupItem.instagram} onChange={e => setNewLineupItem({ ...newLineupItem, instagram: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                    </div>
+                                                    <button onClick={() => { if (newLineupItem.artist) { setLineupItems([...lineupItems, { ...newLineupItem, id: Date.now().toString() }]); setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '' }); } }} className="w-full py-4 bg-neon-cyan text-black font-black uppercase rounded-2xl hover:bg-neon-cyan/80 transition-all">Ajouter</button>
+                                                </div>
+
                                                 <div className="space-y-4">
-                                                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Nouveau Lot</h3>
+                                                    {lineupItems.map((item, i) => (
+                                                        <div key={item.id} className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="text-gray-500 font-mono text-xs">{item.startTime}</div>
+                                                                <div>
+                                                                    <p className="text-white font-black uppercase text-sm">{item.artist}</p>
+                                                                    <p className="text-[10px] text-neon-cyan font-bold uppercase">{item.stage}</p>
+                                                                </div>
+                                                            </div>
+                                                            <button onClick={() => setLineupItems(lineupItems.filter((_, idx) => idx !== i))} className="text-red-500 p-2 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            ) : adminActiveTab === 'drops' ? (
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                <div className="space-y-4">
+                                                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Configuration Gains</h3>
                                                     <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
                                                         <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">Prix Message Couleur (Drops)</label>
                                                         <input type="number" placeholder="PRIX HIGHLIGHT" value={editHighlightPrice} onChange={e => setEditHighlightPrice(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-red outline-none" />
@@ -2236,1537 +2248,1515 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 <input type="number" placeholder="INTERVALLE" value={editDropsInterval} onChange={e => setEditDropsInterval(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-red outline-none" />
                                                             </div>
                                                         </div>
-                                                        <p className="text-[9px] text-gray-500 font-bold uppercase leading-tight italic mt-2">Configurez combien de drops les utilisateurs gagnent et tous les combien de temps.</p>
                                                     </div>
                                                 </div>
                                                 <div className="space-y-4">
-                                                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Nouveau Lot Boutique</h3>
+                                                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Gestion Boutique Drops</h3>
                                                     <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
-                                                        <input type="text" placeholder="NOM DU LOT" value={newLot.name} onChange={e => setNewLot({ ...newLot, name: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
-                                                        <input type="number" placeholder="PRIX EN DROPS" value={newLot.price} onChange={e => setNewLot({ ...newLot, price: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
-                                                        <button onClick={() => { if (newLot.name) { setDropsLots([...dropsLots, { id: Date.now(), name: newLot.name, price: Number(newLot.price), stock: 10 }]); setNewLot({ name: '', price: '', stock: '' }); } }} className="w-full py-3 bg-neon-red text-white font-black rounded-xl hover:bg-neon-red/80 transition-all">Ajouter à la boutique</button>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            <input type="text" placeholder="NOM DU LOT" value={newLot.name} onChange={e => setNewLot({ ...newLot, name: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white outline-none" />
+                                                            <input type="number" placeholder="PRIX" value={newLot.price} onChange={e => setNewLot({ ...newLot, price: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white outline-none" />
+                                                        </div>
+                                                        <button onClick={() => { if (newLot.name) { setDropsLots([...dropsLots, { id: Date.now(), name: newLot.name, price: Number(newLot.price), stock: 10 }]); setNewLot({ name: '', price: '', stock: '' }); showNotification('Lot ajouté !', 'success'); } }} className="w-full py-3 bg-neon-cyan text-black font-black text-[10px] rounded-xl hover:scale-[1.02] transition-all uppercase tracking-widest">Ajouter un article</button>
+                                                    </div>
+
+                                                    <div className="space-y-2 mt-4 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
+                                                        {dropsLots.map((lot, idx) => (
+                                                            <div key={lot.id || idx} className="flex items-center gap-3 bg-black/40 border border-white/10 p-3 rounded-xl group transition-all hover:border-white/20">
+                                                                <span className="text-[10px] font-black text-white uppercase flex-1 truncate">{lot.name}</span>
+                                                                <input
+                                                                    type="number"
+                                                                    value={lot.price}
+                                                                    onChange={(e) => {
+                                                                        const next = [...dropsLots];
+                                                                        next[idx].price = Number(e.target.value);
+                                                                        setDropsLots(next);
+                                                                    }}
+                                                                    className="w-20 bg-black/60 border border-white/10 rounded-lg px-2 py-1 text-[10px] text-neon-cyan font-black text-center"
+                                                                />
+                                                                <button onClick={() => setDropsLots(dropsLots.filter((_, i) => i !== idx))} className="p-1.5 text-gray-500 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100">
+                                                                    <Trash2 className="w-3.5 h-3.5" />
+                                                                </button>
+                                                            </div>
+                                                        ))}
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </div>
-                                    ) : adminActiveTab === 'bot' ? (
-                                        <div className="space-y-8">
-                                            <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
-                                                <h4 className="text-xs font-black text-neon-cyan uppercase tracking-widest">➕ Nouvelle Commande</h4>
-                                                <input type="text" placeholder="!COMMANDE" value={newCmd.command} onChange={e => setNewCmd({ ...newCmd, command: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
-                                                <textarea placeholder="REPONSE" value={newCmd.response} onChange={e => setNewCmd({ ...newCmd, response: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white min-h-[80px]" />
-                                                <button onClick={() => { if (newCmd.command) { setBotCommands([...botCommands, { command: newCmd.command, response: newCmd.response }]); setNewCmd({ command: '', response: '' }); } }} className="w-full py-3 bg-neon-cyan text-black font-black rounded-xl hover:scale-[1.02] transition-all">Enregistrer</button>
-                                            </div>
-
-                                            {/* List of existing commands */}
-                                            <div className="space-y-3">
-                                                <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">📋 Commandes Actives ({botCommands.length})</h4>
-                                                {botCommands.length === 0 ? (
-                                                    <div className="text-center py-8 bg-white/5 border border-white/5 rounded-2xl">
-                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande configurée</p>
+                                                ) : adminActiveTab === 'bot' ? (
+                                                <div className="space-y-8">
+                                                    <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+                                                        <h4 className="text-xs font-black text-neon-cyan uppercase tracking-widest">➕ Nouvelle Commande</h4>
+                                                        <input type="text" placeholder="!COMMANDE" value={newCmd.command} onChange={e => setNewCmd({ ...newCmd, command: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
+                                                        <textarea placeholder="REPONSE" value={newCmd.response} onChange={e => setNewCmd({ ...newCmd, response: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white min-h-[80px]" />
+                                                        <button onClick={() => { if (newCmd.command) { setBotCommands([...botCommands, { command: newCmd.command, response: newCmd.response }]); setNewCmd({ command: '', response: '' }); } }} className="w-full py-3 bg-neon-cyan text-black font-black rounded-xl hover:scale-[1.02] transition-all">Enregistrer</button>
                                                     </div>
-                                                ) : (
-                                                    botCommands.map((cmd, idx) => (
-                                                        <div key={idx} className="flex items-center gap-3 bg-white/[0.03] border border-white/5 hover:border-neon-cyan/20 p-4 rounded-2xl transition-all group">
-                                                            <span className="text-neon-cyan font-black text-xs uppercase tracking-tight shrink-0 min-w-[100px]">{cmd.command}</span>
-                                                            <span className="text-gray-400 text-xs font-bold flex-1 truncate">{cmd.response}</span>
+
+                                                    {/* List of existing commands */}
+                                                    <div className="space-y-3">
+                                                        <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">📋 Commandes Actives ({botCommands.length})</h4>
+                                                        {botCommands.length === 0 ? (
+                                                            <div className="text-center py-8 bg-white/5 border border-white/5 rounded-2xl">
+                                                                <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande configurée</p>
+                                                            </div>
+                                                        ) : (
+                                                            botCommands.map((cmd, idx) => (
+                                                                <div key={idx} className="flex items-center gap-3 bg-white/[0.03] border border-white/5 hover:border-neon-cyan/20 p-4 rounded-2xl transition-all group">
+                                                                    <span className="text-neon-cyan font-black text-xs uppercase tracking-tight shrink-0 min-w-[100px]">{cmd.command}</span>
+                                                                    <span className="text-gray-400 text-xs font-bold flex-1 truncate">{cmd.response}</span>
+                                                                    <button
+                                                                        onClick={() => setBotCommands(botCommands.filter((_, i) => i !== idx))}
+                                                                        className="opacity-0 group-hover:opacity-100 p-2 text-gray-600 hover:text-neon-red transition-all rounded-lg hover:bg-red-500/10"
+                                                                    >
+                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                </div>
+                                                            ))
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                ) : adminActiveTab === 'moderation' ? (
+                                                <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                        <div className="p-8 bg-red-600/5 border border-red-600/20 rounded-[2.5rem] text-center space-y-4">
+                                                            <Trash2 className="w-8 h-8 text-red-500 mx-auto" />
+                                                            <h4 className="text-white font-black uppercase">Nettoyage Chat</h4>
+                                                            <button onClick={clearChat} className="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase hover:bg-red-700 transition-all shadow-xl shadow-red-600/20">Vider le Chat</button>
+                                                        </div>
+                                                        <div className="p-8 bg-amber-600/5 border border-amber-600/20 rounded-[2.5rem] text-center space-y-4">
+                                                            <Ban className="w-8 h-8 text-amber-500 mx-auto" />
+                                                            <h4 className="text-white font-black uppercase">Mode Lent</h4>
                                                             <button
-                                                                onClick={() => setBotCommands(botCommands.filter((_, i) => i !== idx))}
-                                                                className="opacity-0 group-hover:opacity-100 p-2 text-gray-600 hover:text-neon-red transition-all rounded-lg hover:bg-red-500/10"
+                                                                onClick={async () => {
+                                                                    const sysMsg = slowModeEnabled ? '[SYSTEM]:SLOW_OFF' : '[SYSTEM]:SLOW_ON';
+                                                                    await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                                        pseudo: "BOT_SYSTEM",
+                                                                        message: sysMsg,
+                                                                        color: "text-neon-purple",
+                                                                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                        country: "FR"
+                                                                    });
+                                                                }}
+                                                                className={`w-full py-4 ${slowModeEnabled ? 'bg-amber-600' : 'bg-gray-600'} text-white rounded-2xl font-black uppercase transition-all`}
                                                             >
-                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                                {slowModeEnabled ? 'DÉSACTIVER MODE LENT' : 'ACTIVER MODE LENT'}
                                                             </button>
                                                         </div>
-                                                    ))
-                                                )}
-                                            </div>
-                                        </div>
-                                    ) : adminActiveTab === 'moderation' ? (
-                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                                <div className="p-8 bg-red-600/5 border border-red-600/20 rounded-[2.5rem] text-center space-y-4">
-                                                    <Trash2 className="w-8 h-8 text-red-500 mx-auto" />
-                                                    <h4 className="text-white font-black uppercase">Nettoyage Chat</h4>
-                                                    <button onClick={clearChat} className="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase hover:bg-red-700 transition-all shadow-xl shadow-red-600/20">Vider le Chat</button>
-                                                </div>
-                                                <div className="p-8 bg-amber-600/5 border border-amber-600/20 rounded-[2.5rem] text-center space-y-4">
-                                                    <Ban className="w-8 h-8 text-amber-500 mx-auto" />
-                                                    <h4 className="text-white font-black uppercase">Mode Lent</h4>
-                                                    <button
-                                                        onClick={async () => {
-                                                            const sysMsg = slowModeEnabled ? '[SYSTEM]:SLOW_OFF' : '[SYSTEM]:SLOW_ON';
-                                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                pseudo: "BOT_SYSTEM",
-                                                                message: sysMsg,
-                                                                color: "text-neon-purple",
-                                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                country: "FR"
-                                                            });
-                                                        }}
-                                                        className={`w-full py-4 ${slowModeEnabled ? 'bg-amber-600' : 'bg-gray-600'} text-white rounded-2xl font-black uppercase transition-all`}
-                                                    >
-                                                        {slowModeEnabled ? 'DÉSACTIVER MODE LENT' : 'ACTIVER MODE LENT'}
-                                                    </button>
-                                                </div>
-                                            </div>
-
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                                <div className="p-8 bg-neon-purple/5 border border-neon-purple/20 rounded-[2.5rem] text-center space-y-4">
-                                                    <Stars className="w-8 h-8 text-neon-purple mx-auto" />
-                                                    <h4 className="text-white font-black uppercase">Effets Fixes</h4>
-                                                    <div className="flex gap-4 flex-wrap justify-center">
-                                                        <button onClick={() => triggerConfetti()} className="flex-1 min-w-[120px] py-4 bg-neon-purple text-white rounded-2xl font-black uppercase">Confettis</button>
-                                                        <button onClick={() => triggerFireworks()} className="flex-1 min-w-[120px] py-4 bg-pink-600 text-white rounded-2xl font-black uppercase">Artifices</button>
-                                                        <button onClick={() => handleSendMessage('!rate')} className="flex-1 min-w-[120px] py-4 bg-yellow-500 text-black rounded-2xl font-black uppercase">Avis Set</button>
                                                     </div>
-                                                </div>
-                                                <div className="p-8 bg-blue-600/5 border border-blue-600/20 rounded-[2.5rem] text-center space-y-4">
-                                                    <Crown className="w-8 h-8 text-blue-500 mx-auto" />
-                                                    <h4 className="text-white font-black uppercase">Affichage des Badges</h4>
-                                                    <button
-                                                        onClick={() => {
-                                                            const next = !showBadgesAdmin;
-                                                            setShowBadgesAdmin(next);
-                                                            localStorage.setItem('chat_show_badges', next ? 'true' : 'false');
-                                                        }}
-                                                        className={`w-full py-4 ${showBadgesAdmin ? 'bg-blue-600' : 'bg-gray-600'} text-white rounded-2xl font-black uppercase transition-all`}
-                                                    >
-                                                        {showBadgesAdmin ? 'BADGES ACTIVÉS' : 'BADGES DÉSACTIVÉS'}
-                                                    </button>
-                                                    <div className="mt-4 pt-4 border-t border-white/10 text-left">
-                                                        <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Utiliser les commandes chat :</div>
-                                                        <div className="text-xs font-bold text-white uppercase italic">!vip @pseudo <span className="text-gray-500 font-normal">pour ajouter</span></div>
-                                                        <div className="text-xs font-bold text-white uppercase italic">!unvip @pseudo <span className="text-gray-500 font-normal">pour retirer</span></div>
-                                                    </div>
-                                                </div>
-                                                <div className="p-8 bg-neon-cyan/5 border border-neon-cyan/20 rounded-[2.5rem] text-center space-y-4">
-                                                    <Volume2 className="w-8 h-8 text-neon-cyan mx-auto" />
-                                                    <h4 className="text-white font-black uppercase">Synthèse Vocale (TTS)</h4>
-                                                    <button onClick={() => setIsTTSActive(!isTTSActive)} className={`w-full py-4 ${isTTSActive ? 'bg-neon-cyan text-black' : 'bg-gray-600 text-white'} rounded-2xl font-black uppercase transition-all`}>
-                                                        {isTTSActive ? 'DÉSACTIVER TTS' : 'ACTIVER TTS'}
-                                                    </button>
-                                                </div>
-                                            </div>
 
-                                            {/* Marquee Settings */}
-                                            <div className="col-span-1 md:col-span-2 p-8 bg-neon-red/5 border border-neon-red/20 rounded-[2.5rem] space-y-6">
-                                                <div className="flex items-center gap-4 justify-center mb-6">
-                                                    <Megaphone className="w-8 h-8 text-neon-red" />
-                                                    <h4 className="text-white font-black uppercase text-xl">Bandeau News (Défilant)</h4>
-                                                </div>
-                                                <div className="space-y-4">
-                                                    {editMarqueeItems.map((item, idx) => (
-                                                        <div key={idx} className="flex flex-col md:flex-row gap-4 bg-black/40 p-4 rounded-2xl border border-white/10">
-                                                            <div className="flex-1 space-y-2">
-                                                                <label className="text-[10px] font-black text-neon-red uppercase">Texte Info {idx + 1}</label>
-                                                                <input type="text" value={item.text} onChange={e => {
-                                                                    const next = [...editMarqueeItems];
-                                                                    next[idx].text = e.target.value;
-                                                                    setEditMarqueeItems(next);
-                                                                }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white uppercase outline-none focus:border-neon-red" placeholder="TEXTE (OPTIONNEL)" />
-                                                            </div>
-                                                            <div className="flex-1 space-y-2">
-                                                                <label className="text-[10px] font-black text-neon-red uppercase">Lien (Optionnel)</label>
-                                                                <input type="text" value={item.link} onChange={e => {
-                                                                    const next = [...editMarqueeItems];
-                                                                    next[idx].link = e.target.value;
-                                                                    setEditMarqueeItems(next);
-                                                                }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-red" placeholder="https://" />
+                                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                                        <div className="p-8 bg-neon-purple/5 border border-neon-purple/20 rounded-[2.5rem] text-center space-y-4">
+                                                            <Stars className="w-8 h-8 text-neon-purple mx-auto" />
+                                                            <h4 className="text-white font-black uppercase">Effets Fixes</h4>
+                                                            <div className="flex gap-4 flex-wrap justify-center">
+                                                                <button onClick={() => triggerConfetti()} className="flex-1 min-w-[120px] py-4 bg-neon-purple text-white rounded-2xl font-black uppercase">Confettis</button>
+                                                                <button onClick={() => triggerFireworks()} className="flex-1 min-w-[120px] py-4 bg-pink-600 text-white rounded-2xl font-black uppercase">Artifices</button>
+                                                                <button onClick={() => handleSendMessage('!rate')} className="flex-1 min-w-[120px] py-4 bg-yellow-500 text-black rounded-2xl font-black uppercase">Avis Set</button>
                                                             </div>
                                                         </div>
-                                                    ))}
-                                                    <button
-                                                        onClick={async () => {
-                                                            setMarqueeItems(editMarqueeItems);
-                                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                pseudo: "BOT_SYSTEM",
-                                                                message: `[SYSTEM]:MARQUEE_UPDATE:${JSON.stringify(editMarqueeItems)}`,
-                                                                color: "text-neon-cyan",
-                                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                country: "FR"
-                                                            });
-                                                            showNotification('Bandeau mis à jour', 'success');
-                                                        }}
-                                                        className="w-full py-4 bg-neon-red text-white font-black uppercase rounded-2xl mt-4 hover:bg-red-600 transition-colors shadow-xl shadow-red-500/20"
-                                                    >
-                                                        Mettre à jour le bandeau
-                                                    </button>
-                                                </div>
+                                                        <div className="p-8 bg-blue-600/5 border border-blue-600/20 rounded-[2.5rem] text-center space-y-4">
+                                                            <Crown className="w-8 h-8 text-blue-500 mx-auto" />
+                                                            <h4 className="text-white font-black uppercase">Affichage des Badges</h4>
+                                                            <button
+                                                                onClick={() => {
+                                                                    const next = !showBadgesAdmin;
+                                                                    setShowBadgesAdmin(next);
+                                                                    localStorage.setItem('chat_show_badges', next ? 'true' : 'false');
+                                                                }}
+                                                                className={`w-full py-4 ${showBadgesAdmin ? 'bg-blue-600' : 'bg-gray-600'} text-white rounded-2xl font-black uppercase transition-all`}
+                                                            >
+                                                                {showBadgesAdmin ? 'BADGES ACTIVÉS' : 'BADGES DÉSACTIVÉS'}
+                                                            </button>
+                                                            <div className="mt-4 pt-4 border-t border-white/10 text-left">
+                                                                <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Utiliser les commandes chat :</div>
+                                                                <div className="text-xs font-bold text-white uppercase italic">!vip @pseudo <span className="text-gray-500 font-normal">pour ajouter</span></div>
+                                                                <div className="text-xs font-bold text-white uppercase italic">!unvip @pseudo <span className="text-gray-500 font-normal">pour retirer</span></div>
+                                                            </div>
+                                                        </div>
+                                                        <div className="p-8 bg-neon-cyan/5 border border-neon-cyan/20 rounded-[2.5rem] text-center space-y-4">
+                                                            <Volume2 className="w-8 h-8 text-neon-cyan mx-auto" />
+                                                            <h4 className="text-white font-black uppercase">Synthèse Vocale (TTS)</h4>
+                                                            <button onClick={() => setIsTTSActive(!isTTSActive)} className={`w-full py-4 ${isTTSActive ? 'bg-neon-cyan text-black' : 'bg-gray-600 text-white'} rounded-2xl font-black uppercase transition-all`}>
+                                                                {isTTSActive ? 'DÉSACTIVER TTS' : 'ACTIVER TTS'}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Marquee Settings */}
+                                                    <div className="col-span-1 md:col-span-2 p-8 bg-neon-red/5 border border-neon-red/20 rounded-[2.5rem] space-y-6">
+                                                        <div className="flex items-center gap-4 justify-center mb-6">
+                                                            <Megaphone className="w-8 h-8 text-neon-red" />
+                                                            <h4 className="text-white font-black uppercase text-xl">Bandeau News (Défilant)</h4>
+                                                        </div>
+                                                        <div className="space-y-4">
+                                                            {editMarqueeItems.map((item, idx) => (
+                                                                <div key={idx} className="flex flex-col md:flex-row gap-4 bg-black/40 p-4 rounded-2xl border border-white/10">
+                                                                    <div className="flex-1 space-y-2">
+                                                                        <label className="text-[10px] font-black text-neon-red uppercase">Texte Info {idx + 1}</label>
+                                                                        <input type="text" value={item.text} onChange={e => {
+                                                                            const next = [...editMarqueeItems];
+                                                                            next[idx].text = e.target.value;
+                                                                            setEditMarqueeItems(next);
+                                                                        }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white uppercase outline-none focus:border-neon-red" placeholder="TEXTE (OPTIONNEL)" />
+                                                                    </div>
+                                                                    <div className="flex-1 space-y-2">
+                                                                        <label className="text-[10px] font-black text-neon-red uppercase">Lien (Optionnel)</label>
+                                                                        <input type="text" value={item.link} onChange={e => {
+                                                                            const next = [...editMarqueeItems];
+                                                                            next[idx].link = e.target.value;
+                                                                            setEditMarqueeItems(next);
+                                                                        }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-red" placeholder="https://" />
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            <button
+                                                                onClick={async () => {
+                                                                    setMarqueeItems(editMarqueeItems);
+                                                                    await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                                        pseudo: "BOT_SYSTEM",
+                                                                        message: `[SYSTEM]:MARQUEE_UPDATE:${JSON.stringify(editMarqueeItems)}`,
+                                                                        color: "text-neon-cyan",
+                                                                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                        country: "FR"
+                                                                    });
+                                                                    showNotification('Bandeau mis à jour', 'success');
+                                                                }}
+                                                                className="w-full py-4 bg-neon-red text-white font-black uppercase rounded-2xl mt-4 hover:bg-red-600 transition-colors shadow-xl shadow-red-500/20"
+                                                            >
+                                                                Mettre à jour le bandeau
+                                                            </button>
+                                                        </div>
                                             </div>
                                         </div>
-                                    ) : (
-                                        <div className="space-y-8">
-                                            <div className="grid grid-cols-2 gap-8">
-                                                <div className="p-8 bg-red-600/5 border border-red-600/20 rounded-[2.5rem] text-center space-y-4">
-                                                    <Trash2 className="w-8 h-8 text-red-500 mx-auto" />
-                                                    <h4 className="text-white font-black uppercase">Nettoyage Chat</h4>
-                                                    <button onClick={clearChat} className="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase">Vider le Chat</button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
+                                    ) : null}
                                 </div>
 
-                                <div className="flex gap-4 pt-6 border-t border-white/10">
-                                    <button onClick={handleSaveSettings} disabled={isSaving} className="flex-1 py-4 bg-neon-purple text-white font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-purple/80 transition-all shadow-xl shadow-neon-purple/20 flex items-center justify-center gap-3 disabled:opacity-50">
-                                        <Save className={`w-5 h-5 ${isSaving ? 'animate-spin' : ''}`} />
-                                        {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER'}
-                                    </button>
-                                </div>
-                            </div>
+                                            <div className="flex gap-4 pt-6 border-t border-white/10">
+                                                <button onClick={handleSaveSettings} disabled={isSaving} className="flex-1 py-4 bg-neon-purple text-white font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-purple/80 transition-all shadow-xl shadow-neon-purple/20 flex items-center justify-center gap-3 disabled:opacity-50">
+                                                    <Save className={`w-5 h-5 ${isSaving ? 'animate-spin' : ''}`} />
+                                                    {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER'}
+                                                </button>
+                                            </div>
+                                        </div>
                         </motion.div>
                     )}
-                </AnimatePresence>
+                            </AnimatePresence>
 
 
 
-                {/* Profile Overlay Card */}
-                <AnimatePresence>
-                    {selectedProfile && (
-                        <motion.div
-                            initial={{ opacity: 0, scale: 0.8, rotateX: 20 }}
-                            animate={{ opacity: 1, scale: 1, rotateX: 0 }}
-                            exit={{ opacity: 0, scale: 0.8 }}
-                            className="absolute bottom-6 left-6 z-[100] w-72 bg-black/90 backdrop-blur-2xl border-2 border-white/10 rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
-                        >
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple" />
-                            <div className="flex flex-col items-center gap-4 text-center">
-                                <div className={`w-20 h-20 rounded-3xl border-2 flex items-center justify-center bg-white/5 relative overflow-hidden`} style={{ borderColor: selectedProfile.color || '#fff' }}>
-                                    <FlagIcon location={selectedProfile.country} className="absolute inset-0 w-full h-full opacity-30 object-cover" />
-                                    <span className="text-3xl font-black text-white relative z-10">{selectedProfile.pseudo[0]}</span>
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">{selectedProfile.pseudo}</h3>
-                                    <div className="flex items-center justify-center gap-2 mt-1">
-                                        <FlagIcon location={selectedProfile.country} className="w-4 h-3" />
-                                        <span className="text-[10px] text-gray-400 font-bold uppercase">{countries.find(c => c.code === selectedProfile.country)?.name || 'Unknown'}</span>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3 w-full">
-                                    <div className="bg-white/5 border border-white/10 p-3 rounded-2xl">
-                                        <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-1">Niveau</p>
-                                        <p className="text-lg font-black text-neon-cyan">
-                                            {Math.floor(Math.sqrt((chatMessages.find(m => m.pseudo === selectedProfile.pseudo)?.xp || 0) / 100)) + 1}
-                                        </p>
-                                    </div>
-                                    <div className="bg-white/5 border border-white/10 p-3 rounded-2xl">
-                                        <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-1">Ratio Crédibilité</p>
-                                        <p className="text-lg font-black text-amber-500">
-                                            {selectedProfile.pseudo === localStorage.getItem('chat_pseudo')
-                                                ? (userDrops / Math.max(1, timeOnSite / 3600)).toFixed(1)
-                                                : (Math.random() * 500).toFixed(1)}
-                                        </p>
-                                    </div>
-                                </div>
-
-                                {/* Instagram Button if available */}
-                                {(selectedProfile.pseudo === localStorage.getItem('chat_pseudo') ? userInstagram : "dropsiders.fr") && (
-                                    <button
-                                        onClick={() => window.open(`https://instagram.com/${(selectedProfile.pseudo === localStorage.getItem('chat_pseudo') ? userInstagram : "dropsiders.fr").replace('@', '')}`, '_blank')}
-                                        className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black uppercase rounded-xl flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-lg"
+                            {/* Profile Overlay Card */}
+                            <AnimatePresence>
+                                {selectedProfile && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.8, rotateX: 20 }}
+                                        animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+                                        exit={{ opacity: 0, scale: 0.8 }}
+                                        className="absolute bottom-6 left-6 z-[100] w-72 bg-black/90 backdrop-blur-2xl border-2 border-white/10 rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
                                     >
-                                        <Instagram className="w-4 h-4" /> Instagram
-                                    </button>
-                                )}
+                                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple" />
+                                        <div className="flex flex-col items-center gap-4 text-center">
+                                            <div className={`w-20 h-20 rounded-3xl border-2 flex items-center justify-center bg-white/5 relative overflow-hidden`} style={{ borderColor: selectedProfile.color || '#fff' }}>
+                                                <FlagIcon location={selectedProfile.country} className="absolute inset-0 w-full h-full opacity-30 object-cover" />
+                                                <span className="text-3xl font-black text-white relative z-10">{selectedProfile.pseudo[0]}</span>
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase">{selectedProfile.pseudo}</h3>
+                                                <div className="flex items-center justify-center gap-2 mt-1">
+                                                    <FlagIcon location={selectedProfile.country} className="w-4 h-3" />
+                                                    <span className="text-[10px] text-gray-400 font-bold uppercase">{countries.find(c => c.code === selectedProfile.country)?.name || 'Unknown'}</span>
+                                                </div>
+                                            </div>
 
-                                <div className="flex gap-2 w-full">
-                                    <button onClick={() => setSelectedProfile(null)} className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white font-black uppercase rounded-xl transition-all">Fermer</button>
-                                    {isMod && selectedProfile.pseudo !== 'ALEX_FR1' && (
-                                        <button onClick={() => handleBanUser(selectedProfile.pseudo)} className="px-4 py-3 bg-red-500/20 hover:bg-red-500/40 text-red-500 rounded-xl transition-all"><Ban className="w-5 h-5" /></button>
-                                    )}
-                                </div></div></motion.div>)}</AnimatePresence>
+                                            <div className="grid grid-cols-2 gap-3 w-full">
+                                                <div className="bg-white/5 border border-white/10 p-3 rounded-2xl">
+                                                    <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-1">Niveau</p>
+                                                    <p className="text-lg font-black text-neon-cyan">
+                                                        {Math.floor(Math.sqrt((chatMessages.find(m => m.pseudo === selectedProfile.pseudo)?.xp || 0) / 100)) + 1}
+                                                    </p>
+                                                </div>
+                                                <div className="bg-white/5 border border-white/10 p-3 rounded-2xl">
+                                                    <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-1">Ratio Crédibilité</p>
+                                                    <p className="text-lg font-black text-amber-500">
+                                                        {selectedProfile.pseudo === localStorage.getItem('chat_pseudo')
+                                                            ? (userDrops / Math.max(1, timeOnSite / 3600)).toFixed(1)
+                                                            : (Math.random() * 500).toFixed(1)}
+                                                    </p>
+                                                </div>
+                                            </div>
 
-                {/* B. CHAT PANEL (Full height fix for mobile/desktop) */}
-                <div className={`${isCinemaMode ? 'hidden' : 'w-full lg:w-[40%] flex-1 lg:h-full'} bg-black/60 backdrop-blur-2xl flex flex-col relative border-l border-white/5 shadow-2xl z-10 min-h-0 overflow-hidden`}>
-                    {/* Chat Tabs */}
-                    <div className="p-2 lg:p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
-                        <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-1.5">
-                                <MessageSquare className="w-3 h-3 text-neon-red" />
-                                <h3 className="text-[10px] font-black text-white tracking-[0.1em] uppercase italic">LIVE CHAT</h3>
-                            </div>
-                            {settings.showSponsorBanner && settings.sponsorText && (
-                                <div className="hidden sm:flex items-center gap-2">
-                                    <div className="h-3 w-[1px] bg-white/10" />
-                                    <a href={settings.sponsorLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 group">
-                                        <div className="px-1.5 py-0.5 bg-neon-purple/20 border border-neon-purple/30 rounded text-[6px] font-black text-neon-purple uppercase tracking-widest italic group-hover:bg-neon-purple/30 transition-all">PARTENAIRE</div>
-                                        <span className="text-[8px] font-black text-white/40 group-hover:text-white transition-all uppercase italic truncate max-w-[100px]">{settings.sponsorText}</span>
-                                    </a>
-                                </div>
-                            )}
-                        </div>
-                        <div className="flex items-center gap-2">
-                            {isMod && (
-                                <button onClick={() => setIsModChat(!isModChat)} className={`px-2 py-1 rounded-md text-[8px] font-black uppercase flex items-center gap-1.5 transition-all ${isModChat ? 'bg-amber-500 text-black' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
-                                    <ShieldCheck className="w-3 h-3" /> CANAL MODOS
-                                </button>
-                            )}
-                            <input type="color" value={accentColor} onChange={(e) => { setAccentColor(e.target.value); localStorage.setItem('chat_accent_color', e.target.value); }} className="w-6 h-6 rounded-full border-none p-0 cursor-pointer overflow-hidden bg-transparent" />
-                        </div>
-                    </div>
-
-                    {
-                        isConnected && (
-                            <div className="flex items-center justify-between px-2 lg:px-4 bg-black/20 border-b border-white/10 overflow-x-auto scollbar-hide no-scrollbar">
-                                <div className="flex gap-1 p-1 lg:p-2">
-                                    {['CHAT', 'PLANNING', 'SHAZAM', 'SHOP', 'DROPS'].map(tab => (
-                                        <button
-                                            key={tab}
-                                            onClick={() => setActiveChatTab(tab === 'SHOP' ? 'shop' : tab === 'DROPS' ? 'drops' : tab.toLowerCase())}
-                                            className={`px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg text-[8px] lg:text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === (tab === 'SHOP' ? 'shop' : tab === 'DROPS' ? 'drops' : tab.toLowerCase()) ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
-                                        >
-                                            {tab === 'SHOP' ? 'SHOP OFFICIEL' : tab === 'DROPS' ? 'BOUTIQUE DROPS' : tab}
-                                        </button>
-                                    ))}
-                                </div>
-                                <div className="flex gap-1 p-1 bg-white/5 rounded-xl border border-white/10 my-1">
-                                    {(['stage1', 'stage2'] as const).map(s => (
-                                        <button
-                                            key={s}
-                                            onClick={() => setActiveStage(s)}
-                                            className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-tighter transition-all ${activeStage === s ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'text-gray-500 hover:text-white'}`}
-                                        >
-                                            {s === 'stage1' ? 'STAGE 1' : 'STAGE 2'}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )
-                    }
-
-                    <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-4 custom-scrollbar scroll-smooth flex flex-col gap-4 relative transition-all duration-500 bg-black/20 backdrop-blur-3xl min-h-0">
-
-                        <div className="flex items-center justify-between mb-2">
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => window.open(`${window.location.origin}${window.location.pathname}?popout=true`, 'ChatPopout', 'width=400,height=800')}
-                                    className="px-2 py-1 text-[8px] font-black rounded-lg border border-white/5 text-gray-500 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1.5"
-                                >
-                                    <Maximize2 className="w-3 h-3" /> DÉTACHER
-                                </button>
-                            </div>
-                            <div className="bg-white/5 px-3 py-1 rounded-full border border-white/10 flex items-center gap-2">
-                                <span className="text-[8px] font-black uppercase text-gray-500">Hype Train</span>
-                                <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
-                                    <motion.div animate={{ width: `${hypeTrain.progress}%` }} className="h-full bg-neon-cyan" />
-                                </div>
-                            </div>
-                        </div>
-
-
-                        <AnimatePresence>
-                            {mentionNotify && (
-                                <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="absolute bottom-4 right-4 z-[50] bg-neon-red text-white text-[10px] font-black px-4 py-2 rounded-full shadow-[0_0_20px_rgba(255,0,51,0.5)]">
-                                    ON T'A CITÉ ! 👇
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* ⚔️ Clash Poll Banner */}
-                        <AnimatePresence>
-                            {clashPoll && clashPoll.active && (
-                                <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="sticky top-0 z-[45] bg-black/95 border-2 border-white/20 rounded-3xl p-6 mb-6 shadow-2xl relative overflow-hidden">
-                                    <div className="absolute inset-x-0 top-0 h-1 flex">
-                                        <div className="flex-1 bg-red-600 shadow-[0_0_10px_#ef4444]" />
-                                        <div className="flex-1 bg-blue-600 shadow-[0_0_10px_#2563eb]" />
-                                    </div>
-                                    <div className="flex items-center justify-between gap-6">
-                                        <div className="flex-1 text-center space-y-2">
-                                            <p className="text-[9px] font-black text-red-500 uppercase tracking-widest">{clashPoll.teamA}</p>
-                                            <div className="text-xl font-black text-white uppercase italic">{clashPoll.votesA.length}</div>
-                                            <button onClick={() => handleSendMessage(`!voter A`)} className="w-full py-2 bg-red-600/20 border border-red-600/40 text-red-500 text-[10px] font-black rounded-xl hover:bg-red-600/30 transition-all uppercase">VOTER A</button>
-                                        </div>
-                                        <div className="text-2xl font-black text-white italic opacity-20">VS</div>
-                                        <div className="flex-1 text-center space-y-2">
-                                            <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">{clashPoll.teamB}</p>
-                                            <div className="text-xl font-black text-white uppercase italic">{clashPoll.votesB.length}</div>
-                                            <button onClick={() => handleSendMessage(`!voter B`)} className="w-full py-2 bg-blue-600/20 border border-blue-600/40 text-blue-500 text-[10px] font-black rounded-xl hover:bg-blue-600/30 transition-all uppercase">VOTER B</button>
-                                        </div>
-                                    </div>
-                                    {isMod && (
-                                        <button onClick={() => setClashPoll(null)} className="absolute top-2 right-2 text-[8px] text-gray-600 font-bold uppercase hover:text-white transition-all">STOP</button>
-                                    )}
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* ⚡ Quick Time Event (QTE) */}
-                        <AnimatePresence>
-                            {qteActive && (
-                                <motion.div initial={{ scale: 0, rotate: -20, x: '-50%', y: '-50%' }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 z-[200]">
-                                    <button
-                                        onClick={async () => {
-                                            const myPseudo = localStorage.getItem('chat_pseudo') || "VISITEUR";
-                                            setQteActive(false);
-                                            showNotification("TU AS GAGNÉ LE QTE ! ⚡ (+500 DROPS)", 'success');
-                                            triggerConfetti();
-                                            setUserDrops(prev => prev + 500);
-                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                pseudo: "BOT_SYSTEM",
-                                                message: `[SYSTEM]:QTE_WINNER:${myPseudo}`,
-                                                color: "text-neon-cyan",
-                                                time: new Date().toLocaleTimeString(),
-                                                country: "FR"
-                                            });
-                                        }}
-                                        className="w-32 h-32 bg-neon-cyan rounded-full border-8 border-white animate-bounce shadow-[0_0_50px_#00ffff] flex items-center justify-center group"
-                                    >
-                                        <Zap className="w-16 h-16 text-black group-active:scale-150 transition-transform" />
-                                    </button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        <AnimatePresence>
-                            {activePoll && (
-                                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="sticky top-0 z-[40] bg-[#0a0a0a] border-2 border-neon-cyan/50 rounded-2xl p-4 mb-4">
-                                    <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest mb-2">SONDAGE EN DIRECT</p>
-                                    <h4 className="text-xs font-black text-white uppercase italic mb-4">{activePoll.question}</h4>
-                                    <div className="space-y-2">
-                                        {activePoll.options.map((opt: any, idx: number) => {
-                                            const totalVotes = activePoll.options.reduce((sum: number, o: any) => sum + (o.votes || 0), 0);
-                                            const percentage = totalVotes > 0 ? Math.round(((opt.votes || 0) / totalVotes) * 100) : 0;
-
-                                            return (
+                                            {/* Instagram Button if available */}
+                                            {(selectedProfile.pseudo === localStorage.getItem('chat_pseudo') ? userInstagram : "dropsiders.fr") && (
                                                 <button
-                                                    key={idx}
-                                                    disabled={userVoted}
-                                                    onClick={async () => {
-                                                        if (!userVoted) {
-                                                            setUserVoted(true);
-                                                            localStorage.setItem('last_voted_poll', activePoll.question);
-                                                            // Send vote to system
-                                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                pseudo: "BOT_SYSTEM",
-                                                                message: `[SYSTEM]:VOTE:${idx}`,
-                                                                color: "text-neon-purple",
-                                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                country: "FR"
-                                                            });
-                                                        }
-                                                    }}
-                                                    className={`w-full relative h-10 bg-white/5 border border-white/10 rounded-xl overflow-hidden group transition-all ${userVoted ? 'cursor-default' : 'hover:border-neon-cyan/50 hover:bg-white/10'}`}
+                                                    onClick={() => window.open(`https://instagram.com/${(selectedProfile.pseudo === localStorage.getItem('chat_pseudo') ? userInstagram : "dropsiders.fr").replace('@', '')}`, '_blank')}
+                                                    className="w-full py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-black uppercase rounded-xl flex items-center justify-center gap-2 hover:scale-105 transition-all shadow-lg"
                                                 >
+                                                    <Instagram className="w-4 h-4" /> Instagram
+                                                </button>
+                                            )}
+
+                                            <div className="flex gap-2 w-full">
+                                                <button onClick={() => setSelectedProfile(null)} className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white font-black uppercase rounded-xl transition-all">Fermer</button>
+                                                {isMod && selectedProfile.pseudo !== 'ALEX_FR1' && (
+                                                    <button onClick={() => handleBanUser(selectedProfile.pseudo)} className="px-4 py-3 bg-red-500/20 hover:bg-red-500/40 text-red-500 rounded-xl transition-all"><Ban className="w-5 h-5" /></button>
+                                                )}
+                                            </div></div></motion.div>)}</AnimatePresence>
+
+                            {/* B. CHAT PANEL (Full height fix for mobile/desktop) */}
+                            <div className={`${isCinemaMode ? 'hidden' : 'w-full lg:w-[40%] flex-1 lg:h-full'} bg-black/60 backdrop-blur-2xl flex flex-col relative border-l border-white/5 shadow-2xl z-10 min-h-0 overflow-hidden`}>
+                                {/* Chat Tabs */}
+                                <div className="p-2 lg:p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
+                                    <div className="flex items-center gap-4">
+                                        <div className="flex items-center gap-1.5">
+                                            <MessageSquare className="w-3 h-3 text-neon-red" />
+                                            <h3 className="text-[10px] font-black text-white tracking-[0.1em] uppercase italic">LIVE CHAT</h3>
+                                        </div>
+                                        {settings.showSponsorBanner && settings.sponsorText && (
+                                            <div className="hidden sm:flex items-center gap-2">
+                                                <div className="h-3 w-[1px] bg-white/10" />
+                                                <a href={settings.sponsorLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 group">
+                                                    <div className="px-1.5 py-0.5 bg-neon-purple/20 border border-neon-purple/30 rounded text-[6px] font-black text-neon-purple uppercase tracking-widest italic group-hover:bg-neon-purple/30 transition-all">PARTENAIRE</div>
+                                                    <span className="text-[8px] font-black text-white/40 group-hover:text-white transition-all uppercase italic truncate max-w-[100px]">{settings.sponsorText}</span>
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        {isMod && (
+                                            <button onClick={() => setIsModChat(!isModChat)} className={`px-2 py-1 rounded-md text-[8px] font-black uppercase flex items-center gap-1.5 transition-all ${isModChat ? 'bg-amber-500 text-black' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
+                                                <ShieldCheck className="w-3 h-3" /> CANAL MODOS
+                                            </button>
+                                        )}
+                                        <input type="color" value={accentColor} onChange={(e) => { setAccentColor(e.target.value); localStorage.setItem('chat_accent_color', e.target.value); }} className="w-6 h-6 rounded-full border-none p-0 cursor-pointer overflow-hidden bg-transparent" />
+                                    </div>
+                                </div>
+
+                                {
+                                    isConnected && (
+                                        <div className="flex items-center justify-between px-2 lg:px-4 bg-black/20 border-b border-white/10 overflow-x-auto scollbar-hide no-scrollbar">
+                                            <div className="flex gap-1 p-1 lg:p-2">
+                                                {['CHAT', 'PLANNING', 'SHAZAM', 'SHOP', 'DROPS'].map(tab => (
+                                                    <button
+                                                        key={tab}
+                                                        onClick={() => setActiveChatTab(tab === 'SHOP' ? 'shop' : tab === 'DROPS' ? 'drops' : tab.toLowerCase())}
+                                                        className={`px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg text-[8px] lg:text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === (tab === 'SHOP' ? 'shop' : tab === 'DROPS' ? 'drops' : tab.toLowerCase()) ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                                    >
+                                                        {tab === 'SHOP' ? 'SHOP OFFICIEL' : tab === 'DROPS' ? 'BOUTIQUE DROPS' : tab}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                            <div className="flex gap-1 p-1 bg-white/5 rounded-xl border border-white/10 my-1">
+                                                {(['stage1', 'stage2'] as const).map(s => (
+                                                    <button
+                                                        key={s}
+                                                        onClick={() => setActiveStage(s)}
+                                                        className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-tighter transition-all ${activeStage === s ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'text-gray-500 hover:text-white'}`}
+                                                    >
+                                                        {s === 'stage1' ? 'STAGE 1' : 'STAGE 2'}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )
+                                }
+
+                                <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-4 custom-scrollbar scroll-smooth flex flex-col gap-4 relative transition-all duration-500 bg-black/20 backdrop-blur-3xl min-h-0">
+
+                                    <div className="flex items-center justify-between mb-2">
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => window.open(`${window.location.origin}${window.location.pathname}?popout=true`, 'ChatPopout', 'width=400,height=800')}
+                                                className="px-2 py-1 text-[8px] font-black rounded-lg border border-white/5 text-gray-500 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1.5"
+                                            >
+                                                <Maximize2 className="w-3 h-3" /> DÉTACHER
+                                            </button>
+                                        </div>
+                                        <div className="bg-white/5 px-3 py-1 rounded-full border border-white/10 flex items-center gap-2">
+                                            <span className="text-[8px] font-black uppercase text-gray-500">Hype Train</span>
+                                            <div className="w-16 h-1 bg-white/10 rounded-full overflow-hidden">
+                                                <motion.div animate={{ width: `${hypeTrain.progress}%` }} className="h-full bg-neon-cyan" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+                                    <AnimatePresence>
+                                        {mentionNotify && (
+                                            <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="absolute bottom-4 right-4 z-[50] bg-neon-red text-white text-[10px] font-black px-4 py-2 rounded-full shadow-[0_0_20px_rgba(255,0,51,0.5)]">
+                                                ON T'A CITÉ ! 👇
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* ⚔️ Clash Poll Banner */}
+                                    <AnimatePresence>
+                                        {clashPoll && clashPoll.active && (
+                                            <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="sticky top-0 z-[45] bg-black/95 border-2 border-white/20 rounded-3xl p-6 mb-6 shadow-2xl relative overflow-hidden">
+                                                <div className="absolute inset-x-0 top-0 h-1 flex">
+                                                    <div className="flex-1 bg-red-600 shadow-[0_0_10px_#ef4444]" />
+                                                    <div className="flex-1 bg-blue-600 shadow-[0_0_10px_#2563eb]" />
+                                                </div>
+                                                <div className="flex items-center justify-between gap-6">
+                                                    <div className="flex-1 text-center space-y-2">
+                                                        <p className="text-[9px] font-black text-red-500 uppercase tracking-widest">{clashPoll.teamA}</p>
+                                                        <div className="text-xl font-black text-white uppercase italic">{clashPoll.votesA.length}</div>
+                                                        <button onClick={() => handleSendMessage(`!voter A`)} className="w-full py-2 bg-red-600/20 border border-red-600/40 text-red-500 text-[10px] font-black rounded-xl hover:bg-red-600/30 transition-all uppercase">VOTER A</button>
+                                                    </div>
+                                                    <div className="text-2xl font-black text-white italic opacity-20">VS</div>
+                                                    <div className="flex-1 text-center space-y-2">
+                                                        <p className="text-[9px] font-black text-blue-500 uppercase tracking-widest">{clashPoll.teamB}</p>
+                                                        <div className="text-xl font-black text-white uppercase italic">{clashPoll.votesB.length}</div>
+                                                        <button onClick={() => handleSendMessage(`!voter B`)} className="w-full py-2 bg-blue-600/20 border border-blue-600/40 text-blue-500 text-[10px] font-black rounded-xl hover:bg-blue-600/30 transition-all uppercase">VOTER B</button>
+                                                    </div>
+                                                </div>
+                                                {isMod && (
+                                                    <button onClick={() => setClashPoll(null)} className="absolute top-2 right-2 text-[8px] text-gray-600 font-bold uppercase hover:text-white transition-all">STOP</button>
+                                                )}
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* ⚡ Quick Time Event (QTE) */}
+                                    <AnimatePresence>
+                                        {qteActive && (
+                                            <motion.div initial={{ scale: 0, rotate: -20, x: '-50%', y: '-50%' }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 z-[200]">
+                                                <button
+                                                    onClick={async () => {
+                                                        const myPseudo = localStorage.getItem('chat_pseudo') || "VISITEUR";
+                                                        setQteActive(false);
+                                                        showNotification("TU AS GAGNÉ LE QTE ! ⚡ (+500 DROPS)", 'success');
+                                                        triggerConfetti();
+                                                        setUserDrops(prev => prev + 500);
+                                                        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                            pseudo: "BOT_SYSTEM",
+                                                            message: `[SYSTEM]:QTE_WINNER:${myPseudo}`,
+                                                            color: "text-neon-cyan",
+                                                            time: new Date().toLocaleTimeString(),
+                                                            country: "FR"
+                                                        });
+                                                    }}
+                                                    className="w-32 h-32 bg-neon-cyan rounded-full border-8 border-white animate-bounce shadow-[0_0_50px_#00ffff] flex items-center justify-center group"
+                                                >
+                                                    <Zap className="w-16 h-16 text-black group-active:scale-150 transition-transform" />
+                                                </button>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    <AnimatePresence>
+                                        {activePoll && (
+                                            <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="sticky top-0 z-[40] bg-[#0a0a0a] border-2 border-neon-cyan/50 rounded-2xl p-4 mb-4">
+                                                <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest mb-2">SONDAGE EN DIRECT</p>
+                                                <h4 className="text-xs font-black text-white uppercase italic mb-4">{activePoll.question}</h4>
+                                                <div className="space-y-2">
+                                                    {activePoll.options.map((opt: any, idx: number) => {
+                                                        const totalVotes = activePoll.options.reduce((sum: number, o: any) => sum + (o.votes || 0), 0);
+                                                        const percentage = totalVotes > 0 ? Math.round(((opt.votes || 0) / totalVotes) * 100) : 0;
+
+                                                        return (
+                                                            <button
+                                                                key={idx}
+                                                                disabled={userVoted}
+                                                                onClick={async () => {
+                                                                    if (!userVoted) {
+                                                                        setUserVoted(true);
+                                                                        localStorage.setItem('last_voted_poll', activePoll.question);
+                                                                        // Send vote to system
+                                                                        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                                            pseudo: "BOT_SYSTEM",
+                                                                            message: `[SYSTEM]:VOTE:${idx}`,
+                                                                            color: "text-neon-purple",
+                                                                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                            country: "FR"
+                                                                        });
+                                                                    }
+                                                                }}
+                                                                className={`w-full relative h-10 bg-white/5 border border-white/10 rounded-xl overflow-hidden group transition-all ${userVoted ? 'cursor-default' : 'hover:border-neon-cyan/50 hover:bg-white/10'}`}
+                                                            >
+                                                                <motion.div
+                                                                    initial={{ width: 0 }}
+                                                                    animate={{ width: `${percentage}%` }}
+                                                                    transition={{ duration: 1.2, ease: "easeOut" }}
+                                                                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-neon-cyan/10 to-neon-cyan/30"
+                                                                />
+                                                                <div className="absolute inset-0 flex items-center justify-between px-4">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <div className="w-6 h-6 rounded-lg bg-neon-cyan/20 flex items-center justify-center text-[10px] font-black text-neon-cyan border border-neon-cyan/30">{idx + 1}</div>
+                                                                        <span className="text-[10px] font-bold text-white uppercase tracking-tight">{opt.text}</span>
+                                                                    </div>
+                                                                    {userVoted && (
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-[10px] font-black text-neon-cyan">{percentage}%</span>
+                                                                            <div className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse" />
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                                <div className="mt-2 text-[7px] font-black text-gray-500 uppercase text-right tracking-widest">
+                                                    {activePoll.options.reduce((sum: number, o: any) => sum + (o.votes || 0), 0)} VOTES TOTAL
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* ⚡ Quick Time Event (QTE) */}
+                                    <AnimatePresence>
+                                        {qteActive && (
+                                            <motion.div initial={{ scale: 0, rotate: -20, x: '-50%', y: '-50%' }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 z-[200]">
+                                                <button
+                                                    onClick={async () => {
+                                                        const myPseudo = localStorage.getItem('chat_pseudo') || "VISITEUR";
+                                                        setQteActive(false);
+                                                        showNotification("TU AS GAGNÉ LE QTE ! ⚡ (+500 DROPS)", 'success');
+                                                        triggerConfetti();
+                                                        setUserDrops(prev => prev + 500);
+                                                        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                            pseudo: "BOT_SYSTEM",
+                                                            message: `[SYSTEM]:QTE_WINNER:${myPseudo}`,
+                                                            color: "text-neon-cyan",
+                                                            time: new Date().toLocaleTimeString(),
+                                                            country: "FR"
+                                                        });
+                                                    }}
+                                                    className="w-32 h-32 bg-neon-cyan rounded-full border-8 border-white animate-bounce shadow-[0_0_50px_#00ffff] flex items-center justify-center group"
+                                                >
+                                                    <Zap className="w-16 h-16 text-black group-active:scale-150 transition-transform" />
+                                                </button>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    {/* Simple Quiz Banner */}
+                                    <AnimatePresence>
+                                        {activeQuiz && (
+                                            <motion.div
+                                                initial={{ opacity: 0, y: -10 }}
+                                                animate={{ opacity: 1, y: 0 }}
+                                                exit={{ opacity: 0 }}
+                                                className="sticky top-0 z-[40] bg-[#0a0a0a] border-2 border-neon-purple/50 rounded-3xl p-5 mb-6 shadow-[0_0_40px_rgba(168,85,247,0.2)] overflow-hidden"
+                                            >
+                                                <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
                                                     <motion.div
-                                                        initial={{ width: 0 }}
-                                                        animate={{ width: `${percentage}%` }}
-                                                        transition={{ duration: 1.2, ease: "easeOut" }}
-                                                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-neon-cyan/10 to-neon-cyan/30"
+                                                        initial={{ width: "100%" }}
+                                                        animate={{ width: "0%" }}
+                                                        transition={{ duration: 30, ease: "linear" }}
+                                                        className="h-full bg-neon-purple shadow-[0_0_10px_#a855f7]"
                                                     />
-                                                    <div className="absolute inset-0 flex items-center justify-between px-4">
-                                                        <div className="flex items-center gap-3">
-                                                            <div className="w-6 h-6 rounded-lg bg-neon-cyan/20 flex items-center justify-center text-[10px] font-black text-neon-cyan border border-neon-cyan/30">{idx + 1}</div>
-                                                            <span className="text-[10px] font-bold text-white uppercase tracking-tight">{opt.text}</span>
+                                                </div>
+                                                <div className="flex items-start justify-between gap-4 mb-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-10 h-10 rounded-2xl bg-neon-purple flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)]">
+                                                            <Zap className="w-5 h-5 text-white" />
                                                         </div>
-                                                        {userVoted && (
-                                                            <div className="flex items-center gap-2">
-                                                                <span className="text-[10px] font-black text-neon-cyan">{percentage}%</span>
-                                                                <div className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse" />
+                                                        <div>
+                                                            <p className="text-[10px] font-black text-neon-purple uppercase tracking-[0.2em] mb-1">QUIZ DROPSIDERS</p>
+                                                            <h4 className="text-sm font-black text-white uppercase italic leading-tight">{activeQuiz.question}</h4>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex flex-col items-end gap-1 shrink-0">
+                                                        <div className="px-3 py-1 bg-amber-500 text-black text-[9px] font-black rounded-lg uppercase animate-pulse">100 DROPS</div>
+                                                        {quizTimeLeft !== null && (
+                                                            <div className="px-3 py-1 bg-red-600/20 border border-red-500/50 text-red-400 text-[10px] font-black rounded-lg uppercase flex items-center gap-1">
+                                                                <Timer className="w-3 h-3" /> {quizTimeLeft}s
                                                             </div>
                                                         )}
                                                     </div>
-                                                </button>
-                                            );
-                                        })}
-                                    </div>
-                                    <div className="mt-2 text-[7px] font-black text-gray-500 uppercase text-right tracking-widest">
-                                        {activePoll.options.reduce((sum: number, o: any) => sum + (o.votes || 0), 0)} VOTES TOTAL
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* ⚡ Quick Time Event (QTE) */}
-                        <AnimatePresence>
-                            {qteActive && (
-                                <motion.div initial={{ scale: 0, rotate: -20, x: '-50%', y: '-50%' }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 z-[200]">
-                                    <button
-                                        onClick={async () => {
-                                            const myPseudo = localStorage.getItem('chat_pseudo') || "VISITEUR";
-                                            setQteActive(false);
-                                            showNotification("TU AS GAGNÉ LE QTE ! ⚡ (+500 DROPS)", 'success');
-                                            triggerConfetti();
-                                            setUserDrops(prev => prev + 500);
-                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                pseudo: "BOT_SYSTEM",
-                                                message: `[SYSTEM]:QTE_WINNER:${myPseudo}`,
-                                                color: "text-neon-cyan",
-                                                time: new Date().toLocaleTimeString(),
-                                                country: "FR"
-                                            });
-                                        }}
-                                        className="w-32 h-32 bg-neon-cyan rounded-full border-8 border-white animate-bounce shadow-[0_0_50px_#00ffff] flex items-center justify-center group"
-                                    >
-                                        <Zap className="w-16 h-16 text-black group-active:scale-150 transition-transform" />
-                                    </button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Simple Quiz Banner */}
-                        <AnimatePresence>
-                            {activeQuiz && (
-                                <motion.div
-                                    initial={{ opacity: 0, y: -10 }}
-                                    animate={{ opacity: 1, y: 0 }}
-                                    exit={{ opacity: 0 }}
-                                    className="sticky top-0 z-[40] bg-[#0a0a0a] border-2 border-neon-purple/50 rounded-3xl p-5 mb-6 shadow-[0_0_40px_rgba(168,85,247,0.2)] overflow-hidden"
-                                >
-                                    <div className="absolute top-0 left-0 right-0 h-1 bg-white/5">
-                                        <motion.div
-                                            initial={{ width: "100%" }}
-                                            animate={{ width: "0%" }}
-                                            transition={{ duration: 30, ease: "linear" }}
-                                            className="h-full bg-neon-purple shadow-[0_0_10px_#a855f7]"
-                                        />
-                                    </div>
-                                    <div className="flex items-start justify-between gap-4 mb-4">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-10 h-10 rounded-2xl bg-neon-purple flex items-center justify-center shadow-[0_0_20px_rgba(168,85,247,0.4)]">
-                                                <Zap className="w-5 h-5 text-white" />
-                                            </div>
-                                            <div>
-                                                <p className="text-[10px] font-black text-neon-purple uppercase tracking-[0.2em] mb-1">QUIZ DROPSIDERS</p>
-                                                <h4 className="text-sm font-black text-white uppercase italic leading-tight">{activeQuiz.question}</h4>
-                                            </div>
-                                        </div>
-                                        <div className="flex flex-col items-end gap-1 shrink-0">
-                                            <div className="px-3 py-1 bg-amber-500 text-black text-[9px] font-black rounded-lg uppercase animate-pulse">100 DROPS</div>
-                                            {quizTimeLeft !== null && (
-                                                <div className="px-3 py-1 bg-red-600/20 border border-red-500/50 text-red-400 text-[10px] font-black rounded-lg uppercase flex items-center gap-1">
-                                                    <Timer className="w-3 h-3" /> {quizTimeLeft}s
                                                 </div>
-                                            )}
-                                        </div>
-                                    </div>
 
-                                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
-                                        {activeQuiz.options.map((opt: string, idx: number) => {
-                                            const v = activeQuiz.votes || [0, 0, 0, 0];
-                                            const total = v.reduce((a: number, b: number) => a + b, 0);
-                                            const percentage = total > 0 ? Math.round((v[idx] / total) * 100) : 0;
+                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                                                    {activeQuiz.options.map((opt: string, idx: number) => {
+                                                        const v = activeQuiz.votes || [0, 0, 0, 0];
+                                                        const total = v.reduce((a: number, b: number) => a + b, 0);
+                                                        const percentage = total > 0 ? Math.round((v[idx] / total) * 100) : 0;
 
-                                            return (
-                                                <div key={idx} className="relative group overflow-hidden bg-white/5 border border-white/10 rounded-2xl p-4 transition-all hover:bg-white/10">
-                                                    <motion.div
-                                                        initial={{ width: 0 }}
-                                                        animate={{ width: `${percentage}%` }}
-                                                        transition={{ duration: 1.2, ease: "easeOut" }}
-                                                        className="absolute inset-y-0 left-0 bg-gradient-to-r from-neon-purple/5 to-neon-purple/20"
-                                                    />
-                                                    <div className="flex items-center justify-between relative z-10">
-                                                        <div className="flex items-center gap-4">
-                                                            <span className="w-8 h-8 rounded-xl bg-neon-purple/20 flex items-center justify-center text-xs font-black text-neon-purple border border-neon-purple/30 group-hover:scale-110 transition-transform">
-                                                                {idx + 1}
-                                                            </span>
-                                                            <span className="text-xs font-bold text-white uppercase tracking-tight">{opt}</span>
-                                                        </div>
-                                                        <div className="flex flex-col items-end">
-                                                            <span className="text-[11px] font-black text-neon-purple">{percentage}%</span>
-                                                            <span className="text-[7px] font-bold text-gray-600 uppercase tracking-tighter">{v[idx]} REP.</span>
-                                                        </div>
-                                                    </div>
+                                                        return (
+                                                            <div key={idx} className="relative group overflow-hidden bg-white/5 border border-white/10 rounded-2xl p-4 transition-all hover:bg-white/10">
+                                                                <motion.div
+                                                                    initial={{ width: 0 }}
+                                                                    animate={{ width: `${percentage}%` }}
+                                                                    transition={{ duration: 1.2, ease: "easeOut" }}
+                                                                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-neon-purple/5 to-neon-purple/20"
+                                                                />
+                                                                <div className="flex items-center justify-between relative z-10">
+                                                                    <div className="flex items-center gap-4">
+                                                                        <span className="w-8 h-8 rounded-xl bg-neon-purple/20 flex items-center justify-center text-xs font-black text-neon-purple border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                                                                            {idx + 1}
+                                                                        </span>
+                                                                        <span className="text-xs font-bold text-white uppercase tracking-tight">{opt}</span>
+                                                                    </div>
+                                                                    <div className="flex flex-col items-end">
+                                                                        <span className="text-[11px] font-black text-neon-purple">{percentage}%</span>
+                                                                        <span className="text-[7px] font-bold text-gray-600 uppercase tracking-tighter">{v[idx]} REP.</span>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        );
+                                                    })}
                                                 </div>
-                                            );
-                                        })}
-                                    </div>
 
-                                    <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-                                        <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Répondez par 1, 2, 3 ou 4 dans le chat</p>
-                                        {userHasAnswered && (
-                                            <span className="text-[8px] font-black text-neon-cyan uppercase">Participation enregistrée ✔</span>
-                                        )}
-                                    </div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* ⭐ Artist Rating Prompt */}
-                        <AnimatePresence>
-                            {showRatingPrompt && (
-                                <motion.div
-                                    initial={{ opacity: 0, scale: 0.9 }}
-                                    animate={{ opacity: 1, scale: 1 }}
-                                    exit={{ opacity: 0, scale: 0.9 }}
-                                    className="absolute bottom-24 left-6 right-6 z-[80] bg-black/95 backdrop-blur-2xl border-2 border-neon-cyan/30 rounded-[2.5rem] p-8 text-center shadow-[0_0_50px_rgba(0,255,255,0.2)]"
-                                >
-                                    <div className="w-16 h-16 bg-neon-cyan/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
-                                        <Heart className="w-8 h-8 text-neon-cyan animate-pulse" />
-                                    </div>
-                                    <h4 className="text-xl font-display font-black text-white uppercase italic tracking-tighter mb-2">NOTE LE SET DE <span className="text-neon-cyan">{fluxCurrentArtist.artist}</span></h4>
-                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-6">Partage ton avis avec la communauté !</p>
-
-                                    <div className="flex justify-center gap-3 mb-8">
-                                        {[1, 2, 3, 4, 5].map(star => (
-                                            <button
-                                                key={star}
-                                                onClick={async () => {
-                                                    setSetRatings(prev => ({ ...prev, [fluxCurrentArtist.artist]: star }));
-                                                    setShowRatingPrompt(false);
-                                                    showNotification(`VOTE ENREGISTRÉ : ${star}/5 ⭐`, 'success');
-
-                                                    // Broadcast rating via Appwrite
-                                                    await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                        pseudo: "BOT_SYSTEM",
-                                                        message: `[SYSTEM]:RATING:${fluxCurrentArtist.artist}:${star}`,
-                                                        color: "text-neon-cyan",
-                                                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                        country: "FR"
-                                                    });
-                                                }}
-                                                className="group relative"
-                                            >
-                                                <Star className={`w-10 h-10 transition-all ${star <= (setRatings[fluxCurrentArtist.artist] || 0) ? 'text-amber-500 fill-amber-500 scale-110 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'text-white/10 hover:text-amber-500/50 hover:scale-105'}`} />
-                                            </button>
-                                        ))}
-                                    </div>
-
-                                    <button onClick={() => setShowRatingPrompt(false)} className="text-[10px] font-black text-gray-500 uppercase hover:text-white transition-colors">Plus tard</button>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        <AnimatePresence mode="wait">
-                            {!isConnected ? (
-                                <motion.div
-                                    key="login-screen"
-                                    initial={{ opacity: 0 }}
-                                    animate={{ opacity: 1 }}
-                                    exit={{ opacity: 0 }}
-                                    className="absolute inset-0 z-[100] bg-[#0a0a0a]/95 backdrop-blur-xl flex items-center justify-center p-6"
-                                >
-                                    <div className="w-full max-w-md space-y-8">
-                                        <div className="text-center space-y-3">
-                                            <div className="w-20 h-20 bg-neon-red/10 border-2 border-neon-red rounded-[2.5rem] flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(255,0,51,0.2)]">
-                                                <MessageSquare className="w-10 h-10 text-neon-red animate-pulse" />
-                                            </div>
-                                            <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">Live Chat</h2>
-                                            <p className="text-gray-500 text-xs font-black uppercase tracking-[0.3em]">Connectez-vous pour participer</p>
-                                        </div>
-
-                                        <form onSubmit={handleConnect} className="space-y-4">
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pseudo</label>
-                                                    <input
-                                                        value={loginPseudo}
-                                                        onChange={e => setLoginPseudo(e.target.value)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-black uppercase outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
-                                                        placeholder="DX_RAVER"
-                                                    />
-                                                </div>
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pseudo Color</label>
-                                                    <div className="flex gap-2 h-[58px]">
-                                                        <input
-                                                            type="color"
-                                                            value={loginPseudoColor}
-                                                            onChange={e => setLoginPseudoColor(e.target.value)}
-                                                            className="w-full h-full bg-white/5 border border-white/10 rounded-2xl p-1 cursor-pointer"
-                                                        />
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1.5">
-                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Email (Newsletter)</label>
-                                                <input
-                                                    type="email"
-                                                    value={loginEmail}
-                                                    onChange={e => setLoginEmail(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
-                                                    placeholder="vibe@dropsiders.fr"
-                                                />
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-1.5 relative">
-                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pays (Auto-Flag)</label>
-                                                    <input
-                                                        value={loginCountrySearch}
-                                                        onChange={e => {
-                                                            setLoginCountrySearch(e.target.value);
-                                                            const found = countries.find(c => c.name.toLowerCase().includes(e.target.value.toLowerCase()) || c.code.toLowerCase() === e.target.value.toLowerCase());
-                                                            if (found) setLoginCountry(found.code);
-                                                        }}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-black outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
-                                                        placeholder="France, Canada..."
-                                                    />
-                                                    <div className="absolute right-4 top-10">
-                                                        <FlagIcon location={loginCountry} className="w-6 h-4 rounded shadow-sm" />
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Instagram</label>
-                                                    <input
-                                                        value={loginInstagram}
-                                                        onChange={e => setLoginInstagram(e.target.value)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
-                                                        placeholder="@user"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1.5">
-                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Captcha : {captchaChallenge?.q}</label>
-                                                <input
-                                                    value={captchaInput}
-                                                    onChange={e => setCaptchaInput(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-black outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
-                                                    placeholder="Résultat..."
-                                                />
-                                            </div>
-
-                                            <button type="submit" className="w-full bg-gradient-to-r from-neon-red to-pink-600 py-4 rounded-2xl text-white font-black uppercase italic tracking-widest shadow-lg shadow-neon-red/20 hover:scale-[1.02] active:scale-95 transition-all">
-                                                Rejoindre le live
-                                            </button>
-                                        </form>
-                                    </div>
-                                </motion.div>
-                            ) : activeChatTab === 'chat' ? (
-                                <motion.div key="chat-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
-                                    {pinnedMessage && (
-                                        <div className="p-3 bg-neon-red/10 border border-neon-red/20 rounded-xl relative overflow-hidden group">
-                                            <div className="flex items-center justify-between mb-1">
-                                                <p className="text-[10px] text-neon-red font-black uppercase flex items-center gap-2">
-                                                    <Pin className="w-3 h-3" /> Message Épinglé
-                                                </p>
-                                                {isMod && (
-                                                    <button onClick={() => setPinnedMessage(null)} className="text-[9px] text-gray-500 hover:text-white font-bold uppercase transition-all">
-                                                        Désépingler
-                                                    </button>
-                                                )}
-                                            </div>
-                                            <p className="text-xs text-white">
-                                                <span className="font-black italic mr-2 text-neon-red">{pinnedMessage.user} :</span>
-                                                {pinnedMessage.text}
-                                            </p>
-                                        </div>
-                                    )}
-
-                                    <AnimatePresence initial={false}>
-                                        {chatMessages.filter(m => (isModChat ? m.isModOnly : !m.isModOnly) && (m.stage || 'stage1') === activeStage && !m.message?.startsWith('[SYSTEM]:')).map((msg, idx) => {
-                                            const isHovered = hoveredMessageId === msg.id;
-                                            const isDimmed = hoveredMessageId !== null && !isHovered;
-
-                                            return (
-                                                <motion.div
-                                                    key={msg.id || idx}
-                                                    layout
-                                                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                                                    animate={{
-                                                        opacity: isDimmed ? 0.3 : 1,
-                                                        y: 0,
-                                                        scale: 1,
-                                                        filter: isDimmed ? 'grayscale(0.5) blur(0.5px)' : 'none'
-                                                    }}
-                                                    onMouseEnter={() => setHoveredMessageId(msg.id)}
-                                                    onMouseLeave={() => setHoveredMessageId(null)}
-                                                    onDoubleClick={() => setSelectedProfile({ pseudo: msg.pseudo, country: msg.country, color: msg.color })}
-                                                    className={`group flex flex-col gap-1 relative p-3 rounded-2xl transition-all duration-300 cursor-pointer ${clashPoll?.active
-                                                        ? (clashPoll.votesA.includes(msg.pseudo) ? 'mr-12 border-l-2 border-red-500' : clashPoll.votesB.includes(msg.pseudo) ? 'ml-12 border-r-2 border-blue-500 text-right items-end' : 'hover:bg-white/[0.02]')
-                                                        : (msg.pseudo === localStorage.getItem('chat_pseudo') ? 'bg-white/5 ml-4 lg:ml-8' : 'hover:bg-white/[0.02]')
-                                                        }`}
-                                                    style={{
-                                                        backgroundColor: msg.bgColor ? `${msg.bgColor}15` : undefined,
-                                                        borderColor: msg.pseudo === localStorage.getItem('chat_pseudo') && profileBorder !== 'none' ? profileBorder : (msg.bgColor ? `${msg.bgColor}30` : undefined),
-                                                        borderWidth: (msg.pseudo === localStorage.getItem('chat_pseudo') && profileBorder !== 'none') || msg.bgColor ? '1px' : '0px',
-                                                        boxShadow: msg.bgColor ? `0 0 15px ${msg.bgColor}10` : 'none'
-                                                    }}
-                                                >
-                                                    {/* Mention highlighting */}
-                                                    {localStorage.getItem('chat_pseudo') && msg.message.toLowerCase().includes(`@${localStorage.getItem('chat_pseudo')?.toLowerCase()}`) && (
-                                                        <div className="absolute inset-0 bg-neon-red/10 border border-neon-red/30 rounded-2xl animate-pulse pointer-events-none" />
+                                                <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
+                                                    <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Répondez par 1, 2, 3 ou 4 dans le chat</p>
+                                                    {userHasAnswered && (
+                                                        <span className="text-[8px] font-black text-neon-cyan uppercase">Participation enregistrée ✔</span>
                                                     )}
-                                                    <div className="flex gap-3 relative">
-                                                        <div className="w-9 h-9 rounded-xl border border-white/10 shrink-0 flex items-center justify-center bg-white/5 relative overflow-hidden group-hover:border-neon-red/30 transition-all">
-                                                            <FlagIcon location={msg.country} className="absolute inset-0 w-full h-full opacity-30 object-cover grayscale" />
-                                                            <div className="text-[10px] font-black text-gray-400 group-hover:text-white transition-colors relative z-10">{(msg.pseudo || msg.user || 'V')[0]}</div>
-                                                            {isHovered && <motion.div layoutId="bg-glow" className="absolute inset-0 bg-neon-red/5 blur-md" />}
-                                                        </div>
-                                                        <div className="flex-1 min-w-0">
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                {msg.country && <FlagIcon location={msg.country} className="w-3 h-2" />}
-                                                                {(msg.geo || userCity) && (
-                                                                    <span className="text-[7px] font-black text-gray-500 bg-white/5 px-1 rounded flex items-center gap-0.5">
-                                                                        <MapPin className="w-2 h-2" /> {msg.geo || userCity}
-                                                                    </span>
-                                                                )}
-                                                                <span className="text-[9px] font-black text-neon-cyan/60 shrink-0 uppercase tracking-tighter mr-1 text-xs">[Lvl {Math.floor(Math.sqrt((msg.xp || 0) / 100)) + 1}]</span>
-                                                                <span className={`text-[11px] font-black uppercase italic tracking-tight ${msg.isHolo ? 'holo-pseudo' : (msg.xp > 5000 ? 'bg-gradient-to-r from-red-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent animate-gradient' : msg.color || 'text-white')}`}>{msg.pseudo || msg.user}</span>
-                                                                {msg.isPrems && (
-                                                                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="bg-neon-red text-white text-[7px] font-black px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(255,0,51,0.5)] animate-pulse flex items-center gap-1">
-                                                                        <Zap className="w-2 h-2" /> PREMS
-                                                                    </motion.span>
-                                                                )}
-                                                                {topTalkers[0]?.pseudo === msg.pseudo && <Crown className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500 animate-bounce" />}
-                                                                {topTalkers[1]?.pseudo === msg.pseudo && <Trophy className="w-2.5 h-2.5 text-gray-300 fill-gray-300" />}
-                                                                {topTalkers[2]?.pseudo === msg.pseudo && <Trophy className="w-2.5 h-2.5 text-amber-600 fill-amber-600" />}
-
-
-                                                                {/* Mod/VIP Badges */}
-                                                                {showBadgesAdmin && msg.isMod && <Sword className="w-2.5 h-2.5 text-neon-red" />}
-                                                                {showBadgesAdmin && msg.isVip && <Crown className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />}
-                                                                {showBadgesAdmin && msg.pseudo === 'ALEX_FR1' && <Star className="w-2.5 h-2.5 text-neon-cyan fill-neon-cyan" />}
-
-                                                                {/* Animated Badges */}
-                                                                {showBadgesAdmin && (msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') && (
-                                                                    <motion.div
-                                                                        animate={{ rotate: [0, 10, -10, 0] }}
-                                                                        transition={{ repeat: Infinity, duration: 2 }}
-                                                                        className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-neon-purple/20 border border-neon-purple/30"
-                                                                    >
-                                                                        <ShieldCheck className="w-3 h-3 text-neon-purple" />
-                                                                        <span className="text-[7px] font-black text-neon-purple uppercase">ADMIN</span>
-                                                                    </motion.div>
-                                                                )}
-                                                                {msg.bgColor && (
-                                                                    <motion.div
-                                                                        animate={{ scale: [1, 1.1, 1] }}
-                                                                        transition={{ repeat: Infinity, duration: 1.5 }}
-                                                                    >
-                                                                        <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
-                                                                    </motion.div>
-                                                                )}
-
-                                                                {msg.time && <span className="text-[8px] text-gray-600 font-mono ml-auto opacity-0 group-hover:opacity-100 transition-opacity">{msg.time}</span>}
-                                                            </div>
-                                                            {/* Reply support removed */}
-                                                            <p className={`text-[11px] leading-relaxed break-all font-medium transition-all ${isHovered ? 'text-white' : 'text-gray-400'} ${msg.pseudo === localStorage.getItem('chat_pseudo') ? specialFontStyle : ''}`}>
-                                                                {msg.translated ? (
-                                                                    <span className="italic">
-                                                                        <span className="text-[8px] bg-white/10 px-1 rounded mr-1">TRAD</span>
-                                                                        {msg.translated}
-                                                                    </span>
-                                                                ) : (msg.message || msg.text)}
-                                                            </p>
-                                                            <div className="flex gap-1 mt-2">
-                                                                {['👍', '🔥', '😂', '👑', '💎'].map(emoji => (
-                                                                    <button
-                                                                        key={emoji}
-                                                                        onClick={async (e) => {
-                                                                            e.stopPropagation();
-                                                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                                pseudo: "BOT_SYSTEM",
-                                                                                message: `[SYSTEM]:REACTION:${msg.id}:${emoji}`,
-                                                                                color: "text-neon-purple",
-                                                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                                country: "FR"
-                                                                            });
-                                                                        }}
-                                                                        className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded-lg text-[10px] hover:bg-white/20 transition-all flex items-center gap-1"
-                                                                    >
-                                                                        {emoji} <span className="opacity-50">{msg.reactions?.[emoji] || 0}</span>
-                                                                    </button>
-                                                                ))}
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="absolute right-0 top-0 hidden group-hover:flex items-center gap-1 bg-black/80 backdrop-blur-md p-1.5 rounded-xl border border-white/10 z-20 shadow-2xl">
-                                                            {/* Reply capability removed as DB schema doesn't support it */}
-                                                            <button onClick={(e) => { e.stopPropagation(); setPinnedMessage(msg); }} title="Épingler" className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"><Pin className="w-3 h-3" /></button>
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    setChatMessages(prev => prev.map(m => m.id === msg.id ? { ...m, translated: `[Traduction simulée]: ${m.message}` } : m));
-                                                                }}
-                                                                title="Traduire"
-                                                                className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"
-                                                            >
-                                                                <Languages className="w-3 h-3" />
-                                                            </button>
-                                                            <button onClick={(e) => { e.stopPropagation(); deleteMessage(msg.id); }} title="Supprimer" className="p-1.5 text-gray-400 hover:text-red-500 transition-all"><X className="w-3 h-3" /></button>
-                                                            {isAdmin && msg.pseudo !== 'ALEX_FR1' && (
-                                                                <button onClick={(e) => { e.stopPropagation(); handleBanUser(msg.pseudo); }} title="Bannir" className="p-1.5 text-gray-400 hover:text-orange-500 transition-all border-l border-white/10 ml-1"><Ban className="w-3 h-3" /></button>
-                                                            )}
-                                                        </div>
-                                                    </div>
-                                                </motion.div>
-                                            );
-                                        })}
-                                    </AnimatePresence>
-                                    {/* HEIST Overlay */}
-                                    <AnimatePresence>
-                                        {showHeistOverlay && (
-                                            <motion.div
-                                                initial={{ opacity: 0, y: 20 }}
-                                                animate={{ opacity: 1, y: 0 }}
-                                                exit={{ opacity: 0, y: 20 }}
-                                                className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
-                                            >
-                                                <motion.div
-                                                    initial={{ scale: 0.8 }}
-                                                    animate={{ scale: 1 }}
-                                                    exit={{ scale: 0.8 }}
-                                                    className="bg-gradient-to-br from-gray-900 to-black border border-neon-red/50 rounded-3xl p-8 text-center shadow-2xl max-w-md w-full relative"
-                                                >
-                                                    <button
-                                                        onClick={() => setShowHeistOverlay(false)}
-                                                        className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-                                                    >
-                                                        <X className="w-6 h-6" />
-                                                    </button>
-                                                    <div className="flex flex-col items-center justify-center space-y-4">
-                                                        <ShieldAlert className="w-16 h-16 text-neon-red animate-pulse" />
-                                                        <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">ALERTE BRAQUAGE !</h3>
-                                                        <p className="text-sm text-gray-300">
-                                                            Un braquage est en cours ! Participez pour tenter de gagner des DROPS.
-                                                            Tapez <span className="font-mono text-neon-cyan">/braquage [montant]</span> dans le chat pour rejoindre.
-                                                        </p>
-                                                        <button
-                                                            onClick={() => {
-                                                                setShowHeistOverlay(false);
-                                                                triggerPACMAN();
-                                                                handleSendMessage("!braquage");
-                                                            }}
-                                                            className="mt-6 px-8 py-3 bg-neon-red text-white font-black uppercase italic tracking-widest rounded-xl hover:shadow-[0_0_25px_rgba(255,0,51,0.4)] transition-all transform active:scale-95"
-                                                        >
-                                                            Participer !
-                                                        </button>
-                                                    </div>
-                                                </motion.div>
+                                                </div>
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
-                                </motion.div >
-                            ) : activeChatTab === 'shazam' ? (
-                                <motion.div key="shazam-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                                    <button onClick={handleShazamAction} disabled={shazamStatus !== 'idle'} className={`w-full py-4 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all ${shazamStatus === 'idle' ? 'border-white/20 hover:border-neon-purple/50 bg-white/5' : 'border-neon-purple/50 bg-neon-purple/5'}`}>
-                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${shazamStatus !== 'idle' ? 'bg-neon-purple shadow-[0_0_20px_rgba(168,85,247,0.5)]' : 'bg-white/10'}`}>
-                                            <Music className={`w-6 h-6 ${shazamStatus !== 'idle' ? 'animate-pulse text-white' : 'text-gray-500'}`} />
-                                        </div>
-                                        <p className="text-[10px] font-black text-white uppercase tracking-widest">{shazamStatus === 'idle' ? 'Identifier le morceau' : shazamStatus === 'listening' ? 'Écoute en cours...' : 'Recherche...'}</p>
-                                    </button>
-                                    <div className="space-y-4">
-                                        <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">Historique</h3>
-                                        {shazamHistory.map(track => (
-                                            <div key={track.id} className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-4 group">
-                                                <img
-                                                    src={track.image}
-                                                    onError={(e) => e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=cover"}
-                                                    className="w-12 h-12 rounded-lg shrink-0 object-cover"
-                                                    alt=""
-                                                />
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-xs font-black text-white uppercase truncate">{track.title}</p>
-                                                    <p className="text-[9px] text-gray-500 font-bold uppercase truncate">{track.artist}</p>
-                                                </div>
-                                                <div className="text-[9px] font-mono text-gray-600">{track.time}</div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </motion.div>
-                            ) : activeChatTab === 'planning' ? (
-                                <motion.div key="planning-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                                    {lineupItems.map(item => {
-                                        const now = new Date();
-                                        const [h, m] = (item.startTime || "00:00").split(':').map(Number);
-                                        const [eh, em] = (item.endTime || "00:00").split(':').map(Number);
-                                        const start = new Date(); start.setHours(h, m, 0);
-                                        const end = new Date(); end.setHours(eh, em, 0);
-                                        const isNow = now >= start && now <= end;
-                                        const progress = isNow ? Math.min(100, Math.max(0, ((now.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100)) : 0;
 
-                                        return (
-                                            <div key={item.id} className={`p-4 border rounded-2xl space-y-3 transition-all ${isNow ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,255,255,0.05)]' : 'bg-white/5 border-white/10'}`}>
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <Calendar className="w-3 h-3 text-gray-500" />
-                                                        <span className={`text-[10px] font-black uppercase ${isNow ? 'text-neon-cyan' : 'text-gray-500'}`}>{item.stage}</span>
-                                                    </div>
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-[10px] font-mono text-white/80">{item.day}</span>
-                                                        <span className="text-[10px] font-mono text-gray-500">{item.startTime} - {item.endTime}</span>
-                                                    </div>
+                                    {/* ⭐ Artist Rating Prompt */}
+                                    <AnimatePresence>
+                                        {showRatingPrompt && (
+                                            <motion.div
+                                                initial={{ opacity: 0, scale: 0.9 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                exit={{ opacity: 0, scale: 0.9 }}
+                                                className="absolute bottom-24 left-6 right-6 z-[80] bg-black/95 backdrop-blur-2xl border-2 border-neon-cyan/30 rounded-[2.5rem] p-8 text-center shadow-[0_0_50px_rgba(0,255,255,0.2)]"
+                                            >
+                                                <div className="w-16 h-16 bg-neon-cyan/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                                                    <Heart className="w-8 h-8 text-neon-cyan animate-pulse" />
                                                 </div>
-                                                <div className="space-y-2">
-                                                    <p className="text-lg font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-2">
-                                                        {isNow && <span className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse" />}
-                                                        {item.artist}
-                                                    </p>
-                                                    {isNow && (
-                                                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mt-2">
-                                                            <div
-                                                                className="h-full bg-neon-cyan shadow-[0_0_10px_#00ffff] transition-all duration-1000"
-                                                                style={{ width: `${progress}%` }}
+                                                <h4 className="text-xl font-display font-black text-white uppercase italic tracking-tighter mb-2">NOTE LE SET DE <span className="text-neon-cyan">{fluxCurrentArtist.artist}</span></h4>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-6">Partage ton avis avec la communauté !</p>
+
+                                                <div className="flex justify-center gap-3 mb-8">
+                                                    {[1, 2, 3, 4, 5].map(star => (
+                                                        <button
+                                                            key={star}
+                                                            onClick={async () => {
+                                                                setSetRatings(prev => ({ ...prev, [fluxCurrentArtist.artist]: star }));
+                                                                setShowRatingPrompt(false);
+                                                                showNotification(`VOTE ENREGISTRÉ : ${star}/5 ⭐`, 'success');
+
+                                                                // Broadcast rating via Appwrite
+                                                                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                                    pseudo: "BOT_SYSTEM",
+                                                                    message: `[SYSTEM]:RATING:${fluxCurrentArtist.artist}:${star}`,
+                                                                    color: "text-neon-cyan",
+                                                                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                    country: "FR"
+                                                                });
+                                                            }}
+                                                            className="group relative"
+                                                        >
+                                                            <Star className={`w-10 h-10 transition-all ${star <= (setRatings[fluxCurrentArtist.artist] || 0) ? 'text-amber-500 fill-amber-500 scale-110 shadow-[0_0_15px_rgba(245,158,11,0.3)]' : 'text-white/10 hover:text-amber-500/50 hover:scale-105'}`} />
+                                                        </button>
+                                                    ))}
+                                                </div>
+
+                                                <button onClick={() => setShowRatingPrompt(false)} className="text-[10px] font-black text-gray-500 uppercase hover:text-white transition-colors">Plus tard</button>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
+
+                                    <AnimatePresence mode="wait">
+                                        {!isConnected ? (
+                                            <motion.div
+                                                key="login-screen"
+                                                initial={{ opacity: 0 }}
+                                                animate={{ opacity: 1 }}
+                                                exit={{ opacity: 0 }}
+                                                className="absolute inset-0 z-[100] bg-[#0a0a0a]/95 backdrop-blur-xl flex items-center justify-center p-6"
+                                            >
+                                                <div className="w-full max-w-md space-y-8">
+                                                    <div className="text-center space-y-3">
+                                                        <div className="w-20 h-20 bg-neon-red/10 border-2 border-neon-red rounded-[2.5rem] flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(255,0,51,0.2)]">
+                                                            <MessageSquare className="w-10 h-10 text-neon-red animate-pulse" />
+                                                        </div>
+                                                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">Live Chat</h2>
+                                                        <p className="text-gray-500 text-xs font-black uppercase tracking-[0.3em]">Connectez-vous pour participer</p>
+                                                    </div>
+
+                                                    <form onSubmit={handleConnect} className="space-y-4">
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pseudo</label>
+                                                                <input
+                                                                    value={loginPseudo}
+                                                                    onChange={e => setLoginPseudo(e.target.value)}
+                                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-black uppercase outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                                                    placeholder="DX_RAVER"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pseudo Color</label>
+                                                                <div className="flex gap-2 h-[58px]">
+                                                                    <input
+                                                                        type="color"
+                                                                        value={loginPseudoColor}
+                                                                        onChange={e => setLoginPseudoColor(e.target.value)}
+                                                                        className="w-full h-full bg-white/5 border border-white/10 rounded-2xl p-1 cursor-pointer"
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Email (Newsletter)</label>
+                                                            <input
+                                                                type="email"
+                                                                value={loginEmail}
+                                                                onChange={e => setLoginEmail(e.target.value)}
+                                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                                                placeholder="vibe@dropsiders.fr"
                                                             />
                                                         </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </motion.div>
-                            ) : activeChatTab === 'shop' ? (
-                                <motion.div key="shop-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 overflow-y-auto space-y-6 py-6 px-4 custom-scrollbar">
-                                    <div className="text-center mb-8">
-                                        <ShoppingBag className="w-12 h-12 text-neon-cyan mx-auto mb-4" />
-                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Shop Officiel Dropsiders</h3>
-                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2">Merchandising & Accessoires</p>
-                                    </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
-                                        {shopItems.map(item => (
-                                            <div key={item.id} className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col group hover:border-neon-cyan/30 transition-all cursor-pointer shadow-xl relative overflow-hidden">
-                                                <div className="aspect-[4/5] rounded-xl bg-black/40 overflow-hidden mb-3 border border-white/10">
-                                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                                                </div>
-                                                <div className="flex-1 flex flex-col justify-between">
-                                                    <div>
-                                                        <p className="text-[9px] lg:text-[10px] font-black text-white uppercase mb-1 leading-tight">{item.name}</p>
-                                                        <p className="text-[11px] font-black text-neon-cyan">{item.price} €</p>
-                                                    </div>
-                                                    <button onClick={() => showNotification(`ACHETER : ${item.name}`, 'success')} className="w-full mt-3 py-1.5 bg-white/5 border border-white/10 text-[8px] font-black uppercase rounded-lg hover:bg-white/10 text-white transition-all">VOIR</button>
-                                                </div>
-                                            </div>
-                                        ))}
-                                    </div>
-                                    <div className="p-4 bg-neon-cyan/5 border border-neon-cyan/20 rounded-2xl mt-8">
-                                        <p className="text-[8px] font-bold text-neon-cyan/60 uppercase text-center leading-relaxed">Les articles officiels sont expédiés sous 48h. Paiement sécurisé.</p>
-                                    </div>
-                                </motion.div>
-                            ) : activeChatTab === 'drops' ? (
-                                <motion.div key="drops-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 overflow-y-auto space-y-4 text-center py-6 px-4 custom-scrollbar">
-                                    <Trophy className="w-12 h-12 text-amber-500 mx-auto mb-4 animate-bounce" />
-                                    <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Shop des Drops</h3>
-                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-8">Améliorez votre profil avec vos drops</p>
 
-                                    {/* 🏆 Leaderboard Section */}
-                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-8 text-left space-y-4">
-                                        <div className="flex items-center gap-2 mb-2">
-                                            <Trophy className="w-5 h-5 text-amber-500" />
-                                            <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Top 3 des plus riches</h4>
-                                        </div>
-                                        <div className="space-y-3">
-                                            {leaderboard.map((user, i) => (
-                                                <div key={i} className="flex items-center justify-between p-3 bg-black/40 rounded-2xl border border-white/5">
-                                                    <div className="flex items-center gap-3">
-                                                        <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black ${i === 0 ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.4)]' : i === 1 ? 'bg-gray-300 text-black' : 'bg-amber-800 text-white'}`}>
-                                                            {i === 0 ? <Crown className="w-4 h-4" /> : i + 1}
-                                                        </div>
-                                                        <div>
-                                                            <div className="flex items-center gap-2">
-                                                                <FlagIcon location={user.country} className="w-3 h-2" />
-                                                                <span className="text-xs font-black text-white uppercase italic tracking-tighter">{user.pseudo}</span>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="space-y-1.5 relative">
+                                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pays (Auto-Flag)</label>
+                                                                <input
+                                                                    value={loginCountrySearch}
+                                                                    onChange={e => {
+                                                                        setLoginCountrySearch(e.target.value);
+                                                                        const found = countries.find(c => c.name.toLowerCase().includes(e.target.value.toLowerCase()) || c.code.toLowerCase() === e.target.value.toLowerCase());
+                                                                        if (found) setLoginCountry(found.code);
+                                                                    }}
+                                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-black outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                                                    placeholder="France, Canada..."
+                                                                />
+                                                                <div className="absolute right-4 top-10">
+                                                                    <FlagIcon location={loginCountry} className="w-6 h-4 rounded shadow-sm" />
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Instagram</label>
+                                                                <input
+                                                                    value={loginInstagram}
+                                                                    onChange={e => setLoginInstagram(e.target.value)}
+                                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                                                    placeholder="@user"
+                                                                />
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                    <div className="flex items-center gap-1.5 px-3 py-1 bg-neon-cyan/10 rounded-lg border border-neon-cyan/20">
-                                                        <Zap className="w-3 h-3 text-neon-cyan" />
-                                                        <span className="text-[10px] font-black text-neon-cyan tabular-nums">{user.drops.toLocaleString()}</span>
-                                                    </div>
+
+                                                        <div className="space-y-1.5">
+                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Captcha : {captchaChallenge?.q}</label>
+                                                            <input
+                                                                value={captchaInput}
+                                                                onChange={e => setCaptchaInput(e.target.value)}
+                                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-black outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
+                                                                placeholder="Résultat..."
+                                                            />
+                                                        </div>
+
+                                                        <button type="submit" className="w-full bg-gradient-to-r from-neon-red to-pink-600 py-4 rounded-2xl text-white font-black uppercase italic tracking-widest shadow-lg shadow-neon-red/20 hover:scale-[1.02] active:scale-95 transition-all">
+                                                            Rejoindre le live
+                                                        </button>
+                                                    </form>
                                                 </div>
-                                            ))}
-                                        </div>
-                                    </div>
-
-                                    <p className="text-xs text-gray-500 font-bold uppercase mb-8">Obtenez des récompenses virtuelles avec vos drops !</p>
-                                    <div className="grid grid-cols-1 gap-4">
-                                        <button
-                                            onClick={() => {
-                                                setActiveChatTab('chat');
-                                                setIsHighlightChecked(true);
-                                                showNotification("Activez l'éclair dans le chat pour choisir votre couleur !", 'success');
-                                            }}
-                                            className="p-6 bg-amber-500/10 border-2 border-amber-500/40 rounded-[2rem] flex flex-col items-center gap-3 hover:bg-amber-500/20 transition-all border-dashed relative overflow-hidden group"
-                                        >
-                                            <div className="absolute top-2 right-4">
-                                                <Zap className="w-4 h-4 text-amber-500 animate-pulse" />
-                                            </div>
-                                            <p className="text-xs font-black text-white uppercase tracking-widest">MESSAGE EN COULEUR 🌈</p>
-                                            <div className="px-4 py-1.5 bg-amber-500 text-black text-[10px] font-black rounded-lg uppercase">{settings.highlightPrice || 100} DROPS</div>
-                                            <p className="text-[9px] text-gray-500 font-bold uppercase">Ton message avec le fond de ton choix !</p>
-                                        </button>
-                                        {dropsLots.map(lot => (
-                                            <button
-                                                key={lot.id}
-                                                onClick={() => {
-                                                    if (userDrops < lot.price) {
-                                                        showNotification(`Pas assez de DROPS (${lot.price} requis)`, 'error');
-                                                        return;
-                                                    }
-                                                    setUserDrops(prev => {
-                                                        const next = prev - lot.price;
-                                                        localStorage.setItem('user_drops', next.toString());
-                                                        return next;
-                                                    });
-
-                                                    // Apply effect based on lot name
-                                                    if (lot.name.startsWith('TITRE:')) {
-                                                        const title = lot.name.replace('TITRE: ', '');
-                                                        setUserTitle(title);
-                                                        localStorage.setItem('user_chat_title', title);
-                                                        showNotification(`Nouveau titre : ${title}`, 'success');
-                                                    } else if (lot.name.startsWith('BORDURE:')) {
-                                                        const color = lot.name.includes('NEON') ? 'neon-cyan' : 'amber-500';
-                                                        setProfileBorder(color);
-                                                        localStorage.setItem('user_profile_border', color);
-                                                        showNotification(`Bordure équipée !`, 'success');
-                                                    } else if (lot.name.startsWith('FONTS')) {
-                                                        setSpecialFontStyle('italic-bold');
-                                                        localStorage.setItem('user_font_style', 'italic-bold');
-                                                        showNotification(`Style de police activé !`, 'success');
-                                                    } else {
-                                                        showNotification(`Achat réussi: ${lot.name}`, 'success');
-                                                    }
-                                                }}
-                                                className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-3 hover:bg-white/10 transition-all border-dashed border-2 group"
-                                            >
-                                                <p className="text-xs font-black text-white uppercase group-hover:text-neon-cyan transition-colors">{lot.name}</p>
-                                                <div className="px-4 py-1.5 bg-amber-500 text-black text-[10px] font-black rounded-lg uppercase">{lot.price} DROPS</div>
-                                            </button>
-                                        ))}
-
-                                        {/* Static default items if list is empty or for demo */}
-                                        {dropsLots.length === 0 && (
-                                            <>
-                                                {[
-                                                    { id: 'sh1', name: 'TITRE: ALPHA', price: 2000 },
-                                                    { id: 'sh2', name: 'TITRE: LÉGENDE', price: 5000 },
-                                                    { id: 'sh3', name: 'BORDURE: NEON CYAN', price: 3000 },
-                                                    { id: 'sh4', name: 'FONTS: SPECIAL', price: 1500 },
-                                                    { id: 'sh5', name: 'FONTS: PIXEL', price: 1500 }
-                                                ].map(lot => (
-                                                    <button
-                                                        key={lot.id}
-                                                        onClick={() => {
-                                                            if (userDrops < lot.price) {
-                                                                showNotification(`Pas assez de DROPS (${lot.price} requis)`, 'error');
-                                                                return;
-                                                            }
-                                                            setUserDrops(prev => prev - lot.price);
-                                                            if (lot.name.startsWith('TITRE:')) {
-                                                                const t = lot.name.replace('TITRE: ', '');
-                                                                setUserTitle(t);
-                                                                localStorage.setItem('user_chat_title', t);
-                                                                showNotification(`Titre équipé : ${t}`, 'success');
-                                                            } else if (lot.name.startsWith('BORDURE:')) {
-                                                                const color = lot.name.includes('NEON') ? 'neon-cyan' : 'amber-500';
-                                                                setProfileBorder(color);
-                                                                localStorage.setItem('user_profile_border', color);
-                                                                showNotification(`Bordure équipée !`, 'success');
-                                                            } else if (lot.name.includes('FONTS: PIXEL')) {
-                                                                setSpecialFontStyle('pixel-font');
-                                                                localStorage.setItem('user_font_style', 'pixel-font');
-                                                                showNotification(`Police Pixel activée !`, 'success');
-                                                            } else if (lot.name.startsWith('FONTS')) {
-                                                                setSpecialFontStyle('italic-bold');
-                                                                localStorage.setItem('user_font_style', 'italic-bold');
-                                                                showNotification(`Style de police activé !`, 'success');
-                                                            } else {
-                                                                showNotification(`Achat réussi : ${lot.name}`, 'success');
-                                                            }
-                                                        }}
-                                                        className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-3 hover:bg-white/10 transition-all border-dashed border-2 group"
-                                                    >
-                                                        <p className="text-xs font-black text-white uppercase">{lot.name}</p>
-                                                        <div className="px-4 py-1.5 bg-amber-500 text-black text-[10px] font-black rounded-lg uppercase">{lot.price} DROPS</div>
-                                                    </button>
-                                                ))}
-                                            </>
-                                        )}
-                                    </div>
-                                </motion.div>
-                            ) : null}
-                        </AnimatePresence >
-                    </div>
-
-                    {
-                        isConnected && (
-                            <div className="p-4 bg-black/40 border-t border-white/5 space-y-3">
-                                {/* Reply support removed from footer */}
-                                {isHighlightChecked && (
-                                    <div className="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all border" style={{ backgroundColor: `${highlightColor}20`, borderColor: `${highlightColor}40` }}>
-                                        <div className="flex items-center gap-3">
-                                            <span className="text-[10px] font-black uppercase" style={{ color: highlightColor }}>Mise en avant</span>
-                                            <input type="color" value={highlightColor} onChange={(e) => setHighlightColor(e.target.value)} className="w-5 h-4 bg-transparent border-none outline-none cursor-pointer p-0" />
-                                        </div>
-                                        <span className="text-[10px] font-black" style={{ color: highlightColor }}>{settings.highlightPrice || 100} DROPS</span>
-                                    </div>
-                                )}
-                                <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 group focus-within:border-opacity-100 transition-all" style={{ borderColor: `${accentColor}40` }}>
-                                    {slowModeEnabled && !isMod && (
-                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full animate-pulse">
-                                            <Clock className="w-3 h-3 text-amber-500" />
-                                            <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">Mode Lent (10s)</span>
-                                        </div>
-                                    )}
-                                    <input
-                                        type="text"
-                                        value={isBanned ? "VOUS ÊTES BANNI" : newMessage}
-                                        onChange={e => setNewMessage(e.target.value)}
-                                        disabled={isBanned}
-                                        onKeyDown={e => e.key === 'Enter' && handleSendMessage(newMessage)}
-                                        placeholder={isBanned ? "ACCÈS REFUSÉ..." : slowModeEnabled && !isMod ? "MODE LENT ACTIF..." : "VOTRE MESSAGE..."}
-                                        className={`flex-1 bg-transparent text-xs font-bold outline-none uppercase tracking-wider ${isBanned ? 'text-red-500' : 'text-white placeholder:text-gray-600'}`}
-                                    />
-                                    <button onClick={() => setShowGifPicker(!showGifPicker)} className="p-2 text-gray-500 hover:text-white transition-all">
-                                        <Stars className="w-4 h-4" />
-                                    </button>
-                                    <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
-                                        <Zap className="w-4 h-4" />
-                                    </button>
-                                    <button onClick={() => window.open(window.location.href, 'Chat', 'width=400,height=800')} className="p-2 text-gray-500 hover:text-white transition-all" title="Détacher le chat">
-                                        <Maximize2 className="w-4 h-4" />
-                                    </button>
-                                    <button onClick={() => handleSendMessage(newMessage)} className="p-2 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all" style={{ backgroundColor: accentColor }}>
-                                        <Send className="w-4 h-4" />
-                                    </button>
-                                </div>
-                                {showGifPicker && (
-                                    <div className="grid grid-cols-3 gap-2 p-3 bg-black/60 rounded-2xl border border-white/10 animate-in fade-in slide-in-from-bottom-2">
-                                        {['https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/3o7TKMGpxVfPtoog3m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/LScqP82pdBAlC7xs6m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/clotJgshs6nUUXf2i6/giphy.gif'].map((gif, i) => (
-                                            <img key={i} src={gif} onClick={() => { handleSendMessage(gif); setShowGifPicker(false); }} className="w-full h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform" />
-                                        ))}
-                                    </div>
-                                )}
-                                <div className="flex items-center justify-between px-2">
-                                    <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80" onClick={() => setActiveChatTab('drops')}>
-                                        <Trophy className="w-3 h-3 text-amber-500" />
-                                        <span className="text-[10px] font-black text-white">{userDrops} <span className="text-gray-600 ml-0.5 uppercase tracking-tighter">DROPS</span></span>
-                                    </div>
-                                    <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">Powered by Dropsiders</span>
-                                </div>
-                            </div>
-                        )
-                    }
-                </div>
-
-                {/* Flash Message Overlay */}
-                <AnimatePresence>
-                    {
-                        flashMessage && (
-                            <motion.div
-                                initial={{ opacity: 0, y: -50 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -50 }}
-                                className="fixed top-24 left-1/2 -translate-x-1/2 z-[200]"
-                            >
-                                <div className={`px-8 py-4 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl border-2 flex items-center gap-4 ${flashMessage.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500 shadow-green-500/20' :
-                                    flashMessage.type === 'warn' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 shadow-amber-500/20' :
-                                        'bg-blue-500/10 border-blue-500/20 text-blue-500 shadow-blue-500/20'
-                                    }`}>
-                                    {flashMessage.type === 'success' ? <ShieldCheck className="w-6 h-6" /> :
-                                        flashMessage.type === 'warn' ? <AlertCircle className="w-6 h-6 animate-pulse" /> :
-                                            <Megaphone className="w-6 h-6" />}
-                                    <span className="text-sm font-black uppercase tracking-widest">{flashMessage.text}</span>
-                                </div>
-                            </motion.div>
-                        )
-                    }
-                </AnimatePresence >
-
-                {/* Notification Toast */}
-                <AnimatePresence>
-                    {
-                        toast.show && (
-                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]">
-                                <div className={`px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
-                                    {toast.type === 'success' ? <ShieldCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                                    <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>
-                                </div>
-                            </motion.div>
-                        )
-                    }
-                </AnimatePresence >
-
-                {/* 🆕 Arrival Animation */}
-                <AnimatePresence>
-                    {
-                        newArrival && (
-                            <motion.div
-                                initial={{ opacity: 0, y: 50, scale: 0.8 }}
-                                animate={{ opacity: 1, y: 0, scale: 1 }}
-                                exit={{ opacity: 0, y: -20, scale: 1.1 }}
-                                className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] pointer-events-none"
-                            >
-                                <div className="bg-black/80 backdrop-blur-xl border border-neon-cyan/30 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-[0_0_30px_rgba(0,255,255,0.2)]">
-                                    <div className="w-10 h-10 bg-neon-cyan/20 rounded-full flex items-center justify-center relative overflow-hidden">
-                                        <User className="w-6 h-6 text-neon-cyan" />
-                                        <motion.div
-                                            animate={{ x: ['-100%', '100%'] }}
-                                            transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-                                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                                        />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none">Nouvel arrivant</p>
-                                        <p className="text-sm font-black text-white uppercase italic tracking-tighter">{newArrival} vient d'arriver !</p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )
-                    }
-                </AnimatePresence >
-
-                {/* PACMAN ANIMATION */}
-                <AnimatePresence>
-                    {
-                        isPacmanActive && (
-                            <motion.div
-                                initial={{ x: '110vw' }}
-                                animate={{ x: '-110vw' }}
-                                transition={{ duration: 5, ease: "linear" }}
-                                className="fixed top-1/2 left-0 z-[2000] pointer-events-none"
-                            >
-                                <div className="flex items-center gap-4 text-yellow-400">
-                                    <motion.div
-                                        animate={{ rotate: [0, 30, 0] }}
-                                        transition={{ repeat: Infinity, duration: 0.2 }}
-                                        className="w-16 h-16 bg-yellow-400 rounded-full relative"
-                                        style={{ clipPath: 'polygon(100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 50%)' }}
-                                    />
-                                    <div className="flex gap-8">
-                                        {[...Array(5)].map((_, i) => (
-                                            <div key={i} className="w-4 h-4 bg-white rounded-full opacity-50" />
-                                        ))}
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )
-                    }
-                </AnimatePresence >
-
-                {/* MATRIX OVERLAY */}
-                <AnimatePresence>
-                    {
-                        isMatrixActive && (
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="fixed inset-0 z-[1000] pointer-events-none overflow-hidden bg-black/20"
-                            >
-                                <div className="absolute inset-0 opacity-40 font-mono text-[10px] text-[#00ff41] flex flex-wrap gap-2 p-4 leading-none select-none">
-                                    {[...Array(2000)].map((_, i) => (
-                                        <motion.span
-                                            key={i}
-                                            initial={{ opacity: 0, y: -20 }}
-                                            animate={{ opacity: [0, 1, 0], y: [0, 500] }}
-                                            transition={{
-                                                duration: Math.random() * 3 + 2,
-                                                repeat: Infinity,
-                                                delay: Math.random() * 5
-                                            }}
-                                        >
-                                            {Math.random() > 0.5 ? '1' : '0'}
-                                        </motion.span>
-                                    ))}
-                                </div>
-                            </motion.div>
-                        )
-                    }
-                </AnimatePresence >
-
-                {/* BOSS FIGHT OVERLAY */}
-                <AnimatePresence>
-                    {
-                        activeBoss && (
-                            <motion.div
-                                initial={{ y: 200, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                exit={{ y: 200, opacity: 0 }}
-                                className="fixed bottom-20 left-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-neon-red p-4 rounded-3xl w-64 shadow-[0_0_30px_rgba(255,0,0,0.3)]"
-                            >
-                                <div className="flex items-center gap-3 mb-2">
-                                    <Sword className="w-6 h-6 text-neon-red animate-pulse" />
-                                    <div>
-                                        <p className="text-[10px] font-black text-neon-red uppercase tracking-widest">BOSS APPARU !</p>
-                                        <p className="text-sm font-black text-white uppercase italic">{activeBoss.name}</p>
-                                    </div>
-                                </div>
-                                <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden border border-white/5">
-                                    <motion.div
-                                        animate={{ width: `${(activeBoss.hp / activeBoss.maxHp) * 100}%` }}
-                                        className="h-full bg-gradient-to-r from-red-600 to-red-400 shadow-[0_0_10px_rgba(255,0,0,0.5)]"
-                                    />
-                                </div>
-                                <div className="flex justify-between mt-1">
-                                    <span className="text-[9px] font-black text-white/50">{activeBoss.hp} HP</span>
-                                    <span className="text-[9px] font-black text-neon-red uppercase">TAPEZ !HIT</span>
-                                </div>
-                            </motion.div>
-                        )
-                    }
-                </AnimatePresence >
-
-                {/* HEIST OVERLAY */}
-                <AnimatePresence>
-                    {
-                        activeHeist && (
-                            <motion.div
-                                initial={{ x: -200, opacity: 0 }}
-                                animate={{ x: 0, opacity: 1 }}
-                                exit={{ x: -200, opacity: 0 }}
-                                className="fixed top-24 left-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-neon-cyan p-4 rounded-3xl w-64 shadow-[0_0_30px_rgba(0,255,255,0.2)]"
-                            >
-                                <div className="flex items-center gap-3 mb-2">
-                                    <ShieldCheck className="w-6 h-6 text-neon-cyan animate-bounce" />
-                                    <div>
-                                        <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">BRAQUAGE EN COURS</p>
-                                        <p className="text-xs font-bold text-white uppercase">{activeHeist?.participants?.length || 0} Braqueurs prêts</p>
-                                    </div>
-                                </div>
-                                <div className="text-[9px] font-black text-white/50 mb-2 uppercase">TOTAL MISÉ : {activeHeist?.participants?.reduce((a, b) => a + (b?.bet || 0), 0) || 0} DROPS</div>
-                                <div className="text-center py-1 bg-neon-cyan/10 rounded-lg">
-                                    <span className="text-neon-cyan font-black animate-pulse">!braquage [montant] pour rejoindre</span>
-                                </div>
-                            </motion.div>
-                        )
-                    }
-                </AnimatePresence >
-
-                {/* QTE (Quick Time Event) Overlay */}
-                <AnimatePresence>
-                    {
-                        activeQTE && (
-                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1.2 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500]">
-                                <button
-                                    onClick={() => {
-                                        const reward = activeQTE?.reward || 0;
-                                        const isVipReward = Math.random() > 0.8;
-                                        if (isVipReward) {
-                                            setVipsList(prev => [...prev, localStorage.getItem('chat_pseudo') || '']);
-                                            showNotification(`⚡ RÉFLEXE DE GÉNIE ! TU ES VIP TEMPORAIRE ! 👑`, 'success');
-                                        } else {
-                                            setUserDrops(prev => prev + reward);
-                                            showNotification(`⚡ FAST CLICK ! +${reward} DROPS ! ⚡`, 'success');
-                                        }
-                                        setActiveQTE(null);
-                                    }}
-                                    className="p-10 bg-gradient-to-br from-neon-cyan to-neon-purple rounded-full shadow-[0_0_50px_#00ffff] animate-pulse group"
-                                >
-                                    <Zap className="w-12 h-12 text-white group-hover:scale-125 transition-transform" />
-                                    <p className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-white font-black uppercase italic tracking-widest whitespace-nowrap">CLIQUE VITE !</p>
-                                </button>
-                            </motion.div>
-                        )
-                    }
-                </AnimatePresence >
-
-                {/* Achievement Popup */}
-                <AnimatePresence>
-                    {
-                        showAchievementPopup && (
-                            <motion.div initial={{ x: 300 }} animate={{ x: 0 }} exit={{ x: 300 }} className="fixed top-24 right-4 z-[300] bg-black/90 border-2 border-amber-500 p-4 rounded-2xl flex items-center gap-4 shadow-[#f59e0b20] shadow-2xl">
-                                <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center">
-                                    <Trophy className="w-7 h-7 text-black" />
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Succès Débloqué !</p>
-                                    <p className="text-xs font-black text-white uppercase italic">{showAchievementPopup}</p>
-                                </div>
-                            </motion.div>
-                        )
-                    }
-                </AnimatePresence >
-
-                {/* SLOT MACHINE JACKPOT OVERLAY */}
-                <AnimatePresence>
-                    {
-                        activeSlots && (
-                            <motion.div
-                                initial={{ y: 100, opacity: 0 }}
-                                animate={{ y: 0, opacity: 1 }}
-                                exit={{ y: 100, opacity: 0 }}
-                                className="fixed bottom-24 right-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-amber-500 p-6 rounded-3xl w-72 shadow-[0_0_40px_rgba(245,158,11,0.3)]"
-                            >
-                                <div className="flex flex-col items-center text-center space-y-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
-                                            <Star className="w-6 h-6 text-black animate-spin" />
-                                        </div>
-                                        <div>
-                                            <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">MINI-JEU JACKPOT</p>
-                                            <p className="text-xl font-black text-white italic">LOTERIE !</p>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex gap-2 justify-center py-4">
-                                        {['🍒', '💎', '7️⃣'].map((emoji, i) => (
-                                            <motion.div
-                                                key={i}
-                                                animate={{ y: [0, -10, 0] }}
-                                                transition={{ repeat: Infinity, duration: 0.5, delay: i * 0.1 }}
-                                                className="w-12 h-16 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-2xl"
-                                            >
-                                                {emoji}
                                             </motion.div>
-                                        ))}
-                                    </div>
+                                        ) : activeChatTab === 'chat' ? (
+                                            <motion.div key="chat-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-4">
+                                                {pinnedMessage && (
+                                                    <div className="p-3 bg-neon-red/10 border border-neon-red/20 rounded-xl relative overflow-hidden group">
+                                                        <div className="flex items-center justify-between mb-1">
+                                                            <p className="text-[10px] text-neon-red font-black uppercase flex items-center gap-2">
+                                                                <Pin className="w-3 h-3" /> Message Épinglé
+                                                            </p>
+                                                            {isMod && (
+                                                                <button onClick={() => setPinnedMessage(null)} className="text-[9px] text-gray-500 hover:text-white font-bold uppercase transition-all">
+                                                                    Désépingler
+                                                                </button>
+                                                            )}
+                                                        </div>
+                                                        <p className="text-xs text-white">
+                                                            <span className="font-black italic mr-2 text-neon-red">{pinnedMessage.user} :</span>
+                                                            {pinnedMessage.text}
+                                                        </p>
+                                                    </div>
+                                                )}
 
-                                    <div className="space-y-2 w-full">
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase">
-                                            {activeSlots.participants.length} JOUEURS • TICKET 50 DROPS
-                                        </p>
-                                        <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                                            <motion.div
-                                                animate={{ width: `${(activeSlots.timeLeft / 60) * 100}%` }}
-                                                className="h-full bg-amber-500"
-                                            />
+                                                <AnimatePresence initial={false}>
+                                                    {chatMessages.filter(m => (isModChat ? m.isModOnly : !m.isModOnly) && (m.stage || 'stage1') === activeStage && !m.message?.startsWith('[SYSTEM]:')).map((msg, idx) => {
+                                                        const isHovered = hoveredMessageId === msg.id;
+                                                        const isDimmed = hoveredMessageId !== null && !isHovered;
+
+                                                        return (
+                                                            <motion.div
+                                                                key={msg.id || idx}
+                                                                layout
+                                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                                animate={{
+                                                                    opacity: isDimmed ? 0.3 : 1,
+                                                                    y: 0,
+                                                                    scale: 1,
+                                                                    filter: isDimmed ? 'grayscale(0.5) blur(0.5px)' : 'none'
+                                                                }}
+                                                                onMouseEnter={() => setHoveredMessageId(msg.id)}
+                                                                onMouseLeave={() => setHoveredMessageId(null)}
+                                                                onDoubleClick={() => setSelectedProfile({ pseudo: msg.pseudo, country: msg.country, color: msg.color })}
+                                                                className={`group flex flex-col gap-1 relative p-3 rounded-2xl transition-all duration-300 cursor-pointer ${clashPoll?.active
+                                                                    ? (clashPoll.votesA.includes(msg.pseudo) ? 'mr-12 border-l-2 border-red-500' : clashPoll.votesB.includes(msg.pseudo) ? 'ml-12 border-r-2 border-blue-500 text-right items-end' : 'hover:bg-white/[0.02]')
+                                                                    : (msg.pseudo === localStorage.getItem('chat_pseudo') ? 'bg-white/5 ml-4 lg:ml-8' : 'hover:bg-white/[0.02]')
+                                                                    }`}
+                                                                style={{
+                                                                    backgroundColor: msg.bgColor ? `${msg.bgColor}15` : undefined,
+                                                                    borderColor: msg.pseudo === localStorage.getItem('chat_pseudo') && profileBorder !== 'none' ? profileBorder : (msg.bgColor ? `${msg.bgColor}30` : undefined),
+                                                                    borderWidth: (msg.pseudo === localStorage.getItem('chat_pseudo') && profileBorder !== 'none') || msg.bgColor ? '1px' : '0px',
+                                                                    boxShadow: msg.bgColor ? `0 0 15px ${msg.bgColor}10` : 'none'
+                                                                }}
+                                                            >
+                                                                {/* Mention highlighting */}
+                                                                {localStorage.getItem('chat_pseudo') && msg.message.toLowerCase().includes(`@${localStorage.getItem('chat_pseudo')?.toLowerCase()}`) && (
+                                                                    <div className="absolute inset-0 bg-neon-red/10 border border-neon-red/30 rounded-2xl animate-pulse pointer-events-none" />
+                                                                )}
+                                                                <div className="flex gap-3 relative">
+                                                                    <div className="w-9 h-9 rounded-xl border border-white/10 shrink-0 flex items-center justify-center bg-white/5 relative overflow-hidden group-hover:border-neon-red/30 transition-all">
+                                                                        <FlagIcon location={msg.country} className="absolute inset-0 w-full h-full opacity-30 object-cover grayscale" />
+                                                                        <div className="text-[10px] font-black text-gray-400 group-hover:text-white transition-colors relative z-10">{(msg.pseudo || msg.user || 'V')[0]}</div>
+                                                                        {isHovered && <motion.div layoutId="bg-glow" className="absolute inset-0 bg-neon-red/5 blur-md" />}
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <div className="flex items-center gap-2 mb-1">
+                                                                            {msg.country && <FlagIcon location={msg.country} className="w-3 h-2" />}
+                                                                            {(msg.geo || userCity) && (
+                                                                                <span className="text-[7px] font-black text-gray-500 bg-white/5 px-1 rounded flex items-center gap-0.5">
+                                                                                    <MapPin className="w-2 h-2" /> {msg.geo || userCity}
+                                                                                </span>
+                                                                            )}
+                                                                            <span className="text-[9px] font-black text-neon-cyan/60 shrink-0 uppercase tracking-tighter mr-1 text-xs">[Lvl {Math.floor(Math.sqrt((msg.xp || 0) / 100)) + 1}]</span>
+                                                                            <span className={`text-[11px] font-black uppercase italic tracking-tight ${msg.isHolo ? 'holo-pseudo' : (msg.xp > 5000 ? 'bg-gradient-to-r from-red-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent animate-gradient' : msg.color || 'text-white')}`}>{msg.pseudo || msg.user}</span>
+                                                                            {msg.isPrems && (
+                                                                                <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="bg-neon-red text-white text-[7px] font-black px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(255,0,51,0.5)] animate-pulse flex items-center gap-1">
+                                                                                    <Zap className="w-2 h-2" /> PREMS
+                                                                                </motion.span>
+                                                                            )}
+                                                                            {topTalkers[0]?.pseudo === msg.pseudo && <Crown className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500 animate-bounce" />}
+                                                                            {topTalkers[1]?.pseudo === msg.pseudo && <Trophy className="w-2.5 h-2.5 text-gray-300 fill-gray-300" />}
+                                                                            {topTalkers[2]?.pseudo === msg.pseudo && <Trophy className="w-2.5 h-2.5 text-amber-600 fill-amber-600" />}
+
+
+                                                                            {/* Mod/VIP Badges */}
+                                                                            {showBadgesAdmin && msg.isMod && <Sword className="w-2.5 h-2.5 text-neon-red" />}
+                                                                            {showBadgesAdmin && msg.isVip && <Crown className="w-2.5 h-2.5 text-amber-500 fill-amber-500" />}
+                                                                            {showBadgesAdmin && msg.pseudo === 'ALEX_FR1' && <Star className="w-2.5 h-2.5 text-neon-cyan fill-neon-cyan" />}
+
+                                                                            {/* Animated Badges */}
+                                                                            {showBadgesAdmin && (msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') && (
+                                                                                <motion.div
+                                                                                    animate={{ rotate: [0, 10, -10, 0] }}
+                                                                                    transition={{ repeat: Infinity, duration: 2 }}
+                                                                                    className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-neon-purple/20 border border-neon-purple/30"
+                                                                                >
+                                                                                    <ShieldCheck className="w-3 h-3 text-neon-purple" />
+                                                                                    <span className="text-[7px] font-black text-neon-purple uppercase">ADMIN</span>
+                                                                                </motion.div>
+                                                                            )}
+                                                                            {msg.bgColor && (
+                                                                                <motion.div
+                                                                                    animate={{ scale: [1, 1.1, 1] }}
+                                                                                    transition={{ repeat: Infinity, duration: 1.5 }}
+                                                                                >
+                                                                                    <Star className="w-3 h-3 text-yellow-500 fill-yellow-500" />
+                                                                                </motion.div>
+                                                                            )}
+
+                                                                            {msg.time && <span className="text-[8px] text-gray-600 font-mono ml-auto opacity-0 group-hover:opacity-100 transition-opacity">{msg.time}</span>}
+                                                                        </div>
+                                                                        {/* Reply support removed */}
+                                                                        <p className={`text-[11px] leading-relaxed break-all font-medium transition-all ${isHovered ? 'text-white' : 'text-gray-400'} ${msg.pseudo === localStorage.getItem('chat_pseudo') ? specialFontStyle : ''}`}>
+                                                                            {msg.translated ? (
+                                                                                <span className="italic">
+                                                                                    <span className="text-[8px] bg-white/10 px-1 rounded mr-1">TRAD</span>
+                                                                                    {renderMessageContent(msg.translated)}
+                                                                                </span>
+                                                                            ) : renderMessageContent(msg.message || msg.text)}
+                                                                        </p>
+                                                                        <div className="flex gap-1 mt-2">
+                                                                            {['👍', '🔥', '😂', '👑', '💎'].map(emoji => (
+                                                                                <button
+                                                                                    key={emoji}
+                                                                                    onClick={async (e) => {
+                                                                                        e.stopPropagation();
+                                                                                        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                                                            pseudo: "BOT_SYSTEM",
+                                                                                            message: `[SYSTEM]:REACTION:${msg.id}:${emoji}`,
+                                                                                            color: "text-neon-purple",
+                                                                                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                                            country: "FR"
+                                                                                        });
+                                                                                    }}
+                                                                                    className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded-lg text-[10px] hover:bg-white/20 transition-all flex items-center gap-1"
+                                                                                >
+                                                                                    {emoji} <span className="opacity-50">{msg.reactions?.[emoji] || 0}</span>
+                                                                                </button>
+                                                                            ))}
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="absolute right-0 top-0 hidden group-hover:flex items-center gap-1 bg-black/80 backdrop-blur-md p-1.5 rounded-xl border border-white/10 z-20 shadow-2xl">
+                                                                        {/* Reply capability removed as DB schema doesn't support it */}
+                                                                        <button onClick={(e) => { e.stopPropagation(); setPinnedMessage(msg); }} title="Épingler" className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"><Pin className="w-3 h-3" /></button>
+                                                                        <button
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                setChatMessages(prev => prev.map(m => m.id === msg.id ? { ...m, translated: `[Traduction simulée]: ${m.message}` } : m));
+                                                                            }}
+                                                                            title="Traduire"
+                                                                            className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"
+                                                                        >
+                                                                            <Languages className="w-3 h-3" />
+                                                                        </button>
+                                                                        <button onClick={(e) => { e.stopPropagation(); deleteMessage(msg.id); }} title="Supprimer" className="p-1.5 text-gray-400 hover:text-red-500 transition-all"><X className="w-3 h-3" /></button>
+                                                                        {isAdmin && msg.pseudo !== 'ALEX_FR1' && (
+                                                                            <button onClick={(e) => { e.stopPropagation(); handleBanUser(msg.pseudo); }} title="Bannir" className="p-1.5 text-gray-400 hover:text-orange-500 transition-all border-l border-white/10 ml-1"><Ban className="w-3 h-3" /></button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </motion.div>
+                                                        );
+                                                    })}
+                                                </AnimatePresence>
+                                                {/* HEIST Overlay */}
+                                                <AnimatePresence>
+                                                    {showHeistOverlay && (
+                                                        <motion.div
+                                                            initial={{ opacity: 0, y: 20 }}
+                                                            animate={{ opacity: 1, y: 0 }}
+                                                            exit={{ opacity: 0, y: 20 }}
+                                                            className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                                                        >
+                                                            <motion.div
+                                                                initial={{ scale: 0.8 }}
+                                                                animate={{ scale: 1 }}
+                                                                exit={{ scale: 0.8 }}
+                                                                className="bg-gradient-to-br from-gray-900 to-black border border-neon-red/50 rounded-3xl p-8 text-center shadow-2xl max-w-md w-full relative"
+                                                            >
+                                                                <button
+                                                                    onClick={() => setShowHeistOverlay(false)}
+                                                                    className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                                                                >
+                                                                    <X className="w-6 h-6" />
+                                                                </button>
+                                                                <div className="flex flex-col items-center justify-center space-y-4">
+                                                                    <ShieldAlert className="w-16 h-16 text-neon-red animate-pulse" />
+                                                                    <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">ALERTE BRAQUAGE !</h3>
+                                                                    <p className="text-sm text-gray-300">
+                                                                        Un braquage est en cours ! Participez pour tenter de gagner des DROPS.
+                                                                        Tapez <span className="font-mono text-neon-cyan">/braquage [montant]</span> dans le chat pour rejoindre.
+                                                                    </p>
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            setShowHeistOverlay(false);
+                                                                            triggerPACMAN();
+                                                                            handleSendMessage("!braquage");
+                                                                        }}
+                                                                        className="mt-6 px-8 py-3 bg-neon-red text-white font-black uppercase italic tracking-widest rounded-xl hover:shadow-[0_0_25px_rgba(255,0,51,0.4)] transition-all transform active:scale-95"
+                                                                    >
+                                                                        Participer !
+                                                                    </button>
+                                                                </div>
+                                                            </motion.div>
+                                                        </motion.div>
+                                                    )}
+                                                </AnimatePresence>
+                                            </motion.div >
+                                        ) : activeChatTab === 'shazam' ? (
+                                            <motion.div key="shazam-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
+                                                <button onClick={handleShazamAction} disabled={shazamStatus !== 'idle'} className={`w-full py-4 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all ${shazamStatus === 'idle' ? 'border-white/20 hover:border-neon-purple/50 bg-white/5' : 'border-neon-purple/50 bg-neon-purple/5'}`}>
+                                                    <div className={`w-12 h-12 rounded-full flex items-center justify-center ${shazamStatus !== 'idle' ? 'bg-neon-purple shadow-[0_0_20px_rgba(168,85,247,0.5)]' : 'bg-white/10'}`}>
+                                                        <Music className={`w-6 h-6 ${shazamStatus !== 'idle' ? 'animate-pulse text-white' : 'text-gray-500'}`} />
+                                                    </div>
+                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">{shazamStatus === 'idle' ? 'Identifier le morceau' : shazamStatus === 'listening' ? 'Écoute en cours...' : 'Recherche...'}</p>
+                                                </button>
+                                                <div className="space-y-4">
+                                                    <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">Historique</h3>
+                                                    {shazamHistory.map(track => (
+                                                        <div key={track.id} className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-4 group">
+                                                            <img
+                                                                src={track.image}
+                                                                onError={(e) => e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=cover"}
+                                                                className="w-12 h-12 rounded-lg shrink-0 object-cover"
+                                                                alt=""
+                                                            />
+                                                            <div className="flex-1 min-w-0">
+                                                                <p className="text-xs font-black text-white uppercase truncate">{track.title}</p>
+                                                                <p className="text-[9px] text-gray-500 font-bold uppercase truncate">{track.artist}</p>
+                                                            </div>
+                                                            <div className="text-[9px] font-mono text-gray-600">{track.time}</div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </motion.div>
+                                        ) : activeChatTab === 'planning' ? (
+                                            <motion.div key="planning-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+                                                {lineupItems.map(item => {
+                                                    const now = new Date();
+                                                    const [h, m] = (item.startTime || "00:00").split(':').map(Number);
+                                                    const [eh, em] = (item.endTime || "00:00").split(':').map(Number);
+                                                    const start = new Date(); start.setHours(h, m, 0);
+                                                    const end = new Date(); end.setHours(eh, em, 0);
+                                                    const isNow = now >= start && now <= end;
+                                                    const progress = isNow ? Math.min(100, Math.max(0, ((now.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100)) : 0;
+
+                                                    return (
+                                                        <div key={item.id} className={`p-4 border rounded-2xl space-y-3 transition-all ${isNow ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,255,255,0.05)]' : 'bg-white/5 border-white/10'}`}>
+                                                            <div className="flex items-center justify-between">
+                                                                <div className="flex items-center gap-2">
+                                                                    <Calendar className="w-3 h-3 text-gray-500" />
+                                                                    <span className={`text-[10px] font-black uppercase ${isNow ? 'text-neon-cyan' : 'text-gray-500'}`}>{item.stage}</span>
+                                                                </div>
+                                                                <div className="flex flex-col items-end">
+                                                                    <span className="text-[10px] font-mono text-white/80">{item.day}</span>
+                                                                    <span className="text-[10px] font-mono text-gray-500">{item.startTime} - {item.endTime}</span>
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <p className="text-lg font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-2">
+                                                                    {isNow && <span className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse" />}
+                                                                    {item.artist}
+                                                                </p>
+                                                                {isNow && (
+                                                                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mt-2">
+                                                                        <div
+                                                                            className="h-full bg-neon-cyan shadow-[0_0_10px_#00ffff] transition-all duration-1000"
+                                                                            style={{ width: `${progress}%` }}
+                                                                        />
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                })}
+                                            </motion.div>
+                                        ) : activeChatTab === 'shop' ? (
+                                            <motion.div key="shop-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 overflow-y-auto space-y-6 py-6 px-4 custom-scrollbar">
+                                                <div className="text-center mb-8">
+                                                    <ShoppingBag className="w-12 h-12 text-neon-cyan mx-auto mb-4" />
+                                                    <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Shop Officiel Dropsiders</h3>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2">Merchandising & Accessoires</p>
+                                                </div>
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
+                                                    {shopItems.map(item => (
+                                                        <div key={item.id} className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col group hover:border-neon-cyan/30 transition-all cursor-pointer shadow-xl relative overflow-hidden">
+                                                            <div className="aspect-square rounded-xl bg-black/40 overflow-hidden mb-3 border border-white/10">
+                                                                <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                            </div>
+                                                            <div className="flex-1 flex flex-col justify-between">
+                                                                <div>
+                                                                    <p className="text-[9px] lg:text-[10px] font-black text-white uppercase mb-1 leading-tight">{item.name}</p>
+                                                                    <p className="text-[11px] font-black text-neon-cyan">{item.price} €</p>
+                                                                </div>
+                                                                <button onClick={() => showNotification(`ACHETER : ${item.name}`, 'success')} className="w-full mt-3 py-1.5 bg-white/5 border border-white/10 text-[8px] font-black uppercase rounded-lg hover:bg-white/10 text-white transition-all">VOIR</button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <div className="p-4 bg-neon-cyan/5 border border-neon-cyan/20 rounded-2xl mt-8">
+                                                    <p className="text-[8px] font-bold text-neon-cyan/60 uppercase text-center leading-relaxed">Les articles officiels sont expédiés sous 48h. Paiement sécurisé.</p>
+                                                </div>
+                                            </motion.div>
+                                        ) : activeChatTab === 'drops' ? (
+                                            <motion.div key="drops-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 overflow-y-auto space-y-4 text-center py-6 px-4 custom-scrollbar">
+                                                <Trophy className="w-12 h-12 text-amber-500 mx-auto mb-4 animate-bounce" />
+                                                <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Shop des Drops</h3>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-8">Améliorez votre profil avec vos drops</p>
+
+                                                {/* 🏆 Leaderboard Section */}
+                                                <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-8 text-left space-y-4">
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <Trophy className="w-5 h-5 text-amber-500" />
+                                                        <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Top 3 des plus riches</h4>
+                                                    </div>
+                                                    <div className="space-y-3">
+                                                        {leaderboard.map((user, i) => (
+                                                            <div key={i} className="flex items-center justify-between p-3 bg-black/40 rounded-2xl border border-white/5">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center text-xs font-black ${i === 0 ? 'bg-amber-500 text-black shadow-[0_0_15px_rgba(245,158,11,0.4)]' : i === 1 ? 'bg-gray-300 text-black' : 'bg-amber-800 text-white'}`}>
+                                                                        {i === 0 ? <Crown className="w-4 h-4" /> : i + 1}
+                                                                    </div>
+                                                                    <div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <FlagIcon location={user.country} className="w-3 h-2" />
+                                                                            <span className="text-xs font-black text-white uppercase italic tracking-tighter">{user.pseudo}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center gap-1.5 px-3 py-1 bg-neon-cyan/10 rounded-lg border border-neon-cyan/20">
+                                                                    <Zap className="w-3 h-3 text-neon-cyan" />
+                                                                    <span className="text-[10px] font-black text-neon-cyan tabular-nums">{user.drops.toLocaleString()}</span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+
+                                                <p className="text-xs text-gray-500 font-bold uppercase mb-8">Obtenez des récompenses virtuelles avec vos drops !</p>
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
+                                                    <button
+                                                        onClick={() => {
+                                                            setActiveChatTab('chat');
+                                                            setIsHighlightChecked(true);
+                                                            showNotification("Activez l'éclair dans le chat pour choisir votre couleur !", 'success');
+                                                        }}
+                                                        className="aspect-square bg-amber-500/10 border-2 border-amber-500/40 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-amber-500/20 transition-all border-dashed relative overflow-hidden group shadow-xl"
+                                                    >
+                                                        <Zap className="w-6 h-6 text-amber-500 animate-pulse" />
+                                                        <div>
+                                                            <p className="text-[8px] font-black text-white uppercase tracking-tighter">MESSAGE COULEUR</p>
+                                                            <div className="mt-1 px-2 py-0.5 bg-amber-500 text-black text-[8px] font-black rounded uppercase mx-auto w-fit">{settings.highlightPrice || 100} DROPS</div>
+                                                        </div>
+                                                    </button>
+
+                                                    {(dropsLots.length > 0 ? dropsLots : [
+                                                        { id: 'sh1', name: 'TITRE: ALPHA', price: 2000 },
+                                                        { id: 'sh2', name: 'TITRE: LÉGENDE', price: 5000 },
+                                                        { id: 'sh3', name: 'BORDURE: NEON', price: 3000 },
+                                                        { id: 'sh4', name: 'STYLE: ITALIC', price: 1500 },
+                                                        { id: 'sh5', name: 'STYLE: PIXEL', price: 1500 }
+                                                    ]).map(lot => {
+                                                        const isTitle = lot.name.includes('TITRE');
+                                                        const isBorder = lot.name.includes('BORDURE');
+                                                        const Icon = isTitle ? User : isBorder ? Square : Sparkles;
+
+                                                        return (
+                                                            <button
+                                                                key={lot.id}
+                                                                onClick={() => {
+                                                                    if (userDrops < lot.price) {
+                                                                        showNotification(`Pas assez de DROPS (${lot.price} requis)`, 'error');
+                                                                        return;
+                                                                    }
+                                                                    setUserDrops(prev => {
+                                                                        const next = prev - lot.price;
+                                                                        localStorage.setItem('user_drops', next.toString());
+                                                                        return next;
+                                                                    });
+
+                                                                    if (lot.name.startsWith('TITRE:')) {
+                                                                        const t = lot.name.replace('TITRE: ', '');
+                                                                        setUserTitle(t);
+                                                                        localStorage.setItem('user_chat_title', t);
+                                                                        showNotification(`Titre équipé : ${t}`, 'success');
+                                                                    } else if (lot.name.startsWith('BORDURE:')) {
+                                                                        const color = lot.name.includes('NEON') ? 'neon-cyan' : 'amber-500';
+                                                                        setProfileBorder(color);
+                                                                        localStorage.setItem('user_profile_border', color);
+                                                                        showNotification(`Bordure équipée !`, 'success');
+                                                                    } else if (lot.name.includes('PIXEL')) {
+                                                                        setSpecialFontStyle('pixel-font');
+                                                                        localStorage.setItem('user_font_style', 'pixel-font');
+                                                                        showNotification(`Police Pixel activée !`, 'success');
+                                                                    } else if (lot.name.includes('STYLE') || lot.name.includes('FONTS')) {
+                                                                        setSpecialFontStyle('italic-bold');
+                                                                        localStorage.setItem('user_font_style', 'italic-bold');
+                                                                        showNotification(`Style de police activé !`, 'success');
+                                                                    } else {
+                                                                        showNotification(`Achat réussi: ${lot.name}`, 'success');
+                                                                    }
+                                                                }}
+                                                                className="aspect-square bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-amber-500/30 hover:bg-white/10 transition-all group shadow-xl relative overflow-hidden"
+                                                            >
+                                                                <Icon className="w-6 h-6 text-gray-500 group-hover:text-amber-500 transition-colors" />
+                                                                <div className="px-2">
+                                                                    <p className="text-[8px] font-black text-white uppercase tracking-tighter leading-tight">{lot.name}</p>
+                                                                    <div className="mt-1 px-2 py-0.5 bg-white/10 text-white text-[8px] font-black rounded uppercase mx-auto w-fit group-hover:bg-amber-500 group-hover:text-black transition-all font-mono">{lot.price}</div>
+                                                                </div>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                                                                </motion.div>
+                                ) : null}
+                            </AnimatePresence>
+                        </div>
+
+                                {
+                                    isConnected && (
+                                        <div className="p-4 bg-black/40 border-t border-white/5 space-y-3">
+                                            {/* Reply support removed from footer */}
+                                            {isHighlightChecked && (
+                                                <div className="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all border" style={{ backgroundColor: `${highlightColor}20`, borderColor: `${highlightColor}40` }}>
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-[10px] font-black uppercase" style={{ color: highlightColor }}>Mise en avant</span>
+                                                        <input type="color" value={highlightColor} onChange={(e) => setHighlightColor(e.target.value)} className="w-5 h-4 bg-transparent border-none outline-none cursor-pointer p-0" />
+                                                    </div>
+                                                    <span className="text-[10px] font-black" style={{ color: highlightColor }}>{settings.highlightPrice || 100} DROPS</span>
+                                                </div>
+                                            )}
+                                            <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 group focus-within:border-opacity-100 transition-all" style={{ borderColor: `${accentColor}40` }}>
+                                                {slowModeEnabled && !isMod && (
+                                                    <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full animate-pulse">
+                                                        <Clock className="w-3 h-3 text-amber-500" />
+                                                        <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">Mode Lent (10s)</span>
+                                                    </div>
+                                                )}
+                                                <input
+                                                    type="text"
+                                                    value={isBanned ? "VOUS ÊTES BANNI" : newMessage}
+                                                    onChange={e => setNewMessage(e.target.value)}
+                                                    disabled={isBanned}
+                                                    onKeyDown={e => e.key === 'Enter' && handleSendMessage(newMessage)}
+                                                    placeholder={isBanned ? "ACCÈS REFUSÉ..." : slowModeEnabled && !isMod ? "MODE LENT ACTIF..." : "VOTRE MESSAGE..."}
+                                                    className={`flex-1 bg-transparent text-xs font-bold outline-none uppercase tracking-wider ${isBanned ? 'text-red-500' : 'text-white placeholder:text-gray-600'}`}
+                                                />
+                                                <button onClick={() => setShowGifPicker(!showGifPicker)} className="p-2 text-gray-500 hover:text-white transition-all">
+                                                    <Stars className="w-4 h-4" />
+                                                </button>
+                                                <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
+                                                    <Zap className="w-4 h-4" />
+                                                </button>
+                                                <button onClick={() => window.open(window.location.href, 'Chat', 'width=400,height=800')} className="p-2 text-gray-500 hover:text-white transition-all" title="Détacher le chat">
+                                                    <Maximize2 className="w-4 h-4" />
+                                                </button>
+                                                <button onClick={() => handleSendMessage(newMessage)} className="p-2 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all" style={{ backgroundColor: accentColor }}>
+                                                    <Send className="w-4 h-4" />
+                                                </button>
+                                            </div>
+                                            {showGifPicker && (
+                                                <div className="grid grid-cols-3 gap-2 p-3 bg-black/60 rounded-2xl border border-white/10 animate-in fade-in slide-in-from-bottom-2">
+                                                    {['https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/3o7TKMGpxVfPtoog3m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/LScqP82pdBAlC7xs6m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/clotJgshs6nUUXf2i6/giphy.gif'].map((gif, i) => (
+                                                        <img key={i} src={gif} onClick={() => { handleSendMessage(gif); setShowGifPicker(false); }} className="w-full h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform" />
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <div className="flex items-center justify-between px-2">
+                                                <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80" onClick={() => setActiveChatTab('drops')}>
+                                                    <Trophy className="w-3 h-3 text-amber-500" />
+                                                    <span className="text-[10px] font-black text-white">{userDrops} <span className="text-gray-600 ml-0.5 uppercase tracking-tighter">DROPS</span></span>
+                                                </div>
+                                                <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">Powered by Dropsiders</span>
+                                            </div>
                                         </div>
-                                        <button
-                                            onClick={() => handleSendMessage("!ticket")}
-                                            className="w-full py-3 bg-amber-500 text-black font-black uppercase rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-500/20"
-                                        >
-                                            Prendre un ticket !
-                                        </button>
-                                        <p className="text-[8px] text-amber-500/50 font-black uppercase tracking-tighter italic">FIN DANS {activeSlots.timeLeft}S</p>
-                                    </div>
-                                </div>
-                            </motion.div>
-                        )
-                    }
-                </AnimatePresence >
+                                    )
+                                }
+                            </div>
 
-                {/* MUR DES LÉGENDES (Legends Wall Overlay) */}
-                <AnimatePresence>
-                    {
-                        showLegendsWall && (
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1000] bg-black/95 flex flex-col items-center justify-center overflow-hidden">
-                                <div className="absolute top-10 flex flex-col items-center">
-                                    <Crown className="w-16 h-16 text-amber-500 mb-4 animate-bounce" />
-                                    <h2 className="text-4xl font-black text-white uppercase italic tracking-[0.5em] mb-2">Mur des Légendes</h2>
-                                    <p className="text-amber-500/50 text-[10px] font-black uppercase tracking-[0.5em]">Dropsiders Hall of Fame</p>
-                                </div>
-                                <div className="flex-1 w-full max-w-4xl relative">
-                                    <motion.div animate={{ y: [-1000, 1000] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="flex flex-col items-center space-y-12 py-32">
-                                        {(topTalkers.length > 0 ? topTalkers : leaderboard).map((user: any, i) => (
-                                            <div key={i} className="flex flex-col items-center group">
-                                                {i < 3 && <Trophy className={`w-8 h-8 mb-2 ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-gray-400' : 'text-amber-700'}`} />}
-                                                <span className="text-3xl font-black text-white hover:text-amber-500 transition-colors uppercase italic">{user.pseudo}</span>
-                                                <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest mt-1">
-                                                    <span>{user.drops || user.count || 5000}+ DROPS</span>
-                                                    <div className="w-1 h-1 rounded-full bg-white/20" />
-                                                    <span>LÉGENDE ACTIVE</span>
+                            {/* Flash Message Overlay */}
+                            <AnimatePresence>
+                                {
+                                    flashMessage && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: -50 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            exit={{ opacity: 0, y: -50 }}
+                                            className="fixed top-24 left-1/2 -translate-x-1/2 z-[200]"
+                                        >
+                                            <div className={`px-8 py-4 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl border-2 flex items-center gap-4 ${flashMessage.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500 shadow-green-500/20' :
+                                                flashMessage.type === 'warn' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 shadow-amber-500/20' :
+                                                    'bg-blue-500/10 border-blue-500/20 text-blue-500 shadow-blue-500/20'
+                                                }`}>
+                                                {flashMessage.type === 'success' ? <ShieldCheck className="w-6 h-6" /> :
+                                                    flashMessage.type === 'warn' ? <AlertCircle className="w-6 h-6 animate-pulse" /> :
+                                                        <Megaphone className="w-6 h-6" />}
+                                                <span className="text-sm font-black uppercase tracking-widest">{flashMessage.text}</span>
+                                            </div>
+                                        </motion.div>
+                                    )
+                                }
+                            </AnimatePresence >
+
+                            {/* Notification Toast */}
+                            <AnimatePresence>
+                                {
+                                    toast.show && (
+                                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]">
+                                            <div className={`px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
+                                                {toast.type === 'success' ? <ShieldCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                                                <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>
+                                            </div>
+                                        </motion.div>
+                                    )
+                                }
+                            </AnimatePresence >
+
+                            {/* 🆕 Arrival Animation */}
+                            <AnimatePresence>
+                                {
+                                    newArrival && (
+                                        <motion.div
+                                            initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                                            exit={{ opacity: 0, y: -20, scale: 1.1 }}
+                                            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] pointer-events-none"
+                                        >
+                                            <div className="bg-black/80 backdrop-blur-xl border border-neon-cyan/30 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-[0_0_30px_rgba(0,255,255,0.2)]">
+                                                <div className="w-10 h-10 bg-neon-cyan/20 rounded-full flex items-center justify-center relative overflow-hidden">
+                                                    <User className="w-6 h-6 text-neon-cyan" />
+                                                    <motion.div
+                                                        animate={{ x: ['-100%', '100%'] }}
+                                                        transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                                                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none">Nouvel arrivant</p>
+                                                    <p className="text-sm font-black text-white uppercase italic tracking-tighter">{newArrival} vient d'arriver !</p>
                                                 </div>
                                             </div>
-                                        ))}
-                                        <div className="h-64" />
-                                        <p className="text-white/20 text-xs font-black uppercase tracking-[1em] italic">Merci d'avoir fait partie de l'expérience Dropsiders</p>
+                                        </motion.div>
+                                    )
+                                }
+                            </AnimatePresence >
+
+                            {/* PACMAN ANIMATION */}
+                            <AnimatePresence>
+                                {
+                                    isPacmanActive && (
+                                        <motion.div
+                                            initial={{ x: '110vw' }}
+                                            animate={{ x: '-110vw' }}
+                                            transition={{ duration: 5, ease: "linear" }}
+                                            className="fixed top-1/2 left-0 z-[2000] pointer-events-none"
+                                        >
+                                            <div className="flex items-center gap-4 text-yellow-400">
+                                                <motion.div
+                                                    animate={{ rotate: [0, 30, 0] }}
+                                                    transition={{ repeat: Infinity, duration: 0.2 }}
+                                                    className="w-16 h-16 bg-yellow-400 rounded-full relative"
+                                                    style={{ clipPath: 'polygon(100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 50%)' }}
+                                                />
+                                                <div className="flex gap-8">
+                                                    {[...Array(5)].map((_, i) => (
+                                                        <div key={i} className="w-4 h-4 bg-white rounded-full opacity-50" />
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )
+                                }
+                            </AnimatePresence >
+
+                            {/* MATRIX OVERLAY */}
+                            <AnimatePresence>
+                                {
+                                    isMatrixActive && (
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            className="fixed inset-0 z-[1000] pointer-events-none overflow-hidden bg-black/20"
+                                        >
+                                            <div className="absolute inset-0 opacity-40 font-mono text-[10px] text-[#00ff41] flex flex-wrap gap-2 p-4 leading-none select-none">
+                                                {[...Array(2000)].map((_, i) => (
+                                                    <motion.span
+                                                        key={i}
+                                                        initial={{ opacity: 0, y: -20 }}
+                                                        animate={{ opacity: [0, 1, 0], y: [0, 500] }}
+                                                        transition={{
+                                                            duration: Math.random() * 3 + 2,
+                                                            repeat: Infinity,
+                                                            delay: Math.random() * 5
+                                                        }}
+                                                    >
+                                                        {Math.random() > 0.5 ? '1' : '0'}
+                                                    </motion.span>
+                                                ))}
+                                            </div>
+                                        </motion.div>
+                                    )
+                                }
+                            </AnimatePresence >
+
+                            {/* BOSS FIGHT OVERLAY */}
+                            <AnimatePresence>
+                                {
+                                    activeBoss && (
+                                        <motion.div
+                                            initial={{ y: 200, opacity: 0 }}
+                                            animate={{ y: 0, opacity: 1 }}
+                                            exit={{ y: 200, opacity: 0 }}
+                                            className="fixed bottom-20 left-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-neon-red p-4 rounded-3xl w-64 shadow-[0_0_30px_rgba(255,0,0,0.3)]"
+                                        >
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <Sword className="w-6 h-6 text-neon-red animate-pulse" />
+                                                <div>
+                                                    <p className="text-[10px] font-black text-neon-red uppercase tracking-widest">BOSS APPARU !</p>
+                                                    <p className="text-sm font-black text-white uppercase italic">{activeBoss.name}</p>
+                                                </div>
+                                            </div>
+                                            <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden border border-white/5">
+                                                <motion.div
+                                                    animate={{ width: `${(activeBoss.hp / activeBoss.maxHp) * 100}%` }}
+                                                    className="h-full bg-gradient-to-r from-red-600 to-red-400 shadow-[0_0_10px_rgba(255,0,0,0.5)]"
+                                                />
+                                            </div>
+                                            <div className="flex justify-between mt-1">
+                                                <span className="text-[9px] font-black text-white/50">{activeBoss.hp} HP</span>
+                                                <span className="text-[9px] font-black text-neon-red uppercase">TAPEZ !HIT</span>
+                                            </div>
+                                        </motion.div>
+                                    )
+                                }
+                            </AnimatePresence >
+
+                            {/* HEIST OVERLAY */}
+                            <AnimatePresence>
+                                {
+                                    activeHeist && (
+                                        <motion.div
+                                            initial={{ x: -200, opacity: 0 }}
+                                            animate={{ x: 0, opacity: 1 }}
+                                            exit={{ x: -200, opacity: 0 }}
+                                            className="fixed top-24 left-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-neon-cyan p-4 rounded-3xl w-64 shadow-[0_0_30px_rgba(0,255,255,0.2)]"
+                                        >
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <ShieldCheck className="w-6 h-6 text-neon-cyan animate-bounce" />
+                                                <div>
+                                                    <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">BRAQUAGE EN COURS</p>
+                                                    <p className="text-xs font-bold text-white uppercase">{activeHeist?.participants?.length || 0} Braqueurs prêts</p>
+                                                </div>
+                                            </div>
+                                            <div className="text-[9px] font-black text-white/50 mb-2 uppercase">TOTAL MISÉ : {activeHeist?.participants?.reduce((a, b) => a + (b?.bet || 0), 0) || 0} DROPS</div>
+                                            <div className="text-center py-1 bg-neon-cyan/10 rounded-lg">
+                                                <span className="text-neon-cyan font-black animate-pulse">!braquage [montant] pour rejoindre</span>
+                                            </div>
+                                        </motion.div>
+                                    )
+                                }
+                            </AnimatePresence >
+
+                            {/* QTE (Quick Time Event) Overlay */}
+                            <AnimatePresence>
+                                {
+                                    activeQTE && (
+                                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1.2 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500]">
+                                            <button
+                                                onClick={() => {
+                                                    const reward = activeQTE?.reward || 0;
+                                                    const isVipReward = Math.random() > 0.8;
+                                                    if (isVipReward) {
+                                                        setVipsList(prev => [...prev, localStorage.getItem('chat_pseudo') || '']);
+                                                        showNotification(`⚡ RÉFLEXE DE GÉNIE ! TU ES VIP TEMPORAIRE ! 👑`, 'success');
+                                                    } else {
+                                                        setUserDrops(prev => prev + reward);
+                                                        showNotification(`⚡ FAST CLICK ! +${reward} DROPS ! ⚡`, 'success');
+                                                    }
+                                                    setActiveQTE(null);
+                                                }}
+                                                className="p-10 bg-gradient-to-br from-neon-cyan to-neon-purple rounded-full shadow-[0_0_50px_#00ffff] animate-pulse group"
+                                            >
+                                                <Zap className="w-12 h-12 text-white group-hover:scale-125 transition-transform" />
+                                                <p className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-white font-black uppercase italic tracking-widest whitespace-nowrap">CLIQUE VITE !</p>
+                                            </button>
+                                        </motion.div>
+                                    )
+                                }
+                            </AnimatePresence >
+
+                            {/* Achievement Popup */}
+                            <AnimatePresence>
+                                {
+                                    showAchievementPopup && (
+                                        <motion.div initial={{ x: 300 }} animate={{ x: 0 }} exit={{ x: 300 }} className="fixed top-24 right-4 z-[300] bg-black/90 border-2 border-amber-500 p-4 rounded-2xl flex items-center gap-4 shadow-[#f59e0b20] shadow-2xl">
+                                            <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center">
+                                                <Trophy className="w-7 h-7 text-black" />
+                                            </div>
+                                            <div>
+                                                <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Succès Débloqué !</p>
+                                                <p className="text-xs font-black text-white uppercase italic">{showAchievementPopup}</p>
+                                            </div>
+                                        </motion.div>
+                                    )
+                                }
+                            </AnimatePresence >
+
+                            {/* SLOT MACHINE JACKPOT OVERLAY */}
+                            <AnimatePresence>
+                                {
+                                    activeSlots && (
+                                        <motion.div
+                                            initial={{ y: 100, opacity: 0 }}
+                                            animate={{ y: 0, opacity: 1 }}
+                                            exit={{ y: 100, opacity: 0 }}
+                                            className="fixed bottom-24 right-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-amber-500 p-6 rounded-3xl w-72 shadow-[0_0_40px_rgba(245,158,11,0.3)]"
+                                        >
+                                            <div className="flex flex-col items-center text-center space-y-4">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
+                                                        <Star className="w-6 h-6 text-black animate-spin" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">MINI-JEU JACKPOT</p>
+                                                        <p className="text-xl font-black text-white italic">LOTERIE !</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex gap-2 justify-center py-4">
+                                                    {['🍒', '💎', '7️⃣'].map((emoji, i) => (
+                                                        <motion.div
+                                                            key={i}
+                                                            animate={{ y: [0, -10, 0] }}
+                                                            transition={{ repeat: Infinity, duration: 0.5, delay: i * 0.1 }}
+                                                            className="w-12 h-16 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-2xl"
+                                                        >
+                                                            {emoji}
+                                                        </motion.div>
+                                                    ))}
+                                                </div>
+
+                                                <div className="space-y-2 w-full">
+                                                    <p className="text-[10px] text-gray-400 font-bold uppercase">
+                                                        {activeSlots.participants.length} JOUEURS • TICKET 50 DROPS
+                                                    </p>
+                                                    <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                                        <motion.div
+                                                            animate={{ width: `${(activeSlots.timeLeft / 60) * 100}%` }}
+                                                            className="h-full bg-amber-500"
+                                                        />
+                                                    </div>
+                                                    <button
+                                                        onClick={() => handleSendMessage("!ticket")}
+                                                        className="w-full py-3 bg-amber-500 text-black font-black uppercase rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-500/20"
+                                                    >
+                                                        Prendre un ticket !
+                                                    </button>
+                                                    <p className="text-[8px] text-amber-500/50 font-black uppercase tracking-tighter italic">FIN DANS {activeSlots.timeLeft}S</p>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )
+                                }
+                            </AnimatePresence >
+
+                            {/* MUR DES LÉGENDES (Legends Wall Overlay) */}
+                            <AnimatePresence>
+                                {
+                                    showLegendsWall && (
+                                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1000] bg-black/95 flex flex-col items-center justify-center overflow-hidden">
+                                            <div className="absolute top-10 flex flex-col items-center">
+                                                <Crown className="w-16 h-16 text-amber-500 mb-4 animate-bounce" />
+                                                <h2 className="text-4xl font-black text-white uppercase italic tracking-[0.5em] mb-2">Mur des Légendes</h2>
+                                                <p className="text-amber-500/50 text-[10px] font-black uppercase tracking-[0.5em]">Dropsiders Hall of Fame</p>
+                                            </div>
+                                            <div className="flex-1 w-full max-w-4xl relative">
+                                                <motion.div animate={{ y: [-1000, 1000] }} transition={{ duration: 20, repeat: Infinity, ease: "linear" }} className="flex flex-col items-center space-y-12 py-32">
+                                                    {(topTalkers.length > 0 ? topTalkers : leaderboard).map((user: any, i) => (
+                                                        <div key={i} className="flex flex-col items-center group">
+                                                            {i < 3 && <Trophy className={`w-8 h-8 mb-2 ${i === 0 ? 'text-amber-500' : i === 1 ? 'text-gray-400' : 'text-amber-700'}`} />}
+                                                            <span className="text-3xl font-black text-white hover:text-amber-500 transition-colors uppercase italic">{user.pseudo}</span>
+                                                            <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest mt-1">
+                                                                <span>{user.drops || user.count || 5000}+ DROPS</span>
+                                                                <div className="w-1 h-1 rounded-full bg-white/20" />
+                                                                <span>LÉGENDE ACTIVE</span>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    <div className="h-64" />
+                                                    <p className="text-white/20 text-xs font-black uppercase tracking-[1em] italic">Merci d'avoir fait partie de l'expérience Dropsiders</p>
+                                                </motion.div>
+                                            </div>
+                                            <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black pointer-events-none" />
+                                            <button onClick={() => setShowLegendsWall(false)} className="absolute bottom-10 px-8 py-3 bg-white/10 border border-white/20 text-white text-[10px] font-black rounded-full hover:bg-white/20 transition-all uppercase tracking-widest">Fermer</button>
+                                        </motion.div>
+                                    )}
+                            </AnimatePresence>
+
+                            <AnimatePresence>
+                                {toast.show && (
+                                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]">
+                                        <div className={`px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
+                                            {toast.type === 'success' ? <ShieldCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                                            <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>
+                                        </div>
                                     </motion.div>
-                                </div>
-                                <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black pointer-events-none" />
-                                <button onClick={() => setShowLegendsWall(false)} className="absolute bottom-10 px-8 py-3 bg-white/10 border border-white/20 text-white text-[10px] font-black rounded-full hover:bg-white/20 transition-all uppercase tracking-widest">Fermer</button>
-                            </motion.div>
-                        )}
-                </AnimatePresence>
+                                )}
+                            </AnimatePresence>
 
-                <AnimatePresence>
-                    {toast.show && (
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]">
-                            <div className={`px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
-                                {toast.type === 'success' ? <ShieldCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                                <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-
-            </div>
+                        </div>
         </div>
-    );
+            );
 };
 
-
-export default TakeoverPage;
+            export default TakeoverPage;
