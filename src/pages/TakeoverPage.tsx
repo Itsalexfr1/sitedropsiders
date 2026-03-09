@@ -7,7 +7,7 @@ import {
     Pin, Star, ShieldCheck, Ban, Megaphone, User,
     BarChart3, Clock, Sword, Crown, Maximize2, Minimize2,
     Trophy, Stars, Heart, Volume2, Timer, ShieldAlert, Calendar,
-    Languages, Instagram, MapPin
+    Languages, Instagram, MapPin, ShoppingBag
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
@@ -2506,8 +2506,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         isConnected && (
                             <div className="flex items-center justify-between px-2 lg:px-4 bg-black/20 border-b border-white/10 overflow-x-auto scollbar-hide no-scrollbar">
                                 <div className="flex gap-1 p-1 lg:p-2">
-                                    {['CHAT', 'PLANNING', 'SHAZAM', 'BOUTIQUE'].map(tab => (
-                                        <button key={tab} onClick={() => setActiveChatTab(tab === 'BOUTIQUE' ? 'drops' : tab.toLowerCase())} className={`px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg text-[8px] lg:text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === (tab === 'BOUTIQUE' ? 'drops' : tab.toLowerCase()) ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{tab}</button>
+                                    {['CHAT', 'PLANNING', 'SHAZAM', 'SHOP', 'DROPS'].map(tab => (
+                                        <button
+                                            key={tab}
+                                            onClick={() => setActiveChatTab(tab === 'SHOP' ? 'shop' : tab === 'DROPS' ? 'drops' : tab.toLowerCase())}
+                                            className={`px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg text-[8px] lg:text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === (tab === 'SHOP' ? 'shop' : tab === 'DROPS' ? 'drops' : tab.toLowerCase()) ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}
+                                        >
+                                            {tab === 'SHOP' ? 'SHOP OFFICIEL' : tab === 'DROPS' ? 'BOUTIQUE DROPS' : tab}
+                                        </button>
                                     ))}
                                 </div>
                                 <div className="flex gap-1 p-1 bg-white/5 rounded-xl border border-white/10 my-1">
@@ -3188,10 +3194,39 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         );
                                     })}
                                 </motion.div>
+                            ) : activeChatTab === 'shop' ? (
+                                <motion.div key="shop-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6 py-6 px-4">
+                                    <div className="text-center mb-8">
+                                        <ShoppingBag className="w-12 h-12 text-neon-cyan mx-auto mb-4 animate-pulse" />
+                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Shop Officiel Dropsiders</h3>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2">Merchandising & Accessoires</p>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-4">
+                                        {shopItems.map(item => (
+                                            <div key={item.id} className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-2xl group hover:border-neon-cyan/30 transition-all cursor-pointer">
+                                                <div className="w-16 h-20 rounded-xl bg-black/40 overflow-hidden shrink-0 border border-white/10 flex items-center justify-center">
+                                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-xs font-black text-white uppercase mb-1 tracking-tight">{item.name}</p>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-[9px] font-black text-neon-cyan uppercase tracking-widest">PRIX :</span>
+                                                        <span className="text-[10px] font-black text-white">{item.price} DROPS</span>
+                                                    </div>
+                                                </div>
+                                                <button onClick={() => showNotification(`ACHETER : ${item.name}`, 'success')} className="px-4 py-2 bg-white/5 border border-white/10 text-[9px] font-black uppercase rounded-xl hover:bg-white/10 text-white transition-all">VOIR</button>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="p-4 bg-neon-cyan/5 border border-neon-cyan/20 rounded-2xl mt-8">
+                                        <p className="text-[9px] font-bold text-neon-cyan/60 uppercase text-center leading-relaxed">Le shop officiel vous permet de commander des articles réels avec vos Drops accumulés sur notre réseau.</p>
+                                    </div>
+                                </motion.div>
                             ) : activeChatTab === 'drops' ? (
-                                <motion.div key="drops-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 text-center py-10 px-6">
-                                    <Star className="w-12 h-12 text-amber-500 mx-auto mb-4 animate-bounce" />
-                                    <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Boutique Drops</h3>
+                                <motion.div key="drops-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4 text-center py-6 px-4">
+                                    <Trophy className="w-12 h-12 text-amber-500 mx-auto mb-4 animate-bounce" />
+                                    <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Shop des Drops</h3>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-8">Améliorez votre profil avec vos drops</p>
 
                                     {/* 🏆 Leaderboard Section */}
                                     <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-8 text-left space-y-4">
@@ -3222,26 +3257,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         </div>
                                     </div>
 
-                                    <p className="text-xs text-gray-500 font-bold uppercase mb-8">Obtenez des récompenses avec vos drops !</p>
-
-                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-8 text-left">
-                                        <div className="flex items-center gap-2 mb-4">
-                                            <Stars className="w-5 h-5 text-neon-cyan" />
-                                            <h4 className="text-[10px] font-black text-white uppercase tracking-widest">Shop Officiel Dropsiders</h4>
-                                        </div>
-                                        <div className="space-y-4">
-                                            {shopItems.map(item => (
-                                                <div key={item.id} className="flex items-center gap-4 p-3 bg-black/40 rounded-2xl border border-white/5 group hover:border-neon-cyan/30 transition-all cursor-pointer">
-                                                    <img src={item.image} alt={item.name} className="w-12 h-14 rounded-lg object-cover" />
-                                                    <div className="flex-1">
-                                                        <p className="text-xs font-black text-white uppercase">{item.name}</p>
-                                                        <p className="text-[10px] text-neon-cyan font-bold">{item.price} DROPS</p>
-                                                    </div>
-                                                    <button onClick={() => showNotification(`ACHETER : ${item.name}`, 'success')} className="px-3 py-1.5 bg-white/5 border border-white/10 text-[9px] font-black uppercase rounded-lg hover:bg-white/10 text-white">VOIR</button>
-                                                </div>
-                                            ))}
-                                        </div>
-                                    </div>
+                                    <p className="text-xs text-gray-500 font-bold uppercase mb-8">Obtenez des récompenses virtuelles avec vos drops !</p>
                                     <div className="grid grid-cols-1 gap-4">
                                         <button
                                             onClick={() => {
@@ -3350,69 +3366,67 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 </motion.div>
                             ) : null}
                         </AnimatePresence >
-
-
-
-                        {
-                            isConnected && (
-                                <div className="p-4 bg-black/40 border-t border-white/5 space-y-3">
-                                    {/* Reply support removed from footer */}
-                                    {isHighlightChecked && (
-                                        <div className="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all border" style={{ backgroundColor: `${highlightColor}20`, borderColor: `${highlightColor}40` }}>
-                                            <div className="flex items-center gap-3">
-                                                <span className="text-[10px] font-black uppercase" style={{ color: highlightColor }}>Mise en avant</span>
-                                                <input type="color" value={highlightColor} onChange={(e) => setHighlightColor(e.target.value)} className="w-5 h-4 bg-transparent border-none outline-none cursor-pointer p-0" />
-                                            </div>
-                                            <span className="text-[10px] font-black" style={{ color: highlightColor }}>{settings.highlightPrice || 100} DROPS</span>
-                                        </div>
-                                    )}
-                                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 group focus-within:border-opacity-100 transition-all" style={{ borderColor: `${accentColor}40` }}>
-                                        {slowModeEnabled && !isMod && (
-                                            <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full animate-pulse">
-                                                <Clock className="w-3 h-3 text-amber-500" />
-                                                <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">Mode Lent (10s)</span>
-                                            </div>
-                                        )}
-                                        <input
-                                            type="text"
-                                            value={isBanned ? "VOUS ÊTES BANNI" : newMessage}
-                                            onChange={e => setNewMessage(e.target.value)}
-                                            disabled={isBanned}
-                                            onKeyDown={e => e.key === 'Enter' && handleSendMessage(newMessage)}
-                                            placeholder={isBanned ? "ACCÈS REFUSÉ..." : slowModeEnabled && !isMod ? "MODE LENT ACTIF..." : "VOTRE MESSAGE..."}
-                                            className={`flex-1 bg-transparent text-xs font-bold outline-none uppercase tracking-wider ${isBanned ? 'text-red-500' : 'text-white placeholder:text-gray-600'}`}
-                                        />
-                                        <button onClick={() => setShowGifPicker(!showGifPicker)} className="p-2 text-gray-500 hover:text-white transition-all">
-                                            <Stars className="w-4 h-4" />
-                                        </button>
-                                        <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
-                                            <Zap className="w-4 h-4" />
-                                        </button>
-                                        <button onClick={() => window.open(window.location.href, 'Chat', 'width=400,height=800')} className="p-2 text-gray-500 hover:text-white transition-all" title="Détacher le chat">
-                                            <Maximize2 className="w-4 h-4" />
-                                        </button>
-                                        <button onClick={() => handleSendMessage(newMessage)} className="p-2 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all" style={{ backgroundColor: accentColor }}>
-                                            <Send className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                    {showGifPicker && (
-                                        <div className="grid grid-cols-3 gap-2 p-3 bg-black/60 rounded-2xl border border-white/10 animate-in fade-in slide-in-from-bottom-2">
-                                            {['https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/3o7TKMGpxVfPtoog3m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/LScqP82pdBAlC7xs6m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/clotJgshs6nUUXf2i6/giphy.gif'].map((gif, i) => (
-                                                <img key={i} src={gif} onClick={() => { handleSendMessage(gif); setShowGifPicker(false); }} className="w-full h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform" />
-                                            ))}
-                                        </div>
-                                    )}
-                                    <div className="flex items-center justify-between px-2">
-                                        <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80" onClick={() => setActiveChatTab('drops')}>
-                                            <Trophy className="w-3 h-3 text-amber-500" />
-                                            <span className="text-[10px] font-black text-white">{userDrops} <span className="text-gray-600 ml-0.5 uppercase tracking-tighter">DROPS</span></span>
-                                        </div>
-                                        <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">Powered by Dropsiders</span>
-                                    </div>
-                                </div>
-                            )
-                        }
                     </div>
+
+                    {
+                        isConnected && (
+                            <div className="p-4 bg-black/40 border-t border-white/5 space-y-3">
+                                {/* Reply support removed from footer */}
+                                {isHighlightChecked && (
+                                    <div className="flex items-center justify-between px-3 py-1.5 rounded-lg transition-all border" style={{ backgroundColor: `${highlightColor}20`, borderColor: `${highlightColor}40` }}>
+                                        <div className="flex items-center gap-3">
+                                            <span className="text-[10px] font-black uppercase" style={{ color: highlightColor }}>Mise en avant</span>
+                                            <input type="color" value={highlightColor} onChange={(e) => setHighlightColor(e.target.value)} className="w-5 h-4 bg-transparent border-none outline-none cursor-pointer p-0" />
+                                        </div>
+                                        <span className="text-[10px] font-black" style={{ color: highlightColor }}>{settings.highlightPrice || 100} DROPS</span>
+                                    </div>
+                                )}
+                                <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-4 py-2 group focus-within:border-opacity-100 transition-all" style={{ borderColor: `${accentColor}40` }}>
+                                    {slowModeEnabled && !isMod && (
+                                        <div className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 border border-amber-500/20 rounded-full animate-pulse">
+                                            <Clock className="w-3 h-3 text-amber-500" />
+                                            <span className="text-[8px] font-black text-amber-500 uppercase tracking-widest">Mode Lent (10s)</span>
+                                        </div>
+                                    )}
+                                    <input
+                                        type="text"
+                                        value={isBanned ? "VOUS ÊTES BANNI" : newMessage}
+                                        onChange={e => setNewMessage(e.target.value)}
+                                        disabled={isBanned}
+                                        onKeyDown={e => e.key === 'Enter' && handleSendMessage(newMessage)}
+                                        placeholder={isBanned ? "ACCÈS REFUSÉ..." : slowModeEnabled && !isMod ? "MODE LENT ACTIF..." : "VOTRE MESSAGE..."}
+                                        className={`flex-1 bg-transparent text-xs font-bold outline-none uppercase tracking-wider ${isBanned ? 'text-red-500' : 'text-white placeholder:text-gray-600'}`}
+                                    />
+                                    <button onClick={() => setShowGifPicker(!showGifPicker)} className="p-2 text-gray-500 hover:text-white transition-all">
+                                        <Stars className="w-4 h-4" />
+                                    </button>
+                                    <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
+                                        <Zap className="w-4 h-4" />
+                                    </button>
+                                    <button onClick={() => window.open(window.location.href, 'Chat', 'width=400,height=800')} className="p-2 text-gray-500 hover:text-white transition-all" title="Détacher le chat">
+                                        <Maximize2 className="w-4 h-4" />
+                                    </button>
+                                    <button onClick={() => handleSendMessage(newMessage)} className="p-2 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all" style={{ backgroundColor: accentColor }}>
+                                        <Send className="w-4 h-4" />
+                                    </button>
+                                </div>
+                                {showGifPicker && (
+                                    <div className="grid grid-cols-3 gap-2 p-3 bg-black/60 rounded-2xl border border-white/10 animate-in fade-in slide-in-from-bottom-2">
+                                        {['https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/3o7TKMGpxVfPtoog3m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/LScqP82pdBAlC7xs6m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/clotJgshs6nUUXf2i6/giphy.gif'].map((gif, i) => (
+                                            <img key={i} src={gif} onClick={() => { handleSendMessage(gif); setShowGifPicker(false); }} className="w-full h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform" />
+                                        ))}
+                                    </div>
+                                )}
+                                <div className="flex items-center justify-between px-2">
+                                    <div className="flex items-center gap-1.5 cursor-pointer hover:opacity-80" onClick={() => setActiveChatTab('drops')}>
+                                        <Trophy className="w-3 h-3 text-amber-500" />
+                                        <span className="text-[10px] font-black text-white">{userDrops} <span className="text-gray-600 ml-0.5 uppercase tracking-tighter">DROPS</span></span>
+                                    </div>
+                                    <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">Powered by Dropsiders</span>
+                                </div>
+                            </div>
+                        )
+                    }
                 </div>
 
                 {/* Flash Message Overlay */}
