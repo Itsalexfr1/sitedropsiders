@@ -3917,5 +3917,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 299,
+    "title": "Pardon My French Miami Edition",
+    "date": "2026-03-26",
+    "startDate": "2026-03-26",
+    "endDate": "2026-03-26",
+    "venue": "Toe Jam XL",
+    "location": "MIAMI",
+    "country": "USA",
+    "type": "Showcase",
+    "image": "https://dropsiders.fr/uploads/273724f22e373e7308276bb36fe796d8e7ce779b9554424250d1acef197d4af0.png",
+    "url": "https://dice.fm/event/ry92nq-pardon-my-french-miami-music-week-26th-mar-toe-jam-xl-miami-tickets?lng=fr",
+    "genre": "Multi Styles",
+    "month": "MARS",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
