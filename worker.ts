@@ -502,6 +502,7 @@ export default {
 
         // --- AUTH CHECK ---
         const envAdminPass = (env.ADMIN_PASSWORD || '01061988').trim();
+        const adminPassword = envAdminPass; // Fix for other parts of the code
         const requestPassword = (request.headers.get('X-Admin-Password') || '').trim();
         let requestUsername = (request.headers.get('X-Admin-Username') || '').trim();
 
@@ -6328,7 +6329,12 @@ export default {
             const adminPass = (request.headers.get('X-Admin-Password') || '').trim();
             const requiredPass = (env.ADMIN_PASSWORD || '01061988').trim();
             if (adminPass !== requiredPass) {
-                return new Response(JSON.stringify({ error: 'Unauthorized', debug: 'Mismatch Update' }), { status: 401, headers });
+                return new Response(JSON.stringify({
+                    error: 'Unauthorized',
+                    debug: 'Mismatch Update',
+                    receivedLen: adminPass.length,
+                    expectedLen: requiredPass.length
+                }), { status: 401, headers });
             }
 
             try {
