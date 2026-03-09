@@ -543,7 +543,8 @@ export default {
             path === '/api/quiz/moderate' ||
             path === '/api/covoit/delete' ||
             path === '/api/avis/moderate' ||
-            path === '/api/facture/send'
+            path === '/api/facture/send' ||
+            path.startsWith('/api/invoices')
         );
 
         // --- API: PUSH NOTIFICATIONS ---
@@ -2507,7 +2508,7 @@ export default {
             if (!BREVO_KEY) return new Response(JSON.stringify({ error: 'Brevo API Key missing' }), { status: 500, headers });
             try {
                 const body = await request.json().catch(() => ({}));
-                const { to, subject, message, pdfBase64, filename } = body;
+                const { to, subject, message, pdfBase64, filename, invoiceData } = body;
 
                 if (!to || !pdfBase64) {
                     return new Response(JSON.stringify({ error: 'Destinataire ou PDF manquant' }), { status: 400, headers });
@@ -2543,6 +2544,44 @@ export default {
                     return new Response(JSON.stringify({ error: "Erreur lors de l'envoi: " + errText }), { status: 500, headers });
                 }
 
+                // If invoiceData is provided, auto-save to history
+                if (invoiceData) {
+                    const INVOICE_FILE = 'src/data/invoices.json';
+                    const file = await fetchGitHubFile(INVOICE_FILE, gitConfig);
+                    const history = file?.content || [];
+                    const newInvoice = {
+                        ...invoiceData,
+                        id: Date.now(),
+                        sentDate: new Date().toISOString(),
+                        paid: false
+                    };
+                    await saveGitHubFile(INVOICE_FILE, [newInvoice, ...history], `Save invoice: ${invoiceData.number}`, file?.sha, gitConfig);
+                }
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/invoices' && request.method === 'GET') {
+            try {
+                const file = await fetchGitHubFile('src/data/invoices.json', gitConfig);
+                return new Response(JSON.stringify(file?.content || []), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify([]), { status: 200, headers });
+            }
+        }
+
+        if (path === '/api/invoices/update' && request.method === 'POST') {
+            try {
+                const { id, paid } = await request.json();
+                const INVOICE_FILE = 'src/data/invoices.json';
+                const file = await fetchGitHubFile(INVOICE_FILE, gitConfig);
+                if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+
+                const updated = file.content.map(inv => inv.id === id ? { ...inv, paid } : inv);
+                await saveGitHubFile(INVOICE_FILE, updated, `Update invoice status: ${id}`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });

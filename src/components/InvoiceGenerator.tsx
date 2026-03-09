@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plus, Printer, Trash2, Send, Loader, X, Mail, BookUser, Save, Eye, Phone, Building2, CreditCard, ChevronRight } from 'lucide-react';
+import { Plus, Printer, Trash2, Send, Loader, X, Mail, BookUser, Save, Eye, Phone, Building2, CreditCard, ChevronRight, History, CheckCircle, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -55,12 +55,47 @@ export function InvoiceGenerator() {
     });
     const [showClientPicker, setShowClientPicker] = useState(false);
 
+    // History & Tracking
+    const [view, setView] = useState<'edit' | 'archive'>('edit');
+    const [history, setHistory] = useState<any[]>([]);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+    const fetchHistory = async () => {
+        setIsLoadingHistory(true);
+        try {
+            const res = await fetch('/api/invoices');
+            if (res.ok) {
+                const data = await res.json();
+                setHistory(data);
+            }
+        } catch (e) { console.error('History fetch error:', e); }
+        finally { setIsLoadingHistory(false); }
+    };
+
     useEffect(() => {
         const savedNumber = localStorage.getItem('dropsiders_last_invoice_number');
         if (savedNumber) setInvoiceNumber(parseInt(savedNumber, 10));
         const savedPhone = localStorage.getItem('invoice_user_phone');
         if (savedPhone) setUserPhone(savedPhone);
+        fetchHistory();
     }, []);
+
+    const togglePaid = async (id: number, currentPaid: boolean) => {
+        try {
+            const adminPass = (localStorage.getItem('admin_password') || '').trim();
+            const res = await fetch('/api/invoices/update', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-Admin-Password': adminPass
+                },
+                body: JSON.stringify({ id, paid: !currentPaid })
+            });
+            if (res.ok) {
+                setHistory(prev => prev.map(inv => inv.id === id ? { ...inv, paid: !currentPaid } : inv));
+            }
+        } catch (e) { console.error('Toggle paid error:', e); }
+    };
 
     const saveUserPhone = (val: string) => {
         setUserPhone(val);
@@ -329,7 +364,13 @@ export function InvoiceGenerator() {
                     subject: emailSubject,
                     message: emailMessage,
                     pdfBase64: pdfBase64,
-                    filename: `Facture_${formattedInvoiceNumber}.pdf`
+                    filename: `Facture_${formattedInvoiceNumber}.pdf`,
+                    invoiceData: {
+                        number: formattedInvoiceNumber,
+                        client: clientName,
+                        total: total,
+                        date: date
+                    }
                 })
             });
 
@@ -341,6 +382,7 @@ export function InvoiceGenerator() {
             }
 
             setSendStatus('success');
+            fetchHistory(); // Refresh history
             setTimeout(() => {
                 setSendStatus('idle');
                 setShowEmailModal(false);
@@ -371,6 +413,23 @@ export function InvoiceGenerator() {
                             <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
                             <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Sytème de Facturation v2.0</p>
                         </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 p-1.5 bg-white/[0.03] border border-white/[0.05] rounded-2xl ml-8">
+                        <button
+                            onClick={() => setView('edit')}
+                            className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 flex items-center gap-2 ${view === 'edit' ? 'bg-white text-black shadow-[0_10px_20px_rgba(255,255,255,0.1)]' : 'text-white/30 hover:text-white/60'}`}
+                        >
+                            <Plus className={`w-3 h-3 ${view === 'edit' ? 'text-black' : 'text-current'}`} />
+                            Nouvelle
+                        </button>
+                        <button
+                            onClick={() => setView('archive')}
+                            className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all duration-500 flex items-center gap-2 ${view === 'archive' ? 'bg-white text-black shadow-[0_10px_20px_rgba(255,255,255,0.1)]' : 'text-white/30 hover:text-white/60'}`}
+                        >
+                            <History className={`w-3 h-3 ${view === 'archive' ? 'text-black' : 'text-current'}`} />
+                            Archive
+                        </button>
                     </div>
                 </div>
 
@@ -408,270 +467,374 @@ export function InvoiceGenerator() {
             </div>
 
             <div className="flex-1 overflow-y-auto no-scrollbar p-10 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.02),transparent)]">
-                <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
+                <AnimatePresence mode="wait">
+                    {view === 'edit' ? (
+                        <motion.div
+                            key="edit"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.02 }}
+                            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                            className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16"
+                        >
 
-                    {/* CONTROL CENTER */}
-                    <div className="lg:col-span-4 space-y-10">
-                        {/* Profile & Identity */}
-                        <div className="bg-[#0c0c0c] border border-white/[0.03] rounded-[40px] p-10 relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
-                                <Building2 className="w-32 h-32" />
-                            </div>
-
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20 mb-10 border-b border-white/5 pb-6">IDENTITÉ ÉMETTEUR</h3>
-
-                            <div className="space-y-8">
-                                <div className="space-y-3">
-                                    <label className="text-[9px] font-black text-white/20 uppercase tracking-widest ml-1">Contact Pro</label>
-                                    <div className="bg-black/60 border border-white/5 rounded-2xl p-4 flex items-center gap-4 focus-within:border-white/20 transition-all">
-                                        <Phone className="w-4 h-4 text-white/20" />
-                                        <input
-                                            type="text"
-                                            value={userPhone}
-                                            onChange={e => saveUserPhone(e.target.value)}
-                                            className="bg-transparent border-none outline-none text-sm font-bold w-full text-white/80"
-                                        />
+                            {/* CONTROL CENTER */}
+                            <div className="lg:col-span-4 space-y-10">
+                                {/* Profile & Identity */}
+                                <div className="bg-[#0c0c0c] border border-white/[0.03] rounded-[40px] p-10 relative overflow-hidden group">
+                                    <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+                                        <Building2 className="w-32 h-32" />
                                     </div>
-                                </div>
 
-                                <div className="space-y-3">
-                                    <label className="text-[9px] font-black text-white/20 uppercase tracking-widest ml-1">Référence Chrono</label>
-                                    <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 group-hover:bg-white/[0.04] transition-colors">
-                                        <div className="flex items-baseline gap-2">
-                                            <span className="text-white/20 font-black text-sm italic">INV-</span>
-                                            <input
-                                                type="number"
-                                                value={invoiceNumber}
-                                                onChange={e => saveInvoiceNumber(parseInt(e.target.value) || 0)}
-                                                className="bg-transparent border-none outline-none text-4xl font-black w-full tracking-tighter text-white"
-                                            />
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20 mb-10 border-b border-white/5 pb-6">IDENTITÉ ÉMETTEUR</h3>
+
+                                    <div className="space-y-8">
+                                        <div className="space-y-3">
+                                            <label className="text-[9px] font-black text-white/20 uppercase tracking-widest ml-1">Contact Pro</label>
+                                            <div className="bg-black/60 border border-white/5 rounded-2xl p-4 flex items-center gap-4 focus-within:border-white/20 transition-all">
+                                                <Phone className="w-4 h-4 text-white/20" />
+                                                <input
+                                                    type="text"
+                                                    value={userPhone}
+                                                    onChange={e => saveUserPhone(e.target.value)}
+                                                    className="bg-transparent border-none outline-none text-sm font-bold w-full text-white/80"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <label className="text-[9px] font-black text-white/20 uppercase tracking-widest ml-1">Référence Chrono</label>
+                                            <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 group-hover:bg-white/[0.04] transition-colors">
+                                                <div className="flex items-baseline gap-2">
+                                                    <span className="text-white/20 font-black text-sm italic">INV-</span>
+                                                    <input
+                                                        type="number"
+                                                        value={invoiceNumber}
+                                                        onChange={e => saveInvoiceNumber(parseInt(e.target.value) || 0)}
+                                                        className="bg-transparent border-none outline-none text-4xl font-black w-full tracking-tighter text-white"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="space-y-3">
+                                            <label className="text-[9px] font-black text-white/20 uppercase tracking-widest ml-1">Horodatage</label>
+                                            <div className="bg-black/60 border border-white/5 rounded-2xl p-4">
+                                                <input
+                                                    type="date"
+                                                    value={date}
+                                                    onChange={e => setDate(e.target.value)}
+                                                    className="bg-transparent border-none outline-none text-sm font-bold w-full [color-scheme:dark] text-white/80"
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="mt-12 pt-8 border-t border-white/5">
+                                        <div className="flex items-center gap-5">
+                                            <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-white/20"><Save className="w-5 h-5" /></div>
+                                            <div>
+                                                <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Status Légal</p>
+                                                <p className="text-[10px] font-bold text-white/40 leading-relaxed">Auto-entrepreneur<br />SIRET : 805131828 00010</p>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div className="space-y-3">
-                                    <label className="text-[9px] font-black text-white/20 uppercase tracking-widest ml-1">Horodatage</label>
-                                    <div className="bg-black/60 border border-white/5 rounded-2xl p-4">
-                                        <input
-                                            type="date"
-                                            value={date}
-                                            onChange={e => setDate(e.target.value)}
-                                            className="bg-transparent border-none outline-none text-sm font-bold w-full [color-scheme:dark] text-white/80"
-                                        />
+                                {/* Payment Terminal Info */}
+                                <div className="bg-gradient-to-br from-[#0c0c0c] to-black border border-white/[0.03] rounded-[40px] p-10">
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20 mb-8 pb-6 border-b border-white/5">TERMINAL TRANSACTION</h3>
+                                    <div className="space-y-6">
+                                        <div className="p-6 bg-white/[0.02] rounded-3xl border border-white/5 flex items-start gap-5">
+                                            <CreditCard className="w-6 h-6 text-white/20 shrink-0" />
+                                            <div>
+                                                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2">Canal Règlements</p>
+                                                <p className="text-[11px] font-bold text-white/60 leading-relaxed italic">
+                                                    Transferts SEPA / Revolut Business via Nîmes Hub.
+                                                </p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center justify-between px-2">
+                                            <span className="text-[8px] font-black text-white/10 uppercase tracking-[0.3em]">Network Security</span>
+                                            <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+                                        </div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="mt-12 pt-8 border-t border-white/5">
-                                <div className="flex items-center gap-5">
-                                    <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-white/20"><Save className="w-5 h-5" /></div>
-                                    <div>
-                                        <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Status Légal</p>
-                                        <p className="text-[10px] font-bold text-white/40 leading-relaxed">Auto-entrepreneur<br />SIRET : 805131828 00010</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                            {/* CONTENT CANVAS */}
+                            <div className="lg:col-span-8 space-y-10 pb-20">
 
-                        {/* Payment Terminal Info */}
-                        <div className="bg-gradient-to-br from-[#0c0c0c] to-black border border-white/[0.03] rounded-[40px] p-10">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20 mb-8 pb-6 border-b border-white/5">TERMINAL TRANSACTION</h3>
-                            <div className="space-y-6">
-                                <div className="p-6 bg-white/[0.02] rounded-3xl border border-white/5 flex items-start gap-5">
-                                    <CreditCard className="w-6 h-6 text-white/20 shrink-0" />
-                                    <div>
-                                        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2">Canal Règlements</p>
-                                        <p className="text-[11px] font-bold text-white/60 leading-relaxed italic">
-                                            Transferts SEPA / Revolut Business via Nîmes Hub.
-                                        </p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center justify-between px-2">
-                                    <span className="text-[8px] font-black text-white/10 uppercase tracking-[0.3em]">Network Security</span>
-                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                                {/* CLIENT HUB */}
+                                <div className="bg-[#0c0c0c] border border-white/[0.03] rounded-[48px] p-12 space-y-12 shadow-2xl relative overflow-hidden">
+                                    <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-50" />
 
-                    {/* CONTENT CANVAS */}
-                    <div className="lg:col-span-8 space-y-10 pb-20">
-
-                        {/* CLIENT HUB */}
-                        <div className="bg-[#0c0c0c] border border-white/[0.03] rounded-[48px] p-12 space-y-12 shadow-2xl relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-50" />
-
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.6em] text-white/20">CLIENT & DESTINATION</h3>
-                                <div className="flex items-center gap-4">
-                                    {savedClients.length > 0 && (
-                                        <div className="relative">
-                                            <button
-                                                onClick={() => setShowClientPicker(!showClientPicker)}
-                                                className="px-6 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-all flex items-center gap-3"
-                                            >
-                                                <BookUser className="w-4 h-4 text-white/40" /> Carnet
-                                            </button>
-                                            <AnimatePresence>
-                                                {showClientPicker && (
-                                                    <motion.div
-                                                        initial={{ opacity: 0, y: 15, scale: 0.95 }}
-                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                                                        exit={{ opacity: 0, y: 15, scale: 0.95 }}
-                                                        className="absolute right-0 top-full mt-6 w-80 bg-[#0f0f0f] border border-white/[0.08] rounded-[32px] z-[100] shadow-[0_30px_60px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-3xl"
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.6em] text-white/20">CLIENT & DESTINATION</h3>
+                                        <div className="flex items-center gap-4">
+                                            {savedClients.length > 0 && (
+                                                <div className="relative">
+                                                    <button
+                                                        onClick={() => setShowClientPicker(!showClientPicker)}
+                                                        className="px-6 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-all flex items-center gap-3"
                                                     >
-                                                        <div className="p-4 max-h-72 overflow-y-auto custom-scrollbar-thin space-y-1">
-                                                            {savedClients.map(c => (
-                                                                <div key={c.id} className="p-5 hover:bg-white/[0.03] rounded-2xl cursor-pointer group flex items-center justify-between transition-colors" onClick={() => loadClient(c)}>
-                                                                    <div className="overflow-hidden">
-                                                                        <p className="text-xs font-black truncate text-white/80">{c.name}</p>
-                                                                        <p className="text-[9px] text-white/20 font-bold tracking-wider mt-1">{c.email}</p>
-                                                                    </div>
-                                                                    <button onClick={(e) => { e.stopPropagation(); deleteClient(c.id); }} className="p-3 opacity-0 group-hover:opacity-100 hover:text-red-400 transition-all"><Trash2 className="w-4 h-4" /></button>
+                                                        <BookUser className="w-4 h-4 text-white/40" /> Carnet
+                                                    </button>
+                                                    <AnimatePresence>
+                                                        {showClientPicker && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                                exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                                                                className="absolute right-0 top-full mt-6 w-80 bg-[#0f0f0f] border border-white/[0.08] rounded-[32px] z-[100] shadow-[0_30px_60px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-3xl"
+                                                            >
+                                                                <div className="p-4 max-h-72 overflow-y-auto custom-scrollbar-thin space-y-1">
+                                                                    {savedClients.map(c => (
+                                                                        <div key={c.id} className="p-5 hover:bg-white/[0.03] rounded-2xl cursor-pointer group flex items-center justify-between transition-colors" onClick={() => loadClient(c)}>
+                                                                            <div className="overflow-hidden">
+                                                                                <p className="text-xs font-black truncate text-white/80">{c.name}</p>
+                                                                                <p className="text-[9px] text-white/20 font-bold tracking-wider mt-1">{c.email}</p>
+                                                                            </div>
+                                                                            <button onClick={(e) => { e.stopPropagation(); deleteClient(c.id); }} className="p-3 opacity-0 group-hover:opacity-100 hover:text-red-400 transition-all"><Trash2 className="w-4 h-4" /></button>
+                                                                        </div>
+                                                                    ))}
                                                                 </div>
-                                                            ))}
-                                                        </div>
-                                                    </motion.div>
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
-                                    )}
-                                    <button
-                                        onClick={saveCurrentClient}
-                                        disabled={!clientName.trim()}
-                                        className="p-4 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 disabled:opacity-20 transition-all active:scale-90"
-                                    >
-                                        <Plus className="w-5 h-5 text-white" />
-                                    </button>
-                                </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                                <div className="space-y-8">
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Société / Entité</label>
-                                        <div className="bg-black/40 border border-white/5 p-5 rounded-2xl flex items-center gap-5 focus-within:border-white/20 transition-all group">
-                                            <Building2 className="w-5 h-5 text-white/20 group-focus-within:text-white/60 transition-colors" />
-                                            <input
-                                                type="text"
-                                                value={clientName}
-                                                onChange={e => setClientName(e.target.value)}
-                                                placeholder="Label, Club, Festival..."
-                                                className="bg-transparent border-none outline-none font-bold w-full text-base placeholder:text-white/10"
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="space-y-4">
-                                        <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Email Facturation</label>
-                                        <div className="bg-black/40 border border-white/5 p-5 rounded-2xl flex items-center gap-5 focus-within:border-white/20 transition-all group">
-                                            <Mail className="w-5 h-5 text-white/20 group-focus-within:text-white/60 transition-colors" />
-                                            <input
-                                                type="email"
-                                                value={clientEmail}
-                                                onChange={e => setClientEmail(e.target.value)}
-                                                placeholder="accounting@studio.com"
-                                                className="bg-transparent border-none outline-none text-base font-medium w-full placeholder:text-white/10"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="space-y-4">
-                                    <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Siège Social / Adresse</label>
-                                    <textarea
-                                        value={clientAddress}
-                                        onChange={e => setClientAddress(e.target.value)}
-                                        rows={6}
-                                        placeholder="Addresse complète du destinataire pour conformité légale..."
-                                        className="bg-black/40 border border-white/5 p-6 rounded-[32px] outline-none text-sm w-full resize-none font-medium leading-relaxed focus:border-white/20 transition-all placeholder:text-white/10"
-                                    />
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* LINE ITEMS TERMINAL */}
-                        <div className="bg-[#0c0c0c] border border-white/[0.03] rounded-[48px] p-12 space-y-10 shadow-2xl">
-                            <div className="flex items-center justify-between border-b border-white/5 pb-8">
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.6em] text-white/20">MANIFESTE DES PRESTATIONS</h3>
-                                <button
-                                    onClick={addLine}
-                                    className="px-6 py-2.5 rounded-full border border-white/10 hover:bg-white text-white hover:text-black text-[9px] font-black uppercase tracking-[0.3em] transition-all flex items-center gap-3 active:scale-95"
-                                >
-                                    <Plus className="w-4 h-4" /> Nouvelle Unité
-                                </button>
-                            </div>
-
-                            <div className="space-y-4">
-                                {lines.map((line) => (
-                                    <motion.div
-                                        layout
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        key={line.id}
-                                        className="grid grid-cols-12 gap-6 items-center bg-black/40 p-5 rounded-[28px] border border-white/5 group hover:border-white/20 transition-all border-l-4 border-l-transparent hover:border-l-white"
-                                    >
-                                        <div className="col-span-12 md:col-span-7">
-                                            <input
-                                                type="text"
-                                                value={line.description}
-                                                onChange={e => updateLine(line.id, 'description', e.target.value)}
-                                                placeholder="Désignation de la mission..."
-                                                className="bg-transparent border-none outline-none text-base font-bold w-full px-2 text-white/90 placeholder:text-white/5"
-                                            />
-                                        </div>
-                                        <div className="col-span-4 md:col-span-2">
-                                            <div className="bg-white/[0.03] rounded-2xl p-4 text-center border border-white/5 focus-within:border-white/20 transition-colors">
-                                                <input
-                                                    type="number"
-                                                    value={line.quantity}
-                                                    onChange={e => updateLine(line.id, 'quantity', parseFloat(e.target.value) || 0)}
-                                                    className="bg-transparent border-none outline-none text-xs font-black w-full text-center text-white"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-span-6 md:col-span-2">
-                                            <div className="flex items-center gap-3 px-3">
-                                                <input
-                                                    type="number"
-                                                    value={line.unitPrice}
-                                                    onChange={e => updateLine(line.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                                    className="bg-transparent border-none outline-none text-right font-black w-full text-lg tracking-tight"
-                                                />
-                                                <span className="text-white/20 font-black text-xs">€</span>
-                                            </div>
-                                        </div>
-                                        <div className="col-span-2 md:col-span-1 text-right">
-                                            <button onClick={() => removeLine(line.id)} className="p-3 text-white/10 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100 hover:scale-110">
-                                                <Trash2 className="w-5 h-5" />
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
+                                            )}
+                                            <button
+                                                onClick={saveCurrentClient}
+                                                disabled={!clientName.trim()}
+                                                className="p-4 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 disabled:opacity-20 transition-all active:scale-90"
+                                            >
+                                                <Plus className="w-5 h-5 text-white" />
                                             </button>
                                         </div>
-                                    </motion.div>
-                                ))}
-                            </div>
+                                    </div>
 
-                            {/* AGGREGATION AREA */}
-                            <div className="pt-12 flex flex-col md:flex-row justify-between items-center gap-10 border-t border-white/5">
-                                <div className="space-y-4 text-center md:text-left">
-                                    <div className="flex items-center justify-center md:justify-start gap-3 text-[10px] font-black text-white/20 uppercase tracking-[0.2em] italic">
-                                        <ChevronRight className="w-4 h-4 text-white/40" /> Franchise de TVA (CGI 293B)
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                        <div className="space-y-8">
+                                            <div className="space-y-4">
+                                                <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Société / Entité</label>
+                                                <div className="bg-black/40 border border-white/5 p-5 rounded-2xl flex items-center gap-5 focus-within:border-white/20 transition-all group">
+                                                    <Building2 className="w-5 h-5 text-white/20 group-focus-within:text-white/60 transition-colors" />
+                                                    <input
+                                                        type="text"
+                                                        value={clientName}
+                                                        onChange={e => setClientName(e.target.value)}
+                                                        placeholder="Label, Club, Festival..."
+                                                        className="bg-transparent border-none outline-none font-bold w-full text-base placeholder:text-white/10"
+                                                    />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-4">
+                                                <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Email Facturation</label>
+                                                <div className="bg-black/40 border border-white/5 p-5 rounded-2xl flex items-center gap-5 focus-within:border-white/20 transition-all group">
+                                                    <Mail className="w-5 h-5 text-white/20 group-focus-within:text-white/60 transition-colors" />
+                                                    <input
+                                                        type="email"
+                                                        value={clientEmail}
+                                                        onChange={e => setClientEmail(e.target.value)}
+                                                        placeholder="accounting@studio.com"
+                                                        className="bg-transparent border-none outline-none text-base font-medium w-full placeholder:text-white/10"
+                                                    />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-4">
+                                            <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Siège Social / Adresse</label>
+                                            <textarea
+                                                value={clientAddress}
+                                                onChange={e => setClientAddress(e.target.value)}
+                                                rows={6}
+                                                placeholder="Addresse complète du destinataire pour conformité légale..."
+                                                className="bg-black/40 border border-white/5 p-6 rounded-[32px] outline-none text-sm w-full resize-none font-medium leading-relaxed focus:border-white/20 transition-all placeholder:text-white/10"
+                                            />
+                                        </div>
                                     </div>
-                                    <p className="text-[11px] font-medium text-white/30 max-w-sm leading-relaxed">
-                                        Calcul automatique basé sur un taux net de 0%.<br />
-                                        Le montant final représente la somme totale à percevoir.
-                                    </p>
                                 </div>
-                                <div className="text-right flex flex-col items-center md:items-end">
-                                    <span className="text-[11px] font-black uppercase tracking-[0.6em] text-white/10 block mb-4">TOTAL NET RÉGLÉ</span>
-                                    <div className="relative">
-                                        <div className="absolute -inset-4 bg-white/5 blur-3xl rounded-full opacity-50" />
-                                        <span className="relative text-7xl font-black italic tracking-[-0.08em] leading-none text-white transition-all hover:scale-110 cursor-default inline-block">
-                                            {total.toFixed(2)}<span className="text-3xl ml-2 not-italic text-white/40 opacity-50 font-black">€</span>
-                                        </span>
+
+                                {/* LINE ITEMS TERMINAL */}
+                                <div className="bg-[#0c0c0c] border border-white/[0.03] rounded-[48px] p-12 space-y-10 shadow-2xl">
+                                    <div className="flex items-center justify-between border-b border-white/5 pb-8">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.6em] text-white/20">MANIFESTE DES PRESTATIONS</h3>
+                                        <button
+                                            onClick={addLine}
+                                            className="px-6 py-2.5 rounded-full border border-white/10 hover:bg-white text-white hover:text-black text-[9px] font-black uppercase tracking-[0.3em] transition-all flex items-center gap-3 active:scale-95"
+                                        >
+                                            <Plus className="w-4 h-4" /> Nouvelle Unité
+                                        </button>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        {lines.map((line) => (
+                                            <motion.div
+                                                layout
+                                                initial={{ opacity: 0, x: -20 }}
+                                                animate={{ opacity: 1, x: 0 }}
+                                                key={line.id}
+                                                className="grid grid-cols-12 gap-6 items-center bg-black/40 p-5 rounded-[28px] border border-white/5 group hover:border-white/20 transition-all border-l-4 border-l-transparent hover:border-l-white"
+                                            >
+                                                <div className="col-span-12 md:col-span-7">
+                                                    <input
+                                                        type="text"
+                                                        value={line.description}
+                                                        onChange={e => updateLine(line.id, 'description', e.target.value)}
+                                                        placeholder="Désignation de la mission..."
+                                                        className="bg-transparent border-none outline-none text-base font-bold w-full px-2 text-white/90 placeholder:text-white/5"
+                                                    />
+                                                </div>
+                                                <div className="col-span-4 md:col-span-2">
+                                                    <div className="bg-white/[0.03] rounded-2xl p-4 text-center border border-white/5 focus-within:border-white/20 transition-colors">
+                                                        <input
+                                                            type="number"
+                                                            value={line.quantity}
+                                                            onChange={e => updateLine(line.id, 'quantity', parseFloat(e.target.value) || 0)}
+                                                            className="bg-transparent border-none outline-none text-xs font-black w-full text-center text-white"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-span-6 md:col-span-2">
+                                                    <div className="flex items-center gap-3 px-3">
+                                                        <input
+                                                            type="number"
+                                                            value={line.unitPrice}
+                                                            onChange={e => updateLine(line.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                                            className="bg-transparent border-none outline-none text-right font-black w-full text-lg tracking-tight"
+                                                        />
+                                                        <span className="text-white/20 font-black text-xs">€</span>
+                                                    </div>
+                                                </div>
+                                                <div className="col-span-2 md:col-span-1 text-right">
+                                                    <button onClick={() => removeLine(line.id)} className="p-3 text-white/10 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100 hover:scale-110">
+                                                        <Trash2 className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </div>
+
+                                    {/* AGGREGATION AREA */}
+                                    <div className="pt-12 flex flex-col md:flex-row justify-between items-center gap-10 border-t border-white/5">
+                                        <div className="space-y-4 text-center md:text-left">
+                                            <div className="flex items-center justify-center md:justify-start gap-3 text-[10px] font-black text-white/20 uppercase tracking-[0.2em] italic">
+                                                <ChevronRight className="w-4 h-4 text-white/40" /> Franchise de TVA (CGI 293B)
+                                            </div>
+                                            <p className="text-[11px] font-medium text-white/30 max-w-sm leading-relaxed">
+                                                Calcul automatique basé sur un taux net de 0%.<br />
+                                                Le montant final représente la somme totale à percevoir.
+                                            </p>
+                                        </div>
+                                        <div className="text-right flex flex-col items-center md:items-end">
+                                            <span className="text-[11px] font-black uppercase tracking-[0.6em] text-white/10 block mb-4">TOTAL NET RÉGLÉ</span>
+                                            <div className="relative">
+                                                <div className="absolute -inset-4 bg-white/5 blur-3xl rounded-full opacity-50" />
+                                                <span className="relative text-7xl font-black italic tracking-[-0.08em] leading-none text-white transition-all hover:scale-110 cursor-default inline-block">
+                                                    {total.toFixed(2)}<span className="text-3xl ml-2 not-italic text-white/40 opacity-50 font-black">€</span>
+                                                </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                </div>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key="archive"
+                            initial={{ opacity: 0, scale: 1.02 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.98 }}
+                            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
+                            className="max-w-[1400px] mx-auto"
+                        >
+                            <div className="bg-[#0c0c0c] border border-white/[0.03] rounded-[56px] p-16 space-y-12">
+                                <div className="flex items-center justify-between">
+                                    <div>
+                                        <h3 className="text-5xl font-black uppercase tracking-[-0.05em] italic">Archive</h3>
+                                        <p className="text-[10px] font-black tracking-[0.5em] text-white/20 mt-4 uppercase">Suivi des transmissions & règlements</p>
+                                    </div>
+                                    <div className="flex gap-4">
+                                        <div className="px-6 py-4 bg-white/5 rounded-2xl border border-white/5 flex flex-col items-center min-w-[120px]">
+                                            <span className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Total Envoyé</span>
+                                            <span className="text-xl font-bold">{history.length}</span>
+                                        </div>
+                                        <div className="px-6 py-4 bg-green-500/10 rounded-2xl border border-green-500/20 flex flex-col items-center min-w-[120px]">
+                                            <span className="text-[9px] font-black text-green-500/40 uppercase tracking-widest mb-1">Payées</span>
+                                            <span className="text-xl font-bold text-green-400">{history.filter(h => h.paid).length}</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="overflow-hidden rounded-[40px] border border-white/5 bg-black/40">
+                                    <table className="w-full text-left border-collapse">
+                                        <thead>
+                                            <tr className="bg-white/[0.02] border-b border-white/5">
+                                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-white/20">Référence</th>
+                                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-white/20">Client</th>
+                                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-white/20">Date</th>
+                                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-white/20">Montant</th>
+                                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-white/20 text-center">Status</th>
+                                                <th className="p-8 text-[10px] font-black uppercase tracking-widest text-white/20 text-right">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-white/5">
+                                            {isLoadingHistory ? (
+                                                <tr>
+                                                    <td colSpan={6} className="p-20 text-center">
+                                                        <div className="flex flex-col items-center gap-4 text-white/20">
+                                                            <Loader className="w-8 h-8 animate-spin" />
+                                                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">Synchronisation de l'Archive...</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ) : history.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={6} className="p-20 text-center text-white/10 font-black uppercase tracking-widest text-xs italic">
+                                                        Aucune archive disponible
+                                                    </td>
+                                                </tr>
+                                            ) : history.map((inv) => (
+                                                <tr key={inv.id} className="hover:bg-white/[0.01] transition-colors group">
+                                                    <td className="p-8 font-black tabular-nums tracking-tighter text-lg">{inv.number}</td>
+                                                    <td className="p-8">
+                                                        <div className="font-bold text-white/80">{inv.client}</div>
+                                                    </td>
+                                                    <td className="p-8 text-white/40 font-medium">{new Date(inv.date).toLocaleDateString('fr-FR')}</td>
+                                                    <td className="p-8">
+                                                        <span className="text-xl font-black italic">{inv.total.toFixed(2)}€</span>
+                                                    </td>
+                                                    <td className="p-8">
+                                                        <div className="flex justify-center">
+                                                            {inv.paid ? (
+                                                                <div className="flex items-center gap-2 px-4 py-2 bg-green-500/10 text-green-400 rounded-full border border-green-500/20 text-[10px] font-black uppercase italic">
+                                                                    <CheckCircle className="w-3 h-3" /> Réglée
+                                                                </div>
+                                                            ) : (
+                                                                <div className="flex items-center gap-2 px-4 py-2 bg-orange-500/10 text-orange-400 rounded-full border border-orange-500/20 text-[10px] font-black uppercase italic">
+                                                                    <Clock className="w-3 h-3" /> En attente
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    </td>
+                                                    <td className="p-8 text-right">
+                                                        <button
+                                                            onClick={() => togglePaid(inv.id, inv.paid)}
+                                                            className={`px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all ${inv.paid ? 'bg-white/5 text-white/20 hover:text-white' : 'bg-white text-black hover:scale-105'} active:scale-95`}
+                                                        >
+                                                            {inv.paid ? 'Marquer Impayé' : 'Marquer Payé'}
+                                                        </button>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             {/* PREVIEW MODAL LIGHTBOX */}
@@ -709,7 +872,7 @@ export function InvoiceGenerator() {
                                     <div className="relative">
                                         <div className="absolute -inset-10 bg-white/5 blur-[100px] rounded-full opacity-20 pointer-events-none" />
                                         <img
-                                            src={previewImage}
+                                            src={previewImage || undefined}
                                             alt="Facture Preview"
                                             className="max-h-[75vh] w-auto rounded-lg shadow-[0_50px_100px_rgba(0,0,0,1)] transition-transform hover:scale-[1.02] duration-700"
                                         />
@@ -952,7 +1115,7 @@ export function InvoiceGenerator() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     );
 }
 
