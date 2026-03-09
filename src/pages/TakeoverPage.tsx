@@ -7,7 +7,7 @@ import {
     Pin, Star, ShieldCheck, Ban, Megaphone, User,
     BarChart3, Bell, Clock, Sword, Crown, Maximize2, Minimize2,
     Trophy, Stars, Heart, Volume2, Timer, ShieldAlert, Calendar,
-    Languages, Instagram
+    Languages, Instagram, MapPin
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
@@ -167,6 +167,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         sponsorLink: initialSettings?.sponsorLink || 'https://dropsiders.fr'
     });
 
+    const isPopout = new URLSearchParams(window.location.search).get('popout') === 'true';
+
     const [activeStage, setActiveStage] = useState<'stage1' | 'stage2'>('stage1');
 
     const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
@@ -219,10 +221,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [userLevel, setUserLevel] = useState(() => parseInt(localStorage.getItem('user_level') || '1'));
     const [activeHeist, setActiveHeist] = useState<{ participants: { pseudo: string, bet: number }[], timeLeft: number } | null>(null);
     const [activeBoss, setActiveBoss] = useState<{ hp: number, maxHp: number, name: string } | null>(null);
-    const [chatTheme, setChatTheme] = useState<'neon' | 'synthwave' | 'cyberpunk'>('neon');
     const [captchaChallenge, setCaptchaChallenge] = useState<{ q: string, a: number } | null>(null);
     const [captchaInput, setCaptchaInput] = useState('');
-    const [isFirstConnection, setIsFirstConnection] = useState(false);
     const [userCity, setUserCity] = useState('📍 PARIS');
     const [hypeTrain, setHypeTrain] = useState({ active: false, level: 0, progress: 0 });
     const [isMuted, setIsMuted] = useState(false);
@@ -241,6 +241,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [showUserLogs, setShowUserLogs] = useState<string | null>(null);
     const [isRouletteTimeout, setIsRouletteTimeout] = useState(false);
     const [topTalkers, setTopTalkers] = useState<{ pseudo: string, count: number }[]>([]);
+    const [isPremsAwarded, setIsPremsAwarded] = useState(false);
+    const [hasHoloPseudo, setHasHoloPseudo] = useState(localStorage.getItem('user_holo_pseudo') === 'true');
     const [clashPoll, setClashPoll] = useState<{ active: boolean, teamA: string, teamB: string, votesA: string[], votesB: string[] } | null>(null);
     const [shopItems] = useState([
         { id: 1, name: 'T-Shirt Classic', price: 2500, image: 'https://placehold.co/100x120?text=TSHIRT' },
@@ -587,13 +589,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             if (!savedCountry && !isMod) fetchUserCountry();
             checkBanStatus();
             generateCaptcha();
-
-            // First Connect Badge Check
-            const isFirst = localStorage.getItem('is_first_connect') === null;
-            if (isFirst) {
-                setIsFirstConnection(true);
-                localStorage.setItem('is_first_connect', 'done');
-            }
         };
         init();
 
@@ -625,7 +620,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 country: response.payload.country,
                                 bgColor: response.payload.bgColor,
                                 xp: response.payload.xp || 0,
-                                stage: response.payload.stage || 'stage1'
+                                stage: response.payload.stage || 'stage1',
+                                geo: response.payload.geo || '',
+                                isPrems: response.payload.isPrems || false,
+                                isHolo: response.payload.isHolo || false
                             }];
                         });
                     }
@@ -684,7 +682,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             });
                         } else if (cmd === 'CLEAR_POLL') {
                             setActivePoll(null);
-                        } else if (cmd === 'CONFETHI') {
+                        } else if (cmd === 'CONFETTI') {
                             triggerConfetti();
                         } else if (cmd === 'FIREWORKS') {
                             triggerFireworks();
@@ -891,15 +889,21 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 Query.orderDesc('$createdAt'),
                 Query.limit(50)
             ]);
-            const msgs = res.documents.reverse().map(doc => ({
-                id: doc.$id,
-                pseudo: doc.pseudo,
-                message: doc.message,
-                color: doc.color,
-                time: doc.time,
-                country: doc.country,
-                bgColor: doc.bgColor
-            }));
+            const msgs = res.documents
+                .filter(doc => !doc.message?.startsWith('[SYSTEM]:'))
+                .reverse()
+                .map(doc => ({
+                    id: doc.$id,
+                    pseudo: doc.pseudo,
+                    message: doc.message,
+                    color: doc.color,
+                    time: doc.time,
+                    country: doc.country,
+                    bgColor: doc.bgColor,
+                    isPrems: doc.isPrems || false,
+                    isHolo: doc.isHolo || false,
+                    geo: doc.geo || ''
+                }));
             setChatMessages(msgs);
         } catch (e) { console.error("Error fetching initial chat messages:", e); }
     };
@@ -1158,6 +1162,21 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 } else {
                     messageText = `📅 LINEUP : @${pseudo}, consulte l'onglet PLANNING pour voir toute la programmation !`;
                 }
+            } else if (mainCmd === '!insta') {
+                const query = cmdParts.slice(1).join(' ');
+                messageText = query
+                    ? `📸 INSTAGRAM : @${pseudo}, voici le profil de ${query} -> https://instagram.com/${query.replace('@', '')}`
+                    : `📸 INSTAGRAM : @${pseudo}, suis-nous sur @dropsiders.fr -> https://instagram.com/dropsiders.fr`;
+            } else if (mainCmd === '!holo') {
+                if (userDrops < 3000) {
+                    showNotification("Pas assez de Drops ! (3000 requis)", 'error');
+                    return;
+                }
+                setUserDrops(prev => prev - 3000);
+                setHasHoloPseudo(true);
+                localStorage.setItem('user_holo_pseudo', 'true');
+                showNotification("PSEUDO HOLOGRAPHIQUE ACTIVÉ ! ✨", 'success');
+                messageText = `✨ @${pseudo} vient de débloquer le PSEUDO HOLOGRAPHIQUE !`;
             } else if (mainCmd === '!purge' && isMod) {
                 const target = cmdParts[1]?.replace('@', '') || '';
                 if (target) {
@@ -1385,6 +1404,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 setHypeTrain(prev => ({ ...prev, progress: Math.min(100, prev.progress + 10), active: true }));
             }
 
+            // Award PREMS badge
+            let isPremsMsg = false;
+            if (!isPremsAwarded && chatMessages.length === 0) {
+                isPremsMsg = true;
+                setIsPremsAwarded(true);
+            }
+
             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                 pseudo: userTitle ? `[${userTitle}] ${pseudo}` : pseudo,
                 message: messageText,
@@ -1392,7 +1418,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 bgColor: isHighlightChecked ? highlightColor : null,
                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                 country: userCountry || "FR",
-                xp: userXP
+                xp: userXP,
+                geo: userCity,
+                isPrems: isPremsMsg,
+                isHolo: hasHoloPseudo
             });
 
             // Leveling System
@@ -1557,192 +1586,206 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         50% { background-position: 100% 50%; }
                         100% { background-position: 0% 50%; }
                     }
+                    .holo-pseudo {
+                        background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+                        background-size: 400% 400%;
+                        animation: gradient-move 10s ease infinite;
+                        -webkit-background-clip: text;
+                        background-clip: text;
+                        color: transparent !important;
+                        font-weight: 900;
+                        text-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+                    }
                 `}
             </style>
             {/* 1. TOP ANNOUNCER (Ticker Removed) */}
+            {!isPopout && (
+                <>
 
-            {/* 2. HEADER */}
-            <div className="h-10 lg:h-16 border-b border-white/5 flex items-center justify-between px-3 lg:px-6 bg-black/40 backdrop-blur-md relative z-40">
-                <div className="flex items-center gap-4 lg:gap-8">
-                    <div className="flex flex-col">
-                        <div className="flex items-center gap-2 lg:gap-4">
-                            <div className="flex flex-col items-start pr-4 border-r border-white/10">
-                                <span className="text-[12px] lg:text-[14px] font-black text-white italic tracking-tighter tabular-nums leading-none">{currentTime}</span>
-                                <span className="text-[7px] text-neon-red font-black uppercase tracking-widest mt-0.5 animate-pulse">LIVE NOW</span>
-                            </div>
-                            <div className="flex items-center gap-2 lg:gap-3">
-                                <div className="flex items-center gap-1 px-1 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md">
-                                    <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
-                                    <span className="text-[6px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
-                                </div>
-                                <h1 className="text-[18px] lg:text-[32px] font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
-                            </div>
-                        </div>
-                        <div className="flex items-center gap-1 lg:gap-2 mt-2">
-                            <div className="w-1 h-1 lg:w-1.5 lg:h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
-                            <span className="text-[10px] lg:text-[11px] font-black text-gray-500 uppercase tracking-widest leading-none">NOW &gt;&gt;</span>
-                            <span className="text-[14px] lg:text-[16px] font-black text-white uppercase italic tracking-tighter truncate max-w-[150px] lg:max-w-none">{fluxCurrentArtist.artist}</span>
-                        </div>
-                    </div>
-                </div>
-
-                {/* MULTI-CAM SELECTOR IN HEADER */}
-                {settings.streams && settings.streams.length > 1 && (
-                    <div className="hidden lg:flex gap-1 md:gap-2 p-1.5 bg-white/5 border border-white/10 rounded-2xl mx-auto overflow-hidden shadow-lg">
-                        {settings.streams.map((s: any) => (
-                            <button
-                                key={s.id}
-                                onClick={() => setSettings(prev => ({ ...prev, activeStreamId: s.id }))}
-                                className={`px-2 py-1 md:px-4 md:py-2 rounded-xl text-[8px] md:text-[10px] font-black uppercase transition-all flex items-center gap-2 truncate ${settings.activeStreamId === s.id ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-                            >
-                                <Video className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0" />
-                                <span className="truncate max-w-[80px] md:max-w-none">{s.name}</span>
-                            </button>
-                        ))}
-                    </div>
-                )}
-
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => {
-                            if (isMod) {
-                                setShowAdminPanel(true);
-                                setAdminActiveTab('moderation');
-                            }
-                        }}
-                        className={`flex items-center gap-2 lg:gap-4 px-2 lg:px-4 py-1.5 lg:py-2 bg-white/5 border border-white/10 rounded-xl transition-all ${isMod ? 'hover:bg-white/10 cursor-pointer' : ''}`}
-                    >
-                        <div className="flex items-center gap-1.5 lg:gap-2">
-                            <Users className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-neon-cyan" />
-                            <span className="text-[11px] lg:text-xs font-black text-white">{settings.status === 'off' ? 0 : viewersCount}</span>
-                        </div>
-                    </button>
-                    <button
-                        onClick={() => setShowViewersList(!showViewersList)}
-                        className={`p-2 lg:p-3 rounded-xl transition-all border ${showViewersList ? 'bg-pink-600 border-pink-500 shadow-[0_0_15px_rgba(219,39,119,0.4)] text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
-                        title="Liste des Viewers"
-                    >
-                        <Users className="w-4 h-4 lg:w-5 lg:h-5" />
-                    </button>
-                    <button
-                        onClick={() => setIsCinemaMode(!isCinemaMode)}
-                        className={`p-2 lg:p-3 rounded-xl transition-all border ${isCinemaMode ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_15px_rgba(0,255,255,0.4)] text-black' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
-                        title="Mode Cinéma"
-                    >
-                        {isCinemaMode ? <Minimize2 className="w-4 h-4 lg:w-5 lg:h-5" /> : <Maximize2 className="w-4 h-4 lg:w-5 lg:h-5" />}
-                    </button>
-                    {isMod && (
-                        <button onClick={() => setShowAdminPanel(!showAdminPanel)} className={`p-2 lg:p-3 rounded-xl transition-all border ${showAdminPanel ? 'bg-neon-purple border-neon-purple shadow-[0_0_15px_rgba(168,85,247,0.4)] text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}>
-                            <Settings className="w-4 h-4 lg:w-5 lg:h-5" />
-                        </button>
-                    )}
-                    <button onClick={() => navigate('/')} className="p-2 hover:bg-white/5 rounded-full transition-all">
-                        <X className="w-5 h-5 text-gray-500" />
-                    </button>
-                </div>
-            </div>
-
-            {/* TOP NEWS MARQUEE (Replacing small ticker) */}
-            <div className="h-8 lg:h-10 bg-neon-red/10 backdrop-blur-md border-b border-neon-red/30 flex items-center overflow-hidden group">
-                <div className="bg-neon-red px-3 h-full flex items-center shrink-0 z-10 relative shadow-[0_0_15px_rgba(255,0,51,0.5)]">
-                    <Megaphone className="w-3.5 h-3.5 text-white" />
-                    <span className="ml-2 text-[9px] font-black text-white uppercase tracking-tighter cursor-default">NEWS FLUX</span>
-                </div>
-                <motion.div
-                    animate={{ x: [0, -2000] }}
-                    transition={{ repeat: Infinity, duration: 50, ease: "linear" }}
-                    className="flex items-center gap-16 whitespace-nowrap pl-6 group-hover:[animation-play-state:paused]"
-                >
-                    {[...Array(3)].map((_, loopIdx) => (
-                        <div key={loopIdx} className="flex gap-16">
-                            {(marqueeItems.length > 0 ? marqueeItems : [{ text: settings.tickerText, link: '#' }]).filter(i => i.text).map((item, idx) => {
-                                const isExternal = item.link?.startsWith('http') || item.link?.startsWith('www');
-                                const fullLink = isExternal ? (item.link?.startsWith('http') ? item.link : `https://${item.link}`) : item.link;
-                                return (
-                                    <a
-                                        key={`${loopIdx}-${idx}`}
-                                        href={fullLink}
-                                        target={isExternal ? "_blank" : "_self"}
-                                        rel={isExternal ? "noopener noreferrer" : ""}
-                                        className="text-[10px] lg:text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 hover:text-neon-red transition-colors drop-shadow-md cursor-pointer group/newsitem"
-                                    >
-                                        <Stars className="w-3 h-3 text-neon-red group-hover/newsitem:text-white transition-colors" />
-                                        <span className="group-hover/newsitem:text-neon-red transition-colors">{item.text}</span>
-                                    </a>
-                                );
-                            })}
-                        </div>
-                    ))}
-                </motion.div>
-            </div>
-
-            {/* Viewers List Overlay (Mobile / Desktop floating) */}
-            <AnimatePresence>
-                {showViewersList && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.95 }}
-                        className="absolute right-4 top-24 w-80 max-h-[60vh] bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl z-50 flex flex-col shadow-2xl overflow-hidden"
-                    >
-                        <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
-                            <div className="flex items-center gap-2">
-                                <Users className="w-4 h-4 text-pink-500" />
-                                <h3 className="text-sm font-black text-white uppercase tracking-widest">Viewers</h3>
-                            </div>
-                            <span className="text-[10px] font-bold text-gray-500">{Array.from(new Set(chatMessages.filter(m => m.pseudo && m.pseudo !== 'BOT_SYSTEM').map(m => m.pseudo))).length} en ligne</span>
-                        </div>
-                        <div className="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-1">
-                            {Array.from(new Set(chatMessages.filter(m => m.pseudo && !m.pseudo.startsWith('BOT_')).map(m => m.pseudo))).map((viewer: any, idx) => (
-                                <div key={idx} className="flex items-center justify-between p-2 hover:bg-white/5 rounded-xl transition-all group">
-                                    <div className="flex items-center gap-2">
-                                        <div className="w-6 h-6 rounded-md bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
-                                            <span className="text-[10px] font-bold text-gray-400">{viewer[0]}</span>
-                                        </div>
-                                        <span className="text-xs font-bold text-white uppercase">{viewer}</span>
-                                        {/* Status badges */}
-                                        {vipsList.includes(viewer) && <Crown className="w-3 h-3 text-amber-500 fill-amber-500" />}
-                                        {viewer === 'ALEX_FR1' && <Star className="w-3 h-3 text-neon-cyan fill-neon-cyan" />}
+                    {/* 2. HEADER */}
+                    <div className="h-10 lg:h-16 border-b border-white/5 flex items-center justify-between px-3 lg:px-6 bg-black/40 backdrop-blur-md relative z-40">
+                        <div className="flex items-center gap-4 lg:gap-8">
+                            <div className="flex flex-col">
+                                <div className="flex items-center gap-2 lg:gap-4">
+                                    <div className="flex flex-col items-start pr-4 border-r border-white/10">
+                                        <span className="text-[12px] lg:text-[14px] font-black text-white italic tracking-tighter tabular-nums leading-none">{currentTime}</span>
+                                        <span className="text-[7px] text-neon-red font-black uppercase tracking-widest mt-0.5 animate-pulse">LIVE NOW</span>
                                     </div>
-                                    {isMod && (
-                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
-                                            <button
-                                                onClick={() => setShowUserLogs(viewer)}
-                                                className="p-1.5 hover:bg-white/10 rounded-lg transition-all"
-                                                title="Logs Chat"
-                                            >
-                                                <MessageSquare className="w-3 h-3 text-gray-400 hover:text-neon-cyan" />
-                                            </button>
-                                            <button
-                                                onClick={() => {
-                                                    if (vipsList.includes(viewer)) {
-                                                        setVipsList(prev => prev.filter(u => u !== viewer));
-                                                        showNotification(`${viewer} n'est plus VIP`, 'success');
-                                                    } else {
-                                                        setVipsList(prev => [...prev, viewer]);
-                                                        showNotification(`${viewer} promu VIP`, 'success');
-                                                    }
-                                                }}
-                                                className="p-1.5 hover:bg-white/10 rounded-lg transition-all"
-                                            >
-                                                <Crown className={`w-3 h-3 ${vipsList.includes(viewer) ? 'text-amber-500 fill-amber-500' : 'text-gray-500 hover:text-amber-500'}`} />
-                                            </button>
+                                    <div className="flex items-center gap-2 lg:gap-3">
+                                        <div className="flex items-center gap-1 px-1 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md">
+                                            <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
+                                            <span className="text-[6px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
                                         </div>
-                                    )}
+                                        <h1 className="text-[18px] lg:text-[32px] font-display font-black text-white italic tracking-tighter leading-none">{settings.title}</h1>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-1 lg:gap-2 mt-2">
+                                    <div className="w-1 h-1 lg:w-1.5 lg:h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
+                                    <span className="text-[10px] lg:text-[11px] font-black text-gray-500 uppercase tracking-widest leading-none">NOW &gt;&gt;</span>
+                                    <span className="text-[14px] lg:text-[16px] font-black text-white uppercase italic tracking-tighter truncate max-w-[150px] lg:max-w-none">{fluxCurrentArtist.artist}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* MULTI-CAM SELECTOR IN HEADER */}
+                        {settings.streams && settings.streams.length > 1 && (
+                            <div className="hidden lg:flex gap-1 md:gap-2 p-1.5 bg-white/5 border border-white/10 rounded-2xl mx-auto overflow-hidden shadow-lg">
+                                {settings.streams.map((s: any) => (
+                                    <button
+                                        key={s.id}
+                                        onClick={() => setSettings(prev => ({ ...prev, activeStreamId: s.id }))}
+                                        className={`px-2 py-1 md:px-4 md:py-2 rounded-xl text-[8px] md:text-[10px] font-black uppercase transition-all flex items-center gap-2 truncate ${settings.activeStreamId === s.id ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                    >
+                                        <Video className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0" />
+                                        <span className="truncate max-w-[80px] md:max-w-none">{s.name}</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => {
+                                    if (isMod) {
+                                        setShowAdminPanel(true);
+                                        setAdminActiveTab('moderation');
+                                    }
+                                }}
+                                className={`flex items-center gap-2 lg:gap-4 px-2 lg:px-4 py-1.5 lg:py-2 bg-white/5 border border-white/10 rounded-xl transition-all ${isMod ? 'hover:bg-white/10 cursor-pointer' : ''}`}
+                            >
+                                <div className="flex items-center gap-1.5 lg:gap-2">
+                                    <Users className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-neon-cyan" />
+                                    <span className="text-[11px] lg:text-xs font-black text-white">{settings.status === 'off' ? 0 : viewersCount}</span>
+                                </div>
+                            </button>
+                            <button
+                                onClick={() => setShowViewersList(!showViewersList)}
+                                className={`p-2 lg:p-3 rounded-xl transition-all border ${showViewersList ? 'bg-pink-600 border-pink-500 shadow-[0_0_15px_rgba(219,39,119,0.4)] text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                title="Liste des Viewers"
+                            >
+                                <Users className="w-4 h-4 lg:w-5 lg:h-5" />
+                            </button>
+                            <button
+                                onClick={() => setIsCinemaMode(!isCinemaMode)}
+                                className={`p-2 lg:p-3 rounded-xl transition-all border ${isCinemaMode ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_15px_rgba(0,255,255,0.4)] text-black' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                title="Mode Cinéma"
+                            >
+                                {isCinemaMode ? <Minimize2 className="w-4 h-4 lg:w-5 lg:h-5" /> : <Maximize2 className="w-4 h-4 lg:w-5 lg:h-5" />}
+                            </button>
+                            {isMod && (
+                                <button onClick={() => setShowAdminPanel(!showAdminPanel)} className={`p-2 lg:p-3 rounded-xl transition-all border ${showAdminPanel ? 'bg-neon-purple border-neon-purple shadow-[0_0_15px_rgba(168,85,247,0.4)] text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}>
+                                    <Settings className="w-4 h-4 lg:w-5 lg:h-5" />
+                                </button>
+                            )}
+                            <button onClick={() => navigate('/')} className="p-2 hover:bg-white/5 rounded-full transition-all">
+                                <X className="w-5 h-5 text-gray-500" />
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* TOP NEWS MARQUEE (Replacing small ticker) */}
+                    <div className="h-8 lg:h-10 bg-neon-red/10 backdrop-blur-md border-b border-neon-red/30 flex items-center overflow-hidden group">
+                        <div className="bg-neon-red px-3 h-full flex items-center shrink-0 z-10 relative shadow-[0_0_15px_rgba(255,0,51,0.5)]">
+                            <Megaphone className="w-3.5 h-3.5 text-white" />
+                            <span className="ml-2 text-[9px] font-black text-white uppercase tracking-tighter cursor-default">NEWS FLUX</span>
+                        </div>
+                        <motion.div
+                            animate={{ x: [0, -2000] }}
+                            transition={{ repeat: Infinity, duration: 50, ease: "linear" }}
+                            className="flex items-center gap-16 whitespace-nowrap pl-6 group-hover:[animation-play-state:paused]"
+                        >
+                            {[...Array(3)].map((_, loopIdx) => (
+                                <div key={loopIdx} className="flex gap-16">
+                                    {(marqueeItems.length > 0 ? marqueeItems : [{ text: settings.tickerText, link: '#' }]).filter(i => i.text).map((item, idx) => {
+                                        const isExternal = item.link?.startsWith('http') || item.link?.startsWith('www');
+                                        const fullLink = isExternal ? (item.link?.startsWith('http') ? item.link : `https://${item.link}`) : item.link;
+                                        return (
+                                            <a
+                                                key={`${loopIdx}-${idx}`}
+                                                href={fullLink}
+                                                target={isExternal ? "_blank" : "_self"}
+                                                rel={isExternal ? "noopener noreferrer" : ""}
+                                                className="text-[10px] lg:text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 hover:text-neon-red transition-colors drop-shadow-md cursor-pointer group/newsitem"
+                                            >
+                                                <Stars className="w-3 h-3 text-neon-red group-hover/newsitem:text-white transition-colors" />
+                                                <span className="group-hover/newsitem:text-neon-red transition-colors">{item.text}</span>
+                                            </a>
+                                        );
+                                    })}
                                 </div>
                             ))}
-                            {chatMessages.filter(m => m.pseudo && !m.pseudo.startsWith('BOT_')).length === 0 && (
-                                <div className="text-center p-8 text-gray-500 text-xs italic uppercase">Aucun viewer détecté</div>
-                            )}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                        </motion.div>
+                    </div>
+
+                    {/* Viewers List Overlay (Mobile / Desktop floating) */}
+                    <AnimatePresence>
+                        {showViewersList && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.95 }}
+                                className="absolute right-4 top-24 w-80 max-h-[60vh] bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl z-50 flex flex-col shadow-2xl overflow-hidden"
+                            >
+                                <div className="p-4 border-b border-white/10 flex items-center justify-between bg-white/5">
+                                    <div className="flex items-center gap-2">
+                                        <Users className="w-4 h-4 text-pink-500" />
+                                        <h3 className="text-sm font-black text-white uppercase tracking-widest">Viewers</h3>
+                                    </div>
+                                    <span className="text-[10px] font-bold text-gray-500">{Array.from(new Set(chatMessages.filter(m => m.pseudo && m.pseudo !== 'BOT_SYSTEM').map(m => m.pseudo))).length} en ligne</span>
+                                </div>
+                                <div className="flex-1 overflow-y-auto p-2 custom-scrollbar space-y-1">
+                                    {Array.from(new Set(chatMessages.filter(m => m.pseudo && !m.pseudo.startsWith('BOT_')).map(m => m.pseudo))).map((viewer: any, idx) => (
+                                        <div key={idx} className="flex items-center justify-between p-2 hover:bg-white/5 rounded-xl transition-all group">
+                                            <div className="flex items-center gap-2">
+                                                <div className="w-6 h-6 rounded-md bg-white/5 border border-white/10 flex items-center justify-center shrink-0">
+                                                    <span className="text-[10px] font-bold text-gray-400">{viewer[0]}</span>
+                                                </div>
+                                                <span className="text-xs font-bold text-white uppercase">{viewer}</span>
+                                                {/* Status badges */}
+                                                {vipsList.includes(viewer) && <Crown className="w-3 h-3 text-amber-500 fill-amber-500" />}
+                                                {viewer === 'ALEX_FR1' && <Star className="w-3 h-3 text-neon-cyan fill-neon-cyan" />}
+                                            </div>
+                                            {isMod && (
+                                                <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <button
+                                                        onClick={() => setShowUserLogs(viewer)}
+                                                        className="p-1.5 hover:bg-white/10 rounded-lg transition-all"
+                                                        title="Logs Chat"
+                                                    >
+                                                        <MessageSquare className="w-3 h-3 text-gray-400 hover:text-neon-cyan" />
+                                                    </button>
+                                                    <button
+                                                        onClick={() => {
+                                                            if (vipsList.includes(viewer)) {
+                                                                setVipsList(prev => prev.filter(u => u !== viewer));
+                                                                showNotification(`${viewer} n'est plus VIP`, 'success');
+                                                            } else {
+                                                                setVipsList(prev => [...prev, viewer]);
+                                                                showNotification(`${viewer} promu VIP`, 'success');
+                                                            }
+                                                        }}
+                                                        className="p-1.5 hover:bg-white/10 rounded-lg transition-all"
+                                                    >
+                                                        <Crown className={`w-3 h-3 ${vipsList.includes(viewer) ? 'text-amber-500 fill-amber-500' : 'text-gray-500 hover:text-amber-500'}`} />
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ))}
+                                    {chatMessages.filter(m => m.pseudo && !m.pseudo.startsWith('BOT_')).length === 0 && (
+                                        <div className="text-center p-8 text-gray-500 text-xs italic uppercase">Aucun viewer détecté</div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
+                </>
+            )}
 
             {/* 3. MAIN CONTENT AREA */}
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
                 {/* A. VIDEO PANEL (40% Mobile / 60% Desktop) */}
-                <div className={`transition-all duration-700 ease-in-out ${isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[40%] lg:h-full'} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
+                <div className={`transition-all duration-700 ease-in-out ${isPopout ? 'hidden' : (isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[40%] lg:h-full')} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
                     <div className="absolute inset-0 z-0">
                         <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${settings.streams?.find((s: any) => s.id === settings.activeStreamId)?.youtubeId || settings.youtubeId || 'dQw4w9WgXcQ'}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
                     </div>
@@ -2480,18 +2523,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         )
                     }
 
-                    <div className={`flex-1 overflow-y-auto px-4 lg:px-6 py-6 custom-scrollbar scroll-smooth flex flex-col gap-6 relative transition-all duration-500 ${chatTheme === 'synthwave' ? 'bg-[#050014] text-pink-500' :
-                        chatTheme === 'cyberpunk' ? 'bg-[#0a0f0a] text-yellow-500' : 'bg-transparent'
-                        }`}>
-                        {chatTheme === 'synthwave' && <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-900/10 to-transparent pointer-events-none" style={{ backgroundImage: 'repeating-linear-gradient(transparent 0, rgba(255,0,255,0.05) 2px, transparent 4px)' }} />}
+                    <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-6 custom-scrollbar scroll-smooth flex flex-col gap-6 relative transition-all duration-500 bg-black/20 backdrop-blur-3xl">
 
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex gap-2">
-                                {(['neon', 'synthwave', 'cyberpunk'] as const).map(t => (
-                                    <button key={t} onClick={() => setChatTheme(t)} className={`px-2 py-1 text-[8px] font-black rounded-lg border transition-all ${chatTheme === t ? 'bg-white/10 border-white/20 text-white' : 'border-white/5 text-gray-500 hover:text-white'}`}>
-                                        {t.toUpperCase()}
-                                    </button>
-                                ))}
+                                <button
+                                    onClick={() => window.open(`${window.location.origin}${window.location.pathname}?popout=true`, 'ChatPopout', 'width=400,height=800')}
+                                    className="px-2 py-1 text-[8px] font-black rounded-lg border border-white/5 text-gray-500 hover:text-white hover:bg-white/10 transition-all flex items-center gap-1.5"
+                                >
+                                    <Maximize2 className="w-3 h-3" /> DÉTACHER
+                                </button>
                             </div>
                             <div className="bg-white/5 px-3 py-1 rounded-full border border-white/10 flex items-center gap-2">
                                 <span className="text-[8px] font-black uppercase text-gray-500">Hype Train</span>
@@ -2865,7 +2906,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     )}
 
                                     <AnimatePresence initial={false}>
-                                        {chatMessages.filter(m => (isModChat ? m.isModOnly : !m.isModOnly) && (m.stage || 'stage1') === activeStage).map((msg, idx) => {
+                                        {chatMessages.filter(m => (isModChat ? m.isModOnly : !m.isModOnly) && (m.stage || 'stage1') === activeStage && !m.message?.startsWith('[SYSTEM]:')).map((msg, idx) => {
                                             const isHovered = hoveredMessageId === msg.id;
                                             const isDimmed = hoveredMessageId !== null && !isHovered;
 
@@ -2906,10 +2947,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-2 mb-1">
                                                                 {msg.country && <FlagIcon location={msg.country} className="w-3 h-2" />}
-                                                                <span className="text-[8px] font-black text-gray-600 ml-1">{userCity}</span>
+                                                                {(msg.geo || userCity) && (
+                                                                    <span className="text-[7px] font-black text-gray-500 bg-white/5 px-1 rounded flex items-center gap-0.5">
+                                                                        <MapPin className="w-2 h-2" /> {msg.geo || userCity}
+                                                                    </span>
+                                                                )}
                                                                 <span className="text-[9px] font-black text-neon-cyan/60 shrink-0 uppercase tracking-tighter mr-1 text-xs">[Lvl {Math.floor(Math.sqrt((msg.xp || 0) / 100)) + 1}]</span>
-                                                                <span className={`text-[11px] font-black uppercase italic tracking-tight ${msg.xp > 5000 ? 'bg-gradient-to-r from-red-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent animate-gradient' : msg.color || 'text-white'}`}>{msg.pseudo || msg.user}</span>
-                                                                {isFirstConnection && msg.pseudo === localStorage.getItem('chat_pseudo') && <span className="bg-neon-cyan text-black text-[7px] font-black px-1 rounded">PREMS</span>}
+                                                                <span className={`text-[11px] font-black uppercase italic tracking-tight ${msg.isHolo ? 'holo-pseudo' : (msg.xp > 5000 ? 'bg-gradient-to-r from-red-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent animate-gradient' : msg.color || 'text-white')}`}>{msg.pseudo || msg.user}</span>
+                                                                {msg.isPrems && (
+                                                                    <motion.span initial={{ scale: 0 }} animate={{ scale: 1 }} className="bg-neon-red text-white text-[7px] font-black px-1.5 py-0.5 rounded shadow-[0_0_10px_rgba(255,0,51,0.5)] animate-pulse flex items-center gap-1">
+                                                                        <Zap className="w-2 h-2" /> PREMS
+                                                                    </motion.span>
+                                                                )}
                                                                 {topTalkers[0]?.pseudo === msg.pseudo && <Crown className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500 animate-bounce" />}
                                                                 {topTalkers[1]?.pseudo === msg.pseudo && <Trophy className="w-2.5 h-2.5 text-gray-300 fill-gray-300" />}
                                                                 {topTalkers[2]?.pseudo === msg.pseudo && <Trophy className="w-2.5 h-2.5 text-amber-600 fill-amber-600" />}
