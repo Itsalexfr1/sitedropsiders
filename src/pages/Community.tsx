@@ -16,6 +16,13 @@ import { AlertsSection } from '../components/community/AlertsSection';
 import galerieData from '../data/galerie.json';
 import confetti from 'canvas-confetti';
 
+// --- HALL OF FAME MOCK DATA ---
+const HALL_OF_FAME = [
+    { id: 'h1', playerName: 'Alex', festivalName: 'NEON WAVE', djs: ['Boris Brejcha', 'Charlotte de Witte', 'Amelie Lens'], budget: '2.4M€', date: 'Juin 2026' },
+    { id: 'h2', playerName: 'Lucas', festivalName: 'BASS MOUNTAIN', djs: ['Skrillex', 'Fred again..', 'I Hate Models'], budget: '4.1M€', date: 'Août 2026' },
+    { id: 'h3', playerName: 'Emma', festivalName: 'TECHNO GARDEN', djs: ['Nina Kraviz', 'Carl Cox', 'Adam Beyer'], budget: '1.8M€', date: 'Juillet 2026' },
+];
+
 // --- FESTIVAL CREATOR GAME DATA ---
 const DJ_POOL = [
     { id: '1', name: 'Boris Brejcha', price: 120000, genre: 'High-Tech Minimal', popularity: 95 },
@@ -54,7 +61,12 @@ export function Community() {
     const [budget, setBudget] = useState(0);
     const [selectedDjs, setSelectedDjs] = useState<typeof DJ_POOL>([]);
     const [selectedCosts, setSelectedCosts] = useState<string[]>([]);
-    const [gameState, setGameState] = useState<'SETUP' | 'BOOKING' | 'POSTER'>('SETUP');
+    const [gameState, setGameState] = useState<'SETUP' | 'ONBOARDING' | 'BOOKING' | 'POSTER'>('SETUP');
+
+    // Player Info
+    const [playerName, setPlayerName] = useState('');
+    const [playerEmail, setPlayerEmail] = useState('');
+    const [festivalName, setFestivalName] = useState('');
 
     // Stats
     const totalDjsCost = useMemo(() => selectedDjs.reduce((acc, dj) => acc + dj.price, 0), [selectedDjs]);
@@ -67,12 +79,17 @@ export function Community() {
     const remainingBudget = budget - totalSpent;
 
     const startNewGame = () => {
-        const randomBudget = Math.floor(Math.random() * (1200000 - 400000 + 1)) + 400000;
+        const randomBudget = Math.floor(Math.random() * (5000000 - 500000 + 1)) + 500000;
         setBudget(randomBudget);
         setSelectedDjs([]);
         setSelectedCosts([]);
-        setGameState('BOOKING');
+        setGameState('ONBOARDING');
         setGameStarted(true);
+    };
+
+    const confirmOnboarding = () => {
+        if (!playerName || !playerEmail || !festivalName) return;
+        setGameState('BOOKING');
     };
 
     const toggleDj = (dj: typeof DJ_POOL[0]) => {
@@ -284,11 +301,100 @@ export function Community() {
                                         whileHover={{ scale: 1.05, y: -5 }}
                                         whileTap={{ scale: 0.95 }}
                                         onClick={startNewGame}
-                                        className="px-16 py-6 bg-white text-black rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(255,255,255,0.1)] hover:bg-amber-400 hover:shadow-[0_20px_40px_rgba(251,191,36,0.2)] transition-all duration-500"
+                                        className="px-16 py-6 bg-white text-black rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(255,255,255,0.1)] hover:bg-amber-400 hover:shadow-[0_20px_40px_rgba(251,191,36,0.2)] transition-all duration-500 mb-20"
                                     >
                                         DÉMARRER LA PRODUCTION
                                     </motion.button>
+
+                                    {/* Hall of Fame Section */}
+                                    <div className="max-w-5xl mx-auto mt-20">
+                                        <div className="flex items-center gap-4 mb-12 justify-center">
+                                            <div className="h-[1px] flex-1 bg-white/10" />
+                                            <h3 className="text-2xl font-black italic tracking-tighter uppercase text-white/40">Hall of Fame</h3>
+                                            <div className="h-[1px] flex-1 bg-white/10" />
+                                        </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
+                                            {HALL_OF_FAME.map((poster) => (
+                                                <motion.div
+                                                    key={poster.id}
+                                                    whileHover={{ y: -10, rotate: 1 }}
+                                                    className="group relative aspect-[1.3/2] bg-[#111] border-[6px] border-white shadow-2xl rounded-2xl p-6 overflow-hidden flex flex-col items-center text-center"
+                                                >
+                                                    <div className="absolute inset-0 opacity-10 flex items-center justify-center -rotate-12 pointer-events-none text-2xl font-black">DROPSIDERS</div>
+
+                                                    <div className="relative z-10 w-full">
+                                                        <span className="text-[6px] font-black uppercase tracking-[0.3em] text-neon-red block mb-1">Production par {poster.playerName}</span>
+                                                        <h4 className="text-xl font-display font-black uppercase italic tracking-tighter text-white leading-none mb-3">{poster.festivalName}</h4>
+                                                        <div className="w-10 h-0.5 bg-white mx-auto mb-6" />
+
+                                                        <div className="space-y-1 mb-6">
+                                                            {(poster as any).djs.map((dj: string, idx: number) => (
+                                                                <p key={dj} className={`text-[7px] font-bold text-white uppercase tracking-widest ${idx === 0 ? 'text-[9px] font-black' : 'opacity-60'}`}>{dj}</p>
+                                                            ))}
+                                                        </div>
+
+                                                        <div className="pt-4 border-t border-white/10 flex justify-between items-end w-full">
+                                                            <div className="text-left">
+                                                                <p className="text-[5px] font-black text-white/40 uppercase">Budget</p>
+                                                                <p className="text-[7px] font-black text-white uppercase italic">{(poster as any).budget}</p>
+                                                            </div>
+                                                            <div className="text-right">
+                                                                <img src="/Logo.png" className="h-2 w-auto object-contain opacity-50" alt="" />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
+                            ) : gameState === 'ONBOARDING' ? (
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.95 }}
+                                    animate={{ opacity: 1, scale: 1 }}
+                                    className="max-w-2xl mx-auto p-12 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem]"
+                                >
+                                    <h3 className="text-3xl font-black italic tracking-tighter uppercase mb-8 text-center text-amber-400">Dossier de Production</h3>
+                                    <div className="space-y-6">
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 ml-2">Prénom de l'organisateur</label>
+                                            <input
+                                                type="text"
+                                                value={playerName}
+                                                onChange={(e) => setPlayerName(e.target.value)}
+                                                className="w-full px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-amber-400 transition-colors"
+                                                placeholder="TON PRÉNOM"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 ml-2">Email (pour l'envoi de l'affiche)</label>
+                                            <input
+                                                type="email"
+                                                value={playerEmail}
+                                                onChange={(e) => setPlayerEmail(e.target.value)}
+                                                className="w-full px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-amber-400 transition-colors"
+                                                placeholder="TON@EMAIL.COM"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 ml-2">Nom du Festival</label>
+                                            <input
+                                                type="text"
+                                                value={festivalName}
+                                                onChange={(e) => setFestivalName(e.target.value)}
+                                                className="w-full px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-amber-400 transition-colors"
+                                                placeholder="NOM DE TON FESTIVAL"
+                                            />
+                                        </div>
+                                        <button
+                                            onClick={confirmOnboarding}
+                                            disabled={!playerName || !playerEmail || !festivalName}
+                                            className="w-full py-6 mt-6 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-amber-400 transition-all duration-500 disabled:opacity-20"
+                                        >
+                                            VALIDER LE DOSSIER
+                                        </button>
+                                    </div>
+                                </motion.div>
                             ) : gameState === 'BOOKING' ? (
                                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
                                     {/* Sidebar: Budget & Controls */}
@@ -426,7 +532,7 @@ export function Community() {
                                                     Dropsiders Lab Présente
                                                 </div>
                                                 <h1 className="text-6xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                                    ULTRA <span className="text-neon-red">EXPERIENCE</span>
+                                                    {festivalName.split(' ')[0]} <span className="text-neon-red">{festivalName.split(' ').slice(1).join(' ') || 'EXPERIENCE'}</span>
                                                 </h1>
                                                 <div className="w-40 h-1 bg-white" />
                                             </div>
@@ -455,8 +561,16 @@ export function Community() {
                                                     <p className="text-[9px] font-black text-white/60 uppercase tracking-widest">Date de l'événement</p>
                                                     <p className="text-xl font-black text-white uppercase italic">Summer 2026</p>
                                                 </div>
-                                                <div className="text-right">
-                                                    <img src="https://placehold.co/80x80?text=QR" className="w-16 h-16 invert opacity-80" alt="QR" />
+                                                <div className="text-right flex flex-col items-end gap-1.5 leading-none">
+                                                    <img
+                                                        src="/Logo.png"
+                                                        className="h-10 w-auto object-contain mb-2"
+                                                        alt="DROPSIDERS"
+                                                    />
+                                                    <div className="flex flex-col items-end opacity-40">
+                                                        <span className="text-[7px] font-black uppercase tracking-widest leading-none">Powered by Dropsiders</span>
+                                                        <span className="text-[6px] font-black uppercase tracking-[0.3em] mt-0.5">Lab Production © 2026</span>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
