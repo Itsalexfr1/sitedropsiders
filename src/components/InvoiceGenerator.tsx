@@ -18,6 +18,15 @@ interface SavedClient {
     email: string;
 }
 
+// Helper to ensure colors are preserved and backgrounds are white
+const sanitizeColors = (doc: Document) => {
+    const el = doc.getElementById('printable-invoice');
+    if (el) {
+        el.style.backgroundColor = '#ffffff';
+        el.style.color = '#000000';
+    }
+};
+
 export function InvoiceGenerator() {
     const [invoiceNumber, setInvoiceNumber] = useState<number>(66);
     const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
@@ -152,34 +161,56 @@ export function InvoiceGenerator() {
         setPreviewLoading(true);
         setShowPreview(true);
         setPreviewImage(null);
+        setSendError('');
         try {
             const invoiceEl = invoiceRef.current;
-            if (!invoiceEl) throw new Error('Introuvable');
+            if (!invoiceEl) throw new Error('Calculateur introuvable');
 
-            invoiceEl.style.display = 'block';
+            // Force visibility for capture but keep it hidden from user
+            invoiceEl.classList.remove('hidden');
             invoiceEl.style.position = 'fixed';
+            invoiceEl.style.left = '0';
             invoiceEl.style.top = '0';
-            invoiceEl.style.left = '-9999px';
-            invoiceEl.style.width = '794px';
-            invoiceEl.style.zIndex = '-9999';
+            invoiceEl.style.zIndex = '-100';
+            invoiceEl.style.visibility = 'visible';
+            invoiceEl.style.opacity = '1';
+            invoiceEl.style.display = 'block';
 
-            await new Promise(r => setTimeout(r, 600));
+            // Give extra time for font rendering and styles
+            await new Promise(r => setTimeout(r, 1000));
 
             const canvas = await html2canvas(invoiceEl, {
-                scale: 2,
+                scale: 3, // Higher scale for premium look
                 useCORS: true,
+                allowTaint: true,
                 backgroundColor: '#ffffff',
+                logging: false,
                 width: 794,
-                onclone: (clonedDoc) => sanitizeColors(clonedDoc)
+                height: 1123,
+                onclone: (clonedDoc) => {
+                    const el = clonedDoc.getElementById('printable-invoice');
+                    if (el) {
+                        el.style.display = 'block';
+                        el.style.visibility = 'visible';
+                        sanitizeColors(clonedDoc);
+                    }
+                }
             });
 
-            invoiceEl.style.display = '';
+            // Restore state
+            invoiceEl.classList.add('hidden');
             invoiceEl.style.position = '';
+            invoiceEl.style.left = '';
+            invoiceEl.style.top = '';
+            invoiceEl.style.zIndex = '';
+            invoiceEl.style.visibility = '';
+            invoiceEl.style.opacity = '';
+            invoiceEl.style.display = '';
 
             setPreviewImage(canvas.toDataURL('image/png'));
         } catch (e: any) {
             console.error('Preview Error:', e);
-            setSendError(e.message || 'Erreur de rendu');
+            setSendError('Rendu échoué: ' + e.message);
         } finally {
             setPreviewLoading(false);
         }
@@ -266,148 +297,181 @@ export function InvoiceGenerator() {
     };
 
     return (
-        <div className="w-full h-full bg-[#0a0a0a] text-white font-sans overflow-hidden flex flex-col">
-            {/* HEADER / NAVIGATION */}
-            <div className="shrink-0 px-8 py-6 border-b border-white/5 flex items-center justify-between bg-black/40 backdrop-blur-xl z-50">
-                <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-xl bg-white flex items-center justify-center group cursor-default">
-                        <span className="text-black font-black text-2xl tracking-tighter">CA</span>
+        <div className="w-full h-full bg-[#050505] text-white font-sans overflow-hidden flex flex-col selection:bg-white/10">
+            {/* ULTRA PREMIUM HEADER */}
+            <div className="shrink-0 px-10 py-8 flex items-center justify-between bg-black/80 backdrop-blur-3xl z-50 border-b border-white/[0.03]">
+                <div className="flex items-center gap-6">
+                    <div className="relative group">
+                        <div className="absolute -inset-1 bg-gradient-to-r from-white/20 to-transparent rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                        <div className="relative w-14 h-14 rounded-2xl bg-white flex items-center justify-center transition-transform hover:scale-105 active:scale-95 duration-500">
+                            <span className="text-black font-black text-2xl tracking-tighter">CA</span>
+                        </div>
                     </div>
                     <div>
-                        <h1 className="text-xl font-black uppercase tracking-tighter leading-none">ALEXANDRE CUENCA</h1>
-                        <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest mt-1">Management & Studio</p>
+                        <h1 className="text-2xl font-black uppercase tracking-[-0.05em] leading-none mb-1">
+                            STUDIO <span className="text-white/40 italic">EXPANSION</span>
+                        </h1>
+                        <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                            <p className="text-[10px] font-bold text-white/30 uppercase tracking-[0.2em]">Sytème de Facturation v2.0</p>
+                        </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
+                    <div className="hidden md:flex flex-col items-end mr-6">
+                        <span className="text-[9px] font-black text-white/20 uppercase tracking-widest">Utilisateur</span>
+                        <span className="text-xs font-bold text-white/60">Alexandre Cuenca</span>
+                    </div>
+
                     <button
                         onClick={handlePreview}
-                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all flex items-center gap-2 group"
+                        className="px-6 py-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all flex items-center gap-3 group overflow-hidden relative"
                     >
-                        <Eye className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
-                        <span className="text-xs font-black uppercase tracking-widest px-2">Aperçu</span>
+                        <div className="absolute inset-0 bg-gradient-to-r from-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
+                        <Eye className="w-4 h-4 text-white/40 group-hover:text-white transition-colors" />
+                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">Scanner Aperçu</span>
                     </button>
+
                     <button
                         onClick={handlePrint}
-                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl transition-all"
+                        className="p-4 bg-white/5 hover:bg-white/10 border border-white/5 rounded-2xl transition-all group"
                     >
-                        <Printer className="w-5 h-5 text-gray-400" />
+                        <Printer className="w-5 h-5 text-white/20 group-hover:text-white" />
                     </button>
-                    <div className="w-px h-6 bg-white/10 mx-2" />
+
+                    <div className="w-px h-8 bg-white/5 mx-2" />
+
                     <button
                         onClick={() => setShowEmailModal(true)}
-                        className="px-8 py-3.5 bg-white text-black rounded-xl font-black uppercase tracking-widest shadow-lg shadow-white/5 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center gap-3"
+                        className="group relative px-10 py-4 bg-white text-black rounded-2xl font-black uppercase tracking-[0.15em] text-[11px] shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:shadow-[0_0_50px_rgba(255,255,255,0.1)] transition-all flex items-center gap-3 active:scale-95"
                     >
-                        <Send className="w-4 h-4" /> Finaliser & Envoyer
+                        <Send className="w-4 h-4" /> Finaliser Dispatch
                     </button>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto custom-scrollbar p-8">
-                <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12">
+            <div className="flex-1 overflow-y-auto no-scrollbar p-10 bg-[radial-gradient(circle_at_top_right,rgba(255,255,255,0.02),transparent)]">
+                <div className="max-w-[1400px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-16">
 
-                    {/* LEFT COLUMN: SETUP */}
-                    <div className="lg:col-span-4 space-y-8">
-                        {/* Profile Card */}
-                        <div className="bg-[#111] border border-white/5 rounded-[32px] p-8 space-y-8">
-                            <div className="flex items-center justify-between">
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30">MON PROFIL</h3>
-                                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                    {/* CONTROL CENTER */}
+                    <div className="lg:col-span-4 space-y-10">
+                        {/* Profile & Identity */}
+                        <div className="bg-[#0c0c0c] border border-white/[0.03] rounded-[40px] p-10 relative overflow-hidden group">
+                            <div className="absolute top-0 right-0 p-8 opacity-[0.02] group-hover:opacity-[0.05] transition-opacity">
+                                <Building2 className="w-32 h-32" />
                             </div>
 
-                            <div className="space-y-6">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20 mb-10 border-b border-white/5 pb-6">IDENTITÉ ÉMETTEUR</h3>
+
+                            <div className="space-y-8">
                                 <div className="space-y-3">
-                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Numéro Personnel</label>
-                                    <div className="bg-black/40 border border-white/5 rounded-2xl p-4 flex items-center gap-4 focus-within:border-white/20 transition-all">
-                                        <Phone className="w-4 h-4 text-gray-600" />
+                                    <label className="text-[9px] font-black text-white/20 uppercase tracking-widest ml-1">Contact Pro</label>
+                                    <div className="bg-black/60 border border-white/5 rounded-2xl p-4 flex items-center gap-4 focus-within:border-white/20 transition-all">
+                                        <Phone className="w-4 h-4 text-white/20" />
                                         <input
                                             type="text"
                                             value={userPhone}
                                             onChange={e => saveUserPhone(e.target.value)}
-                                            className="bg-transparent border-none outline-none text-sm font-bold w-full"
+                                            className="bg-transparent border-none outline-none text-sm font-bold w-full text-white/80"
                                         />
                                     </div>
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Facture N° Chrono</label>
-                                    <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
-                                        <input
-                                            type="number"
-                                            value={invoiceNumber}
-                                            onChange={e => saveInvoiceNumber(parseInt(e.target.value) || 0)}
-                                            className="bg-transparent border-none outline-none text-2xl font-black w-full tracking-tighter"
-                                        />
+                                    <label className="text-[9px] font-black text-white/20 uppercase tracking-widest ml-1">Référence Chrono</label>
+                                    <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 group-hover:bg-white/[0.04] transition-colors">
+                                        <div className="flex items-baseline gap-2">
+                                            <span className="text-white/20 font-black text-sm italic">INV-</span>
+                                            <input
+                                                type="number"
+                                                value={invoiceNumber}
+                                                onChange={e => saveInvoiceNumber(parseInt(e.target.value) || 0)}
+                                                className="bg-transparent border-none outline-none text-4xl font-black w-full tracking-tighter text-white"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
 
                                 <div className="space-y-3">
-                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Date d'édition</label>
-                                    <div className="bg-black/40 border border-white/5 rounded-2xl p-4">
+                                    <label className="text-[9px] font-black text-white/20 uppercase tracking-widest ml-1">Horodatage</label>
+                                    <div className="bg-black/60 border border-white/5 rounded-2xl p-4">
                                         <input
                                             type="date"
                                             value={date}
                                             onChange={e => setDate(e.target.value)}
-                                            className="bg-transparent border-none outline-none text-sm font-bold w-full [color-scheme:dark]"
+                                            className="bg-transparent border-none outline-none text-sm font-bold w-full [color-scheme:dark] text-white/80"
                                         />
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="pt-4 border-t border-white/5">
-                                <div className="flex items-center gap-4 text-gray-600">
-                                    <div className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center"><Save className="w-4 h-4" /></div>
-                                    <p className="text-[10px] font-bold leading-relaxed uppercase tracking-wide">Auto-entrepreneur<br />SIRET : 805131828 00010</p>
+                            <div className="mt-12 pt-8 border-t border-white/5">
+                                <div className="flex items-center gap-5">
+                                    <div className="w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-white/20"><Save className="w-5 h-5" /></div>
+                                    <div>
+                                        <p className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Status Légal</p>
+                                        <p className="text-[10px] font-bold text-white/40 leading-relaxed">Auto-entrepreneur<br />SIRET : 805131828 00010</p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Quick Tips */}
-                        <div className="bg-gradient-to-br from-[#111] to-[#0a0a0a] border border-white/5 rounded-[32px] p-8">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30 mb-6">INFO PAIEMENT</h3>
-                            <div className="space-y-4">
-                                <div className="p-4 bg-white/5 rounded-2xl flex items-start gap-4">
-                                    <CreditCard className="w-5 h-5 text-gray-500 shrink-0" />
-                                    <div className="text-[10px] font-bold text-gray-400 leading-relaxed">
-                                        Virement Revolut configuré par défaut. Vérifiez les coordonnées bancaires en pied de page.
+                        {/* Payment Terminal Info */}
+                        <div className="bg-gradient-to-br from-[#0c0c0c] to-black border border-white/[0.03] rounded-[40px] p-10">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20 mb-8 pb-6 border-b border-white/5">TERMINAL TRANSACTION</h3>
+                            <div className="space-y-6">
+                                <div className="p-6 bg-white/[0.02] rounded-3xl border border-white/5 flex items-start gap-5">
+                                    <CreditCard className="w-6 h-6 text-white/20 shrink-0" />
+                                    <div>
+                                        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-2">Canal Règlements</p>
+                                        <p className="text-[11px] font-bold text-white/60 leading-relaxed italic">
+                                            Transferts SEPA / Revolut Business via Nîmes Hub.
+                                        </p>
                                     </div>
+                                </div>
+                                <div className="flex items-center justify-between px-2">
+                                    <span className="text-[8px] font-black text-white/10 uppercase tracking-[0.3em]">Network Security</span>
+                                    <div className="w-1.5 h-1.5 rounded-full bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
                                 </div>
                             </div>
                         </div>
                     </div>
 
-                    {/* RIGHT COLUMN: CONTENT */}
-                    <div className="lg:col-span-8 space-y-8 pb-12">
+                    {/* CONTENT CANVAS */}
+                    <div className="lg:col-span-8 space-y-10 pb-20">
 
-                        {/* DESTINATION SECTION */}
-                        <div className="bg-[#111] border border-white/5 rounded-[40px] p-10 space-y-10 shadow-xl">
+                        {/* CLIENT HUB */}
+                        <div className="bg-[#0c0c0c] border border-white/[0.03] rounded-[48px] p-12 space-y-12 shadow-2xl relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/10 to-transparent opacity-50" />
+
                             <div className="flex items-center justify-between">
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">CLIENT & DESTINATION</h3>
-                                <div className="flex items-center gap-3">
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.6em] text-white/20">CLIENT & DESTINATION</h3>
+                                <div className="flex items-center gap-4">
                                     {savedClients.length > 0 && (
                                         <div className="relative">
                                             <button
                                                 onClick={() => setShowClientPicker(!showClientPicker)}
-                                                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all flex items-center gap-2"
+                                                className="px-6 py-3 bg-white/5 border border-white/5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 transition-all flex items-center gap-3"
                                             >
-                                                <BookUser className="w-4 h-4" /> Carnet
+                                                <BookUser className="w-4 h-4 text-white/40" /> Carnet
                                             </button>
                                             <AnimatePresence>
                                                 {showClientPicker && (
                                                     <motion.div
-                                                        initial={{ opacity: 0, y: 10 }}
-                                                        animate={{ opacity: 1, y: 0 }}
-                                                        exit={{ opacity: 0, y: 10 }}
-                                                        className="absolute right-0 top-full mt-4 w-72 bg-[#0c0c0c] border border-white/10 rounded-[28px] z-[100] shadow-2xl overflow-hidden"
+                                                        initial={{ opacity: 0, y: 15, scale: 0.95 }}
+                                                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                        exit={{ opacity: 0, y: 15, scale: 0.95 }}
+                                                        className="absolute right-0 top-full mt-6 w-80 bg-[#0f0f0f] border border-white/[0.08] rounded-[32px] z-[100] shadow-[0_30px_60px_rgba(0,0,0,0.8)] overflow-hidden backdrop-blur-3xl"
                                                     >
-                                                        <div className="p-3 max-h-60 overflow-y-auto no-scrollbar space-y-1">
+                                                        <div className="p-4 max-h-72 overflow-y-auto custom-scrollbar-thin space-y-1">
                                                             {savedClients.map(c => (
-                                                                <div key={c.id} className="p-4 hover:bg-white/5 rounded-2xl cursor-pointer group flex items-center justify-between" onClick={() => loadClient(c)}>
-                                                                    <div>
-                                                                        <p className="text-xs font-black truncate">{c.name}</p>
-                                                                        <p className="text-[9px] text-gray-500 font-bold">{c.email}</p>
+                                                                <div key={c.id} className="p-5 hover:bg-white/[0.03] rounded-2xl cursor-pointer group flex items-center justify-between transition-colors" onClick={() => loadClient(c)}>
+                                                                    <div className="overflow-hidden">
+                                                                        <p className="text-xs font-black truncate text-white/80">{c.name}</p>
+                                                                        <p className="text-[9px] text-white/20 font-bold tracking-wider mt-1">{c.email}</p>
                                                                     </div>
-                                                                    <button onClick={(e) => { e.stopPropagation(); deleteClient(c.id); }} className="p-2 opacity-0 group-hover:opacity-100 hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
+                                                                    <button onClick={(e) => { e.stopPropagation(); deleteClient(c.id); }} className="p-3 opacity-0 group-hover:opacity-100 hover:text-red-400 transition-all"><Trash2 className="w-4 h-4" /></button>
                                                                 </div>
                                                             ))}
                                                         </div>
@@ -419,120 +483,134 @@ export function InvoiceGenerator() {
                                     <button
                                         onClick={saveCurrentClient}
                                         disabled={!clientName.trim()}
-                                        className="p-2.5 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 disabled:opacity-10 transition-all"
+                                        className="p-4 bg-white/5 border border-white/5 rounded-2xl hover:bg-white/10 disabled:opacity-20 transition-all active:scale-90"
                                     >
-                                        <Plus className="w-5 h-5" />
+                                        <Plus className="w-5 h-5 text-white" />
                                     </button>
                                 </div>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-                                <div className="space-y-6">
-                                    <div className="space-y-3">
-                                        <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest ml-1">Nom du client / Société</label>
-                                        <div className="bg-black/20 border border-white/5 p-4 rounded-2xl flex items-center gap-4">
-                                            <Building2 className="w-5 h-5 text-gray-700" />
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+                                <div className="space-y-8">
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Société / Entité</label>
+                                        <div className="bg-black/40 border border-white/5 p-5 rounded-2xl flex items-center gap-5 focus-within:border-white/20 transition-all group">
+                                            <Building2 className="w-5 h-5 text-white/20 group-focus-within:text-white/60 transition-colors" />
                                             <input
                                                 type="text"
                                                 value={clientName}
                                                 onChange={e => setClientName(e.target.value)}
-                                                placeholder="EDF, Orange, etc..."
-                                                className="bg-transparent border-none outline-none font-bold w-full text-sm"
+                                                placeholder="Label, Club, Festival..."
+                                                className="bg-transparent border-none outline-none font-bold w-full text-base placeholder:text-white/10"
                                             />
                                         </div>
                                     </div>
-                                    <div className="space-y-3">
-                                        <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest ml-1">E-mail de facturation</label>
-                                        <div className="bg-black/20 border border-white/5 p-4 rounded-2xl flex items-center gap-4">
-                                            <Mail className="w-5 h-5 text-gray-700" />
+                                    <div className="space-y-4">
+                                        <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Email Facturation</label>
+                                        <div className="bg-black/40 border border-white/5 p-5 rounded-2xl flex items-center gap-5 focus-within:border-white/20 transition-all group">
+                                            <Mail className="w-5 h-5 text-white/20 group-focus-within:text-white/60 transition-colors" />
                                             <input
                                                 type="email"
                                                 value={clientEmail}
                                                 onChange={e => setClientEmail(e.target.value)}
-                                                placeholder="compta@client.fr"
-                                                className="bg-transparent border-none outline-none text-sm w-full"
+                                                placeholder="accounting@studio.com"
+                                                className="bg-transparent border-none outline-none text-base font-medium w-full placeholder:text-white/10"
                                             />
                                         </div>
                                     </div>
                                 </div>
-                                <div className="space-y-3">
-                                    <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest ml-1">Adresse Complète</label>
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] ml-2">Siège Social / Adresse</label>
                                     <textarea
                                         value={clientAddress}
                                         onChange={e => setClientAddress(e.target.value)}
                                         rows={6}
-                                        placeholder="Rue, Code Postal, Ville..."
-                                        className="bg-black/20 border border-white/5 p-6 rounded-[32px] outline-none text-sm w-full resize-none font-medium leading-relaxed"
+                                        placeholder="Addresse complète du destinataire pour conformité légale..."
+                                        className="bg-black/40 border border-white/5 p-6 rounded-[32px] outline-none text-sm w-full resize-none font-medium leading-relaxed focus:border-white/20 transition-all placeholder:text-white/10"
                                     />
                                 </div>
                             </div>
                         </div>
 
-                        {/* LINE ITEMS */}
-                        <div className="bg-[#111] border border-white/5 rounded-[40px] p-10 space-y-8 shadow-xl">
-                            <div className="flex items-center justify-between border-b border-white/5 pb-6">
-                                <h3 className="text-[10px] font-black uppercase tracking-[0.5em] text-white/20">PRESTATIONS & SERVICES</h3>
+                        {/* LINE ITEMS TERMINAL */}
+                        <div className="bg-[#0c0c0c] border border-white/[0.03] rounded-[48px] p-12 space-y-10 shadow-2xl">
+                            <div className="flex items-center justify-between border-b border-white/5 pb-8">
+                                <h3 className="text-[10px] font-black uppercase tracking-[0.6em] text-white/20">MANIFESTE DES PRESTATIONS</h3>
                                 <button
                                     onClick={addLine}
-                                    className="flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-colors"
+                                    className="px-6 py-2.5 rounded-full border border-white/10 hover:bg-white text-white hover:text-black text-[9px] font-black uppercase tracking-[0.3em] transition-all flex items-center gap-3 active:scale-95"
                                 >
-                                    <Plus className="w-4 h-4" /> Ajouter prestataire
+                                    <Plus className="w-4 h-4" /> Nouvelle Unité
                                 </button>
                             </div>
 
                             <div className="space-y-4">
                                 {lines.map((line) => (
-                                    <div key={line.id} className="grid grid-cols-12 gap-4 items-center bg-black/40 p-4 rounded-[28px] border border-white/5 group hover:border-white/10 transition-all">
+                                    <motion.div
+                                        layout
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        key={line.id}
+                                        className="grid grid-cols-12 gap-6 items-center bg-black/40 p-5 rounded-[28px] border border-white/5 group hover:border-white/20 transition-all border-l-4 border-l-transparent hover:border-l-white"
+                                    >
                                         <div className="col-span-12 md:col-span-7">
                                             <input
                                                 type="text"
                                                 value={line.description}
                                                 onChange={e => updateLine(line.id, 'description', e.target.value)}
-                                                placeholder="Titre de la mission..."
-                                                className="bg-transparent border-none outline-none text-sm font-bold w-full px-2"
+                                                placeholder="Désignation de la mission..."
+                                                className="bg-transparent border-none outline-none text-base font-bold w-full px-2 text-white/90 placeholder:text-white/5"
                                             />
                                         </div>
                                         <div className="col-span-4 md:col-span-2">
-                                            <div className="bg-white/5 rounded-xl p-3 text-center">
+                                            <div className="bg-white/[0.03] rounded-2xl p-4 text-center border border-white/5 focus-within:border-white/20 transition-colors">
                                                 <input
                                                     type="number"
                                                     value={line.quantity}
                                                     onChange={e => updateLine(line.id, 'quantity', parseFloat(e.target.value) || 0)}
-                                                    className="bg-transparent border-none outline-none text-[10px] font-black w-full text-center"
+                                                    className="bg-transparent border-none outline-none text-xs font-black w-full text-center text-white"
                                                 />
                                             </div>
                                         </div>
                                         <div className="col-span-6 md:col-span-2">
-                                            <div className="flex items-center gap-2 px-2">
+                                            <div className="flex items-center gap-3 px-3">
                                                 <input
                                                     type="number"
                                                     value={line.unitPrice}
                                                     onChange={e => updateLine(line.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                                    className="bg-transparent border-none outline-none text-right font-black w-full"
+                                                    className="bg-transparent border-none outline-none text-right font-black w-full text-lg tracking-tight"
                                                 />
-                                                <span className="text-gray-600 font-bold text-[10px]">€</span>
+                                                <span className="text-white/20 font-black text-xs">€</span>
                                             </div>
                                         </div>
                                         <div className="col-span-2 md:col-span-1 text-right">
-                                            <button onClick={() => removeLine(line.id)} className="p-2 text-gray-800 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
-                                                <Trash2 className="w-4 h-4" />
+                                            <button onClick={() => removeLine(line.id)} className="p-3 text-white/10 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100 hover:scale-110">
+                                                <Trash2 className="w-5 h-5" />
                                             </button>
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 ))}
                             </div>
 
-                            {/* TOTAL AREA */}
-                            <div className="pt-8 flex justify-between items-end border-t border-white/5">
-                                <div>
-                                    <div className="flex items-center gap-2 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1 italic">
-                                        <ChevronRight className="w-3 h-3" /> Auto-liq. TVA (Art. 293B)
+                            {/* AGGREGATION AREA */}
+                            <div className="pt-12 flex flex-col md:flex-row justify-between items-center gap-10 border-t border-white/5">
+                                <div className="space-y-4 text-center md:text-left">
+                                    <div className="flex items-center justify-center md:justify-start gap-3 text-[10px] font-black text-white/20 uppercase tracking-[0.2em] italic">
+                                        <ChevronRight className="w-4 h-4 text-white/40" /> Franchise de TVA (CGI 293B)
                                     </div>
-                                    <p className="text-[10px] font-bold text-gray-700 max-w-xs">Le montant total affiché est le montant net à régler (Hors Taxes).</p>
+                                    <p className="text-[11px] font-medium text-white/30 max-w-sm leading-relaxed">
+                                        Calcul automatique basé sur un taux net de 0%.<br />
+                                        Le montant final représente la somme totale à percevoir.
+                                    </p>
                                 </div>
-                                <div className="text-right">
-                                    <span className="text-[11px] font-black uppercase tracking-[0.3em] text-white/20 block mb-2">NET À RÉGLER</span>
-                                    <span className="text-6xl font-black italic tracking-tighter leading-none">{total.toFixed(2)}€</span>
+                                <div className="text-right flex flex-col items-center md:items-end">
+                                    <span className="text-[11px] font-black uppercase tracking-[0.6em] text-white/10 block mb-4">TOTAL NET RÉGLÉ</span>
+                                    <div className="relative">
+                                        <div className="absolute -inset-4 bg-white/5 blur-3xl rounded-full opacity-50" />
+                                        <span className="relative text-7xl font-black italic tracking-[-0.08em] leading-none text-white transition-all hover:scale-110 cursor-default inline-block">
+                                            {total.toFixed(2)}<span className="text-3xl ml-2 not-italic text-white/40 opacity-50 font-black">€</span>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -540,113 +618,155 @@ export function InvoiceGenerator() {
                 </div>
             </div>
 
-            {/* PREVIEW MODAL */}
+            {/* PREVIEW MODAL LIGHTBOX */}
             <AnimatePresence>
                 {showPreview && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl print:hidden">
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/98 backdrop-blur-3xl print:hidden">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.98, y: 30 }}
+                            initial={{ opacity: 0, scale: 0.9, y: 50 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.98, y: 30 }}
-                            className="relative w-full max-w-5xl h-full flex flex-col"
+                            exit={{ opacity: 0, scale: 0.9, y: 50 }}
+                            className="relative w-full max-w-6xl h-[90vh] flex flex-col gap-8"
                         >
-                            <div className="flex items-center justify-between mb-8 shrink-0">
-                                <h3 className="text-4xl font-black uppercase tracking-tighter italic">Preview Mode</h3>
-                                <button onClick={() => { setShowPreview(false); setPreviewImage(null); }} className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all">
-                                    <X className="w-8 h-8" />
+                            <div className="flex items-center justify-between shrink-0 px-4">
+                                <div>
+                                    <h3 className="text-5xl font-black uppercase tracking-[-0.05em] italic">Visual Proof</h3>
+                                    <p className="text-[10px] font-black tracking-[0.5em] text-white/20 mt-2">DÉTAILS DU RENDU PDF HAUTE DÉFINITION</p>
+                                </div>
+                                <button onClick={() => { setShowPreview(false); setPreviewImage(null); }} className="p-6 bg-white/5 hover:bg-white text-white hover:text-black rounded-3xl transition-all active:scale-95 group">
+                                    <X className="w-10 h-10 group-hover:rotate-90 transition-transform duration-500" />
                                 </button>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto no-scrollbar rounded-[48px] border border-white/10 bg-[#080808] p-10 flex items-center justify-center shadow-3xl">
+                            <div className="flex-1 overflow-y-auto no-scrollbar rounded-[56px] border border-white/5 bg-black p-12 flex items-center justify-center shadow-3xl relative group/canvas">
                                 {previewLoading ? (
-                                    <div className="flex flex-col items-center gap-8 text-white/10 animate-pulse">
-                                        <Loader className="w-20 h-20 animate-spin" />
-                                        <p className="text-xs font-black tracking-[1em] uppercase">RENDERING TEMPLATE</p>
+                                    <div className="flex flex-col items-center gap-10 text-white/10">
+                                        <div className="relative">
+                                            <Loader className="w-24 h-24 animate-[spin_3s_linear_infinite]" />
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className="w-2 h-2 rounded-full bg-white animate-pulse" />
+                                            </div>
+                                        </div>
+                                        <p className="text-xs font-black tracking-[1.5em] uppercase animate-pulse">GENERATING VECTOR DATA</p>
                                     </div>
                                 ) : previewImage ? (
-                                    <img src={previewImage} alt="Facture Preview" className="max-w-full h-auto rounded-[24px] shadow-2xl transition-transform hover:scale-[1.01]" />
+                                    <div className="relative">
+                                        <div className="absolute -inset-10 bg-white/5 blur-[100px] rounded-full opacity-20 pointer-events-none" />
+                                        <img
+                                            src={previewImage}
+                                            alt="Facture Preview"
+                                            className="max-h-[75vh] w-auto rounded-lg shadow-[0_50px_100px_rgba(0,0,0,1)] transition-transform hover:scale-[1.02] duration-700"
+                                        />
+                                    </div>
                                 ) : (
-                                    <div className="text-red-500 font-bold uppercase tracking-widest text-center px-10">
-                                        {sendError || "Rendering failed. Check logs."}
+                                    <div className="text-red-500 font-black uppercase tracking-[0.2em] text-center px-10 flex flex-col items-center gap-6">
+                                        <div className="w-20 h-20 rounded-full border-2 border-red-500/20 flex items-center justify-center">
+                                            <X className="w-10 h-10" />
+                                        </div>
+                                        <span>{sendError || "Échec de la génération. Veuillez réessayer."}</span>
                                     </div>
                                 )}
                             </div>
 
-                            <div className="flex gap-8 mt-10 shrink-0">
-                                <button onClick={() => { setShowPreview(false); handlePrint(); }} className="flex-1 py-8 bg-white/5 border border-white/10 rounded-[40px] font-black uppercase tracking-[0.3em] hover:bg-white/10 transition-all">Lancer l'impression</button>
-                                <button onClick={() => { setShowPreview(false); setShowEmailModal(true); }} className="flex-1 py-8 bg-white text-black rounded-[40px] font-black uppercase tracking-[0.3em] hover:bg-gray-200 transition-all shadow-xl shadow-white/5">Expédition Client</button>
+                            <div className="flex gap-10 mt-2 shrink-0 px-4">
+                                <button onClick={() => { setShowPreview(false); handlePrint(); }} className="flex-1 py-10 bg-white/5 border border-white/10 rounded-[48px] font-black uppercase tracking-[0.4em] text-[11px] hover:bg-white/10 transition-all active:scale-95">Imprimer Hardware</button>
+                                <button onClick={() => { setShowPreview(false); setShowEmailModal(true); }} className="flex-1 py-10 bg-white text-black rounded-[48px] font-black uppercase tracking-[0.4em] text-[11px] hover:bg-white/90 transition-all shadow-[0_20px_40px_rgba(255,255,255,0.05)] active:scale-95">Executer le Dispatch</button>
                             </div>
                         </motion.div>
                     </div>
                 )}
             </AnimatePresence>
 
-            {/* EMAIL MODAL */}
+            {/* EMAIL DISPATCH MODULE */}
             <AnimatePresence>
                 {showEmailModal && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl print:hidden text-white">
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/98 backdrop-blur-3xl print:hidden">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-[#0f0f0f] border border-white/10 rounded-[60px] p-12 w-full max-w-2xl space-y-10 shadow-3xl relative overflow-hidden"
+                            initial={{ opacity: 0, y: 100, scale: 0.95 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: 100, scale: 0.95 }}
+                            className="bg-[#0a0a0a] border border-white/[0.05] rounded-[72px] p-16 w-full max-w-2xl space-y-12 shadow-3xl relative overflow-hidden"
                         >
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 blur-[120px] -translate-y-1/2 translate-x-1/2 rounded-full" />
+
                             <div className="flex justify-between items-center relative z-10">
-                                <h3 className="text-4xl font-black uppercase italic tracking-tighter">DISPATCH</h3>
-                                <button onClick={() => { setShowEmailModal(false); setSendStatus('idle'); }} className="p-4 hover:bg-white/5 rounded-2xl"><X className="w-8 h-8" /></button>
+                                <div>
+                                    <h3 className="text-5xl font-black uppercase italic tracking-tighter text-white">DISPATCH</h3>
+                                    <p className="text-[10px] font-black tracking-[0.5em] text-white/20 mt-1 uppercase">Transmission par relais sécurisé</p>
+                                </div>
+                                <button onClick={() => { setShowEmailModal(false); setSendStatus('idle'); }} className="p-5 bg-white/5 hover:bg-white text-white hover:text-black rounded-3xl transition-all active:scale-90"><X className="w-10 h-10" /></button>
                             </div>
 
-                            <div className="space-y-8 relative z-10">
-                                <div className="space-y-3">
-                                    <label className="text-[11px] font-black text-white/20 uppercase tracking-[0.5em] ml-2">RECIPIENT EMAIL</label>
+                            <div className="space-y-10 relative z-10">
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-white/20 uppercase tracking-[0.5em] ml-4">CANAL DESTINATAIRE</label>
                                     <input
                                         type="email"
                                         value={emailTo}
                                         onChange={e => setEmailTo(e.target.value)}
-                                        className="w-full p-6 bg-white/5 border border-white/10 rounded-[30px] outline-none font-black text-lg focus:border-white/30"
+                                        className="w-full p-8 bg-white/[0.03] border border-white/5 rounded-[32px] outline-none font-black text-xl focus:border-white/20 transition-all text-white placeholder:text-white/5"
+                                        placeholder="client@relais.com"
                                     />
                                 </div>
-                                <div className="space-y-3">
-                                    <label className="text-[11px] font-black text-white/10 uppercase tracking-[0.5em] ml-2">MESSAGE BODY</label>
+                                <div className="space-y-4">
+                                    <label className="text-[10px] font-black text-white/10 uppercase tracking-[0.5em] ml-4">CORPUS DU MESSAGE</label>
                                     <textarea
                                         value={emailMessage}
                                         onChange={e => setEmailMessage(e.target.value)}
                                         rows={8}
-                                        className="w-full p-8 bg-white/5 border border-white/10 rounded-[40px] outline-none text-base resize-none font-medium leading-relaxed"
+                                        className="w-full p-10 bg-white/[0.03] border border-white/5 rounded-[40px] outline-none text-base resize-none font-medium leading-relaxed focus:border-white/20 transition-all text-white/80 placeholder:text-white/5"
+                                        placeholder="Message de transmission..."
                                     />
                                 </div>
                             </div>
 
-                            {sendStatus === 'error' && (
-                                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-6 bg-red-500/10 border border-red-500/20 rounded-3xl text-red-500 text-xs font-black text-center italic uppercase leading-relaxed relative z-10">
-                                    {sendError}
-                                </motion.div>
-                            )}
+                            <AnimatePresence>
+                                {sendStatus === 'error' && (
+                                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-8 bg-red-500/10 border border-red-500/20 rounded-[32px] text-red-400 text-xs font-black text-center italic uppercase leading-relaxed relative z-10 flex flex-col items-center gap-4">
+                                        <div className="flex items-center gap-2">
+                                            <X className="w-4 h-4" /> <span>Erreur de sécurité serveur</span>
+                                        </div>
+                                        <p className="text-red-500/60 font-medium normal-case italic">{sendError}</p>
+                                        <div className="mt-4 p-4 bg-white/5 rounded-2xl text-[10px] text-white/40 normal-case space-y-2 border border-white/5">
+                                            <p className="font-black text-white/60">CONSEIL DE RÉSOLUTION :</p>
+                                            <p>1. Vérifiez que votre nom d'utilisateur est <span className="text-white font-bold">alex</span> ou <span className="text-white font-bold">contact@dropsiders.fr</span> dans vos réglages.</p>
+                                            <p>2. Assurez-vous que votre mot de passe administrateur est correct.</p>
+                                            <p>3. Rafraîchissez la page si vous venez de vous connecter.</p>
+                                        </div>
+                                    </motion.div>
+                                )}
 
-                            {sendStatus === 'success' && (
-                                <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="p-6 bg-white/10 border border-white/20 rounded-3xl text-white text-xs font-black text-center uppercase tracking-widest relative z-10">
-                                    Expédié avec succès !
-                                </motion.div>
-                            )}
+                                {sendStatus === 'success' && (
+                                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-8 bg-green-500/10 border border-green-500/20 rounded-[32px] text-green-400 text-xs font-black text-center uppercase tracking-[0.3em] relative z-10 flex items-center justify-center gap-4">
+                                        <Send className="w-4 h-4" /> EXPÉDITION TERMINÉE AVEC SUCCÈS
+                                    </motion.div>
+                                )}
+                            </AnimatePresence>
 
                             <button
                                 onClick={generateAndSendPDF}
                                 disabled={sendStatus !== 'idle' && sendStatus !== 'error'}
-                                className="w-full py-8 bg-white text-black rounded-[40px] font-black uppercase shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98] relative z-10"
+                                className="group relative w-full py-10 bg-white text-black rounded-[48px] font-black uppercase text-[12px] tracking-[0.3em] shadow-[0_20px_50px_rgba(255,255,255,0.1)] transition-all hover:scale-[1.02] active:scale-[0.95] disabled:opacity-50 disabled:scale-100 overflow-hidden"
                             >
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-black/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
                                 {sendStatus === 'generating' || sendStatus === 'sending' ? (
-                                    <Loader className="animate-spin inline mr-3 w-7 h-7" />
+                                    <div className="flex items-center justify-center gap-4">
+                                        <Loader className="animate-spin w-8 h-8" />
+                                        <span>SYNCHRONISATION...</span>
+                                    </div>
                                 ) : (
-                                    <Send className="inline mr-3 w-7 h-7" />
+                                    <div className="flex items-center justify-center gap-4">
+                                        <Send className="w-6 h-6" />
+                                        <span>START TRANSMISSION</span>
+                                    </div>
                                 )}
-                                EXECUTE DISPATCH
                             </button>
                         </motion.div>
                     </div>
                 )}
             </AnimatePresence>
 
-            {/* PRINT AREA - THE LUXE STUDIO TEMPLATE (FINAL VERSION) */}
+            {/* HIDDEN PRINT ASSETS */}
             <style>
                 {`
                 @media print {
@@ -658,131 +778,101 @@ export function InvoiceGenerator() {
                 `}
             </style>
 
-            <div ref={invoiceRef} id="printable-invoice" className="hidden print:block w-[794px] bg-white text-black p-[50px] min-h-[1123px] font-sans" style={{ backgroundColor: '#ffffff', color: '#000000', position: 'relative' }}>
+            <div ref={invoiceRef} id="printable-invoice" className="hidden print:block w-[794px] bg-white text-black p-[60px] min-h-[1123px] font-sans" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
 
-                {/* Header Decoration */}
-                <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '10px', background: '#000' }} />
+                {/* Image-Style Header Section */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '60px' }}>
+                    <div style={{ textAlign: 'right' }}>
+                        <h1 style={{ fontSize: '42px', fontWeight: '500', margin: '0 0 15px 0', color: '#000', letterSpacing: '2px' }}>FACTURE</h1>
+                        <div style={{ fontSize: '13px', lineHeight: '1.4', color: '#333' }}>
+                            <p style={{ fontWeight: '700' }}>Alexandre Cuenca</p>
+                            <p>411 Rue de Bouillargues</p>
+                            <p>30000 OCC Nîmes</p>
+                            <p>France</p>
+                            <p>n° SIREN : 805131828</p>
+                            <br />
+                            <p>Cuenca Alexandre</p>
+                            <p>{userPhone}</p>
+                            <p>alexlight3034@icloud.com</p>
+                        </div>
+                    </div>
+                </div>
 
-                {/* Main Header */}
-                <div className="flex justify-between items-start mb-24 pt-16">
+                {/* Receiver Info */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '60px', alignItems: 'flex-start' }}>
                     <div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '20px', marginBottom: '40px' }}>
-                            <div style={{ padding: '20px', background: '#000', borderRadius: '4px' }}>
-                                <span style={{ color: '#fff', fontSize: '32px', fontWeight: '900', letterSpacing: '-2px' }}>AC</span>
-                            </div>
-                            <div>
-                                <h1 style={{ fontSize: '28px', fontWeight: '900', letterSpacing: '-1.5px', textTransform: 'uppercase', lineHeight: '0.9' }}>ALEXANDRE<br /><span style={{ opacity: 0.3 }}>CUENCA</span></h1>
-                            </div>
-                        </div>
-
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '5px' }}>
-                            <p style={{ fontSize: '9px', fontWeight: '900', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '4px', marginBottom: '15px' }}>EXPÉDITEUR</p>
-                            <p style={{ fontSize: '13px', fontWeight: '700', textTransform: 'uppercase' }}>{userPhone}</p>
-                            <p style={{ fontSize: '12px', fontWeight: '700', opacity: 0.6 }}>alexflex30@gmail.com</p>
-                            <p style={{ fontSize: '11px', fontWeight: '700', opacity: 0.6, marginTop: '5px' }}>411 RUE DE BOUILLARGUES<br />30000 NIMES</p>
-                        </div>
+                        <p style={{ fontSize: '13px', fontWeight: '800', marginBottom: '10px' }}>Facturé à</p>
+                        <p style={{ fontSize: '14px', fontWeight: '500', marginBottom: '2px' }}>{clientName || 'CLIENT'}</p>
+                        <p style={{ fontSize: '12px', color: '#333', whiteSpace: 'pre-line', lineHeight: '1.6' }}>{clientAddress}</p>
                     </div>
+                    <div style={{ textAlign: 'right', minWidth: '250px' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: 'min-content min-content', gap: '8px 20px', fontSize: '13px', justifyContent: 'end' }}>
+                            <p style={{ textAlign: 'left', whiteSpace: 'nowrap' }}>Facture N° :</p>
+                            <p style={{ fontWeight: '800' }}>{invoiceNumber.toString().padStart(3, '0')}</p>
 
-                    <div className="text-right">
-                        <h2 style={{ fontSize: '80px', fontWeight: '900', letterSpacing: '-5px', lineHeight: '0.8', margin: '0 0 40px 0', textTransform: 'uppercase' }}>FACTURE</h2>
+                            <p style={{ textAlign: 'left', whiteSpace: 'nowrap' }}>Date d'émission :</p>
+                            <p style={{ fontWeight: '800' }}>{new Date(date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
 
-                        <div style={{ display: 'inline-block', textAlign: 'left', borderLeft: '3px solid #000', paddingLeft: '20px' }}>
-                            <div style={{ marginBottom: '15px' }}>
-                                <p style={{ fontSize: '8px', fontWeight: '900', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '2px' }}>RÉFÉRENCE</p>
-                                <p style={{ fontSize: '14px', fontWeight: '900' }}>{formattedInvoiceNumber}</p>
-                            </div>
-                            <div>
-                                <p style={{ fontSize: '8px', fontWeight: '900', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '2px' }}>DATE D'ÉMISSION</p>
-                                <p style={{ fontSize: '14px', fontWeight: '900' }}>{new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
-                            </div>
+                            <p style={{ textAlign: 'left', whiteSpace: 'nowrap' }}>Date d'échéance :</p>
+                            <p style={{ fontWeight: '800' }}>{new Date(new Date(date).getTime() + 15 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Destination Grid */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '100px', marginBottom: '80px' }}>
-                    <div style={{ background: '#f8f8f8', padding: '40px', borderRadius: '12px' }}>
-                        <p style={{ fontSize: '8px', fontWeight: '900', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '4px', marginBottom: '20px' }}>DESTINATAIRE</p>
-                        <h3 style={{ fontSize: '20px', fontWeight: '900', textTransform: 'uppercase', marginBottom: '10px' }}>{clientName || 'CLIENT'}</h3>
-                        <p style={{ fontSize: '12px', fontWeight: '700', lineHeight: '1.6', color: '#444', whiteSpace: 'pre-line' }}>{clientAddress}</p>
-                        {clientEmail && <p style={{ fontSize: '11px', fontWeight: '900', marginTop: '15px', textDecoration: 'underline' }}>{clientEmail}</p>}
-                    </div>
-
-                    <div style={{ paddingTop: '40px' }}>
-                        <p style={{ fontSize: '8px', fontWeight: '900', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '4px', marginBottom: '20px' }}>MODALITÉS</p>
-                        <p style={{ fontSize: '12px', fontWeight: '700', lineHeight: '1.8' }}>
-                            <span style={{ color: '#a1a1aa' }}>Échéance :</span> 30 jours (Le {new Date(new Date(date).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR')})<br />
-                            <span style={{ color: '#a1a1aa' }}>Mode :</span> Virement Bancaire<br />
-                            <span style={{ color: '#a1a1aa' }}>Devise :</span> EUR (€)
-                        </p>
-                    </div>
-                </div>
-
-                {/* Items Table */}
-                <div style={{ marginBottom: '60px' }}>
-                    <div style={{ display: 'grid', gridTemplateColumns: '7fr 1fr 2fr 2fr', paddingBottom: '15px', borderBottom: '2px solid #000' }}>
-                        <p style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px' }}>DESCRIPTION DU SERVICE</p>
-                        <p style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px', textAlign: 'center' }}>QTÉ</p>
-                        <p style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px', textAlign: 'right' }}>PRIX U. HT</p>
-                        <p style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px', textAlign: 'right' }}>TOTAL HT</p>
+                {/* Table with Soft Blue Header */}
+                <div style={{ marginBottom: '40px' }}>
+                    <div style={{
+                        display: 'grid',
+                        gridTemplateColumns: '8fr 2fr 2fr 2fr',
+                        background: '#A0D8EF',
+                        padding: '10px 20px',
+                        borderBottom: '1px solid #ddd'
+                    }}>
+                        <p style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', color: '#000' }}>DESCRIPTION</p>
+                        <p style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', textAlign: 'center', color: '#000' }}>QUANTITÉ</p>
+                        <p style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', textAlign: 'center', color: '#000' }}>PRIX (€)</p>
+                        <p style={{ fontSize: '10px', fontWeight: '800', textTransform: 'uppercase', textAlign: 'right', color: '#000' }}>MONTANT (€)</p>
                     </div>
 
                     {lines.map((line) => (
-                        <div key={line.id} style={{ display: 'grid', gridTemplateColumns: '7fr 1fr 2fr 2fr', padding: '25px 0', borderBottom: '1px solid #eee', alignItems: 'center' }}>
-                            <p style={{ fontSize: '14px', fontWeight: '700', textTransform: 'uppercase' }}>{line.description}</p>
-                            <p style={{ fontSize: '13px', fontWeight: '900', textAlign: 'center', opacity: 0.4 }}>{line.quantity}</p>
-                            <p style={{ fontSize: '13px', fontWeight: '700', textAlign: 'right' }}>{line.unitPrice.toFixed(2).replace('.', ',')} €</p>
-                            <p style={{ fontSize: '14px', fontWeight: '900', textAlign: 'right' }}>{(line.quantity * line.unitPrice).toFixed(2).replace('.', ',')} €</p>
+                        <div key={line.id} style={{
+                            display: 'grid',
+                            gridTemplateColumns: '8fr 2fr 2fr 2fr',
+                            padding: '14px 20px',
+                            borderBottom: '1px solid #eee',
+                            alignItems: 'center'
+                        }}>
+                            <p style={{ fontSize: '13px', fontWeight: '500' }}>{line.description}</p>
+                            <p style={{ fontSize: '13px', fontWeight: '500', textAlign: 'center' }}>{line.quantity}</p>
+                            <p style={{ fontSize: '13px', fontWeight: '500', textAlign: 'center' }}>{line.unitPrice.toFixed(2).replace('.', ',')}</p>
+                            <p style={{ fontSize: '13px', fontWeight: '800', textAlign: 'right' }}>{(line.quantity * line.unitPrice).toFixed(2).replace('.', ',')}</p>
                         </div>
                     ))}
                 </div>
 
-                {/* Total & Summary Area */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div style={{ width: '350px' }}>
-                        <p style={{ fontSize: '9px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '20px', color: '#a1a1aa' }}>RÈGLEMENT & BANQUE</p>
-                        <div style={{ background: '#000', color: '#fff', padding: '30px', borderRadius: '12px' }}>
-                            <p style={{ fontSize: '14px', fontWeight: '900', marginBottom: '15px', color: '#fff' }}>REVOLUT STUDIO</p>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <p style={{ fontSize: '10px', opacity: 0.5, textTransform: 'uppercase' }}>IBAN (ESPAGNE)</p>
-                                <p style={{ fontSize: '13px', fontWeight: '700', color: '#fff', letterSpacing: '1px', marginBottom: '10px' }}>BE59 9675 0891 6526</p>
-                                <p style={{ fontSize: '10px', opacity: 0.5, textTransform: 'uppercase' }}>CODE BIC / SWIFT</p>
-                                <p style={{ fontSize: '13px', fontWeight: '700', color: '#fff' }}>TRWIBEB1XXX</p>
-                            </div>
+                {/* Huge Amount Footer */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginBottom: '100px' }}>
+                    <div style={{ width: '350px', borderTop: '2px solid #333', paddingTop: '15px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
+                            <span style={{ fontSize: '12px', fontWeight: '800' }}>MONTANT TOTAL (EUR) :</span>
+                            <span style={{ fontSize: '12px', fontWeight: '500' }}>{total.toFixed(2).replace('.', ',')} €</span>
                         </div>
-                    </div>
-
-                    <div style={{ width: '280px', textAlign: 'right' }}>
-                        <div style={{ padding: '0 10px' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                                <span style={{ fontSize: '10px', fontWeight: '900', color: '#a1a1aa', textTransform: 'uppercase' }}>TOTAL HT</span>
-                                <span style={{ fontSize: '14px', fontWeight: '700' }}>{total.toFixed(2).replace('.', ',')} €</span>
-                            </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '25px', paddingBottom: '25px', borderBottom: '1px solid #eee' }}>
-                                <span style={{ fontSize: '10px', fontWeight: '900', color: '#a1a1aa', textTransform: 'uppercase' }}>TAXES (TVA 0%)</span>
-                                <span style={{ fontSize: '14px', fontWeight: '700' }}>0,00 €</span>
-                            </div>
-
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
-                                <span style={{ fontSize: '12px', fontWeight: '900', textTransform: 'uppercase', letterSpacing: '2px' }}>TOTAL NET</span>
-                                <span style={{ fontSize: '42px', fontWeight: '900', letterSpacing: '-2px', textTransform: 'uppercase', fontStyle: 'italic', color: '#000' }}>{total.toFixed(2).replace('.', ',')}€</span>
-                            </div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '10px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
+                            <span style={{ fontSize: '26px', fontWeight: '800', whiteSpace: 'nowrap', letterSpacing: '-1.5px', color: '#000' }}>MONTANT À PAYER (EUR)</span>
+                            <span style={{ fontSize: '42px', fontWeight: '800', marginLeft: '15px', color: '#000', letterSpacing: '-1px' }}>{total.toFixed(2).replace('.', ',')} €</span>
                         </div>
                     </div>
                 </div>
 
-                {/* Footer Legal */}
-                <div style={{ position: 'absolute', bottom: '50px', left: '50px', right: '50px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '2px solid #000', paddingTop: '30px' }}>
-                        <div style={{ maxWidth: '450px' }}>
-                            <p style={{ fontSize: '8px', fontWeight: '900', color: '#a1a1aa', textTransform: 'uppercase', letterSpacing: '2px', marginBottom: '5px' }}>MENTIONS LÉGALES</p>
-                            <p style={{ fontSize: '8px', fontWeight: '700', color: '#777', lineHeight: '1.6' }}>
-                                TVA non applicable, article 293 B du Code général des impôts (CGI). En cas de retard de paiement, une indemnité forfaitaire de 40€ pour frais de recouvrement sera appliquée. Pénalités de retard : 10% par mois de retard. SIRET : 805131828 00010.
-                            </p>
-                        </div>
-                        <div className="text-right">
-                            <p style={{ fontSize: '9px', fontWeight: '900', letterSpacing: '4px' }}>MERCI POUR VOTRE CONFIANCE</p>
-                        </div>
+                {/* Signature/Bank Footer Info */}
+                <div style={{ marginTop: 'auto' }}>
+                    <p style={{ fontSize: '12px', fontWeight: '800', color: '#A0D8EF', marginBottom: '12px', textTransform: 'uppercase' }}>INFORMATIONS DE PAIEMENT :</p>
+                    <div style={{ borderTop: '1px solid #eee', paddingTop: '15px' }}>
+                        <p style={{ fontSize: '12px', fontWeight: '600', color: '#333', lineHeight: '1.6' }}>
+                            Titulaire du compte : Cuenca Alexandre &nbsp;&nbsp;&nbsp;&nbsp;
+                            IBAN : <span style={{ color: '#4A90E2', fontWeight: '700' }}>BE59 9675 0891 6526</span> &nbsp;&nbsp;&nbsp;&nbsp;
+                            BIC/SWIFT : <span style={{ color: '#4A90E2', fontWeight: '700' }}>TRWIBEB1XXX</span>
+                        </p>
                     </div>
                 </div>
             </div>
