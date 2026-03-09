@@ -62,6 +62,7 @@ interface ShazamTrack {
     title: string;
     time: string;
     image: string;
+    spotify?: string;
 }
 
 export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => {
@@ -1034,7 +1035,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         showNotification('Connexion réussie !', 'success');
     };
 
-        const handleShazamAction = async () => {
+            const handleShazamAction = async () => {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             showNotification("Microphone non supporté sur ce navigateur", "error");
             return;
@@ -1044,7 +1045,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             const mediaRecorder = new MediaRecorder(stream);
-            const audioChunks = [];
+            const audioChunks: Blob[] = [];
 
             mediaRecorder.ondataavailable = (event) => {
                 audioChunks.push(event.data);
@@ -1054,7 +1055,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
                 stream.getTracks().forEach(track => track.stop());
 
-                setShazamStatus('searching');
+                setShazamStatus('processing');
                 try {
                     const formData = new FormData();
                     formData.append('audio', audioBlob);
@@ -1067,7 +1068,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     if (res.ok) {
                         const data = await res.json();
                         if (data.status === 'success' && data.metadata) {
-                            const newTrack = {
+                            const newTrack: ShazamTrack = {
                                 id: Date.now().toString(),
                                 title: data.metadata.title,
                                 artist: data.metadata.artist,
