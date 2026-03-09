@@ -5,7 +5,7 @@ import {
     Sparkles, Trophy, Plus, Check, AlertCircle,
     Music, Shield, Palette, Megaphone,
     RefreshCw, X, Download, Heart,
-    Flame
+    Flame, Share2, Instagram, Facebook, Twitter, Search, Filter
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
@@ -270,6 +270,8 @@ export function Community() {
     const [ticketPrice, setTicketPrice] = useState(150);
     const [selectedSponsors, setSelectedSponsors] = useState<string[]>([]);
     const [randomEvent, setRandomEvent] = useState<typeof RANDOM_EVENTS[0] | null>(null);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [selectedGenreFilter, setSelectedGenreFilter] = useState('ALL');
 
     // Stats
     const sponsorsBonus = useMemo(() => {
@@ -390,6 +392,31 @@ export function Community() {
         }
 
         setTimeout(() => setBookingStatus(null), 4000);
+    };
+
+    const handleShare = (platform: 'twitter' | 'facebook' | 'instagram' | 'tiktok' | 'native') => {
+        const shareText = `Je viens de créer mon festival "${festivalName}" sur Dropsiders ! Bilan : ${attendance.toLocaleString()} fans et un profit de ${profit.toLocaleString()}€ ! 🚀🕺 #Dropsiders #Tycoon #Festival`;
+        const shareUrl = "https://dropsiders.com/communaute"; // Final URL of the site
+
+        if (platform === 'native' && navigator.share) {
+            navigator.share({
+                title: festivalName,
+                text: shareText,
+                url: shareUrl
+            }).catch(() => { });
+            return;
+        }
+
+        const links = {
+            twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+            facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+            instagram: `https://www.instagram.com/`, // Redirect to IG
+            tiktok: `https://www.tiktok.com/` // Redirect to TikTok
+        };
+
+        if (platform !== 'native') {
+            window.open(links[platform], '_blank');
+        }
     };
 
     const handleLike = (id: string) => {
@@ -945,101 +972,169 @@ export function Community() {
 
                                     {/* Main: DJ List */}
                                     <div className="lg:col-span-8 flex flex-col min-h-[800px] relative">
-                                        {/* AI Booking Notification Overlay */}
-                                        <AnimatePresence>
-                                            {bookingStatus && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                                    animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                                    className="absolute top-4 left-4 right-4 z-50 p-6 rounded-3xl backdrop-blur-3xl border shadow-2xl overflow-hidden"
-                                                    style={{
-                                                        backgroundColor: 'rgba(5, 5, 5, 0.9)',
-                                                        borderColor: bookingStatus.status === 'PENDING' ? 'rgba(251, 191, 36, 0.5)' :
-                                                            bookingStatus.status === 'ACCEPTED' ? 'rgba(16, 185, 129, 0.5)' :
-                                                                'rgba(239, 68, 68, 0.5)'
-                                                    }}
-                                                >
-                                                    <div className="flex items-center gap-4">
+                                        <div className="sticky top-0 z-40 bg-black/80 backdrop-blur-md pb-6 pt-2">
+                                            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-8">
+                                                <div>
+                                                    <h3 className="text-3xl font-black italic tracking-tighter uppercase mb-1">Booking Gallery</h3>
+                                                    <p className="text-[10px] font-bold text-white/40 uppercase tracking-widest">{selectedDjs.length} Artistes sur la Line-up</p>
+                                                </div>
+                                                <div className="flex flex-wrap items-center gap-4 w-full md:w-auto">
+                                                    <div className="relative flex-1 md:w-64">
+                                                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Chercher un artiste..."
+                                                            value={searchQuery}
+                                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                                            className="w-full pl-12 pr-6 py-3 bg-white/5 border border-white/10 rounded-full text-xs font-bold text-white placeholder:text-white/20 focus:outline-none focus:border-amber-400/50 transition-all"
+                                                        />
+                                                    </div>
+                                                    <div className="relative">
+                                                        <Filter className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                                                        <select
+                                                            value={selectedGenreFilter}
+                                                            onChange={(e) => setSelectedGenreFilter(e.target.value)}
+                                                            className="pl-12 pr-8 py-3 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-white appearance-none focus:outline-none focus:border-amber-400/50 transition-all cursor-pointer"
+                                                        >
+                                                            <option value="ALL">Tous les Styles</option>
+                                                            <option value="EDM">EDM</option>
+                                                            <option value="TECHNO">Techno</option>
+                                                            <option value="HOUSE">House</option>
+                                                            <option value="TECH HOUSE">Tech House</option>
+                                                            <option value="HARDSTYLE">Hardstyle</option>
+                                                            <option value="TRANCE">Trance</option>
+                                                            <option value="DRUM & BASS">D&B</option>
+                                                            <option value="TRAP">Trap</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* AI Booking Notification Placeholder / Status */}
+                                            <AnimatePresence mode="wait">
+                                                {bookingStatus ? (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, y: -10 }}
+                                                        animate={{ opacity: 1, y: 0 }}
+                                                        exit={{ opacity: 0, y: -10 }}
+                                                        className={twMerge(
+                                                            "p-4 rounded-2xl border flex items-center gap-4 shadow-lg overflow-hidden relative",
+                                                            bookingStatus.status === 'PENDING' ? "bg-amber-400/10 border-amber-400/20" :
+                                                                bookingStatus.status === 'ACCEPTED' ? "bg-emerald-400/10 border-emerald-400/20" :
+                                                                    "bg-red-400/10 border-red-400/20"
+                                                        )}
+                                                    >
                                                         <div className={twMerge(
-                                                            "w-12 h-12 rounded-full flex items-center justify-center relative",
+                                                            "w-10 h-10 rounded-full flex items-center justify-center",
                                                             bookingStatus.status === 'PENDING' ? "bg-amber-400/20 text-amber-400" :
                                                                 bookingStatus.status === 'ACCEPTED' ? "bg-emerald-400/20 text-emerald-400" :
                                                                     "bg-red-400/20 text-red-400"
                                                         )}>
-                                                            {bookingStatus.status === 'PENDING' && <RefreshCw className="w-6 h-6 animate-spin text-amber-400" />}
-                                                            {bookingStatus.status === 'ACCEPTED' && <Check className="w-6 h-6" />}
-                                                            {bookingStatus.status === 'REJECTED' && <X className="w-6 h-6" />}
+                                                            {bookingStatus.status === 'PENDING' && <RefreshCw className="w-5 h-5 animate-spin" />}
+                                                            {bookingStatus.status === 'ACCEPTED' && <Check className="w-5 h-5" />}
+                                                            {bookingStatus.status === 'REJECTED' && <X className="w-5 h-5" />}
                                                         </div>
                                                         <div className="flex-1">
-                                                            <h5 className="text-[10px] font-black uppercase tracking-widest opacity-40 mb-1">Agent Booking IA</h5>
-                                                            <p className="text-sm font-black uppercase italic tracking-tighter leading-tight text-white">{bookingStatus.message}</p>
+                                                            <span className="text-[8px] font-black uppercase tracking-widest opacity-40 block mb-0.5">Négociation en cours</span>
+                                                            <p className="text-xs font-bold text-white leading-tight">{bookingStatus.message}</p>
                                                         </div>
+                                                        {bookingStatus.status === 'PENDING' && (
+                                                            <motion.div
+                                                                className="absolute bottom-0 left-0 h-0.5 bg-amber-400"
+                                                                initial={{ width: 0 }}
+                                                                animate={{ width: "100%" }}
+                                                                transition={{ duration: 1.5, ease: "linear" }}
+                                                            />
+                                                        )}
+                                                    </motion.div>
+                                                ) : (
+                                                    <div className="p-4 rounded-2xl bg-white/[0.02] border border-white/5 flex items-center gap-4 text-white/20 italic">
+                                                        <Sparkles className="w-5 h-5" />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest">Sélectionne un artiste pour lancer les négociations</span>
                                                     </div>
-                                                    {bookingStatus.status === 'PENDING' && (
-                                                        <motion.div
-                                                            className="absolute bottom-0 left-0 h-1 bg-amber-400"
-                                                            initial={{ width: 0 }}
-                                                            animate={{ width: '100%' }}
-                                                            transition={{ duration: 1.5, ease: "linear" }}
-                                                        />
-                                                    )}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-
-                                        <div className="flex items-center justify-between mb-8">
-                                            <h3 className="text-3xl font-black italic tracking-tighter uppercase">Booking Gallery</h3>
-                                            <div className="flex items-center gap-3 px-6 py-2 bg-white/5 border border-white/10 rounded-full">
-                                                <Users className="w-4 h-4 text-amber-400" />
-                                                <span className="text-[10px] font-black uppercase tracking-widest">{selectedDjs.length} Artistes Bookés</span>
-                                            </div>
+                                                )}
+                                            </AnimatePresence>
                                         </div>
 
-                                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-                                            {DJ_POOL.map((dj, i) => (
-                                                <motion.button
-                                                    key={dj.id}
-                                                    initial={{ opacity: 0, y: 20 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    transition={{ delay: i * 0.05 }}
-                                                    onClick={() => toggleDj(dj)}
-                                                    className={`relative group p-8 rounded-[2rem] border transition-all duration-500 text-left overflow-hidden ${selectedDjs.find(d => d.id === dj.id) ? 'bg-amber-400 border-amber-400 text-black shadow-[0_0_30px_rgba(251,191,36,0.3)]' : 'bg-white/5 border-white/10 text-white/40 hover:border-amber-400/50 hover:bg-white/5 shadow-2xl'} `}
-                                                >
-                                                    <div className="flex justify-between items-start mb-10">
-                                                        <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border transition-colors ${selectedDjs.find(d => d.id === dj.id) ? 'bg-black/10 border-black/10' : 'bg-white/5 border-white/10'} `}>
-                                                            <Music className={`w-6 h-6 ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-amber-400'} `} />
-                                                        </div>
-                                                        {selectedDjs.find(d => d.id === dj.id) && <motion.div layoutId={`check-${dj.id}`}><Check className="w-6 h-6 text-black" /></motion.div>}
-                                                    </div>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 pt-4">
+                                            {DJ_POOL
+                                                .filter(dj => {
+                                                    const matchesSearch = dj.name.toLowerCase().includes(searchQuery.toLowerCase());
+                                                    const matchesGenre = selectedGenreFilter === 'ALL' || dj.genre === selectedGenreFilter || (selectedGenreFilter === 'TECHNO' && dj.genre === 'BERLIN TECHNO');
+                                                    return matchesSearch && matchesGenre;
+                                                })
+                                                .map((dj, i) => {
+                                                    const isSelected = selectedDjs.find(d => d.id === dj.id);
+                                                    const canAfford = remainingBudget >= (dj.price * (dj.popularity > 95 ? 1.15 : 1));
 
-                                                    <h4 className={`text-xl font-black uppercase italic tracking-tighter mb-1 transition-colors ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-white'} `}>
-                                                        {dj.name}
-                                                    </h4>
-                                                    <p className={`text-[10px] font-bold uppercase tracking-widest mb-6 transition-colors ${selectedDjs.find(d => d.id === dj.id) ? 'text-black/60' : 'text-white/30'} `}>
-                                                        {dj.genre}
-                                                    </p>
-
-                                                    <div className="flex items-center justify-between">
-                                                        <span className={`text-lg font-mono font-black transition-colors ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-amber-400'} `}>
-                                                            {dj.price.toLocaleString()}€
-                                                        </span>
-                                                        <div className="flex items-center gap-1">
-                                                            <Trophy className={`w-3 h-3 ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-white/20'} `} />
-                                                            <span className={`text-[10px] font-black ${selectedDjs.find(d => d.id === dj.id) ? 'text-black' : 'text-white/20'} `}>{dj.popularity}</span>
-                                                        </div>
-                                                    </div>
-
-                                                    {!selectedDjs.find(d => d.id === dj.id) && dj.price > remainingBudget && (
-                                                        <div className="absolute inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center p-6 text-center z-20">
-                                                            <div className="flex flex-col items-center gap-2">
-                                                                <AlertCircle className="w-8 h-8 text-red-500" />
-                                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">Budget Insuffisant</span>
+                                                    return (
+                                                        <motion.button
+                                                            key={dj.id}
+                                                            initial={{ opacity: 0, scale: 0.95 }}
+                                                            animate={{ opacity: 1, scale: 1 }}
+                                                            transition={{ delay: Math.min(i * 0.02, 0.5) }}
+                                                            onClick={() => toggleDj(dj)}
+                                                            disabled={!isSelected && !canAfford}
+                                                            className={twMerge(
+                                                                "relative group p-6 rounded-[2rem] border transition-all duration-300 text-left overflow-hidden flex flex-col",
+                                                                isSelected
+                                                                    ? "bg-amber-400 border-amber-400 text-black shadow-[0_0_30px_rgba(251,191,36,0.2)]"
+                                                                    : !canAfford && !isSelected
+                                                                        ? "bg-white/5 border-white/5 text-white/10 grayscale cursor-not-allowed"
+                                                                        : "bg-white/5 border-white/10 text-white/40 hover:border-amber-400/50 hover:bg-white/10"
+                                                            )}
+                                                        >
+                                                            <div className="flex justify-between items-start mb-6">
+                                                                <div className={twMerge(
+                                                                    "w-10 h-10 rounded-xl flex items-center justify-center border transition-colors",
+                                                                    isSelected ? "bg-black/10 border-black/10" : "bg-white/5 border-white/10"
+                                                                )}>
+                                                                    <Music className={twMerge("w-5 h-5", isSelected ? "text-black" : "text-amber-400")} />
+                                                                </div>
+                                                                {isSelected && <Check className="w-5 h-5 text-black" />}
+                                                                {!isSelected && dj.popularity > 95 && (
+                                                                    <div className="px-2 py-0.5 bg-neon-red/10 border border-neon-red/20 rounded-md">
+                                                                        <span className="text-[7px] font-black text-neon-red uppercase tracking-widest">Iconic</span>
+                                                                    </div>
+                                                                )}
                                                             </div>
-                                                        </div>
-                                                    )}
-                                                </motion.button>
-                                            ))}
+
+                                                            <div className="flex-1">
+                                                                <h4 className={twMerge(
+                                                                    "text-lg font-black uppercase italic tracking-tighter mb-0.5 leading-tight",
+                                                                    isSelected ? "text-black" : "text-white"
+                                                                )}>
+                                                                    {dj.name}
+                                                                </h4>
+                                                                <p className={twMerge(
+                                                                    "text-[8px] font-bold uppercase tracking-widest mb-4 opacity-60",
+                                                                    isSelected ? "text-black" : "text-white/40"
+                                                                )}>
+                                                                    {dj.genre}
+                                                                </p>
+                                                            </div>
+
+                                                            <div className="flex items-center justify-between pt-4 border-t border-black/5 mt-auto">
+                                                                <span className={twMerge(
+                                                                    "text-sm font-mono font-black",
+                                                                    isSelected ? "text-black" : "text-amber-400"
+                                                                )}>
+                                                                    {dj.price.toLocaleString()}€
+                                                                </span>
+                                                                <div className="flex items-center gap-1.5 opacity-40">
+                                                                    <Trophy className="w-2.5 h-2.5" />
+                                                                    <span className="text-[9px] font-black tracking-widest">{dj.popularity}</span>
+                                                                </div>
+                                                            </div>
+
+                                                            {!isSelected && !canAfford && (
+                                                                <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] flex items-center justify-center pointer-events-none">
+                                                                    <span className="text-[7px] font-black text-white px-3 py-1 bg-red-500 rounded-full uppercase tracking-[0.2em] shadow-lg">Hors-Budget</span>
+                                                                </div>
+                                                            )}
+                                                        </motion.button>
+                                                    );
+                                                })}
                                         </div>
                                     </div>
                                 </div>
@@ -1156,11 +1251,38 @@ export function Community() {
                                             </div>
 
                                             <div className="flex flex-col gap-4 pt-6">
+                                                <div className="grid grid-cols-2 gap-4 mb-4">
+                                                    <button
+                                                        onClick={() => handleShare('native')}
+                                                        className="flex items-center justify-center gap-3 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                                    >
+                                                        <Share2 className="w-4 h-4" /> Partager
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleShare('twitter')}
+                                                        className="flex items-center justify-center gap-3 py-4 bg-[#1DA1F2]/10 hover:bg-[#1DA1F2]/20 border border-[#1DA1F2]/20 text-[#1DA1F2] rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
+                                                    >
+                                                        <Twitter className="w-4 h-4" /> X / Twitter
+                                                    </button>
+                                                </div>
+
+                                                <div className="flex justify-center gap-6 mb-8 px-4 py-2 bg-white/5 rounded-2xl border border-white/10">
+                                                    <button onClick={() => handleShare('instagram')} className="p-2 text-white/40 hover:text-pink-500 transition-colors">
+                                                        <Instagram className="w-5 h-5" />
+                                                    </button>
+                                                    <button onClick={() => handleShare('tiktok')} className="p-2 text-white/40 hover:text-white transition-colors">
+                                                        <Music className="w-5 h-5" />
+                                                    </button>
+                                                    <button onClick={() => handleShare('facebook')} className="p-2 text-white/40 hover:text-blue-500 transition-colors">
+                                                        <Facebook className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+
                                                 <button
                                                     onClick={() => window.print()}
                                                     className="w-full py-6 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-neon-red hover:text-white transition-all duration-500 flex items-center justify-center gap-4"
                                                 >
-                                                    <Download className="w-4 h-4" /> Exporter le Dossier Final
+                                                    <Download className="w-4 h-4" /> Sauvegarder l'Affiche
                                                 </button>
                                                 <button
                                                     onClick={resetGame}
