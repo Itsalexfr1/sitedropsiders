@@ -6258,6 +6258,7 @@ export default {
                 ]
             };
             await env.CHAT_KV.put('musique_charts', JSON.stringify(defaultCharts));
+            await env.CHAT_KV.put('last_charts_update', Date.now().toString());
             return new Response(JSON.stringify(defaultCharts), { status: 200, headers });
         }
 
