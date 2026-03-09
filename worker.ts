@@ -451,6 +451,58 @@ export default {
             }), { status: 500, headers });
         }
 
+        // --- API: UPLOAD (R2) ---
+        if (path === '/api/upload' && request.method === 'POST') {
+            try {
+                const body = await request.json();
+                const { filename, content, type, path: subFolder } = body;
+                if (!content || !filename) return new Response(JSON.stringify({ error: 'Données manquantes' }), { status: 400, headers });
+
+                // Content is base64
+                const base64Data = content.split(',')[1] || content;
+                const bytes = Buffer.from(base64Data, 'base64');
+
+                // Generate Unique Hash for deduplication
+                const hashBuffer = await crypto.subtle.digest('SHA-256', bytes);
+                const hashArray = Array.from(new Uint8Array(hashBuffer));
+                const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
+
+                // Preserve extension and clean filename
+                const extension = filename.split('.').pop() || (type && type.startsWith('audio/') ? 'mp3' : 'jpg');
+                const cleanName = filename.split('.')[0].replace(/[^a-zA-Z0-9]/g, '_').substring(0, 30);
+
+                // Final Key in R2
+                const targetFolder = subFolder || (type && type.startsWith('audio/') ? 'mp3' : 'uploads');
+                const key = `${targetFolder}/${hashHex}-${cleanName}.${extension}`;
+
+                await env.R2.put(key, bytes, {
+                    httpMetadata: { contentType: type || 'application/octet-stream' }
+                });
+
+                return new Response(JSON.stringify({
+                    success: true,
+                    url: `/uploads/${key}`
+                }), { headers });
+            } catch (e) {
+                console.error('Upload error:', e);
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        // --- SERVE UPLOADS FROM R2 ---
+        if (path.startsWith('/uploads/') && request.method === 'GET') {
+            const key = path.replace('/uploads/', '');
+            const object = await env.R2.get(key);
+            if (!object) return new Response('Not Found', { status: 404 });
+
+            const assetHeaders = new Headers();
+            object.writeHttpMetadata(assetHeaders);
+            assetHeaders.set('Access-Control-Allow-Origin', '*');
+            assetHeaders.set('Cache-Control', 'public, max-age=31536000'); // 1 year cache
+
+            return new Response(object.body, { headers: assetHeaders });
+        }
+
         const extractMetadata = (content) => {
             if (!content) return { images: [], youtubeId: '' };
             const images = [];
@@ -545,7 +597,8 @@ export default {
             path === '/api/covoit/delete' ||
             path === '/api/avis/moderate' ||
             path === '/api/facture/send' ||
-            path.startsWith('/api/invoices')
+            path.startsWith('/api/invoices') ||
+            path === '/api/upload'
         );
 
         // --- API: PUSH NOTIFICATIONS ---
@@ -1490,114 +1543,6 @@ export default {
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }
 
-        if (path.startsWith('/uploads/') && request.method === 'GET') {
-            const key = path.replace('/uploads/', '');
-            if (env.R2) {
-                const object = await env.R2.get(key);
-                if (object === null) return new Response('Not Found', { status: 404 });
-                const headers = new Headers();
-                object.writeHttpMetadata(headers);
-                headers.set('etag', object.httpEtag);
-                headers.set('Access-Control-Allow-Origin', '*');
-                return new Response(object.body, { headers });
-            }
-        }
-
-        if (path === '/api/upload' && request.method === 'POST') {
-            const { filename, content, type } = await request.json();
-            if (!filename || !content) return new Response(JSON.stringify({ error: 'Data missing' }), { status: 400, headers });
-
-            // --- OPTION 0: CLOUDFLARE R2 (New Primary) ---
-            if (env.R2) {
-                try {
-                    // Convert base64 to ArrayBuffer
-                    const base64Str = content.split(',')[1] || content;
-                    const byteCharacters = atob(base64Str);
-                    const byteNumbers = new Array(byteCharacters.length);
-                    for (let i = 0; i < byteCharacters.length; i++) {
-                        byteNumbers[i] = byteCharacters.charCodeAt(i);
-                    }
-                    const byteArray = new Uint8Array(byteNumbers);
-
-                    // Generate Unique Hash based on content (Deduplication)
-                    const hashBuffer = await crypto.subtle.digest('SHA-256', byteArray);
-                    const hashArray = Array.from(new Uint8Array(hashBuffer));
-                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-                    // Keep original extension
-                    const extension = filename.split('.').pop() || 'jpg';
-                    // Store audio files in mp3/ subfolder for organization
-                    const isAudio = type && type.startsWith('audio/');
-                    const key = isAudio ? `mp3/${hashHex}.${extension}` : `${hashHex}.${extension}`;
-
-                    await env.R2.put(key, byteArray, {
-                        httpMetadata: { contentType: type || 'image/jpeg' }
-                    });
-
-                    const uploadUrl = `https://${url.host}/uploads/${key}`;
-                    return new Response(JSON.stringify({ success: true, url: uploadUrl }), { status: 200, headers });
-                } catch (e) {
-                    console.error('R2 Upload Error:', e);
-                }
-            }
-
-            const IMGBB_KEY = env.IMGBB_API_KEY;
-
-            // --- OPTION 1: IMGBB (Primary Alternative) ---
-            if (IMGBB_KEY) {
-                try {
-                    const imgbbUrl = `https://api.imgbb.com/1/upload?key=${IMGBB_KEY}`;
-                    const formData = new FormData();
-
-                    // ImgBB accepts base64 content directly or as a file
-                    const base64Data = content.split(',')[1] || content;
-                    formData.append('image', base64Data);
-
-                    const response = await fetch(imgbbUrl, {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.success) {
-                            return new Response(JSON.stringify({ success: true, url: data.data.url }), { status: 200, headers });
-                        }
-                    } else {
-                        const err = await response.text();
-                        console.error('ImgBB Upload Error:', err);
-                    }
-                } catch (e) {
-                    console.error('ImgBB error, falling back...', e);
-                }
-            }
-
-            // --- OPTION 2: GITHUB (Fallback) ---
-            const UPLOAD_PATH = `public/uploads/${Date.now()}-${filename}`;
-            const putUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${UPLOAD_PATH}`;
-
-            const response = await fetch(putUrl, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `Bearer ${TOKEN}`,
-                    'User-Agent': 'Cloudflare-Worker',
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    message: `Upload image: ${filename}`,
-                    content: content.split(',')[1] || content // Support base64 with or without prefix
-                })
-            });
-
-            if (response.ok) {
-                const url = `https://cdn.jsdelivr.net/gh/${OWNER}/${REPO}@main/${UPLOAD_PATH}`;
-                return new Response(JSON.stringify({ success: true, url }), { status: 200, headers });
-            } else {
-                const err = await response.text();
-                return new Response(JSON.stringify({ success: false, error: err }), { status: 500, headers });
-            }
-        }
 
         // --- API: SUBSCRIBE ---
         if (path === '/api/subscribe' && request.method === 'POST') {

@@ -12,6 +12,9 @@ import {
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
 import { FlagIcon } from '../components/ui/FlagIcon';
+import { getAuthHeaders } from '../utils/auth';
+import { uploadFile } from '../utils/uploadService';
+import { translateText } from '../utils/translate';
 
 interface LineupItem {
     id: string;
@@ -506,7 +509,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     // Admin Form States
     const [newLot, setNewLot] = useState({ name: '', price: '', stock: '' });
     const [newCmd, setNewCmd] = useState({ command: '', response: '' });
-    const [lineupItems, setLineupItems] = useState<LineupItem[]>(() => {
+    const [lineupItems, setLineupItems] = useState<LineupItem>(() => {
         try {
             return JSON.parse(settings.lineup || '[]');
         } catch (e) { return []; }
@@ -1035,7 +1038,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         showNotification('Connexion réussie !', 'success');
     };
 
-            const handleShazamAction = async () => {
+    const handleShazamAction = async () => {
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             showNotification("Microphone non supporté sur ce navigateur", "error");
             return;
@@ -1077,13 +1080,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 spotify: data.metadata.spotify
                             };
                             setShazamHistory(prev => [newTrack, ...prev]);
-                            
+
                             // Save to global history if possible
                             fetch('/api/shazam/history', {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify({ ...newTrack, user: localStorage.getItem('chat_pseudo') || 'Anonyme' })
-                            }).catch(() => {});
+                            }).catch(() => { });
 
                             setShazamStatus('found');
                             const currentShazamCount = parseInt(localStorage.getItem('shazam_count') || '0');
@@ -1238,27 +1241,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         try {
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
-                const base64 = await new Promise<string>((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onload = () => resolve(reader.result as string);
-                    reader.onerror = reject;
-                    reader.readAsDataURL(file);
-                });
+                // 1. Upload the file securely using the shared service
+                const uploadedUrl = await uploadFile(file, 'quiz');
+                if (!uploadedUrl) throw new Error("L'upload a échoué");
 
-                const uploadRes = await fetch('/api/upload', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        filename: file.name,
-                        content: base64,
-                        type: file.type
-                    })
-                });
-                const uploadData = await uploadRes.json();
-                if (!uploadData.success) throw new Error("Upload failed");
 
-                
-                
+
+
                 // 🔍 Identification automatique du morceau
                 let identifiedTitle = null;
                 try {
@@ -1276,9 +1265,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     console.error("ID failed", e);
                 }
 
+
                 // Get cleaned title from filename as fallback
                 const correctTitle = identifiedTitle || cleanMusicTitle(file.name);
-
 
                 // Get 3 random distractors from the pool (make sure they aren't the same as correct)
                 const distractors = musicTitlesPool
@@ -1292,14 +1281,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     options: [correctTitle, ...distractors].sort(() => 0.5 - Math.random()),
                     correctAnswer: correctTitle,
                     category: 'Blind Test',
-                    audioUrl: uploadData.url,
+                    audioUrl: uploadedUrl,
                     author: 'Dropsiders',
                     approved: true
                 };
 
                 await fetch('/api/quiz/submit', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getAuthHeaders(),
                     body: JSON.stringify(quizData)
                 });
             }
