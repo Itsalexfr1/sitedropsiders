@@ -49,8 +49,9 @@
     "auddToken": "0707d622c51645acc2e4fa26ed64538d",
     "dropsAmount": 125,
     "dropsInterval": 10,
-    "sponsorText": "",
-    "sponsorLink": ""
+    "sponsorText": "LIVE RENDU POSSIBLE GRÂCE À NOS PARTENAIRES 🤝",
+    "sponsorLink": "https://dropsiders.fr",
+    "showSponsorBanner": false
   },
   "socials": {
     "instagram": "dropsiders.eu",
