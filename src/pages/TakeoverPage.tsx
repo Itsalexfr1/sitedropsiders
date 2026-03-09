@@ -229,6 +229,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [isPacmanActive, setIsPacmanActive] = useState(false);
     const [showHeistOverlay, setShowHeistOverlay] = useState(false);
     const [activeSlots, setActiveSlots] = useState<{ id: string, participants: string[], timeLeft: number } | null>(null);
+    const [takeoverAlert, setTakeoverAlert] = useState<{ text: string } | null>(null);
+    const [userWarnings, setUserWarnings] = useState<{ [pseudo: string]: number }>({});
+    const [showUserLogs, setShowUserLogs] = useState<string | null>(null);
 
     // 🎁 RECOMPENSE QUOTIDIENNE (Paliers)
     useEffect(() => {
@@ -713,6 +716,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         } else if (cmd.startsWith('REACTION:')) {
                             const [msgId, emoji] = cmd.replace('REACTION:', '').split(':');
                             setChatMessages(prev => prev.map(m => m.id === msgId ? { ...m, reactions: { ...(m.reactions || {}), [emoji]: (m.reactions?.[emoji] || 0) + 1 } } : m));
+                        } else if (cmd.startsWith('PURGE:')) {
+                            const target = cmd.replace('PURGE:', '');
+                            setChatMessages(prev => prev.filter(m => m.pseudo !== target));
+                        } else if (cmd.startsWith('TAKEOVER_ALERT:')) {
+                            const text = cmd.replace('TAKEOVER_ALERT:', '');
+                            setTakeoverAlert({ text });
+                            setTimeout(() => setTakeoverAlert(null), 5000);
                         } else if (cmd.startsWith('JACKPOT_SPAWN')) {
                             setActiveSlots({ id: Math.random().toString(), participants: [], timeLeft: 60 });
                         } else if (cmd.startsWith('JACKPOT_JOIN:')) {
@@ -992,9 +1002,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
         // 🛡️ Auto-Mod Intelligence
         if (!isMod) {
-            const badWords = ['pd', 'fdp', 'salope', 'connard', 'pute'];
+            const badWords = ['pd', 'fdp', 'salope', 'connard', 'pute', 'enculé', 'merde', 'tg', 'ta gueule', 'hitler', 'nazi'];
             if (badWords.some(w => messageText.toLowerCase().includes(w))) {
-                showNotification("MESSAGE BLOQUÉ : Langage inapproprié", 'error');
+                const warnings = (userWarnings[pseudo] || 0) + 1;
+                setUserWarnings(prev => ({ ...prev, [pseudo]: warnings }));
+
+                if (warnings >= 3) {
+                    handleBanUser(pseudo);
+                    showNotification("VOUS AVEZ ÉTÉ BANNI : 3 AVERTISSEMENTS (LANGAGE)", 'error');
+                    return;
+                }
+
+                showNotification(`ALERTE : Langage inapproprié (${warnings}/3) ⚠️`, 'error');
                 return;
             }
             if (/(https?:\/\/[^\s]+)/g.test(messageText)) {
@@ -1046,13 +1065,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             } else if (mainCmd === '!purge' && isMod) {
                 const target = cmdParts[1]?.replace('@', '') || '';
                 if (target) {
-                    setChatMessages(prev => prev.filter(m => m.pseudo !== target));
-                    messageText = `[SYSTEM]:PURGE:${target}`;
+                    handlePurgeTarget(target);
                 }
             } else if (mainCmd === '!matrix') {
                 messageText = `[SYSTEM]:MATRIX`;
             } else if (mainCmd === '!flash' && isMod) {
                 messageText = `[SYSTEM]:FLASH:${messageText.replace('!flash ', '')}`;
+            } else if (mainCmd === '!takeover' && isMod) {
+                messageText = `[SYSTEM]:TAKEOVER_ALERT:${messageText.replace('!takeover ', '')}`;
             } else if (mainCmd === '!boss' && isMod) {
                 messageText = `[SYSTEM]:BOSS_SPAWN`;
             } else if (mainCmd === '!braquage') {
@@ -1404,6 +1424,23 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         return now >= startTime && now <= endTime;
     }) || { artist: 'DROPSIDERS LIVE', stage: 'MAIN STAGE' };
 
+    const handlePurgeTarget = async (target: string) => {
+        if (!isMod) return;
+        setChatMessages(prev => prev.filter(m => m.pseudo !== target));
+        try {
+            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                pseudo: "BOT_SYSTEM",
+                message: `[SYSTEM]:PURGE:${target}`,
+                color: "text-red-500",
+                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                country: "FR"
+            });
+            showNotification(`Chat nettoyé pour @${target}`, 'success');
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
     return (
         <div className="fixed inset-0 bg-[#050505] flex flex-col font-sans select-none overflow-hidden z-[100]">
             <style>
@@ -1567,20 +1604,29 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         {viewer === 'ALEX_FR1' && <Star className="w-3 h-3 text-neon-cyan fill-neon-cyan" />}
                                     </div>
                                     {isMod && (
-                                        <button
-                                            onClick={() => {
-                                                if (vipsList.includes(viewer)) {
-                                                    setVipsList(prev => prev.filter(u => u !== viewer));
-                                                    showNotification(`${viewer} n'est plus VIP`, 'success');
-                                                } else {
-                                                    setVipsList(prev => [...prev, viewer]);
-                                                    showNotification(`${viewer} promu VIP`, 'success');
-                                                }
-                                            }}
-                                            className="opacity-0 group-hover:opacity-100 p-1.5 hover:bg-white/10 rounded-lg transition-all"
-                                        >
-                                            <Crown className={`w-3 h-3 ${vipsList.includes(viewer) ? 'text-amber-500 fill-amber-500' : 'text-gray-500 hover:text-amber-500'}`} />
-                                        </button>
+                                        <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
+                                            <button
+                                                onClick={() => setShowUserLogs(viewer)}
+                                                className="p-1.5 hover:bg-white/10 rounded-lg transition-all"
+                                                title="Logs Chat"
+                                            >
+                                                <MessageSquare className="w-3 h-3 text-gray-400 hover:text-neon-cyan" />
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    if (vipsList.includes(viewer)) {
+                                                        setVipsList(prev => prev.filter(u => u !== viewer));
+                                                        showNotification(`${viewer} n'est plus VIP`, 'success');
+                                                    } else {
+                                                        setVipsList(prev => [...prev, viewer]);
+                                                        showNotification(`${viewer} promu VIP`, 'success');
+                                                    }
+                                                }}
+                                                className="p-1.5 hover:bg-white/10 rounded-lg transition-all"
+                                            >
+                                                <Crown className={`w-3 h-3 ${vipsList.includes(viewer) ? 'text-amber-500 fill-amber-500' : 'text-gray-500 hover:text-amber-500'}`} />
+                                            </button>
+                                        </div>
                                     )}
                                 </div>
                             ))}
@@ -1596,280 +1642,166 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
                 {/* A. VIDEO PANEL (40% Mobile / 60% Desktop) */}
                 <div className={`transition-all duration-700 ease-in-out ${isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[40%] lg:h-full'} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
-                    {/* Always render the video behind to allow blur effect */}
                     <div className="absolute inset-0 z-0">
                         <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${settings.streams?.find((s: any) => s.id === settings.activeStreamId)?.youtubeId || settings.youtubeId || 'dQw4w9WgXcQ'}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
-
                     </div>
+                </div>
 
-                    <AnimatePresence>
-                        {showAdminPanel && (
-                            <motion.div
-                                key="admin-panel"
-                                initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-                                animate={{ opacity: 1, backdropFilter: 'blur(16px)' }}
-                                exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
-                                className="absolute inset-0 z-50 bg-black/80 backdrop-blur-xl p-8 overflow-y-auto custom-scrollbar"
-                            >
-                                <div className="max-w-3xl mx-auto space-y-10">
-                                    <div className="flex items-center justify-between border-b border-white/10 pb-6">
-                                        <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Configuration du <span className="text-neon-purple">Studio</span></h2>
-                                        <div className="flex gap-2">
-                                            {['GÉNÉRAL', 'PLANNING', 'SHAZAM', 'SONDAGES / QUIZ', 'DROPS', 'BOT', 'MODÉRATION'].map(t => (
-                                                <button
-                                                    key={t}
-                                                    onClick={() => setAdminActiveTab(t === 'SONDAGES / QUIZ' ? 'sondages' : t.toLowerCase())}
-                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminActiveTab === (t === 'SONDAGES / QUIZ' ? 'sondages' : t.toLowerCase()) ? 'bg-white/10 text-white border border-white/20' : 'text-gray-500 hover:text-white'}`}
-                                                >
-                                                    {t}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        <button onClick={() => setShowAdminPanel(false)} className="p-2 hover:bg-white/5 rounded-full"><X className="w-6 h-6 text-gray-500" /></button>
+                <AnimatePresence>
+                    {takeoverAlert && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1.2 }}
+                            exit={{ opacity: 0, scale: 1.5 }}
+                            className="absolute inset-0 z-[100] flex items-center justify-center bg-black/40 backdrop-blur-md px-10 pointer-events-none"
+                        >
+                            <div className="text-center space-y-6">
+                                <Megaphone className="w-24 h-24 text-neon-red mx-auto animate-bounce" />
+                                <h2 className="text-5xl lg:text-8xl font-black text-white uppercase italic tracking-tighter drop-shadow-[0_0_50px_#ff0033]">
+                                    {takeoverAlert.text}
+                                </h2>
+                                <div className="h-2 w-48 bg-neon-red mx-auto rounded-full animate-pulse shadow-[0_0_20px_#ff0033]" />
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                <AnimatePresence>
+                    {showAdminPanel && (
+                        <motion.div
+                            key="admin-panel"
+                            initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+                            animate={{ opacity: 1, backdropFilter: 'blur(16px)' }}
+                            exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+                            className="absolute inset-0 z-50 bg-black/80 backdrop-blur-xl p-8 overflow-y-auto custom-scrollbar"
+                        >
+                            <div className="max-w-3xl mx-auto space-y-10">
+                                <div className="flex items-center justify-between border-b border-white/10 pb-6">
+                                    <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Configuration du <span className="text-neon-purple">Studio</span></h2>
+                                    <div className="flex gap-2">
+                                        {['GÉNÉRAL', 'PLANNING', 'SHAZAM', 'SONDAGES / QUIZ', 'DROPS', 'BOT', 'MODÉRATION'].map(t => (
+                                            <button
+                                                key={t}
+                                                onClick={() => setAdminActiveTab(t === 'SONDAGES / QUIZ' ? 'sondages' : t.toLowerCase())}
+                                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminActiveTab === (t === 'SONDAGES / QUIZ' ? 'sondages' : t.toLowerCase()) ? 'bg-white/10 text-white border border-white/20' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                {t}
+                                            </button>
+                                        ))}
                                     </div>
+                                    <button onClick={() => setShowAdminPanel(false)} className="p-2 hover:bg-white/5 rounded-full"><X className="w-6 h-6 text-gray-500" /></button>
+                                </div>
 
-                                    <div className="min-h-[400px]">
-                                        {adminActiveTab === 'general' ? (
-                                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                                    <div className="space-y-6">
-                                                        <div>
-                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre du Live</label>
-                                                            <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: MAIN STAGE LIVE" />
-                                                        </div>
-
-                                                        <div className="pt-6 border-t border-white/5 space-y-6">
-                                                            <div className="flex items-center gap-2 mb-2">
-                                                                <Video className="w-4 h-4 text-neon-purple" />
-                                                                <h3 className="text-xs font-black text-white uppercase tracking-widest font-display italic">Gestion des Flux (Multiple)</h3>
-                                                            </div>
-                                                            <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                                                                {editStreams.map((stream, idx) => (
-                                                                    <div key={stream.id || idx} className={`p-4 rounded-2xl border transition-all ${editActiveStreamId === stream.id ? 'bg-neon-purple/10 border-neon-purple shadow-[0_0_20px_rgba(168,85,247,0.15)]' : 'bg-white/5 border-white/10 opacity-70 hover:opacity-100'}`}>
-                                                                        <div className="flex items-center justify-between mb-4">
-                                                                            <div className="flex items-center gap-3">
-                                                                                <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${editActiveStreamId === stream.id ? 'bg-neon-purple text-white' : 'bg-white/10 text-gray-500'}`}>
-                                                                                    {idx + 1}
-                                                                                </div>
-                                                                                <span className="text-[10px] font-black text-white uppercase tracking-widest">{stream.name || "Nouveau Flux"}</span>
-                                                                            </div>
-                                                                            <div className="flex items-center gap-2">
-                                                                                <button onClick={() => setEditActiveStreamId(stream.id)} className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${editActiveStreamId === stream.id ? 'bg-neon-purple text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
-                                                                                    {editActiveStreamId === stream.id ? 'ACTIF' : 'ACTIVER'}
-                                                                                </button>
-                                                                                <button onClick={() => setEditStreams(editStreams.filter(s => s.id !== stream.id))} className="p-1.5 text-gray-500 hover:text-red-500 transition-all bg-white/5 rounded-lg">
-                                                                                    <Trash2 className="w-4 h-4" />
-                                                                                </button>
-                                                                            </div>
-                                                                        </div>
-                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                            <div className="space-y-2">
-                                                                                <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-2">Nom de la scène</label>
-                                                                                <input type="text" value={stream.name} onChange={e => {
-                                                                                    const ns = [...editStreams];
-                                                                                    ns[idx].name = e.target.value.toUpperCase();
-                                                                                    setEditStreams(ns);
-                                                                                }} className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-purple uppercase" placeholder="MAIN STAGE" />
-                                                                            </div>
-                                                                            <div className="space-y-2">
-                                                                                <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-2">YouTube (Link or ID)</label>
-                                                                                <input type="text" value={stream.youtubeId} onChange={e => {
-                                                                                    const ns = [...editStreams];
-                                                                                    ns[idx].youtubeId = extractYoutubeId(e.target.value);
-                                                                                    setEditStreams(ns);
-                                                                                }} className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-purple" placeholder="Link or ID" />
-                                                                            </div>
-                                                                        </div>
-                                                                    </div>
-                                                                ))}
-                                                                <button onClick={() => setEditStreams([...editStreams, { id: Math.random().toString(36).substr(2, 9), name: '', youtubeId: '' }])} className="w-full py-4 bg-white/5 border border-dashed border-white/20 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-widest hover:border-white/40 hover:text-white transition-all flex items-center justify-center gap-2">
-                                                                    <Plus className="w-4 h-4" /> Ajouter un autre flux
-                                                                </button>
-                                                            </div>
-                                                        </div>
+                                <div className="min-h-[400px]">
+                                    {adminActiveTab === 'general' ? (
+                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                <div className="space-y-6">
+                                                    <div>
+                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre du Live</label>
+                                                        <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: MAIN STAGE LIVE" />
                                                     </div>
 
-                                                    <div className="space-y-6">
+                                                    <div className="pt-6 border-t border-white/5 space-y-6">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <Video className="w-4 h-4 text-neon-purple" />
+                                                            <h3 className="text-xs font-black text-white uppercase tracking-widest font-display italic">Gestion des Flux (Multiple)</h3>
+                                                        </div>
+                                                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                                            {editStreams.map((stream, idx) => (
+                                                                <div key={stream.id || idx} className={`p-4 rounded-2xl border transition-all ${editActiveStreamId === stream.id ? 'bg-neon-purple/10 border-neon-purple shadow-[0_0_20px_rgba(168,85,247,0.15)]' : 'bg-white/5 border-white/10 opacity-70 hover:opacity-100'}`}>
+                                                                    <div className="flex items-center justify-between mb-4">
+                                                                        <div className="flex items-center gap-3">
+                                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${editActiveStreamId === stream.id ? 'bg-neon-purple text-white' : 'bg-white/10 text-gray-500'}`}>
+                                                                                {idx + 1}
+                                                                            </div>
+                                                                            <span className="text-[10px] font-black text-white uppercase tracking-widest">{stream.name || "Nouveau Flux"}</span>
+                                                                        </div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <button onClick={() => setEditActiveStreamId(stream.id)} className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${editActiveStreamId === stream.id ? 'bg-neon-purple text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
+                                                                                {editActiveStreamId === stream.id ? 'ACTIF' : 'ACTIVER'}
+                                                                            </button>
+                                                                            <button onClick={() => setEditStreams(editStreams.filter(s => s.id !== stream.id))} className="p-1.5 text-gray-500 hover:text-red-500 transition-all bg-white/5 rounded-lg">
+                                                                                <Trash2 className="w-4 h-4" />
+                                                                            </button>
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                        <div className="space-y-2">
+                                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-2">Nom de la scène</label>
+                                                                            <input type="text" value={stream.name} onChange={e => {
+                                                                                const ns = [...editStreams];
+                                                                                ns[idx].name = e.target.value.toUpperCase();
+                                                                                setEditStreams(ns);
+                                                                            }} className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-purple uppercase" placeholder="MAIN STAGE" />
+                                                                        </div>
+                                                                        <div className="space-y-2">
+                                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-2">YouTube (Link or ID)</label>
+                                                                            <input type="text" value={stream.youtubeId} onChange={e => {
+                                                                                const ns = [...editStreams];
+                                                                                ns[idx].youtubeId = extractYoutubeId(e.target.value);
+                                                                                setEditStreams(ns);
+                                                                            }} className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-purple" placeholder="Link or ID" />
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            ))}
+                                                            <button onClick={() => setEditStreams([...editStreams, { id: Math.random().toString(36).substr(2, 9), name: '', youtubeId: '' }])} className="w-full py-4 bg-white/5 border border-dashed border-white/20 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-widest hover:border-white/40 hover:text-white transition-all flex items-center justify-center gap-2">
+                                                                <Plus className="w-4 h-4" /> Ajouter un autre flux
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-6">
 
 
-                                                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Statut de la diffusion</label>
-                                                            <div className="flex gap-2 p-1 bg-black/40 border border-white/10 rounded-xl">
-                                                                {(['live', 'edit', 'off'] as const).map(s => (
-                                                                    <button
-                                                                        key={s}
-                                                                        onClick={() => setEditStatus(s)}
-                                                                        className={`flex-1 py-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${editStatus === s
-                                                                            ? (s === 'live' ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : s === 'edit' ? 'bg-orange-600 text-white' : 'bg-gray-600 text-white')
-                                                                            : 'text-gray-500 hover:text-white hover:bg-white/5'
-                                                                            }`}
-                                                                    >
-                                                                        {s === 'live' ? 'EN DIRECT' : s === 'edit' ? 'PRÉPARAT.' : 'OFFLINE'}
-                                                                    </button>
-                                                                ))}
-                                                            </div>
+                                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Statut de la diffusion</label>
+                                                        <div className="flex gap-2 p-1 bg-black/40 border border-white/10 rounded-xl">
+                                                            {(['live', 'edit', 'off'] as const).map(s => (
+                                                                <button
+                                                                    key={s}
+                                                                    onClick={() => setEditStatus(s)}
+                                                                    className={`flex-1 py-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${editStatus === s
+                                                                        ? (s === 'live' ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : s === 'edit' ? 'bg-orange-600 text-white' : 'bg-gray-600 text-white')
+                                                                        : 'text-gray-500 hover:text-white hover:bg-white/5'
+                                                                        }`}
+                                                                >
+                                                                    {s === 'live' ? 'EN DIRECT' : s === 'edit' ? 'PRÉPARAT.' : 'OFFLINE'}
+                                                                </button>
+                                                            ))}
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                        ) : adminActiveTab === 'sondages' ? (
-                                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                                <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-8">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center">
-                                                            <BarChart3 className="w-6 h-6 text-neon-cyan" />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion des Sondages</h3>
-                                                            <p className="text-[10px] text-gray-500 font-bold uppercase">Lancez des votes interactifs pour les viewers</p>
-                                                        </div>
+                                        </div>
+                                    ) : adminActiveTab === 'sondages' ? (
+                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-8">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center">
+                                                        <BarChart3 className="w-6 h-6 text-neon-cyan" />
                                                     </div>
-
-                                                    <div className="space-y-6 pt-4 border-t border-white/5">
-                                                        {activePoll ? (
-                                                            <div className="bg-neon-cyan/10 border-2 border-neon-cyan/30 rounded-3xl p-8 space-y-6">
-                                                                <div className="flex justify-between items-start">
-                                                                    <div>
-                                                                        <span className="px-3 py-1 bg-neon-cyan text-black text-[8px] font-black rounded-lg uppercase tracking-widest mb-2 inline-block">SONDAGE ACTIF</span>
-                                                                        <h4 className="text-xl font-black text-white uppercase italic">{activePoll.question}</h4>
-                                                                    </div>
-                                                                    <button
-                                                                        onClick={async () => {
-                                                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                                pseudo: "BOT_SYSTEM",
-                                                                                message: '[SYSTEM]:CLEAR_POLL',
-                                                                                color: "text-neon-purple",
-                                                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                                country: "FR"
-                                                                            });
-                                                                        }}
-                                                                        className="px-6 py-3 bg-red-600 text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
-                                                                    >
-                                                                        Arrêter le sondage
-                                                                    </button>
-                                                                </div>
-                                                                <div className="space-y-3">
-                                                                    {activePoll.options.map((opt: any, idx: number) => {
-                                                                        const totalVotes = activePoll.options.reduce((sum: number, o: any) => sum + (o.votes || 0), 0);
-                                                                        const percentage = totalVotes > 0 ? Math.round(((opt.votes || 0) / totalVotes) * 100) : 0;
-                                                                        return (
-                                                                            <div key={idx} className="space-y-1">
-                                                                                <div className="flex justify-between text-[10px] font-black text-white uppercase">
-                                                                                    <span>{opt.text}</span>
-                                                                                    <span>{opt.votes || 0} Votes ({percentage}%)</span>
-                                                                                </div>
-                                                                                <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                                                                    <motion.div
-                                                                                        initial={{ width: 0 }}
-                                                                                        animate={{ width: `${percentage}%` }}
-                                                                                        className="h-full bg-neon-cyan"
-                                                                                    />
-                                                                                </div>
-                                                                            </div>
-                                                                        );
-                                                                    })}
-                                                                </div>
-                                                            </div>
-                                                        ) : (
-                                                            <div className="space-y-6">
-                                                                <div className="space-y-2">
-                                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Question du sondage</label>
-                                                                    <input
-                                                                        type="text"
-                                                                        value={pollQuestion}
-                                                                        onChange={e => setPollQuestion(e.target.value)}
-                                                                        placeholder="EX: QU'AVEZ-VOUS PENSÉ DE CE SET ?"
-                                                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-sm font-bold text-white outline-none focus:border-neon-cyan transition-all uppercase"
-                                                                    />
-                                                                </div>
-                                                                <div className="space-y-4">
-                                                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Options de réponse</label>
-                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                        {pollOptions.map((opt, idx) => (
-                                                                            <div key={idx} className="relative group">
-                                                                                <input
-                                                                                    type="text"
-                                                                                    value={opt}
-                                                                                    onChange={e => {
-                                                                                        const next = [...pollOptions];
-                                                                                        next[idx] = e.target.value.toUpperCase();
-                                                                                        setPollOptions(next);
-                                                                                    }}
-                                                                                    placeholder={`OPTION ${idx + 1}`}
-                                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all uppercase"
-                                                                                />
-                                                                                {pollOptions.length > 2 && (
-                                                                                    <button
-                                                                                        onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
-                                                                                        className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                                                                                    >
-                                                                                        <Trash2 className="w-4 h-4" />
-                                                                                    </button>
-                                                                                )}
-                                                                            </div>
-                                                                        ))}
-                                                                    </div>
-                                                                    {pollOptions.length < 4 && (
-                                                                        <button
-                                                                            onClick={() => setPollOptions([...pollOptions, ''])}
-                                                                            className="w-full py-3 border border-dashed border-white/10 rounded-xl text-[10px] font-black text-gray-500 uppercase hover:border-white/30 hover:text-white transition-all flex items-center justify-center gap-2"
-                                                                        >
-                                                                            <Plus className="w-3 h-3" /> Ajouter une option
-                                                                        </button>
-                                                                    )}
-                                                                </div>
-                                                                <button
-                                                                    onClick={async () => {
-                                                                        if (!pollQuestion || pollOptions.some(o => !o)) {
-                                                                            showNotification("Remplis tout le sondage !", 'error');
-                                                                            return;
-                                                                        }
-                                                                        const pollData = {
-                                                                            question: pollQuestion,
-                                                                            options: pollOptions.map(o => ({ text: o, votes: 0 })),
-                                                                            active: true
-                                                                        };
-                                                                        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                            pseudo: "BOT_POLL",
-                                                                            message: `[SYSTEM]:POLL:${JSON.stringify(pollData)}`,
-                                                                            color: "text-neon-purple",
-                                                                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                            country: "FR"
-                                                                        });
-                                                                        setPollQuestion('');
-                                                                        setPollOptions(['', '']);
-                                                                    }}
-                                                                    className="w-full py-5 bg-neon-cyan text-black font-black uppercase rounded-2xl shadow-[0_10px_30px_rgba(0,255,255,0.2)] hover:scale-[1.02] active:scale-95 transition-all"
-                                                                >
-                                                                    LANCER LE SONDAGE 🔥
-                                                                </button>
-                                                            </div>
-                                                        )}
+                                                    <div>
+                                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion des Sondages</h3>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Lancez des votes interactifs pour les viewers</p>
                                                     </div>
                                                 </div>
-                                                <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-8">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center">
-                                                            <Zap className="w-6 h-6 text-neon-purple" />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion des Quiz</h3>
-                                                            <p className="text-[10px] text-gray-500 font-bold uppercase">Lancez des questions avec récompense (+100 DROPS)</p>
-                                                        </div>
-                                                    </div>
 
-                                                    <div className="space-y-6 pt-4 border-t border-white/5">
-                                                        {activeQuiz ? (
-                                                            <div className="bg-neon-purple/10 border-2 border-neon-purple/30 rounded-3xl p-8 flex items-center justify-between">
+                                                <div className="space-y-6 pt-4 border-t border-white/5">
+                                                    {activePoll ? (
+                                                        <div className="bg-neon-cyan/10 border-2 border-neon-cyan/30 rounded-3xl p-8 space-y-6">
+                                                            <div className="flex justify-between items-start">
                                                                 <div>
-                                                                    <span className="px-3 py-1 bg-neon-purple text-white text-[8px] font-black rounded-lg uppercase mb-2 inline-block">QUIZ EN COURS</span>
-                                                                    <h4 className="text-xl font-black text-white uppercase italic">{activeQuiz.question}</h4>
+                                                                    <span className="px-3 py-1 bg-neon-cyan text-black text-[8px] font-black rounded-lg uppercase tracking-widest mb-2 inline-block">SONDAGE ACTIF</span>
+                                                                    <h4 className="text-xl font-black text-white uppercase italic">{activePoll.question}</h4>
                                                                 </div>
                                                                 <button
                                                                     onClick={async () => {
                                                                         await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                                                                             pseudo: "BOT_SYSTEM",
-                                                                            message: '[SYSTEM]:CLEAR_QUIZ',
+                                                                            message: '[SYSTEM]:CLEAR_POLL',
                                                                             color: "text-neon-purple",
                                                                             time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                                                                             country: "FR"
@@ -1877,376 +1809,507 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     }}
                                                                     className="px-6 py-3 bg-red-600 text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
                                                                 >
-                                                                    Arrêter le quiz
+                                                                    Arrêter le sondage
                                                                 </button>
                                                             </div>
-                                                        ) : (
-                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                {predefinedQuizzes.length > 0 ? (
-                                                                    predefinedQuizzes.map((q, idx) => (
-                                                                        <button
-                                                                            key={idx}
-                                                                            onClick={async () => {
-                                                                                const msg = `[QUIZ_START]:${q.question}|${q.options.join('|')}|${q.correct}`;
-                                                                                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                                    pseudo: "BOT_QUIZ",
-                                                                                    message: msg,
-                                                                                    color: "text-neon-purple",
-                                                                                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                                    country: "FR"
-                                                                                });
-                                                                            }}
-                                                                            className="p-6 bg-white/5 border border-white/10 rounded-2xl text-left hover:border-neon-purple/50 hover:bg-white/10 transition-all group"
-                                                                        >
-                                                                            <p className="text-[10px] font-black text-neon-purple uppercase mb-1 tracking-widest">QUIZ PRÉDÉFINI #{idx + 1}</p>
-                                                                            <p className="text-sm font-bold text-white uppercase line-clamp-2">{q.question}</p>
-                                                                        </button>
-                                                                    ))
-                                                                ) : (
-                                                                    <div className="col-span-2 text-center py-10 border border-dashed border-white/10 rounded-3xl">
-                                                                        <p className="text-xs font-bold text-gray-500 uppercase">Aucun quiz prédéfini dispo.</p>
-                                                                    </div>
-                                                                )}
+                                                            <div className="space-y-3">
+                                                                {activePoll.options.map((opt: any, idx: number) => {
+                                                                    const totalVotes = activePoll.options.reduce((sum: number, o: any) => sum + (o.votes || 0), 0);
+                                                                    const percentage = totalVotes > 0 ? Math.round(((opt.votes || 0) / totalVotes) * 100) : 0;
+                                                                    return (
+                                                                        <div key={idx} className="space-y-1">
+                                                                            <div className="flex justify-between text-[10px] font-black text-white uppercase">
+                                                                                <span>{opt.text}</span>
+                                                                                <span>{opt.votes || 0} Votes ({percentage}%)</span>
+                                                                            </div>
+                                                                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+                                                                                <motion.div
+                                                                                    initial={{ width: 0 }}
+                                                                                    animate={{ width: `${percentage}%` }}
+                                                                                    className="h-full bg-neon-cyan"
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    );
+                                                                })}
                                                             </div>
-                                                        )}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ) : adminActiveTab === 'shazam' ? (
-                                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                                <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
-                                                    <div className="flex items-center gap-4">
-                                                        <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center">
-                                                            <Music className="w-6 h-6 text-neon-purple" />
-                                                        </div>
-                                                        <div>
-                                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Configuration Shazam</h3>
-                                                            <p className="text-[10px] text-gray-500 font-bold uppercase">Gérez la reconnaissance musicale et l'historique</p>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="space-y-4 pt-4 border-t border-white/5">
-                                                        <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 flex items-center justify-between">
-                                                            <div>
-                                                                <p className="text-xs font-black text-white uppercase mb-1">Vider l'historique</p>
-                                                                <p className="text-[9px] text-gray-400 font-bold uppercase">Supprime tous les morceaux identifiés du site</p>
-                                                            </div>
-                                                            <button
-                                                                onClick={clearShazamHistory}
-                                                                className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase rounded-xl transition-all shadow-lg shadow-red-600/20"
-                                                            >
-                                                                Vider Shazam
-                                                            </button>
-                                                        </div>
-
-                                                        <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">AudD API Token</label>
-                                                            <input
-                                                                type="password"
-                                                                placeholder="VOTRE TOKEN AUDD.IO"
-                                                                value={editAuddToken}
-                                                                onChange={e => setEditAuddToken(e.target.value)}
-                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-purple outline-none transition-all"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ) : adminActiveTab === 'planning' ? (
-                                            <div className="space-y-10">
-                                                <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
-                                                    <div className="flex items-center gap-3 mb-2">
-                                                        <Plus className="w-6 h-6 text-neon-cyan" />
-                                                        <h3 className="text-sm font-black text-white uppercase tracking-widest">Ajouter une session</h3>
-                                                    </div>
-                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                                        <div className="flex flex-col gap-1.5">
-                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Date / Agenda</label>
-                                                            <input type="date" value={newLineupItem.day} onChange={e => setNewLineupItem({ ...newLineupItem, day: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-cyan transition-all" />
-                                                        </div>
-                                                        <input type="text" placeholder="ARTISTE" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, artist: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                        <input type="text" placeholder="DEBUT" value={newLineupItem.startTime} onChange={e => setNewLineupItem({ ...newLineupItem, startTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                        <input type="text" placeholder="FIN" value={newLineupItem.endTime} onChange={e => setNewLineupItem({ ...newLineupItem, endTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                        <input type="text" placeholder="SCÈNE" value={newLineupItem.stage} onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                        <input type="text" placeholder="INSTAGRAM" value={newLineupItem.instagram} onChange={e => setNewLineupItem({ ...newLineupItem, instagram: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                    </div>
-                                                    <button onClick={() => { if (newLineupItem.artist) { setLineupItems([...lineupItems, { ...newLineupItem, id: Date.now().toString() }]); setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '' }); } }} className="w-full py-4 bg-neon-cyan text-black font-black uppercase rounded-2xl hover:bg-neon-cyan/80 transition-all">Ajouter</button>
-                                                </div>
-
-                                                <div className="space-y-4">
-                                                    {lineupItems.map((item, i) => (
-                                                        <div key={item.id} className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
-                                                            <div className="flex items-center gap-4">
-                                                                <div className="text-gray-500 font-mono text-xs">{item.startTime}</div>
-                                                                <div>
-                                                                    <p className="text-white font-black uppercase text-sm">{item.artist}</p>
-                                                                    <p className="text-[10px] text-neon-cyan font-bold uppercase">{item.stage}</p>
-                                                                </div>
-                                                            </div>
-                                                            <button onClick={() => setLineupItems(lineupItems.filter((_, idx) => idx !== i))} className="text-red-500 p-2 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        ) : adminActiveTab === 'drops' ? (
-                                            <div className="space-y-8">
-                                                <div className="grid grid-cols-2 gap-8">
-                                                    <div className="space-y-4">
-                                                        <h3 className="text-xs font-black text-white uppercase tracking-widest">Nouveau Lot</h3>
-                                                        <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
-                                                            <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">Prix Message Couleur (Drops)</label>
-                                                            <input type="number" placeholder="PRIX HIGHLIGHT" value={editHighlightPrice} onChange={e => setEditHighlightPrice(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-red outline-none" />
-
-                                                            <div className="grid grid-cols-2 gap-4 mt-4">
-                                                                <div>
-                                                                    <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">Gains (Drops)</label>
-                                                                    <input type="number" placeholder="MONTANT" value={editDropsAmount} onChange={e => setEditDropsAmount(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-red outline-none" />
-                                                                </div>
-                                                                <div>
-                                                                    <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">Toutes les (Min)</label>
-                                                                    <input type="number" placeholder="INTERVALLE" value={editDropsInterval} onChange={e => setEditDropsInterval(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-red outline-none" />
-                                                                </div>
-                                                            </div>
-                                                            <p className="text-[9px] text-gray-500 font-bold uppercase leading-tight italic mt-2">Configurez combien de drops les utilisateurs gagnent et tous les combien de temps.</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="space-y-4">
-                                                        <h3 className="text-xs font-black text-white uppercase tracking-widest">Nouveau Lot Boutique</h3>
-                                                        <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
-                                                            <input type="text" placeholder="NOM DU LOT" value={newLot.name} onChange={e => setNewLot({ ...newLot, name: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
-                                                            <input type="number" placeholder="PRIX EN DROPS" value={newLot.price} onChange={e => setNewLot({ ...newLot, price: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
-                                                            <button onClick={() => { if (newLot.name) { setDropsLots([...dropsLots, { id: Date.now(), name: newLot.name, price: Number(newLot.price), stock: 10 }]); setNewLot({ name: '', price: '', stock: '' }); } }} className="w-full py-3 bg-neon-red text-white font-black rounded-xl hover:bg-neon-red/80 transition-all">Ajouter à la boutique</button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        ) : adminActiveTab === 'bot' ? (
-                                            <div className="space-y-8">
-                                                <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
-                                                    <h4 className="text-xs font-black text-neon-cyan uppercase tracking-widest">➕ Nouvelle Commande</h4>
-                                                    <input type="text" placeholder="!COMMANDE" value={newCmd.command} onChange={e => setNewCmd({ ...newCmd, command: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
-                                                    <textarea placeholder="REPONSE" value={newCmd.response} onChange={e => setNewCmd({ ...newCmd, response: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white min-h-[80px]" />
-                                                    <button onClick={() => { if (newCmd.command) { setBotCommands([...botCommands, { command: newCmd.command, response: newCmd.response }]); setNewCmd({ command: '', response: '' }); } }} className="w-full py-3 bg-neon-cyan text-black font-black rounded-xl hover:scale-[1.02] transition-all">Enregistrer</button>
-                                                </div>
-
-                                                {/* List of existing commands */}
-                                                <div className="space-y-3">
-                                                    <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">📋 Commandes Actives ({botCommands.length})</h4>
-                                                    {botCommands.length === 0 ? (
-                                                        <div className="text-center py-8 bg-white/5 border border-white/5 rounded-2xl">
-                                                            <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande configurée</p>
                                                         </div>
                                                     ) : (
-                                                        botCommands.map((cmd, idx) => (
-                                                            <div key={idx} className="flex items-center gap-3 bg-white/[0.03] border border-white/5 hover:border-neon-cyan/20 p-4 rounded-2xl transition-all group">
-                                                                <span className="text-neon-cyan font-black text-xs uppercase tracking-tight shrink-0 min-w-[100px]">{cmd.command}</span>
-                                                                <span className="text-gray-400 text-xs font-bold flex-1 truncate">{cmd.response}</span>
-                                                                <button
-                                                                    onClick={() => setBotCommands(botCommands.filter((_, i) => i !== idx))}
-                                                                    className="opacity-0 group-hover:opacity-100 p-2 text-gray-600 hover:text-neon-red transition-all rounded-lg hover:bg-red-500/10"
-                                                                >
-                                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                                </button>
+                                                        <div className="space-y-6">
+                                                            <div className="space-y-2">
+                                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Question du sondage</label>
+                                                                <input
+                                                                    type="text"
+                                                                    value={pollQuestion}
+                                                                    onChange={e => setPollQuestion(e.target.value)}
+                                                                    placeholder="EX: QU'AVEZ-VOUS PENSÉ DE CE SET ?"
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-sm font-bold text-white outline-none focus:border-neon-cyan transition-all uppercase"
+                                                                />
                                                             </div>
-                                                        ))
+                                                            <div className="space-y-4">
+                                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Options de réponse</label>
+                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                                    {pollOptions.map((opt, idx) => (
+                                                                        <div key={idx} className="relative group">
+                                                                            <input
+                                                                                type="text"
+                                                                                value={opt}
+                                                                                onChange={e => {
+                                                                                    const next = [...pollOptions];
+                                                                                    next[idx] = e.target.value.toUpperCase();
+                                                                                    setPollOptions(next);
+                                                                                }}
+                                                                                placeholder={`OPTION ${idx + 1}`}
+                                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan transition-all uppercase"
+                                                                            />
+                                                                            {pollOptions.length > 2 && (
+                                                                                <button
+                                                                                    onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
+                                                                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                                                                                >
+                                                                                    <Trash2 className="w-4 h-4" />
+                                                                                </button>
+                                                                            )}
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                                {pollOptions.length < 4 && (
+                                                                    <button
+                                                                        onClick={() => setPollOptions([...pollOptions, ''])}
+                                                                        className="w-full py-3 border border-dashed border-white/10 rounded-xl text-[10px] font-black text-gray-500 uppercase hover:border-white/30 hover:text-white transition-all flex items-center justify-center gap-2"
+                                                                    >
+                                                                        <Plus className="w-3 h-3" /> Ajouter une option
+                                                                    </button>
+                                                                )}
+                                                            </div>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    if (!pollQuestion || pollOptions.some(o => !o)) {
+                                                                        showNotification("Remplis tout le sondage !", 'error');
+                                                                        return;
+                                                                    }
+                                                                    const pollData = {
+                                                                        question: pollQuestion,
+                                                                        options: pollOptions.map(o => ({ text: o, votes: 0 })),
+                                                                        active: true
+                                                                    };
+                                                                    await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                                        pseudo: "BOT_POLL",
+                                                                        message: `[SYSTEM]:POLL:${JSON.stringify(pollData)}`,
+                                                                        color: "text-neon-purple",
+                                                                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                        country: "FR"
+                                                                    });
+                                                                    setPollQuestion('');
+                                                                    setPollOptions(['', '']);
+                                                                }}
+                                                                className="w-full py-5 bg-neon-cyan text-black font-black uppercase rounded-2xl shadow-[0_10px_30px_rgba(0,255,255,0.2)] hover:scale-[1.02] active:scale-95 transition-all"
+                                                            >
+                                                                LANCER LE SONDAGE 🔥
+                                                            </button>
+                                                        </div>
                                                     )}
                                                 </div>
                                             </div>
-                                        ) : adminActiveTab === 'moderation' ? (
-                                            <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                                    <div className="p-8 bg-red-600/5 border border-red-600/20 rounded-[2.5rem] text-center space-y-4">
-                                                        <Trash2 className="w-8 h-8 text-red-500 mx-auto" />
-                                                        <h4 className="text-white font-black uppercase">Nettoyage Chat</h4>
-                                                        <button onClick={clearChat} className="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase hover:bg-red-700 transition-all shadow-xl shadow-red-600/20">Vider le Chat</button>
+                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-8">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center">
+                                                        <Zap className="w-6 h-6 text-neon-purple" />
                                                     </div>
-                                                    <div className="p-8 bg-amber-600/5 border border-amber-600/20 rounded-[2.5rem] text-center space-y-4">
-                                                        <Ban className="w-8 h-8 text-amber-500 mx-auto" />
-                                                        <h4 className="text-white font-black uppercase">Mode Lent</h4>
-                                                        <button
-                                                            onClick={async () => {
-                                                                const sysMsg = slowModeEnabled ? '[SYSTEM]:SLOW_OFF' : '[SYSTEM]:SLOW_ON';
-                                                                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                    pseudo: "BOT_SYSTEM",
-                                                                    message: sysMsg,
-                                                                    color: "text-neon-purple",
-                                                                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                    country: "FR"
-                                                                });
-                                                            }}
-                                                            className={`w-full py-4 ${slowModeEnabled ? 'bg-amber-600' : 'bg-gray-600'} text-white rounded-2xl font-black uppercase transition-all`}
-                                                        >
-                                                            {slowModeEnabled ? 'DÉSACTIVER MODE LENT' : 'ACTIVER MODE LENT'}
-                                                        </button>
+                                                    <div>
+                                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion des Quiz</h3>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Lancez des questions avec récompense (+100 DROPS)</p>
                                                     </div>
                                                 </div>
 
-                                                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                                    <div className="p-8 bg-neon-purple/5 border border-neon-purple/20 rounded-[2.5rem] text-center space-y-4">
-                                                        <Stars className="w-8 h-8 text-neon-purple mx-auto" />
-                                                        <h4 className="text-white font-black uppercase">Effets Fixes</h4>
-                                                        <div className="flex gap-4 flex-wrap justify-center">
-                                                            <button onClick={() => triggerConfetti()} className="flex-1 min-w-[120px] py-4 bg-neon-purple text-white rounded-2xl font-black uppercase">Confettis</button>
-                                                            <button onClick={() => triggerFireworks()} className="flex-1 min-w-[120px] py-4 bg-pink-600 text-white rounded-2xl font-black uppercase">Artifices</button>
-                                                            <button onClick={() => handleSendMessage('!rate')} className="flex-1 min-w-[120px] py-4 bg-yellow-500 text-black rounded-2xl font-black uppercase">Avis Set</button>
-                                                        </div>
-                                                    </div>
-                                                    <div className="p-8 bg-blue-600/5 border border-blue-600/20 rounded-[2.5rem] text-center space-y-4">
-                                                        <Crown className="w-8 h-8 text-blue-500 mx-auto" />
-                                                        <h4 className="text-white font-black uppercase">Affichage des Badges</h4>
-                                                        <button
-                                                            onClick={() => {
-                                                                const next = !showBadgesAdmin;
-                                                                setShowBadgesAdmin(next);
-                                                                localStorage.setItem('chat_show_badges', next ? 'true' : 'false');
-                                                            }}
-                                                            className={`w-full py-4 ${showBadgesAdmin ? 'bg-blue-600' : 'bg-gray-600'} text-white rounded-2xl font-black uppercase transition-all`}
-                                                        >
-                                                            {showBadgesAdmin ? 'BADGES ACTIVÉS' : 'BADGES DÉSACTIVÉS'}
-                                                        </button>
-                                                        <div className="mt-4 pt-4 border-t border-white/10 text-left">
-                                                            <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Utiliser les commandes chat :</div>
-                                                            <div className="text-xs font-bold text-white uppercase italic">!vip @pseudo <span className="text-gray-500 font-normal">pour ajouter</span></div>
-                                                            <div className="text-xs font-bold text-white uppercase italic">!unvip @pseudo <span className="text-gray-500 font-normal">pour retirer</span></div>
-                                                        </div>
-                                                    </div>
-                                                    <div className="p-8 bg-neon-cyan/5 border border-neon-cyan/20 rounded-[2.5rem] text-center space-y-4">
-                                                        <Volume2 className="w-8 h-8 text-neon-cyan mx-auto" />
-                                                        <h4 className="text-white font-black uppercase">Synthèse Vocale (TTS)</h4>
-                                                        <button onClick={() => setIsTTSActive(!isTTSActive)} className={`w-full py-4 ${isTTSActive ? 'bg-neon-cyan text-black' : 'bg-gray-600 text-white'} rounded-2xl font-black uppercase transition-all`}>
-                                                            {isTTSActive ? 'DÉSACTIVER TTS' : 'ACTIVER TTS'}
-                                                        </button>
-                                                    </div>
-                                                </div>
-
-                                                {/* Marquee Settings */}
-                                                <div className="col-span-1 md:col-span-2 p-8 bg-neon-red/5 border border-neon-red/20 rounded-[2.5rem] space-y-6">
-                                                    <div className="flex items-center gap-4 justify-center mb-6">
-                                                        <Megaphone className="w-8 h-8 text-neon-red" />
-                                                        <h4 className="text-white font-black uppercase text-xl">Bandeau News (Défilant)</h4>
-                                                    </div>
-                                                    <div className="space-y-4">
-                                                        {editMarqueeItems.map((item, idx) => (
-                                                            <div key={idx} className="flex flex-col md:flex-row gap-4 bg-black/40 p-4 rounded-2xl border border-white/10">
-                                                                <div className="flex-1 space-y-2">
-                                                                    <label className="text-[10px] font-black text-neon-red uppercase">Texte Info {idx + 1}</label>
-                                                                    <input type="text" value={item.text} onChange={e => {
-                                                                        const next = [...editMarqueeItems];
-                                                                        next[idx].text = e.target.value;
-                                                                        setEditMarqueeItems(next);
-                                                                    }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white uppercase outline-none focus:border-neon-red" placeholder="TEXTE (OPTIONNEL)" />
-                                                                </div>
-                                                                <div className="flex-1 space-y-2">
-                                                                    <label className="text-[10px] font-black text-neon-red uppercase">Lien (Optionnel)</label>
-                                                                    <input type="text" value={item.link} onChange={e => {
-                                                                        const next = [...editMarqueeItems];
-                                                                        next[idx].link = e.target.value;
-                                                                        setEditMarqueeItems(next);
-                                                                    }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-red" placeholder="https://" />
-                                                                </div>
+                                                <div className="space-y-6 pt-4 border-t border-white/5">
+                                                    {activeQuiz ? (
+                                                        <div className="bg-neon-purple/10 border-2 border-neon-purple/30 rounded-3xl p-8 flex items-center justify-between">
+                                                            <div>
+                                                                <span className="px-3 py-1 bg-neon-purple text-white text-[8px] font-black rounded-lg uppercase mb-2 inline-block">QUIZ EN COURS</span>
+                                                                <h4 className="text-xl font-black text-white uppercase italic">{activeQuiz.question}</h4>
                                                             </div>
-                                                        ))}
+                                                            <button
+                                                                onClick={async () => {
+                                                                    await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                                        pseudo: "BOT_SYSTEM",
+                                                                        message: '[SYSTEM]:CLEAR_QUIZ',
+                                                                        color: "text-neon-purple",
+                                                                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                        country: "FR"
+                                                                    });
+                                                                }}
+                                                                className="px-6 py-3 bg-red-600 text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
+                                                            >
+                                                                Arrêter le quiz
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            {predefinedQuizzes.length > 0 ? (
+                                                                predefinedQuizzes.map((q, idx) => (
+                                                                    <button
+                                                                        key={idx}
+                                                                        onClick={async () => {
+                                                                            const msg = `[QUIZ_START]:${q.question}|${q.options.join('|')}|${q.correct}`;
+                                                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                                                pseudo: "BOT_QUIZ",
+                                                                                message: msg,
+                                                                                color: "text-neon-purple",
+                                                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                                country: "FR"
+                                                                            });
+                                                                        }}
+                                                                        className="p-6 bg-white/5 border border-white/10 rounded-2xl text-left hover:border-neon-purple/50 hover:bg-white/10 transition-all group"
+                                                                    >
+                                                                        <p className="text-[10px] font-black text-neon-purple uppercase mb-1 tracking-widest">QUIZ PRÉDÉFINI #{idx + 1}</p>
+                                                                        <p className="text-sm font-bold text-white uppercase line-clamp-2">{q.question}</p>
+                                                                    </button>
+                                                                ))
+                                                            ) : (
+                                                                <div className="col-span-2 text-center py-10 border border-dashed border-white/10 rounded-3xl">
+                                                                    <p className="text-xs font-bold text-gray-500 uppercase">Aucun quiz prédéfini dispo.</p>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : adminActiveTab === 'shazam' ? (
+                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center">
+                                                        <Music className="w-6 h-6 text-neon-purple" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Configuration Shazam</h3>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Gérez la reconnaissance musicale et l'historique</p>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-4 pt-4 border-t border-white/5">
+                                                    <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 flex items-center justify-between">
+                                                        <div>
+                                                            <p className="text-xs font-black text-white uppercase mb-1">Vider l'historique</p>
+                                                            <p className="text-[9px] text-gray-400 font-bold uppercase">Supprime tous les morceaux identifiés du site</p>
+                                                        </div>
                                                         <button
-                                                            onClick={async () => {
-                                                                setMarqueeItems(editMarqueeItems);
-                                                                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                    pseudo: "BOT_SYSTEM",
-                                                                    message: `[SYSTEM]:MARQUEE_UPDATE:${JSON.stringify(editMarqueeItems)}`,
-                                                                    color: "text-neon-cyan",
-                                                                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                    country: "FR"
-                                                                });
-                                                                showNotification('Bandeau mis à jour', 'success');
-                                                            }}
-                                                            className="w-full py-4 bg-neon-red text-white font-black uppercase rounded-2xl mt-4 hover:bg-red-600 transition-colors shadow-xl shadow-red-500/20"
+                                                            onClick={clearShazamHistory}
+                                                            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase rounded-xl transition-all shadow-lg shadow-red-600/20"
                                                         >
-                                                            Mettre à jour le bandeau
+                                                            Vider Shazam
                                                         </button>
                                                     </div>
-                                                </div>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-8">
-                                                <div className="grid grid-cols-2 gap-8">
-                                                    <div className="p-8 bg-red-600/5 border border-red-600/20 rounded-[2.5rem] text-center space-y-4">
-                                                        <Trash2 className="w-8 h-8 text-red-500 mx-auto" />
-                                                        <h4 className="text-white font-black uppercase">Nettoyage Chat</h4>
-                                                        <button onClick={clearChat} className="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase">Vider le Chat</button>
+
+                                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">AudD API Token</label>
+                                                        <input
+                                                            type="password"
+                                                            placeholder="VOTRE TOKEN AUDD.IO"
+                                                            value={editAuddToken}
+                                                            onChange={e => setEditAuddToken(e.target.value)}
+                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-purple outline-none transition-all"
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
-                                        )}
-                                    </div>
+                                        </div>
+                                    ) : adminActiveTab === 'planning' ? (
+                                        <div className="space-y-10">
+                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                <div className="flex items-center gap-3 mb-2">
+                                                    <Plus className="w-6 h-6 text-neon-cyan" />
+                                                    <h3 className="text-sm font-black text-white uppercase tracking-widest">Ajouter une session</h3>
+                                                </div>
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+                                                    <div className="flex flex-col gap-1.5">
+                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Date / Agenda</label>
+                                                        <input type="date" value={newLineupItem.day} onChange={e => setNewLineupItem({ ...newLineupItem, day: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-cyan transition-all" />
+                                                    </div>
+                                                    <input type="text" placeholder="ARTISTE" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, artist: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                    <input type="text" placeholder="DEBUT" value={newLineupItem.startTime} onChange={e => setNewLineupItem({ ...newLineupItem, startTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                    <input type="text" placeholder="FIN" value={newLineupItem.endTime} onChange={e => setNewLineupItem({ ...newLineupItem, endTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                    <input type="text" placeholder="SCÈNE" value={newLineupItem.stage} onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                    <input type="text" placeholder="INSTAGRAM" value={newLineupItem.instagram} onChange={e => setNewLineupItem({ ...newLineupItem, instagram: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                </div>
+                                                <button onClick={() => { if (newLineupItem.artist) { setLineupItems([...lineupItems, { ...newLineupItem, id: Date.now().toString() }]); setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '' }); } }} className="w-full py-4 bg-neon-cyan text-black font-black uppercase rounded-2xl hover:bg-neon-cyan/80 transition-all">Ajouter</button>
+                                            </div>
 
-                                    <div className="flex gap-4 pt-6 border-t border-white/10">
-                                        <button onClick={handleSaveSettings} disabled={isSaving} className="flex-1 py-4 bg-neon-purple text-white font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-purple/80 transition-all shadow-xl shadow-neon-purple/20 flex items-center justify-center gap-3 disabled:opacity-50">
-                                            <Save className={`w-5 h-5 ${isSaving ? 'animate-spin' : ''}`} />
-                                            {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER'}
-                                        </button>
+                                            <div className="space-y-4">
+                                                {lineupItems.map((item, i) => (
+                                                    <div key={item.id} className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="text-gray-500 font-mono text-xs">{item.startTime}</div>
+                                                            <div>
+                                                                <p className="text-white font-black uppercase text-sm">{item.artist}</p>
+                                                                <p className="text-[10px] text-neon-cyan font-bold uppercase">{item.stage}</p>
+                                                            </div>
+                                                        </div>
+                                                        <button onClick={() => setLineupItems(lineupItems.filter((_, idx) => idx !== i))} className="text-red-500 p-2 hover:bg-red-500/10 rounded-lg"><Trash2 className="w-4 h-4" /></button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ) : adminActiveTab === 'drops' ? (
+                                        <div className="space-y-8">
+                                            <div className="grid grid-cols-2 gap-8">
+                                                <div className="space-y-4">
+                                                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Nouveau Lot</h3>
+                                                    <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+                                                        <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">Prix Message Couleur (Drops)</label>
+                                                        <input type="number" placeholder="PRIX HIGHLIGHT" value={editHighlightPrice} onChange={e => setEditHighlightPrice(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-red outline-none" />
+
+                                                        <div className="grid grid-cols-2 gap-4 mt-4">
+                                                            <div>
+                                                                <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">Gains (Drops)</label>
+                                                                <input type="number" placeholder="MONTANT" value={editDropsAmount} onChange={e => setEditDropsAmount(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-red outline-none" />
+                                                            </div>
+                                                            <div>
+                                                                <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">Toutes les (Min)</label>
+                                                                <input type="number" placeholder="INTERVALLE" value={editDropsInterval} onChange={e => setEditDropsInterval(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-red outline-none" />
+                                                            </div>
+                                                        </div>
+                                                        <p className="text-[9px] text-gray-500 font-bold uppercase leading-tight italic mt-2">Configurez combien de drops les utilisateurs gagnent et tous les combien de temps.</p>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <h3 className="text-xs font-black text-white uppercase tracking-widest">Nouveau Lot Boutique</h3>
+                                                    <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+                                                        <input type="text" placeholder="NOM DU LOT" value={newLot.name} onChange={e => setNewLot({ ...newLot, name: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
+                                                        <input type="number" placeholder="PRIX EN DROPS" value={newLot.price} onChange={e => setNewLot({ ...newLot, price: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
+                                                        <button onClick={() => { if (newLot.name) { setDropsLots([...dropsLots, { id: Date.now(), name: newLot.name, price: Number(newLot.price), stock: 10 }]); setNewLot({ name: '', price: '', stock: '' }); } }} className="w-full py-3 bg-neon-red text-white font-black rounded-xl hover:bg-neon-red/80 transition-all">Ajouter à la boutique</button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : adminActiveTab === 'bot' ? (
+                                        <div className="space-y-8">
+                                            <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+                                                <h4 className="text-xs font-black text-neon-cyan uppercase tracking-widest">➕ Nouvelle Commande</h4>
+                                                <input type="text" placeholder="!COMMANDE" value={newCmd.command} onChange={e => setNewCmd({ ...newCmd, command: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
+                                                <textarea placeholder="REPONSE" value={newCmd.response} onChange={e => setNewCmd({ ...newCmd, response: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white min-h-[80px]" />
+                                                <button onClick={() => { if (newCmd.command) { setBotCommands([...botCommands, { command: newCmd.command, response: newCmd.response }]); setNewCmd({ command: '', response: '' }); } }} className="w-full py-3 bg-neon-cyan text-black font-black rounded-xl hover:scale-[1.02] transition-all">Enregistrer</button>
+                                            </div>
+
+                                            {/* List of existing commands */}
+                                            <div className="space-y-3">
+                                                <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">📋 Commandes Actives ({botCommands.length})</h4>
+                                                {botCommands.length === 0 ? (
+                                                    <div className="text-center py-8 bg-white/5 border border-white/5 rounded-2xl">
+                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande configurée</p>
+                                                    </div>
+                                                ) : (
+                                                    botCommands.map((cmd, idx) => (
+                                                        <div key={idx} className="flex items-center gap-3 bg-white/[0.03] border border-white/5 hover:border-neon-cyan/20 p-4 rounded-2xl transition-all group">
+                                                            <span className="text-neon-cyan font-black text-xs uppercase tracking-tight shrink-0 min-w-[100px]">{cmd.command}</span>
+                                                            <span className="text-gray-400 text-xs font-bold flex-1 truncate">{cmd.response}</span>
+                                                            <button
+                                                                onClick={() => setBotCommands(botCommands.filter((_, i) => i !== idx))}
+                                                                className="opacity-0 group-hover:opacity-100 p-2 text-gray-600 hover:text-neon-red transition-all rounded-lg hover:bg-red-500/10"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5" />
+                                                            </button>
+                                                        </div>
+                                                    ))
+                                                )}
+                                            </div>
+                                        </div>
+                                    ) : adminActiveTab === 'moderation' ? (
+                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                <div className="p-8 bg-red-600/5 border border-red-600/20 rounded-[2.5rem] text-center space-y-4">
+                                                    <Trash2 className="w-8 h-8 text-red-500 mx-auto" />
+                                                    <h4 className="text-white font-black uppercase">Nettoyage Chat</h4>
+                                                    <button onClick={clearChat} className="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase hover:bg-red-700 transition-all shadow-xl shadow-red-600/20">Vider le Chat</button>
+                                                </div>
+                                                <div className="p-8 bg-amber-600/5 border border-amber-600/20 rounded-[2.5rem] text-center space-y-4">
+                                                    <Ban className="w-8 h-8 text-amber-500 mx-auto" />
+                                                    <h4 className="text-white font-black uppercase">Mode Lent</h4>
+                                                    <button
+                                                        onClick={async () => {
+                                                            const sysMsg = slowModeEnabled ? '[SYSTEM]:SLOW_OFF' : '[SYSTEM]:SLOW_ON';
+                                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                                pseudo: "BOT_SYSTEM",
+                                                                message: sysMsg,
+                                                                color: "text-neon-purple",
+                                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                country: "FR"
+                                                            });
+                                                        }}
+                                                        className={`w-full py-4 ${slowModeEnabled ? 'bg-amber-600' : 'bg-gray-600'} text-white rounded-2xl font-black uppercase transition-all`}
+                                                    >
+                                                        {slowModeEnabled ? 'DÉSACTIVER MODE LENT' : 'ACTIVER MODE LENT'}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                                <div className="p-8 bg-neon-purple/5 border border-neon-purple/20 rounded-[2.5rem] text-center space-y-4">
+                                                    <Stars className="w-8 h-8 text-neon-purple mx-auto" />
+                                                    <h4 className="text-white font-black uppercase">Effets Fixes</h4>
+                                                    <div className="flex gap-4 flex-wrap justify-center">
+                                                        <button onClick={() => triggerConfetti()} className="flex-1 min-w-[120px] py-4 bg-neon-purple text-white rounded-2xl font-black uppercase">Confettis</button>
+                                                        <button onClick={() => triggerFireworks()} className="flex-1 min-w-[120px] py-4 bg-pink-600 text-white rounded-2xl font-black uppercase">Artifices</button>
+                                                        <button onClick={() => handleSendMessage('!rate')} className="flex-1 min-w-[120px] py-4 bg-yellow-500 text-black rounded-2xl font-black uppercase">Avis Set</button>
+                                                    </div>
+                                                </div>
+                                                <div className="p-8 bg-blue-600/5 border border-blue-600/20 rounded-[2.5rem] text-center space-y-4">
+                                                    <Crown className="w-8 h-8 text-blue-500 mx-auto" />
+                                                    <h4 className="text-white font-black uppercase">Affichage des Badges</h4>
+                                                    <button
+                                                        onClick={() => {
+                                                            const next = !showBadgesAdmin;
+                                                            setShowBadgesAdmin(next);
+                                                            localStorage.setItem('chat_show_badges', next ? 'true' : 'false');
+                                                        }}
+                                                        className={`w-full py-4 ${showBadgesAdmin ? 'bg-blue-600' : 'bg-gray-600'} text-white rounded-2xl font-black uppercase transition-all`}
+                                                    >
+                                                        {showBadgesAdmin ? 'BADGES ACTIVÉS' : 'BADGES DÉSACTIVÉS'}
+                                                    </button>
+                                                    <div className="mt-4 pt-4 border-t border-white/10 text-left">
+                                                        <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Utiliser les commandes chat :</div>
+                                                        <div className="text-xs font-bold text-white uppercase italic">!vip @pseudo <span className="text-gray-500 font-normal">pour ajouter</span></div>
+                                                        <div className="text-xs font-bold text-white uppercase italic">!unvip @pseudo <span className="text-gray-500 font-normal">pour retirer</span></div>
+                                                    </div>
+                                                </div>
+                                                <div className="p-8 bg-neon-cyan/5 border border-neon-cyan/20 rounded-[2.5rem] text-center space-y-4">
+                                                    <Volume2 className="w-8 h-8 text-neon-cyan mx-auto" />
+                                                    <h4 className="text-white font-black uppercase">Synthèse Vocale (TTS)</h4>
+                                                    <button onClick={() => setIsTTSActive(!isTTSActive)} className={`w-full py-4 ${isTTSActive ? 'bg-neon-cyan text-black' : 'bg-gray-600 text-white'} rounded-2xl font-black uppercase transition-all`}>
+                                                        {isTTSActive ? 'DÉSACTIVER TTS' : 'ACTIVER TTS'}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Marquee Settings */}
+                                            <div className="col-span-1 md:col-span-2 p-8 bg-neon-red/5 border border-neon-red/20 rounded-[2.5rem] space-y-6">
+                                                <div className="flex items-center gap-4 justify-center mb-6">
+                                                    <Megaphone className="w-8 h-8 text-neon-red" />
+                                                    <h4 className="text-white font-black uppercase text-xl">Bandeau News (Défilant)</h4>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    {editMarqueeItems.map((item, idx) => (
+                                                        <div key={idx} className="flex flex-col md:flex-row gap-4 bg-black/40 p-4 rounded-2xl border border-white/10">
+                                                            <div className="flex-1 space-y-2">
+                                                                <label className="text-[10px] font-black text-neon-red uppercase">Texte Info {idx + 1}</label>
+                                                                <input type="text" value={item.text} onChange={e => {
+                                                                    const next = [...editMarqueeItems];
+                                                                    next[idx].text = e.target.value;
+                                                                    setEditMarqueeItems(next);
+                                                                }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white uppercase outline-none focus:border-neon-red" placeholder="TEXTE (OPTIONNEL)" />
+                                                            </div>
+                                                            <div className="flex-1 space-y-2">
+                                                                <label className="text-[10px] font-black text-neon-red uppercase">Lien (Optionnel)</label>
+                                                                <input type="text" value={item.link} onChange={e => {
+                                                                    const next = [...editMarqueeItems];
+                                                                    next[idx].link = e.target.value;
+                                                                    setEditMarqueeItems(next);
+                                                                }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-red" placeholder="https://" />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                    <button
+                                                        onClick={async () => {
+                                                            setMarqueeItems(editMarqueeItems);
+                                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                                pseudo: "BOT_SYSTEM",
+                                                                message: `[SYSTEM]:MARQUEE_UPDATE:${JSON.stringify(editMarqueeItems)}`,
+                                                                color: "text-neon-cyan",
+                                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                                                                country: "FR"
+                                                            });
+                                                            showNotification('Bandeau mis à jour', 'success');
+                                                        }}
+                                                        className="w-full py-4 bg-neon-red text-white font-black uppercase rounded-2xl mt-4 hover:bg-red-600 transition-colors shadow-xl shadow-red-500/20"
+                                                    >
+                                                        Mettre à jour le bandeau
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ) : (
+                                        <div className="space-y-8">
+                                            <div className="grid grid-cols-2 gap-8">
+                                                <div className="p-8 bg-red-600/5 border border-red-600/20 rounded-[2.5rem] text-center space-y-4">
+                                                    <Trash2 className="w-8 h-8 text-red-500 mx-auto" />
+                                                    <h4 className="text-white font-black uppercase">Nettoyage Chat</h4>
+                                                    <button onClick={clearChat} className="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase">Vider le Chat</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex gap-4 pt-6 border-t border-white/10">
+                                    <button onClick={handleSaveSettings} disabled={isSaving} className="flex-1 py-4 bg-neon-purple text-white font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-purple/80 transition-all shadow-xl shadow-neon-purple/20 flex items-center justify-center gap-3 disabled:opacity-50">
+                                        <Save className={`w-5 h-5 ${isSaving ? 'animate-spin' : ''}`} />
+                                        {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER'}
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+
+
+                {/* Profile Overlay Card */}
+                <AnimatePresence>
+                    {selectedProfile && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.8, rotateX: 20 }}
+                            animate={{ opacity: 1, scale: 1, rotateX: 0 }}
+                            exit={{ opacity: 0, scale: 0.8 }}
+                            className="absolute bottom-6 left-6 z-[100] w-72 bg-black/90 backdrop-blur-2xl border-2 border-white/10 rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
+                        >
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple" />
+
+                            <div className="flex flex-col items-center mb-6">
+                                <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-white/5 to-white/10 border border-white/10 flex items-center justify-center mb-4 relative group">
+                                    <User className="w-10 h-10 text-white" />
+                                    <div className="absolute -bottom-1 -right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-black" />
+                                </div>
+                                <h4 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter leading-none mb-2">{selectedProfile.pseudo}</h4>
+                                <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
+                                    <FlagIcon location={selectedProfile.country || 'FR'} className="w-3 h-2" />
+                                    <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">{selectedProfile.country || 'FR'}</span>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 mb-6">
+                                <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center">
+                                    <p className="text-[8px] text-gray-500 font-black uppercase mb-1">Niveau</p>
+                                    <div className="flex items-center justify-center gap-1.5">
+                                        <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
+                                        <p className="text-xs text-white font-black italic">ELITE</p>
                                     </div>
                                 </div>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
+                                <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center">
+                                    <p className="text-[8px] text-gray-500 font-black uppercase mb-1">Drops</p>
+                                    <div className="flex items-center justify-center gap-1.5">
+                                        <Zap className="w-3 h-3 text-neon-cyan" />
+                                        <p className="text-xs text-neon-cyan font-black italic">1.2K</p>
+                                    </div>
+                                </div>
+                            </div>
 
+                            <div className="flex gap-2 mb-8 justify-center">
+                                <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center border border-red-500/30" title="Donateur"><Music className="w-4 h-4 text-red-500" /></div>
+                                <div className="w-8 h-8 rounded-lg bg-neon-cyan/20 flex items-center justify-center border border-neon-cyan/30" title="Actif"><BarChart3 className="w-4 h-4 text-neon-cyan" /></div>
+                                <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center border border-amber-500/30" title="Vétéran"><Bell className="w-4 h-4 text-amber-500" /></div>
+                            </div>
 
-
-                    {/* Profile Overlay Card */}
-                    <AnimatePresence>
-                        {selectedProfile && (
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.8, rotateX: 20 }}
-                                animate={{ opacity: 1, scale: 1, rotateX: 0 }}
-                                exit={{ opacity: 0, scale: 0.8 }}
-                                className="absolute bottom-6 left-6 z-[100] w-72 bg-black/90 backdrop-blur-2xl border-2 border-white/10 rounded-[2.5rem] p-8 shadow-[0_20px_50px_rgba(0,0,0,0.5)] overflow-hidden"
+                            <button
+                                onClick={() => setSelectedProfile(null)}
+                                className="w-full py-4 bg-white text-black text-[10px] font-black uppercase rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,255,255,0.1)]"
                             >
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple" />
-
-                                <div className="flex flex-col items-center mb-6">
-                                    <div className="w-20 h-20 rounded-[2rem] bg-gradient-to-br from-white/5 to-white/10 border border-white/10 flex items-center justify-center mb-4 relative group">
-                                        <User className="w-10 h-10 text-white" />
-                                        <div className="absolute -bottom-1 -right-1 bg-green-500 w-4 h-4 rounded-full border-2 border-black" />
-                                    </div>
-                                    <h4 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter leading-none mb-2">{selectedProfile.pseudo}</h4>
-                                    <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/10">
-                                        <FlagIcon location={selectedProfile.country || 'FR'} className="w-3 h-2" />
-                                        <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">{selectedProfile.country || 'FR'}</span>
-                                    </div>
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-3 mb-6">
-                                    <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center">
-                                        <p className="text-[8px] text-gray-500 font-black uppercase mb-1">Niveau</p>
-                                        <div className="flex items-center justify-center gap-1.5">
-                                            <Star className="w-3 h-3 text-amber-500 fill-amber-500" />
-                                            <p className="text-xs text-white font-black italic">ELITE</p>
-                                        </div>
-                                    </div>
-                                    <div className="bg-white/5 rounded-2xl p-3 border border-white/5 text-center">
-                                        <p className="text-[8px] text-gray-500 font-black uppercase mb-1">Drops</p>
-                                        <div className="flex items-center justify-center gap-1.5">
-                                            <Zap className="w-3 h-3 text-neon-cyan" />
-                                            <p className="text-xs text-neon-cyan font-black italic">1.2K</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-2 mb-8 justify-center">
-                                    <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center border border-red-500/30" title="Donateur"><Music className="w-4 h-4 text-red-500" /></div>
-                                    <div className="w-8 h-8 rounded-lg bg-neon-cyan/20 flex items-center justify-center border border-neon-cyan/30" title="Actif"><BarChart3 className="w-4 h-4 text-neon-cyan" /></div>
-                                    <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center border border-amber-500/30" title="Vétéran"><Bell className="w-4 h-4 text-amber-500" /></div>
-                                </div>
-
-                                <button
-                                    onClick={() => setSelectedProfile(null)}
-                                    className="w-full py-4 bg-white text-black text-[10px] font-black uppercase rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,255,255,0.1)]"
-                                >
-                                    FERMER LE PROFIL
-                                </button>
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div >
+                                FERMER LE PROFIL
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
                 {/* B. CHAT PANEL (60% Mobile / 40% Desktop) */}
                 <div className={`${isCinemaMode ? 'hidden' : 'w-full lg:w-[40%] h-[60%] lg:h-full'} bg-black/60 backdrop-blur-2xl flex flex-col relative border-l border-white/5 shadow-2xl z-10`}>
@@ -3033,274 +3096,319 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         )
                     }
                 </div>
-            </div>
 
-            {/* Flash Message Overlay */}
-            <AnimatePresence>
-                {flashMessage && (
-                    <motion.div
-                        initial={{ opacity: 0, y: -50 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -50 }}
-                        className="fixed top-24 left-1/2 -translate-x-1/2 z-[200]"
-                    >
-                        <div className={`px-8 py-4 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl border-2 flex items-center gap-4 ${flashMessage.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500 shadow-green-500/20' :
-                            flashMessage.type === 'warn' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 shadow-amber-500/20' :
-                                'bg-blue-500/10 border-blue-500/20 text-blue-500 shadow-blue-500/20'
-                            }`}>
-                            {flashMessage.type === 'success' ? <ShieldCheck className="w-6 h-6" /> :
-                                flashMessage.type === 'warn' ? <AlertCircle className="w-6 h-6 animate-pulse" /> :
-                                    <Megaphone className="w-6 h-6" />}
-                            <span className="text-sm font-black uppercase tracking-widest">{flashMessage.text}</span>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Notification Toast */}
-            <AnimatePresence>
-                {toast.show && (
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]">
-                        <div className={`px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
-                            {toast.type === 'success' ? <ShieldCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                            <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* 🆕 Arrival Animation */}
-            <AnimatePresence>
-                {newArrival && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 50, scale: 0.8 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: -20, scale: 1.1 }}
-                        className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] pointer-events-none"
-                    >
-                        <div className="bg-black/80 backdrop-blur-xl border border-neon-cyan/30 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-[0_0_30px_rgba(0,255,255,0.2)]">
-                            <div className="w-10 h-10 bg-neon-cyan/20 rounded-full flex items-center justify-center relative overflow-hidden">
-                                <User className="w-6 h-6 text-neon-cyan" />
-                                <motion.div
-                                    animate={{ x: ['-100%', '100%'] }}
-                                    transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-                                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                                />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none">Nouvel arrivant</p>
-                                <p className="text-sm font-black text-white uppercase italic tracking-tighter">{newArrival} vient d'arriver !</p>
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* PACMAN ANIMATION */}
-            <AnimatePresence>
-                {isPacmanActive && (
-                    <motion.div
-                        initial={{ x: '110vw' }}
-                        animate={{ x: '-110vw' }}
-                        transition={{ duration: 5, ease: "linear" }}
-                        className="fixed top-1/2 left-0 z-[2000] pointer-events-none"
-                    >
-                        <div className="flex items-center gap-4 text-yellow-400">
-                            <motion.div
-                                animate={{ rotate: [0, 30, 0] }}
-                                transition={{ repeat: Infinity, duration: 0.2 }}
-                                className="w-16 h-16 bg-yellow-400 rounded-full relative"
-                                style={{ clipPath: 'polygon(100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 50%)' }}
-                            />
-                            <div className="flex gap-8">
-                                {[...Array(5)].map((_, i) => (
-                                    <div key={i} className="w-4 h-4 bg-white rounded-full opacity-50" />
-                                ))}
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* MATRIX OVERLAY */}
-            <AnimatePresence>
-                {isMatrixActive && (
-                    <motion.div
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-[1000] pointer-events-none overflow-hidden bg-black/20"
-                    >
-                        <div className="absolute inset-0 opacity-40 font-mono text-[10px] text-[#00ff41] flex flex-wrap gap-2 p-4 leading-none select-none">
-                            {[...Array(2000)].map((_, i) => (
-                                <motion.span
-                                    key={i}
-                                    initial={{ opacity: 0, y: -20 }}
-                                    animate={{ opacity: [0, 1, 0], y: [0, 500] }}
-                                    transition={{
-                                        duration: Math.random() * 3 + 2,
-                                        repeat: Infinity,
-                                        delay: Math.random() * 5
-                                    }}
-                                >
-                                    {Math.random() > 0.5 ? '1' : '0'}
-                                </motion.span>
-                            ))}
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* BOSS FIGHT OVERLAY */}
-            <AnimatePresence>
-                {activeBoss && (
-                    <motion.div
-                        initial={{ y: 200, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: 200, opacity: 0 }}
-                        className="fixed bottom-20 left-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-neon-red p-4 rounded-3xl w-64 shadow-[0_0_30px_rgba(255,0,0,0.3)]"
-                    >
-                        <div className="flex items-center gap-3 mb-2">
-                            <Sword className="w-6 h-6 text-neon-red animate-pulse" />
-                            <div>
-                                <p className="text-[10px] font-black text-neon-red uppercase tracking-widest">BOSS APPARU !</p>
-                                <p className="text-sm font-black text-white uppercase italic">{activeBoss.name}</p>
-                            </div>
-                        </div>
-                        <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden border border-white/5">
-                            <motion.div
-                                animate={{ width: `${(activeBoss.hp / activeBoss.maxHp) * 100}%` }}
-                                className="h-full bg-gradient-to-r from-red-600 to-red-400 shadow-[0_0_10px_rgba(255,0,0,0.5)]"
-                            />
-                        </div>
-                        <div className="flex justify-between mt-1">
-                            <span className="text-[9px] font-black text-white/50">{activeBoss.hp} HP</span>
-                            <span className="text-[9px] font-black text-neon-red uppercase">TAPEZ !HIT</span>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* HEIST OVERLAY */}
-            <AnimatePresence>
-                {activeHeist && (
-                    <motion.div
-                        initial={{ x: -200, opacity: 0 }}
-                        animate={{ x: 0, opacity: 1 }}
-                        exit={{ x: -200, opacity: 0 }}
-                        className="fixed top-24 left-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-neon-cyan p-4 rounded-3xl w-64 shadow-[0_0_30px_rgba(0,255,255,0.2)]"
-                    >
-                        <div className="flex items-center gap-3 mb-2">
-                            <ShieldCheck className="w-6 h-6 text-neon-cyan animate-bounce" />
-                            <div>
-                                <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">BRAQUAGE EN COURS</p>
-                                <p className="text-xs font-bold text-white uppercase">{activeHeist?.participants?.length || 0} Braqueurs prêts</p>
-                            </div>
-                        </div>
-                        <div className="text-[9px] font-black text-white/50 mb-2 uppercase">TOTAL MISÉ : {activeHeist?.participants?.reduce((a, b) => a + (b?.bet || 0), 0) || 0} DROPS</div>
-                        <div className="text-center py-1 bg-neon-cyan/10 rounded-lg">
-                            <span className="text-neon-cyan font-black animate-pulse">!braquage [montant] pour rejoindre</span>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* QTE (Quick Time Event) Overlay */}
-            <AnimatePresence>
-                {activeQTE && (
-                    <motion.div initial={{ scale: 0 }} animate={{ scale: 1.2 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500]">
-                        <button
-                            onClick={() => {
-                                const reward = activeQTE?.reward || 0;
-                                const isVipReward = Math.random() > 0.8;
-                                if (isVipReward) {
-                                    setVipsList(prev => [...prev, localStorage.getItem('chat_pseudo') || '']);
-                                    showNotification(`⚡ RÉFLEXE DE GÉNIE ! TU ES VIP TEMPORAIRE ! 👑`, 'success');
-                                } else {
-                                    setUserDrops(prev => prev + reward);
-                                    showNotification(`⚡ FAST CLICK ! +${reward} DROPS ! ⚡`, 'success');
-                                }
-                                setActiveQTE(null);
-                            }}
-                            className="p-10 bg-gradient-to-br from-neon-cyan to-neon-purple rounded-full shadow-[0_0_50px_#00ffff] animate-pulse group"
+                {/* Flash Message Overlay */}
+                <AnimatePresence>
+                    {flashMessage && (
+                        <motion.div
+                            initial={{ opacity: 0, y: -50 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -50 }}
+                            className="fixed top-24 left-1/2 -translate-x-1/2 z-[200]"
                         >
-                            <Zap className="w-12 h-12 text-white group-hover:scale-125 transition-transform" />
-                            <p className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-white font-black uppercase italic tracking-widest whitespace-nowrap">CLIQUE VITE !</p>
-                        </button>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* Achievement Popup */}
-            <AnimatePresence>
-                {achievements.length > 0 && (
-                    <motion.div initial={{ x: 300 }} animate={{ x: 0 }} exit={{ x: 300 }} className="fixed top-24 right-4 z-[300] bg-black/90 border-2 border-amber-500 p-4 rounded-2xl flex items-center gap-4 shadow-[#f59e0b20] shadow-2xl">
-                        <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center">
-                            <Trophy className="w-7 h-7 text-black" />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Succès Débloqué !</p>
-                            <p className="text-xs font-black text-white uppercase italic">{achievements[achievements.length - 1]}</p>
-                        </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
-
-            {/* SLOT MACHINE JACKPOT OVERLAY */}
-            <AnimatePresence>
-                {activeSlots && (
-                    <motion.div
-                        initial={{ y: 100, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        exit={{ y: 100, opacity: 0 }}
-                        className="fixed bottom-24 right-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-amber-500 p-6 rounded-3xl w-72 shadow-[0_0_40px_rgba(245,158,11,0.3)]"
-                    >
-                        <div className="flex flex-col items-center text-center space-y-4">
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
-                                    <Star className="w-6 h-6 text-black animate-spin" />
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">MINI-JEU JACKPOT</p>
-                                    <p className="text-xl font-black text-white italic">LOTERIE !</p>
-                                </div>
+                            <div className={`px-8 py-4 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl border-2 flex items-center gap-4 ${flashMessage.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500 shadow-green-500/20' :
+                                flashMessage.type === 'warn' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 shadow-amber-500/20' :
+                                    'bg-blue-500/10 border-blue-500/20 text-blue-500 shadow-blue-500/20'
+                                }`}>
+                                {flashMessage.type === 'success' ? <ShieldCheck className="w-6 h-6" /> :
+                                    flashMessage.type === 'warn' ? <AlertCircle className="w-6 h-6 animate-pulse" /> :
+                                        <Megaphone className="w-6 h-6" />}
+                                <span className="text-sm font-black uppercase tracking-widest">{flashMessage.text}</span>
                             </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
-                            <div className="flex gap-2 justify-center py-4">
-                                {['🍒', '💎', '7️⃣'].map((emoji, i) => (
-                                    <motion.div
-                                        key={i}
-                                        animate={{ y: [0, -10, 0] }}
-                                        transition={{ repeat: Infinity, duration: 0.5, delay: i * 0.1 }}
-                                        className="w-12 h-16 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-2xl"
-                                    >
-                                        {emoji}
-                                    </motion.div>
-                                ))}
+                {/* Notification Toast */}
+                <AnimatePresence>
+                    {toast.show && (
+                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]">
+                            <div className={`px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
+                                {toast.type === 'success' ? <ShieldCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                                <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>
                             </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
 
-                            <div className="space-y-2 w-full">
-                                <p className="text-[10px] text-gray-400 font-bold uppercase">
-                                    {activeSlots.participants.length} JOUEURS • TICKET 50 DROPS
-                                </p>
-                                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                {/* 🆕 Arrival Animation */}
+                <AnimatePresence>
+                    {newArrival && (
+                        <motion.div
+                            initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                            animate={{ opacity: 1, y: 0, scale: 1 }}
+                            exit={{ opacity: 0, y: -20, scale: 1.1 }}
+                            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] pointer-events-none"
+                        >
+                            <div className="bg-black/80 backdrop-blur-xl border border-neon-cyan/30 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-[0_0_30px_rgba(0,255,255,0.2)]">
+                                <div className="w-10 h-10 bg-neon-cyan/20 rounded-full flex items-center justify-center relative overflow-hidden">
+                                    <User className="w-6 h-6 text-neon-cyan" />
                                     <motion.div
-                                        animate={{ width: `${(activeSlots.timeLeft / 60) * 100}%` }}
-                                        className="h-full bg-amber-500"
+                                        animate={{ x: ['-100%', '100%'] }}
+                                        transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
                                     />
                                 </div>
-                                <button
-                                    onClick={() => handleSendMessage("!ticket")}
-                                    className="w-full py-3 bg-amber-500 text-black font-black uppercase rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-500/20"
-                                >
-                                    Prendre un ticket !
-                                </button>
-                                <p className="text-[8px] text-amber-500/50 font-black uppercase tracking-tighter italic">FIN DANS {activeSlots.timeLeft}S</p>
+                                <div>
+                                    <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none">Nouvel arrivant</p>
+                                    <p className="text-sm font-black text-white uppercase italic tracking-tighter">{newArrival} vient d'arriver !</p>
+                                </div>
                             </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* PACMAN ANIMATION */}
+                <AnimatePresence>
+                    {isPacmanActive && (
+                        <motion.div
+                            initial={{ x: '110vw' }}
+                            animate={{ x: '-110vw' }}
+                            transition={{ duration: 5, ease: "linear" }}
+                            className="fixed top-1/2 left-0 z-[2000] pointer-events-none"
+                        >
+                            <div className="flex items-center gap-4 text-yellow-400">
+                                <motion.div
+                                    animate={{ rotate: [0, 30, 0] }}
+                                    transition={{ repeat: Infinity, duration: 0.2 }}
+                                    className="w-16 h-16 bg-yellow-400 rounded-full relative"
+                                    style={{ clipPath: 'polygon(100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 50%)' }}
+                                />
+                                <div className="flex gap-8">
+                                    {[...Array(5)].map((_, i) => (
+                                        <div key={i} className="w-4 h-4 bg-white rounded-full opacity-50" />
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* MATRIX OVERLAY */}
+                <AnimatePresence>
+                    {isMatrixActive && (
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 z-[1000] pointer-events-none overflow-hidden bg-black/20"
+                        >
+                            <div className="absolute inset-0 opacity-40 font-mono text-[10px] text-[#00ff41] flex flex-wrap gap-2 p-4 leading-none select-none">
+                                {[...Array(2000)].map((_, i) => (
+                                    <motion.span
+                                        key={i}
+                                        initial={{ opacity: 0, y: -20 }}
+                                        animate={{ opacity: [0, 1, 0], y: [0, 500] }}
+                                        transition={{
+                                            duration: Math.random() * 3 + 2,
+                                            repeat: Infinity,
+                                            delay: Math.random() * 5
+                                        }}
+                                    >
+                                        {Math.random() > 0.5 ? '1' : '0'}
+                                    </motion.span>
+                                ))}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* BOSS FIGHT OVERLAY */}
+                <AnimatePresence>
+                    {activeBoss && (
+                        <motion.div
+                            initial={{ y: 200, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: 200, opacity: 0 }}
+                            className="fixed bottom-20 left-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-neon-red p-4 rounded-3xl w-64 shadow-[0_0_30px_rgba(255,0,0,0.3)]"
+                        >
+                            <div className="flex items-center gap-3 mb-2">
+                                <Sword className="w-6 h-6 text-neon-red animate-pulse" />
+                                <div>
+                                    <p className="text-[10px] font-black text-neon-red uppercase tracking-widest">BOSS APPARU !</p>
+                                    <p className="text-sm font-black text-white uppercase italic">{activeBoss.name}</p>
+                                </div>
+                            </div>
+                            <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden border border-white/5">
+                                <motion.div
+                                    animate={{ width: `${(activeBoss.hp / activeBoss.maxHp) * 100}%` }}
+                                    className="h-full bg-gradient-to-r from-red-600 to-red-400 shadow-[0_0_10px_rgba(255,0,0,0.5)]"
+                                />
+                            </div>
+                            <div className="flex justify-between mt-1">
+                                <span className="text-[9px] font-black text-white/50">{activeBoss.hp} HP</span>
+                                <span className="text-[9px] font-black text-neon-red uppercase">TAPEZ !HIT</span>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* HEIST OVERLAY */}
+                <AnimatePresence>
+                    {activeHeist && (
+                        <motion.div
+                            initial={{ x: -200, opacity: 0 }}
+                            animate={{ x: 0, opacity: 1 }}
+                            exit={{ x: -200, opacity: 0 }}
+                            className="fixed top-24 left-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-neon-cyan p-4 rounded-3xl w-64 shadow-[0_0_30px_rgba(0,255,255,0.2)]"
+                        >
+                            <div className="flex items-center gap-3 mb-2">
+                                <ShieldCheck className="w-6 h-6 text-neon-cyan animate-bounce" />
+                                <div>
+                                    <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">BRAQUAGE EN COURS</p>
+                                    <p className="text-xs font-bold text-white uppercase">{activeHeist?.participants?.length || 0} Braqueurs prêts</p>
+                                </div>
+                            </div>
+                            <div className="text-[9px] font-black text-white/50 mb-2 uppercase">TOTAL MISÉ : {activeHeist?.participants?.reduce((a, b) => a + (b?.bet || 0), 0) || 0} DROPS</div>
+                            <div className="text-center py-1 bg-neon-cyan/10 rounded-lg">
+                                <span className="text-neon-cyan font-black animate-pulse">!braquage [montant] pour rejoindre</span>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* QTE (Quick Time Event) Overlay */}
+                <AnimatePresence>
+                    {activeQTE && (
+                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1.2 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500]">
+                            <button
+                                onClick={() => {
+                                    const reward = activeQTE?.reward || 0;
+                                    const isVipReward = Math.random() > 0.8;
+                                    if (isVipReward) {
+                                        setVipsList(prev => [...prev, localStorage.getItem('chat_pseudo') || '']);
+                                        showNotification(`⚡ RÉFLEXE DE GÉNIE ! TU ES VIP TEMPORAIRE ! 👑`, 'success');
+                                    } else {
+                                        setUserDrops(prev => prev + reward);
+                                        showNotification(`⚡ FAST CLICK ! +${reward} DROPS ! ⚡`, 'success');
+                                    }
+                                    setActiveQTE(null);
+                                }}
+                                className="p-10 bg-gradient-to-br from-neon-cyan to-neon-purple rounded-full shadow-[0_0_50px_#00ffff] animate-pulse group"
+                            >
+                                <Zap className="w-12 h-12 text-white group-hover:scale-125 transition-transform" />
+                                <p className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-white font-black uppercase italic tracking-widest whitespace-nowrap">CLIQUE VITE !</p>
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* Achievement Popup */}
+                <AnimatePresence>
+                    {achievements.length > 0 && (
+                        <motion.div initial={{ x: 300 }} animate={{ x: 0 }} exit={{ x: 300 }} className="fixed top-24 right-4 z-[300] bg-black/90 border-2 border-amber-500 p-4 rounded-2xl flex items-center gap-4 shadow-[#f59e0b20] shadow-2xl">
+                            <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center">
+                                <Trophy className="w-7 h-7 text-black" />
+                            </div>
+                            <div>
+                                <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Succès Débloqué !</p>
+                                <p className="text-xs font-black text-white uppercase italic">{achievements[achievements.length - 1]}</p>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* SLOT MACHINE JACKPOT OVERLAY */}
+                <AnimatePresence>
+                    {activeSlots && (
+                        <motion.div
+                            initial={{ y: 100, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            exit={{ y: 100, opacity: 0 }}
+                            className="fixed bottom-24 right-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-amber-500 p-6 rounded-3xl w-72 shadow-[0_0_40px_rgba(245,158,11,0.3)]"
+                        >
+                            <div className="flex flex-col items-center text-center space-y-4">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
+                                        <Star className="w-6 h-6 text-black animate-spin" />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">MINI-JEU JACKPOT</p>
+                                        <p className="text-xl font-black text-white italic">LOTERIE !</p>
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-2 justify-center py-4">
+                                    {['🍒', '💎', '7️⃣'].map((emoji, i) => (
+                                        <motion.div
+                                            key={i}
+                                            animate={{ y: [0, -10, 0] }}
+                                            transition={{ repeat: Infinity, duration: 0.5, delay: i * 0.1 }}
+                                            className="w-12 h-16 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-2xl"
+                                        >
+                                            {emoji}
+                                        </motion.div>
+                                    ))}
+                                </div>
+
+                                <div className="space-y-2 w-full">
+                                    <p className="text-[10px] text-gray-400 font-bold uppercase">
+                                        {activeSlots.participants.length} JOUEURS • TICKET 50 DROPS
+                                    </p>
+                                    <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                        <motion.div
+                                            animate={{ width: `${(activeSlots.timeLeft / 60) * 100}%` }}
+                                            className="h-full bg-amber-500"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => handleSendMessage("!ticket")}
+                                        className="w-full py-3 bg-amber-500 text-black font-black uppercase rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-500/20"
+                                    >
+                                        Prendre un ticket !
+                                    </button>
+                                    <p className="text-[8px] text-amber-500/50 font-black uppercase tracking-tighter italic">FIN DANS {activeSlots.timeLeft}S</p>
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+                {/* USER LOGS MODAL */}
+                <AnimatePresence>
+                    {showUserLogs && (
+                        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowUserLogs(null)} className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+                            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-[#0a0a0a] border-2 border-neon-cyan/30 rounded-[2.5rem] w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-[0_0_50px_rgba(0,255,255,0.1)]">
+                                <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/5">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-12 h-12 rounded-2xl bg-neon-cyan/20 flex items-center justify-center text-neon-cyan">
+                                            <MessageSquare className="w-6 h-6" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Logs Chat : {showUserLogs}</h3>
+                                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{chatMessages.filter(m => m.pseudo === showUserLogs).length} messages trouvés</p>
+                                        </div>
+                                    </div>
+                                    <button onClick={() => setShowUserLogs(null)} className="p-3 hover:bg-white/10 rounded-full transition-colors"><X className="w-6 h-6 text-gray-500" /></button>
+                                </div>
+                                <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-black/20">
+                                    {chatMessages.filter(m => m.pseudo === showUserLogs).map((m, i) => (
+                                        <div key={i} className="group">
+                                            <div className="flex items-center gap-2 mb-1">
+                                                <span className="text-[9px] font-black text-neon-cyan/50 tracking-widest">{m.time}</span>
+                                                <div className="h-px flex-1 bg-white/5" />
+                                            </div>
+                                            <div className="p-3 bg-white/5 border border-white/5 rounded-2xl group-hover:border-neon-cyan/20 transition-colors">
+                                                <p className="text-sm text-white/90 leading-relaxed font-medium">{m.message}</p>
+                                            </div>
+                                        </div>
+                                    ))}
+                                    {chatMessages.filter(m => m.pseudo === showUserLogs).length === 0 && (
+                                        <div className="flex flex-col items-center justify-center py-20 text-gray-600 space-y-4">
+                                            <Trash2 className="w-12 h-12 opacity-20" />
+                                            <p className="text-sm font-black uppercase italic tracking-widest">Aucun historique disponible</p>
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="p-4 bg-white/5 border-t border-white/10 flex justify-end gap-3">
+                                    <button onClick={() => { if (showUserLogs) handlePurgeTarget(showUserLogs); setShowUserLogs(null); }} className="px-6 py-2 bg-red-600/20 border border-red-500/30 text-red-500 text-[10px] font-black rounded-xl hover:bg-red-600/30 transition-all uppercase tracking-widest">EFFACER HISTORIQUE</button>
+                                    <button onClick={() => setShowUserLogs(null)} className="px-6 py-2 bg-white/5 text-white text-[10px] font-black rounded-xl hover:bg-white/10 transition-all uppercase tracking-widest border border-white/10">FERMER</button>
+                                </div>
+                            </motion.div>
                         </div>
-                    </motion.div>
-                )}
-            </AnimatePresence>
+                    )}
+                </AnimatePresence>
+            </div>
         </div>
     );
 };
