@@ -501,7 +501,7 @@ export default {
         };
 
         // --- AUTH CHECK ---
-        const adminPassword = env.ADMIN_PASSWORD || '2026';
+        const adminPassword = env.ADMIN_PASSWORD || '01061988';
         const requestPassword = request.headers.get('X-Admin-Password');
         let requestUsername = request.headers.get('X-Admin-Username') || '';
 
