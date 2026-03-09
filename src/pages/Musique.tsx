@@ -581,7 +581,7 @@ export function Musique() {
 
             <div className="mt-12 py-8 border-t border-white/5 text-center">
                 <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em]">
-                    Les classements sont mis à jour tous les 3 jours via Beatport, Traxsource et Juno
+                    Les classements sont mis à jour tous les 3 jours via Beatport et Traxsource
                 </p>
             </div>
         </div>
