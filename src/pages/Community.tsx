@@ -272,6 +272,7 @@ export function Community() {
     const [randomEvent, setRandomEvent] = useState<typeof RANDOM_EVENTS[0] | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
     const [selectedGenreFilter, setSelectedGenreFilter] = useState('ALL');
+    const [advisorTip, setAdvisorTip] = useState<{ name: string, tip: string } | null>(null);
 
     // Stats
     const sponsorsBonus = useMemo(() => {
@@ -348,6 +349,15 @@ export function Community() {
         } else {
             setRandomEvent(null);
         }
+
+        // Talent Scout initial tip
+        const tips = [
+            { name: "John, Scout Senior", tip: "L'Afro House est en feu ! Si tu peux choper Keinemusik ou Black Coffee, ton festival va exploser sur Insta." },
+            { name: "Sarah, Liaison Booking", tip: "Les USA ne jurent que par John Summit et Mau P. Booke-les pour attirer le public international." },
+            { name: "Marc, Strategist Lab", tip: "La techno mélodique type Afterlife est ultra tendance. Anyma et Tale of Us garantissent un sold-out." },
+            { name: "Lucie, Trend Hunter", tip: "Indira Paganotto et Charlotte de Witte dominent la scène techno. Un lineup 100% Techno Berlin, c'est le move du moment." }
+        ];
+        setAdvisorTip(tips[Math.floor(Math.random() * tips.length)]);
 
         setGameState('ONBOARDING');
         setGameStarted(true);
@@ -430,7 +440,7 @@ export function Community() {
     };
 
     const generatePoster = () => {
-        if (selectedCosts.length < 3) return; // Need at least 3 infrastructure units
+        if (selectedCosts.length < 3 || selectedDjs.length < 5) return; // 5 artists minimum
         confetti({
             particleCount: 150,
             spread: 70,
@@ -882,6 +892,21 @@ export function Community() {
                                                     </div>
                                                 )}
 
+                                                {/* Advisor Character */}
+                                                <div className="p-5 bg-amber-400/5 border border-amber-400/10 rounded-2xl relative overflow-hidden group">
+                                                    <div className="flex gap-4 relative z-10">
+                                                        <div className="w-10 h-10 bg-amber-400 rounded-xl flex items-center justify-center shrink-0 shadow-lg shadow-amber-400/10">
+                                                            <Users className="w-5 h-5 text-black" />
+                                                        </div>
+                                                        <div>
+                                                            <h4 className="text-[9px] font-black uppercase text-amber-400 tracking-widest mb-1">{advisorTip?.name || "Conseiller Talent"}</h4>
+                                                            <p className="text-[10px] font-bold text-white/50 italic leading-relaxed">
+                                                                "{advisorTip?.tip}"
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
                                                 <div className="space-y-4">
                                                     <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Lieu du Festival (Destinations)</span>
                                                     <div className="grid grid-cols-3 gap-2 overflow-y-auto max-h-[300px] pr-2 scrollbar-hide">
@@ -959,11 +984,11 @@ export function Community() {
                                                 </div>
 
                                                 <button
-                                                    disabled={selectedCosts.length < 4 || selectedDjs.length === 0 || remainingBudget < 0}
+                                                    disabled={selectedCosts.length < 3 || selectedDjs.length < 5 || remainingBudget < 0}
                                                     onClick={generatePoster}
                                                     className="w-full py-6 rounded-[1.5rem] bg-white text-black font-black text-xs uppercase tracking-[0.3em] disabled:opacity-20 disabled:cursor-not-allowed hover:bg-neon-red hover:text-white transition-all duration-500 flex items-center justify-center gap-4"
                                                 >
-                                                    Générer la Line-up
+                                                    {selectedDjs.length < 5 ? `Encore ${5 - selectedDjs.length} artistes...` : "Générer la Line-up"}
                                                     <Sparkles className="w-4 h-4" />
                                                 </button>
                                             </div>
