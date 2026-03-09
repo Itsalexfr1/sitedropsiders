@@ -4,7 +4,8 @@ import {
     Users, Camera, Gamepad2, Star, Info, Car, Bell,
     Sparkles, Trophy, Plus, Check, AlertCircle,
     Music, Shield, Palette, Megaphone,
-    RefreshCw, X, Download, Heart
+    RefreshCw, X, Download, Heart,
+    Flame
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
@@ -67,24 +68,59 @@ const HALL_OF_FAME = [
 
 // --- FESTIVAL CREATOR GAME DATA ---
 const DJ_POOL = [
-    { id: '1', name: 'Boris Brejcha', price: 120000, genre: 'High-Tech Minimal', popularity: 95 },
-    { id: '2', name: 'Charlotte de Witte', price: 150000, genre: 'Techno', popularity: 98 },
-    { id: '3', name: 'Amelie Lens', price: 140000, genre: 'Techno', popularity: 97 },
-    { id: '4', name: 'Nina Kraviz', price: 110000, genre: 'Techno/Acid', popularity: 94 },
-    { id: '5', name: 'Carl Cox', price: 200000, genre: 'House/Techno', popularity: 99 },
-    { id: '6', name: 'Peggy Gou', price: 130000, genre: 'House', popularity: 96 },
-    { id: '7', name: 'Michael Bibi', price: 95000, genre: 'Tech House', popularity: 92 },
-    { id: '8', name: 'Mochakk', price: 85000, genre: 'Tech House', popularity: 90 },
-    { id: '9', name: 'Pawsa', price: 55000, genre: 'Tech House', popularity: 85 },
-    { id: '10', name: 'Honey Dijon', price: 75000, genre: 'House', popularity: 88 },
-    { id: '11', name: 'Anotr', price: 65000, genre: 'Minimal House', popularity: 87 },
-    { id: '12', name: 'Laurent Garnier', price: 100000, genre: 'Eclectic', popularity: 93 },
-    { id: '13', name: 'Folamour', price: 60000, genre: 'House', popularity: 86 },
-    { id: '14', name: 'I Hate Models', price: 90000, genre: 'Industrial Techno', popularity: 91 },
-    { id: '15', name: 'Adam Beyer', price: 130000, genre: 'Techno', popularity: 95 },
-    { id: '16', name: 'Skrillex', price: 250000, genre: 'Bass Music', popularity: 99 },
-    { id: '17', name: 'Fred again..', price: 220000, genre: 'Electronic', popularity: 99 },
-    { id: '18', name: 'Vintage Culture', price: 95000, genre: 'House', popularity: 92 },
+    // HEADLINERS / BIG ROOM / MAINSTREAM
+    { id: 'dg', name: 'David Guetta', price: 450000, genre: 'Mainstage', popularity: 99 },
+    { id: 'tiesto', name: 'Tiësto', price: 400000, genre: 'Big Room', popularity: 99 },
+    { id: 'mh', name: 'Martin Garrix', price: 380000, genre: 'Progressive House', popularity: 99 },
+    { id: 'av', name: 'Armin van Buuren', price: 320000, genre: 'Trance', popularity: 98 },
+    { id: 'df', name: 'Dillon Francis', price: 150000, genre: 'Moombahton', popularity: 94 },
+    { id: 'z', name: 'Zedd', price: 280000, genre: 'Electro Pop', popularity: 97 },
+    { id: 'sk', name: 'Skrillex', price: 420000, genre: 'Bass Music', popularity: 99 },
+    { id: 'shm', name: 'Swedish House Mafia', price: 850000, genre: 'House', popularity: 99 },
+
+    // TECH HOUSE / HOUSE (The Summit/Mochakk/Summit vibes)
+    { id: 'js', name: 'John Summit', price: 250000, genre: 'Tech House', popularity: 98 },
+    { id: 'm', name: 'Mochakk', price: 220000, genre: 'Tech House', popularity: 97 },
+    { id: 'bb', name: 'Michael Bibi', price: 240000, genre: 'Tech House', popularity: 96 },
+    { id: 'fg', name: 'Fisher', price: 350000, genre: 'Tech House', popularity: 99 },
+    { id: 'pg', name: 'Peggy Gou', price: 280000, genre: 'House', popularity: 98 },
+    { id: 'fa', name: 'Fred again..', price: 500000, genre: 'Future Garage', popularity: 99 },
+    { id: 'ca', name: 'Cassian', price: 120000, genre: 'Melodic Techno', popularity: 94 },
+    { id: 'p', name: 'Pawsa', price: 140000, genre: 'Minimal House', popularity: 93 },
+    { id: 'an', name: 'Anotr', price: 160000, genre: 'No Art', popularity: 95 },
+    { id: 'cl', name: 'Chris Lake', price: 220000, genre: 'Tech House', popularity: 97 },
+
+    // TECHNO (Underground/Mainstage Techno)
+    { id: 'cdw', name: 'Charlotte de Witte', price: 300000, genre: 'Techno', popularity: 99 },
+    { id: 'al', name: 'Amelie Lens', price: 280000, genre: 'Techno', popularity: 98 },
+    { id: 'cc', name: 'Carl Cox', price: 350000, genre: 'Legendary Techno', popularity: 99 },
+    { id: 'ab', name: 'Adam Beyer', price: 200000, genre: 'Drumcode', popularity: 97 },
+    { id: 'nk', name: 'Nina Kraviz', price: 220000, genre: 'Acid Techno', popularity: 96 },
+    { id: 'ihm', name: 'I Hate Models', price: 180000, genre: 'Industrial', popularity: 95 },
+    { id: 'br', name: 'Boris Brejcha', price: 250000, genre: 'High-Tech Minimal', popularity: 98 },
+    { id: 'kb', name: 'Klangkuenstler', price: 190000, genre: 'Hard Techno', popularity: 96 },
+
+    // MELODIC / PROGRESSIVE / AFRO
+    { id: 'ko', name: 'Keinemusik (CRME)', price: 750000, genre: 'Afro House', popularity: 99 },
+    { id: 'bo', name: 'Black Coffee', price: 300000, genre: 'Afro House', popularity: 98 },
+    { id: 'ru', name: 'Rüfüs Du Sol', price: 600000, genre: 'Live Electronic', popularity: 99 },
+    { id: 'at', name: 'Anyma / Tale of Us', price: 550000, genre: 'Afterlife', popularity: 99 },
+    { id: 'la', name: 'Lane 8', price: 180000, genre: 'Melodic House', popularity: 95 },
+
+    // BASS / DUBSTEP / TRAP
+    { id: 'ex', name: 'Excision', price: 350000, genre: 'Dubstep', popularity: 98 },
+    { id: 'su', name: 'Subtronics', price: 220000, genre: 'Bass', popularity: 97 },
+    { id: 'ng', name: 'NGHTMRE', price: 140000, genre: 'Trap', popularity: 94 },
+
+    // SMALLER / RISING / FUTURE
+    { id: 'me', name: 'Mesto', price: 45000, genre: 'Future House', popularity: 88 },
+    { id: 'jo', name: 'Joel Corry', price: 120000, genre: 'Dance', popularity: 96 },
+    { id: 'ma', name: 'Mau P', price: 180000, genre: 'Tech House', popularity: 97 },
+    { id: 'hu', name: 'Hugel', price: 95000, genre: 'Latin House', popularity: 93 },
+    { id: 'ac', name: 'Acraze', price: 110000, genre: 'House', popularity: 94 },
+    { id: 'mi', name: 'Meduza', price: 240000, genre: 'Tech House', popularity: 97 },
+    { id: 'of', name: 'Öwnboss', price: 85000, genre: 'Bass House', popularity: 91 },
+    { id: 'tc', name: 'Topic', price: 130000, genre: 'Dance Pop', popularity: 95 },
 ];
 
 const FIX_COSTS = [
@@ -94,6 +130,8 @@ const FIX_COSTS = [
     { id: 'food', name: 'Food Court & Bars', basePrice: 35000, icon: Users },
     { id: 'screens', name: 'Écrans Géants', basePrice: 50000, icon: Camera },
     { id: 'camping', name: 'Camping VIP', basePrice: 80000, icon: Heart },
+    { id: 'fireworks', name: 'Feux d\'Artifice', basePrice: 120000, icon: Sparkles },
+    { id: 'co2', name: 'CO2 & SFX Pyrotechnie', basePrice: 40000, icon: Flame },
 ];
 
 export function Community() {
@@ -113,6 +151,7 @@ export function Community() {
     const [festivalName, setFestivalName] = useState('');
     const [selectedLocation, setSelectedLocation] = useState(FESTIVAL_LOCATIONS[0]);
     const [stageCount, setStageCount] = useState(1);
+    const [festivalDuration, setFestivalDuration] = useState(1); // Days
 
     // Stats
     const totalDjsCost = useMemo(() => selectedDjs.reduce((acc, dj) => acc + dj.price, 0), [selectedDjs]);
@@ -123,7 +162,7 @@ export function Community() {
     }, [selectedCosts]);
     const locationCost = selectedLocation.cost;
     const stagesCost = stageCount * STAGE_COST_PER_UNIT;
-    const totalSpent = totalDjsCost + totalExtraCost + locationCost + stagesCost;
+    const totalSpent = (totalDjsCost + totalExtraCost + locationCost + stagesCost) * (1 + (festivalDuration - 1) * 0.4);
     const remainingBudget = budget - totalSpent;
 
     const startNewGame = () => {
@@ -171,6 +210,9 @@ export function Community() {
         setFestivalName('');
         setSelectedLocation(FESTIVAL_LOCATIONS[0]);
         setStageCount(1);
+        setFestivalDuration(1);
+        setSelectedDjs([]);
+        setSelectedCosts([]);
     };
 
     return (
@@ -526,6 +568,31 @@ export function Community() {
 
                                                 <div className="space-y-4">
                                                     <div className="flex justify-between items-center">
+                                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Durée du Festival ({festivalDuration} Jours)</span>
+                                                        <span className="text-[9px] font-mono text-amber-400">Multiplicateur x{1 + (festivalDuration - 1) * 0.4}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-4 px-6 py-4 bg-white/5 border border-white/10 rounded-2xl">
+                                                        <input
+                                                            type="range"
+                                                            min="1"
+                                                            max="3"
+                                                            step="1"
+                                                            value={festivalDuration}
+                                                            onChange={(e) => {
+                                                                const val = parseInt(e.target.value);
+                                                                const tempSpent = (totalDjsCost + totalExtraCost + locationCost + stagesCost) * (1 + (val - 1) * 0.4);
+                                                                if (tempSpent <= budget) {
+                                                                    setFestivalDuration(val);
+                                                                }
+                                                            }}
+                                                            className="flex-1 accent-amber-400"
+                                                        />
+                                                        <span className="text-white font-mono font-black">{festivalDuration}J</span>
+                                                    </div>
+                                                </div>
+
+                                                <div className="space-y-4">
+                                                    <div className="flex justify-between items-center">
                                                         <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Stages ({stageCount})</span>
                                                         <span className="text-[9px] font-mono text-amber-400">+{stagesCost.toLocaleString()}€</span>
                                                     </div>
@@ -675,8 +742,8 @@ export function Community() {
                                                         <p className="text-lg font-black text-white uppercase italic">{selectedLocation.name} • {stageCount} STAGES</p>
                                                     </div>
                                                     <div>
-                                                        <p className="text-[9px] font-black text-white/60 uppercase tracking-widest">Date</p>
-                                                        <p className="text-lg font-black text-white uppercase italic tracking-tighter">SUMMER 2026</p>
+                                                        <p className="text-[9px] font-black text-white/60 uppercase tracking-widest">Date & Durée</p>
+                                                        <p className="text-lg font-black text-white uppercase italic tracking-tighter">SUMMER 2026 • {festivalDuration} DAYS</p>
                                                     </div>
                                                 </div>
                                                 <div className="text-right flex flex-col items-end gap-1.5 leading-none">
