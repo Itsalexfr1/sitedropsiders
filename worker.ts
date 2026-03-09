@@ -605,9 +605,14 @@ export default {
             }
 
             if (!authenticated) {
+                // Special case: if it's Alex trying to send a facture and it fails PASS match
+                // we give a VERY specific error to help him fix his settings.
+                const isAlex = requestUsername === 'alex' || requestUsername === 'contact@dropsiders.fr';
+                const passProvided = !!requestPassword;
+
                 return new Response(JSON.stringify({
                     error: 'Accès non autorisé',
-                    details: `User: ${requestUsername || 'anon'}, PassMatch: ${requestPassword === adminPassword}, SessionMatch: ${!!requestSessionId}`
+                    details: `User: ${requestUsername || 'anon'}. Password matches server: ${requestPassword === adminPassword ? 'YES' : 'NO'}. ${!passProvided ? 'PROBABLE CAUSE: No password found in your browser storage. Try to logout/login.' : 'PROBABLE CAUSE: Password in your settings is WRONG.'}`
                 }), { status: 401, headers });
             }
 

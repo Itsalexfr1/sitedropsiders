@@ -242,57 +242,68 @@ export function InvoiceGenerator() {
             const originalStyle = invoiceEl.getAttribute('style') || '';
             const originalClass = invoiceEl.className;
 
-            // Positioning for capture
+            // Position for capture: Fixed and visible
             Object.assign(invoiceEl.style, {
                 display: 'block',
                 visibility: 'visible',
                 position: 'fixed',
                 left: '0',
                 top: '0',
-                zIndex: '9999',
+                zIndex: '99999',
                 opacity: '1',
-                width: '794px'
+                width: '1000px', // Extra width for rendering safety
+                height: 'auto',
+                backgroundColor: '#ffffff'
             });
             invoiceEl.classList.remove('hidden');
 
-            // Temporary attachment to body
+            // Temporary attachment to body and scroll to top
             document.body.appendChild(invoiceEl);
             window.scrollTo(0, 0);
 
-            await new Promise(r => setTimeout(r, 1500));
+            // Longer delay for font/layout engine
+            await new Promise(r => setTimeout(r, 2500));
 
             const canvas = await html2canvas(invoiceEl, {
                 scale: 1.5,
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#ffffff',
-                width: 794,
+                width: 1000, // Matching the style width
                 onclone: (clonedDoc) => {
                     const el = clonedDoc.getElementById('printable-invoice');
                     if (el) {
+                        el.style.backgroundColor = '#ffffff';
                         el.style.display = 'block';
                         el.style.visibility = 'visible';
-                        el.style.position = 'relative';
-                        el.style.left = '0';
                         el.style.opacity = '1';
+                        el.style.position = 'relative';
+                        el.style.padding = '40px'; // Breathing room
                         sanitizeColors(clonedDoc);
                     }
                 }
             });
 
-            // Cleanup: Restore original state and location
+            // Restore original state and location
+            if (originalParent) originalParent.appendChild(invoiceEl);
             invoiceEl.setAttribute('style', originalStyle);
             invoiceEl.className = originalClass;
-            if (originalParent) originalParent.appendChild(invoiceEl);
 
-            const imgData = canvas.toDataURL('image/jpeg', 0.95);
-            if (imgData === 'data:,') throw new Error('Canevas vide généré');
+            if (!canvas || canvas.width < 100) {
+                throw new Error('Échec technique de capture (Canevas nul ou trop petit)');
+            }
+
+            const imgData = canvas.toDataURL('image/png', 1.0);
+            if (imgData.length < 10000) {
+                throw new Error('Rendu PDF corrompu ou vide (Espace mémoire insuffisant)');
+            }
 
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
             const pageWidth = pdf.internal.pageSize.getWidth();
             const imgHeight = (canvas.height * pageWidth) / canvas.width;
 
-            pdf.addImage(imgData, 'JPEG', 0, 0, pageWidth, imgHeight);
+            // Use PNG for maximum fidelity and to avoid black backgrounds in some PDF readers
+            pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, imgHeight);
 
             const pdfBase64 = pdf.output('datauristring');
 
@@ -892,16 +903,27 @@ export function InvoiceGenerator() {
                     ))}
                 </div>
 
-                {/* Huge Amount Footer */}
+                {/* Optimized Amount Footer to avoid overlaps */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginBottom: '80px' }}>
-                    <div style={{ width: '450px', borderTop: '2px solid #333', paddingTop: '15px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                            <span style={{ fontSize: '11px', fontWeight: '800' }}>MONTANT TOTAL (EUR) :</span>
+                    <div style={{ minWidth: '550px', borderTop: '2px solid #333', paddingTop: '15px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', paddingRight: '5px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: '800', color: '#666' }}>MONTANT TOTAL (EUR) :</span>
                             <span style={{ fontSize: '11px', fontWeight: '500' }}>{total.toFixed(2).replace('.', ',')} €</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
-                            <span style={{ fontSize: '18px', fontWeight: '800', whiteSpace: 'nowrap', letterSpacing: '-0.5px', color: '#000' }}>MONTANT À PAYER (EUR)</span>
-                            <span style={{ fontSize: '32px', fontWeight: '800', marginLeft: '15px', color: '#000', letterSpacing: '-1px', whiteSpace: 'nowrap' }}>{total.toFixed(2).replace('.', ',')} €</span>
+                        <div style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            marginTop: '10px',
+                            borderTop: '1px solid #eee',
+                            paddingTop: '15px',
+                            background: '#f9f9f9',
+                            padding: '15px'
+                        }}>
+                            <span style={{ fontSize: '16px', fontWeight: '800', color: '#000', textTransform: 'uppercase' }}>MONTANT À PAYER (EUR)</span>
+                            <span style={{ fontSize: '38px', fontWeight: '900', color: '#000', letterSpacing: '-1.5px', marginLeft: '30px' }}>
+                                {total.toFixed(2).replace('.', ',')} €
+                            </span>
                         </div>
                     </div>
                 </div>
