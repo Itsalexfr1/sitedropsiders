@@ -123,61 +123,16 @@ def get_traxsource_top10():
         print(f"Error Traxsource: {e}")
         return []
 
-def get_juno_top10():
-    print("Fetching Juno Download Top 10...")
-    url = "https://www.junodownload.com/all/charts/bestsellers/tracks/"
-    try:
-        r = requests.get(url, headers=HEADERS, timeout=25)
-        soup = BeautifulSoup(r.text, 'html.parser')
-        tracks = []
-        
-        # Juno often uses a grid with product links
-        items = soup.select('.item, [class*="product-list-item"]')
-        for item in items:
-            if len(tracks) >= 10: break
-            try:
-                title_a = item.select_one('a[href*="/products/"]')
-                if not title_a: continue
-                
-                href = title_a.get('href')
-                # Juno IDs are like product/123456-02
-                id_match = re.search(r'/products/([\d-]+)/', href)
-                if not id_match: continue
-                track_id = id_match.group(1)
-                
-                title = clean_text(title_a.text)
-                artist_el = item.select_one('.artists, a[href*="/artists/"]')
-                artist = clean_text(artist_el.text) if artist_el else "Unknown"
-                
-                label_el = item.select_one('.label, a[href*="/labels/"]')
-                label = clean_text(label_el.text) if label_el else "Juno Download"
-                
-                tracks.append({
-                    "id": f"jn-{track_id}",
-                    "rank": len(tracks) + 1,
-                    "title": title,
-                    "artist": artist,
-                    "label": label,
-                    "url": f"https://www.junodownload.com{href}",
-                    "embedUrl": f"https://www.junodownload.com/player-embed/{track_id}/"
-                })
-            except: continue
-        return tracks
-    except Exception as e:
-        print(f"Error Juno: {e}")
-        return []
 
 def main():
     print(f"Target: {WORKER_URL}")
     
     beatport = get_beatport_top10()
     traxsource = get_traxsource_top10()
-    juno = get_juno_top10()
     
     charts = {
         "beatport": beatport or [],
-        "traxsource": traxsource or [],
-        "juno": juno or []
+        "traxsource": traxsource or []
     }
     
     # Validation

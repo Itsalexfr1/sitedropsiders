@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, Disc, ExternalLink, ListMusic, Play, Pause, X, ChevronRight, Share2, Heart } from 'lucide-react';
+import { Music, Disc, ExternalLink, Play, Pause, X, ChevronRight, Share2, Heart } from 'lucide-react';
 import { EqualizerLoader } from '../components/ui/EqualizerLoader';
 import { GlitchTransition } from '../components/ui/GlitchTransition';
 
@@ -76,7 +76,6 @@ export function Musique() {
     const platforms = [
         { id: 'beatport', name: 'Beatport Top 10', icon: Music, color: '#39ff14' },
         { id: 'traxsource', name: 'Traxsource Top 10', icon: Disc, color: '#ffaa00' },
-        { id: 'juno', name: 'Juno Download Top 10', icon: ListMusic, color: '#00f0ff' },
     ];
 
     const getMockData = (platform: string): Track[] => {
