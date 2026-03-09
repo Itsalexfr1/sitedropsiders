@@ -4,7 +4,7 @@
 	"compatibility_date": "2024-09-23",
 	"assets": {
 		"directory": "./dist",
-		"binding": "ASSETS"
+		"binding": "APP_ASSETS"
 	},
 	"observability": {
 		"enabled": true

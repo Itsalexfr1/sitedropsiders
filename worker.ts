@@ -117,7 +117,7 @@ export default {
 
         // Serve ads.txt directly for Google AdSense verification
         if (path === '/ads.txt') {
-            const adsResponse = await env.ASSETS.fetch(request);
+            const adsResponse = await env.APP_ASSETS.fetch(request);
             if (adsResponse.ok) {
                 return new Response(await adsResponse.text(), {
                     headers: { 'Content-Type': 'text/plain' }
