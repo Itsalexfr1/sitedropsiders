@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, Disc, ExternalLink, ListMusic, TrendingUp, Play, Pause, X, ChevronRight, Share2, Heart } from 'lucide-react';
+import { Music, Disc, ExternalLink, ListMusic, Play, Pause, X, ChevronRight, Share2, Heart } from 'lucide-react';
 import { EqualizerLoader } from '../components/ui/EqualizerLoader';
 import { GlitchTransition } from '../components/ui/GlitchTransition';
 
@@ -29,11 +29,26 @@ interface TracklistContent {
 
 export function Musique() {
     const [activeTab, setActiveTab] = useState('beatport');
+    const [chartsData, setChartsData] = useState<Record<string, Track[]>>({});
     const [isLoading, setIsLoading] = useState(false);
     const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [selectedTracklist, setSelectedTracklist] = useState<TracklistContent | null>(null);
     const audioRef = useRef<HTMLAudioElement | null>(null);
+
+    useEffect(() => {
+        setIsLoading(true);
+        fetch('/api/musique/charts')
+            .then(res => res.json())
+            .then(data => {
+                setChartsData(data);
+                setIsLoading(false);
+            })
+            .catch(err => {
+                console.error("Charts fetch error", err);
+                setIsLoading(false);
+            });
+    }, []);
 
     useEffect(() => {
         setIsLoading(true);
@@ -62,155 +77,13 @@ export function Musique() {
         { id: 'beatport', name: 'Beatport Top 10', icon: Music, color: '#39ff14' },
         { id: 'traxsource', name: 'Traxsource Top 10', icon: Disc, color: '#ffaa00' },
         { id: 'juno', name: 'Juno Download Top 10', icon: ListMusic, color: '#00f0ff' },
-        { id: '1001tracklists', name: 'TOP 10 TRACKLISTS BY 1001 TRACKLISTS', icon: TrendingUp, color: '#ff0033' },
     ];
 
     const getMockData = (platform: string): Track[] => {
-        // Premium high-energy tech-house / techno preview fallback
+        if (chartsData[platform]) return chartsData[platform];
+
+        // Final fallback if data is totally missing
         const samplePreview = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
-
-        if (platform === 'beatport') {
-            return [
-                { id: '23308330', rank: 1, title: 'neck (Extended Mix)', artist: 'Mau P', label: 'Black Book Records', url: 'https://www.beatport.com/fr/track/neck/23308330', embedUrl: 'https://embed.beatport.com/?id=23308330&type=track' },
-                { id: '23451068', rank: 2, title: 'Make My Day (Original Mix)', artist: 'ESSE (US)', label: 'ESSEntial.', url: 'https://www.beatport.com/fr/track/make-my-day/23451068', embedUrl: 'https://embed.beatport.com/?id=23451068&type=track' },
-                { id: '23904036', rank: 3, title: 'Loco Loco (Extended Mix)', artist: 'Reinier Zonneveld, GORDO (US)', label: "SPINNIN' RECORDS", url: 'https://www.beatport.com/fr/track/loco-loco/23904036', embedUrl: 'https://embed.beatport.com/?id=23904036&type=track' },
-                { id: '23443670', rank: 4, title: 'Good Time (Extended Mix)', artist: 'Trace (UZ)', label: '8Bit', url: 'https://www.beatport.com/fr/track/good-time/23443670', embedUrl: 'https://embed.beatport.com/?id=23443670&type=track' },
-                { id: '23451235', rank: 5, title: 'Out of My Mind (Extended Mix)', artist: 'Joshwa', label: 'Hellbent Records', url: 'https://www.beatport.com/fr/track/out-of-my-mind/23451235', embedUrl: 'https://embed.beatport.com/?id=23451235&type=track' },
-                { id: '23965405', rank: 6, title: 'Just Like That (Original Mix)', artist: 'SOSA (UK)', label: 'You&Me Records', url: 'https://www.beatport.com/fr/track/just-like-that/23965405', embedUrl: 'https://embed.beatport.com/?id=23965405&type=track' },
-                { id: '23996197', rank: 7, title: 'Swagger (Extended)', artist: 'HILLS (US), WELKER (BR)', label: 'Higher Ground', url: 'https://www.beatport.com/fr/track/swagger/23996197', embedUrl: 'https://embed.beatport.com/?id=23996197&type=track' },
-                { id: '22357262', rank: 8, title: 'Jamaican (Bam Bam) (Extended Mix)', artist: 'Hugel, SOLTO (FR)', label: 'MoBlack Records', url: 'https://www.beatport.com/fr/track/jamaican-bam-bam/22357262', embedUrl: 'https://embed.beatport.com/?id=22357262&type=track' },
-                { id: '23648337', rank: 9, title: 'Vision Blurred (Extended Mix)', artist: 'Kaskade, CID, Anabel Englund', label: 'Experts Only', url: 'https://www.beatport.com/fr/track/vision-blurred/23648337', embedUrl: 'https://embed.beatport.com/?id=23648337&type=track' },
-                { id: '24441099', rank: 10, title: 'Lifting (Extended)', artist: 'Riordan, Silva Bumpa', label: 'Room Two Recordings', url: 'https://www.beatport.com/fr/track/lifting/24441099', embedUrl: 'https://embed.beatport.com/?id=24441099&type=track' },
-            ];
-        }
-        if (platform === 'traxsource') {
-            return [
-                { id: 'ts-14359025', rank: 1, title: 'Take Me Up (ft. Donna Blakely)', artist: 'Ralphi Rosario, Bob Sinclar', label: 'Altra Moda Music', url: 'https://traxsource.com/track/14359025/take-me-up-ft-donna-blakely', embedUrl: 'https://embed.traxsource.com/player/track/14359025?autoplay=1&play=1' },
-                { id: 'ts-14384124', rank: 2, title: 'I Love U (Afro Mix)', artist: 'Stacy Kidd', label: 'House 4 Life', url: 'https://traxsource.com/track/14384124/i-love-u-afro-mix', embedUrl: 'https://embed.traxsource.com/player/track/14384124?autoplay=1&play=1' },
-                { id: 'ts-14283333', rank: 3, title: 'Carry Us Away (Extended Mix)', artist: 'DJ Fudge', label: "Fool's Paradise", url: 'https://traxsource.com/track/14283333/carry-us-away-extended-mix', embedUrl: 'https://embed.traxsource.com/player/track/14283333?autoplay=1&play=1' },
-                { id: 'ts-14403274', rank: 4, title: 'Charleen (Main Mix)', artist: 'Deon Cole, Stacy Kidd', label: 'House 4 Life', url: 'https://traxsource.com/track/14403274/charleen-main-mix', embedUrl: 'https://embed.traxsource.com/player/track/14403274?autoplay=1&play=1' },
-                { id: 'ts-14324830', rank: 5, title: 'Stand Up (Extended)', artist: 'Da Lukas, Stella Brown', label: 'Groove Culture', url: 'https://traxsource.com/track/14324830/stand-up-extended', embedUrl: 'https://embed.traxsource.com/player/track/14324830?autoplay=1&play=1' },
-                { id: 'ts-14330028', rank: 6, title: '"U" (Klassik Jazz Mix)', artist: "K' Alexi Shelby", label: 'Klassik Blueprint Muzik Digital', url: 'https://traxsource.com/track/14330028/u-klassik-jazz-mix', embedUrl: 'https://embed.traxsource.com/player/track/14330028?autoplay=1&play=1' },
-                { id: 'ts-14235719', rank: 7, title: 'Luv Musica (Luca Guerrieri Remix)', artist: 'Ridney, Luca Guerrieri', label: 'Paharas Musica', url: 'https://traxsource.com/track/14235719/luv-musica-luca-guerrieri-remix', embedUrl: 'https://embed.traxsource.com/player/track/14235719?autoplay=1&play=1' },
-                { id: 'ts-14384931', rank: 8, title: 'Good Stuff (Extended Mix)', artist: 'Definite Grooves', label: 'Nervous', url: 'https://traxsource.com/track/14384931/good-stuff-extended-mix', embedUrl: 'https://embed.traxsource.com/player/track/14384931?autoplay=1&play=1' },
-                { id: 'ts-14334069', rank: 9, title: 'Better Days (Extended Mix)', artist: 'Jimi Polo, Michael Gray', label: 'Toolroom', url: 'https://traxsource.com/track/14334069/better-days-extended-mix', embedUrl: 'https://embed.traxsource.com/player/track/14334069?autoplay=1&play=1' },
-                { id: 'ts-14410945', rank: 10, title: 'My Mistake', artist: 'DJ Spen, Thommy Davis', label: 'Quantize Recordings', url: 'https://traxsource.com/track/14410945/my-mistake-spen-and-thommys-chi-philly-dub', embedUrl: 'https://embed.traxsource.com/player/track/14410945?autoplay=1&play=1' },
-            ];
-        }
-
-        if (platform === 'juno') {
-            return [
-                { id: 'jn-7425809-02', rank: 1, title: 'Bombaclart (Furniss remix)', artist: 'Furniss / Majistrate', label: 'Low Down Deep Recordings', url: 'https://www.junodownload.com/products/bombaclart-furniss-remix/7425809-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7425809-02.m3u/?autoplay=1' },
-                { id: 'jn-7463901-02', rank: 2, title: 'Mandem', artist: 'Jhitzu', label: 'Sweet Tooth Recordings', url: 'https://www.junodownload.com/products/mandem-tied-up/7463901-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7463901-02.m3u/?autoplay=1' },
-                { id: 'jn-7440888-02', rank: 3, title: 'Axiom', artist: 'Simula / Kasra', label: 'Critical Music', url: 'https://www.junodownload.com/products/axiom-intuition/7440888-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7440888-02.m3u/?autoplay=1' },
-                { id: 'jn-7472783-02', rank: 4, title: 'Crocodiles', artist: 'Benny L', label: 'Audioporn', url: 'https://www.junodownload.com/products/crocodiles/7472783-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7472783-02.m3u/?autoplay=1' },
-                { id: 'jn-7443508-02', rank: 5, title: 'Get Em Heartbroke (Audit remix)', artist: 'PA', label: 'Dub Damage Recordings UK', url: 'https://www.junodownload.com/products/get-em-heartbroke-audit-remix/7443508-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7443508-02.m3u/?autoplay=1' },
-                { id: 'jn-7441844-02', rank: 6, title: 'Chase The Lights', artist: 'Kings Of The Rollers ft Marns', label: 'Souped Up', url: 'https://www.junodownload.com/products/chase-the-lights/7441844-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7441844-02.m3u/?autoplay=1' },
-                { id: 'jn-7361340-02', rank: 7, title: 'Everyday Junglist (VIP DUB)', artist: 'Marvellous Cain & Bizzy B', label: 'RIQYARDROCK', url: 'https://www.junodownload.com/products/hard-shellerz-album/7361340-02/?track_number=6', embedUrl: 'https://www.junodownload.com/player-embed/7361340-02.m3u/?autoplay=1' },
-                { id: 'jn-7479307-02', rank: 8, title: 'LEGENDARY (Sub Zero & Burntboi edit)', artist: 'Sigma, Dynamite MC', label: 'Day Ones', url: 'https://www.junodownload.com/products/day-one-explicit-edits/7479307-02/?track_number=10', embedUrl: 'https://www.junodownload.com/player-embed/7479307-02.m3u/?autoplay=1' },
-                { id: 'jn-7415007-02', rank: 9, title: 'Ramp', artist: 'Counter Culture', label: 'Symmetry Recordings', url: 'https://www.junodownload.com/products/parallel-vol-1/7415007-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7415007-02.m3u/?autoplay=1' },
-                { id: 'jn-7437401-02', rank: 10, title: 'Heli Dubz', artist: 'Clipz', label: 'Philly Blunt', url: 'https://www.junodownload.com/products/2hi-heli-dubz/7437401-02/?track_number=2', embedUrl: 'https://www.junodownload.com/player-embed/7437401-02.m3u/?autoplay=1' },
-            ];
-        }
-        if (platform === '1001tracklists') {
-            return [
-                {
-                    id: '1001-trending-1', rank: 1, title: 'ARMIN VAN BUUREN @ AREA ONE, ASOT FESTIVAL', artist: 'ARMIN VAN BUUREN', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/2v6n9uk1/armin-van-buuren-area-one-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
-                    embedUrl: 'https://www.youtube.com/embed/5m3O73_zR_0',
-                    tracks: [
-                        { title: 'Always You (ASOT 2026 Elevation Anthem)', artist: 'Armin van Buuren', time: '00:00' },
-                        { title: 'Mouth Go LaLa', artist: 'Armin van Buuren & Maddix', time: '04:30' },
-                        { title: 'Don\'t Be Afraid', artist: 'Moonman & Ferry Corsten & Joris Voorn', time: '08:15' },
-                        { title: 'Destiny', artist: 'Layton Giordani ft. Camden Cox', time: '12:45' },
-                        { title: 'Computers Take Over The World', artist: 'Armin van Buuren', time: '16:10' },
-                        { title: 'High On Emotion', artist: 'Maddix', time: '19:45' },
-                        { title: 'Dopamine Machine', artist: 'Armin van Buuren & Lilly Palmer', time: '23:20' },
-                        { title: 'Exploration of Space (Remix)', artist: 'Cosmic Gate', time: '28:15' },
-                        { title: 'Blah Blah Blah', artist: 'Armin van Buuren', time: '32:40' }
-                    ]
-                },
-                {
-                    id: '1001-trending-2', rank: 2, title: 'FRED AGAIN.. & THOMAS BANGALTER @ USB002', artist: 'FRED AGAIN.., THOMAS BANGALTER', label: 'ALEXANDRA PALACE', url: 'https://www.1001tracklists.com/tracklist/1ybr6v2k/fred-again-thomas-bangalter-usb002-alexandra-palace-london-united-kingdom-2026-02-27.html',
-                    embedUrl: 'https://www.youtube.com/embed/YF0RmSy8FmY',
-                    tracks: [
-                        { title: 'Turn On The Lights again..', artist: 'Fred again..', time: '00:00' },
-                        { title: 'Music Sounds Better With You', artist: 'Stardust', time: '05:12' },
-                        { title: 'Adored (Thomas Bangalter Remix)', artist: 'Fred again..', time: '09:45' },
-                        { title: 'Human After All', artist: 'Daft Punk (2026 Edit)', time: '14:30' },
-                        { title: 'Rumble', artist: 'Skrillex, Fred again.. & Flowdan', time: '18:15' },
-                        { title: 'Strong', artist: 'Fred again.. & Romy', time: '22:40' },
-                        { title: 'Delilah (pull me out of this)', artist: 'Fred again..', time: '26:50' },
-                        { title: 'Leavemealone', artist: 'Fred again.. & Baby Keem', time: '31:15' }
-                    ]
-                },
-                {
-                    id: '1001-trending-3', rank: 3, title: 'ARMIN VAN BUUREN & OLIVER HELDENS & MADDIX @ AREA ONE', artist: 'ARMIN VAN BUUREN, OLIVER HELDENS, MADDIX', label: 'ASOT FESTIVAL', url: 'https://www.1001tracklists.com/tracklist/1z6k8vj1/armin-van-buuren-oliver-heldens-maddix-area-one-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
-                    embedUrl: 'https://www.youtube.com/embed/5m3O73_zR_0',
-                    tracks: [
-                        { title: 'High On Emotion', artist: 'Maddix', time: '00:00' },
-                        { title: 'Bucovina', artist: 'Oliver Heldens', time: '04:20' },
-                        { title: 'Dopamine Machine', artist: 'Armin van Buuren & Lilly Palmer', time: '08:40' },
-                        { title: 'Transmission', artist: 'Maddix & Olly James & Hannah Laing', time: '13:10' },
-                        { title: 'Mouth Go LaLa', artist: 'Armin van Buuren & Maddix', time: '17:45' },
-                        { title: 'Universal Nation (ID Remix)', artist: 'Push', time: '22:30' },
-                        { title: 'Silence (ID Remix)', artist: 'Delerium ft. Sarah McLachlan', time: '28:15' },
-                        { title: 'Rescue Me (Technikal Remix)', artist: 'Sam & Deano & Ben Stevens', time: '34:00' },
-                        { title: 'It\'s That Time', artist: 'Marlon Hoffstadt', time: '40:15' },
-                        { title: 'Elevation Anthem', artist: 'Armin van Buuren', time: '45:30' }
-                    ]
-                },
-                {
-                    id: '1001-trending-4', rank: 4, title: 'ARMIN VAN BUUREN @ 25 YEARS CELEBRATION SET', artist: 'ARMIN VAN BUUREN', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/1z6k927k/armin-van-buuren-25-years-celebration-set-area-one-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-27.html',
-                    embedUrl: 'https://www.youtube.com/embed/5m3O73_zR_0',
-                    tracks: [
-                        { title: 'Communication (Classic Mix)', artist: 'Armin van Buuren', time: '00:00' },
-                        { title: 'Shivers', artist: 'Armin van Buuren', time: '06:15' },
-                        { title: 'Great Spirit', artist: 'Armin van Buuren vs. Vini Vici', time: '12:30' }
-                    ]
-                },
-                {
-                    id: '1001-trending-5', rank: 5, title: 'MEDUZA & DREYA V - AETERNA RADIO 011', artist: 'MEDUZA', label: 'AETERNA', url: 'https://www.1001tracklists.com/tracklist/1l5u2v8k/meduza-dreya-v-aeterna-radio-011-2026-03-01.html',
-                    embedUrl: 'https://www.mixcloud.com/widget/iframe/?hide_cover=1&mini=1&feed=%2Fmeduzamusic%2Faeterna-radio-011%2F',
-                    tracks: [
-                        { title: 'Addicted To Bass (Dom Dolla Remix)', artist: 'Puretone', time: '00:00' },
-                        { title: 'Never Alone', artist: 'Odd Mob ft. Lizzy Land', time: '05:45' }
-                    ]
-                },
-                {
-                    id: '1001-trending-6', rank: 6, title: 'TIËSTO - PRISMATIC 009', artist: 'TIËSTO', label: 'MUSICAL FREEDOM', url: 'https://www.1001tracklists.com/tracklist/2v6n9zpk/tiesto-prismatic-009-2026-02-28.html',
-                    embedUrl: 'https://www.youtube.com/embed/YpIit22rW7g',
-                    tracks: [
-                        { title: 'Beautiful Places', artist: 'Tiësto & Brieanna Grace', time: '00:00' },
-                        { title: 'BOOM', artist: 'Tiësto', time: '04:12' }
-                    ]
-                },
-                {
-                    id: '1001-trending-7', rank: 7, title: 'RICHARD DURAND @ AREA TWO, ASOT FESTIVAL', artist: 'RICHARD DURAND', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/1z6k8wk1/richard-durand-area-two-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
-                    tracks: [
-                        { title: 'Always You (Richard Durand Remix)', artist: 'Armin van Buuren', time: '00:00' }
-                    ]
-                },
-                {
-                    id: '1001-trending-8', rank: 8, title: 'COSMIC GATE @ AREA TWO, ASOT FESTIVAL', artist: 'COSMIC GATE', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/1z6k8wj1/cosmic-gate-area-two-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
-                    tracks: [
-                        { title: 'Exploration of Space (2026 Edit)', artist: 'Cosmic Gate', time: '00:00' }
-                    ]
-                },
-                {
-                    id: '1001-trending-9', rank: 9, title: 'NIFRA @ AREA ONE, ASOT FESTIVAL', artist: 'NIFRA', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/1z6k8vh1/nifra-area-one-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
-                    tracks: [
-                        { title: 'Resistance', artist: 'Nifra', time: '00:00' }
-                    ]
-                },
-                {
-                    id: '1001-trending-10', rank: 10, title: 'ANDREW RAYEL PRES. EXTASIA @ AREA TWO, ASOT FESTIVAL', artist: 'ANDREW RAYEL', label: 'AHOY ROTTERDAM', url: 'https://www.1001tracklists.com/tracklist/1z6k8wl1/andrew-rayel-pres.-extasia-area-two-a-state-of-trance-festival-ahoy-rotterdam-netherlands-2026-02-28.html',
-                    tracks: [
-                        { title: 'Extasia (Official Anthem)', artist: 'Andrew Rayel', time: '00:00' }
-                    ]
-                }
-            ];
-        }
-
         return Array.from({ length: 10 }, (_, i) => ({
             id: `${platform}-${i}`,
             rank: i + 1,
@@ -223,21 +96,17 @@ export function Musique() {
     };
 
     const handleTrackClick = (track: Track) => {
-        if (activeTab === '1001tracklists') {
-            window.open(track.url, '_blank');
-        } else {
-            if (selectedTrack?.id === track.id) {
-                if (isPlaying) {
-                    setIsPlaying(false);
-                    if (!track.embedUrl) audioRef.current?.pause();
-                } else {
-                    setIsPlaying(true);
-                    if (!track.embedUrl) audioRef.current?.play();
-                }
+        if (selectedTrack?.id === track.id) {
+            if (isPlaying) {
+                setIsPlaying(false);
+                if (!track.embedUrl) audioRef.current?.pause();
             } else {
-                setSelectedTrack(track);
                 setIsPlaying(true);
+                if (!track.embedUrl) audioRef.current?.play();
             }
+        } else {
+            setSelectedTrack(track);
+            setIsPlaying(true);
         }
     };
 
@@ -338,14 +207,12 @@ export function Musique() {
                                                 <div className="flex-1 min-w-0">
                                                     <h3 className="text-xs md:text-lg font-black text-white uppercase italic tracking-tight truncate md:group-hover/track:text-neon-red transition-colors flex items-center gap-1.5 md:gap-3">
                                                         {track.title}
-                                                        {activeTab !== '1001tracklists' && (
-                                                            <div className={`flex items-center gap-1 ${selectedTrack?.id === track.id ? 'flex' : 'hidden md:flex md:invisible md:group-hover/track:visible'}`}>
-                                                                <div className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${selectedTrack?.id === track.id && isPlaying ? 'bg-neon-green ml-0.5 animate-pulse' : 'bg-neon-red'}`} />
-                                                                <span className={`text-[6px] md:text-[9px] font-black tracking-[0.1em] ${selectedTrack?.id === track.id && isPlaying ? 'text-neon-green' : 'text-neon-red'}`}>
-                                                                    {selectedTrack?.id === track.id && isPlaying ? 'PLAY' : 'LISTEN'}
-                                                                </span>
-                                                            </div>
-                                                        )}
+                                                        <div className={`flex items-center gap-1 ${selectedTrack?.id === track.id ? 'flex' : 'hidden md:flex md:invisible md:group-hover/track:visible'}`}>
+                                                            <div className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${selectedTrack?.id === track.id && isPlaying ? 'bg-neon-green ml-0.5 animate-pulse' : 'bg-neon-red'}`} />
+                                                            <span className={`text-[6px] md:text-[9px] font-black tracking-[0.1em] ${selectedTrack?.id === track.id && isPlaying ? 'text-neon-green' : 'text-neon-red'}`}>
+                                                                {selectedTrack?.id === track.id && isPlaying ? 'PLAY' : 'LISTEN'}
+                                                            </span>
+                                                        </div>
                                                     </h3>
                                                     <div className="flex items-center gap-2 md:gap-3 mt-0.5 md:mt-1">
                                                         <span className="text-[8px] md:text-[10px] font-black text-neon-cyan uppercase tracking-widest">
@@ -371,7 +238,7 @@ export function Musique() {
                                         </div>
 
                                         <AnimatePresence>
-                                            {selectedTrack?.id === track.id && activeTab !== '1001tracklists' && (
+                                            {selectedTrack?.id === track.id && (
                                                 <motion.div
                                                     initial={{ height: 0, opacity: 0 }}
                                                     animate={{ height: 'auto', opacity: 1 }}
@@ -508,7 +375,7 @@ export function Musique() {
                         ))}
                     </div>
                     <p className="text-gray-700 text-[10px] font-black uppercase tracking-[0.3em]">
-                        DATA UPDATE EVERY 24H • DROPSIDERS NETWORK 2026
+                        DATA UPDATE EVERY 3 DAYS • DROPSIDERS NETWORK 2026
                     </p>
                 </div>
             </motion.div>
@@ -599,9 +466,8 @@ export function Musique() {
                                     </button>
                                 </div>
                                 <a
-                                    href="https://www.1001tracklists.com"
-                                    target="_blank"
-                                    rel="noopener noreferrer"
+                                    href="#"
+                                    onClick={(e) => e.preventDefault()}
                                     className="flex items-center gap-2 text-neon-red text-[10px] font-black uppercase tracking-widest hover:underline"
                                 >
                                     Full Set Info <ChevronRight className="w-4 h-4" />
@@ -611,6 +477,12 @@ export function Musique() {
                     </div>
                 )}
             </AnimatePresence>
+
+            <div className="mt-12 py-8 border-t border-white/5 text-center">
+                <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em]">
+                    Les classements sont mis à jour tous les 3 jours via Beatport, Traxsource et Juno
+                </p>
+            </div>
         </div>
     );
 }

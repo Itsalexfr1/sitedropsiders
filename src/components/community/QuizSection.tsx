@@ -229,7 +229,7 @@ export function QuizSection() {
                 if (timeUpdateHandler) el.removeEventListener('timeupdate', timeUpdateHandler);
 
                 timeUpdateHandler = () => {
-                    if (el.currentTime > actualStartTime + 30) { // 30s max to avoid leaking full song
+                    if (el.currentTime > actualStartTime + 20) { // 20s max to avoid leaking full song
                         el.pause();
                     }
                 };
@@ -560,7 +560,7 @@ export function QuizSection() {
                                                         <audio
                                                             ref={audioRef}
                                                             key={`${gameQuizzes[currentQuizIndex].id}-audio`}
-                                                            src={`${gameQuizzes[currentQuizIndex].audioUrl}#t=${gameQuizzes[currentQuizIndex].startTime || 0},${(gameQuizzes[currentQuizIndex].startTime || 0) + 30}`}
+                                                            src={`${gameQuizzes[currentQuizIndex].audioUrl}#t=${gameQuizzes[currentQuizIndex].startTime || 0},${(gameQuizzes[currentQuizIndex].startTime || 0) + 20}`}
                                                         />
                                                     )}
                                                 </div>
@@ -577,7 +577,7 @@ export function QuizSection() {
                                                                     : gameQuizzes[currentQuizIndex].revealEffect === 'SILHOUETTE'
                                                                         ? `brightness(0)`
                                                                         : gameQuizzes[currentQuizIndex].revealEffect === 'MOSAIC'
-                                                                            ? `blur(${Math.max(0, questionTimer / 2)}px)`
+                                                                            ? `url(#pixelate-mosaic)`
                                                                             : `blur(${Math.max(0, questionTimer * 2)}px)`
                                                             }}
                                                         />
@@ -894,9 +894,23 @@ export function QuizSection() {
 
                                         {formData.imageUrl && (
                                             <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 group">
-                                                <img src={formData.imageUrl} alt="Preview" className="w-full h-full object-cover" />
-                                                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest">Aperçu de l'image</p>
+                                                <img
+                                                    src={formData.imageUrl}
+                                                    alt="Preview"
+                                                    className="w-full h-full object-cover transition-all"
+                                                    style={{
+                                                        filter: formData.revealEffect === 'SILHOUETTE'
+                                                            ? 'brightness(0)'
+                                                            : formData.revealEffect === 'MOSAIC'
+                                                                ? 'url(#pixelate-mosaic)'
+                                                                : formData.revealEffect === 'BLUR'
+                                                                    ? 'blur(20px)'
+                                                                    : 'none'
+                                                    }}
+                                                />
+                                                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center p-6 text-center">
+                                                    <p className="text-[10px] font-black text-white uppercase tracking-widest mb-2">Aperçu de l'effet final</p>
+                                                    <p className="text-[8px] font-bold text-gray-400 uppercase tracking-[0.2em]">{formData.revealEffect}</p>
                                                 </div>
                                             </div>
                                         )}
@@ -986,7 +1000,7 @@ export function QuizSection() {
                                     <AudioWaveformSelector
                                         audioUrl={formData.audioUrl}
                                         startTime={formData.startTime}
-                                        duration={30}
+                                        duration={20}
                                         onChange={(newStart) => setFormData(prev => ({ ...prev, startTime: newStart }))}
                                     />
                                 )}
