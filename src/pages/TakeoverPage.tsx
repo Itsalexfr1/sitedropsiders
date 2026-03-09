@@ -6,7 +6,8 @@ import {
     Save, AlertCircle, Music, Trash2, Plus,
     Pin, Star, ShieldCheck, Ban, Megaphone, User,
     BarChart3, Bell, Clock, Sword, Crown, Maximize2, Minimize2,
-    Trophy, Stars, Heart, Volume2, Timer, ShieldAlert, Calendar
+    Trophy, Stars, Heart, Volume2, Timer, ShieldAlert, Calendar,
+    Languages, Instagram
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
@@ -50,6 +51,8 @@ interface TakeoverSettings {
     lots?: any[];
     dropsAmount?: number;
     dropsInterval?: number;
+    sponsorText?: string;
+    sponsorLink?: string;
 }
 
 interface ShazamTrack {
@@ -82,6 +85,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [isHighlightChecked, setIsHighlightChecked] = useState(false);
     const [highlightColor, setHighlightColor] = useState('#f59e0b');
     const [isConnected, setIsConnected] = useState(!!localStorage.getItem('chat_pseudo'));
+    const [pingAudio] = useState(new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'));
 
     // Form States
     const [loginPseudo, setLoginPseudo] = useState('');
@@ -158,8 +162,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         streams: initialSettings?.streams || [],
         activeStreamId: initialSettings?.activeStreamId || '',
         highlightPrice: initialSettings?.highlightPrice || 100,
-        lots: initialSettings?.lots || []
+        lots: initialSettings?.lots || [],
+        sponsorText: initialSettings?.sponsorText || 'LIVE RENDU POSSIBLE GRÂCE À NOS PARTENAIRES 🤝',
+        sponsorLink: initialSettings?.sponsorLink || 'https://dropsiders.fr'
     });
+
+    const [activeStage, setActiveStage] = useState<'stage1' | 'stage2'>('stage1');
 
     const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
     const [accentColor, setAccentColor] = useState(localStorage.getItem('chat_accent_color') || '#ff0033');
@@ -421,6 +429,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editDropsAmount, setEditDropsAmount] = useState(settings.dropsAmount || 10);
     const [editDropsInterval, setEditDropsInterval] = useState(settings.dropsInterval || 5);
     const [adminActiveTab, setAdminActiveTab] = useState('general');
+    const [editSponsorText, setEditSponsorText] = useState(settings.sponsorText);
+    const [editSponsorLink, setEditSponsorLink] = useState(settings.sponsorLink);
     const [isSaving, setIsSaving] = useState(false);
 
     const clearShazamHistory = async () => {
@@ -593,32 +603,34 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             `databases.${DATABASE_ID}.collections.${COLLECTION_CHAT}.documents`,
             (response: any) => {
                 if (response.events.includes('databases.*.collections.*.documents.*.create')) {
-                    // Handle System / Logic Commands from Chat
                     const msgText = response.payload.message;
-
-                    if (msgText.startsWith('[SYSTEM]:REACTION:')) {
-                        const parts = msgText.replace('[SYSTEM]:REACTION:', '').split(':');
-                        const msgId = parts[0];
-                        const emoji = parts[1];
-                        setChatMessages(prev => prev.map(m =>
-                            m.id === msgId ? { ...m, reactions: { ...(m.reactions || {}), [emoji]: (m.reactions?.[emoji] || 0) + 1 } } : m
-                        ));
-                        return; // Don't add to chat
+                    if (msgText.startsWith('[SYSTEM]:')) {
+                        // Handle System Commands
+                        const cmd = msgText.replace('[SYSTEM]:', '');
+                        if (msgText.startsWith('[SYSTEM]:REACTION:')) {
+                            const parts = msgText.replace('[SYSTEM]:REACTION:', '').split(':');
+                            const msgId = parts[0];
+                            const emoji = parts[1];
+                            setChatMessages(prev => prev.map(m =>
+                                m.id === msgId ? { ...m, reactions: { ...(m.reactions || {}), [emoji]: (m.reactions?.[emoji] || 0) + 1 } } : m
+                            ));
+                        }
+                    } else {
+                        setChatMessages(prev => {
+                            if (prev.find(m => m.id === response.payload.$id)) return prev;
+                            return [...prev, {
+                                id: response.payload.$id,
+                                pseudo: response.payload.pseudo,
+                                message: response.payload.message,
+                                color: response.payload.color,
+                                time: response.payload.time,
+                                country: response.payload.country,
+                                bgColor: response.payload.bgColor,
+                                xp: response.payload.xp || 0,
+                                stage: response.payload.stage || 'stage1'
+                            }];
+                        });
                     }
-
-                    setChatMessages(prev => {
-                        if (prev.find(m => m.id === response.payload.$id)) return prev;
-                        return [...prev, {
-                            id: response.payload.$id,
-                            pseudo: response.payload.pseudo,
-                            message: response.payload.message,
-                            color: response.payload.color,
-                            time: response.payload.time,
-                            country: response.payload.country,
-                            bgColor: response.payload.bgColor,
-                            xp: response.payload.xp || 0
-                        }];
-                    });
 
                     // Update Hype Train
                     setHypeTrain(prev => {
@@ -989,7 +1001,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             lots: dropsLots,
             auddToken: editAuddToken,
             dropsAmount: Number(editDropsAmount),
-            dropsInterval: Number(editDropsInterval)
+            dropsInterval: Number(editDropsInterval),
+            sponsorText: editSponsorText,
+            sponsorLink: editSponsorLink
         };
 
         try {
@@ -1128,6 +1142,33 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     messageText = `🎲 DÉ DE LA DESTINÉE : ÉCHEC CRITIQUE ! @${pseudo} est banni... (nan je rigole)`;
                 } else {
                     messageText = `🎲 DÉ DE LA DESTINÉE : Résultat ${res}.`;
+                }
+            } else if (mainCmd === '!lineup') {
+                const artistQuery = cmdParts.slice(1).join(' ').toLowerCase();
+                if (artistQuery) {
+                    const match = lineupItems.find(item => item.artist.toLowerCase().includes(artistQuery));
+                    if (match) {
+                        messageText = `📅 LINEUP : @${pseudo}, ${match.artist} passera sur ${match.stage} à ${match.startTime} (${match.day}).`;
+                    } else {
+                        showNotification(`Artiste "${artistQuery}" non trouvé dans la lineup.`, 'error');
+                        return;
+                    }
+                } else {
+                    messageText = `📅 LINEUP : @${pseudo}, consulte l'onglet PLANNING pour voir toute la programmation !`;
+                }
+            } else if (mainCmd === '!lineup') {
+                const artistQuery = cmdParts.slice(1).join(' ').toLowerCase();
+                if (artistQuery) {
+                    const match = lineupItems.find(item => item.artist.toLowerCase().includes(artistQuery)) ||
+                        settings.streams?.find((s: any) => s.artist.toLowerCase().includes(artistQuery));
+                    if (match) {
+                        messageText = `📅 LINEUP : @${pseudo}, ${match.artist} passera sur ${match.stage || 'la scène LIVE'} à ${match.startTime} (${match.day || 'aujourd\'hui'}).`;
+                    } else {
+                        showNotification(`Artiste "${artistQuery}" non trouvé dans la lineup.`, 'error');
+                        return;
+                    }
+                } else {
+                    messageText = `📅 LINEUP : @${pseudo}, consulte l'onglet PLANNING pour voir toute la programmation !`;
                 }
             } else if (mainCmd === '!purge' && isMod) {
                 const target = cmdParts[1]?.replace('@', '') || '';
@@ -1294,6 +1335,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 messageText = finalOutcome.msg;
             } else if (mainCmd === '!qte' && isMod) {
                 messageText = `[SYSTEM]:QTE_SPAWN`;
+            }
+
+            // Dynamic Bot Commands
+            const customCmd = botCommands.find(c => c.command.toLowerCase() === mainCmd);
+            if (customCmd) {
+                messageText = `[BOT]: ${customCmd.response}`;
             }
         }
 
@@ -1839,6 +1886,20 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             ))}
                                                         </div>
                                                     </div>
+
+                                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Partenaires / Sponsor</label>
+                                                        <div className="space-y-4">
+                                                            <input type="text" value={editSponsorText || ''} onChange={e => {
+                                                                setEditSponsorText(e.target.value);
+                                                                setSettings(prev => ({ ...prev, sponsorText: e.target.value }));
+                                                            }} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-purple" placeholder="TEXTE SPONSOR" />
+                                                            <input type="text" value={editSponsorLink || ''} onChange={e => {
+                                                                setEditSponsorLink(e.target.value);
+                                                                setSettings(prev => ({ ...prev, sponsorLink: e.target.value }));
+                                                            }} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-purple" placeholder="LIEN SPONSOR (HTTPS://...)" />
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -2365,8 +2426,21 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 <div className="w-8 h-8 rounded-lg bg-red-500/20 flex items-center justify-center border border-red-500/30" title="Donateur"><Music className="w-4 h-4 text-red-500" /></div>
                                 <div className="w-8 h-8 rounded-lg bg-neon-cyan/20 flex items-center justify-center border border-neon-cyan/30" title="Actif"><BarChart3 className="w-4 h-4 text-neon-cyan" /></div>
                                 <div className="w-8 h-8 rounded-lg bg-amber-500/20 flex items-center justify-center border border-amber-500/30" title="Vétéran"><Bell className="w-4 h-4 text-amber-500" /></div>
+                                <div className="w-8 h-8 rounded-lg bg-pink-500/20 flex items-center justify-center border border-pink-500/30 cursor-pointer hover:bg-pink-500/40 transition-all" title="Instagram" onClick={() => window.open('https://instagram.com/dropsiders.eu', '_blank')}><Instagram className="w-4 h-4 text-pink-500" /></div>
                             </div>
 
+                            {userTitle && (
+                                <button
+                                    onClick={() => {
+                                        setUserTitle('');
+                                        localStorage.removeItem('user_chat_title');
+                                        showNotification("Titre retiré !", 'success');
+                                    }}
+                                    className="w-full py-2 mb-2 bg-red-600/10 border border-red-500/30 text-red-500 text-[10px] font-black rounded-xl hover:bg-red-600/20 transition-all uppercase tracking-widest"
+                                >
+                                    RETIRER MON TITRE
+                                </button>
+                            )}
                             <button
                                 onClick={() => setSelectedProfile(null)}
                                 className="w-full py-4 bg-white text-black text-[10px] font-black uppercase rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,255,255,0.1)]"
@@ -2397,10 +2471,23 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                     {
                         isConnected && (
-                            <div className="flex gap-1 p-1 lg:p-2 bg-black/20 border-b border-white/10">
-                                {['CHAT', 'PLANNING', 'SHAZAM', 'BOUTIQUE'].map(tab => (
-                                    <button key={tab} onClick={() => setActiveChatTab(tab === 'BOUTIQUE' ? 'drops' : tab.toLowerCase())} className={`px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg text-[8px] lg:text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === (tab === 'BOUTIQUE' ? 'drops' : tab.toLowerCase()) ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{tab}</button>
-                                ))}
+                            <div className="flex items-center justify-between px-2 lg:px-4 bg-black/20 border-b border-white/10 overflow-x-auto scollbar-hide no-scrollbar">
+                                <div className="flex gap-1 p-1 lg:p-2">
+                                    {['CHAT', 'PLANNING', 'SHAZAM', 'BOUTIQUE'].map(tab => (
+                                        <button key={tab} onClick={() => setActiveChatTab(tab === 'BOUTIQUE' ? 'drops' : tab.toLowerCase())} className={`px-2 lg:px-4 py-1.5 lg:py-2 rounded-lg text-[8px] lg:text-[9px] font-black uppercase tracking-widest transition-all ${activeChatTab === (tab === 'BOUTIQUE' ? 'drops' : tab.toLowerCase()) ? 'bg-white/10 text-white border border-white/10' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>{tab}</button>
+                                    ))}
+                                </div>
+                                <div className="flex gap-1 p-1 bg-white/5 rounded-xl border border-white/10 my-1">
+                                    {(['stage1', 'stage2'] as const).map(s => (
+                                        <button
+                                            key={s}
+                                            onClick={() => setActiveStage(s)}
+                                            className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-tighter transition-all ${activeStage === s ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            {s === 'stage1' ? 'STAGE 1' : 'STAGE 2'}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         )
                     }
@@ -2425,6 +2512,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 </div>
                             </div>
                         </div>
+
 
                         <AnimatePresence>
                             {mentionNotify && (
@@ -2462,41 +2550,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             )}
                         </AnimatePresence>
 
-                        {/* 📜 Legends Wall Overlay */}
-                        <AnimatePresence>
-                            {showLegendsWall && (
-                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/95 flex flex-col items-center justify-center p-10 overflow-hidden">
-                                    <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at center, #ff0033 0%, transparent 70%)' }} />
-                                    <motion.div initial={{ y: 500 }} animate={{ y: -800 }} transition={{ duration: 15, ease: "linear" }} className="flex flex-col items-center space-y-20">
-                                        <div className="flex flex-col items-center space-y-4">
-                                            <Stars className="w-20 h-20 text-yellow-400 animate-spin-slow" />
-                                            <h1 className="text-5xl font-display font-black text-white uppercase italic tracking-tighter">MUR DES LÉGENDES</h1>
-                                            <p className="text-xl font-black text-neon-cyan uppercase tracking-[0.5em]">HALL OF FAME</p>
-                                        </div>
-
-                                        <div className="flex flex-col items-center space-y-12">
-                                            {topTalkers.map((t, i) => (
-                                                <div key={i} className="flex flex-col items-center space-y-2">
-                                                    <div className="flex items-center gap-4">
-                                                        {i === 0 && <Crown className="w-8 h-8 text-yellow-500" />}
-                                                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tight">{t.pseudo}</h2>
-                                                        {i === 0 && <Crown className="w-8 h-8 text-yellow-500" />}
-                                                    </div>
-                                                    <p className="text-neon-cyan font-black uppercase tracking-widest text-lg">LEGENDE DU CHAT {i + 1}</p>
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        <div className="flex flex-col items-center space-y-8 mt-20">
-                                            <p className="text-gray-500 font-black uppercase tracking-[0.3em]">DROPSIDERS LIVE // 2026</p>
-                                            <div className="w-40 h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-                                        </div>
-                                    </motion.div>
-                                </motion.div>
-                            )}
-                        </AnimatePresence>
-
-                        {/* Live Poll Banner */}
                         {/* ⚡ Quick Time Event (QTE) */}
                         <AnimatePresence>
                             {qteActive && (
@@ -2824,7 +2877,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     )}
 
                                     <AnimatePresence initial={false}>
-                                        {chatMessages.filter(m => isModChat ? m.isModOnly : !m.isModOnly).map((msg, idx) => {
+                                        {chatMessages.filter(m => (isModChat ? m.isModOnly : !m.isModOnly) && (m.stage || 'stage1') === activeStage).map((msg, idx) => {
                                             const isHovered = hoveredMessageId === msg.id;
                                             const isDimmed = hoveredMessageId !== null && !isHovered;
 
@@ -2902,8 +2955,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 {msg.time && <span className="text-[8px] text-gray-600 font-mono ml-auto opacity-0 group-hover:opacity-100 transition-opacity">{msg.time}</span>}
                                                             </div>
                                                             {/* Reply support removed */}
-                                                            <p className={`text-[11px] leading-relaxed break-all font-medium transition-colors ${isHovered ? 'text-white' : 'text-gray-400'} ${msg.pseudo === localStorage.getItem('chat_pseudo') ? specialFontStyle : ''}`}>
-                                                                {msg.message || msg.text}
+                                                            <p className={`text-[11px] leading-relaxed break-all font-medium transition-all ${isHovered ? 'text-white' : 'text-gray-400'} ${msg.pseudo === localStorage.getItem('chat_pseudo') ? specialFontStyle : ''}`}>
+                                                                {msg.translated ? (
+                                                                    <span className="italic">
+                                                                        <span className="text-[8px] bg-white/10 px-1 rounded mr-1">TRAD</span>
+                                                                        {msg.translated}
+                                                                    </span>
+                                                                ) : (msg.message || msg.text)}
                                                             </p>
                                                             <div className="flex gap-1 mt-2">
                                                                 {['👍', '🔥', '😂', '👑', '💎'].map(emoji => (
@@ -2929,14 +2987,20 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                                         <div className="absolute right-0 top-0 hidden group-hover:flex items-center gap-1 bg-black/80 backdrop-blur-md p-1.5 rounded-xl border border-white/10 z-20 shadow-2xl">
                                                             {/* Reply capability removed as DB schema doesn't support it */}
-                                                            {isMod && (
-                                                                <>
-                                                                    <button onClick={(e) => { e.stopPropagation(); setPinnedMessage(msg); }} title="Épingler" className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"><Pin className="w-3 h-3" /></button>
-                                                                    <button onClick={(e) => { e.stopPropagation(); deleteMessage(msg.id); }} title="Supprimer" className="p-1.5 text-gray-400 hover:text-red-500 transition-all"><X className="w-3 h-3" /></button>
-                                                                    {isAdmin && msg.pseudo !== 'ALEX_FR1' && (
-                                                                        <button onClick={(e) => { e.stopPropagation(); handleBanUser(msg.pseudo); }} title="Bannir" className="p-1.5 text-gray-400 hover:text-orange-500 transition-all border-l border-white/10 ml-1"><Ban className="w-3 h-3" /></button>
-                                                                    )}
-                                                                </>
+                                                            <button onClick={(e) => { e.stopPropagation(); setPinnedMessage(msg); }} title="Épingler" className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"><Pin className="w-3 h-3" /></button>
+                                                            <button
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    setChatMessages(prev => prev.map(m => m.id === msg.id ? { ...m, translated: `[Traduction simulée]: ${m.message}` } : m));
+                                                                }}
+                                                                title="Traduire"
+                                                                className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"
+                                                            >
+                                                                <Languages className="w-3 h-3" />
+                                                            </button>
+                                                            <button onClick={(e) => { e.stopPropagation(); deleteMessage(msg.id); }} title="Supprimer" className="p-1.5 text-gray-400 hover:text-red-500 transition-all"><X className="w-3 h-3" /></button>
+                                                            {isAdmin && msg.pseudo !== 'ALEX_FR1' && (
+                                                                <button onClick={(e) => { e.stopPropagation(); handleBanUser(msg.pseudo); }} title="Bannir" className="p-1.5 text-gray-400 hover:text-orange-500 transition-all border-l border-white/10 ml-1"><Ban className="w-3 h-3" /></button>
                                                             )}
                                                         </div>
                                                     </div>
@@ -2987,7 +3051,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             </motion.div>
                                         )}
                                     </AnimatePresence>
-                                </motion.div>
+                                </motion.div >
                             ) : activeChatTab === 'shazam' ? (
                                 <motion.div key="shazam-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
                                     <button onClick={handleShazamAction} disabled={shazamStatus !== 'idle'} className={`w-full py-4 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all ${shazamStatus === 'idle' ? 'border-white/20 hover:border-neon-purple/50 bg-white/5' : 'border-neon-purple/50 bg-neon-purple/5'}`}>
@@ -3217,8 +3281,27 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     </div>
                                 </motion.div>
                             ) : null}
-                        </AnimatePresence>
-                    </div>
+                        </AnimatePresence >
+
+                        {/* 🏢 Sponsor Banner (New location) */}
+                        <div className="bg-black/40 border-t border-white/5 py-3 px-6 flex items-center justify-between backdrop-blur-md shadow-inner">
+                            <div className="flex items-center gap-3">
+                                <div className="px-2 py-0.5 bg-neon-purple/20 border border-neon-purple/40 rounded text-[7px] font-black text-neon-purple uppercase tracking-[0.2em] italic">PARTENAIRE</div>
+                                <a
+                                    href={settings.sponsorLink || 'https://dropsiders.fr'}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] font-black text-white hover:text-neon-purple transition-all uppercase italic tracking-tighter"
+                                >
+                                    {settings.sponsorText || 'DROPSIDERS STUDIO V2'}
+                                </a>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <ShieldCheck className="w-3 h-3 text-gray-600" />
+                                <span className="text-[8px] font-bold text-gray-600 uppercase tracking-widest opacity-50">LIVE SÉCURISÉ</span>
+                            </div>
+                        </div>
+                    </div >
 
                     {
                         isConnected && (
@@ -3279,321 +3362,343 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             </div>
                         )
                     }
-                </div>
+                </div >
 
                 {/* Flash Message Overlay */}
                 <AnimatePresence>
-                    {flashMessage && (
-                        <motion.div
-                            initial={{ opacity: 0, y: -50 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            exit={{ opacity: 0, y: -50 }}
-                            className="fixed top-24 left-1/2 -translate-x-1/2 z-[200]"
-                        >
-                            <div className={`px-8 py-4 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl border-2 flex items-center gap-4 ${flashMessage.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500 shadow-green-500/20' :
-                                flashMessage.type === 'warn' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 shadow-amber-500/20' :
-                                    'bg-blue-500/10 border-blue-500/20 text-blue-500 shadow-blue-500/20'
-                                }`}>
-                                {flashMessage.type === 'success' ? <ShieldCheck className="w-6 h-6" /> :
-                                    flashMessage.type === 'warn' ? <AlertCircle className="w-6 h-6 animate-pulse" /> :
-                                        <Megaphone className="w-6 h-6" />}
-                                <span className="text-sm font-black uppercase tracking-widest">{flashMessage.text}</span>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                    {
+                        flashMessage && (
+                            <motion.div
+                                initial={{ opacity: 0, y: -50 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -50 }}
+                                className="fixed top-24 left-1/2 -translate-x-1/2 z-[200]"
+                            >
+                                <div className={`px-8 py-4 rounded-2xl shadow-[0_0_50px_rgba(0,0,0,0.5)] backdrop-blur-xl border-2 flex items-center gap-4 ${flashMessage.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500 shadow-green-500/20' :
+                                    flashMessage.type === 'warn' ? 'bg-amber-500/10 border-amber-500/20 text-amber-500 shadow-amber-500/20' :
+                                        'bg-blue-500/10 border-blue-500/20 text-blue-500 shadow-blue-500/20'
+                                    }`}>
+                                    {flashMessage.type === 'success' ? <ShieldCheck className="w-6 h-6" /> :
+                                        flashMessage.type === 'warn' ? <AlertCircle className="w-6 h-6 animate-pulse" /> :
+                                            <Megaphone className="w-6 h-6" />}
+                                    <span className="text-sm font-black uppercase tracking-widest">{flashMessage.text}</span>
+                                </div>
+                            </motion.div>
+                        )
+                    }
+                </AnimatePresence >
 
                 {/* Notification Toast */}
                 <AnimatePresence>
-                    {toast.show && (
-                        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]">
-                            <div className={`px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
-                                {toast.type === 'success' ? <ShieldCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                                <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                    {
+                        toast.show && (
+                            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }} className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]">
+                                <div className={`px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
+                                    {toast.type === 'success' ? <ShieldCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                                    <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>
+                                </div>
+                            </motion.div>
+                        )
+                    }
+                </AnimatePresence >
 
                 {/* 🆕 Arrival Animation */}
                 <AnimatePresence>
-                    {newArrival && (
-                        <motion.div
-                            initial={{ opacity: 0, y: 50, scale: 0.8 }}
-                            animate={{ opacity: 1, y: 0, scale: 1 }}
-                            exit={{ opacity: 0, y: -20, scale: 1.1 }}
-                            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] pointer-events-none"
-                        >
-                            <div className="bg-black/80 backdrop-blur-xl border border-neon-cyan/30 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-[0_0_30px_rgba(0,255,255,0.2)]">
-                                <div className="w-10 h-10 bg-neon-cyan/20 rounded-full flex items-center justify-center relative overflow-hidden">
-                                    <User className="w-6 h-6 text-neon-cyan" />
-                                    <motion.div
-                                        animate={{ x: ['-100%', '100%'] }}
-                                        transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
-                                        className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
-                                    />
+                    {
+                        newArrival && (
+                            <motion.div
+                                initial={{ opacity: 0, y: 50, scale: 0.8 }}
+                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                exit={{ opacity: 0, y: -20, scale: 1.1 }}
+                                className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[100] pointer-events-none"
+                            >
+                                <div className="bg-black/80 backdrop-blur-xl border border-neon-cyan/30 px-6 py-3 rounded-2xl flex items-center gap-4 shadow-[0_0_30px_rgba(0,255,255,0.2)]">
+                                    <div className="w-10 h-10 bg-neon-cyan/20 rounded-full flex items-center justify-center relative overflow-hidden">
+                                        <User className="w-6 h-6 text-neon-cyan" />
+                                        <motion.div
+                                            animate={{ x: ['-100%', '100%'] }}
+                                            transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+                                            className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent"
+                                        />
+                                    </div>
+                                    <div>
+                                        <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none">Nouvel arrivant</p>
+                                        <p className="text-sm font-black text-white uppercase italic tracking-tighter">{newArrival} vient d'arriver !</p>
+                                    </div>
                                 </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none">Nouvel arrivant</p>
-                                    <p className="text-sm font-black text-white uppercase italic tracking-tighter">{newArrival} vient d'arriver !</p>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                            </motion.div>
+                        )
+                    }
+                </AnimatePresence >
 
                 {/* PACMAN ANIMATION */}
                 <AnimatePresence>
-                    {isPacmanActive && (
-                        <motion.div
-                            initial={{ x: '110vw' }}
-                            animate={{ x: '-110vw' }}
-                            transition={{ duration: 5, ease: "linear" }}
-                            className="fixed top-1/2 left-0 z-[2000] pointer-events-none"
-                        >
-                            <div className="flex items-center gap-4 text-yellow-400">
-                                <motion.div
-                                    animate={{ rotate: [0, 30, 0] }}
-                                    transition={{ repeat: Infinity, duration: 0.2 }}
-                                    className="w-16 h-16 bg-yellow-400 rounded-full relative"
-                                    style={{ clipPath: 'polygon(100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 50%)' }}
-                                />
-                                <div className="flex gap-8">
-                                    {[...Array(5)].map((_, i) => (
-                                        <div key={i} className="w-4 h-4 bg-white rounded-full opacity-50" />
-                                    ))}
+                    {
+                        isPacmanActive && (
+                            <motion.div
+                                initial={{ x: '110vw' }}
+                                animate={{ x: '-110vw' }}
+                                transition={{ duration: 5, ease: "linear" }}
+                                className="fixed top-1/2 left-0 z-[2000] pointer-events-none"
+                            >
+                                <div className="flex items-center gap-4 text-yellow-400">
+                                    <motion.div
+                                        animate={{ rotate: [0, 30, 0] }}
+                                        transition={{ repeat: Infinity, duration: 0.2 }}
+                                        className="w-16 h-16 bg-yellow-400 rounded-full relative"
+                                        style={{ clipPath: 'polygon(100% 0%, 100% 100%, 0% 100%, 0% 0%, 50% 50%)' }}
+                                    />
+                                    <div className="flex gap-8">
+                                        {[...Array(5)].map((_, i) => (
+                                            <div key={i} className="w-4 h-4 bg-white rounded-full opacity-50" />
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                            </motion.div>
+                        )
+                    }
+                </AnimatePresence >
 
                 {/* MATRIX OVERLAY */}
                 <AnimatePresence>
-                    {isMatrixActive && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="fixed inset-0 z-[1000] pointer-events-none overflow-hidden bg-black/20"
-                        >
-                            <div className="absolute inset-0 opacity-40 font-mono text-[10px] text-[#00ff41] flex flex-wrap gap-2 p-4 leading-none select-none">
-                                {[...Array(2000)].map((_, i) => (
-                                    <motion.span
-                                        key={i}
-                                        initial={{ opacity: 0, y: -20 }}
-                                        animate={{ opacity: [0, 1, 0], y: [0, 500] }}
-                                        transition={{
-                                            duration: Math.random() * 3 + 2,
-                                            repeat: Infinity,
-                                            delay: Math.random() * 5
-                                        }}
-                                    >
-                                        {Math.random() > 0.5 ? '1' : '0'}
-                                    </motion.span>
-                                ))}
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                    {
+                        isMatrixActive && (
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                className="fixed inset-0 z-[1000] pointer-events-none overflow-hidden bg-black/20"
+                            >
+                                <div className="absolute inset-0 opacity-40 font-mono text-[10px] text-[#00ff41] flex flex-wrap gap-2 p-4 leading-none select-none">
+                                    {[...Array(2000)].map((_, i) => (
+                                        <motion.span
+                                            key={i}
+                                            initial={{ opacity: 0, y: -20 }}
+                                            animate={{ opacity: [0, 1, 0], y: [0, 500] }}
+                                            transition={{
+                                                duration: Math.random() * 3 + 2,
+                                                repeat: Infinity,
+                                                delay: Math.random() * 5
+                                            }}
+                                        >
+                                            {Math.random() > 0.5 ? '1' : '0'}
+                                        </motion.span>
+                                    ))}
+                                </div>
+                            </motion.div>
+                        )
+                    }
+                </AnimatePresence >
 
                 {/* BOSS FIGHT OVERLAY */}
                 <AnimatePresence>
-                    {activeBoss && (
-                        <motion.div
-                            initial={{ y: 200, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: 200, opacity: 0 }}
-                            className="fixed bottom-20 left-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-neon-red p-4 rounded-3xl w-64 shadow-[0_0_30px_rgba(255,0,0,0.3)]"
-                        >
-                            <div className="flex items-center gap-3 mb-2">
-                                <Sword className="w-6 h-6 text-neon-red animate-pulse" />
-                                <div>
-                                    <p className="text-[10px] font-black text-neon-red uppercase tracking-widest">BOSS APPARU !</p>
-                                    <p className="text-sm font-black text-white uppercase italic">{activeBoss.name}</p>
+                    {
+                        activeBoss && (
+                            <motion.div
+                                initial={{ y: 200, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                exit={{ y: 200, opacity: 0 }}
+                                className="fixed bottom-20 left-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-neon-red p-4 rounded-3xl w-64 shadow-[0_0_30px_rgba(255,0,0,0.3)]"
+                            >
+                                <div className="flex items-center gap-3 mb-2">
+                                    <Sword className="w-6 h-6 text-neon-red animate-pulse" />
+                                    <div>
+                                        <p className="text-[10px] font-black text-neon-red uppercase tracking-widest">BOSS APPARU !</p>
+                                        <p className="text-sm font-black text-white uppercase italic">{activeBoss.name}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden border border-white/5">
-                                <motion.div
-                                    animate={{ width: `${(activeBoss.hp / activeBoss.maxHp) * 100}%` }}
-                                    className="h-full bg-gradient-to-r from-red-600 to-red-400 shadow-[0_0_10px_rgba(255,0,0,0.5)]"
-                                />
-                            </div>
-                            <div className="flex justify-between mt-1">
-                                <span className="text-[9px] font-black text-white/50">{activeBoss.hp} HP</span>
-                                <span className="text-[9px] font-black text-neon-red uppercase">TAPEZ !HIT</span>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                                <div className="w-full h-3 bg-white/10 rounded-full overflow-hidden border border-white/5">
+                                    <motion.div
+                                        animate={{ width: `${(activeBoss.hp / activeBoss.maxHp) * 100}%` }}
+                                        className="h-full bg-gradient-to-r from-red-600 to-red-400 shadow-[0_0_10px_rgba(255,0,0,0.5)]"
+                                    />
+                                </div>
+                                <div className="flex justify-between mt-1">
+                                    <span className="text-[9px] font-black text-white/50">{activeBoss.hp} HP</span>
+                                    <span className="text-[9px] font-black text-neon-red uppercase">TAPEZ !HIT</span>
+                                </div>
+                            </motion.div>
+                        )
+                    }
+                </AnimatePresence >
 
                 {/* HEIST OVERLAY */}
                 <AnimatePresence>
-                    {activeHeist && (
-                        <motion.div
-                            initial={{ x: -200, opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: -200, opacity: 0 }}
-                            className="fixed top-24 left-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-neon-cyan p-4 rounded-3xl w-64 shadow-[0_0_30px_rgba(0,255,255,0.2)]"
-                        >
-                            <div className="flex items-center gap-3 mb-2">
-                                <ShieldCheck className="w-6 h-6 text-neon-cyan animate-bounce" />
-                                <div>
-                                    <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">BRAQUAGE EN COURS</p>
-                                    <p className="text-xs font-bold text-white uppercase">{activeHeist?.participants?.length || 0} Braqueurs prêts</p>
+                    {
+                        activeHeist && (
+                            <motion.div
+                                initial={{ x: -200, opacity: 0 }}
+                                animate={{ x: 0, opacity: 1 }}
+                                exit={{ x: -200, opacity: 0 }}
+                                className="fixed top-24 left-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-neon-cyan p-4 rounded-3xl w-64 shadow-[0_0_30px_rgba(0,255,255,0.2)]"
+                            >
+                                <div className="flex items-center gap-3 mb-2">
+                                    <ShieldCheck className="w-6 h-6 text-neon-cyan animate-bounce" />
+                                    <div>
+                                        <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">BRAQUAGE EN COURS</p>
+                                        <p className="text-xs font-bold text-white uppercase">{activeHeist?.participants?.length || 0} Braqueurs prêts</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div className="text-[9px] font-black text-white/50 mb-2 uppercase">TOTAL MISÉ : {activeHeist?.participants?.reduce((a, b) => a + (b?.bet || 0), 0) || 0} DROPS</div>
-                            <div className="text-center py-1 bg-neon-cyan/10 rounded-lg">
-                                <span className="text-neon-cyan font-black animate-pulse">!braquage [montant] pour rejoindre</span>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                                <div className="text-[9px] font-black text-white/50 mb-2 uppercase">TOTAL MISÉ : {activeHeist?.participants?.reduce((a, b) => a + (b?.bet || 0), 0) || 0} DROPS</div>
+                                <div className="text-center py-1 bg-neon-cyan/10 rounded-lg">
+                                    <span className="text-neon-cyan font-black animate-pulse">!braquage [montant] pour rejoindre</span>
+                                </div>
+                            </motion.div>
+                        )
+                    }
+                </AnimatePresence >
 
                 {/* QTE (Quick Time Event) Overlay */}
                 <AnimatePresence>
-                    {activeQTE && (
-                        <motion.div initial={{ scale: 0 }} animate={{ scale: 1.2 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500]">
-                            <button
-                                onClick={() => {
-                                    const reward = activeQTE?.reward || 0;
-                                    const isVipReward = Math.random() > 0.8;
-                                    if (isVipReward) {
-                                        setVipsList(prev => [...prev, localStorage.getItem('chat_pseudo') || '']);
-                                        showNotification(`⚡ RÉFLEXE DE GÉNIE ! TU ES VIP TEMPORAIRE ! 👑`, 'success');
-                                    } else {
-                                        setUserDrops(prev => prev + reward);
-                                        showNotification(`⚡ FAST CLICK ! +${reward} DROPS ! ⚡`, 'success');
-                                    }
-                                    setActiveQTE(null);
-                                }}
-                                className="p-10 bg-gradient-to-br from-neon-cyan to-neon-purple rounded-full shadow-[0_0_50px_#00ffff] animate-pulse group"
-                            >
-                                <Zap className="w-12 h-12 text-white group-hover:scale-125 transition-transform" />
-                                <p className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-white font-black uppercase italic tracking-widest whitespace-nowrap">CLIQUE VITE !</p>
-                            </button>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                    {
+                        activeQTE && (
+                            <motion.div initial={{ scale: 0 }} animate={{ scale: 1.2 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[500]">
+                                <button
+                                    onClick={() => {
+                                        const reward = activeQTE?.reward || 0;
+                                        const isVipReward = Math.random() > 0.8;
+                                        if (isVipReward) {
+                                            setVipsList(prev => [...prev, localStorage.getItem('chat_pseudo') || '']);
+                                            showNotification(`⚡ RÉFLEXE DE GÉNIE ! TU ES VIP TEMPORAIRE ! 👑`, 'success');
+                                        } else {
+                                            setUserDrops(prev => prev + reward);
+                                            showNotification(`⚡ FAST CLICK ! +${reward} DROPS ! ⚡`, 'success');
+                                        }
+                                        setActiveQTE(null);
+                                    }}
+                                    className="p-10 bg-gradient-to-br from-neon-cyan to-neon-purple rounded-full shadow-[0_0_50px_#00ffff] animate-pulse group"
+                                >
+                                    <Zap className="w-12 h-12 text-white group-hover:scale-125 transition-transform" />
+                                    <p className="absolute -bottom-10 left-1/2 -translate-x-1/2 text-white font-black uppercase italic tracking-widest whitespace-nowrap">CLIQUE VITE !</p>
+                                </button>
+                            </motion.div>
+                        )
+                    }
+                </AnimatePresence >
 
                 {/* Achievement Popup */}
                 <AnimatePresence>
-                    {achievements.length > 0 && (
-                        <motion.div initial={{ x: 300 }} animate={{ x: 0 }} exit={{ x: 300 }} className="fixed top-24 right-4 z-[300] bg-black/90 border-2 border-amber-500 p-4 rounded-2xl flex items-center gap-4 shadow-[#f59e0b20] shadow-2xl">
-                            <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center">
-                                <Trophy className="w-7 h-7 text-black" />
-                            </div>
-                            <div>
-                                <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Succès Débloqué !</p>
-                                <p className="text-xs font-black text-white uppercase italic">{achievements[achievements.length - 1]}</p>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
+                    {
+                        achievements.length > 0 && (
+                            <motion.div initial={{ x: 300 }} animate={{ x: 0 }} exit={{ x: 300 }} className="fixed top-24 right-4 z-[300] bg-black/90 border-2 border-amber-500 p-4 rounded-2xl flex items-center gap-4 shadow-[#f59e0b20] shadow-2xl">
+                                <div className="w-12 h-12 bg-amber-500 rounded-xl flex items-center justify-center">
+                                    <Trophy className="w-7 h-7 text-black" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Succès Débloqué !</p>
+                                    <p className="text-xs font-black text-white uppercase italic">{achievements[achievements.length - 1]}</p>
+                                </div>
+                            </motion.div>
+                        )
+                    }
+                </AnimatePresence >
 
                 {/* SLOT MACHINE JACKPOT OVERLAY */}
                 <AnimatePresence>
-                    {activeSlots && (
-                        <motion.div
-                            initial={{ y: 100, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            exit={{ y: 100, opacity: 0 }}
-                            className="fixed bottom-24 right-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-amber-500 p-6 rounded-3xl w-72 shadow-[0_0_40px_rgba(245,158,11,0.3)]"
-                        >
-                            <div className="flex flex-col items-center text-center space-y-4">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
-                                        <Star className="w-6 h-6 text-black animate-spin" />
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">MINI-JEU JACKPOT</p>
-                                        <p className="text-xl font-black text-white italic">LOTERIE !</p>
-                                    </div>
-                                </div>
-
-                                <div className="flex gap-2 justify-center py-4">
-                                    {['🍒', '💎', '7️⃣'].map((emoji, i) => (
-                                        <motion.div
-                                            key={i}
-                                            animate={{ y: [0, -10, 0] }}
-                                            transition={{ repeat: Infinity, duration: 0.5, delay: i * 0.1 }}
-                                            className="w-12 h-16 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-2xl"
-                                        >
-                                            {emoji}
-                                        </motion.div>
-                                    ))}
-                                </div>
-
-                                <div className="space-y-2 w-full">
-                                    <p className="text-[10px] text-gray-400 font-bold uppercase">
-                                        {activeSlots.participants.length} JOUEURS • TICKET 50 DROPS
-                                    </p>
-                                    <div className="h-1 bg-white/10 rounded-full overflow-hidden">
-                                        <motion.div
-                                            animate={{ width: `${(activeSlots.timeLeft / 60) * 100}%` }}
-                                            className="h-full bg-amber-500"
-                                        />
-                                    </div>
-                                    <button
-                                        onClick={() => handleSendMessage("!ticket")}
-                                        className="w-full py-3 bg-amber-500 text-black font-black uppercase rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-500/20"
-                                    >
-                                        Prendre un ticket !
-                                    </button>
-                                    <p className="text-[8px] text-amber-500/50 font-black uppercase tracking-tighter italic">FIN DANS {activeSlots.timeLeft}S</p>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
-                </AnimatePresence>
-                {/* USER LOGS MODAL */}
-                <AnimatePresence>
-                    {showUserLogs && (
-                        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
-                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowUserLogs(null)} className="absolute inset-0 bg-black/80 backdrop-blur-md" />
-                            <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-[#0a0a0a] border-2 border-neon-cyan/30 rounded-[2.5rem] w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-[0_0_50px_rgba(0,255,255,0.1)]">
-                                <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/5">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 rounded-2xl bg-neon-cyan/20 flex items-center justify-center text-neon-cyan">
-                                            <MessageSquare className="w-6 h-6" />
+                    {
+                        activeSlots && (
+                            <motion.div
+                                initial={{ y: 100, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                exit={{ y: 100, opacity: 0 }}
+                                className="fixed bottom-24 right-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-amber-500 p-6 rounded-3xl w-72 shadow-[0_0_40px_rgba(245,158,11,0.3)]"
+                            >
+                                <div className="flex flex-col items-center text-center space-y-4">
+                                    <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
+                                            <Star className="w-6 h-6 text-black animate-spin" />
                                         </div>
                                         <div>
-                                            <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Logs Chat : {showUserLogs}</h3>
-                                            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{chatMessages.filter(m => m.pseudo === showUserLogs).length} messages trouvés</p>
+                                            <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">MINI-JEU JACKPOT</p>
+                                            <p className="text-xl font-black text-white italic">LOTERIE !</p>
                                         </div>
                                     </div>
-                                    <button onClick={() => setShowUserLogs(null)} className="p-3 hover:bg-white/10 rounded-full transition-colors"><X className="w-6 h-6 text-gray-500" /></button>
-                                </div>
-                                <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-black/20">
-                                    {chatMessages.filter(m => m.pseudo === showUserLogs).map((m, i) => (
-                                        <div key={i} className="group">
-                                            <div className="flex items-center gap-2 mb-1">
-                                                <span className="text-[9px] font-black text-neon-cyan/50 tracking-widest">{m.time}</span>
-                                                <div className="h-px flex-1 bg-white/5" />
-                                            </div>
-                                            <div className="p-3 bg-white/5 border border-white/5 rounded-2xl group-hover:border-neon-cyan/20 transition-colors">
-                                                <p className="text-sm text-white/90 leading-relaxed font-medium">{m.message}</p>
-                                            </div>
+
+                                    <div className="flex gap-2 justify-center py-4">
+                                        {['🍒', '💎', '7️⃣'].map((emoji, i) => (
+                                            <motion.div
+                                                key={i}
+                                                animate={{ y: [0, -10, 0] }}
+                                                transition={{ repeat: Infinity, duration: 0.5, delay: i * 0.1 }}
+                                                className="w-12 h-16 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-2xl"
+                                            >
+                                                {emoji}
+                                            </motion.div>
+                                        ))}
+                                    </div>
+
+                                    <div className="space-y-2 w-full">
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase">
+                                            {activeSlots.participants.length} JOUEURS • TICKET 50 DROPS
+                                        </p>
+                                        <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                            <motion.div
+                                                animate={{ width: `${(activeSlots.timeLeft / 60) * 100}%` }}
+                                                className="h-full bg-amber-500"
+                                            />
                                         </div>
-                                    ))}
-                                    {chatMessages.filter(m => m.pseudo === showUserLogs).length === 0 && (
-                                        <div className="flex flex-col items-center justify-center py-20 text-gray-600 space-y-4">
-                                            <Trash2 className="w-12 h-12 opacity-20" />
-                                            <p className="text-sm font-black uppercase italic tracking-widest">Aucun historique disponible</p>
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="p-4 bg-white/5 border-t border-white/10 flex justify-end gap-3">
-                                    <button onClick={() => { if (showUserLogs) handlePurgeTarget(showUserLogs); setShowUserLogs(null); }} className="px-6 py-2 bg-red-600/20 border border-red-500/30 text-red-500 text-[10px] font-black rounded-xl hover:bg-red-600/30 transition-all uppercase tracking-widest">EFFACER HISTORIQUE</button>
-                                    <button onClick={() => setShowUserLogs(null)} className="px-6 py-2 bg-white/5 text-white text-[10px] font-black rounded-xl hover:bg-white/10 transition-all uppercase tracking-widest border border-white/10">FERMER</button>
+                                        <button
+                                            onClick={() => handleSendMessage("!ticket")}
+                                            className="w-full py-3 bg-amber-500 text-black font-black uppercase rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-500/20"
+                                        >
+                                            Prendre un ticket !
+                                        </button>
+                                        <p className="text-[8px] text-amber-500/50 font-black uppercase tracking-tighter italic">FIN DANS {activeSlots.timeLeft}S</p>
+                                    </div>
                                 </div>
                             </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
-            </div>
-        </div>
+                        )
+                    }
+                </AnimatePresence >
+                {/* USER LOGS MODAL */}
+                <AnimatePresence>
+                    {
+                        showUserLogs && (
+                            <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+                                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={() => setShowUserLogs(null)} className="absolute inset-0 bg-black/80 backdrop-blur-md" />
+                                <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="relative bg-[#0a0a0a] border-2 border-neon-cyan/30 rounded-[2.5rem] w-full max-w-2xl max-h-[80vh] overflow-hidden flex flex-col shadow-[0_0_50px_rgba(0,255,255,0.1)]">
+                                    <div className="p-6 border-b border-white/10 flex items-center justify-between bg-white/5">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-2xl bg-neon-cyan/20 flex items-center justify-center text-neon-cyan">
+                                                <MessageSquare className="w-6 h-6" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-xl font-black text-white uppercase italic tracking-tighter">Logs Chat : {showUserLogs}</h3>
+                                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{chatMessages.filter(m => m.pseudo === showUserLogs).length} messages trouvés</p>
+                                            </div>
+                                        </div>
+                                        <button onClick={() => setShowUserLogs(null)} className="p-3 hover:bg-white/10 rounded-full transition-colors"><X className="w-6 h-6 text-gray-500" /></button>
+                                    </div>
+                                    <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar bg-black/20">
+                                        {chatMessages.filter(m => m.pseudo === showUserLogs).map((m, i) => (
+                                            <div key={i} className="group">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-[9px] font-black text-neon-cyan/50 tracking-widest">{m.time}</span>
+                                                    <div className="h-px flex-1 bg-white/5" />
+                                                </div>
+                                                <div className="p-3 bg-white/5 border border-white/5 rounded-2xl group-hover:border-neon-cyan/20 transition-colors">
+                                                    <p className="text-sm text-white/90 leading-relaxed font-medium">{m.message}</p>
+                                                </div>
+                                            </div>
+                                        ))}
+                                        {chatMessages.filter(m => m.pseudo === showUserLogs).length === 0 && (
+                                            <div className="flex flex-col items-center justify-center py-20 text-gray-600 space-y-4">
+                                                <Trash2 className="w-12 h-12 opacity-20" />
+                                                <p className="text-sm font-black uppercase italic tracking-widest">Aucun historique disponible</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                    <div className="p-4 bg-white/5 border-t border-white/10 flex justify-end gap-3">
+                                        <button onClick={() => { if (showUserLogs) handlePurgeTarget(showUserLogs); setShowUserLogs(null); }} className="px-6 py-2 bg-red-600/20 border border-red-500/30 text-red-500 text-[10px] font-black rounded-xl hover:bg-red-600/30 transition-all uppercase tracking-widest">EFFACER HISTORIQUE</button>
+                                        <button onClick={() => setShowUserLogs(null)} className="px-6 py-2 bg-white/5 text-white text-[10px] font-black rounded-xl hover:bg-white/10 transition-all uppercase tracking-widest border border-white/10">FERMER</button>
+                                    </div>
+                                </motion.div>
+                            </div>
+                        )
+                    }
+                </AnimatePresence >
+            </div >
+        </div >
     );
 };
 
