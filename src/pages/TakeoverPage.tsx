@@ -91,6 +91,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [loginPseudo, setLoginPseudo] = useState('');
     const [loginEmail, setLoginEmail] = useState('');
     const [loginCountry, setLoginCountry] = useState('FR');
+    const [subscribeNewsletter, setSubscribeNewsletter] = useState(true);
 
     const countries = [
         { code: 'FR', name: 'France' },
@@ -238,6 +239,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [activeSlots, setActiveSlots] = useState<{ id: string, participants: string[], timeLeft: number } | null>(null);
     const [takeoverAlert, setTakeoverAlert] = useState<{ text: string } | null>(null);
     const [userWarnings, setUserWarnings] = useState<{ [pseudo: string]: number }>({});
+    const [showUserLogs, setShowUserLogs] = useState<string | null>(null);
     const [isRouletteTimeout, setIsRouletteTimeout] = useState(false);
     const [topTalkers, setTopTalkers] = useState<{ pseudo: string, count: number }[]>([]);
     const [isPremsAwarded, setIsPremsAwarded] = useState(false);
@@ -254,7 +256,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     // 🆕 New State Features
     const [userInstagram, setUserInstagram] = useState(localStorage.getItem('user_instagram') || '');
+    const [shazamCount, setShazamCount] = useState<number>(() => parseInt(localStorage.getItem('shazam_count') || '0'));
     const [timeOnSite, setTimeOnSite] = useState(() => parseInt(localStorage.getItem('time_on_site') || '0'));
+    const [showAchievementPopup, setShowAchievementPopup] = useState<string | null>(null);
+    const [showFeedbackUX, setShowFeedbackUX] = useState(false);
+    const [userRatingUX, setUserRatingUX] = useState(0);
 
     const [loginInstagram, setLoginInstagram] = useState('');
     const [loginPseudoColor, setLoginPseudoColor] = useState('#ffffff');
