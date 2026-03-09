@@ -129,6 +129,29 @@ export function InvoiceGenerator() {
         setTimeout(() => { document.title = originalTitle; }, 1000);
     };
 
+    // Helper to sanitize any document from oklch colors (which crash html2canvas)
+    const sanitizeColors = (doc: Document) => {
+        // 1. Process all style tags
+        const styles = doc.querySelectorAll('style');
+        styles.forEach(s => {
+            if (s.textContent) {
+                // Replace any oklch(...) with a neutral black fallback
+                s.textContent = s.textContent.replace(/oklch\([^)]+\)/g, '#000000');
+            }
+        });
+
+        // 2. Process all inline styles on all elements
+        const allElements = doc.querySelectorAll('*');
+        allElements.forEach(el => {
+            if (el instanceof HTMLElement) {
+                const styleAttr = el.getAttribute('style');
+                if (styleAttr && styleAttr.includes('oklch')) {
+                    el.setAttribute('style', styleAttr.replace(/oklch\([^)]+\)/g, '#000000'));
+                }
+            }
+        });
+    };
+
     const handlePreview = async () => {
         setPreviewLoading(true);
         setShowPreview(true);
@@ -151,22 +174,16 @@ export function InvoiceGenerator() {
                 useCORS: true,
                 backgroundColor: '#ffffff',
                 width: 794,
-                onclone: (clonedDoc) => {
-                    const styles = clonedDoc.querySelectorAll('style');
-                    styles.forEach(s => {
-                        if (s.textContent) {
-                            s.textContent = s.textContent.replace(/oklch\([^)]+\)/g, '#000000');
-                        }
-                    });
-                }
+                onclone: (clonedDoc) => sanitizeColors(clonedDoc)
             });
 
             invoiceEl.style.display = '';
             invoiceEl.style.position = '';
 
             setPreviewImage(canvas.toDataURL('image/png'));
-        } catch (e) {
+        } catch (e: any) {
             console.error('Preview Error:', e);
+            setSendError(e.message || 'Erreur de rendu');
         } finally {
             setPreviewLoading(false);
         }
@@ -198,14 +215,7 @@ export function InvoiceGenerator() {
                 useCORS: true,
                 backgroundColor: '#ffffff',
                 width: 794,
-                onclone: (clonedDoc) => {
-                    const styles = clonedDoc.querySelectorAll('style');
-                    styles.forEach(s => {
-                        if (s.textContent) {
-                            s.textContent = s.textContent.replace(/oklch\([^)]+\)/g, '#000000');
-                        }
-                    });
-                }
+                onclone: (clonedDoc) => sanitizeColors(clonedDoc)
             });
 
             invoiceEl.style.display = '';
@@ -265,7 +275,7 @@ export function InvoiceGenerator() {
             <div className="print:hidden p-8 max-w-6xl mx-auto space-y-12">
                 <div className="flex items-center justify-between flex-wrap gap-8 border-b border-white/10 pb-12">
                     <div className="flex items-center gap-6">
-                        <div className="w-16 h-16 bg-white flex items-center justify-center rounded-2xl shadow-lg">
+                        <div className="w-16 h-16 bg-white flex items-center justify-center rounded-2xl shadow-lg border border-white/20">
                             <span className="text-black text-4xl font-black">C</span>
                         </div>
                         <div>
@@ -278,19 +288,19 @@ export function InvoiceGenerator() {
                     <div className="flex items-center gap-4 flex-wrap">
                         <button
                             onClick={handlePreview}
-                            className="px-6 py-4 bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 rounded-2xl font-black uppercase tracking-widest flex items-center gap-2 transition-all"
+                            className="px-6 py-4 bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 rounded-2xl font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:scale-105"
                         >
                             <Eye className="w-5 h-5" /> Aperçu
                         </button>
                         <button
                             onClick={() => setShowEmailModal(true)}
-                            className="px-10 py-4 bg-white text-black hover:bg-gray-100 rounded-2xl font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-xl shadow-white/5"
+                            className="px-10 py-4 bg-white text-black hover:bg-gray-100 rounded-2xl font-black uppercase tracking-widest flex items-center gap-2 transition-all shadow-xl shadow-white/5 hover:scale-105 active:scale-95"
                         >
                             <Send className="w-5 h-5" /> EXPÉDIER
                         </button>
                         <button
                             onClick={handlePrint}
-                            className="px-6 py-4 bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 rounded-2xl font-black uppercase tracking-widest flex items-center gap-2 transition-all"
+                            className="px-6 py-4 bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 rounded-2xl font-black uppercase tracking-widest flex items-center gap-2 transition-all hover:scale-105"
                         >
                             <Printer className="w-5 h-5" /> Imprimer
                         </button>
@@ -304,7 +314,7 @@ export function InvoiceGenerator() {
                             <div className="space-y-6">
                                 <div className="space-y-3">
                                     <label className="text-[10px] text-gray-600 uppercase font-black ml-1">Ligne Directe</label>
-                                    <div className="flex items-center gap-4 bg-white/5 p-5 rounded-3xl border border-white/5">
+                                    <div className="flex items-center gap-4 bg-white/5 p-5 rounded-3xl border border-white/5 focus-within:border-white/20 transition-all">
                                         <Phone className="w-5 h-5 text-gray-500" />
                                         <input
                                             type="text"
@@ -463,7 +473,11 @@ export function InvoiceGenerator() {
                                     </div>
                                 ) : previewImage ? (
                                     <img src={previewImage} alt="Preview" className="max-w-full h-auto rounded-[32px] shadow-2xl" />
-                                ) : null}
+                                ) : (
+                                    <div className="text-red-500 font-bold uppercase italic tracking-widest text-center px-10">
+                                        {sendError || "Rendering failure. Color space incompatiblity detected."}
+                                    </div>
+                                )}
                             </div>
                             <div className="flex gap-8 mt-10 shrink-0">
                                 <button onClick={() => { setShowPreview(false); handlePrint(); }} className="flex-1 py-8 bg-white/5 border border-white/20 rounded-[40px] font-black uppercase tracking-[0.3em] hover:bg-white/10 transition-all">PRINT PROCESS</button>
@@ -493,7 +507,7 @@ export function InvoiceGenerator() {
                                     <textarea value={emailMessage} onChange={e => setEmailMessage(e.target.value)} rows={8} className="w-full p-8 bg-white/5 border border-white/10 rounded-[40px] outline-none text-base resize-none font-medium leading-relaxed" />
                                 </div>
                             </div>
-                            {sendStatus === 'error' && <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-3xl text-red-500 text-xs font-black text-center italic uppercase">{sendError}</div>}
+                            {sendStatus === 'error' && <div className="p-6 bg-red-500/10 border border-red-500/20 rounded-3xl text-red-500 text-xs font-black text-center italic uppercase leading-relaxed">{sendError}</div>}
                             <button onClick={generateAndSendPDF} disabled={sendStatus !== 'idle' && sendStatus !== 'error'} className="w-full py-8 bg-white text-black rounded-[40px] font-black uppercase shadow-2xl transition-all hover:scale-[1.02] active:scale-[0.98]">
                                 {sendStatus === 'generating' || sendStatus === 'sending' ? <Loader className="animate-spin inline mr-3 w-7 h-7" /> : <Send className="inline mr-3 w-7 h-7" />}
                                 EXECUTE DISPATCH
@@ -516,65 +530,61 @@ export function InvoiceGenerator() {
             </style>
 
             <div ref={invoiceRef} id="printable-invoice" className="hidden print:block w-[794px] bg-white text-black p-[60px] min-h-[1123px] font-sans" style={{ backgroundColor: '#ffffff', color: '#000000', position: 'relative', overflow: 'hidden' }}>
-                {/* Visual Elements (Pink Shapes) from Nomade Template */}
-                <div style={{ position: 'absolute', top: 0, left: 0, width: '18px', height: '100%', backgroundColor: '#fef2f2' }} />
+                {/* NOMADE STYLE DECO */}
+                <div style={{ position: 'absolute', top: 0, left: 0, width: '18px', height: '100%', backgroundColor: '#fdf2f2' }} />
                 <div style={{ position: 'absolute', bottom: '30px', right: '30px', width: '80px', height: '80px', display: 'flex', flexWrap: 'wrap' }}>
-                    <div style={{ width: '40px', height: '40px', backgroundColor: '#fee2e2', opacity: 0.6 }} />
+                    <div style={{ width: '40px', height: '40px', backgroundColor: '#fde2e2', opacity: 0.6 }} />
                     <div style={{ width: '40px', height: '40px' }} />
                     <div style={{ width: '40px', height: '40px' }} />
-                    <div style={{ width: '40px', height: '40px', backgroundColor: '#fee2e2' }} />
+                    <div style={{ width: '40px', height: '40px', backgroundColor: '#fde2e2' }} />
                 </div>
 
-                {/* Header Grid */}
                 <div className="flex justify-between items-start mb-20 pt-10">
                     <div className="flex items-center gap-6">
                         <div style={{ border: '3px solid #000', padding: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', width: '60px', height: '60px' }}>
                             <span className="font-black text-3xl" style={{ transform: 'scaleX(0.9)', color: '#000' }}>C</span>
                         </div>
                         <div>
-                            <h1 className="text-4xl font-black uppercase mb-[-4px]" style={{ letterSpacing: '-0.05em', color: '#000' }}>CUENCA</h1>
-                            <p className="text-[11px] font-black uppercase tracking-[0.25em]" style={{ color: '#000' }}>STUDIO CRÉATIF</p>
+                            <p className="text-3xl font-black uppercase mb-[-6px]" style={{ letterSpacing: '-0.05em', color: '#000', fontSize: '32px' }}>CUENCA</p>
+                            <p className="text-[11px] font-black uppercase tracking-[0.3em]" style={{ color: '#000' }}>STUDIO CRÉATIF</p>
                         </div>
                     </div>
                     <div>
-                        <h1 className="text-[100px] font-black uppercase leading-none tracking-tighter" style={{ transform: 'scaleY(1.3)', display: 'inline-block', letterSpacing: '-0.03em', color: '#000' }}>FACTURE</h1>
+                        <h1 className="text-[90px] font-black uppercase leading-none tracking-tighter" style={{ transform: 'scaleY(1.3)', display: 'inline-block', letterSpacing: '-0.02em', color: '#000' }}>FACTURE</h1>
                     </div>
                 </div>
 
-                {/* Meta Data Row */}
                 <div className="flex justify-between items-end border-b-2 border-black pb-10 mb-14">
                     <div className="space-y-1.5 font-black text-[11px] uppercase">
                         <p>DATE : {new Date(date).toLocaleDateString('fr-FR')}</p>
                         <p>ÉCHÉANCE : {new Date(new Date(date).getTime() + 30 * 24 * 60 * 60 * 1000).toLocaleDateString('fr-FR')}</p>
                     </div>
                     <div className="text-right">
-                        <p className="text-lg font-black uppercase" style={{ color: '#000' }}>FACTURE N° : {formattedInvoiceNumber}</p>
+                        <p className="text-xl font-black uppercase" style={{ color: '#000' }}>FACTURE N° : {formattedInvoiceNumber}</p>
                     </div>
                 </div>
 
-                {/* Addresses Grid */}
                 <div className="grid grid-cols-2 gap-24 mb-24">
                     <div>
                         <p className="text-[11px] font-black uppercase mb-5 border-b border-gray-100 pb-1.5 w-fit" style={{ color: '#000' }}>ÉMETTEUR :</p>
-                        <p className="text-base font-black mb-1 uppercase">CUENCA ALEXANDRE</p>
+                        <p className="text-base font-black mb-1 uppercase" style={{ color: '#000' }}>CUENCA ALEXANDRE</p>
                         <div className="text-xs font-bold leading-relaxed text-gray-500 space-y-1">
                             <p>{userPhone}</p>
                             <p>alexflex30@gmail.com</p>
-                            <p>411 RUE DE BOUILLARGUES</p>
+                            <p className="uppercase">411 RUE DE BOUILLARGUES</p>
                             <p>30000 NIMES</p>
                         </div>
                     </div>
                     <div className="text-right flex flex-col items-end">
                         <p className="text-[11px] font-black uppercase mb-5 border-b border-gray-100 pb-1.5 w-fit" style={{ color: '#000' }}>DESTINATAIRE :</p>
-                        <p className="text-base font-black mb-1 uppercase">{clientName || 'NC'}</p>
+                        <p className="text-base font-black mb-1 uppercase" style={{ color: '#000' }}>{clientName || 'NC'}</p>
                         <div className="text-xs font-bold leading-relaxed text-gray-500 space-y-1">
                             {clientEmail && <p>{clientEmail.toLowerCase()}</p>}
-                            <div className="whitespace-pre-line">{clientAddress}</div>
+                            <div className="whitespace-pre-line uppercase">{clientAddress}</div>
                         </div>
                     </div>
                 </div>
 
-                {/* Items List */}
                 <div className="mb-20">
                     <div className="grid grid-cols-12 gap-0 border-b-2 border-black pb-4 mb-8">
                         <div className="col-span-7 text-[11px] font-black uppercase" style={{ color: '#000' }}>Description :</div>
@@ -584,37 +594,38 @@ export function InvoiceGenerator() {
                     </div>
 
                     {lines.map((line) => (
-                        <div key={line.id} className="grid grid-cols-12 gap-0 py-6 border-b border-gray-50 items-baseline">
-                            <div className="col-span-7 font-black text-base" style={{ color: '#000' }}>{line.description}</div>
-                            <div className="col-span-2 text-right font-bold text-sm" style={{ color: '#52525b' }}>{line.unitPrice.toFixed(2).replace('.', ',')}€</div>
-                            <div className="col-span-1 text-center font-bold text-sm" style={{ color: '#52525b' }}>{line.quantity}</div>
+                        <div key={line.id} className="grid grid-cols-12 gap-0 py-6 border-b border-gray-100 items-baseline">
+                            <div className="col-span-7 font-black text-base uppercase" style={{ color: '#000' }}>{line.description}</div>
+                            <div className="col-span-2 text-right font-bold text-sm" style={{ color: '#3f3f46' }}>{line.unitPrice.toFixed(2).replace('.', ',')}€</div>
+                            <div className="col-span-1 text-center font-bold text-sm" style={{ color: '#3f3f46' }}>{line.quantity}</div>
                             <div className="col-span-2 text-right font-black text-base" style={{ color: '#000' }}>{(line.quantity * line.unitPrice).toFixed(2).replace('.', ',')}€</div>
                         </div>
                     ))}
                 </div>
 
-                {/* Summary Section */}
                 <div className="flex justify-between items-start">
                     <div className="w-1/2">
                         <p className="text-[13px] font-black uppercase mb-6" style={{ textDecoration: 'underline', textUnderlineOffset: '6px', textDecorationThickness: '2px', color: '#000' }}>RÈGLEMENT :</p>
-                        <div className="text-xs font-bold space-y-2 text-gray-800">
-                            <p><span style={{ color: '#a1a1aa', fontSize: '10px', textTransform: 'uppercase' }}>Virement bancaire</span></p>
-                            <p className="font-black text-sm uppercase">Banque : Revolut</p>
-                            <p className="font-black">IBAN : <span className="tracking-wide">BE59 9675 0891 6526</span></p>
-                            <p className="font-black">BIC : <span className="tracking-wide">TRWIBEB1XXX</span></p>
+                        <div className="text-xs font-bold space-y-3 text-gray-800">
+                            <p className="text-[10px] uppercase font-black" style={{ color: '#a1a1aa' }}>Virement bancaire</p>
+                            <div className="space-y-0.5">
+                                <p className="font-black text-sm uppercase">Banque : Revolut</p>
+                                <p className="font-black">IBAN : <span className="tracking-wide">BE59 9675 0891 6526</span></p>
+                                <p className="font-black">BIC : <span className="tracking-wide">TRWIBEB1XXX</span></p>
+                            </div>
                         </div>
                     </div>
-                    <div className="w-[280px]">
-                        <div className="space-y-4">
+                    <div className="w-[300px]">
+                        <div className="space-y-5">
                             <div className="flex justify-between text-xs font-black uppercase">
                                 <span style={{ color: '#a1a1aa' }}>TOTAL HT :</span>
                                 <span style={{ color: '#000' }}>{(total).toFixed(2).replace('.', ',')}€</span>
                             </div>
-                            <div className="flex justify-between text-xs font-black uppercase border-b border-gray-100 pb-4">
+                            <div className="flex justify-between text-xs font-black uppercase border-b-2 border-gray-100 pb-5">
                                 <span style={{ color: '#a1a1aa' }}>TVA 0% :</span>
                                 <span style={{ color: '#000' }}>0,00€</span>
                             </div>
-                            <div className="flex justify-between text-2xl font-black uppercase pt-4" style={{ color: '#000' }}>
+                            <div className="flex justify-between text-3xl font-black uppercase pt-4" style={{ color: '#000', letterSpacing: '-0.02em' }}>
                                 <span>TOTAL TTC :</span>
                                 <span>{(total).toFixed(2).replace('.', ',')}€</span>
                             </div>
@@ -622,14 +633,18 @@ export function InvoiceGenerator() {
                     </div>
                 </div>
 
-                {/* Disclaimer Disclaimer Disclaimer */}
-                <div className="mt-32 pt-12 border-t border-gray-100">
-                    <p className="text-[10px] text-gray-400 font-bold leading-relaxed max-w-[550px] mb-4">
-                        Conformément à l'article L 441-6 du code de commerce, des pénalités de retard sont exigibles le jour suivant la date de règlement figurant sur la facture dans le cas où les sommes dues sont réglées après cette date. Frais de recouvrement forfaitaire de 40€.
+                <div className="mt-32 pt-12 border-t border-gray-200">
+                    <p className="text-[10px] text-gray-400 font-bold leading-relaxed max-w-[550px] mb-6 italic">
+                        En cas de retard de paiement, une indemnité de 10% par jour de retard ainsi que des frais de recouvrement de 40 euros seront exigibles.
                     </p>
-                    <p className="text-[10px] font-black uppercase tracking-wider" style={{ color: '#d1d5db' }}>
-                        Auto-entrepreneur — TVA non applicable, art. 293 B du CGI — SIRET : 805131828 00010
-                    </p>
+                    <div className="flex justify-between items-center opacity-40">
+                        <p className="text-[9px] font-black uppercase tracking-widest text-black">
+                            CUENCA ALEXANDRE STUDIO — SIRET : 805131828 00010
+                        </p>
+                        <p className="text-[9px] font-black uppercase tracking-widest text-black">
+                            TVA NON APPLICABLE, ART. 293 B DU CGI
+                        </p>
+                    </div>
                 </div>
             </div>
         </div>

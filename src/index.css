@@ -12,6 +12,7 @@
   --color-dark-bg: #0a0a0a;
   --color-dark-card: rgba(255, 255, 255, 0.05);
 
+  --color-gray-50: #fafafa;
   --color-gray-100: #f4f4f5;
   --color-gray-200: #e4e4e7;
   --color-gray-300: #d4d4d8;
@@ -21,9 +22,14 @@
   --color-gray-700: #3f3f46;
   --color-gray-800: #27272a;
   --color-gray-900: #18181b;
+  --color-gray-950: #09090b;
 
   --color-white: #ffffff;
   --color-black: #000000;
+
+  --color-pink-50: #fdf2f2;
+  --color-pink-100: #fde2e2;
+  --color-pink-200: #fecaca;
 
   --font-sans: 'Montserrat', sans-serif;
   --font-display: 'Orbitron', 'sans-serif';
