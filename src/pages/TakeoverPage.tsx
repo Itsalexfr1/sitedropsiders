@@ -242,7 +242,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [isRouletteTimeout, setIsRouletteTimeout] = useState(false);
     const [topTalkers, setTopTalkers] = useState<{ pseudo: string, count: number }[]>([]);
     const [isPremsAwarded, setIsPremsAwarded] = useState(false);
-    const [hasHoloPseudo, setHasHoloPseudo] = useState(localStorage.getItem('user_holo_pseudo') === 'true');
     const [clashPoll, setClashPoll] = useState<{ active: boolean, teamA: string, teamB: string, votesA: string[], votesB: string[] } | null>(null);
     const [shopItems] = useState([
         { id: 1, name: 'T-Shirt Classic', price: 2500, image: 'https://placehold.co/100x120?text=TSHIRT' },
@@ -1469,10 +1468,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 setHypeTrain(prev => ({ ...prev, progress: Math.min(100, prev.progress + 10), active: true }));
             }
 
-            // Award PREMS badge
-            let isPremsMsg = false;
+            // Award PREMS badge locally (Logic retained for notification, but not sent to DB)
             if (!isPremsAwarded && chatMessages.length === 0) {
-                isPremsMsg = true;
                 setIsPremsAwarded(true);
             }
 
@@ -1777,7 +1774,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             )}
 
             {/* 3. MAIN CONTENT AREA */}
-            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden relative">
+            <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden relative">
                 {/* A. VIDEO PANEL (40% Mobile / 60% Desktop) */}
                 <div className={`transition-all duration-700 ease-in-out ${isPopout ? 'hidden' : (isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[40%] lg:h-full')} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
                     <div className="absolute inset-0 z-0">
@@ -2465,7 +2462,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 </div></div></motion.div>)}</AnimatePresence>
 
                 {/* B. CHAT PANEL (60% Mobile / 40% Desktop) */}
-                <div className={`${isCinemaMode ? 'hidden' : 'w-full lg:w-[40%] h-[60%] lg:h-full'} bg-black/60 backdrop-blur-2xl flex flex-col relative border-l border-white/5 shadow-2xl z-10`}>
+                <div className={`${isCinemaMode ? 'hidden' : 'w-full lg:w-[40%] h-[60%] lg:h-full'} bg-black/60 backdrop-blur-2xl flex flex-col relative border-l border-white/5 shadow-2xl z-10 min-h-0`}>
                     {/* Chat Tabs */}
                     <div className="p-2 lg:p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
                         <div className="flex items-center gap-3">
@@ -2505,7 +2502,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         )
                     }
 
-                    <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-6 custom-scrollbar scroll-smooth flex flex-col gap-6 relative transition-all duration-500 bg-black/20 backdrop-blur-3xl">
+                    <div className="flex-1 overflow-y-auto px-4 lg:px-6 py-4 custom-scrollbar scroll-smooth flex flex-col gap-4 relative transition-all duration-500 bg-black/20 backdrop-blur-3xl min-h-0">
 
                         <div className="flex items-center justify-between mb-2">
                             <div className="flex gap-2">
