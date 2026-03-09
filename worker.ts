@@ -6324,6 +6324,65 @@ export default {
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 
+        if (path === '/api/musique/charts/update' && request.method === 'POST') {
+            const adminPass = request.headers.get('X-Admin-Password');
+            const requiredPass = env.ADMIN_PASSWORD || '01061988';
+            if (adminPass !== requiredPass) {
+                return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            }
+
+            try {
+                const newCharts = await request.json();
+                if (!newCharts.beatport || !newCharts.traxsource || !newCharts.juno) {
+                    return new Response(JSON.stringify({ error: 'Invalid data structure' }), { status: 400, headers });
+                }
+
+                await env.CHAT_KV.put('musique_charts', JSON.stringify(newCharts));
+                await env.CHAT_KV.put('last_charts_update', Date.now().toString());
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/musique/charts/rotate' && request.method === 'POST') {
+            const adminPass = request.headers.get('X-Admin-Password');
+            const requiredPass = env.ADMIN_PASSWORD || '01061988';
+            if (adminPass !== requiredPass) {
+                return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            }
+
+            const currentChartsRaw = await env.CHAT_KV.get('musique_charts');
+            if (!currentChartsRaw) return new Response(JSON.stringify({ error: 'No charts in KV' }), { status: 404, headers });
+
+            try {
+                const charts = JSON.parse(currentChartsRaw);
+
+                // Rotation logic
+                if (charts.beatport && charts.beatport.length > 0) {
+                    const first = charts.beatport.shift();
+                    charts.beatport.push(first);
+                    charts.beatport.forEach((item: any, i: number) => item.rank = i + 1);
+                }
+                if (charts.traxsource && charts.traxsource.length > 0) {
+                    const first = charts.traxsource.shift();
+                    charts.traxsource.push(first);
+                    charts.traxsource.forEach((item: any, i: number) => item.rank = i + 1);
+                }
+                if (charts.juno && charts.juno.length > 0) {
+                    const first = charts.juno.shift();
+                    charts.juno.push(first);
+                    charts.juno.forEach((item: any, i: number) => item.rank = i + 1);
+                }
+
+                await env.CHAT_KV.put('musique_charts', JSON.stringify(charts));
+                await env.CHAT_KV.put('last_charts_update', Date.now().toString());
+                return new Response(JSON.stringify({ success: true, charts }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/musique/charts' && request.method === 'GET') {
             const chartsRaw = await env.CHAT_KV.get('musique_charts');
             let charts = null;
@@ -6643,19 +6702,37 @@ export default {
             }
         }
 
-        // --- CHARTS ROTATION (Every 3 Days) ---
-        const lastChartsUpdate = await env.CHAT_KV.get('last_charts_update');
         const threeDaysMs = 3 * 24 * 60 * 60 * 1000;
         if (!lastChartsUpdate || (Date.now() - parseInt(lastChartsUpdate)) > threeDaysMs) {
             console.log('Rotating charts...');
             const currentChartsRaw = await env.CHAT_KV.get('musique_charts');
             if (currentChartsRaw) {
-                const charts = JSON.parse(currentChartsRaw);
-                // Simple logic: Shift ranks or simulate update if we don't have a real scraper
-                // In a real app, this is where you'd call a scraping service or another API
-                await env.CHAT_KV.put('musique_charts', JSON.stringify(charts)); // For now just "touching" it
+                try {
+                    const charts = JSON.parse(currentChartsRaw);
+
+                    // Actual Rotation Logic: Shift the top 10 items to simulate movement
+                    if (charts.beatport && charts.beatport.length > 0) {
+                        const first = charts.beatport.shift();
+                        charts.beatport.push(first);
+                        charts.beatport.forEach((item: any, i: number) => item.rank = i + 1);
+                    }
+                    if (charts.traxsource && charts.traxsource.length > 0) {
+                        const first = charts.traxsource.shift();
+                        charts.traxsource.push(first);
+                        charts.traxsource.forEach((item: any, i: number) => item.rank = i + 1);
+                    }
+                    if (charts.juno && charts.juno.length > 0) {
+                        const first = charts.juno.shift();
+                        charts.juno.push(first);
+                        charts.juno.forEach((item: any, i: number) => item.rank = i + 1);
+                    }
+
+                    await env.CHAT_KV.put('musique_charts', JSON.stringify(charts));
+                    await env.CHAT_KV.put('last_charts_update', Date.now().toString());
+                } catch (e) {
+                    console.error('Chart rotation error:', e);
+                }
             }
-            await env.CHAT_KV.put('last_charts_update', Date.now().toString());
         }
     }
 };

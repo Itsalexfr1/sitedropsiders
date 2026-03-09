@@ -144,6 +144,7 @@ export function AdminDashboard() {
         status: 'off'
     });
     const [isUpdatingTakeover, setIsUpdatingTakeover] = useState(false);
+    const [isUpdatingCharts, setIsUpdatingCharts] = useState(false);
     const [takeoverTab, setTakeoverTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'blocked' | 'access'>('general');
     const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
     const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'CONTENU' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP'>('ALL');
@@ -701,7 +702,6 @@ export function AdminDashboard() {
         { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
         { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
         { title: "Team", description: "Équipe & Accès", icon: "Users", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
-        { title: "News Focus", description: "Focus de la semaine", icon: "Zap", category: "CONTENU & ÉDITORIAL", link: "/news/create?tab=Focus", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "news", baseColor: "purple", columns: 1 },
     ];
 
 
@@ -768,6 +768,27 @@ export function AdminDashboard() {
         localStorage.removeItem('admin_permissions');
         localStorage.removeItem('admin_session_id');
         navigate('/admin'); // Force redirect to dashboard login
+    };
+
+    const rotateCharts = async () => {
+        setIsUpdatingCharts(true);
+        try {
+            const adminPass = localStorage.getItem('admin_password') || '01061988';
+            const res = await fetch('/api/musique/charts/rotate', {
+                method: 'POST',
+                headers: { 'X-Admin-Password': adminPass }
+            });
+            if (res.ok) {
+                alert("Top 10 mis à jour avec succès ! (Rotation effectuée)");
+            } else {
+                const data = await res.json();
+                alert("Erreur: " + (data.error || "Inconnue"));
+            }
+        } catch (e) {
+            alert("Erreur réseau.");
+        } finally {
+            setIsUpdatingCharts(false);
+        }
     };
 
     if (!isAuthenticated) {
@@ -2168,17 +2189,23 @@ export function AdminDashboard() {
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Focus musique</p>
                                     </Link>
 
-                                    <Link
-                                        to="/admin/manage?tab=Musique"
-                                        onClick={() => setIsMusiqueModalOpen(false)}
-                                        className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 transition-all group"
+                                    <button
+                                        onClick={() => rotateCharts()}
+                                        disabled={isUpdatingCharts}
+                                        className="p-8 bg-white/5 border border-white/10 rounded-3xl hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group flex flex-col items-center justify-center text-center"
                                     >
-                                        <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center mb-6 border border-white/10 group-hover:scale-110 transition-transform">
-                                            <Settings2 className="w-6 h-6 text-white" />
+                                        <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                                            {isUpdatingCharts ? <Loader2 className="w-6 h-6 text-neon-cyan animate-spin" /> : <RefreshCw className="w-6 h-6 text-neon-cyan" />}
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Gérer</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Voir tous les articles</p>
-                                    </Link>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Mettre à jour Top 10</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Forcer la rotation</p>
+                                    </button>
+                                </div>
+
+                                <div className="p-6 bg-black/40 rounded-3xl border border-white/5">
+                                    <p className="text-[10px] text-gray-500 leading-relaxed uppercase font-bold tracking-widest text-center">
+                                        Note: Les classements sont synchronisés automatiquement tous les <span className="text-white">3 jours</span> via Beatport, Traxsource et Juno.
+                                    </p>
                                 </div>
                             </motion.div>
                         </div>
@@ -2672,7 +2699,7 @@ export function AdminDashboard() {
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
                                     <button
                                         onClick={() => { setIsNewsModalOpen(true); setIsContenuModalOpen(false); }}
                                         className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"
@@ -2738,6 +2765,20 @@ export function AdminDashboard() {
                                             <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Jeux & Blind Test</p>
                                         </div>
                                     </button>
+
+                                    <Link
+                                        to="/news/create?tab=Focus"
+                                        onClick={() => setIsContenuModalOpen(false)}
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                                    >
+                                        <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                                            <Zap className="w-6 h-6 text-neon-purple" />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-lg font-bold text-white uppercase italic">News Focus</h3>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Focus Semaine</p>
+                                        </div>
+                                    </Link>
                                 </div>
                             </motion.div>
                         </div>
@@ -2836,8 +2877,9 @@ export function AdminDashboard() {
                                         )}
                                     </button>
 
-                                    <button
-                                        onClick={() => { setIsEditorsModalOpen(true); setIsTeamModalOpen(false); }}
+                                    <Link
+                                        to="/admin/team"
+                                        onClick={() => setIsTeamModalOpen(false)}
                                         className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"
                                     >
                                         <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center border border-neon-blue/30 group-hover:scale-110 transition-transform">
@@ -2845,9 +2887,9 @@ export function AdminDashboard() {
                                         </div>
                                         <div className="text-center">
                                             <h3 className="text-lg font-bold text-white uppercase italic">Équipe</h3>
-                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Membres Actifs</p>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Gérer les membres</p>
                                         </div>
-                                    </button>
+                                    </Link>
 
                                     <button
                                         onClick={() => { setIsEditorsModalOpen(true); setIsTeamModalOpen(false); }}
