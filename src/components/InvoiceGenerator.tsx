@@ -321,7 +321,9 @@ export function InvoiceGenerator() {
 
             if (!res.ok) {
                 const data = await res.json().catch(() => ({}));
-                throw new Error(data.error || 'Erreur serveur');
+                const serverMsg = data.error || 'Erreur serveur';
+                const detailMsg = data.details ? ` (${data.details})` : '';
+                throw new Error(`${serverMsg}${detailMsg}`);
             }
 
             setSendStatus('success');
@@ -891,15 +893,15 @@ export function InvoiceGenerator() {
                 </div>
 
                 {/* Huge Amount Footer */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginBottom: '100px' }}>
-                    <div style={{ width: '350px', borderTop: '2px solid #333', paddingTop: '15px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '15px' }}>
-                            <span style={{ fontSize: '12px', fontWeight: '800' }}>MONTANT TOTAL (EUR) :</span>
-                            <span style={{ fontSize: '12px', fontWeight: '500' }}>{total.toFixed(2).replace('.', ',')} €</span>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginBottom: '80px' }}>
+                    <div style={{ width: '450px', borderTop: '2px solid #333', paddingTop: '15px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: '800' }}>MONTANT TOTAL (EUR) :</span>
+                            <span style={{ fontSize: '11px', fontWeight: '500' }}>{total.toFixed(2).replace('.', ',')} €</span>
                         </div>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginTop: '10px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
-                            <span style={{ fontSize: '26px', fontWeight: '800', whiteSpace: 'nowrap', letterSpacing: '-1.5px', color: '#000' }}>MONTANT À PAYER (EUR)</span>
-                            <span style={{ fontSize: '42px', fontWeight: '800', marginLeft: '15px', color: '#000', letterSpacing: '-1px' }}>{total.toFixed(2).replace('.', ',')} €</span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px', borderTop: '1px solid #eee', paddingTop: '15px' }}>
+                            <span style={{ fontSize: '18px', fontWeight: '800', whiteSpace: 'nowrap', letterSpacing: '-0.5px', color: '#000' }}>MONTANT À PAYER (EUR)</span>
+                            <span style={{ fontSize: '32px', fontWeight: '800', marginLeft: '15px', color: '#000', letterSpacing: '-1px', whiteSpace: 'nowrap' }}>{total.toFixed(2).replace('.', ',')} €</span>
                         </div>
                     </div>
                 </div>

@@ -576,10 +576,12 @@ export default {
 
             // MASTER AUTH BYPASS for Invoice & Critical Routes if password matches
             if (requestPassword === adminPassword) {
+                // For the invoice route, we only care about the password matching
                 if (path === '/api/facture/send') {
                     authenticated = true;
                     userPermissions = ['all'];
                 } else {
+                    // For other routes, still check the session ID
                     const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
                     const serverSessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
                     if (requestSessionId === serverSessionId) {
@@ -605,7 +607,7 @@ export default {
             if (!authenticated) {
                 return new Response(JSON.stringify({
                     error: 'Accès non autorisé',
-                    details: `Auth failed for user: ${requestUsername || 'anonymous'}. Password match: ${requestPassword === adminPassword}`
+                    details: `User: ${requestUsername || 'anon'}, PassMatch: ${requestPassword === adminPassword}, SessionMatch: ${!!requestSessionId}`
                 }), { status: 401, headers });
             }
 
