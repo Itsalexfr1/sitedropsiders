@@ -168,9 +168,20 @@ def get_upcoming_releases():
                 artist_str = ", ".join(artists)
                 
                 label_data = t.get('label', {})
-                label = label_data.get('name') if isinstance(label_data, dict) else str(label_data)
+                label = ""
+                if isinstance(label_data, dict):
+                    label = label_data.get('name', '')
+                elif isinstance(label_data, str):
+                    label = label_data
+
+                # Fallback to store label from 'release' or other nested fields if 'label' is empty
+                if not label:
+                    release_obj = t.get('release', {})
+                    if isinstance(release_obj, dict):
+                        label = release_obj.get('label', {}).get('name', '')
                 
-                # Image
+                # Ultimate fallback
+                if not label: label = "Beatport"
                 image = ""
                 images = t.get('images', {})
                 if images and 'large' in images:
