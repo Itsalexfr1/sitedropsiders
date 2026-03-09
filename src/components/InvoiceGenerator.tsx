@@ -97,6 +97,11 @@ export function InvoiceGenerator() {
         } catch (e) { console.error('Toggle paid error:', e); }
     };
 
+    const saveInvoiceNumber = (val: number) => {
+        setInvoiceNumber(val);
+        localStorage.setItem('dropsiders_last_invoice_number', val.toString());
+    };
+
     const saveUserPhone = (val: string) => {
         setUserPhone(val);
         localStorage.setItem('invoice_user_phone', val);
@@ -138,11 +143,6 @@ export function InvoiceGenerator() {
         setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver en pièce jointe votre facture N° ${formattedInvoiceNumber} d'un montant de ${total.toFixed(2)} €.\n\nCordialement,\nCUENCA ALEXANDRE`);
     }, [clientEmail, clientName, invoiceNumber, date, formattedInvoiceNumber]);
 
-    const saveInvoiceNumber = (num: number) => {
-        setInvoiceNumber(num);
-        localStorage.setItem('dropsiders_last_invoice_number', num.toString());
-    };
-
     const addLine = () => {
         setLines([...lines, { id: Date.now().toString(), description: '', quantity: 1, unitPrice: 0 }]);
     };
@@ -183,6 +183,8 @@ export function InvoiceGenerator() {
                 if (el.id === 'printable-invoice') {
                     el.style.backgroundColor = '#ffffff';
                     el.style.color = '#000000';
+                    el.style.display = 'block';
+                    el.style.visibility = 'visible';
                 }
             }
         });
@@ -197,59 +199,31 @@ export function InvoiceGenerator() {
             const invoiceEl = invoiceRef.current;
             if (!invoiceEl) throw new Error('Calculateur introuvable');
 
-            // Create a dedicated container for capture to avoid any conflict
-            const captureContainer = document.createElement('div');
-            captureContainer.id = 'preview-portal';
-            Object.assign(captureContainer.style, {
-                position: 'fixed',
-                left: '0',
-                top: '0',
-                width: '100vw',
-                height: '200vh',
-                backgroundColor: '#ffffff',
-                zIndex: '999999',
-                overflow: 'visible',
-                padding: '40px'
-            });
-
-            const invoiceCopy = invoiceEl.cloneNode(true) as HTMLElement;
-            invoiceCopy.id = 'preview-cloned-invoice';
-            Object.assign(invoiceCopy.style, {
-                display: 'block',
-                visibility: 'visible',
-                position: 'relative',
-                margin: '0 auto',
-                width: '794px',
-                backgroundColor: '#ffffff',
-                opacity: '1'
-            });
-            invoiceCopy.classList.remove('hidden');
-
-            captureContainer.appendChild(invoiceCopy);
-            document.body.appendChild(captureContainer);
-            window.scrollTo(0, 0);
-
-            // Wait for images and layout
-            await new Promise(r => setTimeout(r, 3000));
-
-            const canvas = await html2canvas(invoiceCopy, {
-                scale: 1.5,
+            // Direct capture using onclone is cleaner and more reliable
+            const canvas = await html2canvas(invoiceEl, {
+                scale: 2,
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#ffffff',
-                logging: true,
+                logging: false,
                 onclone: (clonedDoc) => {
+                    const clonedInvoice = clonedDoc.getElementById('printable-invoice');
+                    if (clonedInvoice) {
+                        clonedInvoice.style.display = 'block';
+                        clonedInvoice.style.visibility = 'visible';
+                        clonedInvoice.style.position = 'relative';
+                        clonedInvoice.style.top = '0';
+                        clonedInvoice.style.left = '0';
+                        clonedInvoice.style.width = '794px';
+                        clonedInvoice.style.padding = '60px';
+                        clonedInvoice.style.backgroundColor = '#ffffff';
+                    }
                     sanitizeColors(clonedDoc);
                 }
             });
 
-            // Cleanup immediately
-            if (document.body.contains(captureContainer)) {
-                document.body.removeChild(captureContainer);
-            }
-
-            const dataUrl = canvas.toDataURL('image/png');
-            if (dataUrl === 'data:,' || dataUrl.length < 30000) {
+            const dataUrl = canvas.toDataURL('image/png', 1.0);
+            if (dataUrl === 'data:,' || dataUrl.length < 10000) {
                 throw new Error('Canevas vide généré');
             }
 
@@ -275,74 +249,44 @@ export function InvoiceGenerator() {
             const invoiceEl = invoiceRef.current;
             if (!invoiceEl) throw new Error('Introuvable');
 
-            // Create a dedicated container for capture to avoid any conflict
-            const captureContainer = document.createElement('div');
-            captureContainer.id = 'capture-portal';
-            Object.assign(captureContainer.style, {
-                position: 'fixed',
-                left: '0',
-                top: '0',
-                width: '100vw',
-                height: '200vh',
-                backgroundColor: '#ffffff',
-                zIndex: '999999',
-                overflow: 'visible',
-                padding: '40px'
-            });
-
-            const invoiceCopy = invoiceEl.cloneNode(true) as HTMLElement;
-            invoiceCopy.id = 'cloned-invoice';
-            Object.assign(invoiceCopy.style, {
-                display: 'block',
-                visibility: 'visible',
-                position: 'relative',
-                margin: '0 auto',
-                width: '794px',
-                backgroundColor: '#ffffff',
-                opacity: '1'
-            });
-            invoiceCopy.classList.remove('hidden');
-
-            captureContainer.appendChild(invoiceCopy);
-            document.body.appendChild(captureContainer);
-            window.scrollTo(0, 0);
-
-            // Crucial wait for the DOM to settle and images to load
-            await new Promise(r => setTimeout(r, 3000));
-
-            const canvas = await html2canvas(invoiceCopy, {
+            // Capture the same way as preview for consistency and reliable rendering
+            const canvas = await html2canvas(invoiceEl, {
                 scale: 2,
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#ffffff',
-                logging: true,
+                logging: false,
                 onclone: (clonedDoc) => {
+                    const clonedInvoice = clonedDoc.getElementById('printable-invoice');
+                    if (clonedInvoice) {
+                        clonedInvoice.style.display = 'block';
+                        clonedInvoice.style.visibility = 'visible';
+                        clonedInvoice.style.position = 'relative';
+                        clonedInvoice.style.top = '0';
+                        clonedInvoice.style.left = '0';
+                        clonedInvoice.style.width = '794px';
+                        clonedInvoice.style.padding = '60px';
+                        clonedInvoice.style.backgroundColor = '#ffffff';
+                    }
                     sanitizeColors(clonedDoc);
                 }
             });
-
-            // Cleanup immediately
-            if (document.body.contains(captureContainer)) {
-                document.body.removeChild(captureContainer);
-            }
 
             if (!canvas || canvas.width < 100) {
                 throw new Error('Échec technique de capture (Canevas nul ou trop petit)');
             }
 
-            const imgData = canvas.toDataURL('image/png');
-            // A meaningful A4 capture at scale 2 should be at least 100kb+ (133k characters in base64)
-            if (imgData.length < 50000) {
-                throw new Error(`Le rendu PDF est trop petit (${imgData.length} chars). Erreur de rendu probable.`);
+            const imgData = canvas.toDataURL('image/png', 1.0);
+            if (imgData.length < 30000) {
+                throw new Error('Le rendu PDF est trop petit. Erreur de rendu probable.');
             }
 
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
             const pageWidth = pdf.internal.pageSize.getWidth();
             const imgHeight = (canvas.height * pageWidth) / canvas.width;
 
-            // Use PNG for maximum fidelity and to avoid black backgrounds in some PDF readers
+            // Use PNG for maximum fidelity
             pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, imgHeight);
-
             const pdfBase64 = pdf.output('datauristring');
 
             setSendStatus('sending');
@@ -377,12 +321,11 @@ export function InvoiceGenerator() {
             if (!res.ok) {
                 const data = await res.json().catch(() => ({}));
                 const serverMsg = data.error || 'Erreur serveur';
-                const detailMsg = data.details ? ` (${data.details})` : '';
-                throw new Error(`${serverMsg}${detailMsg}`);
+                throw new Error(serverMsg);
             }
 
             setSendStatus('success');
-            fetchHistory(); // Refresh history
+            fetchHistory();
             setTimeout(() => {
                 setSendStatus('idle');
                 setShowEmailModal(false);
@@ -511,7 +454,7 @@ export function InvoiceGenerator() {
                                                         type="number"
                                                         value={invoiceNumber}
                                                         onChange={e => saveInvoiceNumber(parseInt(e.target.value) || 0)}
-                                                        className="bg-transparent border-none outline-none text-4xl font-black w-full tracking-tighter text-white"
+                                                        className="bg-transparent border-none outline-none text-4xl font-black w-full tracking-tighter text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                     />
                                                 </div>
                                             </div>
@@ -677,14 +620,34 @@ export function InvoiceGenerator() {
                                                 key={line.id}
                                                 className="grid grid-cols-12 gap-6 items-center bg-black/40 p-5 rounded-[28px] border border-white/5 group hover:border-white/20 transition-all border-l-4 border-l-transparent hover:border-l-white"
                                             >
-                                                <div className="col-span-12 md:col-span-7">
-                                                    <input
-                                                        type="text"
-                                                        value={line.description}
-                                                        onChange={e => updateLine(line.id, 'description', e.target.value)}
-                                                        placeholder="Désignation de la mission..."
-                                                        className="bg-transparent border-none outline-none text-base font-bold w-full px-2 text-white/90 placeholder:text-white/5"
-                                                    />
+                                                <div className="col-span-12 md:col-span-7 space-y-2">
+                                                    <div className="relative group/preset">
+                                                        <input
+                                                            type="text"
+                                                            value={line.description}
+                                                            onChange={e => updateLine(line.id, 'description', e.target.value)}
+                                                            placeholder="Désignation de la mission..."
+                                                            className="bg-transparent border-none outline-none text-base font-bold w-full px-2 text-white/90 placeholder:text-white/5"
+                                                        />
+                                                        <div className="flex flex-wrap gap-2 mt-2 opacity-0 group-hover/preset:opacity-100 transition-opacity">
+                                                            {[
+                                                                { label: 'Bokaos', text: 'Prestation Light - Bokaos 200e par jour', price: 200 },
+                                                                { label: 'Flash Cannes', text: 'Prestation Light - Flash Cannes', price: 0 },
+                                                                { label: 'Light', text: 'Prestation Light', price: 0 }
+                                                            ].map((preset) => (
+                                                                <button
+                                                                    key={preset.label}
+                                                                    onClick={() => {
+                                                                        updateLine(line.id, 'description', preset.text);
+                                                                        if (preset.price > 0) updateLine(line.id, 'unitPrice', preset.price);
+                                                                    }}
+                                                                    className="px-3 py-1 bg-white/5 hover:bg-white/10 border border-white/5 rounded-full text-[8px] font-black uppercase tracking-widest text-white/40 hover:text-white transition-all focus:outline-none"
+                                                                >
+                                                                    + {preset.label}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 <div className="col-span-4 md:col-span-2">
                                                     <div className="bg-white/[0.03] rounded-2xl p-4 text-center border border-white/5 focus-within:border-white/20 transition-colors">
@@ -692,7 +655,7 @@ export function InvoiceGenerator() {
                                                             type="number"
                                                             value={line.quantity}
                                                             onChange={e => updateLine(line.id, 'quantity', parseFloat(e.target.value) || 0)}
-                                                            className="bg-transparent border-none outline-none text-xs font-black w-full text-center text-white"
+                                                            className="bg-transparent border-none outline-none text-xs font-black w-full text-center text-white [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                         />
                                                     </div>
                                                 </div>
@@ -702,7 +665,7 @@ export function InvoiceGenerator() {
                                                             type="number"
                                                             value={line.unitPrice}
                                                             onChange={e => updateLine(line.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                                            className="bg-transparent border-none outline-none text-right font-black w-full text-lg tracking-tight"
+                                                            className="bg-transparent border-none outline-none text-right font-black w-full text-lg tracking-tight [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                         />
                                                         <span className="text-white/20 font-black text-xs">€</span>
                                                     </div>
