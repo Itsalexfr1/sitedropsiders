@@ -143,8 +143,12 @@ def get_upcoming_releases():
                     res = find_tracks(item)
                     if res: return res
             elif isinstance(obj, dict):
-                if 'results' in obj and isinstance(obj['results'], list) and len(obj['results']) > 5:
-                    return obj['results']
+                # Try multiple possible keys for tracks on different Beatport pages
+                for key in ['results', 'data', 'tracks']:
+                    if key in obj and isinstance(obj[key], list) and len(obj[key]) > 0:
+                        # Ensure it's a list of tracks (usually have 'name' or 'title')
+                        if 'name' in obj[key][0] or 'title' in obj[key][0]:
+                            return obj[key]
                 for v in obj.values():
                     res = find_tracks(v)
                     if res: return res

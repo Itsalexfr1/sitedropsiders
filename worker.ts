@@ -6334,7 +6334,7 @@ export default {
 
             try {
                 const newCharts = await request.json();
-                if (!newCharts.beatport || !newCharts.traxsource || !newCharts.juno) {
+                if (!newCharts.beatport || !newCharts.traxsource) {
                     return new Response(JSON.stringify({ error: 'Invalid data structure' }), { status: 400, headers });
                 }
 
