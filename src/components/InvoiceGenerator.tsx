@@ -144,6 +144,11 @@ export function InvoiceGenerator() {
                 if (styleAttr && styleAttr.includes('oklch')) {
                     el.setAttribute('style', styleAttr.replace(/oklch\([^)]+\)/g, '#000000'));
                 }
+                // Force background if it's white to be explicitly white for the capture
+                if (el.id === 'printable-invoice') {
+                    el.style.backgroundColor = '#ffffff';
+                    el.style.color = '#000000';
+                }
             }
         });
     };
@@ -157,63 +162,61 @@ export function InvoiceGenerator() {
             const invoiceEl = invoiceRef.current;
             if (!invoiceEl) throw new Error('Calculateur introuvable');
 
-            // Force visibility and fix positioning
-            const originalParent = invoiceEl.parentElement;
-            const originalStyle = invoiceEl.getAttribute('style') || '';
-            const originalClass = invoiceEl.className;
-
-            // Positioning for capture
-            Object.assign(invoiceEl.style, {
-                display: 'block',
-                visibility: 'visible',
+            // Create a dedicated container for capture to avoid any conflict
+            const captureContainer = document.createElement('div');
+            captureContainer.id = 'preview-portal';
+            Object.assign(captureContainer.style, {
                 position: 'fixed',
                 left: '0',
                 top: '0',
-                zIndex: '9999',
-                opacity: '1',
-                width: '794px'
+                width: '100vw',
+                height: '200vh',
+                backgroundColor: '#ffffff',
+                zIndex: '999999',
+                overflow: 'visible',
+                padding: '40px'
             });
-            invoiceEl.classList.remove('hidden');
 
-            // Temporary attachment to body often solves html2canvas issues
-            document.body.appendChild(invoiceEl);
+            const invoiceCopy = invoiceEl.cloneNode(true) as HTMLElement;
+            invoiceCopy.id = 'preview-cloned-invoice';
+            Object.assign(invoiceCopy.style, {
+                display: 'block',
+                visibility: 'visible',
+                position: 'relative',
+                margin: '0 auto',
+                width: '794px',
+                backgroundColor: '#ffffff',
+                opacity: '1'
+            });
+            invoiceCopy.classList.remove('hidden');
+
+            captureContainer.appendChild(invoiceCopy);
+            document.body.appendChild(captureContainer);
             window.scrollTo(0, 0);
 
-            await new Promise(r => setTimeout(r, 1500));
+            // Wait for images and layout
+            await new Promise(r => setTimeout(r, 3000));
 
-            const canvas = await html2canvas(invoiceEl, {
+            const canvas = await html2canvas(invoiceCopy, {
                 scale: 1.5,
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#ffffff',
                 logging: true,
-                width: 794,
                 onclone: (clonedDoc) => {
-                    const el = clonedDoc.getElementById('printable-invoice');
-                    if (el) {
-                        el.style.display = 'block';
-                        el.style.visibility = 'visible';
-                        el.style.position = 'relative';
-                        el.style.left = '0';
-                        el.style.opacity = '1';
-                        // Sanitize colors for html2canvas
-                        const styles = clonedDoc.querySelectorAll('style');
-                        styles.forEach(s => {
-                            if (s.textContent) {
-                                s.textContent = s.textContent.replace(/oklch\([^)]+\)/g, '#000000');
-                            }
-                        });
-                    }
+                    sanitizeColors(clonedDoc);
                 }
             });
 
-            // Cleanup: Restore original state and location
-            invoiceEl.setAttribute('style', originalStyle);
-            invoiceEl.className = originalClass;
-            if (originalParent) originalParent.appendChild(invoiceEl);
+            // Cleanup immediately
+            if (document.body.contains(captureContainer)) {
+                document.body.removeChild(captureContainer);
+            }
 
             const dataUrl = canvas.toDataURL('image/png');
-            if (dataUrl === 'data:,') throw new Error('Canevas vide généré');
+            if (dataUrl === 'data:,' || dataUrl.length < 30000) {
+                throw new Error('Canevas vide généré');
+            }
 
             setPreviewImage(dataUrl);
         } catch (e: any) {
@@ -237,65 +240,65 @@ export function InvoiceGenerator() {
             const invoiceEl = invoiceRef.current;
             if (!invoiceEl) throw new Error('Introuvable');
 
-            // Force visibility and fix positioning
-            const originalParent = invoiceEl.parentElement;
-            const originalStyle = invoiceEl.getAttribute('style') || '';
-            const originalClass = invoiceEl.className;
-
-            // Position for capture: Fixed and visible
-            Object.assign(invoiceEl.style, {
-                display: 'block',
-                visibility: 'visible',
+            // Create a dedicated container for capture to avoid any conflict
+            const captureContainer = document.createElement('div');
+            captureContainer.id = 'capture-portal';
+            Object.assign(captureContainer.style, {
                 position: 'fixed',
                 left: '0',
                 top: '0',
-                zIndex: '99999',
-                opacity: '1',
-                width: '1000px', // Extra width for rendering safety
-                height: 'auto',
-                backgroundColor: '#ffffff'
+                width: '100vw',
+                height: '200vh',
+                backgroundColor: '#ffffff',
+                zIndex: '999999',
+                overflow: 'visible',
+                padding: '40px'
             });
-            invoiceEl.classList.remove('hidden');
 
-            // Temporary attachment to body and scroll to top
-            document.body.appendChild(invoiceEl);
+            const invoiceCopy = invoiceEl.cloneNode(true) as HTMLElement;
+            invoiceCopy.id = 'cloned-invoice';
+            Object.assign(invoiceCopy.style, {
+                display: 'block',
+                visibility: 'visible',
+                position: 'relative',
+                margin: '0 auto',
+                width: '794px',
+                backgroundColor: '#ffffff',
+                opacity: '1'
+            });
+            invoiceCopy.classList.remove('hidden');
+
+            captureContainer.appendChild(invoiceCopy);
+            document.body.appendChild(captureContainer);
             window.scrollTo(0, 0);
 
-            // Longer delay for font/layout engine
-            await new Promise(r => setTimeout(r, 2500));
+            // Crucial wait for the DOM to settle and images to load
+            await new Promise(r => setTimeout(r, 3000));
 
-            const canvas = await html2canvas(invoiceEl, {
-                scale: 1.5,
+            const canvas = await html2canvas(invoiceCopy, {
+                scale: 2,
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#ffffff',
-                width: 1000, // Matching the style width
+                logging: true,
                 onclone: (clonedDoc) => {
-                    const el = clonedDoc.getElementById('printable-invoice');
-                    if (el) {
-                        el.style.backgroundColor = '#ffffff';
-                        el.style.display = 'block';
-                        el.style.visibility = 'visible';
-                        el.style.opacity = '1';
-                        el.style.position = 'relative';
-                        el.style.padding = '40px'; // Breathing room
-                        sanitizeColors(clonedDoc);
-                    }
+                    sanitizeColors(clonedDoc);
                 }
             });
 
-            // Restore original state and location
-            if (originalParent) originalParent.appendChild(invoiceEl);
-            invoiceEl.setAttribute('style', originalStyle);
-            invoiceEl.className = originalClass;
+            // Cleanup immediately
+            if (document.body.contains(captureContainer)) {
+                document.body.removeChild(captureContainer);
+            }
 
             if (!canvas || canvas.width < 100) {
                 throw new Error('Échec technique de capture (Canevas nul ou trop petit)');
             }
 
-            const imgData = canvas.toDataURL('image/png', 1.0);
-            if (imgData.length < 10000) {
-                throw new Error('Rendu PDF corrompu ou vide (Espace mémoire insuffisant)');
+            const imgData = canvas.toDataURL('image/png');
+            // A meaningful A4 capture at scale 2 should be at least 100kb+ (133k characters in base64)
+            if (imgData.length < 50000) {
+                throw new Error(`Le rendu PDF est trop petit (${imgData.length} chars). Erreur de rendu probable.`);
             }
 
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
