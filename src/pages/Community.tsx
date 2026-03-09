@@ -19,8 +19,26 @@ import confetti from 'canvas-confetti';
 
 // --- STAGE & LOCATION DATA ---
 const FESTIVAL_LOCATIONS = [
+    // TOMORROWLAND
+    { id: 'boom', name: 'Boom - De Schorre (TML)', cost: 450000 },
+    { id: 'alpe-dhuez', name: "Alpe d'Huez (TML Winter)", cost: 280000 },
+    { id: 'itu', name: 'Itu - São Paulo (TML BR)', cost: 180000 },
+
+    // ULTRA MUSIC FESTIVAL
+    { id: 'miami', name: 'Miami - Bayfront Park (UMF)', cost: 550000 },
+    { id: 'split', name: 'Split - Park Mladeži (Ultra EU)', cost: 220000 },
+    { id: 'johannesburg', name: 'Jo\'burg - Expo Centre (Ultra SA)', cost: 140000 },
+    { id: 'sejong', name: 'Seoul - Olympic Stadium (Ultra KR)', cost: 190000 },
+    { id: 'tokyo', name: 'Tokyo - Odaiba (Ultra JP)', cost: 240000 },
+
+    // EDC
+    { id: 'vegas', name: 'Vegas - Speedway (EDC LV)', cost: 600000 },
+    { id: 'mexico', name: 'CDMX - Autódromo (EDC MX)', cost: 210000 },
+    { id: 'orlando', name: 'Orlando - Tinker Field (EDC ORL)', cost: 170000 },
+
+    // CLASSICS
     { id: 'paris', name: 'Paris - Longchamp', cost: 150000 },
-    { id: 'ibiza', name: 'Ibiza - Playa', cost: 300000 },
+    { id: 'ibiza', name: 'Ibiza - Playa d\'en Bossa', cost: 350000 },
     { id: 'lyon', name: 'Lyon - Eurexpo', cost: 80000 },
     { id: 'berlin', name: 'Berlin - Tempelhof', cost: 120000 },
 ];
@@ -468,8 +486,8 @@ export function Community() {
                                                 </div>
 
                                                 <div className="space-y-4">
-                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Lieu du Festival</span>
-                                                    <div className="grid grid-cols-2 gap-3">
+                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Lieu du Festival (Destinations)</span>
+                                                    <div className="grid grid-cols-3 gap-2 overflow-y-auto max-h-[300px] pr-2 scrollbar-hide">
                                                         {FESTIVAL_LOCATIONS.map(loc => (
                                                             <button
                                                                 key={loc.id}
@@ -480,14 +498,14 @@ export function Community() {
                                                                     }
                                                                 }}
                                                                 className={twMerge(
-                                                                    "p-3 rounded-xl border transition-all text-center",
+                                                                    "p-2 rounded-lg border transition-all text-center flex flex-col justify-center min-h-[60px]",
                                                                     selectedLocation.id === loc.id
-                                                                        ? "bg-white text-black border-white"
+                                                                        ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
                                                                         : "bg-white/5 border-white/10 text-white/40 hover:border-white/20"
                                                                 )}
                                                             >
-                                                                <span className="text-[8px] font-black uppercase block">{loc.name}</span>
-                                                                <span className="text-[7px] font-mono opacity-60">{loc.cost.toLocaleString()}€</span>
+                                                                <span className="text-[7px] font-black uppercase block leading-tight">{loc.name}</span>
+                                                                <span className="text-[6px] font-mono opacity-60 mt-0.5">{loc.cost.toLocaleString()}€</span>
                                                             </button>
                                                         ))}
                                                     </div>
