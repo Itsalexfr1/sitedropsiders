@@ -228,20 +228,34 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [achievements, setAchievements] = useState<string[]>(JSON.parse(localStorage.getItem('user_achievements') || '[]'));
     const [isPacmanActive, setIsPacmanActive] = useState(false);
     const [showHeistOverlay, setShowHeistOverlay] = useState(false);
+    const [activeSlots, setActiveSlots] = useState<{ id: string, participants: string[], timeLeft: number } | null>(null);
 
-    // 🎁 RECOMPENSE QUOTIDIENNE
+    // 🎁 RECOMPENSE QUOTIDIENNE (Paliers)
     useEffect(() => {
         const lastLogin = localStorage.getItem('last_daily_reward');
         const today = new Date().toLocaleDateString();
         if (lastLogin !== today && isConnected) {
-            const reward = 200;
+            let streak = parseInt(localStorage.getItem('login_streak') || '0');
+            const yesterday = new Date(); yesterday.setDate(yesterday.getDate() - 1);
+
+            if (lastLogin === yesterday.toLocaleDateString()) {
+                streak += 1;
+            } else {
+                streak = 1;
+            }
+            localStorage.setItem('login_streak', streak.toString());
+
+            const baseReward = 200;
+            const streakBonus = Math.min(streak * 50, 1000);
+            const totalReward = baseReward + streakBonus;
+
             setUserDrops(prev => {
-                const next = prev + reward;
+                const next = prev + totalReward;
                 localStorage.setItem('user_drops', next.toString());
                 return next;
             });
             localStorage.setItem('last_daily_reward', today);
-            showNotification(`🎁 CADEAU DU JOUR : +${reward} DROPS !`, 'success');
+            showNotification(`🎁 CADEAU SUR LE LIVE (PALIER ${streak}) : +${totalReward} DROPS !`, 'success');
         }
     }, [isConnected]);
 
@@ -253,8 +267,47 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             }, 1000);
             return () => clearTimeout(timer);
         } else if (activeHeist && activeHeist.timeLeft === 0) {
-            // Logic for heist resolution handled via system message usually
+            const success = Math.random() > 0.4;
+            const myPseudo = localStorage.getItem('chat_pseudo');
+
+            if (success) {
+                const totalBet = activeHeist.participants.reduce((acc, p) => acc + (p?.bet || 0), 0);
+                const winFactor = 1.5 + Math.random();
+                const totalPrize = Math.floor(totalBet * winFactor);
+
+                // Show win notification if current user participated
+                const myParticipation = activeHeist.participants.find(p => p?.pseudo === myPseudo);
+                if (myParticipation) {
+                    const myShare = Math.floor((myParticipation.bet / totalBet) * totalPrize);
+                    setUserDrops(prev => prev + myShare);
+                    showNotification(`💰 BRAQUAGE RÉUSSI ! Tu gagnes ${myShare} DROPS !`, 'success');
+                }
+
+                if (isMod) {
+                    databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                        pseudo: "BOT_SYSTEM",
+                        message: `💰 BRAQUAGE RÉUSSI ! Le gang se partage ${totalPrize} DROPS ! 💰`,
+                        color: "text-amber-500",
+                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                        country: "FR"
+                    });
+                }
+            } else {
+                if (activeHeist.participants.some(p => p?.pseudo === myPseudo)) {
+                    showNotification(`👮 ALERTE POLICE : Le braquage a échoué !`, 'error');
+                }
+                if (isMod) {
+                    databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                        pseudo: "BOT_SYSTEM",
+                        message: `👮 ÉCHEC DU BRAQUAGE : Tout le monde a été arrêté !`,
+                        color: "text-red-500",
+                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                        country: "FR"
+                    });
+                }
+            }
             setActiveHeist(null);
+            setShowHeistOverlay(false);
         }
     }, [activeHeist]);
 
@@ -276,6 +329,48 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         setTimeout(() => setIsMatrixActive(false), 8000);
     };
 
+    // ⏲️ Hourly Slot Machine (Jackpot) Timer
+    useEffect(() => {
+        const interval = setInterval(() => {
+            const now = new Date();
+            // Trigger every hour at :00
+            if (now.getMinutes() === 0 && !activeSlots) {
+                setActiveSlots({ id: Math.random().toString(), participants: [], timeLeft: 60 });
+                showNotification("🎰 JACKPOT TICKET : UN MINI-JEU APPARAÎT !", 'success');
+            }
+        }, 60000);
+
+        return () => clearInterval(interval);
+    }, [activeSlots]);
+
+    useEffect(() => {
+        if (activeSlots && activeSlots.timeLeft > 0) {
+            const timer = setTimeout(() => {
+                setActiveSlots(prev => prev ? { ...prev, timeLeft: prev.timeLeft - 1 } : null);
+            }, 1000);
+            return () => clearTimeout(timer);
+        } else if (activeSlots && activeSlots.timeLeft === 0) {
+            // Draw winner if participants
+            if (activeSlots.participants.length > 0) {
+                const winner = activeSlots.participants[Math.floor(Math.random() * activeSlots.participants.length)];
+                const prize = activeSlots.participants.length * 50 * 2; // Double the pool
+                if (winner === localStorage.getItem('chat_pseudo')) {
+                    setUserDrops(prev => prev + prize);
+                    showNotification(`🎰 TU AS GAGNÉ LE JACKPOT : +${prize} DROPS !`, 'success');
+                }
+                databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                    pseudo: "BOT_SYSTEM",
+                    message: `🎰 JACKPOT : @${winner} a gagné le gros lot de ${prize} DROPS ! 💰`,
+                    color: "text-amber-500",
+                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                    country: "FR"
+                });
+            }
+            setActiveSlots(null);
+        }
+    }, [activeSlots]);
+
+    // ⏲️ Clock
     useEffect(() => {
         const timer = setInterval(() => setCurrentTime(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })), 60000);
         return () => clearInterval(timer);
@@ -576,9 +671,20 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         } else if (cmd.startsWith('BOSS_HIT:')) {
                             const dmg = parseInt(cmd.replace('BOSS_HIT:', ''));
                             setActiveBoss(prev => prev ? { ...prev, hp: Math.max(0, prev.hp - dmg) } : null);
-                        } else if (cmd.startsWith('HEIST_START:')) {
-                            const data = JSON.parse(cmd.replace('HEIST_START:', ''));
-                            setActiveHeist({ participants: data, timeLeft: 30 });
+                        } else if (cmd.startsWith('MUTE_USER:')) {
+                            const target = cmd.replace('MUTE_USER:', '');
+                            const myPs = localStorage.getItem('chat_pseudo') || '';
+                            if (target === myPs && !isMod && !vipsList.includes(myPs)) {
+                                setIsMuted(true);
+                                setMuteTimeLeft(60);
+                                showNotification("🔇 TU AS ÉTÉ MUTE PENDANT 60S !", 'error');
+                            }
+                        } else if (cmd.startsWith('HEIST_START')) {
+                            setActiveHeist({ participants: [], timeLeft: 30 });
+                            setShowHeistOverlay(true);
+                        } else if (cmd.startsWith('HEIST_JOIN:')) {
+                            const data = JSON.parse(cmd.replace('HEIST_JOIN:', ''));
+                            setActiveHeist(prev => prev ? { ...prev, participants: [...prev.participants, data] } : null);
                         } else if (cmd.startsWith('TTS:')) {
                             const [v, ...t] = cmd.replace('TTS:', '').split(':');
                             const voice = ['robot', 'monster', 'echo'].includes(v) ? v as any : 'normal';
@@ -591,6 +697,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         } else if (cmd.startsWith('REACTION:')) {
                             const [msgId, emoji] = cmd.replace('REACTION:', '').split(':');
                             setChatMessages(prev => prev.map(m => m.id === msgId ? { ...m, reactions: { ...(m.reactions || {}), [emoji]: (m.reactions?.[emoji] || 0) + 1 } } : m));
+                        } else if (cmd.startsWith('JACKPOT_SPAWN')) {
+                            setActiveSlots({ id: Math.random().toString(), participants: [], timeLeft: 60 });
+                        } else if (cmd.startsWith('JACKPOT_JOIN:')) {
+                            const joiner = cmd.replace('JACKPOT_JOIN:', '');
+                            setActiveSlots(prev => prev ? { ...prev, participants: [...new Set([...prev.participants, joiner])] } : null);
                         }
                     } else if (msgText.startsWith('[QUIZ_START]:')) {
                         const content = msgText.replace('[QUIZ_START]:', '');
@@ -936,6 +1047,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 }
                 setUserDrops(prev => prev - amount);
                 messageText = `[SYSTEM]:HEIST_JOIN:${JSON.stringify({ pseudo, bet: amount })}`;
+            } else if (mainCmd === '!heist' && isMod) {
+                messageText = `[SYSTEM]:HEIST_START`;
             } else if (mainCmd === '!hit' && activeBoss) {
                 const dmg = Math.floor(Math.random() * 25) + 5;
                 messageText = `[SYSTEM]:BOSS_HIT:${dmg}`;
@@ -1038,13 +1151,30 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     showNotification("Besoin de 5000 DROPS pour mute !", "error");
                     return;
                 }
-            } else if (mainCmd === '!tts' && isMod) {
+            } else if (mainCmd === '!tts') {
                 const voice = ['robot', 'monster', 'echo'].includes(cmdParts[1]) ? cmdParts[1] : 'normal';
-                const text = voice === 'normal' ? cmdParts.slice(1).join(' ') : cmdParts.slice(2).join(' ');
-                messageText = `[SYSTEM]:TTS:${voice}:${text}`;
+                const cost = voice === 'normal' ? 50 : 200;
+                if (userDrops >= cost) {
+                    setUserDrops(prev => prev - cost);
+                    const text = voice === 'normal' ? cmdParts.slice(1).join(' ') : cmdParts.slice(2).join(' ');
+                    messageText = `[SYSTEM]:TTS:${voice}:${text}`;
+                } else {
+                    showNotification(`TTS nécessite ${cost} Drops !`, 'error');
+                    return;
+                }
             } else if (mainCmd === '!pacman') {
                 messageText = `🍕 WAKA WAKA ! [PACMAN INCOMING]`;
                 triggerPACMAN();
+            } else if (mainCmd === '!jackpot' && isMod) {
+                messageText = `[SYSTEM]:JACKPOT_SPAWN`;
+            } else if (mainCmd === '!ticket' && activeSlots) {
+                if (userDrops < 50) {
+                    showNotification("Pas assez de Drops ! (50 requis)", 'error');
+                    return;
+                }
+                setUserDrops(prev => prev - 50);
+                messageText = `[SYSTEM]:JACKPOT_JOIN:${pseudo}`;
+                showNotification("Ticket de Jackpot acheté ! 🎰", 'success');
             }
         }
 
@@ -1241,6 +1371,21 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     return (
         <div className="fixed inset-0 bg-[#050505] flex flex-col font-sans select-none overflow-hidden z-[100]">
+            <style>
+                {`
+                    .italic-bold { font-style: italic; font-weight: 900 !important; }
+                    .pixel-font { font-family: 'Courier New', Courier, monospace; letter-spacing: -1px; }
+                    .animate-gradient {
+                        background-size: 200% 200%;
+                        animation: gradient-move 3s linear infinite;
+                    }
+                    @keyframes gradient-move {
+                        0% { background-position: 0% 50%; }
+                        50% { background-position: 100% 50%; }
+                        100% { background-position: 0% 50%; }
+                    }
+                `}
+            </style>
             {/* 1. TOP ANNOUNCER (Ticker Removed) */}
 
             {/* 2. HEADER */}
@@ -1433,9 +1578,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             >
                                 <div className="max-w-3xl mx-auto space-y-10">
                                     <div className="flex items-center justify-between border-b border-white/10 pb-6">
-                                        <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Configuration <span className="text-neon-purple">Studio</span></h2>
+                                        <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Configuration du <span className="text-neon-purple">Studio</span></h2>
                                         <div className="flex gap-2">
-                                            {['GENERAL', 'PLANNING', 'SHAZAM', 'SONDAGES / QUIZ', 'DROPS', 'BOT', 'MODERATION'].map(t => (
+                                            {['GÉNÉRAL', 'PLANNING', 'SHAZAM', 'SONDAGES / QUIZ', 'DROPS', 'BOT', 'MODÉRATION'].map(t => (
                                                 <button
                                                     key={t}
                                                     onClick={() => setAdminActiveTab(t === 'SONDAGES / QUIZ' ? 'sondages' : t.toLowerCase())}
@@ -1780,7 +1925,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <h3 className="text-sm font-black text-white uppercase tracking-widest">Ajouter une session</h3>
                                                     </div>
                                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                                        <input type="text" placeholder="JOUR" value={newLineupItem.day} onChange={e => setNewLineupItem({ ...newLineupItem, day: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                        <div className="flex flex-col gap-1.5">
+                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Date / Agenda</label>
+                                                            <input type="date" value={newLineupItem.day} onChange={e => setNewLineupItem({ ...newLineupItem, day: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-cyan transition-all" />
+                                                        </div>
                                                         <input type="text" placeholder="ARTISTE" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, artist: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                         <input type="text" placeholder="DEBUT" value={newLineupItem.startTime} onChange={e => setNewLineupItem({ ...newLineupItem, startTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                         <input type="text" placeholder="FIN" value={newLineupItem.endTime} onChange={e => setNewLineupItem({ ...newLineupItem, endTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
@@ -2498,7 +2646,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 {msg.message || msg.text}
                                                             </p>
                                                             <div className="flex gap-1 mt-2">
-                                                                {['👍', '🔥', '😂', '👑'].map(emoji => (
+                                                                {['👍', '🔥', '😂', '👑', '💎'].map(emoji => (
                                                                     <button
                                                                         key={emoji}
                                                                         onClick={async (e) => {
@@ -2622,7 +2770,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             <div key={item.id} className={`p-4 border rounded-2xl space-y-3 transition-all ${isNow ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,255,255,0.05)]' : 'bg-white/5 border-white/10'}`}>
                                                 <div className="flex items-center justify-between">
                                                     <span className={`text-[10px] font-black uppercase ${isNow ? 'text-neon-cyan' : 'text-gray-500'}`}>{item.stage}</span>
-                                                    <span className="text-[10px] font-mono text-gray-500">{item.startTime} - {item.endTime}</span>
+                                                    <div className="flex flex-col items-end">
+                                                        <span className="text-[10px] font-mono text-white/80">{item.day}</span>
+                                                        <span className="text-[10px] font-mono text-gray-500">{item.startTime} - {item.endTime}</span>
+                                                    </div>
                                                 </div>
                                                 <div className="space-y-2">
                                                     <p className="text-lg font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-2">
@@ -2740,7 +2891,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     { id: 'sh1', name: 'TITRE: ALPHA', price: 2000 },
                                                     { id: 'sh2', name: 'TITRE: LÉGENDE', price: 5000 },
                                                     { id: 'sh3', name: 'BORDURE: NEON CYAN', price: 3000 },
-                                                    { id: 'sh4', name: 'FONTS: SPECIAL', price: 1500 }
+                                                    { id: 'sh4', name: 'FONTS: SPECIAL', price: 1500 },
+                                                    { id: 'sh5', name: 'FONTS: PIXEL', price: 1500 }
                                                 ].map(lot => (
                                                     <button
                                                         key={lot.id}
@@ -2754,8 +2906,23 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 const t = lot.name.replace('TITRE: ', '');
                                                                 setUserTitle(t);
                                                                 localStorage.setItem('user_chat_title', t);
+                                                                showNotification(`Titre équipé : ${t}`, 'success');
+                                                            } else if (lot.name.startsWith('BORDURE:')) {
+                                                                const color = lot.name.includes('NEON') ? 'neon-cyan' : 'amber-500';
+                                                                setProfileBorder(color);
+                                                                localStorage.setItem('user_profile_border', color);
+                                                                showNotification(`Bordure équipée !`, 'success');
+                                                            } else if (lot.name.includes('FONTS: PIXEL')) {
+                                                                setSpecialFontStyle('pixel-font');
+                                                                localStorage.setItem('user_font_style', 'pixel-font');
+                                                                showNotification(`Police Pixel activée !`, 'success');
+                                                            } else if (lot.name.startsWith('FONTS')) {
+                                                                setSpecialFontStyle('italic-bold');
+                                                                localStorage.setItem('user_font_style', 'italic-bold');
+                                                                showNotification(`Style de police activé !`, 'success');
+                                                            } else {
+                                                                showNotification(`Achat réussi : ${lot.name}`, 'success');
                                                             }
-                                                            showNotification(`Achat réussi : ${lot.name}`, 'success');
                                                         }}
                                                         className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] flex flex-col items-center gap-3 hover:bg-white/10 transition-all border-dashed border-2 group"
                                                     >
@@ -2825,7 +2992,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         <Trophy className="w-3 h-3 text-amber-500" />
                                         <span className="text-[10px] font-black text-white">{userDrops} <span className="text-gray-600 ml-0.5 uppercase tracking-tighter">DROPS</span></span>
                                     </div>
-                                    <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">Powered by Dropsiders</span>
+                                    <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">🚀 Propulsé par Dropsiders</span>
                                 </div>
                             </div>
                         )
@@ -3033,6 +3200,62 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         <div>
                             <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Succès Débloqué !</p>
                             <p className="text-xs font-black text-white uppercase italic">{achievements[achievements.length - 1]}</p>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* SLOT MACHINE JACKPOT OVERLAY */}
+            <AnimatePresence>
+                {activeSlots && (
+                    <motion.div
+                        initial={{ y: 100, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        exit={{ y: 100, opacity: 0 }}
+                        className="fixed bottom-24 right-4 z-[150] bg-black/80 backdrop-blur-xl border-2 border-amber-500 p-6 rounded-3xl w-72 shadow-[0_0_40px_rgba(245,158,11,0.3)]"
+                    >
+                        <div className="flex flex-col items-center text-center space-y-4">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center">
+                                    <Star className="w-6 h-6 text-black animate-spin" />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-widest">MINI-JEU JACKPOT</p>
+                                    <p className="text-xl font-black text-white italic">LOTERIE !</p>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-2 justify-center py-4">
+                                {['🍒', '💎', '7️⃣'].map((emoji, i) => (
+                                    <motion.div
+                                        key={i}
+                                        animate={{ y: [0, -10, 0] }}
+                                        transition={{ repeat: Infinity, duration: 0.5, delay: i * 0.1 }}
+                                        className="w-12 h-16 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center text-2xl"
+                                    >
+                                        {emoji}
+                                    </motion.div>
+                                ))}
+                            </div>
+
+                            <div className="space-y-2 w-full">
+                                <p className="text-[10px] text-gray-400 font-bold uppercase">
+                                    {activeSlots.participants.length} JOUEURS • TICKET 50 DROPS
+                                </p>
+                                <div className="h-1 bg-white/10 rounded-full overflow-hidden">
+                                    <motion.div
+                                        animate={{ width: `${(activeSlots.timeLeft / 60) * 100}%` }}
+                                        className="h-full bg-amber-500"
+                                    />
+                                </div>
+                                <button
+                                    onClick={() => handleSendMessage("!ticket")}
+                                    className="w-full py-3 bg-amber-500 text-black font-black uppercase rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-amber-500/20"
+                                >
+                                    Prendre un ticket !
+                                </button>
+                                <p className="text-[8px] text-amber-500/50 font-black uppercase tracking-tighter italic">FIN DANS {activeSlots.timeLeft}S</p>
+                            </div>
                         </div>
                     </motion.div>
                 )}
