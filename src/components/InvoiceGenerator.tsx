@@ -713,19 +713,43 @@ export function InvoiceGenerator() {
                             className="max-w-[1400px] mx-auto"
                         >
                             <div className="bg-[#0c0c0c] border border-white/[0.03] rounded-[56px] p-16 space-y-12">
-                                <div className="flex items-center justify-between">
-                                    <div>
-                                        <h3 className="text-5xl font-black uppercase tracking-[-0.05em] italic">Archive</h3>
-                                        <p className="text-[10px] font-black tracking-[0.5em] text-white/20 mt-4 uppercase">Suivi des transmissions & règlements</p>
+                                <div className="flex flex-col md:flex-row items-end justify-between gap-12">
+                                    <div className="space-y-4">
+                                        <h3 className="text-7xl font-black uppercase tracking-[-0.05em] italic">Fiscal Terminal</h3>
+                                        <p className="text-[10px] font-black tracking-[0.5em] text-white/20 uppercase">Intelligence de gestion & Suivi de Trésorerie</p>
                                     </div>
-                                    <div className="flex gap-4">
-                                        <div className="px-6 py-4 bg-white/5 rounded-2xl border border-white/5 flex flex-col items-center min-w-[120px]">
-                                            <span className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-1">Total Envoyé</span>
-                                            <span className="text-xl font-bold">{history.length}</span>
+
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 w-full md:w-auto">
+                                        <div className="px-8 py-6 bg-white/[0.02] rounded-[32px] border border-white/5 flex flex-col min-w-[180px]">
+                                            <span className="text-[9px] font-black text-white/20 uppercase tracking-widest mb-2">Volume Total</span>
+                                            <span className="text-3xl font-black italic tracking-tighter">{history.reduce((sum, h) => sum + h.total, 0).toFixed(2)}€</span>
+                                            <span className="text-[8px] font-bold text-white/10 uppercase mt-1">{history.length} Transmissions</span>
                                         </div>
-                                        <div className="px-6 py-4 bg-green-500/10 rounded-2xl border border-green-500/20 flex flex-col items-center min-w-[120px]">
-                                            <span className="text-[9px] font-black text-green-500/40 uppercase tracking-widest mb-1">Payées</span>
-                                            <span className="text-xl font-bold text-green-400">{history.filter(h => h.paid).length}</span>
+                                        <div className="px-8 py-6 bg-green-500/5 rounded-[32px] border border-green-500/10 flex flex-col min-w-[180px]">
+                                            <span className="text-[9px] font-black text-green-500/40 uppercase tracking-widest mb-2">Encaissé</span>
+                                            <span className="text-3xl font-black italic tracking-tighter text-green-400">
+                                                {history.filter(h => h.paid).reduce((sum, h) => sum + h.total, 0).toFixed(2)}€
+                                            </span>
+                                            <span className="text-[8px] font-bold text-green-500/20 uppercase mt-1">{history.filter(h => h.paid).length} Factures</span>
+                                        </div>
+                                        <div className="px-8 py-6 bg-orange-500/5 rounded-[32px] border border-orange-500/10 flex flex-col min-w-[180px]">
+                                            <span className="text-[9px] font-black text-orange-500/40 uppercase tracking-widest mb-2">En Attente</span>
+                                            <span className="text-3xl font-black italic tracking-tighter text-orange-400">
+                                                {history.filter(h => !h.paid).reduce((sum, h) => sum + h.total, 0).toFixed(2)}€
+                                            </span>
+                                            <span className="text-[8px] font-bold text-orange-500/20 uppercase mt-1">{history.filter(h => !h.paid).length} Créances</span>
+                                        </div>
+                                        <div className="px-8 py-6 bg-white/5 rounded-[32px] border border-white/10 flex flex-col items-center justify-center min-w-[120px]">
+                                            <div className="relative w-14 h-14">
+                                                <svg className="w-full h-full" viewBox="0 0 36 36">
+                                                    <path className="text-white/5" stroke="currentColor" strokeWidth="3" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                                    <path className="text-white transition-all duration-1000" strokeDasharray={`${history.length ? (history.filter(h => h.paid).length / history.length) * 100 : 0}, 100`} stroke="currentColor" strokeWidth="3" strokeLinecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                                </svg>
+                                                <div className="absolute inset-0 flex items-center justify-center">
+                                                    <span className="text-[10px] font-black">{history.length ? Math.round((history.filter(h => h.paid).length / history.length) * 100) : 0}%</span>
+                                                </div>
+                                            </div>
+                                            <span className="text-[7px] font-black text-white/20 uppercase tracking-[0.2em] mt-2">Recovery</span>
                                         </div>
                                     </div>
                                 </div>
