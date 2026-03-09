@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FileText, Plus, Printer, Trash2, Send, Loader, CheckCircle, AlertCircle, X, Mail, BookUser, ChevronDown, Save, Eye } from 'lucide-react';
+import { FileText, Plus, Printer, Trash2, Send, Loader, CheckCircle, AlertCircle, X, Mail, BookUser, ChevronDown, Save, Eye, Phone, User, MapPin, Hash, Building2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
@@ -21,6 +21,7 @@ interface SavedClient {
 export function InvoiceGenerator() {
     const [invoiceNumber, setInvoiceNumber] = useState<number>(66);
     const [date, setDate] = useState<string>(new Date().toISOString().split('T')[0]);
+    const [userPhone, setUserPhone] = useState('07 62 05 45 89'); // Numéro définitif
     const invoiceRef = useRef<HTMLDivElement>(null);
 
     // Client info
@@ -59,12 +60,21 @@ export function InvoiceGenerator() {
         if (savedNumber) {
             setInvoiceNumber(parseInt(savedNumber, 10));
         }
+        const savedPhone = localStorage.getItem('invoice_user_phone');
+        if (savedPhone) {
+            setUserPhone(savedPhone);
+        }
     }, []);
+
+    const saveUserPhone = (val: string) => {
+        setUserPhone(val);
+        localStorage.setItem('invoice_user_phone', val);
+    };
 
     const saveCurrentClient = () => {
         if (!clientName.trim()) return;
         const existing = savedClients.find(c => c.email === clientEmail && c.name === clientName);
-        if (existing) return; // already saved
+        if (existing) return;
         const newClient: SavedClient = {
             id: Date.now().toString(),
             name: clientName,
@@ -89,12 +99,11 @@ export function InvoiceGenerator() {
         localStorage.setItem('dropsiders_saved_clients', JSON.stringify(updated));
     };
 
-    // Pre-fill email fields when client email changes
     useEffect(() => {
         setEmailTo(clientEmail);
-        setEmailSubject(`Facture ${formattedInvoiceNumber} - Dropsiders`);
-        setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver en pièce jointe votre facture N° ${formattedInvoiceNumber} d'un montant de ${total.toFixed(2)} €.\n\nPour tout règlement, merci d'effectuer un virement sur le compte :\nRIB : BE59 9675 0891 6526\nBIC SWIFT : TRWIBEB1XXX\n\nCordialement,\nCUENCA ALEXANDRE`);
-    }, [clientEmail, clientName]);
+        setEmailSubject(`Facture ${formattedInvoiceNumber}`);
+        setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver en pièce jointe votre facture N° ${formattedInvoiceNumber} d'un montant de ${total.toFixed(2)} €.\n\nCordialement,\nCUENCA ALEXANDRE`);
+    }, [clientEmail, clientName, invoiceNumber, date]);
 
     const saveInvoiceNumber = (num: number) => {
         setInvoiceNumber(num);
@@ -127,7 +136,6 @@ export function InvoiceGenerator() {
             const invoiceEl = invoiceRef.current;
             if (!invoiceEl) throw new Error('Introuvable');
 
-            // Force visibility for capture
             invoiceEl.style.display = 'block';
             invoiceEl.style.position = 'fixed';
             invoiceEl.style.top = '0';
@@ -145,7 +153,6 @@ export function InvoiceGenerator() {
                 width: 794,
             });
 
-            // Reset visibility
             invoiceEl.style.display = '';
             invoiceEl.style.position = '';
             invoiceEl.style.top = '';
@@ -156,7 +163,6 @@ export function InvoiceGenerator() {
             setPreviewImage(canvas.toDataURL('image/png'));
         } catch (e) {
             console.error('Preview Error:', e);
-            setSendError("Erreur lors de la génération de l'aperçu");
         } finally {
             setPreviewLoading(false);
         }
@@ -177,7 +183,6 @@ export function InvoiceGenerator() {
             const invoiceEl = invoiceRef.current;
             if (!invoiceEl) throw new Error('Élément de facture introuvable');
 
-            // Force visibility for capture
             invoiceEl.style.display = 'block';
             invoiceEl.style.position = 'fixed';
             invoiceEl.style.top = '0';
@@ -194,7 +199,6 @@ export function InvoiceGenerator() {
                 width: 794,
             });
 
-            // Reset visibility
             invoiceEl.style.display = '';
             invoiceEl.style.position = '';
             invoiceEl.style.top = '';
@@ -222,7 +226,7 @@ export function InvoiceGenerator() {
                 heightLeft -= pageHeight;
             }
 
-            const pdfBase64 = pdf.output('datauristring'); // data:application/pdf;base64,...
+            const pdfBase64 = pdf.output('datauristring');
 
             setSendStatus('sending');
 
@@ -251,7 +255,7 @@ export function InvoiceGenerator() {
             if (!res.ok || data.error) throw new Error(data.error || 'Erreur envoi');
 
             setSendStatus('success');
-            saveInvoiceNumber(invoiceNumber + 1); // auto-increment
+            saveInvoiceNumber(invoiceNumber + 1);
             setTimeout(() => {
                 setSendStatus('idle');
                 setShowEmailModal(false);
@@ -263,207 +267,255 @@ export function InvoiceGenerator() {
     };
 
     return (
-        <div className="w-full flex-1 overflow-y-auto">
+        <div className="w-full flex-1 overflow-y-auto bg-black">
             {/* NO PRINT AREA: Form */}
-            <div className="print:hidden p-8 max-w-4xl mx-auto space-y-8">
-                <div className="flex items-center justify-between flex-wrap gap-4">
-                    <h2 className="text-2xl font-black uppercase text-white italic tracking-widest flex items-center gap-2">
-                        <FileText className="w-6 h-6 text-neon-cyan" />
-                        Générateur de Facture
-                    </h2>
+            <div className="print:hidden p-8 max-w-5xl mx-auto space-y-8">
+                <div className="flex items-center justify-between flex-wrap gap-4 border-b border-white/5 pb-8">
+                    <div>
+                        <h2 className="text-3xl font-black uppercase text-white tracking-tighter flex items-center gap-3">
+                            <User className="w-8 h-8 text-white" />
+                            Facturation Personnelle
+                        </h2>
+                        <p className="text-gray-500 text-sm mt-1 font-medium">CUENCA ALEXANDRE — Gestionnaire de prestations</p>
+                    </div>
                     <div className="flex items-center gap-3 flex-wrap">
                         <button
                             onClick={handlePreview}
                             className="px-5 py-3 bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 rounded-xl font-bold uppercase tracking-widest flex items-center gap-2 transition-all"
                         >
-                            <Eye className="w-5 h-5" />
-                            Aperçu
+                            <Eye className="w-5 h-5" /> Aperçu
                         </button>
                         <button
-                            onClick={() => {
-                                setEmailTo(clientEmail);
-                                setEmailSubject(`Facture ${formattedInvoiceNumber}`);
-                                setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver en pièce jointe votre facture N° ${formattedInvoiceNumber} d'un montant de ${total.toFixed(2)} €.\n\nPour tout règlement, merci d'effectuer un virement sur le compte :\nRIB : BE59 9675 0891 6526\nBIC SWIFT : TRWIBEB1XXX\n\nCordialement,\nCUENCA ALEXANDRE`);
-                                setShowEmailModal(true);
-                            }}
-                            className="px-5 py-3 bg-neon-purple/20 text-neon-purple border border-neon-purple/50 hover:bg-neon-purple/40 rounded-xl font-bold uppercase tracking-widest flex items-center gap-2 transition-all"
+                            onClick={() => setShowEmailModal(true)}
+                            className="px-5 py-3 bg-white text-black hover:bg-gray-200 rounded-xl font-bold uppercase tracking-widest flex items-center gap-2 transition-all"
                         >
-                            <Send className="w-5 h-5" />
-                            Envoyer par e-mail
+                            <Send className="w-5 h-5" /> Envoyer
                         </button>
                         <button
                             onClick={handlePrint}
-                            className="px-5 py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/50 hover:bg-neon-cyan/40 rounded-xl font-bold uppercase tracking-widest flex items-center gap-2 transition-all"
+                            className="px-5 py-3 bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10 rounded-xl font-bold uppercase tracking-widest flex items-center gap-2 transition-all"
                         >
-                            <Printer className="w-5 h-5" />
-                            Imprimer / PDF
+                            <Printer className="w-5 h-5" /> Imprimer
                         </button>
                     </div>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white/5 p-6 rounded-2xl border border-white/10">
-                    <div className="space-y-4">
-                        <h3 className="text-sm font-bold text-gray-400 uppercase">Détails Facture</h3>
-                        <div>
-                            <label className="block text-xs text-gray-500 mb-1">Numéro (démarre à 066)</label>
-                            <input
-                                type="number"
-                                value={invoiceNumber}
-                                onChange={e => saveInvoiceNumber(parseInt(e.target.value) || 0)}
-                                className="w-full p-2 bg-black/50 border border-white/10 rounded-xl outline-none focus:border-neon-cyan text-white"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs text-gray-500 mb-1">Date</label>
-                            <input
-                                type="date"
-                                value={date}
-                                onChange={e => setDate(e.target.value)}
-                                className="w-full p-2 bg-black/50 border border-white/10 rounded-xl outline-none focus:border-neon-cyan text-white"
-                            />
-                        </div>
-                    </div>
-
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h3 className="text-sm font-bold text-gray-400 uppercase">Détails Client</h3>
-                            <div className="flex items-center gap-2">
-                                {savedClients.length > 0 && (
-                                    <div className="relative">
-                                        <button
-                                            onClick={() => setShowClientPicker(v => !v)}
-                                            className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-neon-cyan border border-neon-cyan/30 hover:bg-neon-cyan/10 px-3 py-1.5 rounded-lg transition-all"
-                                        >
-                                            <BookUser className="w-3.5 h-3.5" />
-                                            Clients sauvegardés
-                                            <ChevronDown className={`w-3 h-3 transition-transform ${showClientPicker ? 'rotate-180' : ''}`} />
-                                        </button>
-                                        <AnimatePresence>
-                                            {showClientPicker && (
-                                                <motion.div
-                                                    initial={{ opacity: 0, y: -8 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    exit={{ opacity: 0, y: -8 }}
-                                                    className="absolute right-0 top-full mt-1 w-72 bg-[#111] border border-white/10 rounded-2xl z-50 overflow-hidden shadow-2xl"
-                                                >
-                                                    <div className="p-2 space-y-1 max-h-60 overflow-y-auto">
-                                                        {savedClients.map(client => (
-                                                            <div
-                                                                key={client.id}
-                                                                className="flex items-center gap-2 p-2 hover:bg-white/5 rounded-xl group cursor-pointer"
-                                                            >
-                                                                <div
-                                                                    className="flex-1 min-w-0"
-                                                                    onClick={() => loadClient(client)}
-                                                                >
-                                                                    <p className="text-sm font-bold text-white truncate">{client.name}</p>
-                                                                    <p className="text-xs text-gray-500 truncate">{client.email}</p>
-                                                                </div>
-                                                                <button
-                                                                    onClick={(e) => { e.stopPropagation(); deleteClient(client.id); }}
-                                                                    className="p-1 text-gray-600 hover:text-neon-red transition-colors opacity-0 group-hover:opacity-100 shrink-0"
-                                                                >
-                                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                                </button>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    {/* LEFT COL: Emetteur & Settings */}
+                    <div className="lg:col-span-1 space-y-6">
+                        <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-4">
+                            <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5 pb-2">Mes Coordonnées</h3>
+                            <div className="space-y-4">
+                                <div className="flex items-center gap-3 text-sm text-gray-300 bg-white/5 p-3 rounded-xl">
+                                    <User className="w-4 h-4 text-gray-500" />
+                                    <span>CUENCA ALEXANDRE</span>
+                                </div>
+                                <div className="flex items-start gap-3 text-sm text-gray-300 bg-white/5 p-3 rounded-xl">
+                                    <MapPin className="w-4 h-4 text-gray-500 mt-1" />
+                                    <span>411 RUE DE BOUILLARGUES<br />30000 NIMES</span>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="text-[10px] text-gray-500 uppercase ml-3">Téléphone</label>
+                                    <div className="flex items-center gap-3 bg-white/5 p-1 rounded-xl border border-transparent focus-within:border-white/20 transition-all">
+                                        <div className="p-2.5 bg-white/5 rounded-lg">
+                                            <Phone className="w-4 h-4 text-gray-500" />
+                                        </div>
+                                        <input
+                                            type="text"
+                                            value={userPhone}
+                                            onChange={e => saveUserPhone(e.target.value)}
+                                            className="bg-transparent border-none outline-none text-sm text-white w-full"
+                                            placeholder="Votre téléphone"
+                                        />
                                     </div>
-                                )}
-                                <button
-                                    onClick={saveCurrentClient}
-                                    disabled={!clientName.trim()}
-                                    title="Sauvegarder ce client"
-                                    className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-neon-green border border-neon-green/30 hover:bg-neon-green/10 px-3 py-1.5 rounded-lg transition-all disabled:opacity-30 disabled:cursor-not-allowed"
-                                >
-                                    <Save className="w-3.5 h-3.5" />
-                                    Sauvegarder
-                                </button>
+                                </div>
+                                <div className="flex items-center gap-3 text-sm text-gray-300 bg-white/5 p-3 rounded-xl">
+                                    <Hash className="w-4 h-4 text-gray-500" />
+                                    <span>SIREN : 805131828</span>
+                                </div>
                             </div>
                         </div>
-                        <div>
-                            <label className="block text-xs text-gray-500 mb-1">Nom / Entreprise</label>
-                            <input
-                                type="text"
-                                value={clientName}
-                                onChange={e => setClientName(e.target.value)}
-                                className="w-full p-2 bg-black/50 border border-white/10 rounded-xl outline-none focus:border-neon-cyan text-white"
-                                placeholder="Nom du client"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs text-gray-500 mb-1">Adresse</label>
-                            <input
-                                type="text"
-                                value={clientAddress}
-                                onChange={e => setClientAddress(e.target.value)}
-                                className="w-full p-2 bg-black/50 border border-white/10 rounded-xl outline-none focus:border-neon-cyan text-white"
-                                placeholder="Adresse complète"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-xs text-gray-500 mb-1">Email</label>
-                            <input
-                                type="email"
-                                value={clientEmail}
-                                onChange={e => setClientEmail(e.target.value)}
-                                className="w-full p-2 bg-black/50 border border-white/10 rounded-xl outline-none focus:border-neon-cyan text-white"
-                                placeholder="Client email"
-                            />
+
+                        <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-4">
+                            <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5 pb-2">Réglages Facture</h3>
+                            <div className="grid grid-cols-1 gap-4">
+                                <div>
+                                    <label className="block text-[10px] text-gray-500 uppercase mb-1 ml-1">Numéro</label>
+                                    <input
+                                        type="number"
+                                        value={invoiceNumber}
+                                        onChange={e => saveInvoiceNumber(parseInt(e.target.value) || 0)}
+                                        className="w-full p-3 bg-black/50 border border-white/10 rounded-xl outline-none focus:border-white text-white text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-[10px] text-gray-500 uppercase mb-1 ml-1">Date d'émission</label>
+                                    <input
+                                        type="date"
+                                        value={date}
+                                        onChange={e => setDate(e.target.value)}
+                                        className="w-full p-3 bg-black/50 border border-white/10 rounded-xl outline-none focus:border-white text-white text-sm [color-scheme:dark]"
+                                    />
+                                </div>
+                            </div>
                         </div>
                     </div>
-                </div>
 
-                <div className="bg-white/5 p-6 rounded-2xl border border-white/10 space-y-4">
-                    <h3 className="text-sm font-bold text-gray-400 uppercase">Prestations</h3>
-                    {lines.map((line) => (
-                        <div key={line.id} className="flex gap-4 items-center">
-                            <input
-                                type="text"
-                                value={line.description}
-                                onChange={e => updateLine(line.id, 'description', e.target.value)}
-                                className="flex-1 p-2 bg-black/50 border border-white/10 rounded-xl outline-none focus:border-neon-cyan text-white"
-                                placeholder="Description"
-                            />
-                            <div className="w-24">
-                                <input
-                                    type="number"
-                                    value={line.quantity}
-                                    onChange={e => updateLine(line.id, 'quantity', parseFloat(e.target.value) || 0)}
-                                    className="w-full p-2 bg-black/50 border border-white/10 rounded-xl outline-none focus:border-neon-cyan text-white"
-                                    placeholder="Qté"
-                                />
+                    {/* RIGHT COL: Client & Prestations */}
+                    <div className="lg:col-span-2 space-y-6">
+                        <div className="bg-white/5 p-6 rounded-3xl border border-white/10 space-y-6">
+                            <div className="flex items-center justify-between">
+                                <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Informations Client</h3>
+                                <div className="flex items-center gap-2">
+                                    {savedClients.length > 0 && (
+                                        <div className="relative">
+                                            <button
+                                                onClick={() => setShowClientPicker(v => !v)}
+                                                className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-gray-400 border border-white/10 hover:bg-white/10 px-3 py-2 rounded-xl transition-all"
+                                            >
+                                                <BookUser className="w-3.5 h-3.5" />
+                                                Carnet
+                                                <ChevronDown className={`w-3 h-3 transition-transform ${showClientPicker ? 'rotate-180' : ''}`} />
+                                            </button>
+                                            <AnimatePresence>
+                                                {showClientPicker && (
+                                                    <motion.div
+                                                        initial={{ opacity: 0, scale: 0.95 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        exit={{ opacity: 0, scale: 0.95 }}
+                                                        className="absolute right-0 top-full mt-2 w-72 bg-[#111] border border-white/10 rounded-2xl z-50 overflow-hidden shadow-[0_20px_50px_rgba(0,0,0,0.5)]"
+                                                    >
+                                                        <div className="p-2 space-y-1 max-h-64 overflow-y-auto">
+                                                            {savedClients.map(client => (
+                                                                <div
+                                                                    key={client.id}
+                                                                    className="flex items-center gap-2 p-3 hover:bg-white/5 rounded-xl group cursor-pointer border border-transparent hover:border-white/5"
+                                                                >
+                                                                    <div className="flex-1 min-w-0" onClick={() => loadClient(client)}>
+                                                                        <p className="text-sm font-bold text-white truncate">{client.name}</p>
+                                                                        <p className="text-[10px] text-gray-500 truncate">{client.email}</p>
+                                                                    </div>
+                                                                    <button
+                                                                        onClick={(e) => { e.stopPropagation(); deleteClient(client.id); }}
+                                                                        className="p-1.5 text-gray-700 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                                                                    >
+                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </div>
+                                    )}
+                                    <button
+                                        onClick={saveCurrentClient}
+                                        disabled={!clientName.trim()}
+                                        className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-white/40 border border-white/10 hover:bg-white/10 px-3 py-2 rounded-xl transition-all disabled:opacity-20"
+                                    >
+                                        <Save className="w-3.5 h-3.5" />
+                                        Sauver
+                                    </button>
+                                </div>
                             </div>
-                            <div className="w-32">
-                                <input
-                                    type="number"
-                                    value={line.unitPrice}
-                                    onChange={e => updateLine(line.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                    className="w-full p-2 bg-black/50 border border-white/10 rounded-xl outline-none focus:border-neon-cyan text-white"
-                                    placeholder="Prix unitaire"
-                                />
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-4">
+                                    <div>
+                                        <label className="block text-[10px] text-gray-500 uppercase mb-1 ml-1">Nom ou Entreprise</label>
+                                        <div className="flex items-center gap-3 bg-white/5 p-1 rounded-xl">
+                                            <div className="p-2.5 bg-white/5 rounded-lg text-gray-500"><Building2 className="w-4 h-4" /></div>
+                                            <input
+                                                type="text"
+                                                value={clientName}
+                                                onChange={e => setClientName(e.target.value)}
+                                                className="bg-transparent border-none outline-none text-sm text-white w-full"
+                                                placeholder="EDM Music Ltd"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] text-gray-500 uppercase mb-1 ml-1">Email Client</label>
+                                        <div className="flex items-center gap-3 bg-white/5 p-1 rounded-xl">
+                                            <div className="p-2.5 bg-white/5 rounded-lg text-gray-500"><Mail className="w-4 h-4" /></div>
+                                            <input
+                                                type="email"
+                                                value={clientEmail}
+                                                onChange={e => setClientEmail(e.target.value)}
+                                                className="bg-transparent border-none outline-none text-sm text-white w-full"
+                                                placeholder="contact@client.com"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
+                                <div className="space-y-1">
+                                    <label className="block text-[10px] text-gray-500 uppercase mb-1 ml-1">Adresse Facturation</label>
+                                    <textarea
+                                        value={clientAddress}
+                                        onChange={e => setClientAddress(e.target.value)}
+                                        rows={4}
+                                        className="w-full p-4 bg-white/5 border border-white/10 rounded-2xl outline-none focus:border-white text-white text-sm resize-none"
+                                        placeholder="123 Avenue des Champs, 75000 Paris"
+                                    />
+                                </div>
                             </div>
-                            <button
-                                onClick={() => removeLine(line.id)}
-                                className="p-2 text-neon-red hover:bg-neon-red/10 rounded-lg transition-all"
-                            >
-                                <Trash2 className="w-5 h-5" />
-                            </button>
                         </div>
-                    ))}
-                    <button
-                        onClick={addLine}
-                        className="text-xs uppercase font-bold text-neon-cyan hover:bg-neon-cyan/10 px-4 py-2 rounded-lg flex items-center gap-2 border border-neon-cyan/20"
-                    >
-                        <Plus className="w-4 h-4" /> Ajouter une ligne
-                    </button>
 
-                    <div className="text-right mt-4 pt-4 border-t border-white/10">
-                        <span className="text-gray-400 uppercase text-xs mr-4">Total à payer</span>
-                        <span className="text-2xl font-black text-white">{total.toFixed(2)} €</span>
+                        <div className="bg-white/5 p-6 rounded-3xl border border-white/10 space-y-6">
+                            <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest border-b border-white/5 pb-2">Détails des Prestations</h3>
+                            <div className="space-y-3">
+                                {lines.map((line) => (
+                                    <div key={line.id} className="flex gap-4 items-start md:items-center flex-wrap md:flex-nowrap bg-white/5 p-2 rounded-2xl border border-white/5 group">
+                                        <input
+                                            type="text"
+                                            value={line.description}
+                                            onChange={e => updateLine(line.id, 'description', e.target.value)}
+                                            className="flex-1 min-w-[200px] p-2 bg-transparent border-none outline-none text-sm text-white"
+                                            placeholder="Description de la prestation"
+                                        />
+                                        <div className="flex items-center gap-2">
+                                            <div className="w-20">
+                                                <input
+                                                    type="number"
+                                                    value={line.quantity}
+                                                    onChange={e => updateLine(line.id, 'quantity', parseFloat(e.target.value) || 0)}
+                                                    className="w-full p-2 bg-black/30 border border-white/5 rounded-xl outline-none text-center text-sm text-white"
+                                                    placeholder="Qté"
+                                                />
+                                            </div>
+                                            <div className="w-32 bg-black/30 p-2 rounded-xl flex items-center border border-white/5">
+                                                <input
+                                                    type="number"
+                                                    value={line.unitPrice}
+                                                    onChange={e => updateLine(line.id, 'unitPrice', parseFloat(e.target.value) || 0)}
+                                                    className="w-full bg-transparent border-none outline-none text-right text-sm text-white px-1"
+                                                />
+                                                <span className="text-gray-500 text-xs">€</span>
+                                            </div>
+                                            <button
+                                                onClick={() => removeLine(line.id)}
+                                                className="p-2 text-gray-600 hover:text-red-500 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="flex items-center justify-between pt-4">
+                                <button
+                                    onClick={addLine}
+                                    className="text-[10px] uppercase font-black tracking-widest text-white/60 hover:text-white px-4 py-2 rounded-xl flex items-center gap-2 border border-white/10 hover:bg-white/5 transition-all"
+                                >
+                                    <Plus className="w-4 h-4" /> Ajouter
+                                </button>
+                                <div className="text-right">
+                                    <p className="text-[10px] font-black text-gray-500 uppercase mb-1">Total TTC à régler</p>
+                                    <p className="text-4xl font-black text-white">{total.toFixed(2)} €</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -471,64 +523,61 @@ export function InvoiceGenerator() {
             {/* PREVIEW MODAL */}
             <AnimatePresence>
                 {showPreview && (
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-xl print:hidden">
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/98 backdrop-blur-2xl print:hidden">
                         <motion.div
-                            initial={{ opacity: 0, scale: 0.95 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.95 }}
-                            className="relative w-full max-w-3xl max-h-[90vh] flex flex-col"
+                            initial={{ opacity: 0, scale: 0.95, y: 30 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.95, y: 30 }}
+                            className="relative w-full max-w-4xl h-full max-h-[92vh] flex flex-col"
                         >
-                            <div className="flex items-center justify-between mb-4 shrink-0">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-2.5 bg-white/5 rounded-xl border border-white/10">
-                                        <Eye className="w-5 h-5 text-white" />
+                            <div className="flex items-center justify-between mb-6 shrink-0">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-white/5 rounded-2xl border border-white/10">
+                                        <Eye className="w-6 h-6 text-white" />
                                     </div>
-                                    <h3 className="text-lg font-black uppercase italic text-white tracking-tight">
-                                        Aperçu de la Facture — <span className="text-gray-400">{formattedInvoiceNumber}</span>
-                                    </h3>
+                                    <div>
+                                        <h3 className="text-xl font-black uppercase italic text-white tracking-tight">Aperçu Facture</h3>
+                                        <p className="text-gray-500 text-[10px] font-black tracking-widest uppercase">{formattedInvoiceNumber}</p>
+                                    </div>
                                 </div>
                                 <button
                                     onClick={() => { setShowPreview(false); setPreviewImage(null); }}
-                                    className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-colors"
+                                    className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-white transition-colors"
                                 >
-                                    <X className="w-5 h-5" />
+                                    <X className="w-6 h-6" />
                                 </button>
                             </div>
 
-                            <div className="flex-1 overflow-y-auto rounded-2xl border border-white/10 bg-gray-100 flex items-center justify-center min-h-[400px]">
+                            <div className="flex-1 overflow-y-auto rounded-[32px] border border-white/10 bg-white/5 p-4 flex items-center justify-center min-h-[500px] shadow-2xl">
                                 {previewLoading ? (
-                                    <div className="flex flex-col items-center gap-3 text-gray-500">
-                                        <Loader className="w-8 h-8 animate-spin" />
-                                        <p className="text-sm font-bold uppercase tracking-widest">Génération de l'aperçu...</p>
+                                    <div className="flex flex-col items-center gap-4 text-white/30">
+                                        <Loader className="w-12 h-12 animate-spin" />
+                                        <p className="text-[10px] font-black uppercase tracking-widest">Génération du rendu haute qualité...</p>
                                     </div>
                                 ) : previewImage ? (
                                     <img
                                         src={previewImage}
                                         alt="Aperçu facture"
-                                        className="w-full h-auto rounded-2xl shadow-2xl"
+                                        className="max-w-full h-auto rounded-xl shadow-2xl border border-black/10"
                                     />
                                 ) : null}
                             </div>
 
-                            <div className="flex items-center gap-3 mt-4 shrink-0">
+                            <div className="flex items-center gap-4 mt-6 shrink-0">
                                 <button
-                                    onClick={() => { setShowPreview(false); setPreviewImage(null); handlePrint(); }}
-                                    className="flex-1 py-3 bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30 hover:bg-neon-cyan/30 rounded-xl font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                                    onClick={() => { setShowPreview(false); handlePrint(); }}
+                                    className="flex-1 py-4 bg-white/5 text-white border border-white/10 hover:bg-white/10 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all"
                                 >
-                                    <Printer className="w-4 h-4" /> Imprimer
+                                    <Printer className="w-5 h-5" /> Imprimer
                                 </button>
                                 <button
                                     onClick={() => {
                                         setShowPreview(false);
-                                        setPreviewImage(null);
-                                        setEmailTo(clientEmail);
-                                        setEmailSubject(`Facture ${formattedInvoiceNumber}`);
-                                        setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver en pièce jointe votre facture N° ${formattedInvoiceNumber} d'un montant de ${total.toFixed(2)} €.\n\nPour tout règlement, merci d'effectuer un virement sur le compte :\nRIB : BE59 9675 0891 6526\nBIC SWIFT : TRWIBEB1XXX\n\nCordialement,\nCUENCA ALEXANDRE`);
                                         setShowEmailModal(true);
                                     }}
-                                    className="flex-1 py-3 bg-neon-purple text-white hover:bg-neon-purple/80 shadow-[0_0_20px_rgba(168,85,247,0.3)] rounded-xl font-bold uppercase tracking-widest flex items-center justify-center gap-2 transition-all"
+                                    className="flex-1 py-4 bg-white text-black hover:bg-gray-200 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all shadow-[0_10px_30px_rgba(255,255,255,0.2)]"
                                 >
-                                    <Send className="w-4 h-4" /> Envoyer par e-mail
+                                    <Send className="w-5 h-5" /> Envoyer par email
                                 </button>
                             </div>
                         </motion.div>
@@ -539,105 +588,73 @@ export function InvoiceGenerator() {
             {/* EMAIL MODAL */}
             <AnimatePresence>
                 {showEmailModal && (
-
-                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/90 backdrop-blur-xl print:hidden">
+                    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/95 backdrop-blur-2xl print:hidden text-white">
                         <motion.div
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="bg-[#111] border border-white/10 rounded-3xl p-8 w-full max-w-xl space-y-6 relative overflow-hidden"
+                            className="bg-[#0c0c0c] border border-white/10 rounded-[40px] p-8 w-full max-w-xl space-y-6 relative overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,0.8)]"
                         >
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-purple via-white to-neon-purple" />
-
                             <div className="flex justify-between items-center">
-                                <div className="flex items-center gap-3">
-                                    <div className="p-3 bg-neon-purple/10 rounded-2xl border border-neon-purple/20">
-                                        <Mail className="w-6 h-6 text-neon-purple" />
+                                <div className="flex items-center gap-4">
+                                    <div className="p-4 bg-white/5 rounded-[24px] border border-white/10">
+                                        <Mail className="w-8 h-8 text-white" />
                                     </div>
-                                    <h3 className="text-xl font-black uppercase italic text-white tracking-tight">
-                                        Envoyer la <span className="text-neon-purple">Facture</span>
-                                    </h3>
+                                    <h3 className="text-2xl font-black uppercase italic tracking-tighter">Envoi Email</h3>
                                 </div>
                                 <button
                                     onClick={() => { setShowEmailModal(false); setSendStatus('idle'); }}
-                                    className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-colors"
+                                    className="p-3 hover:bg-white/5 rounded-2xl text-gray-500 transition-colors"
                                 >
-                                    <X className="w-5 h-5" />
+                                    <X className="w-6 h-6" />
                                 </button>
                             </div>
 
                             <div className="space-y-4">
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Destinataire *</label>
+                                <div className="space-y-1">
+                                    <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest ml-1">À l'attention de</label>
                                     <input
                                         type="email"
                                         value={emailTo}
                                         onChange={e => setEmailTo(e.target.value)}
-                                        placeholder="email@client.com"
-                                        className="w-full p-3 bg-black/50 border border-white/10 rounded-xl outline-none focus:border-neon-purple text-white text-sm"
+                                        className="w-full p-4 bg-white/5 border border-white/5 rounded-2xl outline-none focus:border-white/20 text-white text-sm"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Objet</label>
-                                    <input
-                                        type="text"
-                                        value={emailSubject}
-                                        onChange={e => setEmailSubject(e.target.value)}
-                                        className="w-full p-3 bg-black/50 border border-white/10 rounded-xl outline-none focus:border-neon-purple text-white text-sm"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-1">Message</label>
+                                <div className="space-y-1">
+                                    <label className="block text-[10px] font-black text-white/30 uppercase tracking-widest ml-1">Message d'accompagnement</label>
                                     <textarea
                                         value={emailMessage}
                                         onChange={e => setEmailMessage(e.target.value)}
                                         rows={6}
-                                        className="w-full p-3 bg-black/50 border border-white/10 rounded-xl outline-none focus:border-neon-purple text-white text-sm resize-none"
+                                        className="w-full p-4 bg-white/5 border border-white/5 rounded-2xl outline-none focus:border-white/20 text-white text-sm resize-none"
                                     />
                                 </div>
                             </div>
 
                             <AnimatePresence>
                                 {sendStatus === 'error' && (
-                                    <motion.div
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: 'auto' }}
-                                        exit={{ opacity: 0, height: 0 }}
-                                        className="flex items-center gap-3 p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-sm"
-                                    >
-                                        <AlertCircle className="w-5 h-5 shrink-0" />
-                                        {sendError}
+                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-xs font-bold text-center">
+                                        <AlertCircle className="w-5 h-5 mx-auto mb-2" /> {sendError}
                                     </motion.div>
                                 )}
                                 {sendStatus === 'success' && (
-                                    <motion.div
-                                        initial={{ opacity: 0, height: 0 }}
-                                        animate={{ opacity: 1, height: 'auto' }}
-                                        exit={{ opacity: 0, height: 0 }}
-                                        className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm"
-                                    >
-                                        <CheckCircle className="w-5 h-5 shrink-0" />
-                                        Facture envoyée avec succès ! Numéro incrémenté.
+                                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-4 bg-green-500/10 border border-green-500/20 rounded-2xl text-green-500 text-xs font-bold text-center">
+                                        <CheckCircle className="w-5 h-5 mx-auto mb-2" /> Facture transmise avec succès !
                                     </motion.div>
                                 )}
                             </AnimatePresence>
 
                             <button
                                 onClick={generateAndSendPDF}
-                                disabled={sendStatus === 'generating' || sendStatus === 'sending' || sendStatus === 'success'}
-                                className={`w-full py-4 rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all ${sendStatus === 'success'
-                                    ? 'bg-green-500/20 text-green-400 border border-green-500/30'
-                                    : 'bg-neon-purple text-white hover:bg-neon-purple/80 shadow-[0_0_20px_rgba(168,85,247,0.4)]'
-                                    } disabled:opacity-60 disabled:cursor-not-allowed`}
+                                disabled={sendStatus !== 'idle' && sendStatus !== 'error'}
+                                className="w-full py-5 bg-white text-black rounded-3xl font-black uppercase tracking-widest flex items-center justify-center gap-3 transition-all disabled:opacity-50 hover:bg-gray-100 shadow-[0_10px_40px_rgba(255,255,255,0.15)]"
                             >
-                                {sendStatus === 'generating' ? (
-                                    <><Loader className="w-5 h-5 animate-spin" /> Génération du PDF...</>
-                                ) : sendStatus === 'sending' ? (
-                                    <><Loader className="w-5 h-5 animate-spin" /> Envoi en cours...</>
+                                {sendStatus === 'generating' || sendStatus === 'sending' ? (
+                                    <><Loader className="w-6 h-6 animate-spin" /> Traitement en cours...</>
                                 ) : sendStatus === 'success' ? (
-                                    <><CheckCircle className="w-5 h-5" /> Envoyé !</>
+                                    <><CheckCircle className="w-6 h-6" /> Envoyé !</>
                                 ) : (
-                                    <><Send className="w-5 h-5" /> Générer et envoyer la facture</>
+                                    <><Send className="w-6 h-6" /> Valider et envoyer</>
                                 )}
                             </button>
                         </motion.div>
@@ -645,97 +662,105 @@ export function InvoiceGenerator() {
                 )}
             </AnimatePresence>
 
-            {/* PRINT AREA */}
+            {/* PRINT AREA - ULTRA CLEAN MINIMALIST DESIGN */}
             <style>
                 {`
                 @media print {
-                    body * {
-                        visibility: hidden;
-                    }
-                    #printable-invoice, #printable-invoice * {
-                        visibility: visible;
-                    }
+                    body * { visibility: hidden; }
+                    #printable-invoice, #printable-invoice * { visibility: visible; }
                     #printable-invoice {
-                        position: absolute;
-                        left: 0;
-                        top: 0;
-                        width: 100%;
-                        background: white !important;
-                        color: black !important;
-                        padding: 40px;
-                        margin: 0;
-                        display: block !important;
-                    }
-                    .print-border {
-                        border-color: #e5e7eb !important;
-                    }
-                    .print-bg {
-                        background-color: #f9fafb !important;
+                        position: absolute; left: 0; top: 0; width: 100%;
+                        background: white !important; color: black !important;
+                        padding: 60px; margin: 0; display: block !important;
+                        font-family: 'Helvetica', 'Arial', sans-serif !important;
                     }
                 }
                 `}
             </style>
 
-            <div ref={invoiceRef} id="printable-invoice" className="hidden print:block w-full max-w-4xl mx-auto bg-white text-black p-12 min-h-[1056px] font-sans">
-                {/* Header */}
-                <div className="flex justify-between items-start mb-16">
+            <div ref={invoiceRef} id="printable-invoice" className="hidden print:block w-[794px] bg-white text-black p-[60px] min-h-[1123px] font-sans">
+                {/* Minimalist Header */}
+                <div className="flex justify-between items-start mb-24">
                     <div>
-                        <h1 className="text-5xl font-black tracking-tighter mb-4">FACTURE</h1>
-                        <p className="text-sm text-gray-500 font-bold mb-1">N° {formattedInvoiceNumber}</p>
-                        <p className="text-sm text-gray-500 font-bold">Date : {new Date(date).toLocaleDateString('fr-FR')}</p>
+                        <h1 className="text-7xl font-black tracking-tighter mb-8 leading-none">FACTURE</h1>
+                        <div className="space-y-1">
+                            <p className="text-xs font-black uppercase tracking-widest text-gray-400">Référence</p>
+                            <p className="text-lg font-bold">{formattedInvoiceNumber}</p>
+                        </div>
+                        <div className="mt-4 space-y-1">
+                            <p className="text-xs font-black uppercase tracking-widest text-gray-400">Date d'émission</p>
+                            <p className="text-lg font-bold">{new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                        </div>
                     </div>
                     <div className="text-right">
-                        <h2 className="text-xl font-bold mb-2">CUENCA ALEXANDRE</h2>
-                        <p className="text-sm">411 RUE DE BOUILLARGUES</p>
-                        <p className="text-sm">30000 NIMES</p>
-                        <p className="text-sm mt-2">SIREN : 805131828</p>
-                        <p className="text-sm font-bold mt-2">ALEXFLEX30@GMAIL.COM</p>
+                        <h2 className="text-2xl font-black uppercase mb-4 tracking-tight">CUENCA ALEXANDRE</h2>
+                        <div className="text-sm font-medium text-gray-600 space-y-1">
+                            <p>411 RUE DE BOUILLARGUES</p>
+                            <p>30000 NIMES</p>
+                            <p className="pt-2 font-bold text-black">{userPhone}</p>
+                            <p className="text-gray-400 text-xs">SIREN : 805131828</p>
+                        </div>
                     </div>
                 </div>
 
-                {/* Client Info */}
-                <div className="mb-16 print-bg p-6 rounded-lg print-border border border-gray-200">
-                    <p className="text-xs uppercase text-gray-500 mb-2 font-bold tracking-widest">Facturé à</p>
-                    <h3 className="text-xl font-bold mb-1">{clientName || 'Nom du client'}</h3>
-                    <p className="text-sm mb-1">{clientAddress || 'Adresse du client'}</p>
-                    <p className="text-sm">{clientEmail || 'Email du client'}</p>
+                {/* Info Client Box */}
+                <div className="flex justify-between mb-24">
+                    <div className="w-1/2">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Destinataire</p>
+                        <h3 className="text-2xl font-black uppercase mb-2 tracking-tight">{clientName || 'CLIENT'}</h3>
+                        <div className="text-sm text-gray-600 font-medium leading-relaxed max-w-xs whitespace-pre-line">
+                            {clientAddress || 'ADRESSE'}
+                        </div>
+                        {clientEmail && <p className="text-sm font-bold mt-2">{clientEmail.toLowerCase()}</p>}
+                    </div>
                 </div>
 
-                {/* Table */}
-                <div className="mb-16">
-                    <div className="grid grid-cols-12 gap-4 border-b-2 border-black pb-2 mb-4">
-                        <div className="col-span-6 font-bold uppercase text-xs tracking-widest">Description</div>
-                        <div className="col-span-2 text-center font-bold uppercase text-xs tracking-widest">Qté</div>
-                        <div className="col-span-2 text-right font-bold uppercase text-xs tracking-widest">Prix Unitaire</div>
-                        <div className="col-span-2 text-right font-bold uppercase text-xs tracking-widest">Total</div>
+                {/* Prestations Table - Ultraclean */}
+                <div className="mb-24">
+                    <div className="grid grid-cols-12 gap-0 border-b-2 border-black pb-4 mb-4">
+                        <div className="col-span-7 text-[10px] font-black uppercase tracking-widest">Prestation</div>
+                        <div className="col-span-1 text-center text-[10px] font-black uppercase tracking-widest">Qté</div>
+                        <div className="col-span-2 text-right text-[10px] font-black uppercase tracking-widest">Prix HT</div>
+                        <div className="col-span-2 text-right text-[10px] font-black uppercase tracking-widest">Total</div>
                     </div>
 
                     {lines.map((line) => (
-                        <div key={line.id} className="grid grid-cols-12 gap-4 print-border border-b border-gray-200 py-3 text-sm">
-                            <div className="col-span-6">{line.description}</div>
-                            <div className="col-span-2 text-center">{line.quantity}</div>
-                            <div className="col-span-2 text-right">{line.unitPrice.toFixed(2)} €</div>
-                            <div className="col-span-2 text-right font-bold">{(line.quantity * line.unitPrice).toFixed(2)} €</div>
+                        <div key={line.id} className="grid grid-cols-12 gap-0 border-b border-gray-100 py-6 text-sm">
+                            <div className="col-span-7 font-bold text-lg pr-4">{line.description || 'Service'}</div>
+                            <div className="col-span-1 text-center font-medium pt-1.5">{line.quantity}</div>
+                            <div className="col-span-2 text-right font-medium pt-1.5">{line.unitPrice.toFixed(2).replace('.', ',')} €</div>
+                            <div className="col-span-2 text-right font-black text-lg">{(line.quantity * line.unitPrice).toFixed(2).replace('.', ',')} €</div>
                         </div>
                     ))}
 
-                    <div className="flex justify-end mt-8">
-                        <div className="w-1/3">
-                            <div className="flex justify-between border-t-2 border-black pt-2">
-                                <span className="font-bold">Total TTC</span>
-                                <span className="font-black text-xl">{total.toFixed(2)} €</span>
+                    <div className="flex justify-end mt-16 pt-8">
+                        <div className="w-1/2">
+                            <div className="flex justify-between items-baseline mb-2">
+                                <span className="text-xs font-black uppercase tracking-widest">TOTAL NET À PAYER</span>
+                                <span className="text-5xl font-black">{(total).toFixed(2).replace('.', ',')} €</span>
                             </div>
-                            <p className="text-xs text-gray-500 mt-1 italic text-right">TVA non applicable, art. 293 B du CGI</p>
+                            <p className="text-[9px] text-gray-400 text-right uppercase font-bold tracking-tighter">TVA non applicable, art. 293 B du CGI</p>
                         </div>
                     </div>
                 </div>
 
-                {/* Footer details (RIB etc) */}
-                <div className="mt-24 pt-8 print-border border-t border-gray-200">
-                    <p className="text-xs font-bold uppercase tracking-widest mb-4">Informations de paiement</p>
-                    <p className="text-sm"><span className="font-bold">RIB :</span> BE59 9675 0891 6526</p>
-                    <p className="text-sm"><span className="font-bold">BIC SWIFT :</span> TRWIBEB1XXX</p>
-                    <p className="text-xs text-gray-500 mt-4">Veuillez indiquer le numéro de facture en référence lors de votre virement.</p>
+                {/* Payment Info Footer - Minimal Card */}
+                <div className="mt-auto pt-12 border-t border-gray-100">
+                    <div className="flex gap-16">
+                        <div>
+                            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-3">Règlement par virement</p>
+                            <div className="space-y-1 font-bold text-xs uppercase tracking-tight">
+                                <p><span className="text-gray-400">RIB :</span> BE59 9675 0891 6526</p>
+                                <p><span className="text-gray-400">BIC :</span> TRWIBEB1XXX</p>
+                            </div>
+                        </div>
+                        <div className="max-w-[200px]">
+                            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-3">Notes</p>
+                            <p className="text-[10px] text-gray-500 leading-relaxed font-medium capitalize">
+                                merci d'indiquer la référence <span className="font-bold text-black">{formattedInvoiceNumber}</span> lors de votre virement bancaire.
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
