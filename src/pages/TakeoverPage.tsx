@@ -53,6 +53,7 @@ interface TakeoverSettings {
     dropsInterval?: number;
     sponsorText?: string;
     sponsorLink?: string;
+    showSponsorBanner?: boolean;
 }
 
 interface ShazamTrack {
@@ -79,7 +80,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [userRole] = useState<'admin' | 'mod' | 'user'>(isAdmin ? 'admin' : 'user');
     const isMod = userRole === 'admin' || userRole === 'mod';
     const [showAdminPanel, setShowAdminPanel] = useState(false);
-    const [viewersCount] = useState(Math.floor(Math.random() * 50) + 10);
     const [activeChatTab, setActiveChatTab] = useState('chat');
     const [newMessage, setNewMessage] = useState('');
     const [isHighlightChecked, setIsHighlightChecked] = useState(false);
@@ -164,7 +164,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         highlightPrice: initialSettings?.highlightPrice || 100,
         lots: initialSettings?.lots || [],
         sponsorText: initialSettings?.sponsorText || 'LIVE RENDU POSSIBLE GRÂCE À NOS PARTENAIRES 🤝',
-        sponsorLink: initialSettings?.sponsorLink || 'https://dropsiders.fr'
+        sponsorLink: initialSettings?.sponsorLink || 'https://dropsiders.fr',
+        showSponsorBanner: initialSettings?.showSponsorBanner !== undefined ? initialSettings.showSponsorBanner : true
     });
 
     const isPopout = new URLSearchParams(window.location.search).get('popout') === 'true';
@@ -460,6 +461,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [adminActiveTab, setAdminActiveTab] = useState('general');
     const [editSponsorText, setEditSponsorText] = useState(settings.sponsorText);
     const [editSponsorLink, setEditSponsorLink] = useState(settings.sponsorLink);
+    const [editShowSponsorBanner, setEditShowSponsorBanner] = useState(settings.showSponsorBanner !== undefined ? settings.showSponsorBanner : true);
     const [isSaving, setIsSaving] = useState(false);
 
     const clearShazamHistory = async () => {
@@ -1051,7 +1053,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             dropsAmount: Number(editDropsAmount),
             dropsInterval: Number(editDropsInterval),
             sponsorText: editSponsorText,
-            sponsorLink: editSponsorLink
+            sponsorLink: editSponsorLink,
+            showSponsorBanner: editShowSponsorBanner
         };
 
         try {
@@ -1599,7 +1602,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 <div className="flex items-center gap-2 lg:gap-4">
                                     <div className="flex flex-col items-start pr-4 border-r border-white/10">
                                         <span className="text-[12px] lg:text-[14px] font-black text-white italic tracking-tighter tabular-nums leading-none">{currentTime}</span>
-                                        <span className="text-[7px] text-neon-red font-black uppercase tracking-widest mt-0.5 animate-pulse">LIVE NOW</span>
                                     </div>
                                     <div className="flex items-center gap-2 lg:gap-3">
                                         <div className="flex items-center gap-1 px-1 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md">
@@ -1645,7 +1647,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             >
                                 <div className="flex items-center gap-1.5 lg:gap-2">
                                     <Users className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-neon-cyan" />
-                                    <span className="text-[11px] lg:text-xs font-black text-white">{settings.status === 'off' ? 0 : viewersCount}</span>
+                                    <span className="text-[11px] lg:text-xs font-black text-white">{settings.status === 'off' ? 0 : Array.from(new Set(chatMessages.filter(m => m.pseudo && m.pseudo !== 'BOT_SYSTEM').map(m => m.pseudo))).length}</span>
                                 </div>
                             </button>
                             <button
@@ -1774,8 +1776,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
             {/* 3. MAIN CONTENT AREA */}
             <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden relative">
-                {/* A. VIDEO PANEL (40% Mobile / 60% Desktop) */}
-                <div className={`transition-all duration-700 ease-in-out ${isPopout ? 'hidden' : (isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[40%] lg:h-full')} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
+                {/* A. VIDEO PANEL (35% Mobile / 60% Desktop) */}
+                <div className={`transition-all duration-700 ease-in-out ${isPopout ? 'hidden' : (isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[35%] lg:h-full')} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
                     <div className="absolute inset-0 z-0">
                         <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${settings.streams?.find((s: any) => s.id === settings.activeStreamId)?.youtubeId || settings.youtubeId || 'dQw4w9WgXcQ'}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
                     </div>
@@ -1909,7 +1911,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     </div>
 
                                                     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Partenaires / Sponsor</label>
+                                                        <div className="flex items-center justify-between">
+                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Partenaires / Sponsor</label>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setEditShowSponsorBanner(!editShowSponsorBanner);
+                                                                    setSettings(prev => ({ ...prev, showSponsorBanner: !editShowSponsorBanner }));
+                                                                }}
+                                                                className={`px-3 py-1 rounded-full text-[8px] font-black uppercase transition-all ${editShowSponsorBanner ? 'bg-neon-purple text-white' : 'bg-gray-700 text-gray-400'}`}
+                                                            >
+                                                                {editShowSponsorBanner ? 'ACTIVÉ' : 'DÉSACTIVÉ'}
+                                                            </button>
+                                                        </div>
                                                         <div className="space-y-4">
                                                             <input type="text" value={editSponsorText || ''} onChange={e => {
                                                                 setEditSponsorText(e.target.value);
@@ -2460,13 +2473,24 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     )}
                                 </div></div></motion.div>)}</AnimatePresence>
 
-                {/* B. CHAT PANEL (60% Mobile / 40% Desktop) */}
-                <div className={`${isCinemaMode ? 'hidden' : 'w-full lg:w-[40%] h-[60%] lg:h-full'} bg-black/60 backdrop-blur-2xl flex flex-col relative border-l border-white/5 shadow-2xl z-10 min-h-0`}>
+                {/* B. CHAT PANEL (Full height fix for mobile/desktop) */}
+                <div className={`${isCinemaMode ? 'hidden' : 'w-full lg:w-[40%] flex-1 lg:h-full'} bg-black/60 backdrop-blur-2xl flex flex-col relative border-l border-white/5 shadow-2xl z-10 min-h-0 overflow-hidden`}>
                     {/* Chat Tabs */}
                     <div className="p-2 lg:p-4 border-b border-white/10 flex items-center justify-between bg-white/[0.02]">
-                        <div className="flex items-center gap-3">
-                            <MessageSquare className="w-4 h-4 text-neon-red" />
-                            <h3 className="text-[10px] font-black text-white tracking-[0.2em] uppercase italic">LIVE CHAT</h3>
+                        <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-1.5">
+                                <MessageSquare className="w-3 h-3 text-neon-red" />
+                                <h3 className="text-[10px] font-black text-white tracking-[0.1em] uppercase italic">LIVE CHAT</h3>
+                            </div>
+                            {settings.showSponsorBanner && settings.sponsorText && (
+                                <div className="hidden sm:flex items-center gap-2">
+                                    <div className="h-3 w-[1px] bg-white/10" />
+                                    <a href={settings.sponsorLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 group">
+                                        <div className="px-1.5 py-0.5 bg-neon-purple/20 border border-neon-purple/30 rounded text-[6px] font-black text-neon-purple uppercase tracking-widest italic group-hover:bg-neon-purple/30 transition-all">PARTENAIRE</div>
+                                        <span className="text-[8px] font-black text-white/40 group-hover:text-white transition-all uppercase italic truncate max-w-[100px]">{settings.sponsorText}</span>
+                                    </a>
+                                </div>
+                            )}
                         </div>
                         <div className="flex items-center gap-2">
                             {isMod && (
@@ -3327,24 +3351,26 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             ) : null}
                         </AnimatePresence >
 
-                        {/* 🏢 Sponsor Banner (New location) */}
-                        <div className="bg-black/40 border-t border-white/5 py-3 px-6 flex items-center justify-between backdrop-blur-md shadow-inner">
-                            <div className="flex items-center gap-3">
-                                <div className="px-2 py-0.5 bg-neon-purple/20 border border-neon-purple/40 rounded text-[7px] font-black text-neon-purple uppercase tracking-[0.2em] italic">PARTENAIRE</div>
-                                <a
-                                    href={settings.sponsorLink || 'https://dropsiders.fr'}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className="text-[10px] font-black text-white hover:text-neon-purple transition-all uppercase italic tracking-tighter"
-                                >
-                                    {settings.sponsorText || 'DROPSIDERS STUDIO V2'}
-                                </a>
+                        {/* 🏢 Bottom Sponsor Banner (Optional) */}
+                        {settings.showSponsorBanner && (
+                            <div className="bg-black/40 border-t border-white/5 py-3 px-6 flex items-center justify-between backdrop-blur-md shadow-inner">
+                                <div className="flex items-center gap-3">
+                                    <div className="px-2 py-0.5 bg-neon-purple/20 border border-neon-purple/40 rounded text-[7px] font-black text-neon-purple uppercase tracking-[0.2em] italic">PARTENAIRE</div>
+                                    <a
+                                        href={settings.sponsorLink || 'https://dropsiders.fr'}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="text-[10px] font-black text-white hover:text-neon-purple transition-all uppercase italic tracking-tighter"
+                                    >
+                                        {settings.sponsorText || 'DROPSIDERS STUDIO V2'}
+                                    </a>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <ShieldCheck className="w-3 h-3 text-gray-600" />
+                                    <span className="text-[8px] font-bold text-gray-600 uppercase tracking-widest opacity-50">LIVE SÉCURISÉ</span>
+                                </div>
                             </div>
-                            <div className="flex items-center gap-2">
-                                <ShieldCheck className="w-3 h-3 text-gray-600" />
-                                <span className="text-[8px] font-bold text-gray-600 uppercase tracking-widest opacity-50">LIVE SÉCURISÉ</span>
-                            </div>
-                        </div>
+                        )}
 
                         {
                             isConnected && (
