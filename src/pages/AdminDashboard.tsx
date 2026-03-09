@@ -238,12 +238,10 @@ export function AdminDashboard() {
     const handleCreateQuiz = () => {
         setQuizToEdit({
             type: 'QCM',
-            category: 'Festivals',
             question: '',
             options: ['', '', '', ''],
             correctAnswer: '',
             author: username,
-            imageType: 'FESTIVAL',
             revealEffect: 'BLUR'
         });
         setIsEditQuizModalOpen(true);
@@ -4160,7 +4158,7 @@ export function AdminDashboard() {
                                         <div className="relative">
                                             <input
                                                 type="text"
-                                                placeholder="FILTRER PAR THÀˆME / ARTISTE..."
+                                                placeholder="FILTRER PAR ARTISTE / QUESTION..."
                                                 value={quizSearch}
                                                 onChange={(e) => setQuizSearch(e.target.value)}
                                                 className="bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-[9px] font-black text-white w-48 outline-none focus:border-neon-cyan transition-all uppercase placeholder:text-gray-700"
@@ -4180,7 +4178,6 @@ export function AdminDashboard() {
                                                     .filter(q => {
                                                         const matchType = quizFilter === 'ALL' || q.type === quizFilter;
                                                         const matchSearch = !quizSearch ||
-                                                            q.category?.toUpperCase().includes(quizSearch.toUpperCase()) ||
                                                             q.question?.toUpperCase().includes(quizSearch.toUpperCase()) ||
                                                             q.author?.toUpperCase().includes(quizSearch.toUpperCase());
                                                         return matchType && matchSearch;
@@ -4194,7 +4191,6 @@ export function AdminDashboard() {
                                                         .filter(q => {
                                                             const matchType = quizFilter === 'ALL' || q.type === quizFilter;
                                                             const matchSearch = !quizSearch ||
-                                                                q.category?.toUpperCase().includes(quizSearch.toUpperCase()) ||
                                                                 q.question?.toUpperCase().includes(quizSearch.toUpperCase()) ||
                                                                 q.author?.toUpperCase().includes(quizSearch.toUpperCase());
                                                             return matchType && matchSearch;
@@ -4207,9 +4203,6 @@ export function AdminDashboard() {
                                                                 <div className="flex items-start justify-between gap-6">
                                                                     <div className="flex-1">
                                                                         <div className="flex items-center gap-3 mb-3">
-                                                                            <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[8px] font-black text-neon-red uppercase tracking-widest">
-                                                                                {quiz.category}
-                                                                            </span>
                                                                             <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[8px] font-black text-gray-400 uppercase tracking-widest">
                                                                                 {quiz.type}
                                                                             </span>
@@ -4321,42 +4314,7 @@ export function AdminDashboard() {
                                 </div>
 
                                 <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
-                                    {/* THEME SELECTION - AUTO FILLS QUESTION */}
-                                    <div>
-                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">Thème / Genre</label>
-                                        <div className="grid grid-cols-3 gap-2">
-                                            {['Festivals', 'DJs', 'Classics', 'Techno', 'Bass Music', 'Hardcore', 'Tech House', 'Big Room', 'Trance', 'Hardstyle', 'Afro House', 'Progressive', 'House', 'Production'].map(t => (
-                                                <button
-                                                    key={t}
-                                                    onClick={() => {
-                                                        const updates: any = { ...quizToEdit, category: t };
-                                                        if (quizToEdit.type === 'QCM') {
-                                                            const q: Record<string, string> = {
-                                                                'Techno': 'Quel est ce titre Techno ?', 'Bass Music': 'Quel est ce titre Bass ?',
-                                                                'Hardcore': 'Quel est ce titre Hardcore ?', 'Tech House': 'Quel est ce titre Tech House ?',
-                                                                'Big Room': 'Quel est ce titre Big Room ?', 'Trance': 'Quel est ce titre Trance ?',
-                                                                'Hardstyle': 'Quel est ce titre Hardstyle ?', 'Afro House': 'Quel est ce titre Afro House ?',
-                                                                'Progressive': 'Quel est ce titre Progressive ?', 'House': 'Quel est ce titre House ?',
-                                                                'Festivals': 'Quel est ce festival ?', 'DJs': 'Qui est cet artiste ?',
-                                                                'Classics': 'Quel est ce classique ?', 'Production': 'De quel outil s\'agit-il ?',
-                                                            };
-                                                            if (q[t]) updates.question = q[t];
-                                                        } else if (quizToEdit.type === 'IMAGE') {
-                                                            if (t === 'Festivals') { updates.question = 'Quel est ce festival ?'; updates.imageType = 'FESTIVAL'; }
-                                                            else if (t === 'DJs') { updates.question = 'Qui est cet artiste ?'; updates.imageType = 'ARTIST'; }
-                                                            else updates.question = `Quel est ce ${t} ?`;
-                                                        } else if (quizToEdit.type === 'BLIND_TEST') {
-                                                            updates.question = 'Quelle est ce titre ?';
-                                                        }
-                                                        setQuizToEdit(updates);
-                                                    }}
-                                                    className={`py-2 px-1 text-[8px] font-black uppercase tracking-tighter rounded-lg border transition-all ${quizToEdit.category === t ? 'bg-neon-red/20 border-neon-red text-white' : 'bg-black/40 border-white/5 text-gray-500 hover:text-white'}`}
-                                                >
-                                                    {t}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
+
 
                                     <div>
                                         <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">
