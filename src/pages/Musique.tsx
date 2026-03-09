@@ -89,8 +89,22 @@ export function Musique() {
     }, [isPlaying, selectedTrack]);
 
     const platforms = [
-        { id: 'beatport', name: 'Beatport Top 10', icon: Music, color: '#39ff14' },
-        { id: 'traxsource', name: 'Traxsource Top 10', icon: Disc, color: '#ffaa00' },
+        {
+            id: 'beatport',
+            name: 'Beatport Top 10',
+            icon: Music,
+            logo: '/images/logos/beatport.png',
+            url: 'https://www.beatport.com',
+            color: '#39ff14'
+        },
+        {
+            id: 'traxsource',
+            name: 'Traxsource Top 10',
+            icon: Disc,
+            logo: '/images/logos/traxsource.png',
+            url: 'https://www.traxsource.com',
+            color: '#ffaa00'
+        },
     ];
 
     const getMockData = (platform: string): Track[] => {
@@ -466,13 +480,19 @@ export function Musique() {
                 )}
 
                 {/* Tracking Footer */}
-                <div className="pt-12 border-t border-white/5 flex flex-col items-center gap-4">
-                    <div className="flex items-center gap-6">
+                <div className="pt-12 border-t border-white/5 flex flex-col items-center gap-6">
+                    <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
                         {platforms.map(p => (
-                            <div key={p.id} className="flex items-center gap-2 grayscale hover:grayscale-0 transition-all opacity-30 hover:opacity-100">
-                                <p.icon className="w-4 h-4" />
-                                <span className="text-[8px] font-black uppercase tracking-widest">{p.id}</span>
-                            </div>
+                            <a
+                                key={p.id}
+                                href={p.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="group flex flex-col items-center gap-3 grayscale hover:grayscale-0 transition-all duration-500 opacity-20 hover:opacity-100"
+                            >
+                                <img src={p.logo} alt={p.name} className="h-6 md:h-10 w-auto object-contain transition-transform group-hover:scale-110" />
+                                <span className="text-[7px] md:text-[9px] font-black uppercase tracking-[0.4em] text-white/40 group-hover:text-white transition-colors">{p.id} Official</span>
+                            </a>
                         ))}
                     </div>
                     <p className="text-gray-700 text-[10px] font-black uppercase tracking-[0.3em]">
