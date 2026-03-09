@@ -6,7 +6,7 @@ import {
     Save, AlertCircle, Music, Trash2, Plus,
     Pin, Star, ShieldCheck, Ban, Megaphone, User,
     BarChart3, Bell, Clock, Sword, Crown, Maximize2, Minimize2,
-    Trophy, Stars, Heart, Volume2, Timer, ShieldAlert
+    Trophy, Stars, Heart, Volume2, Timer, ShieldAlert, Calendar
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
@@ -2869,9 +2869,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 <span className="text-[9px] font-black text-neon-cyan/60 shrink-0 uppercase tracking-tighter mr-1 text-xs">[Lvl {Math.floor(Math.sqrt((msg.xp || 0) / 100)) + 1}]</span>
                                                                 <span className={`text-[11px] font-black uppercase italic tracking-tight ${msg.xp > 5000 ? 'bg-gradient-to-r from-red-500 via-purple-500 to-cyan-500 bg-clip-text text-transparent animate-gradient' : msg.color || 'text-white'}`}>{msg.pseudo || msg.user}</span>
                                                                 {isFirstConnection && msg.pseudo === localStorage.getItem('chat_pseudo') && <span className="bg-neon-cyan text-black text-[7px] font-black px-1 rounded">PREMS</span>}
-                                                                {topTalkers[0]?.pseudo === msg.pseudo && <Crown className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500 animate-bounce" title="TOP 1" />}
-                                                                {topTalkers[1]?.pseudo === msg.pseudo && <Trophy className="w-2.5 h-2.5 text-gray-300 fill-gray-300" title="TOP 2" />}
-                                                                {topTalkers[2]?.pseudo === msg.pseudo && <Trophy className="w-2.5 h-2.5 text-amber-600 fill-amber-600" title="TOP 3" />}
+                                                                {topTalkers[0]?.pseudo === msg.pseudo && <Crown className="w-2.5 h-2.5 text-yellow-500 fill-yellow-500 animate-bounce" />}
+                                                                {topTalkers[1]?.pseudo === msg.pseudo && <Trophy className="w-2.5 h-2.5 text-gray-300 fill-gray-300" />}
+                                                                {topTalkers[2]?.pseudo === msg.pseudo && <Trophy className="w-2.5 h-2.5 text-amber-600 fill-amber-600" />}
 
 
                                                                 {/* Mod/VIP Badges */}
