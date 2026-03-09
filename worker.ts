@@ -574,16 +574,18 @@ export default {
         if (isAuthRoute) {
             const requestSessionId = request.headers.get('X-Session-ID');
 
+            // MASTER AUTH BYPASS for Invoice & Critical Routes if password matches
             if (requestPassword === adminPassword) {
-                // If password matches the master admin password, we consider them authenticated as 'alex'
-                // even if they send a different username (or no username)
-                const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
-                const serverSessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
-
-                // Check session ID or allow if it's a critical route and password matches
-                if (requestSessionId === serverSessionId || path === '/api/facture/send') {
+                if (path === '/api/facture/send') {
                     authenticated = true;
                     userPermissions = ['all'];
+                } else {
+                    const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
+                    const serverSessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
+                    if (requestSessionId === serverSessionId) {
+                        authenticated = true;
+                        userPermissions = ['all'];
+                    }
                 }
             }
             else if (requestUsername) {

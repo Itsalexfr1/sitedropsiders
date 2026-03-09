@@ -157,28 +157,36 @@ export function InvoiceGenerator() {
             const invoiceEl = invoiceRef.current;
             if (!invoiceEl) throw new Error('Calculateur introuvable');
 
-            // Force visibility using absolute positioning off-screen
-            // This is more reliable for html2canvas than 'fixed' 
+            // Force visibility and fix positioning
+            const originalParent = invoiceEl.parentElement;
             const originalStyle = invoiceEl.getAttribute('style') || '';
             const originalClass = invoiceEl.className;
 
-            invoiceEl.style.display = 'block';
-            invoiceEl.style.visibility = 'visible';
-            invoiceEl.style.position = 'absolute';
-            invoiceEl.style.left = '-9999px';
-            invoiceEl.style.top = '0';
-            invoiceEl.style.width = '794px'; // Fixed A4 width
+            // Positioning for capture
+            Object.assign(invoiceEl.style, {
+                display: 'block',
+                visibility: 'visible',
+                position: 'fixed',
+                left: '0',
+                top: '0',
+                zIndex: '9999',
+                opacity: '1',
+                width: '794px'
+            });
             invoiceEl.classList.remove('hidden');
 
-            // Give extra time for font rendering and styles
-            await new Promise(r => setTimeout(r, 1200));
+            // Temporary attachment to body often solves html2canvas issues
+            document.body.appendChild(invoiceEl);
+            window.scrollTo(0, 0);
+
+            await new Promise(r => setTimeout(r, 1500));
 
             const canvas = await html2canvas(invoiceEl, {
-                scale: 1.5, // Lowered scale for better stability and speed
+                scale: 1.5,
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#ffffff',
-                logging: true, // Internal logging to help debug if needed
+                logging: true,
                 width: 794,
                 onclone: (clonedDoc) => {
                     const el = clonedDoc.getElementById('printable-invoice');
@@ -187,7 +195,8 @@ export function InvoiceGenerator() {
                         el.style.visibility = 'visible';
                         el.style.position = 'relative';
                         el.style.left = '0';
-                        // Sanitize in-place
+                        el.style.opacity = '1';
+                        // Sanitize colors for html2canvas
                         const styles = clonedDoc.querySelectorAll('style');
                         styles.forEach(s => {
                             if (s.textContent) {
@@ -198,9 +207,10 @@ export function InvoiceGenerator() {
                 }
             });
 
-            // Restore original state
+            // Cleanup: Restore original state and location
             invoiceEl.setAttribute('style', originalStyle);
             invoiceEl.className = originalClass;
+            if (originalParent) originalParent.appendChild(invoiceEl);
 
             const dataUrl = canvas.toDataURL('image/png');
             if (dataUrl === 'data:,') throw new Error('Canevas vide généré');
@@ -227,19 +237,29 @@ export function InvoiceGenerator() {
             const invoiceEl = invoiceRef.current;
             if (!invoiceEl) throw new Error('Introuvable');
 
-            // Force visibility using absolute positioning off-screen
+            // Force visibility and fix positioning
+            const originalParent = invoiceEl.parentElement;
             const originalStyle = invoiceEl.getAttribute('style') || '';
             const originalClass = invoiceEl.className;
 
-            invoiceEl.style.display = 'block';
-            invoiceEl.style.visibility = 'visible';
-            invoiceEl.style.position = 'absolute';
-            invoiceEl.style.left = '-9999px';
-            invoiceEl.style.top = '0';
-            invoiceEl.style.width = '794px';
+            // Positioning for capture
+            Object.assign(invoiceEl.style, {
+                display: 'block',
+                visibility: 'visible',
+                position: 'fixed',
+                left: '0',
+                top: '0',
+                zIndex: '9999',
+                opacity: '1',
+                width: '794px'
+            });
             invoiceEl.classList.remove('hidden');
 
-            await new Promise(r => setTimeout(r, 1200));
+            // Temporary attachment to body
+            document.body.appendChild(invoiceEl);
+            window.scrollTo(0, 0);
+
+            await new Promise(r => setTimeout(r, 1500));
 
             const canvas = await html2canvas(invoiceEl, {
                 scale: 1.5,
@@ -254,14 +274,16 @@ export function InvoiceGenerator() {
                         el.style.visibility = 'visible';
                         el.style.position = 'relative';
                         el.style.left = '0';
+                        el.style.opacity = '1';
                         sanitizeColors(clonedDoc);
                     }
                 }
             });
 
-            // Restore original state
+            // Cleanup: Restore original state and location
             invoiceEl.setAttribute('style', originalStyle);
             invoiceEl.className = originalClass;
+            if (originalParent) originalParent.appendChild(invoiceEl);
 
             const imgData = canvas.toDataURL('image/jpeg', 0.95);
             if (imgData === 'data:,') throw new Error('Canevas vide généré');
