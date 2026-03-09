@@ -775,16 +775,27 @@ export function InvoiceGenerator() {
 
                             <AnimatePresence>
                                 {sendStatus === 'error' && (
-                                    <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="p-8 bg-red-500/10 border border-red-500/20 rounded-[32px] text-red-400 text-xs font-black text-center italic uppercase leading-relaxed relative z-10 flex flex-col items-center gap-4">
-                                        <div className="flex items-center gap-2">
-                                            <X className="w-4 h-4" /> <span>Erreur de sécurité serveur</span>
+                                    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="p-8 bg-black/40 backdrop-blur-3xl border border-red-500/20 rounded-[48px] text-center relative z-10">
+                                        <div className="flex items-center justify-center gap-3 mb-4">
+                                            <div className="w-12 h-12 rounded-full bg-red-500/10 flex items-center justify-center border border-red-500/20">
+                                                <X className="w-6 h-6 text-red-500" />
+                                            </div>
+                                            <h3 className="text-red-500 font-black uppercase text-base tracking-widest">Alerte Sécurité</h3>
                                         </div>
-                                        <p className="text-red-500/60 font-medium normal-case italic">{sendError}</p>
-                                        <div className="mt-4 p-4 bg-white/5 rounded-2xl text-[10px] text-white/40 normal-case space-y-2 border border-white/5">
-                                            <p className="font-black text-white/60">CONSEIL DE RÉSOLUTION :</p>
-                                            <p>1. Vérifiez que votre nom d'utilisateur est <span className="text-white font-bold">alex</span> ou <span className="text-white font-bold">contact@dropsiders.fr</span> dans vos réglages.</p>
-                                            <p>2. Assurez-vous que votre mot de passe administrateur est correct.</p>
-                                            <p>3. Rafraîchissez la page si vous venez de vous connecter.</p>
+
+                                        <div className="space-y-6">
+                                            <p className="text-red-300/80 text-xs italic font-medium max-w-md mx-auto leading-relaxed border-b border-white/5 pb-4">
+                                                {sendError}
+                                            </p>
+
+                                            <div className="text-left space-y-3 px-2">
+                                                <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-4 text-center">Diagnostic de Transmission</p>
+                                                <div className="space-y-3 text-[11px] text-white/50 leading-relaxed bg-white/[0.02] p-6 rounded-3xl border border-white/5">
+                                                    <p className="flex gap-3"><span className="text-red-500 font-bold">•</span> Vérifie que ton mot de passe administrateur est <span className="text-white font-bold">01061988</span>.</p>
+                                                    <p className="flex gap-3"><span className="text-red-500 font-bold">•</span> Assure-toi que ton utilisateur est <span className="text-white font-bold">alex</span>.</p>
+                                                    <p className="flex gap-3"><span className="text-red-500 font-bold">•</span> Si tu viens de le changer, rafraîchis la page (F5).</p>
+                                                </div>
+                                            </div>
                                         </div>
                                     </motion.div>
                                 )}
@@ -905,23 +916,21 @@ export function InvoiceGenerator() {
 
                 {/* Optimized Amount Footer to avoid overlaps */}
                 <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', marginBottom: '80px' }}>
-                    <div style={{ minWidth: '550px', borderTop: '2px solid #333', paddingTop: '15px' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', paddingRight: '5px' }}>
-                            <span style={{ fontSize: '11px', fontWeight: '800', color: '#666' }}>MONTANT TOTAL (EUR) :</span>
-                            <span style={{ fontSize: '11px', fontWeight: '500' }}>{total.toFixed(2).replace('.', ',')} €</span>
+                    <div style={{ minWidth: '580px', borderTop: '2px solid #333', paddingTop: '15px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '12px', paddingRight: '10px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: '800', color: '#666', letterSpacing: '1px' }}>MONTANT TOTAL (EUR) :</span>
+                            <span style={{ fontSize: '12px', fontWeight: '600', color: '#000' }}>{total.toFixed(2).replace('.', ',')} €</span>
                         </div>
                         <div style={{
                             display: 'flex',
                             justifyContent: 'space-between',
                             alignItems: 'center',
-                            marginTop: '10px',
-                            borderTop: '1px solid #eee',
-                            paddingTop: '15px',
-                            background: '#f9f9f9',
-                            padding: '15px'
+                            background: '#F4F7F9',
+                            padding: '24px 30px',
+                            borderRadius: '4px'
                         }}>
-                            <span style={{ fontSize: '16px', fontWeight: '800', color: '#000', textTransform: 'uppercase' }}>MONTANT À PAYER (EUR)</span>
-                            <span style={{ fontSize: '38px', fontWeight: '900', color: '#000', letterSpacing: '-1.5px', marginLeft: '30px' }}>
+                            <span style={{ fontSize: '16px', fontWeight: '800', color: '#000', textTransform: 'uppercase', letterSpacing: '0.5px' }}>MONTANT À PAYER (EUR)</span>
+                            <span style={{ fontSize: '46px', fontWeight: '900', color: '#000', letterSpacing: '-2px', marginLeft: '40px' }}>
                                 {total.toFixed(2).replace('.', ',')} €
                             </span>
                         </div>
