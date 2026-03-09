@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { FileText, Plus, Printer, Trash2, Send, Loader, CheckCircle, AlertCircle, X, Mail, BookUser, ChevronDown, Save, Eye, Phone, User, MapPin, Hash, Building2 } from 'lucide-react';
+import { Plus, Printer, Trash2, Send, Loader, CheckCircle, AlertCircle, X, Mail, BookUser, ChevronDown, Save, Eye, Phone, User, MapPin, Hash, Building2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import html2canvas from 'html2canvas';
 import { jsPDF } from 'jspdf';
