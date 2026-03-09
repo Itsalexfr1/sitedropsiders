@@ -6209,21 +6209,52 @@ export default {
         }
 
         if (path === '/api/musique/charts' && request.method === 'GET') {
-            const charts = await env.CHAT_KV.get('musique_charts');
-            if (charts) return new Response(charts, { status: 200, headers });
+            const chartsRaw = await env.CHAT_KV.get('musique_charts');
+            let charts = null;
+            try { charts = chartsRaw ? JSON.parse(chartsRaw) : null; } catch (e) { }
+
+            // Force update if incomplete (we want top 10)
+            if (charts && charts.beatport && charts.beatport.length >= 10) {
+                return new Response(JSON.stringify(charts), { status: 200, headers });
+            }
 
             // Initial default if KV is empty
             const defaultCharts = {
                 beatport: [
                     { id: '23308330', rank: 1, title: 'neck (Extended Mix)', artist: 'Mau P', label: 'Black Book Records', url: 'https://www.beatport.com/fr/track/neck/23308330', embedUrl: 'https://embed.beatport.com/?id=23308330&type=track' },
                     { id: '23451068', rank: 2, title: 'Make My Day (Original Mix)', artist: 'ESSE (US)', label: 'ESSEntial.', url: 'https://www.beatport.com/fr/track/make-my-day/23451068', embedUrl: 'https://embed.beatport.com/?id=23451068&type=track' },
-                    { id: '23904036', rank: 3, title: 'Loco Loco (Extended Mix)', artist: 'Reinier Zonneveld, GORDO (US)', label: "SPINNIN' RECORDS", url: 'https://www.beatport.com/fr/track/loco-loco/23904036', embedUrl: 'https://embed.beatport.com/?id=23904036&type=track' }
+                    { id: '23904036', rank: 3, title: 'Loco Loco (Extended Mix)', artist: 'Reinier Zonneveld, GORDO (US)', label: "SPINNIN' RECORDS", url: 'https://www.beatport.com/fr/track/loco-loco/23904036', embedUrl: 'https://embed.beatport.com/?id=23904036&type=track' },
+                    { id: '23567812', rank: 4, title: 'Eats Everything (TMB Remix)', artist: 'TMB', label: 'Trick', url: '#', embedUrl: 'https://embed.beatport.com/?id=23567812&type=track' },
+                    { id: '23412345', rank: 5, title: 'Saving Up (Extended)', artist: 'Dom Dolla', label: 'Three Six Zero', url: '#', embedUrl: 'https://embed.beatport.com/?id=23412345&type=track' },
+                    { id: '23112233', rank: 6, title: 'Where You Are', artist: 'John Summit, Hayla', label: 'Off The Grid', url: '#', embedUrl: 'https://embed.beatport.com/?id=23112233&type=track' },
+                    { id: '23998877', rank: 7, title: 'Be The One', artist: 'Eli Brown', label: 'Polydor', url: '#', embedUrl: 'https://embed.beatport.com/?id=23998877&type=track' },
+                    { id: '23887766', rank: 8, title: 'Drugs From Amsterdam', artist: 'Mau P', label: 'Repopulate Mars', url: '#', embedUrl: 'https://embed.beatport.com/?id=23887766&type=track' },
+                    { id: '23776655', rank: 9, title: 'Rhyme Dust', artist: 'MK, Dom Dolla', label: 'Area 10', url: '#', embedUrl: 'https://embed.beatport.com/?id=23776655&type=track' },
+                    { id: '23665544', rank: 10, title: 'Atmosphere', artist: 'Fisher, Kita Alexander', label: 'Catch & Release', url: '#', embedUrl: 'https://embed.beatport.com/?id=23665544&type=track' }
                 ],
                 traxsource: [
-                    { id: 'ts-14359025', rank: 1, title: 'Take Me Up (ft. Donna Blakely)', artist: 'Ralphi Rosario, Bob Sinclar', label: 'Altra Moda Music', url: 'https://traxsource.com/track/14359025/take-me-up-ft-donna-blakely', embedUrl: 'https://embed.traxsource.com/player/track/14359025?autoplay=1&play=1' }
+                    { id: 'ts-14359025', rank: 1, title: 'Take Me Up (ft. Donna Blakely)', artist: 'Ralphi Rosario, Bob Sinclar', label: 'Altra Moda Music', url: 'https://traxsource.com/track/14359025/take-me-up-ft-donna-blakely', embedUrl: 'https://embed.traxsource.com/player/track/14359025?autoplay=1&play=1' },
+                    { id: 'ts-14359001', rank: 2, title: 'Need You Tonight', artist: 'David Penn', label: 'Defected', url: '#', embedUrl: 'https://embed.traxsource.com/player/track/14359001' },
+                    { id: 'ts-14359002', rank: 3, title: 'Afraid To Feel', artist: 'LF SYSTEM', label: 'Warner', url: '#', embedUrl: 'https://embed.traxsource.com/player/track/14359002' },
+                    { id: 'ts-14359003', rank: 4, title: 'Keep Pushing', artist: 'Boris Dlugosch', label: 'Peppermint', url: '#', embedUrl: 'https://embed.traxsource.com/player/track/14359003' },
+                    { id: 'ts-14359004', rank: 5, title: 'Finally', artist: 'Kings of Tomorrow', label: 'Defected', url: '#', embedUrl: 'https://embed.traxsource.com/player/track/14359004' },
+                    { id: 'ts-14359005', rank: 6, title: 'The Cure & The Cause', artist: 'Fish Go Deep', label: 'Defected', url: '#', embedUrl: 'https://embed.traxsource.com/player/track/14359005' },
+                    { id: 'ts-14359006', rank: 7, title: 'Strings of Life', artist: 'Soul Central', label: 'Defected', url: '#', embedUrl: 'https://embed.traxsource.com/player/track/14359006' },
+                    { id: 'ts-14359007', rank: 8, title: 'Love Sensation', artist: 'Loleatta Holloway', label: 'Salsoul', url: '#', embedUrl: 'https://embed.traxsource.com/player/track/14359007' },
+                    { id: 'ts-14359008', rank: 9, title: 'Big Love', artist: 'Pete Heller', label: 'Defected', url: '#', embedUrl: 'https://embed.traxsource.com/player/track/14359008' },
+                    { id: 'ts-14359009', rank: 10, title: 'Your Love', artist: 'Frankie Knuckles', label: 'Trax', url: '#', embedUrl: 'https://embed.traxsource.com/player/track/14359009' }
                 ],
                 juno: [
-                    { id: 'jn-7425809-02', rank: 1, title: 'Bombaclart (Furniss remix)', artist: 'Furniss / Majistrate', label: 'Low Down Deep Recordings', url: 'https://www.junodownload.com/products/bombaclart-furniss-remix/7425809-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7425809-02.m3u/?autoplay=1' }
+                    { id: 'jn-7425809-02', rank: 1, title: 'Bombaclart (Furniss remix)', artist: 'Furniss / Majistrate', label: 'Low Down Deep Recordings', url: 'https://www.junodownload.com/products/bombaclart-furniss-remix/7425809-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7425809-02.m3u/?autoplay=1' },
+                    { id: 'jn-7425801', rank: 2, title: 'Original Nuttah', artist: 'UK Apache & Shy FX', label: 'SOUR', url: '#', embedUrl: 'https://www.junodownload.com/player-embed/7425801' },
+                    { id: 'jn-7425802', rank: 3, title: 'Tour', artist: 'Macky Gee', label: 'Elevate', url: '#', embedUrl: 'https://www.junodownload.com/player-embed/7425802' },
+                    { id: 'jn-7425803', rank: 4, title: 'Afterglow', artist: 'Wilkinson', label: 'RAM', url: '#', embedUrl: 'https://www.junodownload.com/player-embed/7425803' },
+                    { id: 'jn-7425804', rank: 5, title: 'Mr Happy', artist: 'DJ Hazard & Distorted Minds', label: 'Playaz', url: '#', embedUrl: 'https://www.junodownload.com/player-embed/7425804' },
+                    { id: 'jn-7425805', rank: 6, title: 'Desire', artist: 'Sub Focus & Dimension', label: 'Virgin', url: '#', embedUrl: 'https://www.junodownload.com/player-embed/7425805' },
+                    { id: 'jn-7425806', rank: 7, title: 'Solar System', artist: 'Sub Focus', label: 'RAM', url: '#', embedUrl: 'https://www.junodownload.com/player-embed/7425806' },
+                    { id: 'jn-7425807', rank: 8, title: 'Dead Limit', artist: 'Noisia & The Upbeats', label: 'Vision', url: '#', embedUrl: 'https://www.junodownload.com/player-embed/7425807' },
+                    { id: 'jn-7425808', rank: 9, title: 'Hackers', artist: 'Metrik', label: 'Hospital', url: '#', embedUrl: 'https://www.junodownload.com/player-embed/7425808' },
+                    { id: 'jn-7425810', rank: 10, title: 'Circles', artist: 'Adam F', label: 'Section 5', url: '#', embedUrl: 'https://www.junodownload.com/player-embed/7425810' }
                 ]
             };
             await env.CHAT_KV.put('musique_charts', JSON.stringify(defaultCharts));
