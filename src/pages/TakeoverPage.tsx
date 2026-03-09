@@ -2992,7 +2992,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         <Trophy className="w-3 h-3 text-amber-500" />
                                         <span className="text-[10px] font-black text-white">{userDrops} <span className="text-gray-600 ml-0.5 uppercase tracking-tighter">DROPS</span></span>
                                     </div>
-                                    <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">🚀 Propulsé par Dropsiders</span>
+                                    <span className="text-[8px] text-gray-700 font-bold uppercase tracking-widest">Powered by Dropsiders</span>
                                 </div>
                             </div>
                         )
