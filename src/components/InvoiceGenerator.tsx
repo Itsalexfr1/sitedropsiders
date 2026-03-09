@@ -631,8 +631,8 @@ export function InvoiceGenerator() {
                                                         />
                                                         <div className="flex flex-wrap gap-2 mt-2 opacity-0 group-hover/preset:opacity-100 transition-opacity">
                                                             {[
-                                                                { label: 'Bokaos', text: 'Prestation Light - Bokaos 200e par jour', price: 200 },
-                                                                { label: 'Flash Cannes', text: 'Prestation Light - Flash Cannes', price: 0 },
+                                                                { label: 'Bokaos', text: 'Prestation Light - Bokaos', price: 200 },
+                                                                { label: 'Flash Cannes', text: 'Prestation Light - Flash Cannes', price: 25 },
                                                                 { label: 'Light', text: 'Prestation Light', price: 0 }
                                                             ].map((preset) => (
                                                                 <button
