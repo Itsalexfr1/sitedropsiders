@@ -3971,5 +3971,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 302,
+    "title": "Jean Michel Jarre",
+    "date": "2026-10-21",
+    "startDate": "2026-10-21",
+    "endDate": "2026-10-21",
+    "venue": "AFAS Live",
+    "location": "AMSTERDAM",
+    "country": "Pays-Bas",
+    "type": "Concert",
+    "image": "https://dropsiders.fr/uploads/b74a43e05efd53f8c5db004c4c6998221b257277f273ccfa27f4cba205a9a5c8.jpg",
+    "url": "https://www.amsterdam-dance-event.nl/en/news/electronic-music-legend-jean-michel-jarre-guest-of-honour-for-30-years-ade-with-keynote-opening-concert-and-more/2797564/?email_hash=f1e02ec9ebcb0d3bf455c2ed08ce201390b53528e4f78db563f6fb95f8f58209&utm_campaign=ADE24+Lab%3A&utm_source=Nieuwsbrief&utm_medium=email",
+    "genre": "Multi Styles",
+    "month": "OCTOBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
