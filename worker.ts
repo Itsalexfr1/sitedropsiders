@@ -542,7 +542,8 @@ export default {
             path === '/api/quiz/pending' ||
             path === '/api/quiz/moderate' ||
             path === '/api/covoit/delete' ||
-            path === '/api/avis/moderate'
+            path === '/api/avis/moderate' ||
+            path === '/api/facture/send'
         );
 
         // --- API: PUSH NOTIFICATIONS ---
@@ -636,6 +637,11 @@ export default {
                 if (path === '/api/contacts/reply' && !hasAll && !userPermissions.includes('send_messages')) {
                     return new Response(JSON.stringify({ error: 'Permission refusée : envoi de messages' }), { status: 403, headers });
                 }
+            }
+
+            // Factures
+            if (path === '/api/facture/send' && requestUsername !== 'alex' && requestUsername !== 'contact@dropsiders.fr') {
+                return new Response(JSON.stringify({ error: "Accès réservé à l'administrateur principal" }), { status: 403, headers });
             }
 
             // Dashboard Actions
@@ -2473,6 +2479,53 @@ export default {
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e: any) {
                 console.error('Reply API Global Error:', e);
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/facture/send' && request.method === 'POST') {
+            const BREVO_KEY = env.BREVO_API_KEY;
+            if (!BREVO_KEY) return new Response(JSON.stringify({ error: 'Brevo API Key missing' }), { status: 500, headers });
+            try {
+                const body = await request.json().catch(() => ({}));
+                const { to, subject, message, pdfBase64, filename } = body;
+
+                if (!to || !pdfBase64) {
+                    return new Response(JSON.stringify({ error: 'Destinataire ou PDF manquant' }), { status: 400, headers });
+                }
+
+                // Strip data URI part if present
+                const base64Content = pdfBase64.includes('base64,') ? pdfBase64.split('base64,')[1] : pdfBase64;
+
+                const payload = {
+                    sender: { name: 'CUENCA ALEXANDRE', email: 'contact@dropsiders.fr' },
+                    to: [{ email: to }],
+                    bcc: [{ email: 'alexflex30@gmail.com' }],
+                    replyTo: { email: 'alexflex30@gmail.com', name: 'CUENCA ALEXANDRE' },
+                    subject: subject || 'Votre Facture',
+                    htmlContent: message || "<p>Bonjour,</p><p>Veuillez trouver ci-joint votre facture.</p><p>Cordialement,<br>CUENCA ALEXANDRE</p>",
+                    attachment: [
+                        {
+                            content: base64Content,
+                            name: filename || 'facture.pdf'
+                        }
+                    ]
+                };
+
+                const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
+                    method: 'POST',
+                    headers: { 'accept': 'application/json', 'api-key': BREVO_KEY, 'content-type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!brevoRes.ok) {
+                    const errText = await brevoRes.text();
+                    console.error('Brevo API Error (Facture):', errText);
+                    return new Response(JSON.stringify({ error: "Erreur lors de l'envoi: " + errText }), { status: 500, headers });
+                }
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
         }

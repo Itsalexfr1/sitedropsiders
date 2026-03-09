@@ -695,7 +695,7 @@ export function AdminDashboard() {
         // SHOP & CONTACT
         { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP & CONTACT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
         { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "messages", baseColor: "green", columns: 1 },
-        { title: "MESSAGERIE & CONTACT", description: "Emails Reçus", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
+        { title: "MESSAGERIE & CONTACT", description: "Emails Reçus & Factures", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
 
         // SYSTÀˆME & TEAM
         { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
@@ -2571,6 +2571,74 @@ export function AdminDashboard() {
                                         <h3 className="text-xl font-bold text-white uppercase italic mb-1">Abonnés</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer la liste mail</p>
                                     </Link>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                {/* Modal Messages & Factures */}
+                <AnimatePresence>
+                    {isMessagesModalOpen && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-4xl w-full shadow-2xl relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-orange via-white to-neon-orange" />
+
+                                <div className="flex justify-between items-start mb-12">
+                                    <div>
+                                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                            Gestion <span className="text-neon-orange">Messages</span>
+                                        </h2>
+                                        <p className="text-gray-400 font-medium tracking-widest uppercase text-[10px]">Messagerie, contact et facturation</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsMessagesModalOpen(false)}
+                                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                    >
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <Link
+                                        to="/admin/messages"
+                                        onClick={() => setIsMessagesModalOpen(false)}
+                                        className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-orange/10 hover:border-neon-orange/50 transition-all group relative"
+                                    >
+                                        <div className="w-16 h-16 bg-neon-orange/20 rounded-2xl flex items-center justify-center border border-neon-orange/30 group-hover:scale-110 transition-transform">
+                                            <Mail className="w-8 h-8 text-neon-orange" />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-xl font-bold text-white uppercase italic">Boîte de réception</h3>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">Gérer les contacts</p>
+                                        </div>
+                                        {pendingMessagesCount > 0 && (
+                                            <div className="absolute top-4 right-4 w-6 h-6 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
+                                                <span className="text-[10px] font-black text-white">{pendingMessagesCount}</span>
+                                            </div>
+                                        )}
+                                    </Link>
+
+                                    {(username.toLowerCase() === 'alex' || username.toLowerCase() === 'contact@dropsiders.fr') && (
+                                        <Link
+                                            to="/admin/factures"
+                                            onClick={() => setIsMessagesModalOpen(false)}
+                                            className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                                        >
+                                            <div className="w-16 h-16 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                                                <FileText className="w-8 h-8 text-neon-purple" />
+                                            </div>
+                                            <div className="text-center">
+                                                <h3 className="text-xl font-bold text-white uppercase italic">Facturation</h3>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">Générer vos facures</p>
+                                            </div>
+                                        </Link>
+                                    )}
                                 </div>
                             </motion.div>
                         </div>

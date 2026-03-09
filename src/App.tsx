@@ -45,6 +45,7 @@ const AdminShop = lazy(() => import('./pages/AdminShop').then(m => ({ default: m
 const KitMedia = lazy(() => import('./pages/KitMedia'));
 const AdminHome = lazy(() => import('./pages/AdminHome').then(m => ({ default: m.AdminHome })));
 const AdminSettings = lazy(() => import('./pages/AdminSettings').then(m => ({ default: m.AdminSettings })));
+const AdminFactures = lazy(() => import('./pages/AdminFactures').then(m => ({ default: m.AdminFactures })));
 const AdminMessages = lazy(() => import('./pages/AdminMessages').then(m => ({ default: m.AdminMessages })));
 const AdminBanner = lazy(() => import('./pages/AdminBanner').then(m => ({ default: m.AdminBanner })));
 const Contact = lazy(() => import('./pages/Contact').then(m => ({ default: m.Contact })));
@@ -132,6 +133,7 @@ const router = createBrowserRouter([
       { path: "admin/shop", element: <ProtectedRoute><AdminShop /></ProtectedRoute> },
       { path: "admin/settings", element: <ProtectedRoute><AdminSettings /></ProtectedRoute> },
       { path: "admin/messages", element: <ProtectedRoute><AdminMessages /></ProtectedRoute> },
+      { path: "admin/factures", element: <ProtectedRoute><AdminFactures /></ProtectedRoute> },
       { path: "admin/banner", element: <ProtectedRoute><AdminBanner /></ProtectedRoute> },
       { path: "social-studio", element: <ProtectedRoute><SocialStudioPage /></ProtectedRoute> },
 
