@@ -17,6 +17,16 @@ interface Track {
     tracks?: { title: string; artist: string; time?: string }[];
 }
 
+interface UpcomingTrack {
+    id: string;
+    title: string;
+    artist: string;
+    label: string;
+    image: string;
+    releaseDate: string;
+    url: string;
+}
+
 interface TracklistContent {
     id: string;
     title: string;
@@ -30,6 +40,7 @@ interface TracklistContent {
 export function Musique() {
     const [activeTab, setActiveTab] = useState('beatport');
     const [chartsData, setChartsData] = useState<Record<string, Track[]>>({});
+    const [upcomingData, setUpcomingData] = useState<UpcomingTrack[]>([]);
     const [lastUpdate, setLastUpdate] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
@@ -42,8 +53,9 @@ export function Musique() {
         fetch('/api/musique/charts')
             .then(res => res.json())
             .then(data => {
-                const { lastUpdate, ...charts } = data;
+                const { lastUpdate, upcoming, ...charts } = data;
                 setChartsData(charts);
+                setUpcomingData(upcoming || []);
                 setLastUpdate(lastUpdate);
                 setIsLoading(false);
             })
@@ -371,6 +383,87 @@ export function Musique() {
                         )}
                     </AnimatePresence>
                 </div>
+
+                {/* PROCHAINES RELEASES SECTION */}
+                {upcomingData.length > 0 && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="space-y-12 pt-24"
+                    >
+                        <div className="text-center space-y-4">
+                            <h2 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase leading-none text-neon-cyan">
+                                LES PROCHAINES RELEASES
+                            </h2>
+                            <p className="text-gray-500 max-w-2xl mx-auto text-[10px] md:text-xs font-black uppercase tracking-[0.4em]">
+                                LE FUTUR DE LA PLANÈTE ELECTRO EN AVANT-PREMIÈRE
+                            </p>
+                        </div>
+
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
+                            {upcomingData.map((release, i) => {
+                                const relDate = new Date(release.releaseDate);
+                                const diffTime = relDate.getTime() - new Date().getTime();
+                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+                                return (
+                                    <motion.a
+                                        key={release.id}
+                                        href={release.url}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        initial={{ opacity: 0, scale: 0.95 }}
+                                        whileInView={{ opacity: 1, scale: 1 }}
+                                        viewport={{ once: true }}
+                                        transition={{ delay: i * 0.05 }}
+                                        whileHover={{ y: -10 }}
+                                        className="group relative"
+                                    >
+                                        <div className="aspect-square rounded-2xl md:rounded-[40px] overflow-hidden bg-white/5 border border-white/10 relative shadow-2xl transition-all duration-500 group-hover:shadow-neon-cyan/20 group-hover:border-neon-cyan/50">
+                                            <img
+                                                src={release.image}
+                                                alt={release.title}
+                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                            />
+                                            {/* Overlays */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
+
+                                            {/* Date Badge */}
+                                            <div className="absolute top-4 md:top-8 left-4 md:left-8 flex flex-col items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-md border border-white/20 rounded-2xl md:rounded-3xl shadow-xl min-w-[50px] md:min-w-[70px]">
+                                                <span className="text-[10px] md:text-sm font-black text-neon-cyan leading-none uppercase">
+                                                    {relDate.toLocaleDateString('fr-FR', { day: '2-digit' })}
+                                                </span>
+                                                <span className="text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest mt-0.5 md:mt-1">
+                                                    {relDate.toLocaleDateString('fr-FR', { month: 'short' }).replace('.', '')}
+                                                </span>
+                                            </div>
+
+                                            {/* Time Reminder */}
+                                            <div className="absolute bottom-4 md:bottom-8 right-4 md:right-8 bg-white text-black px-2 md:px-4 py-1.5 md:py-2 rounded-full text-[6px] md:text-[9px] font-black uppercase tracking-[0.2em] shadow-2xl">
+                                                {diffDays <= 0 ? "SORTIE AUJOURD'HUI" : `DANS ${diffDays} JOURS`}
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 md:mt-6 space-y-1.5 md:space-y-2 px-2">
+                                            <h4 className="text-sm md:text-base font-black text-white uppercase italic tracking-tighter truncate group-hover:text-neon-cyan transition-colors">
+                                                {release.title}
+                                            </h4>
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[8px] md:text-[10px] font-black text-white/50 uppercase tracking-widest truncate flex-1">
+                                                    {release.artist}
+                                                </span>
+                                                <span className="text-[8px] md:text-[9px] font-bold text-gray-700 uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded border border-white/5">
+                                                    {release.label}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </motion.a>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                )}
 
                 {/* Tracking Footer */}
                 <div className="pt-12 border-t border-white/5 flex flex-col items-center gap-4">

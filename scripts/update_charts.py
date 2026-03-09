@@ -124,15 +124,85 @@ def get_traxsource_top10():
         return []
 
 
+def get_upcoming_releases():
+    print("Fetching Upcoming Releases (Beatport Pre-orders)...")
+    # Melodic House & Techno pre-orders as main source of "future" tracks
+    url = "https://www.beatport.com/tracks/all?status=preorder&preorders=true&genres=90"
+    try:
+        r = requests.get(url, headers=HEADERS, timeout=25)
+        soup = BeautifulSoup(r.text, 'html.parser')
+        
+        next_data_script = soup.select_one('#__NEXT_DATA__')
+        if not next_data_script: return []
+        
+        data = json.loads(next_data_script.string)
+        
+        def find_tracks(obj):
+            if isinstance(obj, list):
+                for item in obj:
+                    res = find_tracks(item)
+                    if res: return res
+            elif isinstance(obj, dict):
+                if 'results' in obj and isinstance(obj['results'], list) and len(obj['results']) > 5:
+                    return obj['results']
+                for v in obj.values():
+                    res = find_tracks(v)
+                    if res: return res
+            return None
+
+        results = find_tracks(data)
+        if results:
+            upcoming = []
+            for i, t in enumerate(results[:12]): # Get 12 next releases
+                track_id = t.get('id')
+                title = t.get('name')
+                mix = t.get('mix_name')
+                if mix and mix.lower() not in title.lower():
+                    title += f" ({mix})"
+                
+                artists = [a.get('name', '') for a in t.get('artists', [])]
+                artist_str = ", ".join(artists)
+                
+                label_data = t.get('label', {})
+                label = label_data.get('name') if isinstance(label_data, dict) else str(label_data)
+                
+                # Image
+                image = ""
+                images = t.get('images', {})
+                if images and 'large' in images:
+                    image = images['large'].get('url', '')
+                
+                # Release Date
+                release_date = t.get('publish_date', '') # Format: YYYY-MM-DD
+                
+                slug = t.get('slug', 'track')
+                upcoming.append({
+                    "id": f"up-{track_id}",
+                    "title": title,
+                    "artist": artist_str,
+                    "label": label or "Beatport",
+                    "image": image,
+                    "releaseDate": release_date,
+                    "url": f"https://www.beatport.com/track/{slug}/{track_id}"
+                })
+            return upcoming
+        return []
+    except Exception as e:
+        print(f"Error Upcoming: {e}")
+        return []
+
+
 def main():
     print(f"Target: {WORKER_URL}")
     
     beatport = get_beatport_top10()
     traxsource = get_traxsource_top10()
+    upcoming = get_upcoming_releases()
     
     charts = {
         "beatport": beatport or [],
-        "traxsource": traxsource or []
+        "traxsource": traxsource or [],
+        "upcoming": upcoming or []
     }
     
     # Validation
