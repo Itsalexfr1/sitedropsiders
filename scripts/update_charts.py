@@ -7,14 +7,13 @@ import re
 import os
 
 # Configuration
-WORKER_URL = os.environ.get("WORKER_URL", "https://dropsiders.fr")
+WORKER_URL = os.environ.get("WORKER_URL", "https://dropsiders.fr").rstrip('/')
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "01061988")
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-    'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7',
-    'Cache-Control': 'no-cache'
+    'Accept-Language': 'fr-FR,fr;q=0.9,en-US;q=0.8,en;q=0.7'
 }
 
 def clean_text(text):
@@ -25,60 +24,102 @@ def get_beatport_top10():
     print("Fetching Beatport Top 10...")
     url = "https://www.beatport.com/top-100"
     try:
-        r = requests.get(url, headers=HEADERS, timeout=20)
+        r = requests.get(url, headers=HEADERS, timeout=25)
         r.raise_for_status()
         soup = BeautifulSoup(r.text, 'html.parser')
         
-        tracks = []
-        # Target the cells with class containing 'title' within rows
-        rows = soup.select('[role="row"]')
-        if not rows:
-            # Fallback for different grid structures
-            rows = soup.select('div[class*="TrackList-style-ListItem"]')
-        
-        for i, row in enumerate(rows):
-            if len(tracks) >= 10: break
+        # Beatport React Data Parsing (__NEXT_DATA__)
+        # C'est la méthode la plus robuste car elle évite de dépendre des classes CSS volatiles
+        next_data_script = soup.select_one('#__NEXT_DATA__')
+        if next_data_script:
             try:
-                # Title link usually has /track/ in it
+                data = json.loads(next_data_script.string)
+                # On traverse la structure Next.js
+                # Typiquement : props -> pageProps -> dehydrateState -> queries -> [0] -> state -> data
+                # Ou on cherche simplement récursivement pour des objets qui ressemblent à des tracks
+                
+                # Approche par recherche récursive simple des objets 'results' ou 'tracks'
+                def find_tracks(obj):
+                    if isinstance(obj, list):
+                        for item in obj:
+                            res = find_tracks(item)
+                            if res: return res
+                    elif isinstance(obj, dict):
+                        if 'results' in obj and isinstance(obj['results'], list) and len(obj['results']) > 10:
+                            # On vérifie si ce sont des tracks
+                            if 'name' in obj['results'][0] and 'artists' in obj['results'][0]:
+                                return obj['results']
+                        for k, v in obj.items():
+                            res = find_tracks(v)
+                            if res: return res
+                    return None
+
+                results = find_tracks(data)
+                if results:
+                    tracks = []
+                    for i, t in enumerate(results[:10]):
+                        track_id = t.get('id', f"bp-{i}")
+                        title = t.get('name', 'Unknown')
+                        mix = t.get('mix_name')
+                        if mix: title += f" ({mix})"
+                        
+                        artists = t.get('artists', [])
+                        artist_str = ", ".join([a.get('name', '') for a in artists])
+                        
+                        label = t.get('label', {}).get('name', 'Unknown')
+                        # On construit l'URL
+                        slug = t.get('slug', '')
+                        track_url = f"https://www.beatport.com/track/{slug}/{track_id}"
+                        
+                        tracks.append({
+                            "id": f"bp-{track_id}",
+                            "rank": i + 1,
+                            "title": title,
+                            "artist": artist_str,
+                            "label": label,
+                            "url": track_url,
+                            "embedUrl": f"https://embed.beatport.com/track/{track_id}"
+                        })
+                    if tracks: 
+                        print(f"  Successfully extracted {len(tracks)} tracks from __NEXT_DATA__")
+                        return tracks
+            except Exception as e:
+                print(f"  Failed to parse __NEXT_DATA__: {e}")
+
+        # Fallback Scraper HTML Classique
+        tracks = []
+        rows = soup.select('[role="row"], div[class*="TrackList-style-ListItem"]')
+        if not rows: rows = soup.select('.bucket-item.track')
+        
+        for i, row in enumerate(rows[:10]):
+            try:
                 title_link = row.select_one('a[href*="/track/"]')
                 if not title_link: continue
                 
-                # Combine title and version if spans exist
-                title_spans = title_link.select('span')
-                if title_spans:
-                    title = " ".join([clean_text(s.text) for s in title_spans])
-                else:
-                    title = clean_text(title_link.text)
-                
+                title = clean_text(title_link.text)
                 href = title_link.get('href', '')
-                track_url = f"https://www.beatport.com{href}"
+                track_id_match = re.search(r'/track/.*?/(\d+)', href)
+                track_id = track_id_match.group(1) if track_id_match else f"bp-{i}"
                 
-                # Extract ID from URL like /fr/track/name/12345
-                id_match = re.search(r'/track/.*?/(\d+)', href)
-                track_id = id_match.group(1) if id_match else f"bp-{i}"
-                
-                # Artists: multiple links possible
                 artist_links = row.select('a[href*="/artist/"]')
-                artists = [clean_text(a.text) for a in artist_links if a.text.strip()]
-                artist_str = ", ".join(artists) if artists else "Various Artists"
+                artists = [clean_text(a.text) for a in artist_links]
+                artist_str = ", ".join(artists) if artists else "Unknown"
                 
-                # Label
                 label_link = row.select_one('a[href*="/label/"]')
-                label = clean_text(label_link.text) if label_link else "Unknown Label"
+                label = clean_text(label_link.text) if label_link else "Unknown"
                 
                 tracks.append({
                     "id": f"bp-{track_id}",
-                    "rank": len(tracks) + 1,
+                    "rank": i + 1,
                     "title": title,
                     "artist": artist_str,
                     "label": label,
-                    "url": track_url,
+                    "url": f"https://www.beatport.com{href}",
                     "embedUrl": f"https://embed.beatport.com/track/{track_id}"
                 })
-                print(f"  [Beatport] #{len(tracks)}: {title} - {artist_str}")
-            except Exception as e:
-                print(f"  Error parsing Beatport row: {e}")
-        
+            except: continue
+            
+        print(f"  Extracted {len(tracks)} tracks via HTML selectors")
         return tracks
     except Exception as e:
         print(f"Error fetching Beatport: {e}")
@@ -89,54 +130,32 @@ def get_traxsource_top10():
     url = "https://www.traxsource.com/top/tracks"
     try:
         r = requests.get(url, headers=HEADERS, timeout=20)
-        r.raise_for_status()
         soup = BeautifulSoup(r.text, 'html.parser')
-        
         tracks = []
-        rows = soup.select('.track-row, .trk-row')[:15] # Take more for margin
-        
+        rows = soup.select('.trk-row, .track-row')[:10]
         for i, row in enumerate(rows):
-            if len(tracks) >= 10: break
             try:
-                title_link = row.select_one('.title a, a[href^="/track/"]')
-                if not title_link: continue
-                
-                title = clean_text(title_link.text)
+                track_id = row.get('data-trkid')
+                title_a = row.select_one('.title a')
+                title = clean_text(title_a.text)
                 version = row.select_one('.version')
                 if version: title += f" ({clean_text(version.text)})"
                 
-                href = title_link.get('href', '')
-                track_url = f"https://www.traxsource.com{href}"
+                artists = [clean_text(a.text) for a in row.select('.artists a, .com-artists')]
+                artist_str = ", ".join(dict.fromkeys(artists)) # Dedup
                 
-                # Extract ID from /track/12345/name
-                id_match = re.search(r'/track/(\d+)/', href)
-                track_id = id_match.group(1) if id_match else row.get('data-trkid', f"ts-{i}")
-                
-                # Artists
-                artist_links = row.select('.artists a, a.com-artists')
-                artists = [clean_text(a.text) for a in artist_links if a.text.strip()]
-                artist_list = []
-                for a in artists: # Basic deduplication
-                    if a not in artist_list: artist_list.append(a)
-                artist_str = ", ".join(artist_list) if artist_list else "Unknown Artist"
-                
-                # Label
-                label_el = row.select_one('.label-name, a[href^="/label/"]')
-                label = clean_text(label_el.text) if label_el else "Unknown Label"
+                label = clean_text(row.select_one('.label-name').text)
                 
                 tracks.append({
                     "id": f"ts-{track_id}",
-                    "rank": len(tracks) + 1,
+                    "rank": i + 1,
                     "title": title,
                     "artist": artist_str,
                     "label": label,
-                    "url": track_url,
+                    "url": f"https://www.traxsource.com{title_a.get('href')}",
                     "embedUrl": f"https://embed.traxsource.com/player/track/{track_id}"
                 })
-                print(f"  [Traxsource] #{len(tracks)}: {title} - {artist_str}")
-            except Exception as e:
-                print(f"  Error parsing Traxsource row: {e}")
-                
+            except: continue
         return tracks
     except Exception as e:
         print(f"Error fetching Traxsource: {e}")
@@ -147,115 +166,74 @@ def get_juno_top10():
     url = "https://www.junodownload.com/all/charts/bestsellers/weeks-top/tracks/"
     try:
         r = requests.get(url, headers=HEADERS, timeout=20)
-        r.raise_for_status()
         soup = BeautifulSoup(r.text, 'html.parser')
-        
         tracks = []
-        rows = soup.select('.juno-track, div.item')
-        if not rows:
-            rows = [el.find_parent('div') for el in soup.select('.juno-title')]
-        
-        for i, row in enumerate(rows):
-            if len(tracks) >= 10: break
+        items = soup.select('.item, .juno-track')[:10]
+        for i, item in enumerate(items):
             try:
-                title_link = row.select_one('.juno-title, a[href*="/products/"]')
-                if not title_link: continue
-                
-                title = clean_text(title_link.text)
-                href = title_link.get('href', '')
-                track_url = f"https://www.junodownload.com{href}"
-                
-                # ID example: 7489180-02
+                title_a = item.select_one('.juno-title, a[href*="/products/"]')
+                title = clean_text(title_a.text)
+                href = title_a.get('href')
                 id_match = re.search(r'/(\d+-\d+)/', href)
                 track_id = id_match.group(1) if id_match else f"jn-{i}"
                 
-                # Artist
-                artist_el = row.select_one('.juno-artist, .artists, .col-artist')
-                artist = clean_text(artist_el.text) if artist_el else "Unknown Artist"
-                
-                # Label
-                label_el = row.select_one('.juno-label, .col-label')
-                label = clean_text(label_el.text) if label_el else "Unknown Label"
+                artist = clean_text(item.select_one('.juno-artist, .artists, .col-artist').text)
+                label = clean_text(item.select_one('.juno-label, .col-label').text)
                 
                 tracks.append({
                     "id": f"jn-{track_id}",
-                    "rank": len(tracks) + 1,
+                    "rank": i + 1,
                     "title": title,
                     "artist": artist,
                     "label": label,
-                    "url": track_url,
+                    "url": f"https://www.junodownload.com{href}",
                     "embedUrl": f"https://www.junodownload.com/player-embed/{track_id}.m3u/"
                 })
-                print(f"  [Juno] #{len(tracks)}: {title} - {artist}")
-            except Exception as e:
-                print(f"  Error parsing Juno row: {e}")
-                
+            except: continue
         return tracks
     except Exception as e:
         print(f"Error fetching Juno: {e}")
         return []
 
 def main():
-    print(f"Starting update for {WORKER_URL}")
-    
-    # Try all sources
-    beatport = get_beatport_top10()
-    traxsource = get_traxsource_top10()
-    juno = get_juno_top10()
+    print(f"Update started for: {WORKER_URL}")
     
     charts = {
-        "beatport": beatport,
-        "traxsource": traxsource,
-        "juno": juno
+        "beatport": get_beatport_top10(),
+        "traxsource": get_traxsource_top10(),
+        "juno": get_juno_top10()
     }
     
-    # Validation
-    final_charts = {}
-    valid_count = 0
-    for p, data in charts.items():
-        if data and len(data) >= 5: # At least 5 tracks to consider it valid
-            final_charts[p] = data
-            valid_count += 1
-        else:
-            print(f"Warning: Source '{p}' returned insufficient data ({len(data)} tracks).")
-
-    if valid_count == 0:
-        print("CRITICAL ERROR: No valid data scraped from any source. Aborting.")
+    # On vérifie si on a au moins QUELQUE CHOSE
+    if not any(charts.values()):
+        print("CRITICAL: No data found for any source.")
         sys.exit(1)
 
-    # Fallback for empty sources
+    # Fallback pour les sources vides
     try:
-        current_resp = requests.get(f"{WORKER_URL}/api/musique/charts", timeout=10)
-        if current_resp.ok:
-            old_charts = current_resp.json()
-            for p in charts:
-                if (p not in final_charts or not final_charts[p]) and p in old_charts:
-                    print(f"Using fallback data for source '{p}' from live site.")
-                    final_charts[p] = old_charts[p]
-    except Exception as e:
-        print(f"Could not connect to {WORKER_URL} for fallback: {e}")
+        current = requests.get(f"{WORKER_URL}/api/musique/charts", timeout=10).json()
+        for p in charts:
+            if not charts[p] and p in current:
+                print(f"Using fallback for {p}")
+                charts[p] = current[p]
+    except: pass
 
-    # Final check
-    if not any(final_charts.values()):
-        print("No charts to push. Exiting.")
-        sys.exit(1)
-
-    # Push to worker
-    print(f"Pushing to {WORKER_URL}/api/musique/charts/update...")
+    # PUSH
+    print(f"Pushing to worker with password length: {len(ADMIN_PASSWORD)}")
     try:
-        resp = requests.post(
+        r = requests.post(
             f"{WORKER_URL}/api/musique/charts/update",
             headers={"X-Admin-Password": ADMIN_PASSWORD, "Content-Type": "application/json"},
-            json=final_charts,
-            timeout=20
+            json=charts,
+            timeout=15
         )
-        if resp.ok:
-            print("SUCCESS: Charts updated successfully!")
+        if r.ok:
+            print("SUCCESS: Charts updated!")
         else:
-            print(f"FAILURE: Server returned {resp.status_code}: {resp.text}")
+            print(f"ERROR: {r.status_code} - {r.text}")
             sys.exit(1)
     except Exception as e:
-        print(f"CRITICAL: Failed to push data: {e}")
+        print(f"Push failed: {e}")
         sys.exit(1)
 
 if __name__ == "__main__":
