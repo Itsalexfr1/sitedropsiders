@@ -5,7 +5,7 @@
   "shop_password_image": "",
   "takeover": {
     "enabled": true,
-    "youtubeId": "DQHSj6cphm0",
+    "youtubeId": "325m8PqVH74",
     "title": "TOMORROWLAND WINTER 2026",
     "moderators": "",
     "lineup": "[]",
@@ -29,21 +29,16 @@
     "startDate": "",
     "endDate": "",
     "status": "edit",
-    "mainFluxName": "DAYBREAK",
+    "mainFluxName": "",
     "currentTrack": "ID - UNRELEASED",
     "streams": [
       {
         "id": "qlew10auz",
         "name": "",
         "youtubeId": "325m8PqVH74"
-      },
-      {
-        "id": "evqofoyb7",
-        "name": "DAYBREAK",
-        "youtubeId": "DQHSj6cphm0"
       }
     ],
-    "activeStreamId": "evqofoyb7",
+    "activeStreamId": "qlew10auz",
     "highlightPrice": 100,
     "lots": [],
     "auddToken": "0707d622c51645acc2e4fa26ed64538d",
