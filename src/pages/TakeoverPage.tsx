@@ -1480,13 +1480,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 pseudo: userTitle ? `[${userTitle}] ${pseudo}` : pseudo,
                 message: messageText,
                 color: isHighlightChecked ? highlightColor : (isMod ? "text-neon-red" : pseudoColor),
-                bgColor: isHighlightChecked ? highlightColor : null,
                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                country: userCountry || "FR",
-                xp: userXP,
-                geo: userCity,
-                isPrems: isPremsMsg,
-                isHolo: hasHoloPseudo
+                country: userCountry || "FR"
             });
 
             // Leveling System
