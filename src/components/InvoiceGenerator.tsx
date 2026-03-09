@@ -151,6 +151,15 @@ export function InvoiceGenerator() {
                 backgroundColor: '#ffffff',
                 logging: false,
                 width: 794,
+                onclone: (clonedDoc) => {
+                    // Pre-process styles to remove oklch which html2canvas 1.4.1 can't parse
+                    const styles = clonedDoc.querySelectorAll('style');
+                    styles.forEach(s => {
+                        if (s.textContent) {
+                            s.textContent = s.textContent.replace(/oklch\([^)]+\)/g, '#000000');
+                        }
+                    });
+                }
             });
 
             invoiceEl.style.display = '';
@@ -197,6 +206,14 @@ export function InvoiceGenerator() {
                 useCORS: true,
                 backgroundColor: '#ffffff',
                 width: 794,
+                onclone: (clonedDoc) => {
+                    const styles = clonedDoc.querySelectorAll('style');
+                    styles.forEach(s => {
+                        if (s.textContent) {
+                            s.textContent = s.textContent.replace(/oklch\([^)]+\)/g, '#000000');
+                        }
+                    });
+                }
             });
 
             invoiceEl.style.display = '';
@@ -678,27 +695,27 @@ export function InvoiceGenerator() {
                 `}
             </style>
 
-            <div ref={invoiceRef} id="printable-invoice" className="hidden print:block w-[794px] bg-white text-black p-[60px] min-h-[1123px] font-sans">
+            <div ref={invoiceRef} id="printable-invoice" className="hidden print:block w-[794px] bg-white text-black p-[60px] min-h-[1123px] font-sans" style={{ backgroundColor: '#ffffff', color: '#000000' }}>
                 {/* Minimalist Header */}
                 <div className="flex justify-between items-start mb-24">
                     <div>
-                        <h1 className="text-7xl font-black tracking-tighter mb-8 leading-none">FACTURE</h1>
+                        <h1 className="text-7xl font-black tracking-tighter mb-8 leading-none" style={{ color: '#000000' }}>FACTURE</h1>
                         <div className="space-y-1">
-                            <p className="text-xs font-black uppercase tracking-widest text-gray-400">Référence</p>
-                            <p className="text-lg font-bold">{formattedInvoiceNumber}</p>
+                            <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#a1a1aa' }}>Référence</p>
+                            <p className="text-lg font-bold" style={{ color: '#000000' }}>{formattedInvoiceNumber}</p>
                         </div>
                         <div className="mt-4 space-y-1">
-                            <p className="text-xs font-black uppercase tracking-widest text-gray-400">Date d'émission</p>
-                            <p className="text-lg font-bold">{new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
+                            <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#a1a1aa' }}>Date d'émission</p>
+                            <p className="text-lg font-bold" style={{ color: '#000000' }}>{new Date(date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })}</p>
                         </div>
                     </div>
                     <div className="text-right">
-                        <h2 className="text-2xl font-black uppercase mb-4 tracking-tight">CUENCA ALEXANDRE</h2>
-                        <div className="text-sm font-medium text-gray-600 space-y-1">
+                        <h2 className="text-2xl font-black uppercase mb-4 tracking-tight" style={{ color: '#000000' }}>CUENCA ALEXANDRE</h2>
+                        <div className="text-sm font-medium space-y-1" style={{ color: '#52525b' }}>
                             <p>411 RUE DE BOUILLARGUES</p>
                             <p>30000 NIMES</p>
-                            <p className="pt-2 font-bold text-black">{userPhone}</p>
-                            <p className="text-gray-400 text-xs">SIREN : 805131828</p>
+                            <p className="pt-2 font-bold" style={{ color: '#000000' }}>{userPhone}</p>
+                            <p className="text-xs" style={{ color: '#a1a1aa' }}>SIREN : 805131828</p>
                         </div>
                     </div>
                 </div>
@@ -706,58 +723,58 @@ export function InvoiceGenerator() {
                 {/* Info Client Box */}
                 <div className="flex justify-between mb-24">
                     <div className="w-1/2">
-                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-4">Destinataire</p>
-                        <h3 className="text-2xl font-black uppercase mb-2 tracking-tight">{clientName || 'CLIENT'}</h3>
-                        <div className="text-sm text-gray-600 font-medium leading-relaxed max-w-xs whitespace-pre-line">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] mb-4" style={{ color: '#a1a1aa' }}>Destinataire</p>
+                        <h3 className="text-2xl font-black uppercase mb-2 tracking-tight" style={{ color: '#000000' }}>{clientName || 'CLIENT'}</h3>
+                        <div className="text-sm font-medium leading-relaxed max-w-xs whitespace-pre-line" style={{ color: '#52525b' }}>
                             {clientAddress || 'ADRESSE'}
                         </div>
-                        {clientEmail && <p className="text-sm font-bold mt-2">{clientEmail.toLowerCase()}</p>}
+                        {clientEmail && <p className="text-sm font-bold mt-2" style={{ color: '#000000' }}>{clientEmail.toLowerCase()}</p>}
                     </div>
                 </div>
 
                 {/* Prestations Table - Ultraclean */}
                 <div className="mb-24">
-                    <div className="grid grid-cols-12 gap-0 border-b-2 border-black pb-4 mb-4">
-                        <div className="col-span-7 text-[10px] font-black uppercase tracking-widest">Prestation</div>
-                        <div className="col-span-1 text-center text-[10px] font-black uppercase tracking-widest">Qté</div>
-                        <div className="col-span-2 text-right text-[10px] font-black uppercase tracking-widest">Prix HT</div>
-                        <div className="col-span-2 text-right text-[10px] font-black uppercase tracking-widest">Total</div>
+                    <div className="grid grid-cols-12 gap-0 pb-4 mb-4" style={{ borderBottom: '2px solid #000000' }}>
+                        <div className="col-span-7 text-[10px] font-black uppercase tracking-widest" style={{ color: '#000000' }}>Prestation</div>
+                        <div className="col-span-1 text-center text-[10px] font-black uppercase tracking-widest" style={{ color: '#000000' }}>Qté</div>
+                        <div className="col-span-2 text-right text-[10px] font-black uppercase tracking-widest" style={{ color: '#000000' }}>Prix HT</div>
+                        <div className="col-span-2 text-right text-[10px] font-black uppercase tracking-widest" style={{ color: '#000000' }}>Total</div>
                     </div>
 
                     {lines.map((line) => (
-                        <div key={line.id} className="grid grid-cols-12 gap-0 border-b border-gray-100 py-6 text-sm">
-                            <div className="col-span-7 font-bold text-lg pr-4">{line.description || 'Service'}</div>
-                            <div className="col-span-1 text-center font-medium pt-1.5">{line.quantity}</div>
-                            <div className="col-span-2 text-right font-medium pt-1.5">{line.unitPrice.toFixed(2).replace('.', ',')} €</div>
-                            <div className="col-span-2 text-right font-black text-lg">{(line.quantity * line.unitPrice).toFixed(2).replace('.', ',')} €</div>
+                        <div key={line.id} className="grid grid-cols-12 gap-0 py-6 text-sm" style={{ borderBottom: '1px solid #f4f4f5' }}>
+                            <div className="col-span-7 font-bold text-lg pr-4" style={{ color: '#000000' }}>{line.description || 'Service'}</div>
+                            <div className="col-span-1 text-center font-medium pt-1.5" style={{ color: '#000000' }}>{line.quantity}</div>
+                            <div className="col-span-2 text-right font-medium pt-1.5" style={{ color: '#000000' }}>{line.unitPrice.toFixed(2).replace('.', ',')} €</div>
+                            <div className="col-span-2 text-right font-black text-lg" style={{ color: '#000000' }}>{(line.quantity * line.unitPrice).toFixed(2).replace('.', ',')} €</div>
                         </div>
                     ))}
 
                     <div className="flex justify-end mt-16 pt-8">
                         <div className="w-1/2">
                             <div className="flex justify-between items-baseline mb-2">
-                                <span className="text-xs font-black uppercase tracking-widest">TOTAL NET À PAYER</span>
-                                <span className="text-5xl font-black">{(total).toFixed(2).replace('.', ',')} €</span>
+                                <span className="text-xs font-black uppercase tracking-widest" style={{ color: '#000000' }}>TOTAL NET À PAYER</span>
+                                <span className="text-5xl font-black" style={{ color: '#000000' }}>{(total).toFixed(2).replace('.', ',')} €</span>
                             </div>
-                            <p className="text-[9px] text-gray-400 text-right uppercase font-bold tracking-tighter">TVA non applicable, art. 293 B du CGI</p>
+                            <p className="text-[9px] text-right uppercase font-bold tracking-tighter" style={{ color: '#a1a1aa' }}>TVA non applicable, art. 293 B du CGI</p>
                         </div>
                     </div>
                 </div>
 
                 {/* Payment Info Footer - Minimal Card */}
-                <div className="mt-auto pt-12 border-t border-gray-100">
+                <div className="mt-auto pt-12" style={{ borderTop: '1px solid #f4f4f5' }}>
                     <div className="flex gap-16">
                         <div>
-                            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-3">Règlement par virement</p>
-                            <div className="space-y-1 font-bold text-xs uppercase tracking-tight">
-                                <p><span className="text-gray-400">RIB :</span> BE59 9675 0891 6526</p>
-                                <p><span className="text-gray-400">BIC :</span> TRWIBEB1XXX</p>
+                            <p className="text-[9px] font-black uppercase tracking-widest mb-3" style={{ color: '#a1a1aa' }}>Règlement par virement</p>
+                            <div className="space-y-1 font-bold text-xs uppercase tracking-tight" style={{ color: '#000000' }}>
+                                <p><span style={{ color: '#a1a1aa' }}>RIB :</span> BE59 9675 0891 6526</p>
+                                <p><span style={{ color: '#a1a1aa' }}>BIC :</span> TRWIBEB1XXX</p>
                             </div>
                         </div>
                         <div className="max-w-[200px]">
-                            <p className="text-[9px] font-black uppercase tracking-widest text-gray-400 mb-3">Notes</p>
-                            <p className="text-[10px] text-gray-500 leading-relaxed font-medium capitalize">
-                                merci d'indiquer la référence <span className="font-bold text-black">{formattedInvoiceNumber}</span> lors de votre virement bancaire.
+                            <p className="text-[9px] font-black uppercase tracking-widest mb-3" style={{ color: '#a1a1aa' }}>Notes</p>
+                            <p className="text-[10px] leading-relaxed font-medium capitalize" style={{ color: '#52525b' }}>
+                                merci d'indiquer la référence <span className="font-bold" style={{ color: '#000000' }}>{formattedInvoiceNumber}</span> lors de votre virement bancaire.
                             </p>
                         </div>
                     </div>
