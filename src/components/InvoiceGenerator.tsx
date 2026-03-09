@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { FileText, Plus, Printer, Trash2, Send, Loader, CheckCircle, AlertCircle, X, Mail, BookUser, ChevronDown, Save, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import html2canvas from 'html2canvas';
+import { jsPDF } from 'jspdf';
 
 interface InvoiceLine {
     id: string;
@@ -120,35 +122,41 @@ export function InvoiceGenerator() {
     const handlePreview = async () => {
         setPreviewLoading(true);
         setShowPreview(true);
+        setPreviewImage(null);
         try {
-            const html2canvas = (await import('html2canvas')).default;
-            const invoiceEl = document.getElementById('printable-invoice');
+            const invoiceEl = invoiceRef.current;
             if (!invoiceEl) throw new Error('Introuvable');
 
+            // Force visibility for capture
             invoiceEl.style.display = 'block';
             invoiceEl.style.position = 'fixed';
-            invoiceEl.style.top = '-9999px';
-            invoiceEl.style.left = '0';
+            invoiceEl.style.top = '0';
+            invoiceEl.style.left = '-9999px';
             invoiceEl.style.width = '794px';
+            invoiceEl.style.zIndex = '-9999';
 
-            await new Promise(r => setTimeout(r, 250));
+            await new Promise(r => setTimeout(r, 400));
 
             const canvas = await html2canvas(invoiceEl, {
-                scale: 1.5,
+                scale: 2,
                 useCORS: true,
                 backgroundColor: '#ffffff',
+                logging: false,
                 width: 794,
             });
 
+            // Reset visibility
             invoiceEl.style.display = '';
             invoiceEl.style.position = '';
             invoiceEl.style.top = '';
             invoiceEl.style.left = '';
             invoiceEl.style.width = '';
+            invoiceEl.style.zIndex = '';
 
             setPreviewImage(canvas.toDataURL('image/png'));
         } catch (e) {
-            setShowPreview(false);
+            console.error('Preview Error:', e);
+            setSendError("Erreur lors de la génération de l'aperçu");
         } finally {
             setPreviewLoading(false);
         }
@@ -166,21 +174,18 @@ export function InvoiceGenerator() {
         setSendError('');
 
         try {
-            // Dynamically import to keep bundle slim
-            const html2canvas = (await import('html2canvas')).default;
-            const { jsPDF } = await import('jspdf');
-
-            // Show the printable invoice temporarily for capture
-            const invoiceEl = document.getElementById('printable-invoice');
+            const invoiceEl = invoiceRef.current;
             if (!invoiceEl) throw new Error('Élément de facture introuvable');
 
+            // Force visibility for capture
             invoiceEl.style.display = 'block';
             invoiceEl.style.position = 'fixed';
-            invoiceEl.style.top = '-9999px';
-            invoiceEl.style.left = '0';
-            invoiceEl.style.width = '794px'; // A4 width px at 96dpi
+            invoiceEl.style.top = '0';
+            invoiceEl.style.left = '-9999px';
+            invoiceEl.style.width = '794px';
+            invoiceEl.style.zIndex = '-9999';
 
-            await new Promise(r => setTimeout(r, 300)); // wait for render
+            await new Promise(r => setTimeout(r, 400));
 
             const canvas = await html2canvas(invoiceEl, {
                 scale: 2,
@@ -189,11 +194,13 @@ export function InvoiceGenerator() {
                 width: 794,
             });
 
+            // Reset visibility
             invoiceEl.style.display = '';
             invoiceEl.style.position = '';
             invoiceEl.style.top = '';
             invoiceEl.style.left = '';
             invoiceEl.style.width = '';
+            invoiceEl.style.zIndex = '';
 
             const imgData = canvas.toDataURL('image/jpeg', 0.95);
             const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
