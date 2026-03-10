@@ -1232,9 +1232,9 @@ export function AdminDashboard() {
                     const djVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_djs') || '[]'); } catch { return []; } })());
                     const clubVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_clubs') || '[]'); } catch { return []; } })());
                     const festVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_festivals') || '[]'); } catch { return []; } })());
-                    const djR = [...(WIKI_DJS as any[])].map(d => ({ ...d, tv: djVotes.has(d.id) ? 1 : 0 })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 10);
-                    const clubR = [...(WIKI_CLUBS as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (clubVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 10);
-                    const festR = [...(WIKI_FESTIVALS as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (festVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 10);
+                    const djR = [...(WIKI_DJS as any[])].map(d => ({ ...d, tv: djVotes.has(d.id) ? 1 : 0 })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
+                    const clubR = [...(WIKI_CLUBS as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (clubVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
+                    const festR = [...(WIKI_FESTIVALS as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (festVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
                     const ranked = wikiTab === 'djs' ? djR : wikiTab === 'clubs' ? clubR : festR;
                     const topVotes = ranked[0]?.tv || 1;
                     const medals = ['🥇', '🥈', '🥉'];
@@ -1247,7 +1247,7 @@ export function AdminDashboard() {
                                         <span className="text-neon-red font-black tracking-[0.3em] text-[9px] uppercase">Classement</span>
                                     </div>
                                     <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Wiki Votes</h2>
-                                    <p className="text-gray-600 text-[9px] font-black uppercase tracking-widest mt-0.5">Top 10 basé sur les votes communauté</p>
+                                    <p className="text-gray-600 text-[9px] font-black uppercase tracking-widest mt-0.5">Top 50 basé sur les votes communauté</p>
                                 </div>
                                 <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-1 gap-1">
                                     {(['djs', 'clubs', 'festivals'] as const).map(id => (
