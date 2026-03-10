@@ -231,7 +231,8 @@ export function Community() {
     const [festivalName, setFestivalName] = useState('');
     const [selectedLocation, setSelectedLocation] = useState(FESTIVAL_LOCATIONS[0]);
     const [stageCount, setStageCount] = useState(1);
-    const [festivalDuration] = useState(1); // Days
+    const [festivalDuration, setFestivalDuration] = useState(1); // 1, 2, or 3 Days
+    const [priceSurge, setPriceSurge] = useState(1);
     const [ticketPrice, setTicketPrice] = useState(150);
     const [selectedSponsors, setSelectedSponsors] = useState<string[]>([]);
     const [selectedMerch, setSelectedMerch] = useState<string[]>([]);
@@ -267,13 +268,13 @@ export function Community() {
             // Seasonality: +20% in Summer (June, July, August)
             const month = selectedDate ? new Date(selectedDate).getMonth() : 5;
             const seasonFactor = (month >= 5 && month <= 7) ? 1.2 : 1;
-            return acc + (dj.price * (dj.popularity > 95 ? 1.15 : 1) * seasonFactor);
+            return acc + (dj.price * (dj.popularity > 95 ? 1.15 : 1) * seasonFactor * priceSurge);
         }, 0);
-    }, [selectedDjs, selectedDate]);
+    }, [selectedDjs, selectedDate, priceSurge]);
     const totalExtraCost = useMemo(() => {
         const fix = FIX_COSTS
             .filter(c => selectedCosts.includes(c.id))
-            .reduce((acc, c) => acc + c.basePrice, 0);
+            .reduce((acc, c) => acc + (c.basePrice * (1 + (festivalDuration - 1) * 0.7)), 0);
         const effects = STAGE_EFFECTS
             .filter(e => selectedEffects.includes(e.id))
             .reduce((acc, e) => acc + e.cost, 0);
@@ -281,10 +282,10 @@ export function Community() {
             .filter(m => selectedMerch.includes(m.id))
             .reduce((acc, m) => acc + m.cost, 0);
         return fix + effects + merch;
-    }, [selectedCosts, selectedEffects, selectedMerch]);
-    const locationCost = selectedLocation.cost;
-    const stagesCost = stageCount * STAGE_COST_PER_UNIT;
-    const totalSpent = (totalDjsCost + totalExtraCost + locationCost + stagesCost) * (1 + (festivalDuration - 1) * 0.4);
+    }, [selectedCosts, selectedEffects, selectedMerch, festivalDuration]);
+    const locationCost = selectedLocation.cost * (1 + (festivalDuration - 1) * 0.4);
+    const stagesCost = (stageCount * STAGE_COST_PER_UNIT) * (1 + (festivalDuration - 1) * 0.2);
+    const totalSpent = (totalDjsCost + totalExtraCost + locationCost + stagesCost);
     const totalBudgetWithSponsors = budget + sponsorsBonus;
     const remainingBudget = totalBudgetWithSponsors - totalSpent;
 
@@ -304,15 +305,30 @@ export function Community() {
         const genreSynergy = Object.values(genreCounts).reduce((acc, count) => acc + (count > 2 ? count * 0.05 : 0), 0);
         const labelSynergy = Object.values(labelCounts).reduce((acc, count) => acc + (count >= 3 ? 0.15 : 0), 0);
 
-        // Stage Constraint Penalty: 5 artists per stage mandatory
-        const requiredArtists = stageCount * 5;
-        const artistShortfall = Math.max(0, requiredArtists - selectedDjs.length);
-        const stagePenalty = artistShortfall > 0 ? (1 - (artistShortfall * 0.15)) : 1; // -15% per missing artist
+        // Saturation & Consistency Mechanics
+        const totalSelected = selectedDjs.length;
+        let saturationPenalty = 0;
+        let isMonogenre = false;
+
+        if (totalSelected > 0) {
+            Object.values(genreCounts).forEach(count => {
+                if (count > 5) saturationPenalty += (count - 5) * 0.08; // -8% per artist over 5 of same genre
+            });
+            isMonogenre = Object.keys(genreCounts).length === 1 && totalSelected >= 5;
+        }
+
+        // Stage Constraint Penalty: X artists per stage per day mandatory
+        const requiredArtists = stageCount * 5 * festivalDuration;
+        const artistShortfall = Math.max(0, requiredArtists - totalSelected);
+        const stagePenalty = artistShortfall > 0 ? (1 - (artistShortfall * 0.1)) : 1; // -10% per missing slot
 
         // Hype formula: Lineup + Prestige + Marketing + Synergies + Effects
         let currentHype = (lineupPower * 2) + (prestigeBase * 5);
         currentHype *= (1 + genreSynergy + labelSynergy);
         currentHype *= stagePenalty;
+
+        if (isMonogenre) currentHype *= 1.45; // Consistency Bonus: "Underground Credibility"
+        currentHype *= (1 - saturationPenalty); // Saturation Penalty
 
         // Incoherence penalty: Mix of Hard Techno and Tropical House?
         const hasHardTechno = selectedDjs.some(d => d.genre === 'Hard Techno');
@@ -425,6 +441,24 @@ export function Community() {
             setAdvisorTip(newTip);
         }
     }, [selectedDjs, selectedCosts, selectedDate, gameState]);
+
+    const [isPriceRising, setIsPriceRising] = useState(false);
+    useMemo(() => {
+        let timer: any;
+        if (gameState === 'BOOKING' && gameStarted) {
+            timer = setInterval(() => {
+                setPriceSurge(prev => {
+                    const next = prev + 0.03;
+                    if (next > 1.05) setIsPriceRising(true);
+                    return next;
+                });
+            }, 45000); // Surge every 45s
+        } else {
+            setPriceSurge(1);
+            setIsPriceRising(false);
+        }
+        return () => clearInterval(timer);
+    }, [gameState, gameStarted]);
 
     const toggleDj = async (dj: typeof DJ_POOL[0]) => {
         if (selectedDjs.find(d => d.id === dj.id || d.name === dj.name)) {
@@ -897,6 +931,17 @@ export function Community() {
                                                                 </button>
                                                             ))}
                                                         </div>
+
+                                                        <div className="pt-4 space-y-4">
+                                                            <p className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-4">Durée du Festival</p>
+                                                            <div className="flex gap-2">
+                                                                {[1, 2, 3].map(d => (
+                                                                    <button key={d} onClick={() => setFestivalDuration(d)} className={twMerge("flex-1 py-4 rounded-xl border font-black text-[10px] transition-all", festivalDuration === d ? "bg-white text-black border-white" : "bg-white/5 border-white/10 text-white/40")}>
+                                                                        {d} {d > 1 ? 'JOURS' : 'JOUR'}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                                 <button disabled={!playerName || !festivalName || !playerEmail} onClick={() => setGameState('LOCATION')} className="w-full py-8 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.4em] disabled:opacity-20 hover:bg-amber-400 transition-all">VALIDER ET CONTINUER →</button>
@@ -1023,7 +1068,10 @@ export function Community() {
                                                     <div className="space-y-4">
                                                         <div className="flex justify-between items-end">
                                                             <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Trésorerie</span>
-                                                            <span className="text-2xl font-black font-mono text-white tracking-widest">{totalSpent.toLocaleString()}€</span>
+                                                            <div className="flex flex-col items-end">
+                                                                <span className="text-2xl font-black font-mono text-white tracking-widest">{totalSpent.toLocaleString()}€</span>
+                                                                {isPriceRising && <span className="text-[8px] text-neon-red font-black uppercase animate-pulse">Alerte : Prix en hausse !</span>}
+                                                            </div>
                                                         </div>
                                                         <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/5">
                                                             <motion.div
