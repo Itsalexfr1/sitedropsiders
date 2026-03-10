@@ -11,6 +11,7 @@ import { standardizeContent } from '../utils/standardizer';
 import { Pagination } from '../components/ui/Pagination';
 import { translateText } from '../utils/translate';
 import { getAuthHeaders } from '../utils/auth';
+import { SEO } from '../components/utils/SEO';
 
 type TabKey = 'all' | 'news' | 'musique' | 'focus';
 
@@ -158,246 +159,252 @@ export function News() {
     };
 
     return (
-        <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 pt-24 pb-12 sm:pt-12">
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mb-10 text-center sm:text-left"
-            >
-                <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
-                    <div className="p-2 bg-neon-red/10 rounded-xl border border-neon-red/20 shadow-[0_0_15px_rgba(255,0,51,0.1)]">
-                        <svg className="w-5 h-5 text-neon-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
-                        </svg>
+        <>
+            <SEO
+                title="Actualités Festivals"
+                description="Toute l'actualité des festivals EDM, Techno et House. News, sorties et exclusivités."
+            />
+            <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 pt-24 pb-12 sm:pt-12">
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-10 text-center sm:text-left"
+                >
+                    <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
+                        <div className="p-2 bg-neon-red/10 rounded-xl border border-neon-red/20 shadow-[0_0_15px_rgba(255,0,51,0.1)]">
+                            <svg className="w-5 h-5 text-neon-red" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+                            </svg>
+                        </div>
+                        <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">{t('news.badge')}</span>
                     </div>
-                    <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">{t('news.badge')}</span>
-                </div>
-                <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-none">
-                    {t('news.title')}<span className="text-neon-red">{t('news.title_span')}</span>
-                </h1>
-                <p className="text-gray-400 max-w-2xl text-base md:text-lg font-medium leading-relaxed">
-                    {t('news.subtitle')}
-                </p>
-            </motion.div>
+                    <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-none">
+                        {t('news.title')}<span className="text-neon-red">{t('news.title_span')}</span>
+                    </h1>
+                    <p className="text-gray-400 max-w-2xl text-base md:text-lg font-medium leading-relaxed">
+                        {t('news.subtitle')}
+                    </p>
+                </motion.div>
 
-            {/* ── Category Tabs ── */}
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="mb-12 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0"
-            >
-                <div className="flex items-center gap-4 min-w-max pb-2">
-                    <div className="flex items-center gap-2 text-gray-500 mr-2 flex-shrink-0">
-                        <Filter className="w-4 h-4" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('galerie.filter_by')}</span>
-                    </div>
-                    {TABS.map((tab) => {
-                        const isActive = activeTab === tab.key;
-                        return (
-                            <motion.button
-                                key={tab.key}
-                                onClick={() => handleTabChange(tab.key)}
-                                data-cursor-color={tab.key === 'musique' ? 'neon-green' : tab.key === 'focus' ? 'neon-yellow' : 'neon-red'}
-                                whileHover={{ scale: 1.04 }}
-                                whileTap={{ scale: 0.96 }}
-                                className={`relative px-7 py-3 rounded-2xl font-black uppercase tracking-[0.1em] text-[10px] transition-all duration-300 border flex-shrink-0
+                {/* ── Category Tabs ── */}
+                <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.1 }}
+                    className="mb-12 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0"
+                >
+                    <div className="flex items-center gap-4 min-w-max pb-2">
+                        <div className="flex items-center gap-2 text-gray-500 mr-2 flex-shrink-0">
+                            <Filter className="w-4 h-4" />
+                            <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('galerie.filter_by')}</span>
+                        </div>
+                        {TABS.map((tab) => {
+                            const isActive = activeTab === tab.key;
+                            return (
+                                <motion.button
+                                    key={tab.key}
+                                    onClick={() => handleTabChange(tab.key)}
+                                    data-cursor-color={tab.key === 'musique' ? 'neon-green' : tab.key === 'focus' ? 'neon-yellow' : 'neon-red'}
+                                    whileHover={{ scale: 1.04 }}
+                                    whileTap={{ scale: 0.96 }}
+                                    className={`relative px-7 py-3 rounded-2xl font-black uppercase tracking-[0.1em] text-[10px] transition-all duration-300 border flex-shrink-0
                                     ${isActive
-                                        ? `${tab.activeClass} border-transparent`
-                                        : `bg-white/[0.03] ${tab.inactiveClass}`
-                                    }`}
+                                            ? `${tab.activeClass} border-transparent`
+                                            : `bg-white/[0.03] ${tab.inactiveClass}`
+                                        }`}
+                                >
+                                    {tab.label}
+                                </motion.button>
+                            );
+                        })}
+                    </div>
+                </motion.div>
+
+                <div className="relative">
+                    {/* Left Arrow */}
+                    <AnimatePresence>
+                        {currentPage > 1 && (
+                            <motion.button
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                                onClick={() => handlePageChange(currentPage - 1)}
+                                className="absolute -left-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
                             >
-                                {tab.label}
+                                <ChevronLeft className="w-16 h-16" strokeWidth={1} />
                             </motion.button>
-                        );
-                    })}
-                </div>
-            </motion.div>
+                        )}
+                    </AnimatePresence>
 
-            <div className="relative">
-                {/* Left Arrow */}
-                <AnimatePresence>
-                    {currentPage > 1 && (
-                        <motion.button
-                            initial={{ opacity: 0, x: 20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: 20 }}
-                            onClick={() => handlePageChange(currentPage - 1)}
-                            className="absolute -left-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
-                        >
-                            <ChevronLeft className="w-16 h-16" strokeWidth={1} />
-                        </motion.button>
-                    )}
-                </AnimatePresence>
-
-                <div className="min-h-[600px] w-full">
-                    <AnimatePresence mode="wait" custom={direction}>
-                        <motion.div
-                            key={`${activeTab}-${currentPage}`}
-                            custom={direction}
-                            variants={variants}
-                            initial="enter"
-                            animate="center"
-                            exit="exit"
-                            transition={{
-                                x: { type: "spring", stiffness: 300, damping: 30 },
-                                opacity: { duration: 0.2 }
-                            }}
-                            className="flex overflow-x-auto pb-8 md:pb-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 no-scrollbar snap-x snap-mandatory"
-                        >
-                            {currentArticles.length > 0 ? (
-                                currentArticles.map((item: any) => (
-                                    <motion.article
-                                        key={item.id}
-                                        onMouseEnter={playHoverSound}
-                                        className="group relative rounded-[2rem] overflow-hidden transition-all duration-500 w-[85vw] flex-shrink-0 snap-center aspect-square md:aspect-auto md:w-auto md:flex-shrink-1 md:bg-dark-card md:border md:border-white/5 md:rounded-3xl hover:border-neon-red/50 hover:shadow-[0_0_40px_rgba(255,0,51,0.2)] md:flex md:flex-col"
-                                    >
-                                        {isAdmin && (
-                                            <button
-                                                onClick={(e) => {
-                                                    e.preventDefault();
-                                                    e.stopPropagation();
-                                                    handleEdit(item);
-                                                }}
-                                                disabled={loadingEditId === item.id}
-                                                className="absolute top-4 right-4 z-20 p-2.5 bg-black/60 backdrop-blur-md rounded-2xl border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-50 disabled:cursor-wait"
-                                                title="Modifier"
-                                            >
-                                                {loadingEditId === item.id ? (
-                                                    <Loader2 className="w-4 h-4 animate-spin" />
-                                                ) : (
-                                                    <Edit2 className="w-4 h-4" />
-                                                )}
-                                            </button>
-                                        )}
-                                        <Link to={getArticleLink(item)} className="absolute inset-0 md:static block w-full h-full">
-                                            {/* Mobile Variant */}
-                                            <div className="absolute inset-0 md:hidden">
-                                                <img
-                                                    src={item.image}
-                                                    alt={item.title}
-                                                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                />
-                                                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
-                                                <div className="absolute inset-0 p-6 flex flex-col justify-end text-left z-10">
-                                                    <div className="flex items-center justify-between mb-4">
-                                                        <span className={`text-[10px] font-black px-3 py-1.5 rounded-xl border backdrop-blur-md ${item.isFocus
-                                                            ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30'
-                                                            : (item.category || '').toLowerCase() === 'musique'
-                                                                ? 'bg-neon-green/20 text-neon-green border-neon-green/30'
-                                                                : 'bg-neon-red/20 text-neon-red border-neon-red/30'
-                                                            }`}>
-                                                            {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
-                                                        </span>
-                                                        <span className="text-white/60 text-[10px] font-black uppercase tracking-widest">{item.date}</span>
-                                                    </div>
-                                                    <h2
-                                                        className="text-2xl sm:text-3xl font-display font-black text-white italic uppercase leading-tight tracking-tight line-clamp-4 shadow-black drop-shadow-lg"
-                                                        dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            {/* Desktop Variant */}
-                                            <div className="hidden md:flex flex-col h-full overflow-hidden">
-                                                <div className="h-64 overflow-hidden bg-black/40 relative">
+                    <div className="min-h-[600px] w-full">
+                        <AnimatePresence mode="wait" custom={direction}>
+                            <motion.div
+                                key={`${activeTab}-${currentPage}`}
+                                custom={direction}
+                                variants={variants}
+                                initial="enter"
+                                animate="center"
+                                exit="exit"
+                                transition={{
+                                    x: { type: "spring", stiffness: 300, damping: 30 },
+                                    opacity: { duration: 0.2 }
+                                }}
+                                className="flex overflow-x-auto pb-8 md:pb-0 md:grid md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 no-scrollbar snap-x snap-mandatory"
+                            >
+                                {currentArticles.length > 0 ? (
+                                    currentArticles.map((item: any) => (
+                                        <motion.article
+                                            key={item.id}
+                                            onMouseEnter={playHoverSound}
+                                            className="group relative rounded-[2rem] overflow-hidden transition-all duration-500 w-[85vw] flex-shrink-0 snap-center aspect-square md:aspect-auto md:w-auto md:flex-shrink-1 md:bg-dark-card md:border md:border-white/5 md:rounded-3xl hover:border-neon-red/50 hover:shadow-[0_0_40px_rgba(255,0,51,0.2)] md:flex md:flex-col"
+                                        >
+                                            {isAdmin && (
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault();
+                                                        e.stopPropagation();
+                                                        handleEdit(item);
+                                                    }}
+                                                    disabled={loadingEditId === item.id}
+                                                    className="absolute top-4 right-4 z-20 p-2.5 bg-black/60 backdrop-blur-md rounded-2xl border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-50 disabled:cursor-wait"
+                                                    title="Modifier"
+                                                >
+                                                    {loadingEditId === item.id ? (
+                                                        <Loader2 className="w-4 h-4 animate-spin" />
+                                                    ) : (
+                                                        <Edit2 className="w-4 h-4" />
+                                                    )}
+                                                </button>
+                                            )}
+                                            <Link to={getArticleLink(item)} className="absolute inset-0 md:static block w-full h-full">
+                                                {/* Mobile Variant */}
+                                                <div className="absolute inset-0 md:hidden">
                                                     <img
                                                         src={item.image}
                                                         alt={item.title}
                                                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                     />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-dark-bg/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
+                                                    <div className="absolute inset-0 p-6 flex flex-col justify-end text-left z-10">
+                                                        <div className="flex items-center justify-between mb-4">
+                                                            <span className={`text-[10px] font-black px-3 py-1.5 rounded-xl border backdrop-blur-md ${item.isFocus
+                                                                ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30'
+                                                                : (item.category || '').toLowerCase() === 'musique'
+                                                                    ? 'bg-neon-green/20 text-neon-green border-neon-green/30'
+                                                                    : 'bg-neon-red/20 text-neon-red border-neon-red/30'
+                                                                }`}>
+                                                                {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
+                                                            </span>
+                                                            <span className="text-white/60 text-[10px] font-black uppercase tracking-widest">{item.date}</span>
+                                                        </div>
+                                                        <h2
+                                                            className="text-2xl sm:text-3xl font-display font-black text-white italic uppercase leading-tight tracking-tight line-clamp-4 shadow-black drop-shadow-lg"
+                                                            dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
+                                                        />
+                                                    </div>
                                                 </div>
-                                                <div className="p-6 flex flex-col flex-1 relative z-10">
-                                                    <div className="flex justify-between items-center mb-4">
-                                                        <span className={`text-[9px] font-black px-3 py-1 rounded-full border shadow-sm ${item.isFocus
-                                                            ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
-                                                            : (item.category || '').toLowerCase() === 'musique'
-                                                                ? 'bg-neon-green/10 text-neon-green border-neon-green/20'
-                                                                : 'bg-neon-red/10 text-neon-red border-neon-red/20'
-                                                            }`}>
-                                                            {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
-                                                        </span>
-                                                        <div className="flex flex-col items-end">
-                                                            <span className="text-[9px] text-white/30 font-black uppercase tracking-widest">{item.date}</span>
+
+                                                {/* Desktop Variant */}
+                                                <div className="hidden md:flex flex-col h-full overflow-hidden">
+                                                    <div className="h-64 overflow-hidden bg-black/40 relative">
+                                                        <img
+                                                            src={item.image}
+                                                            alt={item.title}
+                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                        />
+                                                        <div className="absolute inset-0 bg-gradient-to-t from-dark-bg/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                    </div>
+                                                    <div className="p-6 flex flex-col flex-1 relative z-10">
+                                                        <div className="flex justify-between items-center mb-4">
+                                                            <span className={`text-[9px] font-black px-3 py-1 rounded-full border shadow-sm ${item.isFocus
+                                                                ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20'
+                                                                : (item.category || '').toLowerCase() === 'musique'
+                                                                    ? 'bg-neon-green/10 text-neon-green border-neon-green/20'
+                                                                    : 'bg-neon-red/10 text-neon-red border-neon-red/20'
+                                                                }`}>
+                                                                {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
+                                                            </span>
+                                                            <div className="flex flex-col items-end">
+                                                                <span className="text-[9px] text-white/30 font-black uppercase tracking-widest">{item.date}</span>
+                                                            </div>
+                                                        </div>
+                                                        <h2
+                                                            className="text-xl font-display font-black text-white mb-4 group-hover:text-neon-red transition-colors line-clamp-2 uppercase italic leading-tight tracking-tight h-12"
+                                                            dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
+                                                        />
+                                                        <p
+                                                            className="text-gray-400 text-sm line-clamp-3 font-medium leading-relaxed"
+                                                            dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
+                                                        />
+                                                        <div className="mt-auto pt-4 flex items-center justify-between border-t border-white/5">
+                                                            <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em]">{item.author || 'Alex'}</span>
+                                                            <span className="text-white/20 group-hover:text-neon-red transition-colors"><ArrowRight className="w-4 h-4" /></span>
                                                         </div>
                                                     </div>
-                                                    <h2
-                                                        className="text-xl font-display font-black text-white mb-4 group-hover:text-neon-red transition-colors line-clamp-2 uppercase italic leading-tight tracking-tight h-12"
-                                                        dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
-                                                    />
-                                                    <p
-                                                        className="text-gray-400 text-sm line-clamp-3 font-medium leading-relaxed"
-                                                        dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
-                                                    />
-                                                    <div className="mt-auto pt-4 flex items-center justify-between border-t border-white/5">
-                                                        <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em]">{item.author || 'Alex'}</span>
-                                                        <span className="text-white/20 group-hover:text-neon-red transition-colors"><ArrowRight className="w-4 h-4" /></span>
-                                                    </div>
                                                 </div>
-                                            </div>
-                                        </Link>
-                                    </motion.article>
-                                ))
-                            ) : (
-                                <div className="col-span-full py-20 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md gap-4">
-                                    <span className={`text-4xl`}>
-                                        {activeTab === 'focus' ? '⭐' : activeTab === 'musique' ? '🎵' : '📰'}
-                                    </span>
-                                    <p className="text-gray-400 font-display uppercase tracking-widest text-lg">
-                                        {activeTab === 'all' ? t('news.no_news') : `Aucun article dans cette catégorie`}
-                                    </p>
-                                </div>
-                            )}
-                        </motion.div>
+                                            </Link>
+                                        </motion.article>
+                                    ))
+                                ) : (
+                                    <div className="col-span-full py-20 flex flex-col items-center justify-center border border-white/10 rounded-3xl bg-dark-bg/40 backdrop-blur-md gap-4">
+                                        <span className={`text-4xl`}>
+                                            {activeTab === 'focus' ? '⭐' : activeTab === 'musique' ? '🎵' : '📰'}
+                                        </span>
+                                        <p className="text-gray-400 font-display uppercase tracking-widest text-lg">
+                                            {activeTab === 'all' ? t('news.no_news') : `Aucun article dans cette catégorie`}
+                                        </p>
+                                    </div>
+                                )}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+
+                    {/* Right Arrow */}
+                    <AnimatePresence>
+                        {currentPage < totalPages && (
+                            <motion.button
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                onClick={() => handlePageChange(currentPage + 1)}
+                                className="absolute -right-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
+                            >
+                                <ChevronRight className="w-16 h-16" strokeWidth={1} />
+                            </motion.button>
+                        )}
                     </AnimatePresence>
                 </div>
 
-                {/* Right Arrow */}
-                <AnimatePresence>
-                    {currentPage < totalPages && (
-                        <motion.button
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            exit={{ opacity: 0, x: -20 }}
-                            onClick={() => handlePageChange(currentPage + 1)}
-                            className="absolute -right-16 top-1/2 -translate-y-1/2 p-4 text-white/30 hover:text-neon-red transition-colors duration-300 hidden xl:block z-20"
-                        >
-                            <ChevronRight className="w-16 h-16" strokeWidth={1} />
-                        </motion.button>
-                    )}
-                </AnimatePresence>
-            </div>
-
-            {/* Pagination Controls */}
-            <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-            />
-            {/* Newsletter Section */}
-            <motion.section
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                className="mt-32 border-t border-white/5 pt-20"
-            >
-                <div className="bg-gradient-to-br from-neon-red/10 via-transparent to-neon-purple/10 border border-white/10 rounded-[40px] p-8 md:p-16 text-center relative overflow-hidden">
-                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-neon-red/10 blur-[100px] rounded-full" />
-                    <div className="relative z-10 max-w-2xl mx-auto">
-                        <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-8">
-                            <Mail className="w-8 h-8 text-neon-red" />
+                {/* Pagination Controls */}
+                <Pagination
+                    currentPage={currentPage}
+                    totalPages={totalPages}
+                    onPageChange={handlePageChange}
+                />
+                {/* Newsletter Section */}
+                <motion.section
+                    initial={{ opacity: 0, y: 30 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="mt-32 border-t border-white/5 pt-20"
+                >
+                    <div className="bg-gradient-to-br from-neon-red/10 via-transparent to-neon-purple/10 border border-white/10 rounded-[40px] p-8 md:p-16 text-center relative overflow-hidden">
+                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-neon-red/10 blur-[100px] rounded-full" />
+                        <div className="relative z-10 max-w-2xl mx-auto">
+                            <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-8">
+                                <Mail className="w-8 h-8 text-neon-red" />
+                            </div>
+                            <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase italic tracking-tight mb-4">
+                                S'INSCRIRE À LA <span className="text-neon-red">NEWSLETTER</span>
+                            </h2>
+                            <p className="text-gray-400 mb-10 text-lg">
+                                {t('article_detail.newsletter_subtitle')}
+                            </p>
+                            <NewsletterForm variant="compact" />
                         </div>
-                        <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase italic tracking-tight mb-4">
-                            S'INSCRIRE À LA <span className="text-neon-red">NEWSLETTER</span>
-                        </h2>
-                        <p className="text-gray-400 mb-10 text-lg">
-                            {t('article_detail.newsletter_subtitle')}
-                        </p>
-                        <NewsletterForm variant="compact" />
                     </div>
-                </div>
-            </motion.section>
-        </div>
+                </motion.section>
+            </div>
+        </>
     );
 }

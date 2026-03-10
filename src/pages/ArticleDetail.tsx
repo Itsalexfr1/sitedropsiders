@@ -6,6 +6,7 @@ import { extractIdFromSlug } from '../utils/slugify';
 import { getNewsContent } from '../utils/contentLoader';
 import { trackPageView } from '../utils/analytics';
 import ArticlePremiumTemplate from '../templates/ArticlePremiumTemplate';
+import { SEO } from '../components/utils/SEO';
 
 
 export function ArticleDetail() {
@@ -95,13 +96,21 @@ export function ArticleDetail() {
     }
 
     return (
-        <ArticlePremiumTemplate
-            article={article}
-            content={rawContent}
-            type="news"
-            relatedArticles={relatedArticles}
-            previousArticle={previousArticle}
-            nextArticle={nextArticle}
-        />
+        <>
+            <SEO
+                title={article.title}
+                description={article.summary}
+                image={article.image}
+                article={true}
+            />
+            <ArticlePremiumTemplate
+                article={article}
+                content={rawContent}
+                type="news"
+                relatedArticles={relatedArticles}
+                previousArticle={previousArticle}
+                nextArticle={nextArticle}
+            />
+        </>
     );
 }

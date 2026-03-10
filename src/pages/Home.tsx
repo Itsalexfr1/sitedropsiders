@@ -10,6 +10,7 @@ import { RecapWidget } from '../components/widgets/RecapWidget';
 import { InterviewWidget } from '../components/widgets/InterviewWidget';
 import { MobileHome } from '../components/mobile/MobileHome';
 import layoutData from '../data/home_layout.json';
+import { SEO } from '../components/utils/SEO';
 
 export function Home() {
     const [layout, setLayout] = useState(layoutData);
@@ -144,16 +145,19 @@ export function Home() {
         }
     };
 
-    if (isMobile) {
-        return <MobileHome />;
-    }
-
     return (
-        <div className="space-y-4 md:space-y-8 pb-12">
-            {layout
-                .filter((item: any) => item.enabled)
-                .map((item: any) => renderSection(item))
-            }
-        </div>
+        <>
+            <SEO />
+            {isMobile ? (
+                <MobileHome />
+            ) : (
+                <div className="space-y-4 md:space-y-8 pb-12">
+                    {layout
+                        .filter((item: any) => item.enabled)
+                        .map((item: any) => renderSection(item))
+                    }
+                </div>
+            )}
+        </>
     );
 }

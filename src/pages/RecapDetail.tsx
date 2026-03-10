@@ -7,6 +7,7 @@ import { getRecapContent } from '../utils/contentLoader';
 import { trackPageView } from '../utils/analytics';
 import ArticlePremiumTemplate from '../templates/ArticlePremiumTemplate';
 import { useHoverSound } from '../hooks/useHoverSound';
+import { SEO } from '../components/utils/SEO';
 
 export function RecapDetail() {
     const { t } = useLanguage();
@@ -56,13 +57,21 @@ export function RecapDetail() {
     const rawContent = fullContent || (recap as any).content || '';
 
     return (
-        <ArticlePremiumTemplate
-            article={recap}
-            content={rawContent}
-            type="recap"
-            relatedArticles={relatedRecaps}
-            previousArticle={previousRecap}
-            nextArticle={nextRecap}
-        />
+        <>
+            <SEO
+                title={`Recap : ${recap.title}`}
+                description={recap.summary}
+                image={recap.image}
+                article={true}
+            />
+            <ArticlePremiumTemplate
+                article={recap}
+                content={rawContent}
+                type="recap"
+                relatedArticles={relatedRecaps}
+                previousArticle={previousRecap}
+                nextArticle={nextRecap}
+            />
+        </>
     );
 }
