@@ -4621,7 +4621,6 @@ export function AdminDashboard() {
                                                                 onClick={() => {
                                                                     setPreviewTimer(15);
                                                                     const start = Date.now();
-                                                                    const duration = 15000;
                                                                     const interval = setInterval(() => {
                                                                         const elapsed = Date.now() - start;
                                                                         const remaining = Math.max(0, 15 - (elapsed / 1000));
