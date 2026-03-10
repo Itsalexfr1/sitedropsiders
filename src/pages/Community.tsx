@@ -829,7 +829,7 @@ export function Community() {
 
                     {/* Enhanced Tabs */}
                     <div className="mb-16">
-                        <div className="flex flex-wrap items-center gap-3 p-1.5 bg-white/5 backdrop-blur-3xl rounded-3xl w-fit border border-white/10">
+                        <div className="flex overflow-x-auto no-scrollbar items-center gap-3 p-1.5 bg-white/5 backdrop-blur-3xl rounded-3xl border border-white/10 max-w-full lg:w-fit">
                             {[
                                 { id: 'WALL', icon: Star, label: 'Mur de Souvenirs' },
                                 { id: 'PHOTOS', icon: Camera, label: 'Albums Photo' },
@@ -845,7 +845,7 @@ export function Community() {
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
-                                    className={`flex items-center gap-3 px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all relative group ${activeTab === tab.id ? 'text-black' : 'text-white/40 hover:text-white'}`}
+                                    className={`flex-shrink-0 flex items-center gap-3 px-6 py-3.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] transition-all relative group ${activeTab === tab.id ? 'text-black' : 'text-white/40 hover:text-white'}`}
                                 >
                                     {activeTab === tab.id && (
                                         <motion.div
