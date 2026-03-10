@@ -1034,6 +1034,30 @@ export function AdminDashboard() {
 
     return (
         <div className="min-h-screen py-32 relative overflow-hidden">
+            {/* SVG Filter for Mosaic & Thermal Effect */}
+            <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
+                <defs>
+                    <filter id="pixelate-mosaic">
+                        <feFlood x="2" y="2" height="2" width="2" />
+                        <feComposite width="8" height="8" />
+                        <feTile result="a" />
+                        <feComposite in="SourceGraphic" in2="a" operator="in" />
+                        <feMorphology operator="dilate" radius="4" />
+                    </filter>
+                    <filter id="thermal-effect">
+                        <feColorMatrix type="matrix" values="
+                            -1 0 0 0 1
+                            0 -1 0 0 1
+                            0 0 -1 0 1
+                            0 0 0 1 0" />
+                        <feComponentTransfer>
+                            <feFuncR type="table" tableValues="0 0.5 1 1 1" />
+                            <feFuncG type="table" tableValues="0 0 0.5 1 1" />
+                            <feFuncB type="table" tableValues="0.5 0 0 0 1" />
+                        </feComponentTransfer>
+                    </filter>
+                </defs>
+            </svg>
             <div className="max-w-full mx-auto px-4 md:px-12 relative z-10">
                 {/* Header */}
                 <motion.div
@@ -4584,6 +4608,30 @@ export function AdminDashboard() {
                                                     </select>
                                                 </div>
                                             </div>
+
+                                            {quizToEdit.imageUrl && (
+                                                <div className="space-y-2">
+                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Prévisualisation (Rendu Jeu)</label>
+                                                    <div className="relative aspect-video rounded-xl overflow-hidden border border-white/10 bg-black">
+                                                        <img
+                                                            src={quizToEdit.imageUrl}
+                                                            className="w-full h-full object-cover transition-all duration-500"
+                                                            style={{
+                                                                filter: quizToEdit.revealEffect === 'MOSAIC'
+                                                                    ? 'url(#pixelate-mosaic)'
+                                                                    : quizToEdit.revealEffect === 'THERMAL'
+                                                                        ? 'url(#thermal-effect)'
+                                                                        : quizToEdit.revealEffect === 'SILHOUETTE'
+                                                                            ? 'brightness(0)'
+                                                                            : 'blur(20px)'
+                                                            }}
+                                                        />
+                                                        <div className="absolute top-2 right-2 px-2 py-1 bg-black/60 rounded text-[8px] font-black text-white/50 uppercase tracking-widest backdrop-blur-sm">
+                                                            Aperçu Effet
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
                                 </div>
