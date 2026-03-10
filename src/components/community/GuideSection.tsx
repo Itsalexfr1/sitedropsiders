@@ -333,14 +333,14 @@ export function GuideSection() {
                     className={`px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all hover:scale-105 active:scale-95 ${activeTab === 'clubs' ? 'bg-neon-red text-white shadow-lg shadow-red-500/10' : 'bg-white/5 text-white/40 border border-white/10'
                         }`}
                 >
-                    🏛️ TOP CLUBS
+                    🏛️ WIKI CLUBS
                 </button>
                 <button
                     onClick={() => setActiveTab('festivals')}
                     className={`px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all hover:scale-105 active:scale-95 ${activeTab === 'festivals' ? 'bg-neon-red text-white shadow-lg shadow-red-500/10' : 'bg-white/5 text-white/40 border border-white/10'
                         }`}
                 >
-                    🎪 TOP FESTIVALS
+                    🎪 WIKI FESTIVALS
                 </button>
                 <button
                     onClick={() => setActiveTab('submit')}

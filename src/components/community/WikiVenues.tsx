@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Heart, X, Globe, Instagram, Plus, Save, Trophy } from 'lucide-react';
+import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen } from 'lucide-react';
 
 import CLUBS_RAW from '../../data/wiki_clubs.json';
 import FESTIVALS_RAW from '../../data/wiki_festivals.json';
@@ -135,14 +135,14 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
                 <div>
                     <div className="flex items-center gap-3 mb-2">
-                        <Trophy className="w-5 h-5 text-neon-red" />
-                        <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">DJ Mag Rankings</span>
+                        <BookOpen className="w-5 h-5 text-neon-red" />
+                        <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">Encyclopédie</span>
                     </div>
                     <h2 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter">
-                        {mode === 'clubs' ? 'Top Clubs' : 'Top Festivals'}
+                        {mode === 'clubs' ? 'Wiki Clubs' : 'Wiki Festivals'}
                     </h2>
                     <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1">
-                        {filtered.length} lieux · Classé par votes + DJ Mag
+                        {filtered.length} lieux · Vote pour tes préférés ❤️
                     </p>
                 </div>
 
@@ -270,12 +270,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                 />
                             </div>
 
-                            {/* Rank badge */}
-                            {venue.djmag_rank < 9999 && (
-                                <div className="absolute top-2 left-2 bg-neon-red text-white text-[8px] font-black px-2 py-0.5 rounded-full shadow">
-                                    #{venue.djmag_rank}
-                                </div>
-                            )}
+                            {/* Custom badge */}
                             {venue.custom && (
                                 <div className="absolute top-2 left-2 bg-white/20 backdrop-blur text-white text-[8px] font-black px-2 py-0.5 rounded-full">
                                     📍 Community
@@ -349,11 +344,6 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                             <div className="p-8 space-y-6">
                                 <div>
                                     <div className="flex items-center gap-2 mb-3 flex-wrap">
-                                        {selected.djmag_rank < 9999 && (
-                                            <span className="px-2 py-0.5 bg-neon-red text-white text-[8px] font-black uppercase rounded">
-                                                DJ Mag #{selected.djmag_rank}
-                                            </span>
-                                        )}
                                         {selected.custom && <span className="px-2 py-0.5 bg-white/10 text-white text-[8px] font-black uppercase rounded">📍 Ajouté par la communauté</span>}
                                         <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{FLAG[selected.country] || '🌍'} {selected.city}, {selected.country} · {selected.genre}</span>
                                     </div>
