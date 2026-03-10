@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Globe, BookOpen, Star } from 'lucide-react';
+import { Search, Globe, BookOpen, Star, Instagram, Music2, ExternalLink } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 import DJ_DATA from '../../data/wiki_djs.json';
@@ -34,8 +34,8 @@ export function WikiDropsiders() {
                 <div className="lg:col-span-4 space-y-4">
                     <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 max-h-[600px] overflow-y-auto custom-scrollbar">
                         <div className="flex items-center gap-2 mb-6 px-2">
-                            <BookOpen className="w-4 h-4 text-neon-red" />
-                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Articles Récents</span>
+                            <BookOpen className="w-4 h-4 text-[#FF0000]" />
+                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">A-Z ({filtered.length} Artistes)</span>
                         </div>
                         <div className="space-y-2">
                             {filtered.map(dj => (
@@ -82,13 +82,34 @@ export function WikiDropsiders() {
                                     <h3 className="text-5xl font-display font-black text-white italic uppercase tracking-tighter">{selectedDj.name}</h3>
                                     <p className="text-gray-400 leading-relaxed max-w-xl">{selectedDj.bio}</p>
 
-                                    <div className="grid grid-cols-3 gap-4 pt-4">
-                                        <div className="bg-white/5 p-4 rounded-2xl border border-white/10">
-                                            <div className="text-[8px] font-black text-gray-500 uppercase mb-1">Note Fan</div>
-                                            <div className="text-[10px] font-black text-white uppercase flex items-center gap-1">
-                                                4.9 <Star className="w-2 h-2 text-neon-red fill-current" />
+                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 pt-4">
+                                        <div className="bg-white/5 p-4 rounded-2xl border border-white/10 text-center">
+                                            <div className="text-[8px] font-black text-gray-500 uppercase mb-1">Fan Rating</div>
+                                            <div className="text-[14px] font-black text-white flex items-center justify-center gap-1">
+                                                {(selectedDj as any).rating || "4.9"} <Star className="w-3 h-3 text-[#FF0000] fill-current" />
                                             </div>
                                         </div>
+                                        
+                                        {(selectedDj as any).spotify && (
+                                            <a href={(selectedDj as any).spotify} target="_blank" rel="noopener noreferrer" className="bg-[#1DB954]/10 hover:bg-[#1DB954]/20 p-4 rounded-2xl border border-[#1DB954]/20 text-center transition-colors group">
+                                                <div className="text-[8px] font-black text-[#1DB954] uppercase mb-1">Spotify</div>
+                                                <div className="flex justify-center"><Music2 className="w-5 h-5 text-[#1DB954] group-hover:scale-110 transition-transform" /></div>
+                                            </a>
+                                        )}
+                                        
+                                        {(selectedDj as any).instagram && (
+                                            <a href={(selectedDj as any).instagram} target="_blank" rel="noopener noreferrer" className="bg-[#E1306C]/10 hover:bg-[#E1306C]/20 p-4 rounded-2xl border border-[#E1306C]/20 text-center transition-colors group">
+                                                <div className="text-[8px] font-black text-[#E1306C] uppercase mb-1">Instagram</div>
+                                                <div className="flex justify-center"><Instagram className="w-5 h-5 text-[#E1306C] group-hover:scale-110 transition-transform" /></div>
+                                            </a>
+                                        )}
+                                        
+                                        {(selectedDj as any).soundcloud && (
+                                            <a href={(selectedDj as any).soundcloud} target="_blank" rel="noopener noreferrer" className="bg-[#FF5500]/10 hover:bg-[#FF5500]/20 p-4 rounded-2xl border border-[#FF5500]/20 text-center transition-colors group">
+                                                <div className="text-[8px] font-black text-[#FF5500] uppercase mb-1">SoundCloud</div>
+                                                <div className="flex justify-center"><ExternalLink className="w-5 h-5 text-[#FF5500] group-hover:scale-110 transition-transform" /></div>
+                                            </a>
+                                        )}
                                     </div>
                                 </div>
                             </div>
