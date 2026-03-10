@@ -1,0 +1,974 @@
+[
+  {
+    "id": "1",
+    "name": "David Guetta",
+    "genre": "EDM / Mainstage",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/2d527fa03e106ed82a28f161694278d3/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.2"
+  },
+  {
+    "id": "2",
+    "name": "Dimitri Vegas & Like Mike",
+    "genre": "Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/00d5711cc1fa5db0a6f3ff4c2876a1cb/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.5"
+  },
+  {
+    "id": "3",
+    "name": "Martin Garrix",
+    "genre": "House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/4cab1c0cbe0edc1b3d2234873abc485e/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.9"
+  },
+  {
+    "id": "4",
+    "name": "Alok",
+    "genre": "Tech House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/dfa81ed66b2adca4c18005df7741f4e8/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.5"
+  },
+  {
+    "id": "5",
+    "name": "Armin van Buuren",
+    "genre": "Melodic Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/d0e284af11bc5053a1bdfa20d08f764e/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.2"
+  },
+  {
+    "id": "6",
+    "name": "Timmy Trumpet",
+    "genre": "Hardstyle",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/4286a6cb7feff213d6c96a876a40ed88/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "7",
+    "name": "Afrojack",
+    "genre": "Bass / Dubstep",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/73ac0571eb4a75e4158b146b44b02f7b/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.9"
+  },
+  {
+    "id": "8",
+    "name": "Steve Aoki",
+    "genre": "Trance",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/0383b9ee7f3d44c3bf84d9401189458e/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.6"
+  },
+  {
+    "id": "9",
+    "name": "Peggy Gou",
+    "genre": "Deep House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/5a7ecd46b78038fbc212012fca631cc8/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "10",
+    "name": "Vintage Culture",
+    "genre": "EDM / Mainstage",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/bbc7f0e75f9154e5982420c42e805484/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.5"
+  },
+  {
+    "id": "11",
+    "name": "Alan Walker",
+    "genre": "Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/79d384488d390e65a6c27a95c431627e/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "12",
+    "name": "Calvin Harris",
+    "genre": "House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/566c5a0826b2981a396850ad6ab54429/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.6"
+  },
+  {
+    "id": "13",
+    "name": "Don Diablo",
+    "genre": "Tech House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/7c858b7a25ce3c6cd0fe508b8282f734/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "14",
+    "name": "R3hab",
+    "genre": "Melodic Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/bec237025276890e02b39904c246e3c2/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "15",
+    "name": "KSHMR",
+    "genre": "Hardstyle",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/c51ce595f82b45e65041f79903b33a75/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "16",
+    "name": "W&W",
+    "genre": "Bass / Dubstep",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/f51ce29ccb87b94e45e2e5804244e2c2/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.2"
+  },
+  {
+    "id": "17",
+    "name": "Skrillex",
+    "genre": "Trance",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/0075f053766d7d0e12e4a7be22b85e6a/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.6"
+  },
+  {
+    "id": "18",
+    "name": "Charlotte de Witte",
+    "genre": "Deep House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/e9fa1d3d578c32f2a5786f0d6d932649/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.5"
+  },
+  {
+    "id": "19",
+    "name": "Oliver Heldens",
+    "genre": "EDM / Mainstage",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/fd587dfb0676388e355597b901a9618a/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.2"
+  },
+  {
+    "id": "20",
+    "name": "Fisher",
+    "genre": "Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/86e22d6af3b1dbef69c9134a701a1e28/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "21",
+    "name": "Gordo",
+    "genre": "House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/d844c561f01a32bfd349da48949a830c/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.8"
+  },
+  {
+    "id": "22",
+    "name": "Lost Frequencies",
+    "genre": "Tech House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/5876cafffe21256efdaf47fca19a2694/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.8"
+  },
+  {
+    "id": "23",
+    "name": "Tiësto",
+    "genre": "Melodic Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/b6ff15612b6ef51e5a552e4bd6abefd6/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "24",
+    "name": "Nicky Romero",
+    "genre": "Hardstyle",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/39f23a2d2a7da500c0ec7b331cf1330f/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.4"
+  },
+  {
+    "id": "25",
+    "name": "Diplo",
+    "genre": "Bass / Dubstep",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/e26fa83b67df45f262ce0181c3b86463/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "26",
+    "name": "Carl Cox",
+    "genre": "Trance",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/d3d9f5bf4750e23c5a2e879327c2d446/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "27",
+    "name": "Meduza",
+    "genre": "Deep House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/ab9d5b17af04e65b048b33fc2806f910/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.5"
+  },
+  {
+    "id": "28",
+    "name": "Amelie Lens",
+    "genre": "EDM / Mainstage",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/1660fae3331d94973c21fd212978ae92/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.5"
+  },
+  {
+    "id": "29",
+    "name": "Eric Prydz",
+    "genre": "Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/0adb6d9882303b2429a5ec930fbbd2f5/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.2"
+  },
+  {
+    "id": "30",
+    "name": "Boris Brejcha",
+    "genre": "House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/dc058ad727632b29fd493cb5d6230945/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "31",
+    "name": "Hardwell",
+    "genre": "Tech House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/243a0ede39075f2251c3d18c4765bfed/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.9"
+  },
+  {
+    "id": "32",
+    "name": "CamelPhat",
+    "genre": "Melodic Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/0323760d53e2a30fea1e66dafcb0f09e/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "33",
+    "name": "Fred again..",
+    "genre": "Hardstyle",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/f49a21212bfea7814ecb21096ccb0007/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.9"
+  },
+  {
+    "id": "34",
+    "name": "Anyma",
+    "genre": "Bass / Dubstep",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/4db2c364116fc2655c2de6b2180ec257/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.5"
+  },
+  {
+    "id": "35",
+    "name": "John Summit",
+    "genre": "Trance",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/200982268dcabae98644b1601a90a948/1000x1000-000000-80-0-0.jpg",
+    "rating": "5.0"
+  },
+  {
+    "id": "36",
+    "name": "Mau P",
+    "genre": "Deep House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/0f40555bc579fc175b726c518dc15766/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.8"
+  },
+  {
+    "id": "37",
+    "name": "James Hype",
+    "genre": "EDM / Mainstage",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/9e567fe860f1caca9be09512edee3dc8/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.9"
+  },
+  {
+    "id": "38",
+    "name": "Chris Lake",
+    "genre": "Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/d7eb70e435507e4a1ea9398330bdbc65/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.6"
+  },
+  {
+    "id": "39",
+    "name": "Maddix",
+    "genre": "House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/2950fe4c21a749855bfa40b24b394fc5/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.6"
+  },
+  {
+    "id": "40",
+    "name": "Swedish House Mafia",
+    "genre": "Tech House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/bae3a6abb59c25a18a2a84d1700527bf/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.8"
+  },
+  {
+    "id": "41",
+    "name": "Kevin de Vries",
+    "genre": "Melodic Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/6209df06dcc1019cbfecb826a6f1608e/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.4"
+  },
+  {
+    "id": "42",
+    "name": "Dom Dolla",
+    "genre": "Hardstyle",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/64e51b9c69e898c15cf61e200e277a17/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "43",
+    "name": "Eli Brown",
+    "genre": "Bass / Dubstep",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/97ebf1084bb11f8febd76a2b5e926eee/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.8"
+  },
+  {
+    "id": "44",
+    "name": "Miss Monique",
+    "genre": "Trance",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/e97fc6b76b1b6153fee9ec5b5aa191ce/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.6"
+  },
+  {
+    "id": "45",
+    "name": "Tale Of Us",
+    "genre": "Deep House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/2924af1e25e910aa9073f79bb6755913/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.9"
+  },
+  {
+    "id": "46",
+    "name": "Illenium",
+    "genre": "EDM / Mainstage",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/0e4f30513c3c06fbeed3f2e403aad80f/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.8"
+  },
+  {
+    "id": "47",
+    "name": "Marshmello",
+    "genre": "Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/7990773a89df9f06fc2b871ad1de00bf/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "48",
+    "name": "The Chainsmokers",
+    "genre": "House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/461231bf0a032d7b8b315e05d1b4bbd7/1000x1000-000000-80-0-0.jpg",
+    "rating": "5.0"
+  },
+  {
+    "id": "49",
+    "name": "Kygo",
+    "genre": "Tech House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/c3e15399350755674d0462ddf51e0008/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "50",
+    "name": "Zedd",
+    "genre": "Melodic Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/6013ec7ad0b823306c3582e2792dd145/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "51",
+    "name": "DJ Snake",
+    "genre": "Hardstyle",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/9f2c6ad6c387130c520b965cedebdca5/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "52",
+    "name": "Alesso",
+    "genre": "Bass / Dubstep",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/00153f7b9e83fd1ef39cf1a94776aae3/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "53",
+    "name": "Nervo",
+    "genre": "Trance",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/7cdf421408b067da0220e9ba0bf544da/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.5"
+  },
+  {
+    "id": "54",
+    "name": "Paul van Dyk",
+    "genre": "Deep House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/93c977679557e4a266ede621ffe45f68/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.6"
+  },
+  {
+    "id": "55",
+    "name": "Above & Beyond",
+    "genre": "EDM / Mainstage",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/a159a05bd05255371563fb0ecdbe2016/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.2"
+  },
+  {
+    "id": "56",
+    "name": "Vini Vici",
+    "genre": "Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/6f2c6e7665fe19b2528c9e872d62b90c/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.5"
+  },
+  {
+    "id": "57",
+    "name": "Claptone",
+    "genre": "House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/381fa235263f35530b97062f38202e30/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.2"
+  },
+  {
+    "id": "58",
+    "name": "Nora En Pure",
+    "genre": "Tech House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/43249d304342f9e467f80e9a61a5d782/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.4"
+  },
+  {
+    "id": "59",
+    "name": "Nina Kraviz",
+    "genre": "Melodic Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/cec628b7f263df4445616c7f773721e7/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "60",
+    "name": "Adam Beyer",
+    "genre": "Hardstyle",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/d7734315ee4f0fa9e40cfd622c4ddf92/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.2"
+  },
+  {
+    "id": "61",
+    "name": "REZZ",
+    "genre": "Bass / Dubstep",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/d1b32eea9b8b894fd088ea36f15dc52d/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.9"
+  },
+  {
+    "id": "62",
+    "name": "Subtronics",
+    "genre": "Trance",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/23d07534f604c5ee93a78fd19e7d89ad/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "63",
+    "name": "Excision",
+    "genre": "Deep House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/4ae646ba4e91f3b1271c6e925cef65be/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.4"
+  },
+  {
+    "id": "64",
+    "name": "Alison Wonderland",
+    "genre": "EDM / Mainstage",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/463f08396d9ef11b79782055c7fe599d/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "65",
+    "name": "Deadmau5",
+    "genre": "Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/2a0a1fe7d977805522a3fff9dfed86de/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.6"
+  },
+  {
+    "id": "66",
+    "name": "Kaskade",
+    "genre": "House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/e2d9a36145370879e8e15368efd75040/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.8"
+  },
+  {
+    "id": "67",
+    "name": "Flume",
+    "genre": "Tech House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/88985ef4ee04371eeca38040ac5dbb53/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "68",
+    "name": "Disclosure",
+    "genre": "Melodic Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/83aa8d9bb361fe039ee1caf0488eb0c1/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.2"
+  },
+  {
+    "id": "69",
+    "name": "Bicep",
+    "genre": "Hardstyle",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/ad11208f91f33fd0dc1700722ccee660/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.6"
+  },
+  {
+    "id": "70",
+    "name": "Rüfüs Du Sol",
+    "genre": "Bass / Dubstep",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/e9890b80076d03cce617888ec3ab2996/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.8"
+  },
+  {
+    "id": "71",
+    "name": "Solomun",
+    "genre": "Trance",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/c3cb9c9d69a5c87f968e10ae17d3566c/1000x1000-000000-80-0-0.jpg",
+    "rating": "5.0"
+  },
+  {
+    "id": "72",
+    "name": "Maceo Plex",
+    "genre": "Deep House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/c02e49a5c71f43770db7e53ebac32bbf/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "73",
+    "name": "Jamie Jones",
+    "genre": "EDM / Mainstage",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/b44109747550c02200ff1a8b4ac898b2/1000x1000-000000-80-0-0.jpg",
+    "rating": "5.0"
+  },
+  {
+    "id": "74",
+    "name": "Michael Bibi",
+    "genre": "Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/237ee06636d89562b7b523d0a60b4a18/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.6"
+  },
+  {
+    "id": "75",
+    "name": "The Martinez Brothers",
+    "genre": "House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/6789294be48ccb6175e5b18f6108c9f8/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "76",
+    "name": "Gorgon City",
+    "genre": "Tech House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/5598b7523e131bb9aaca8243d447a27f/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.4"
+  },
+  {
+    "id": "77",
+    "name": "Sonny Fodera",
+    "genre": "Melodic Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/4098a18b2d3364a017f6521b751706e2/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.8"
+  },
+  {
+    "id": "78",
+    "name": "MK",
+    "genre": "Hardstyle",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/ce42df7d498a54a4045511554561183d/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.4"
+  },
+  {
+    "id": "79",
+    "name": "Duke Dumont",
+    "genre": "Bass / Dubstep",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/4118024e71bd7fe8346e41042b624491/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "80",
+    "name": "Joel Corry",
+    "genre": "Trance",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/056432d17ad7e383510047c562c2d6ab/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.9"
+  },
+  {
+    "id": "81",
+    "name": "Robin Schulz",
+    "genre": "Deep House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/1486b240b4987ab8de5bca19b14b3260/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.5"
+  },
+  {
+    "id": "82",
+    "name": "Felix Jaehn",
+    "genre": "EDM / Mainstage",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/fc32c967aac8dabda0e91466938dce71/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "83",
+    "name": "Sigala",
+    "genre": "Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/bc10c50fe81d7a4cd6492650b57724df/1000x1000-000000-80-0-0.jpg",
+    "rating": "5.0"
+  },
+  {
+    "id": "84",
+    "name": "Galantis",
+    "genre": "House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/5f02f7cb30566ca267b78f8d559650e0/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.8"
+  },
+  {
+    "id": "85",
+    "name": "Yellow Claw",
+    "genre": "Tech House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/daf1dafef6edc4a630259cecfbe9089b/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "86",
+    "name": "Jauz",
+    "genre": "Melodic Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/ae06a8b9cc3b22578cb334df52d9983d/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.4"
+  },
+  {
+    "id": "87",
+    "name": "San Holo",
+    "genre": "Hardstyle",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/c39ef74c41fdd106a003baf7358747ac/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "88",
+    "name": "Odesza",
+    "genre": "Bass / Dubstep",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/b47c7b6e9ef037058b4e056746d3aa1f/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.8"
+  },
+  {
+    "id": "89",
+    "name": "Zeds Dead",
+    "genre": "Trance",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/c5d32946bfa157b9829ae58ab044c41a/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.6"
+  },
+  {
+    "id": "90",
+    "name": "Tchami",
+    "genre": "Deep House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/68df06e5c4063b21f55116fdecd3f9c7/1000x1000-000000-80-0-0.jpg",
+    "rating": "5.0"
+  },
+  {
+    "id": "91",
+    "name": "Malaa",
+    "genre": "EDM / Mainstage",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/a012575e93453898b86afe65f36231ab/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "92",
+    "name": "DJ Isaac",
+    "genre": "Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/4b787e10289cc1d804d933f93c23f5e5/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.5"
+  },
+  {
+    "id": "93",
+    "name": "Headhunterz",
+    "genre": "House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/c6a56f10698927589e84fb346424d9f7/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "94",
+    "name": "Brennan Heart",
+    "genre": "Tech House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/73b59733193d90c33c7407d1eb54b88e/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.4"
+  },
+  {
+    "id": "95",
+    "name": "Da Tweekaz",
+    "genre": "Melodic Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/872392e50ad6dd5602c4bb34f14c2c9f/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.9"
+  },
+  {
+    "id": "96",
+    "name": "Sub Zero Project",
+    "genre": "Hardstyle",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/3768f8e864c119e47312f1ba8aaeb375/1000x1000-000000-80-0-0.jpg",
+    "rating": "5.0"
+  },
+  {
+    "id": "97",
+    "name": "Angerfist",
+    "genre": "Bass / Dubstep",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/3c5b7788a18f08af1c486c3acba5e125/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "98",
+    "name": "Mochakk",
+    "genre": "Trance",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/180249db2aaf6dbe0c92cd2c3ffa49dc/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "99",
+    "name": "Indira Paganotto",
+    "genre": "Deep House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/ae14be4ebea3e1ed982a77884506ba4f/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.5"
+  },
+  {
+    "id": "100",
+    "name": "Sara Landry",
+    "genre": "EDM / Mainstage",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/9dccc0982e84690394b24d526d93d748/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.6"
+  },
+  {
+    "id": "101",
+    "name": "Klangkuenstler",
+    "genre": "Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/ea8f1d873365784f8c13e77b8976f4e3/1000x1000-000000-80-0-0.jpg",
+    "rating": "5.0"
+  },
+  {
+    "id": "102",
+    "name": "I Hate Models",
+    "genre": "House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/7d0aa499f17559d34daf84762232b400/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.8"
+  },
+  {
+    "id": "103",
+    "name": "Nico Moreno",
+    "genre": "Tech House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/3837d34520c140c816d98ea206e8befa/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.5"
+  },
+  {
+    "id": "104",
+    "name": "Trym",
+    "genre": "Melodic Techno",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/82582ee3e21cf8566042ad93cd6a19b6/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.3"
+  },
+  {
+    "id": "105",
+    "name": "Shlømo",
+    "genre": "Hardstyle",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/1ec42c99da2c0e99dfe03795f8c210e6/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.6"
+  },
+  {
+    "id": "106",
+    "name": "Marlon Hoffstadt",
+    "genre": "Bass / Dubstep",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/8c7b8d60ef65958506ccbd363f9310b5/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "107",
+    "name": "Patrick Mason",
+    "genre": "Trance",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/7a274f7a2fe8b4a71f55f1cfc4f2968d/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.7"
+  },
+  {
+    "id": "108",
+    "name": "Dimitri K",
+    "genre": "Deep House",
+    "bio": "Artiste incontournable du moment, très présent dans les classements Top 100 DJ Mag ou Top 101 Producers (1001Tracklists). S'est produit dans les plus gros festivals du monde.",
+    "country": "Intl",
+    "image": "https://cdn-images.dzcdn.net/images/artist/05e566fdb06c185f03aee636f4624bfe/1000x1000-000000-80-0-0.jpg",
+    "rating": "4.6"
+  }
+]

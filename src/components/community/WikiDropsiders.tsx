@@ -3,12 +3,7 @@ import { motion } from 'framer-motion';
 import { Search, Globe, BookOpen, Star } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
-const DJ_DATA = [
-    { id: '1', name: 'Mau P', genre: 'Tech House', bio: "Le nouveau phénomène hollandais, mondialement connu pour son hit \"Drugs From Amsterdam\".", country: 'NL', image: 'https://images.unsplash.com/photo-1542158025-0fa22d861d8a?w=500&h=500&fit=crop' },
-    { id: '2', name: 'Anyma', genre: 'Melodic Techno', bio: "L'âme numérique du label Afterlife, fusionnant art visuel époustouflant et mélodies électroniques.", country: 'IT', image: 'https://images.unsplash.com/photo-1506157786151-b8491531f063?w=500&h=500&fit=crop' },
-    { id: '3', name: 'Kevin de Vries', genre: 'Techno', bio: "Le titan basé à Berlin créant une techno hybride, émotive et à haute énergie transe.", country: 'DE', image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=500&h=500&fit=crop' },
-    { id: '4', name: 'John Summit', genre: 'House', bio: "Superstar de la house de Chicago et fondateur du label Experts Only. Il enflamme tous les festivals.", country: 'US', image: 'https://images.unsplash.com/photo-1493225457124-a1a2a5f529db?w=500&h=500&fit=crop' },
-];
+import DJ_DATA from '../../data/wiki_djs.json';
 
 export function WikiDropsiders() {
     const [search, setSearch] = useState('');
