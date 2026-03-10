@@ -6,7 +6,7 @@ import {
     Music, Shield, Palette, Megaphone, Lock,
     RefreshCw, X, Heart, Ticket, Euro,
     Flame, Search, Filter, Globe,
-    Book, Share2, MessageSquare, Calendar as CalendarIcon, Wand2
+    Book, Share2, MessageSquare, Wand2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
@@ -835,6 +835,7 @@ export function Community() {
                                 { id: 'QUIZZ', icon: Gamepad2, label: 'Quiz' },
                                 { id: 'GAME', icon: Sparkles, iconClass: 'text-amber-400', label: 'PRODUCER' },
                                 { id: 'WIKI', icon: Book, label: 'Wiki' },
+                                { id: 'GUIDE', icon: Info, label: 'Guide Pratique' },
                                 { id: 'TRACK_ID', icon: MessageSquare, label: 'TrackID' },
                                 { id: 'PLAYLISTS', icon: Share2, label: 'Mixs' },
                                 { id: 'LAB', icon: Wand2, label: 'Lab' },
