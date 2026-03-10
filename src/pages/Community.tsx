@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Users, Camera, Gamepad2, Star, Info, Car, Bell,
+    Users, Camera, Gamepad2, Star, Info, Car,
     Sparkles, Trophy, Plus, Check, AlertCircle,
     Music, Shield, Palette, Megaphone, Lock,
     RefreshCw, X, Heart, Ticket, Euro,
-    Flame, Search, Filter, Globe
+    Flame, Search, Filter, Globe,
+    Book, Share2, MessageSquare, Calendar as CalendarIcon, Wand2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
@@ -15,6 +16,12 @@ import { AvisSection } from '../components/community/AvisSection';
 import { GuideSection } from '../components/community/GuideSection';
 import { CovoitSection } from '../components/community/CovoitSection';
 import { AlertsSection } from '../components/community/AlertsSection';
+import { DjNameGenerator } from '../components/community/DjNameGenerator';
+import { WikiDropsiders } from '../components/community/WikiDropsiders';
+import { PlaylistSharing } from '../components/community/PlaylistSharing';
+import { TrackIdForum } from '../components/community/TrackIdForum';
+import { CollaborativeCalendar } from '../components/community/CollaborativeCalendar';
+import { useEffect } from 'react';
 import galerieData from '../data/galerie.json';
 import confetti from 'canvas-confetti';
 
@@ -254,20 +261,41 @@ const FIX_COSTS = [
 
 export function Community() {
     const navigate = useNavigate();
-    const [activeTab, setActiveTab] = useState<'WALL' | 'PHOTOS' | 'QUIZZ' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'ALERTS' | 'GAME'>('WALL');
+
+    // --- TAB TYPE UPDATE ---
+    type TabType = 'WALL' | 'PHOTOS' | 'QUIZZ' | 'GAME' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'ALERTS' | 'WIKI' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB';
+    const [activeTab, setActiveTab] = useState<TabType>('WALL');
 
     // Game State
     const [gameStarted, setGameStarted] = useState(false);
+    const [gameState, setGameState] = useState<'ONBOARDING' | 'LOCATION' | 'DATE' | 'LOGISTICS' | 'STAGES' | 'BOOKING' | 'GENERATION' | 'RESULTS'>('ONBOARDING');
     const [budget, setBudget] = useState(0);
     const [selectedDjs, setSelectedDjs] = useState<typeof DJ_POOL>([]);
     const [selectedCosts, setSelectedCosts] = useState<string[]>([]);
-    const [gameState, setGameState] = useState<'ONBOARDING' | 'LOCATION' | 'DATE' | 'LOGISTICS' | 'STAGES' | 'BOOKING' | 'GENERATION' | 'RESULTS'>('ONBOARDING');
-    const [bookingStatus, setBookingStatus] = useState<{ djId: string; status: 'PENDING' | 'ACCEPTED' | 'REJECTED'; message: string } | null>(null);
+    const [bookingStatus, setBookingStatus] = useState<{ djId: string, status: 'PENDING' | 'ACCEPTED' | 'REJECTED', message: string } | null>(null);
     const [ticketingProgress, setTicketingProgress] = useState(0);
     const [weather, setWeather] = useState<'CLEAR' | 'RAIN' | 'HEAT'>('CLEAR');
 
+    // --- EFFECT: DYNAMIC THEME ---
+    useEffect(() => {
+        const checkTheme = () => {
+            const hour = new Date().getHours();
+            const body = document.body;
+            body.classList.remove('theme-deep-night', 'theme-sunrise', 'theme-sunset');
+
+            if (hour >= 2 && hour < 6) body.classList.add('theme-deep-night');
+            else if (hour >= 6 && hour < 10) body.classList.add('theme-sunrise');
+            else if (hour >= 18 && hour < 22) body.classList.add('theme-sunset');
+        };
+
+        checkTheme();
+        const interval = setInterval(checkTheme, 60000); // Check every minute
+        return () => clearInterval(interval);
+    }, []);
+
     // RPG State
     const [promoterXP, setPromoterXP] = useState(() => Number(localStorage.getItem('dropsiders_xp')) || 0);
+    const [drops, setDrops] = useState(() => Number(localStorage.getItem('dropsiders_drops')) || 0);
     const [selectedEffects, setSelectedEffects] = useState<string[]>([]);
     const [negotiatingDj, setNegotiatingDj] = useState<typeof DJ_POOL[0] | null>(null);
     const [aftermovieSummary, setAftermovieSummary] = useState('');
@@ -797,12 +825,14 @@ export function Community() {
                         {[
                             { id: 'WALL', icon: Star, label: 'Mur de Souvenirs' },
                             { id: 'PHOTOS', icon: Camera, label: 'Albums Photo' },
-                            { id: 'QUIZZ', icon: Gamepad2, label: 'Défis & Quiz' },
-                            { id: 'GAME', icon: Sparkles, iconClass: 'text-amber-400', label: 'FESTIVAL PRODUCER' },
-                            { id: 'AVIS', icon: Heart, label: 'Avis' },
-                            { id: 'GUIDE', icon: Info, label: 'Guide Pratique' },
-                            { id: 'COVOIT', icon: Car, label: 'Covoiturage' },
-                            { id: 'ALERTS', icon: Bell, label: 'Alertes' }
+                            { id: 'QUIZZ', icon: Gamepad2, label: 'Quiz' },
+                            { id: 'GAME', icon: Sparkles, iconClass: 'text-amber-400', label: 'PRODUCER' },
+                            { id: 'WIKI', icon: Book, label: 'Wiki' },
+                            { id: 'TRACK_ID', icon: MessageSquare, label: 'TrackID' },
+                            { id: 'PLAYLISTS', icon: Share2, label: 'Mixs' },
+                            { id: 'CALENDAR', icon: CalendarIcon, label: 'Agenda+' },
+                            { id: 'LAB', icon: Wand2, label: 'Lab' },
+                            { id: 'COVOIT', icon: Car, label: 'Covoit' },
                         ].map((tab) => (
                             <button
                                 key={tab.id}
@@ -1707,22 +1737,28 @@ export function Community() {
                                                             <button
                                                                 onClick={async () => {
                                                                     const earnedXp = Math.floor((profit > 0 ? profit / 1000 : 0) + (attendance / 200));
+                                                                    const earnedDrops = Math.floor((profit > 0 ? profit / 5000 : 0) + (attendance / 500));
                                                                     const newXp = (promoterXP || 0) + earnedXp;
+                                                                    const newDrops = (drops || 0) + earnedDrops;
+
                                                                     setPromoterXP(newXp);
+                                                                    setDrops(newDrops);
                                                                     localStorage.setItem('dropsiders_xp', newXp.toString());
+                                                                    localStorage.setItem('dropsiders_drops', newDrops.toString());
+
                                                                     if (playerEmail) {
                                                                         try {
                                                                             await fetch('/api/community/sync-xp', {
                                                                                 method: 'POST',
                                                                                 headers: { 'Content-Type': 'application/json' },
-                                                                                body: JSON.stringify({ email: playerEmail, xp: newXp, level: currentRank.level })
+                                                                                body: JSON.stringify({ email: playerEmail, xp: newXp, drops: newDrops, level: currentRank.level })
                                                                             });
                                                                         } catch (e) {
                                                                             console.error('Cloud Sync failed', e);
                                                                         }
                                                                     }
                                                                     resetGame();
-                                                                    alert(`Félicitations ! Vous avez gagné ${earnedXp} XP${playerEmail ? ' – Progression synchronisée sur le Cloud !' : ' – Sauvegardé localement.'}`);
+                                                                    alert(`Félicitations ! Vous avez gagné ${earnedXp} XP et ${earnedDrops} Drops${playerEmail ? ' – Progression synchronisée sur le Cloud !' : ' – Sauvegardé localement.'}`);
                                                                 }}
                                                                 className="flex-1 py-6 bg-amber-400 text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-amber-500 transition-all shadow-[0_10px_30px_rgba(251,191,36,0.2)]"
                                                             >
@@ -1826,11 +1862,66 @@ export function Community() {
                     {activeTab === 'ALERTS' && (
                         <motion.div
                             key="alerts"
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
                         >
                             <AlertsSection />
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'WIKI' && (
+                        <motion.div
+                            key="wiki"
+                            initial={{ opacity: 0, scale: 0.98 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.02 }}
+                        >
+                            <WikiDropsiders />
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'PLAYLISTS' && (
+                        <motion.div
+                            key="playlists"
+                            initial={{ opacity: 0, y: 30 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -30 }}
+                        >
+                            <PlaylistSharing />
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'TRACK_ID' && (
+                        <motion.div
+                            key="track_id"
+                            initial={{ opacity: 0, filter: 'blur(10px)' }}
+                            animate={{ opacity: 1, filter: 'blur(0px)' }}
+                            exit={{ opacity: 0, filter: 'blur(10px)' }}
+                        >
+                            <TrackIdForum />
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'CALENDAR' && (
+                        <motion.div
+                            key="calendar"
+                            initial={{ opacity: 0, x: -50 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: 50 }}
+                        >
+                            <CollaborativeCalendar />
+                        </motion.div>
+                    )}
+
+                    {activeTab === 'LAB' && (
+                        <motion.div
+                            key="lab"
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 1.1 }}
+                        >
+                            <DjNameGenerator />
                         </motion.div>
                     )}
                 </AnimatePresence>

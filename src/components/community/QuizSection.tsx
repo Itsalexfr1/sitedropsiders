@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gamepad2, Headphones, Plus, CheckCircle2, XCircle, Trophy, Send, Play, User, Zap, Camera, Upload, Image as ImageIcon, Activity } from 'lucide-react';
+import { Gamepad2, Headphones, Plus, CheckCircle2, XCircle, Trophy, Send, Play, User, Zap, Camera, Upload, Image as ImageIcon, Activity, Flame, Shield } from 'lucide-react';
 import { uploadFile } from '../../utils/uploadService';
 import { useLanguage } from '../../context/LanguageContext';
 import { AudioWaveformSelector } from '../admin/AudioWaveformSelector';
@@ -48,6 +48,9 @@ export function QuizSection() {
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
     const [gamePseudo, setGamePseudo] = useState(localStorage.getItem('user_pseudo') || '');
+    const [drops, setDrops] = useState(parseInt(localStorage.getItem('user_drops') || '0'));
+    const [isSurvivalMode, setIsSurvivalMode] = useState(false);
+    const [isGhostMode, setIsGhostMode] = useState(false);
 
     const [leaderboard, setLeaderboard] = useState<ScoreRecord[]>([]);
 
@@ -160,7 +163,8 @@ export function QuizSection() {
 
         // Shuffle
         const shuffled = [...filtered].sort(() => Math.random() - 0.5);
-        const selection = shuffled.slice(0, selectedLength);
+        // If survival mode, we take all available or a large amount, but we stop at first error
+        const selection = isSurvivalMode ? shuffled : shuffled.slice(0, selectedLength);
 
         setGameQuizzes(selection);
         setCurrentQuizIndex(0);
@@ -178,6 +182,15 @@ export function QuizSection() {
         setSelectedAnswer(answer);
         const correct = answer === gameQuizzes[currentQuizIndex].correctAnswer;
         if (correct) setScore(score + 1);
+
+        // Survival mode logic
+        if (isSurvivalMode && !correct) {
+            setIsRevealing(true);
+            setTimeout(() => {
+                finishGame();
+            }, 2000);
+            return;
+        }
 
         // Se l'immagine è un artista o se vogliamo comunque una fase di rivelazione
         const isArtist = gameQuizzes[currentQuizIndex].imageType === 'ARTIST';
@@ -252,20 +265,28 @@ export function QuizSection() {
     const finishGame = async () => {
         setGameState('results');
 
-        // Save record
-        try {
-            await fetch('/api/quiz/leaderboard', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    pseudo: gamePseudo,
-                    score,
-                    total: gameQuizzes.length,
-                    time: totalGameTime
-                })
-            });
-            fetchLeaderboard();
-        } catch (e) { }
+        // Calculate and add Drops
+        const earnedDrops = score * 5 + (score === gameQuizzes.length ? 50 : 0);
+        const newTotalDrops = drops + earnedDrops;
+        setDrops(newTotalDrops);
+        localStorage.setItem('user_drops', newTotalDrops.toString());
+
+        // Save record if not in ghost mode
+        if (!isGhostMode) {
+            try {
+                await fetch('/api/quiz/leaderboard', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        pseudo: gamePseudo,
+                        score,
+                        total: gameQuizzes.length,
+                        time: totalGameTime
+                    })
+                });
+                fetchLeaderboard();
+            } catch (e) { }
+        }
     };
 
     const handleFormSubmit = async (e: React.FormEvent) => {
@@ -390,15 +411,18 @@ export function QuizSection() {
                                     exit={{ opacity: 0, scale: 0.95 }}
                                     className="bg-white/5 border border-white/10 rounded-[3rem] p-10 backdrop-blur-3xl overflow-hidden relative h-full"
                                 >
-                                    <div className="absolute top-0 right-0 p-8 opacity-5">
-                                        <Gamepad2 className="w-32 h-32 text-white" />
+                                    <div className="flex justify-between items-start mb-8">
+                                        <h3 className="text-3xl font-display font-black text-white italic uppercase flex items-center gap-4">
+                                            <Gamepad2 className="w-8 h-8 text-neon-red" />
+                                            Quizz
+                                        </h3>
+                                        <div className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-2xl">
+                                            <Zap className="w-4 h-4 text-neon-cyan animate-pulse" />
+                                            <span className="text-sm font-black text-white tabular-nums">{drops} DROPS</span>
+                                        </div>
                                     </div>
-                                    <h3 className="text-3xl font-display font-black text-white italic uppercase mb-8 flex items-center gap-4">
-                                        <Gamepad2 className="w-8 h-8 text-neon-red" />
-                                        Quizz
-                                    </h3>
 
-                                    <div className="space-y-8 relative z-10">
+                                    <div className="space-y-6 relative z-10">
                                         <div className="space-y-4">
                                             <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Pseudo / Prénom</label>
                                             <div className="relative">
@@ -413,59 +437,82 @@ export function QuizSection() {
                                             </div>
                                         </div>
 
-                                        <div className="space-y-4">
-                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Mode de Jeu</label>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                                {[
-                                                    { id: 'ALL', label: 'TOUT' },
-                                                    { id: 'QCM', label: 'QCM' },
-                                                    { id: 'BLIND_TEST', label: 'BLIND TEST' },
-                                                    { id: 'IMAGE', label: 'IMAGES' }
-                                                ].map(opt => {
-                                                    const isBlindTestSoon = quizCounts.BLIND_TEST < 30;
-                                                    const isImageSoon = quizCounts.IMAGE < 30;
-                                                    const isSoon = (opt.id === 'BLIND_TEST' && isBlindTestSoon) || (opt.id === 'IMAGE' && isImageSoon);
-                                                    const isDisabled = isSoon;
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div className="space-y-4">
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Mode de Jeu</label>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                    {[
+                                                        { id: 'ALL', label: 'TOUT' },
+                                                        { id: 'QCM', label: 'QCM' },
+                                                        { id: 'BLIND_TEST', label: 'SON' },
+                                                        { id: 'IMAGE', label: 'PHOTO' }
+                                                    ].map(opt => {
+                                                        const isBlindTestSoon = quizCounts.BLIND_TEST < 30;
+                                                        const isImageSoon = quizCounts.IMAGE < 30;
+                                                        const isSoon = (opt.id === 'BLIND_TEST' && isBlindTestSoon) || (opt.id === 'IMAGE' && isImageSoon);
+                                                        const isDisabled = isSoon;
 
-                                                    return (
+                                                        return (
+                                                            <button
+                                                                key={opt.id}
+                                                                disabled={isDisabled}
+                                                                onClick={() => setSelectedMode(opt.id as any)}
+                                                                className={`py-3 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border relative ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : isDisabled ? 'bg-white/[0.02] text-gray-500 border-white/5 cursor-not-allowed' : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/30'}`}
+                                                            >
+                                                                <span className={isDisabled ? 'opacity-40' : ''}>{opt.label}</span>
+                                                            </button>
+                                                        );
+                                                    })}
+                                                </div>
+                                            </div>
+
+                                            <div className="space-y-4">
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Questions</label>
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    {[5, 10, 20].map(n => (
                                                         <button
-                                                            key={opt.id}
-                                                            disabled={isDisabled}
-                                                            onClick={() => setSelectedMode(opt.id as any)}
-                                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border relative ${selectedMode === opt.id ? 'bg-neon-red text-white border-neon-red shadow-lg shadow-neon-red/20' : isDisabled ? 'bg-white/[0.02] text-gray-500 border-white/5 cursor-not-allowed' : 'bg-white/5 text-gray-400 border-white/10 hover:border-white/30'}`}
+                                                            key={n}
+                                                            disabled={isSurvivalMode}
+                                                            onClick={() => setSelectedLength(n as GameLength)}
+                                                            className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${selectedLength === n && !isSurvivalMode ? 'bg-white text-black border-white shadow-lg' : isSurvivalMode ? 'bg-white/5 text-gray-700 border-white/5 cursor-not-allowed' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
                                                         >
-                                                            {isSoon && (
-                                                                <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-2 py-0.5 bg-black border border-neon-red rounded text-[8px] font-black text-neon-red uppercase tracking-[0.2em] animate-pulse whitespace-nowrap shadow-[0_0_15px_rgba(255,0,51,0.5)] z-10">
-                                                                    SOON
-                                                                </div>
-                                                            )}
-                                                            <span className={isDisabled ? 'opacity-40' : ''}>{opt.label}</span>
+                                                            {n}
                                                         </button>
-                                                    );
-                                                })}
+                                                    ))}
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className="space-y-4">
-                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Nombre de questions</label>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                {[5, 10, 20].map(n => (
-                                                    <button
-                                                        key={n}
-                                                        onClick={() => setSelectedLength(n as GameLength)}
-                                                        className={`py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all border ${selectedLength === n ? 'bg-white text-black border-white shadow-lg' : 'bg-white/5 text-gray-500 border-white/10 hover:border-white/30'}`}
-                                                    >
-                                                        {n}
-                                                    </button>
-                                                ))}
-                                            </div>
+                                        {/* Toggles Modes Speciaux */}
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <button
+                                                onClick={() => setIsSurvivalMode(!isSurvivalMode)}
+                                                className={`p-4 rounded-2xl border transition-all flex flex-col gap-1 items-start group ${isSurvivalMode ? 'bg-red-500/20 border-red-500/40 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.1)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30'}`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <Flame className={`w-4 h-4 ${isSurvivalMode ? 'animate-pulse' : 'group-hover:text-red-400'}`} />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">MODE SURVIE</span>
+                                                </div>
+                                                <span className="text-[8px] font-medium text-gray-500 text-left">Une erreur = Fin de partie. Récompenses doublées !</span>
+                                            </button>
+
+                                            <button
+                                                onClick={() => setIsGhostMode(!isGhostMode)}
+                                                className={`p-4 rounded-2xl border transition-all flex flex-col gap-1 items-start group ${isGhostMode ? 'bg-gray-500/20 border-gray-500/40 text-white shadow-[0_0_20px_rgba(255,255,255,0.05)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/30'}`}
+                                            >
+                                                <div className="flex items-center gap-2">
+                                                    <Shield className={`w-4 h-4 ${isGhostMode ? 'text-white' : 'group-hover:text-white'}`} />
+                                                    <span className="text-[10px] font-black uppercase tracking-widest">MODE FANTÔME</span>
+                                                </div>
+                                                <span className="text-[8px] font-medium text-gray-500 text-left">Tes scores ne sont pas publics. Discrétion totale.</span>
+                                            </button>
                                         </div>
 
                                         <button
                                             onClick={startNewGame}
-                                            className="w-full py-6 bg-white text-black rounded-3xl font-black uppercase tracking-[0.3em] text-xs hover:bg-neon-red hover:text-white transition-all shadow-2xl flex items-center justify-center gap-4 group"
+                                            className="w-full py-5 bg-white text-black rounded-3xl font-black uppercase tracking-[0.3em] text-xs hover:bg-neon-red hover:text-white transition-all shadow-2xl flex items-center justify-center gap-4 group"
                                         >
-                                            COMMENCER LE JEU
+                                            {isSurvivalMode ? 'LANCER LE DÉFI SURVIE' : 'COMMENCER LE JEU'}
                                             <Play className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                                         </button>
                                     </div>
@@ -653,29 +700,63 @@ export function QuizSection() {
                                     animate={{ opacity: 1, scale: 1 }}
                                     className="bg-white/5 border border-white/10 rounded-[4rem] p-10 text-center backdrop-blur-3xl relative overflow-hidden"
                                 >
-                                    <div className="absolute top-0 left-0 w-full h-1 bg-neon-red shadow-[0_0_20px_red]"></div>
-                                    <Trophy className="w-24 h-24 text-yellow-500 mx-auto mb-10 drop-shadow-[0_0_30px_rgba(234,179,8,0.4)]" />
-                                    <h2 className="text-4xl md:text-5xl font-display font-black text-white italic uppercase mb-4 tracking-tighter">TERMINE !</h2>
-
-                                    <div className="max-w-md mx-auto mb-10">
-                                        <div className="bg-white/5 p-8 rounded-[2rem] border border-white/10">
-                                            <p className="text-neon-red text-[8px] font-black uppercase mb-1">SCORE FINAL</p>
-                                            <p className="text-5xl font-display font-black text-white">{score} / {gameQuizzes.length}</p>
+                                    <div className="flex flex-col items-center justify-center space-y-8 text-center">
+                                        <div className="relative">
+                                            <div className="absolute inset-0 bg-neon-red/20 blur-[100px] animate-pulse rounded-full" />
+                                            <Trophy className="w-24 h-24 text-neon-red relative z-10" />
+                                            <motion.div
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
+                                                className="absolute -top-2 -right-2 w-10 h-10 bg-white text-black rounded-full flex items-center justify-center font-black text-xl shadow-xl"
+                                            >
+                                                !
+                                            </motion.div>
                                         </div>
-                                    </div>
 
-                                    <div className="flex flex-col gap-4">
+                                        <div className="space-y-2">
+                                            <h3 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter">
+                                                {score === gameQuizzes.length ? 'PERFECTION !' : 'BIEN JOUÉ !'}
+                                            </h3>
+                                            <p className="text-gray-500 font-black uppercase tracking-[0.3em] text-[10px]">Score de {gamePseudo}</p>
+                                        </div>
+
+                                        <div className="flex gap-4">
+                                            <div className="bg-white/5 border border-white/10 rounded-[2rem] px-8 py-6 flex flex-col items-center justify-center min-w-[140px]">
+                                                <span className="text-5xl font-display font-black text-white italic">{score}</span>
+                                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest mt-2">Points</span>
+                                            </div>
+                                            <div className="bg-neon-cyan/5 border border-neon-cyan/20 rounded-[2rem] px-8 py-6 flex flex-col items-center justify-center min-w-[140px] relative overflow-hidden group">
+                                                <div className="absolute inset-0 bg-neon-cyan/5 opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                <motion.div
+                                                    animate={{ y: [0, -5, 0] }}
+                                                    transition={{ duration: 2, repeat: Infinity }}
+                                                >
+                                                    <Zap className="w-6 h-6 text-neon-cyan mb-2" />
+                                                </motion.div>
+                                                <span className="text-3xl font-display font-black text-white italic">+{score * 5 + (score === gameQuizzes.length ? 50 : 0)}</span>
+                                                <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest mt-1">Drops</span>
+                                            </div>
+                                        </div>
+
+                                        {isSurvivalMode && (
+                                            <div className="px-6 py-3 bg-red-500/10 border border-red-500/30 rounded-full flex items-center gap-2">
+                                                <Flame className="w-4 h-4 text-red-500 animate-pulse" />
+                                                <span className="text-[10px] font-black text-red-500 uppercase tracking-widest">DÉFI SURVIE TERMINÉ</span>
+                                            </div>
+                                        )}
+
+                                        {isGhostMode && (
+                                            <div className="flex items-center gap-2 text-gray-500">
+                                                <Shield className="w-3 h-3" />
+                                                <span className="text-[9px] font-black uppercase tracking-widest">Score non enregistré (Mode Fantôme)</span>
+                                            </div>
+                                        )}
+
                                         <button
                                             onClick={() => setGameState('selection')}
-                                            className="w-full py-4 bg-white text-black font-black rounded-2xl hover:bg-neon-red hover:text-white transition-all uppercase tracking-[0.3em] text-[10px]"
+                                            className="px-12 py-4 bg-white text-black rounded-full font-black uppercase tracking-[0.2em] text-[10px] hover:bg-neon-red hover:text-white transition-all shadow-xl"
                                         >
-                                            REJOUER
-                                        </button>
-                                        <button
-                                            onClick={() => setGameState('selection')}
-                                            className="w-full py-4 bg-white/5 border border-white/10 text-white font-black rounded-2xl hover:bg-white/10 transition-all uppercase tracking-[0.3em] text-[10px]"
-                                        >
-                                            REVENIR
+                                            RETOURNER AU MENU
                                         </button>
                                     </div>
                                 </motion.div>
