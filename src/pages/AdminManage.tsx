@@ -142,27 +142,24 @@ export function AdminManage() {
         if (storedPermissions.includes('all')) return true;
         if (storedUser === 'alex') return true;
 
-        // Séparation des permissions d'action (create, edit, delete)
-        const actionPermissions = ['create', 'edit', 'delete'];
-        if (actionPermissions.includes(p)) {
-            return storedPermissions.includes(p);
-        }
+        const tabToPerm: Record<string, string> = {
+            'News': 'news',
+            'Focus': 'news',
+            'Musique': 'musique',
+            'Recaps': 'recaps',
+            'Interviews': 'interviews',
+            'Agenda': 'agenda',
+            'Communauté': 'community'
+        };
 
-        if (storedPermissions.includes(p)) return true;
-
-        // Fallback pour publications
-        if (storedPermissions.includes('publications')) {
-            const editorialSubsets = ['agenda', 'Communauté'];
-            if (editorialSubsets.includes(p)) return true;
-        }
-
-        return false;
+        const requiredPerm = tabToPerm[p] || p;
+        return storedPermissions.includes(requiredPerm);
     };
 
     const isAdmin = hasPermission('all');
-    const canCreate = hasPermission('create');
-    const canEdit = hasPermission('edit');
-    const canDelete = hasPermission('delete');
+    const canCreate = hasPermission(activeTab);
+    const canEdit = hasPermission(activeTab);
+    const canDelete = hasPermission(activeTab);
 
     // Pagination & Sorting
     const [currentPage, setCurrentPage] = useState(1);

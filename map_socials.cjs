@@ -8,14 +8,14 @@ const mapped = data.map(dj => {
     let spotify = `https://open.spotify.com/search/${encodeURIComponent(dj.name)}`;
     let instagram = `https://instagram.com/${slug}`;
     let facebook = `https://facebook.com/${slug}`;
-    let soundcloud = `https://soundcloud.com/${slug}`;
+    let beatport = `https://www.beatport.com/search?q=${encodeURIComponent(dj.name)}`;
 
     return {
         ...dj,
         spotify,
         instagram,
         facebook,
-        soundcloud
+        beatport
     };
 });
 

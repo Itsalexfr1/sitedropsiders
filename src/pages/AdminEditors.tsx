@@ -25,43 +25,33 @@ const PERMISSION_CATEGORIES = [
     },
     {
         id: 'editorial',
-        label: 'Contenu & Médias',
+        label: 'Rédaction & Contenu',
         permissions: [
-            { id: 'publications', label: 'Accès Complet (News & Récaps)', description: 'Créer, modifier et supprimer tous les articles.' },
-            { id: 'social_studio', label: 'Social Studio', description: 'Générer des visuels pour les réseaux sociaux.' },
-            { id: 'agenda', label: 'Gestion Agenda', description: 'Gérer les dates et événements de la programmation.' },
-            { id: 'galeries', label: 'Communauté', description: 'Gérer les albums photos et les partages de la communauté.' }
+            { id: 'news', label: 'News & Focus', description: 'Créer, modifier et supprimer les pages News et Focus.' },
+            { id: 'musique', label: 'Musique & Sorties', description: 'Gérer les articles sur les sorties musicales.' },
+            { id: 'interviews', label: 'Interviews', description: 'Gérer les interviews écrites et vidéos.' },
+            { id: 'recaps', label: 'Recaps Festivals', description: 'Gérer les reportages festivals et événements.' },
+            { id: 'agenda', label: 'Agenda Événements', description: 'Gérer le calendrier complet des événements.' },
+            { id: 'wiki', label: 'Wiki Dropsiders', description: 'Modifier et mettre à jour la base de données des DJs.' }
         ]
     },
     {
-        id: 'live_takeover',
-        label: 'Live Takeover',
+        id: 'animation',
+        label: 'Communauté & Live',
         permissions: [
-            { id: 'takeover_full', label: 'Configuration Live', description: 'Accès complet aux réglages du Live (Playlist, Ticker, Planning).' },
-            { id: 'takeover_modo', label: 'Modération Chat', description: 'Autorise la modération (suppression, ban, pin) sur le chat.' },
-            { id: 'audio_rooms', label: 'Salons Audio', description: 'Gérer la création et la suppression des salons audio vocaux.' },
-            { id: 'hype_drops', label: 'Hype & Drops', description: 'Gérer les jauges de Hype Energy et les intervalles de Drops.' },
-            { id: 'shazam', label: 'Gestion Shazam', description: 'Gérer les informations Shazam et les liens streaming.' },
-            { id: 'clips', label: 'Gestion des Clips', description: 'Voir et supprimer les clips générés par les viewers.' }
+            { id: 'community', label: 'Communauté & Modération', description: 'Gérer la galerie photos, les quiz, et modérer le contenu utilisateur.' },
+            { id: 'live', label: 'Live Takeover', description: 'Accès complet aux réglages du Live, y compris la modération du chat.' }
         ]
     },
     {
-        id: 'communication',
-        label: 'Communication & Push',
+        id: 'marketing',
+        label: 'Marketing & Business',
         permissions: [
-            { id: 'notifications', label: 'Notifications Push', description: 'Envoyer des notifications officielles sur les téléphones.' },
-            { id: 'messages', label: 'Messagerie & Newsletter', description: 'Accéder aux emails reçus et envoyer des campagnes.' },
-            { id: 'banner', label: "Bandeau d'annonce", description: 'Gérer le message d\'alerte global du site.' }
-        ]
-    },
-    {
-        id: 'business',
-        label: 'Business & Team',
-        permissions: [
-            { id: 'shop', label: 'Drops Shop (Boutique)', description: 'Gérer les produits, les stocks et les ventes.' },
-            { id: 'team', label: 'Dream Team', description: 'Gérer les membres de l\'équipe et leurs profils.' },
-            { id: 'spotify', label: 'Playlists Spotify', description: "Gérer les playlists de la page d'accueil." },
-            { id: 'stats', label: 'Statistiques', description: 'Voir les chiffres d\'audience et analyses détaillées.' }
+            { id: 'social', label: 'Social Studio', description: 'Générer des visuels pour les réseaux sociaux.' },
+            { id: 'broadcast', label: 'Push & Newsletter', description: 'Envoyer des notifications push et gérer les campagnes de mails.' },
+            { id: 'shop', label: 'Boutique', description: 'Gérer la section merchandising et les commandes.' },
+            { id: 'stats', label: 'Statistiques', description: 'Voir les chiffres d\'audience et d\'analyse du site.' },
+            { id: 'accueil', label: 'Page d\'Accueil', description: 'Modifier la disposition et les sélections de la page d\'accueil.' }
         ]
     }
 ];

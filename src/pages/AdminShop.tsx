@@ -30,17 +30,11 @@ export function AdminShop() {
         if (permissions.includes('all')) return true;
         if (storedUser === 'alex') return true;
 
-        const actionPermissions = ['create', 'edit', 'delete'];
-        if (actionPermissions.includes(p)) {
-            return permissions.includes(p);
+        if (p === 'create' || p === 'edit' || p === 'delete') {
+            return permissions.includes('shop');
         }
 
-        if (permissions.includes(p)) return true;
-
-        // Fallback pour shop
-        if (permissions.includes('shop') && (p === 'shop' || p === 'create' || p === 'edit' || p === 'delete')) return true;
-
-        return false;
+        return permissions.includes(p);
     };
 
     const canCreate = hasPermission('create');

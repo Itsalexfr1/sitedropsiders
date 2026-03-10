@@ -4,6 +4,8 @@ import { Link } from 'react-router-dom';
 import { AVAILABLE_COLORS } from '../data/colors';
 import { useState, useEffect } from 'react';
 import initialSettings from '../data/settings.json';
+import { AdminEditBar } from '../components/admin/AdminEditBar';
+import { Settings2 } from 'lucide-react';
 
 export function Shop() {
     const isMini = new URLSearchParams(window.location.search).get('mini') === 'true';
@@ -319,6 +321,12 @@ export function Shop() {
                     </div>
                 )}
             </AnimatePresence>
+            <AdminEditBar
+                pageName="Boutique"
+                pageActions={[
+                    { label: 'Gérer le shop', icon: <Settings2 className="w-3.5 h-3.5" />, to: '/admin/shop', permission: 'shop' },
+                ]}
+            />
         </div >
     );
 }

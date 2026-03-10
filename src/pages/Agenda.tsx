@@ -14,6 +14,7 @@ import agendaDataLocal from '../data/agenda.json';
 import { trackPageView } from '../utils/analytics';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { SEO } from '../components/utils/SEO';
+import { AdminEditBar } from '../components/admin/AdminEditBar';
 
 export function Agenda() {
     const { t, language } = useLanguage();
@@ -27,17 +28,11 @@ export function Agenda() {
         if (permissions.includes('all')) return true;
         if (storedUser === 'alex') return true;
 
-        const actionPermissions = ['create', 'edit', 'delete'];
-        if (actionPermissions.includes(p)) {
-            return permissions.includes(p);
+        if (p === 'create' || p === 'edit' || p === 'delete') {
+            return permissions.includes('agenda');
         }
 
-        if (permissions.includes(p)) return true;
-
-        // Fallback pour publications (donne accès à l'agenda)
-        if (permissions.includes('publications') && p === 'agenda') return true;
-
-        return false;
+        return permissions.includes(p);
     };
 
     const canCreate = hasPermission('create');
@@ -746,6 +741,12 @@ export function Agenda() {
                     accentColor="neon-red"
                 />
             </div >
+            <AdminEditBar
+                pageName="Agenda"
+                pageActions={[
+                    { label: 'Ajouter un événement', icon: <Plus className="w-3.5 h-3.5" />, to: '/admin/manage?tab=Agenda', permission: 'agenda' },
+                ]}
+            />
         </>
     );
 }

@@ -12,6 +12,8 @@ import { Pagination } from '../components/ui/Pagination';
 import { translateText } from '../utils/translate';
 import { getAuthHeaders } from '../utils/auth';
 import { SEO } from '../components/utils/SEO';
+import { AdminEditBar } from '../components/admin/AdminEditBar';
+import { Plus, FileText } from 'lucide-react';
 
 type TabKey = 'all' | 'news' | 'musique' | 'focus';
 
@@ -405,6 +407,13 @@ export function News() {
                     </div>
                 </motion.section>
             </div>
+            <AdminEditBar
+                pageName="News & Articles"
+                pageActions={[
+                    { label: 'Publier un article', icon: <Plus className="w-3.5 h-3.5" />, to: '/news/create', permission: 'news' },
+                    { label: 'Gérer les news', icon: <FileText className="w-3.5 h-3.5" />, to: '/admin/manage?tab=News', permission: 'news' },
+                ]}
+            />
         </>
     );
 }

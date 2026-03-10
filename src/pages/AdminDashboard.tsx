@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -711,7 +711,7 @@ export function AdminDashboard() {
         // SYSTÀˆME & TEAM
         { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
         { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
-        { title: "Team", description: "Équipe & Accès", icon: "Users", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-blue/20 hover:border-neon-blue", bg: "bg-neon-blue/5", permission: "team", baseColor: "blue", columns: 1 },
+        { title: "Éditeurs", description: "Équipe & Accès", icon: "Users", category: "SYSTÀˆME & TEAM", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 1 },
     ];
 
 
@@ -895,32 +895,27 @@ export function AdminDashboard() {
     const isAlex = localStorage.getItem('admin_user') === 'alex' || localStorage.getItem('admin_user') === 'contact@dropsiders.fr';
 
     const hasPermission = (p: string) => {
-        // Permission Maître (Alex ou Administrateur "all" pour superadmin)
         if (p === 'superadmin') return isAlex || storedPermissions.includes('all');
+        if (storedPermissions.includes('all') || isAlex) return true;
 
-        if (storedPermissions.includes('all')) return true;
+        const oldToNew: Record<string, string> = {
+            'social_studio': 'social',
+            'galeries': 'community',
+            'notifications': 'broadcast',
+            'messages': 'broadcast',
+            'team': 'all',
+            'publications': 'news',
+            'takeover_full': 'live',
+            'takeover_modo': 'live',
+            'audio_rooms': 'live',
+            'hype_drops': 'live',
+            'shazam': 'live',
+            'spotify': 'musique'
+        };
 
-        // Séparation des permissions d'action (create, edit, delete)
-        const actionPermissions = ['create', 'edit', 'delete'];
-        if (actionPermissions.includes(p)) {
-            return storedPermissions.includes(p);
-        }
+        const checkPerm = oldToNew[p] || p;
 
-        if (storedPermissions.includes(p)) return true;
-
-        // Si l'utilisateur possède 'publications', il a accès par éfaut aux sous-sections éditoriales
-        if (storedPermissions.includes('publications')) {
-            const editorialSubsets = ['news', 'recaps', 'agenda', 'galeries', 'social_studio'];
-            if (editorialSubsets.includes(p)) return true;
-        }
-
-        // Accès complet au Live Takeover par éfaut si on a takeover_full
-        if (storedPermissions.includes('takeover_full')) {
-            const liveSubsets = ['takeover_modo', 'audio_rooms', 'hype_drops', 'shazam'];
-            if (liveSubsets.includes(p)) return true;
-        }
-
-        return false;
+        return storedPermissions.includes(checkPerm);
     };
 
     const getIcon = (iconName: string, baseColor: string = 'white') => {
@@ -1363,9 +1358,6 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'Communauté') {
                                                     e.preventDefault();
                                                     setIsCommunauteModalOpen(true);
-                                                } else if (action.title === 'Team') {
-                                                    e.preventDefault();
-                                                    setIsTeamModalOpen(true);
                                                 } else if (action.title === 'Shop') {
                                                 } else if (action.title === 'Contenu') {
                                                     e.preventDefault();

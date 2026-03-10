@@ -11,6 +11,8 @@ import { InterviewWidget } from '../components/widgets/InterviewWidget';
 import { MobileHome } from '../components/mobile/MobileHome';
 import layoutData from '../data/home_layout.json';
 import { SEO } from '../components/utils/SEO';
+import { AdminEditBar } from '../components/admin/AdminEditBar';
+import { LayoutDashboard, FileText, Calendar } from 'lucide-react';
 
 export function Home() {
     const [layout, setLayout] = useState(layoutData);
@@ -158,6 +160,14 @@ export function Home() {
                     }
                 </div>
             )}
+            <AdminEditBar
+                pageName="Accueil"
+                pageActions={[
+                    { label: 'Mise en page accueil', icon: <LayoutDashboard className="w-3.5 h-3.5" />, to: '/admin/home', permission: 'accueil' },
+                    { label: 'Publier un article', icon: <FileText className="w-3.5 h-3.5" />, to: '/admin/manage?tab=News', permission: 'news' },
+                    { label: 'Ajouter un événement', icon: <Calendar className="w-3.5 h-3.5" />, to: '/agenda#add', permission: 'agenda' },
+                ]}
+            />
         </>
     );
 }

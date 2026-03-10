@@ -23,6 +23,8 @@ import { useEffect } from 'react';
 import galerieData from '../data/galerie.json';
 import confetti from 'canvas-confetti';
 import { SEO } from '../components/utils/SEO';
+import { AdminEditBar } from '../components/admin/AdminEditBar';
+import { Users as UsersIcon } from 'lucide-react';
 
 // --- STAGE & LOCATION DATA ---
 const FESTIVAL_LOCATIONS = [
@@ -1937,6 +1939,13 @@ export function Community() {
                     )}
                 </div>
             </div>
+            <AdminEditBar
+                pageName="Communauté"
+                pageActions={[
+                    { label: 'Gérer les photos', icon: <Camera className="w-3.5 h-3.5" />, to: '/admin/manage?tab=Communauté', permission: 'community' },
+                    { label: 'Modération', icon: <UsersIcon className="w-3.5 h-3.5" />, to: '/admin/manage?tab=Communauté', permission: 'community' },
+                ]}
+            />
         </>
     );
 }

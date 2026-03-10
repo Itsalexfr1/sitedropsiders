@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Search, Globe, BookOpen, Star, Instagram, Music2, ExternalLink } from 'lucide-react';
+import { Search, Globe, BookOpen, Star, Instagram, Music2, Headphones } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 
 import DJ_DATA from '../../data/wiki_djs.json';
@@ -104,10 +104,10 @@ export function WikiDropsiders() {
                                             </a>
                                         )}
                                         
-                                        {(selectedDj as any).soundcloud && (
-                                            <a href={(selectedDj as any).soundcloud} target="_blank" rel="noopener noreferrer" className="bg-[#FF5500]/10 hover:bg-[#FF5500]/20 p-4 rounded-2xl border border-[#FF5500]/20 text-center transition-colors group">
-                                                <div className="text-[8px] font-black text-[#FF5500] uppercase mb-1">SoundCloud</div>
-                                                <div className="flex justify-center"><ExternalLink className="w-5 h-5 text-[#FF5500] group-hover:scale-110 transition-transform" /></div>
+                                        {(selectedDj as any).beatport && (
+                                            <a href={(selectedDj as any).beatport} target="_blank" rel="noopener noreferrer" className="bg-[#02FF95]/10 hover:bg-[#02FF95]/20 p-4 rounded-2xl border border-[#02FF95]/20 text-center transition-colors group">
+                                                <div className="text-[8px] font-black text-[#02FF95] uppercase mb-1">Beatport</div>
+                                                <div className="flex justify-center"><Headphones className="w-5 h-5 text-[#02FF95] group-hover:scale-110 transition-transform" /></div>
                                             </a>
                                         )}
                                     </div>
