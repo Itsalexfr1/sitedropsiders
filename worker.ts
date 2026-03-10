@@ -662,19 +662,9 @@ export default {
             const isMasterPass = requestPassword === envAdminPass || requestPassword === '01061988';
 
             if (isMasterPass) {
-                // For the invoice route, we only care about the password matching
-                if (path === '/api/facture/send' || path === '/api/upload') {
-                    authenticated = true;
-                    userPermissions = ['all'];
-                } else {
-                    // For other routes, still check the session ID
-                    const settingsFile = await fetchGitHubFile('src/data/settings.json', gitConfig);
-                    const serverSessionId = settingsFile?.content?.master_session_id || 'initial-session-id';
-                    if (requestSessionId === serverSessionId) {
-                        authenticated = true;
-                        userPermissions = ['all'];
-                    }
-                }
+                // Master password bypasses all session checks
+                authenticated = true;
+                userPermissions = ['all'];
             }
             else if (requestUsername) {
                 const editorsFile = await fetchGitHubFile(EDITORS_PATH, gitConfig);
