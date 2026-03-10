@@ -10,7 +10,10 @@ export function lazyRetry<T extends ComponentType<any>>(
     return lazy(async () => {
         try {
             const component = await componentImport();
-            return component as { default: T };
+            if (component && typeof component === 'object' && 'default' in component) {
+                return component as { default: T };
+            }
+            return { default: component } as { default: T };
         } catch (error) {
             // Si on échoue à charger le module (Failed to fetch dynamically imported module)
             // On force un rechargement de la page pour récupérer les nouveaux assets indexés par le serveur

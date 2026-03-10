@@ -496,7 +496,7 @@ export function Community() {
     // Auto-update advisor tips based on festival status
 
     // Auto-update advisor tips based on festival status
-    useMemo(() => {
+    useEffect(() => {
         if (gameState !== 'BOOKING') return;
 
         let newTip = null;
@@ -513,13 +513,13 @@ export function Community() {
             newTip = { name: "Viktor, Underground", avatar: "🥷", tip: "T'as tout... sauf une date ! Choisis quand l'event a lieu sinon l'affiche sera vide." };
         }
 
-        if (newTip && newTip.tip !== advisorTip?.tip) {
+        if (newTip && (!advisorTip || newTip.tip !== advisorTip.tip)) {
             setAdvisorTip(newTip);
         }
-    }, [selectedDjs, selectedCosts, selectedDate, gameState]);
+    }, [selectedDjs, selectedCosts, selectedDate, gameState, advisorTip]);
 
     const [isPriceRising, setIsPriceRising] = useState(false);
-    useMemo(() => {
+    useEffect(() => {
         let timer: any;
         if (gameState === 'BOOKING' && gameStarted) {
             timer = setInterval(() => {
@@ -533,7 +533,9 @@ export function Community() {
             setPriceSurge(1);
             setIsPriceRising(false);
         }
-        return () => clearInterval(timer);
+        return () => {
+            if (timer) clearInterval(timer);
+        };
     }, [gameState, gameStarted]);
 
     const toggleDj = async (dj: typeof DJ_POOL[0]) => {
