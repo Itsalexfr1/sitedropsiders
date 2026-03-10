@@ -120,6 +120,13 @@ const RANDOM_EVENTS = [
 
 const STAGE_COST_PER_UNIT = 100000;
 
+// --- HALL OF FAME MOCK DATA ---
+const HALL_OF_FAME = [
+    { id: '1', playerName: 'Alex', festivalName: 'Sideral Vision', profit: 1250000, location: 'Stadium' },
+    { id: '2', playerName: 'Bebou', festivalName: 'Techno Temple', profit: 890000, location: 'Hangars' },
+    { id: '3', playerName: 'Léa', festivalName: 'Neon Jungle', profit: 450000, location: 'Forbidden Forest' },
+];
+
 // --- FESTIVAL CREATOR GAME DATA ---
 const DJ_POOL = [
     // --- GOD TIER / SUPERSTARS (1M€+) ---
@@ -145,6 +152,11 @@ const DJ_POOL = [
     { id: 'hardwell', name: 'Hardwell', price: 480000, genre: 'Big Room Techno', popularity: 98, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Hardwell_NRJ_Music_Awards_2014.jpg/800px-Hardwell_NRJ_Music_Awards_2014.jpg' },
     { id: 'armin-van-buuren', name: 'Armin van Buuren', price: 500000, genre: 'Trance', popularity: 98, label: 'Armada', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Armin_van_Buuren_Electronic_Family_2013-07-20_003.jpg/800px-Armin_van_Buuren_Electronic_Family_2013-07-20_003.jpg' },
     { id: 'kygo', name: 'Kygo', price: 700000, genre: 'Tropical House', popularity: 99, label: 'Sony', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Kygo_NRJ_Music_Awards_2017.jpg/800px-Kygo_NRJ_Music_Awards_2017.jpg' },
+
+    // --- TRENDING / CONTROVERSIAL (Prices based on current news) ---
+    { id: 'fantasm', name: 'Fantasm', price: 25000, genre: 'Hard Techno', popularity: 40, label: 'Controverse', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'marlon-hoffstadt', name: 'Marlon Hoffstadt', price: 350000, genre: 'Eurodance', popularity: 96, label: 'Trend: Daddy Trance', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'oguz', name: 'Oguz', price: 180000, genre: 'Hard Techno', popularity: 94, label: 'Trend: 808', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
 
     // --- MAIN SUPPORT TIER (100k - 350k€) ---
     { id: 'john-summit', name: 'John Summit', price: 350000, genre: 'Tech House', popularity: 98, label: 'Experts Only', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
@@ -813,7 +825,28 @@ export function Community() {
                                     </motion.button>
                                 </div>
                             ) : (
-                                <div className="space-y-12">
+                                <div className="space-y-12 relative">
+                                    {/* Persistent Budget Header */}
+                                    {gameState !== 'ONBOARDING' && gameState !== 'RESULTS' && (
+                                        <div className="sticky top-0 z-50 py-6 px-10 bg-black/80 backdrop-blur-xl border-b border-white/10 flex flex-col md:flex-row items-center justify-between gap-6 -mx-12 mb-12 shadow-2xl">
+                                            <div className="flex flex-col">
+                                                <span className="text-[8px] font-black uppercase text-amber-400 tracking-[0.3em]">Trésorerie de Production</span>
+                                                <span className="text-xl font-black font-mono text-white tracking-widest">{totalSpent.toLocaleString()}€ <span className="text-white/20">/ {(budget + sponsorsBonus).toLocaleString()}€</span></span>
+                                            </div>
+                                            <div className="flex-1 max-w-md w-full h-2 bg-white/5 rounded-full overflow-hidden border border-white/5 mx-6">
+                                                <motion.div
+                                                    className={twMerge("h-full", remainingBudget < 0 ? "bg-neon-red" : "bg-gradient-to-r from-amber-400 to-amber-600")}
+                                                    animate={{ width: `${Math.min(100, (totalSpent / (budget + sponsorsBonus)) * 100)}%` }}
+                                                />
+                                            </div>
+                                            <div className="px-6 py-2 bg-white/5 border border-white/10 rounded-xl">
+                                                <span className={twMerge("text-sm font-black italic", remainingBudget < 0 ? "text-neon-red animate-pulse" : "text-emerald-400")}>
+                                                    {remainingBudget.toLocaleString()}€ DISPONIBLE
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
+
                                     {/* Steps 1-5 logic */}
                                     {gameState === 'ONBOARDING' && (
                                         <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="max-w-4xl mx-auto space-y-10">
@@ -1478,6 +1511,25 @@ export function Community() {
                                                                 </div>
                                                             ))
                                                         )}
+                                                    </div>
+
+                                                    {/* Hall of Fame - NEW SECTION */}
+                                                    <div className="pt-8 mt-8 border-t border-white/10 space-y-6">
+                                                        <div className="flex items-center gap-4">
+                                                            <Star className="w-6 h-6 text-amber-400" />
+                                                            <h3 className="text-xl font-black italic tracking-tighter uppercase text-white">Hall of Fame (Légendes)</h3>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 gap-3">
+                                                            {HALL_OF_FAME.map((legend) => (
+                                                                <div key={legend.id} className="p-4 bg-amber-400/5 border border-amber-400/10 rounded-xl flex justify-between items-center group hover:bg-amber-400/10 transition-all">
+                                                                    <div className="flex flex-col">
+                                                                        <span className="text-[10px] font-black text-amber-400 uppercase tracking-[0.2em]">{legend.playerName}</span>
+                                                                        <span className="text-[9px] font-bold text-white/40 italic">{legend.festivalName}</span>
+                                                                    </div>
+                                                                    <span className="text-sm font-black text-amber-400 font-mono">+{legend.profit.toLocaleString()}€</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
