@@ -7,6 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { getAuthHeaders } from '../utils/auth';
 import { AgendaModal } from '../components/AgendaModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
+import { CollaborativeCalendar } from '../components/community/CollaborativeCalendar';
 
 import { extractIdFromSlug } from '../utils/slugify';
 import agendaDataLocal from '../data/agenda.json';
@@ -700,6 +701,11 @@ export function Agenda() {
                             </div>
                         ) : null}
                     </AnimatePresence>
+                </div>
+
+                <div className="mt-20 pt-16 border-t border-white/10 relative">
+                    <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[80vw] h-[1px] bg-gradient-to-r from-transparent via-neon-cyan/20 to-transparent" />
+                    <CollaborativeCalendar />
                 </div>
 
                 <AgendaModal

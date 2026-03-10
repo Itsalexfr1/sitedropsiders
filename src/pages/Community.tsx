@@ -20,7 +20,6 @@ import { DjNameGenerator } from '../components/community/DjNameGenerator';
 import { WikiDropsiders } from '../components/community/WikiDropsiders';
 import { PlaylistSharing } from '../components/community/PlaylistSharing';
 import { TrackIdForum } from '../components/community/TrackIdForum';
-import { CollaborativeCalendar } from '../components/community/CollaborativeCalendar';
 import { useEffect } from 'react';
 import galerieData from '../data/galerie.json';
 import confetti from 'canvas-confetti';
@@ -838,7 +837,6 @@ export function Community() {
                                 { id: 'WIKI', icon: Book, label: 'Wiki' },
                                 { id: 'TRACK_ID', icon: MessageSquare, label: 'TrackID' },
                                 { id: 'PLAYLISTS', icon: Share2, label: 'Mixs' },
-                                { id: 'CALENDAR', icon: CalendarIcon, label: 'Agenda+' },
                                 { id: 'LAB', icon: Wand2, label: 'Lab' },
                                 { id: 'COVOIT', icon: Car, label: 'Covoit' },
                             ].map((tab) => (
@@ -1911,16 +1909,6 @@ export function Community() {
                             </motion.div>
                         )}
 
-                        {activeTab === 'CALENDAR' && (
-                            <motion.div
-                                key="calendar"
-                                initial={{ opacity: 0, x: -50 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: 50 }}
-                            >
-                                <CollaborativeCalendar />
-                            </motion.div>
-                        )}
 
                         {activeTab === 'LAB' && (
                             <motion.div
