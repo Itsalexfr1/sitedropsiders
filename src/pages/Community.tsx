@@ -798,7 +798,7 @@ export function Community() {
                             { id: 'WALL', icon: Star, label: 'Mur de Souvenirs' },
                             { id: 'PHOTOS', icon: Camera, label: 'Albums Photo' },
                             { id: 'QUIZZ', icon: Gamepad2, label: 'Défis & Quiz' },
-                            { id: 'GAME', icon: Sparkles, iconClass: 'text-amber-400', label: 'Tycoon Festival' },
+                            { id: 'GAME', icon: Sparkles, iconClass: 'text-amber-400', label: 'FESTIVAL PRODUCER' },
                             { id: 'AVIS', icon: Heart, label: 'Avis' },
                             { id: 'GUIDE', icon: Info, label: 'Guide Pratique' },
                             { id: 'COVOIT', icon: Car, label: 'Covoiturage' },
@@ -908,7 +908,7 @@ export function Community() {
                                     <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-amber-400 to-transparent opacity-50" />
                                     <Sparkles className="w-20 h-20 text-amber-400 mx-auto mb-10 animate-pulse" />
                                     <h2 className="text-4xl md:text-7xl font-display font-black mb-8 uppercase italic tracking-tighter">
-                                        DEVIENS <span className="text-amber-400">ORGANISATEUR</span>
+                                        FESTIVAL <span className="text-amber-400">PRODUCER</span>
                                     </h2>
                                     <p className="text-white/40 max-w-2xl mx-auto text-sm font-medium uppercase tracking-[0.25em] leading-loose mb-12">
                                         Budget limité, programmation de luxe et logistique sans faille. Réussiras-tu à créer le festival parfait sans faire faillite ?
@@ -1537,30 +1537,110 @@ export function Community() {
                                     {gameState === 'RESULTS' && (
                                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
                                             {/* Left: Poster Display */}
-                                            <div className="lg:col-span-12 xl:col-span-5">
+                                            <div className="lg:col-span-12 xl:col-span-5 space-y-6">
+                                                <div className="flex gap-4 mb-4">
+                                                    {(['ULTRA', 'TOMORROWLAND', 'EDC'] as const).map((style) => (
+                                                        <button
+                                                            key={style}
+                                                            onClick={() => setPosterStyle(style)}
+                                                            className={twMerge(
+                                                                "flex-1 py-3 text-[8px] font-black uppercase tracking-widest rounded-xl border transition-all",
+                                                                posterStyle === style ? "bg-white text-black border-white" : "bg-white/5 border-white/10 text-white/40 hover:border-white/30"
+                                                            )}
+                                                        >
+                                                            {style}
+                                                        </button>
+                                                    ))}
+                                                </div>
+
                                                 <motion.div
-                                                    initial={{ scale: 0.9, opacity: 0 }}
-                                                    animate={{ scale: 1, opacity: 1 }}
+                                                    key={posterStyle}
+                                                    initial={{ rotateY: 90, opacity: 0 }}
+                                                    animate={{ rotateY: 0, opacity: 1 }}
                                                     className={twMerge(
-                                                        "relative aspect-[1.3/2] border-[12px] shadow-[0_60px_120px_rgba(0,0,0,0.9)] rounded-[2.5rem] p-8 md:p-12 overflow-hidden bg-[#050505]",
-                                                        posterStyle === 'ULTRA' ? "border-white" :
-                                                            posterStyle === 'TOMORROWLAND' ? "border-[#d4af37]" : "border-white/10"
+                                                        "relative aspect-[3/4] shadow-[0_60px_120px_rgba(0,0,0,0.9)] rounded-[3rem] p-8 md:p-12 overflow-hidden flex flex-col",
+                                                        posterStyle === 'ULTRA' ? "bg-white border-[1px] border-black" :
+                                                            posterStyle === 'TOMORROWLAND' ? "bg-[#0a0a0d] border-[16px] border-[#d4af37]" :
+                                                                "bg-black border-[2px] border-neon-red shadow-[0_0_80px_rgba(255,0,0,0.2)]"
                                                     )}
                                                 >
-                                                    <div className="relative z-10 h-full flex flex-col items-center text-center">
-                                                        <div className="mb-12">
-                                                            <div className="text-[10px] font-black text-amber-400 uppercase tracking-[0.5em] mb-4">World Premiere</div>
-                                                            <h3 className="text-4xl md:text-6xl font-display font-black uppercase text-white italic tracking-tighter leading-none">{festivalName}</h3>
+                                                    {/* Background Elements */}
+                                                    {posterStyle === 'ULTRA' && (
+                                                        <div className="absolute inset-0 opacity-[0.03] pointer-events-none">
+                                                            <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-black rounded-full -mr-64 -mt-64" />
+                                                            <div className="absolute bottom-0 left-0 w-full h-full bg-[radial-gradient(circle_at_2px_2px,_#000_1px,_transparent_0)] [background-size:24px_24px]" />
                                                         </div>
-                                                        <div className="flex-1 w-full space-y-6">
-                                                            {selectedDjs.map((dj, i) => (
-                                                                <div key={dj.id} className={twMerge("font-black uppercase tracking-widest", i === 0 ? "text-4xl text-white" : "text-xl text-white/50")}>
-                                                                    {dj.name}
-                                                                </div>
-                                                            ))}
+                                                    )}
+                                                    {posterStyle === 'TOMORROWLAND' && (
+                                                        <div className="absolute inset-0 pointer-events-none">
+                                                            <div className="absolute inset-2 border-[1px] border-[#d4af37]/30" />
+                                                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-32 border-b-[1px] border-x-[1px] border-[#d4af37]/20 rounded-b-full overflow-hidden">
+                                                                <div className="absolute inset-4 border-[1px] border-[#d4af37]/10 rounded-full animate-pulse" />
+                                                            </div>
                                                         </div>
-                                                        <div className="mt-auto pt-10 border-t border-white/10 w-full text-white/20 text-[9px] font-black uppercase tracking-[0.6em]">
-                                                            {selectedLocation.name} • {selectedDate}
+                                                    )}
+                                                    {posterStyle === 'EDC' && (
+                                                        <div className="absolute inset-0 pointer-events-none">
+                                                            <div className="absolute top-[-10%] left-[-10%] w-[120%] h-[120%] bg-[radial-gradient(circle_at_center,_transparent_0%,_#000_70%),_conic-gradient(from_0deg_at_50%_50%,_#ff003c_0deg,_#00f0ff_120deg,_#ff003c_360deg)] opacity-10 blur-3xl animate-pulse" />
+                                                            <div className="absolute inset-0 bg-[linear-gradient(rgba(255,0,60,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,0,60,0.05)_1px,transparent_1px)] bg-[size:20px_20px]" />
+                                                        </div>
+                                                    )}
+
+                                                    <div className="relative z-10 h-full flex flex-col items-center">
+                                                        <div className="mb-10 text-center">
+                                                            <div className={twMerge(
+                                                                "text-[8px] font-black uppercase tracking-[0.5em] mb-3",
+                                                                posterStyle === 'ULTRA' ? "text-black/30" : "text-amber-400"
+                                                            )}>
+                                                                {selectedDate} • {selectedLocation.name}
+                                                            </div>
+                                                            <h3 className={twMerge(
+                                                                "font-display font-black uppercase italic tracking-tighter leading-[0.8]",
+                                                                festivalName.length > 20 ? "text-2xl md:text-4xl" : "text-4xl md:text-6xl",
+                                                                posterStyle === 'ULTRA' ? "text-black" : "text-white"
+                                                            )}>
+                                                                {festivalName}
+                                                            </h3>
+                                                        </div>
+
+                                                        <div className="flex-1 w-full flex flex-col justify-center items-center gap-4 py-8">
+                                                            {selectedDjs.map((dj, i) => {
+                                                                const isHeadline = i < 3;
+                                                                const count = selectedDjs.length;
+                                                                let fontSizeClass = "text-xl";
+                                                                if (isHeadline) {
+                                                                    fontSizeClass = count > 10 ? "text-2xl" : "text-4xl";
+                                                                    if (dj.name.length > 15) fontSizeClass = count > 10 ? "text-lg" : "text-2xl";
+                                                                } else {
+                                                                    fontSizeClass = count > 15 ? "text-[8px]" : "text-xs";
+                                                                }
+
+                                                                return (
+                                                                    <div
+                                                                        key={dj.id}
+                                                                        className={twMerge(
+                                                                            "font-black uppercase tracking-[0.2em] transition-all text-center px-4",
+                                                                            fontSizeClass,
+                                                                            posterStyle === 'ULTRA' ? (isHeadline ? "text-black font-display" : "text-black/40") :
+                                                                                posterStyle === 'TOMORROWLAND' ? (isHeadline ? "text-[#d4af37]" : "text-white/30") :
+                                                                                    (isHeadline ? "text-white drop-shadow-[0_0_10px_rgba(255,255,255,0.5)]" : "text-neon-red/50")
+                                                                        )}
+                                                                        style={{ lineHeight: 1.1 }}
+                                                                    >
+                                                                        {dj.name}
+                                                                    </div>
+                                                                );
+                                                            })}
+                                                        </div>
+
+                                                        <div className={twMerge(
+                                                            "mt-auto pt-8 border-t w-full flex flex-col gap-2",
+                                                            posterStyle === 'ULTRA' ? "border-black/5" : "border-white/10"
+                                                        )}>
+                                                            <div className="flex justify-between items-center px-2">
+                                                                <div className={twMerge("text-[8px] font-black uppercase tracking-widest", posterStyle === 'ULTRA' ? "text-black/20" : "text-white/20")}>Dropsiders Lab</div>
+                                                                <div className={twMerge("text-[8px] font-black uppercase tracking-widest", posterStyle === 'ULTRA' ? "text-black/20" : "text-white/20")}>#FESTIVALPRODUCER</div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </motion.div>
