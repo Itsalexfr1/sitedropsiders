@@ -58,6 +58,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [showFormatModal, setShowFormatModal] = useState(true);
     const [readyVideoBlob, setReadyVideoBlob] = useState<Blob | null>(null);
     const [readyVideoUrl, setReadyVideoUrl] = useState<string>('');
+    const [recordingProgress, setRecordingProgress] = useState(0);
+    const [recordingTimeLeft, setRecordingTimeLeft] = useState(0);
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -791,12 +793,31 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             const url = URL.createObjectURL(blob);
 
             setIsVideoRecording(false);
+            setRecordingProgress(0);
             setReadyVideoBlob(blob);
             setReadyVideoUrl(url);
             setActivePanel(null); // Close export panel
         };
 
         recorder.start(1000);
+
+        let totalDuration = 0;
+        if (theme === 'INTRO') {
+            totalDuration = 10000;
+        } else if (theme.startsWith('TOP 5')) {
+            totalDuration = 5 * (16800 + 1200); // 5 slides + transitions
+        } else {
+            totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) ? bgVideo.duration * 1000 : 15000;
+            if (totalDuration > 60000) totalDuration = 60000;
+        }
+
+        const startTime = Date.now();
+        const progressInterval = setInterval(() => {
+            const elapsed = Date.now() - startTime;
+            const progress = Math.min((elapsed / totalDuration) * 100, 99);
+            setRecordingProgress(progress);
+            setRecordingTimeLeft(Math.max(0, Math.ceil((totalDuration - elapsed) / 1000)));
+        }, 100);
 
         if (theme === 'INTRO') {
             await new Promise(r => setTimeout(r, 10000));
@@ -822,14 +843,15 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 await new Promise(r => setTimeout(r, 16800));
             }
         } else {
-            let duration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) ? bgVideo.duration * 1000 : 15000;
-            if (duration > 60000) duration = 60000;
-            await new Promise(r => setTimeout(r, duration));
+            await new Promise(r => setTimeout(r, totalDuration));
         }
 
+        clearInterval(progressInterval);
+        setRecordingProgress(100);
+        setRecordingTimeLeft(0);
         setTransitionProgress(0);
         if (bgVideo) {
-            bgVideo.muted = previousMutedState; // Return to muted for preview if it was muted
+            bgVideo.muted = previousMutedState;
             bgVideo.loop = true;
             bgVideo.play().catch(() => { });
         }
@@ -1153,6 +1175,32 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             )}
                         </div>
 
+                        {/* Visuals Gallery */}
+                        {visualsList.length > 0 && (
+                            <div className="space-y-3">
+                                <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Vos Captures ({visualsList.length})</span>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {visualsList.map((vis, idx) => (
+                                        <div key={idx} className="group relative aspect-[9/12] rounded-xl overflow-hidden border border-white/10 bg-black shadow-lg">
+                                            <img src={vis} alt={`Visual ${idx}`} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                                                <button onClick={() => {
+                                                    const a = document.createElement('a'); a.href = vis;
+                                                    a.download = `dropsiders-capture-${idx}.png`; a.click();
+                                                }} className="p-2 bg-white text-black rounded-lg hover:bg-neon-cyan transition-colors">
+                                                    <Download className="w-3 h-3" />
+                                                </button>
+                                                <button onClick={() => setVisualsList(prev => prev.filter((_, i) => i !== idx))}
+                                                    className="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors">
+                                                    <X className="w-3 h-3" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+
                         {/* Toggles + Export */}
                         <div className="space-y-4 mt-auto pb-8">
                             <div className="flex gap-2">
@@ -1176,8 +1224,39 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     {/* Preview */}
                     <div className="flex-1 bg-[#020202] flex flex-col items-center justify-center relative overflow-hidden h-full border-l border-white/10">
                         <div className="aspect-auto w-full max-w-[450px] relative">
-                            <div className="w-full h-full bg-[#111] rounded-[30px] overflow-hidden border border-white/10 shadow-2xl">
+                            <div className="w-full h-full bg-[#111] rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
                                 <canvas ref={canvasRef} className="w-full h-full object-contain" />
+
+                                <AnimatePresence>
+                                    {isVideoRecording && (
+                                        <motion.div
+                                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                            className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-8 text-center"
+                                        >
+                                            <div className="w-full max-w-xs space-y-6">
+                                                <div className="relative w-32 h-32 mx-auto">
+                                                    <svg className="w-full h-full -rotate-90">
+                                                        <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/10" />
+                                                        <motion.circle
+                                                            cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent"
+                                                            className="text-neon-red"
+                                                            strokeDasharray={364.4}
+                                                            strokeDashoffset={364.4 - (364.4 * recordingProgress) / 100}
+                                                        />
+                                                    </svg>
+                                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                        <span className="text-2xl font-black italic text-white">{recordingTimeLeft}S</span>
+                                                        <span className="text-[8px] font-black text-white/50 uppercase tracking-widest">Restant</span>
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    <h3 className="text-white font-black uppercase italic tracking-tighter">Génération en cours</h3>
+                                                    <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest">Veuillez ne pas quitter cette page</p>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                </AnimatePresence>
                             </div>
                         </div>
                     </div>
@@ -1245,6 +1324,37 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         onClick={() => { if (activePanel) setActivePanel(null); }}
                     >
                         <canvas ref={canvasRef} className="w-full h-full object-contain" />
+
+                        <AnimatePresence>
+                            {isVideoRecording && (
+                                <motion.div
+                                    initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                                    className="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center z-50"
+                                >
+                                    <div className="w-full max-w-xs space-y-6">
+                                        <div className="relative w-32 h-32 mx-auto">
+                                            <svg className="w-full h-full -rotate-90">
+                                                <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/10" />
+                                                <motion.circle
+                                                    cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent"
+                                                    className="text-neon-red"
+                                                    strokeDasharray={364.4}
+                                                    strokeDashoffset={364.4 - (364.4 * recordingProgress) / 100}
+                                                />
+                                            </svg>
+                                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                                <span className="text-2xl font-black italic text-white">{recordingTimeLeft}S</span>
+                                                <span className="text-[8px] font-black text-white/50 uppercase tracking-widest">Restant</span>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <h2 className="text-xl font-black text-white uppercase italic tracking-tighter">Capture Vidéo</h2>
+                                            <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest leading-relaxed">Génération du rendu en cours<br />Ne fermez pas votre navigateur</p>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            )}
+                        </AnimatePresence>
                     </div>
 
                     {/* Swipe Indicator (top handle) + Drag listener hook */}
@@ -1407,7 +1517,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             <div className="w-full space-y-3">
                                 <button
                                     onClick={async () => {
-                                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
                                         const extension = readyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
                                         const fileName = `dropsiders-${theme.replace(/ /g, '-')}.${extension}`;
                                         const file = new File([readyVideoBlob], fileName, { type: readyVideoBlob.type });
@@ -1419,29 +1528,44 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                                     title: 'Dropsiders Video',
                                                     text: 'Ma vidéo générée via Dropsiders Social Studio'
                                                 });
+                                                return;
                                             } catch (err) {
                                                 console.warn("Share failed:", err);
-                                                // Fallback to open URL
-                                                window.location.href = readyVideoUrl;
-                                            }
-                                        } else {
-                                            // Fallback for non-share browsers
-                                            const a = document.createElement('a');
-                                            a.href = readyVideoUrl;
-                                            a.download = fileName;
-                                            document.body.appendChild(a);
-                                            a.click();
-                                            document.body.removeChild(a);
-
-                                            if (isIOS || /OPR\/|Opera\/|Edition\sGX/.test(navigator.userAgent)) {
-                                                alert("L'enregistrement direct est bloqué. Cliquez sur OK, puis maintenez la vidéo qui s'ouvre pour l'enregistrer.");
-                                                window.open(readyVideoUrl, '_blank');
                                             }
                                         }
+
+                                        // Fallback: Direct download
+                                        const a = document.createElement('a');
+                                        a.href = readyVideoUrl;
+                                        a.download = fileName;
+                                        document.body.appendChild(a);
+                                        a.click();
+                                        document.body.removeChild(a);
+
+                                        const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                                        if (isIOS || /OPR\/|Opera\/|Edition\sGX/.test(navigator.userAgent)) {
+                                            alert("Si le téléchargement ne démarre pas, maintenez la vidéo qui s'affiche pour l'enregistrer manuellement.");
+                                        }
                                     }}
-                                    className="w-full py-5 bg-white text-black font-black rounded-2xl uppercase tracking-widest text-[11px] shadow-[0_10px_30px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all"
+                                    className="w-full py-5 bg-white text-black font-black rounded-2xl uppercase tracking-widest text-[11px] shadow-[0_10px_30px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3"
                                 >
-                                    💾 Enregistrer dans la pellicule
+                                    📥 Enregistrer la vidéo
+                                </button>
+
+                                <button
+                                    onClick={() => {
+                                        const extension = readyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+                                        const fileName = `dropsiders-${theme.replace(/ /g, '-')}.${extension}`;
+                                        const a = document.createElement('a');
+                                        a.href = readyVideoUrl;
+                                        a.download = fileName;
+                                        document.body.appendChild(a);
+                                        a.click();
+                                        document.body.removeChild(a);
+                                    }}
+                                    className="w-full py-4 bg-white/5 border border-white/10 text-white font-black rounded-2xl uppercase tracking-widest text-[10px] hover:bg-white/10 transition-all flex items-center justify-center gap-2"
+                                >
+                                    <Download className="w-3.5 h-3.5" /> Lien Miroir (Secours)
                                 </button>
 
                                 <button

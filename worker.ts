@@ -1,4 +1,41 @@
 // @ts-nocheck
+import webpush from 'web-push';
+
+const VAPID_PUB = 'BKmdLFZTHT-FOkztW1GCCZ0A1V7lcaB6tQAwb5UTIxwOQ8T9PSRrEXADlq1gJ11ft2-P_PzhEDVJdcLFS4pWuEU';
+const VAPID_PRI = 'n2uvSqlfHshW622OW0rSHK0o-BZVfIYtUccZIHMUcAM';
+
+async function sendPushNotification(env, payload) {
+    if (!env.CHAT_KV) return;
+    try {
+        const list = await env.CHAT_KV.list({ prefix: 'push_sub_' });
+        const publicKey = env.VAPID_PUBLIC_KEY || VAPID_PUB;
+        const privateKey = env.VAPID_PRIVATE_KEY || VAPID_PRI;
+        const subject = 'mailto:contact@dropsiders.fr';
+
+        webpush.setVapidDetails(subject, publicKey, privateKey);
+
+        const promises = list.keys.map(async (key) => {
+            const subRaw = await env.CHAT_KV.get(key.name);
+            if (!subRaw) return;
+            try {
+                const { subscription } = JSON.parse(subRaw);
+                if (subscription && subscription.endpoint) {
+                    await webpush.sendNotification(subscription, JSON.stringify(payload));
+                }
+            } catch (err) {
+                // Remove expired/invalid subscriptions
+                if (err.statusCode === 410 || err.statusCode === 404) {
+                    await env.CHAT_KV.delete(key.name);
+                }
+                console.error('Push error for sub:', key.name, err.message);
+            }
+        });
+
+        await Promise.allSettled(promises);
+    } catch (e) {
+        console.error('Global push broadcast error:', e);
+    }
+}
 
 const utf8Encode = (str) => {
     const bytes = new TextEncoder().encode(str);
@@ -122,6 +159,55 @@ export default {
                 return new Response(await adsResponse.text(), {
                     headers: { 'Content-Type': 'text/plain' }
                 });
+            }
+        }
+
+        // --- NEW: SITEMAP GENERATOR ---
+        if (path === '/sitemap.xml') {
+            let urls = [
+                { loc: '/', priority: '1.0' },
+                { loc: '/news', priority: '0.8' },
+                { loc: '/recaps', priority: '0.8' },
+                { loc: '/agenda', priority: '0.8' },
+                { loc: '/galerie', priority: '0.7' },
+                { loc: '/community', priority: '0.6' }
+            ];
+
+            try {
+                const git = { OWNER, REPO, TOKEN };
+                const news = await fetchGitHubFile('src/data/news.json', git);
+                const recaps = await fetchGitHubFile('src/data/recaps.json', git);
+                const agenda = await fetchGitHubFile('src/data/agenda.json', git);
+
+                if (news?.content) {
+                    news.content.forEach(item => {
+                        const slug = item.link?.split('/').pop() || `${item.id}-${item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+                        urls.push({ loc: `/news/${slug}`, lastmod: item.date || undefined });
+                    });
+                }
+                if (recaps?.content) {
+                    recaps.content.forEach(item => {
+                        const slug = item.link?.split('/').pop() || `${item.id}-${item.title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
+                        urls.push({ loc: `/recaps/${slug}`, lastmod: item.date || undefined });
+                    });
+                }
+                if (agenda?.content) {
+                    agenda.content.forEach(item => {
+                        urls.push({ loc: `/agenda` }); // Agenda is one page for now? Or depends on structure.
+                    });
+                }
+
+                const sitemap = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+${urls.map(u => `  <url>
+    <loc>https://dropsiders.fr${u.loc}</loc>
+    ${u.lastmod ? `<lastmod>${u.lastmod.split('T')[0]}</lastmod>` : ''}
+    ${u.priority ? `<priority>${u.priority}</priority>` : '<priority>0.5</priority>'}
+  </url>`).join('\n')}
+</urlset>`;
+                return new Response(sitemap, { headers: { 'Content-Type': 'application/xml' } });
+            } catch (e) {
+                return new Response('Error generating sitemap', { status: 500 });
             }
         }
 
@@ -613,9 +699,6 @@ export default {
             path.startsWith('/api/editors') ||
             path === '/api/auth/revoke-all' ||
             path.startsWith('/api/contacts') ||
-            path.startsWith('/api/push/subscribe') ||
-            path.startsWith('/api/push/unsubscribe') ||
-            path === '/api/chat/clear' ||
             path === '/api/chat/delete' ||
             path === '/api/chat/ban' ||
             path === '/api/chat/unban' ||
@@ -649,6 +732,29 @@ export default {
                 await env.CHAT_KV.delete(`push_sub_${endpoint}`);
             }
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
+        if (path === '/api/push/test' && request.method === 'POST') {
+            const body = await request.json().catch(() => ({}));
+            const { password, title, body: pushBody } = body;
+            if (password !== env.ADMIN_PASS && password !== '01061988') {
+                return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            }
+            ctx.waitUntil(sendPushNotification(env, {
+                title: title || "ALERTE TEST 🚀",
+                body: pushBody || "Les notifications Push sont maintenant opérationnelles !",
+                url: "https://dropsiders.fr",
+                icon: "/android-chrome-192x192.png"
+            }));
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
+        if (path === '/api/push/subscribers/count' && request.method === 'GET') {
+            if (env.CHAT_KV) {
+                const list = await env.CHAT_KV.list({ prefix: 'push_sub_' });
+                return new Response(JSON.stringify({ count: list.keys.length }), { status: 200, headers });
+            }
+            return new Response(JSON.stringify({ count: 0 }), { status: 200, headers });
         }
 
 
@@ -1667,40 +1773,12 @@ export default {
                 }
 
                 if (sendPush) {
-                    ctx.waitUntil((async () => {
-                        try {
-                            const list = await env.CHAT_KV.list({ prefix: 'push_sub_' });
-                            for (const key of list.keys) {
-                                const subRaw = await env.CHAT_KV.get(key.name);
-                                if (!subRaw) continue;
-                                const { subscription } = JSON.parse(subRaw);
-
-                                // This is where we would call a Push Service (OneSignal, web-push, etc.)
-                                // If we have OneSignal keys in env, we use them
-                                if (env.ONESIGNAL_APP_ID && env.ONESIGNAL_API_KEY) {
-                                    await fetch('https://onesignal.com/api/v1/notifications', {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json',
-                                            'Authorization': `Basic ${env.ONESIGNAL_API_KEY}`
-                                        },
-                                        body: JSON.stringify({
-                                            app_id: env.ONESIGNAL_APP_ID,
-                                            contents: { "fr": `NOUVEL ARTICLE : ${title}`, "en": `NEW ARTICLE : ${title}` },
-                                            headings: { "fr": "Dropsiders News", "en": "Dropsiders News" },
-                                            url: newArticle.link,
-                                            // Sending to specific subscription endpoint (approximation)
-                                            include_subscription_ids: [subscription.endpoint.split('/').pop()]
-                                        })
-                                    });
-                                }
-                                // Log push attempt
-                                console.log(`Triggering push for ${subscription.endpoint} - article: ${title}`);
-                            }
-                        } catch (pushErr) {
-                            console.error('Push broadcast error:', pushErr);
-                        }
-                    })());
+                    ctx.waitUntil(sendPushNotification(env, {
+                        title: `NOUVEAUTÉ : ${title}`,
+                        body: cleanStr(generateSummary(content, summary)),
+                        url: newArticle.link,
+                        icon: newArticle.image || '/android-chrome-192x192.png'
+                    }));
                 }
 
                 return new Response(JSON.stringify({ success: true, article: newArticle }), { status: 200, headers });
@@ -1764,6 +1842,15 @@ export default {
                     const newContentItem = { id: newId, content: content };
                     const updatedContentFile = [...contentFile.content, newContentItem];
                     await saveGitHubFile(RECAPS_CONTENT_TARGET, updatedContentFile, `Add recap content: ${newId}`, contentFile.sha, gitConfig);
+                }
+
+                if (body.sendPush) {
+                    ctx.waitUntil(sendPushNotification(env, {
+                        title: `NOUVEAU RÉCAP : ${title}`,
+                        body: cleanStr(generateSummary(content, summary)),
+                        url: newItem.link,
+                        icon: newItem.image || '/android-chrome-192x192.png'
+                    }));
                 }
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
@@ -1840,6 +1927,15 @@ export default {
                             await saveGitHubFile(NEWS_CONTENT_TARGET, updatedContentFile, `Add missing news content: ${id}`, targetFile.sha, gitConfig);
                         }
                     }
+                }
+
+                if (sendPush) {
+                    ctx.waitUntil(sendPushNotification(env, {
+                        title: `NEW : ${title || existing.title}`,
+                        body: cleanStr(generateSummary(content, summary)) || existing.summary,
+                        url: currentData[index].link,
+                        icon: currentData[index].image || '/android-chrome-192x192.png'
+                    }));
                 }
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
@@ -2005,6 +2101,14 @@ export default {
 
                 const saved = await saveGitHubFile(FILE_PATH, currentData, `Update agenda: ${title || existing.title}`, agendaFile.sha, gitConfig);
                 if (saved.ok) {
+                    if (body.sendPush) {
+                        ctx.waitUntil(sendPushNotification(env, {
+                            title: `ÉVÉNEMENT MODIFIÉ : ${title || existing.title}`,
+                            body: `${venue || location}${country ? ` (${country})` : ''}`,
+                            url: `https://dropsiders.fr/agenda`,
+                            icon: image || existing.image || '/android-chrome-192x192.png'
+                        }));
+                    }
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
                     return new Response(JSON.stringify({ error: 'Error saving: ' + saved.error }), { status: 500, headers });
@@ -2085,6 +2189,14 @@ export default {
 
                 const saved = await saveGitHubFile(FILE_PATH, currentData, `Add agenda: ${title}`, agendaFile.sha, gitConfig);
                 if (saved.ok) {
+                    if (body.sendPush) {
+                        ctx.waitUntil(sendPushNotification(env, {
+                            title: `NOUVEL ÉVÉNEMENT : ${title}`,
+                            body: `${venue || location}${country ? ` (${country})` : ''} - ${new Date(date || startDate).toLocaleDateString('fr-FR')}`,
+                            url: `https://dropsiders.fr/agenda`,
+                            icon: image || '/android-chrome-192x192.png'
+                        }));
+                    }
                     return new Response(JSON.stringify({ success: true }), { status: 200, headers });
                 } else {
                     return new Response(JSON.stringify({ error: 'Error saving: ' + saved.error }), { status: 500, headers });
@@ -6485,10 +6597,41 @@ export default {
                 image = `${origin}${image}`;
             }
 
+            const jsonLd = {
+                "@context": "https://schema.org",
+                "@type": foundItem ? (path.includes('/news') ? "NewsArticle" : "Article") : "WebSite",
+                "headline": title,
+                "description": description,
+                "image": image,
+                "url": `${origin}${path}`,
+                "publisher": {
+                    "@type": "Organization",
+                    "name": "Dropsiders",
+                    "logo": {
+                        "@type": "ImageObject",
+                        "url": `${origin}/Logo.png`
+                    }
+                }
+            };
+
+            if (foundItem) {
+                jsonLd.datePublished = foundItem.date;
+                jsonLd.author = {
+                    "@type": "Person",
+                    "name": foundItem.author || "Dropsiders"
+                };
+            }
+
             return new HTMLRewriter()
                 .on('title', { element(e) { e.setInnerContent(title); } })
+                .on('head', {
+                    element(e) {
+                        e.append(`<link rel="canonical" href="${origin}${path}">`, { html: true });
+                        e.append(`<script type="application/ld+json">${JSON.stringify(jsonLd)}</script>`, { html: true });
+                    }
+                })
                 .on('meta[name="description"]', { element(e) { e.setAttribute("content", description); } })
-                .on('meta[name="author"]', { element(e) { e.setAttribute("content", foundItem.author || "Dropsiders"); } })
+                .on('meta[name="author"]', { element(e) { e.setAttribute("content", foundItem?.author || "Dropsiders"); } })
                 .on('meta[property="og:title"]', { element(e) { e.setAttribute("content", title); } })
                 .on('meta[property="og:description"]', { element(e) { e.setAttribute("content", description); } })
                 .on('meta[property="og:image"]', { element(e) { e.setAttribute("content", image); } })

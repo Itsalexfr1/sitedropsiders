@@ -1,6 +1,6 @@
 // --- CONFIGURATION PUSH ---
 // Ta clé VAPID publique (générée via web-push)
-export const VAPID_PUBLIC_KEY = 'BGMpEqmZLss9GcRaT-ON63yjLvQYjowck_ZYpePbiV5qHeC0sBXkcIgyGOa0k98wD62nv69XEAlGz6_PKKqqiaA';
+export const VAPID_PUBLIC_KEY = 'BKmdLFZTHT-FOkztW1GCCZ0A1V7lcaB6tQAwb5UTIxwOQ8T9PSRrEXADlq1gJ11ft2-P_PzhEDVJdcLFS4pWuEU';
 
 /**
  * Convertit une clé VAPID base64 en Uint8Array pour le navigateur

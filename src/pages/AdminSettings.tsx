@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff, X, CheckCircle2, AlertCircle, Share2, Youtube, Globe, Facebook, Music, Instagram } from 'lucide-react';
+import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff, X, CheckCircle2, AlertCircle, Share2, Youtube, Globe, Facebook, Music, Instagram, Bell, Send, Info } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -24,6 +24,8 @@ export function AdminSettings() {
 
     const [isSaving, setIsSaving] = useState(false);
     const [isRevoking, setIsRevoking] = useState(false);
+    const [isTestingPush, setIsTestingPush] = useState(false);
+    const [subscribersCount, setSubscribersCount] = useState<number | null>(null);
 
     // Toast State
     const [toast, setToast] = useState<{
@@ -62,6 +64,12 @@ export function AdminSettings() {
                     const eds = await resAuth.json();
                     const me = eds.find((e: any) => e.username === currentUser);
                     if (me) setAdminPassword(me.password);
+                }
+
+                const resPush = await apiFetch('/api/push/subscribers/count', { headers: getAuthHeaders() });
+                if (resPush.ok) {
+                    const data = await resPush.json();
+                    setSubscribersCount(data.count);
                 }
             } catch (e: any) {
                 console.error('Failed to fetch data', e);
@@ -143,6 +151,32 @@ export function AdminSettings() {
             showNotification('Erreur réseau', 'error');
         } finally {
             setIsRevoking(false);
+        }
+    };
+
+    const handleTestPush = async () => {
+        if (!window.confirm('Voulez-vous envoyer une notification de test à TOUS les abonnés ?')) return;
+        setIsTestingPush(true);
+        try {
+            const res = await apiFetch('/api/push/test', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    password: adminPassword,
+                    title: "DROPSIDERS : TEST RÉUSSI 🚀",
+                    body: "Ton système de notifications push est maintenant 100% opérationnel !"
+                })
+            });
+            if (res.ok) {
+                showNotification('Notification de test envoyée !');
+            } else {
+                const err = await res.json();
+                showNotification(err.error || 'Erreur lors de l\'envoi', 'error');
+            }
+        } catch (e) {
+            showNotification('Erreur réseau', 'error');
+        } finally {
+            setIsTestingPush(false);
         }
     };
 
@@ -357,6 +391,59 @@ export function AdminSettings() {
                         </div>
                     </motion.div>
                 </div>
+
+                {/* Notifications Section */}
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="mt-8 md:mt-12 bg-gradient-to-br from-neon-pink/10 to-transparent border border-neon-pink/20 rounded-[3rem] p-8 md:p-12 shadow-2xl shadow-neon-pink/5"
+                >
+                    <div className="flex flex-col md:flex-row items-center justify-between gap-8">
+                        <div className="flex items-center gap-6">
+                            <div className="p-5 bg-neon-pink/20 rounded-[2rem] shadow-xl shadow-neon-pink/10 border border-neon-pink/30">
+                                <Bell className="w-8 h-8 text-neon-pink" />
+                            </div>
+                            <div>
+                                <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic tracking-tighter mb-2 text-glow-pink">Notification Center</h2>
+                                <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.2em]">Flux Temps Réel & Audience Push</p>
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-4 bg-black/40 p-2 rounded-[2.5rem] border border-white/5">
+                            <div className="px-8 py-4">
+                                <div className="text-[10px] font-black text-neon-cyan uppercase tracking-widest mb-1 opacity-60">Audience Active</div>
+                                <div className="text-3xl font-display font-black text-white italic">
+                                    {subscribersCount === null ? '...' : subscribersCount}
+                                </div>
+                            </div>
+                            <button
+                                onClick={handleTestPush}
+                                disabled={isTestingPush}
+                                className="flex items-center gap-3 px-8 py-5 bg-neon-pink text-white rounded-[2rem] font-black uppercase text-[10px] tracking-[0.2em] hover:bg-white hover:text-black transition-all active:scale-95 disabled:opacity-50 group shadow-lg shadow-neon-pink/20"
+                            >
+                                <Send className={`w-4 h-4 transition-transform ${isTestingPush ? 'animate-bounce' : 'group-hover:translate-x-1 group-hover:-translate-y-1'}`} />
+                                {isTestingPush ? 'Envoi...' : 'Tester le Broadcast'}
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="p-6 bg-white/[0.03] border border-white/5 rounded-3xl flex items-start gap-4 hover:bg-white/[0.05] transition-colors group">
+                            <Info className="w-4 h-4 text-neon-cyan shrink-0 mt-1 transition-transform group-hover:scale-110" />
+                            <p className="text-[9px] text-white/40 uppercase font-bold tracking-tight leading-relaxed">
+                                Les notifications push sont envoyées automatiquement lors de la création d'un article si l'option est cochée.
+                                Ce bouton permet de forcer un test technique pour vérifier la validité des clés VAPID.
+                            </p>
+                        </div>
+                        <div className="p-6 bg-white/[0.03] border border-white/5 rounded-3xl flex items-start gap-4 hover:bg-white/[0.05] transition-colors group">
+                            <ShieldCheck className="w-4 h-4 text-green-500 shrink-0 mt-1 transition-transform group-hover:scale-110" />
+                            <p className="text-[9px] text-white/40 uppercase font-bold tracking-tight leading-relaxed">
+                                Données chiffrées de bout en bout (E2EE). Aucune information personnelle ou IP n'est conservée,
+                                seulement le jeton cryptographique du navigateur.
+                            </p>
+                        </div>
+                    </div>
+                </motion.div>
 
                 <AnimatePresence mode="wait">
                     {toast.show && (
