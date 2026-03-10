@@ -158,6 +158,7 @@ const DJ_POOL = [
     { id: 'oguz', name: 'Oguz', price: 180000, genre: 'Hard Techno', popularity: 94, label: 'Trend: 808', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
 
     // --- MAIN SUPPORT TIER (100k - 350k€) ---
+    { id: 'francis-mercier', name: 'Francis Mercier', price: 180000, genre: 'Afro House', popularity: 95, label: 'Deep Root Records', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'john-summit', name: 'John Summit', price: 350000, genre: 'Tech House', popularity: 98, label: 'Experts Only', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'dom-dolla', name: 'Dom Dolla', price: 340000, genre: 'Tech House', popularity: 97, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'james-hype', name: 'James Hype', price: 280000, genre: 'Tech House', popularity: 98, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
@@ -171,7 +172,7 @@ const DJ_POOL = [
     { id: 'mochakk', name: 'Mochakk', price: 240000, genre: 'Tech House', popularity: 97, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'i-hate-models', name: 'I Hate Models', price: 220000, genre: 'Industrial Techno', popularity: 95, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'adam-beyer', name: 'Adam Beyer', price: 260000, genre: 'Techno', popularity: 97, label: 'Drumcode', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Adam_Beyer.jpg/800px-Adam_Beyer.jpg' },
-    { id: 'adriatique', name: 'Adriatique', price: 280000, genre: 'Melodic', popularity: 96, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'adriatique', name: 'Adriatique', price: 280000, genre: 'Melodic House', popularity: 96, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'nina-kraviz', name: 'Nina Kraviz', price: 250000, genre: 'Techno', popularity: 96, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/29/Nina_Kraviz_Berghain_2011.jpg/800px-Nina_Kraviz_Berghain_2011.jpg' },
     { id: 'indira-paganotto', name: 'Indira Paganotto', price: 180000, genre: 'Psy-Techno', popularity: 94, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'sara-landry', name: 'Sara Landry', price: 200000, genre: 'Hard Techno', popularity: 95, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
@@ -179,19 +180,28 @@ const DJ_POOL = [
     { id: 'reinier-zonneveld', name: 'Reinier Zonneveld', price: 190000, genre: 'Acid Techno', popularity: 95, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'richie-hawtin', name: 'Richie Hawtin', price: 320000, genre: 'Legend', popularity: 98, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Richie_Hawtin_2011.jpg/800px-Richie_Hawtin_2011.jpg' },
     { id: 'jeff-mills', name: 'Jeff Mills', price: 320000, genre: 'Legend', popularity: 98, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Jeff_Mills_2004.jpg/800px-Jeff_Mills_2004.jpg' },
+    { id: 'the-martinez-brothers', name: 'The Martinez Brothers', price: 300000, genre: 'Tech House', popularity: 97, label: 'Cuttin\' Headz', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'pawsa', name: 'PAWSA', price: 280000, genre: 'Tech House', popularity: 96, label: 'Solid Grooves', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'skepta', name: 'Skepta (Mas Tiempo)', price: 250000, genre: 'House', popularity: 96, label: 'Mas Tiempo', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'honey-dijon', name: 'Honey Dijon', price: 240000, genre: 'House', popularity: 96, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
 
     // --- SUPPORT / RISING STARS (10k - 100k€) ---
+    { id: 'mita-gami', name: 'Mita Gami', price: 35000, genre: 'Indie Dance', popularity: 87, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'notre-dame', name: 'Notre Dame', price: 85000, genre: 'Melodic House', popularity: 92, label: 'Diynamic', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'robin-tordjman', name: 'Robin Tordjman', price: 65000, genre: 'Afro House', popularity: 90, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'maz', name: 'Maz', price: 90000, genre: 'Afro House', popularity: 93, label: 'Dawn Patrol', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'mont-rouge', name: 'Mont Rouge', price: 75000, genre: 'Afro House', popularity: 91, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'samm', name: 'Samm', price: 55000, genre: 'Afro House', popularity: 89, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'ajna', name: 'Ajna', price: 55000, genre: 'Afro House', popularity: 89, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'cassian', name: 'Cassian', price: 85000, genre: 'Melodic Techno', popularity: 94, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'hugel', name: 'Hugel', price: 85000, genre: 'Latin House', popularity: 93, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'wade', name: 'Wade', price: 90000, genre: 'Tech House', popularity: 95, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'mesto', name: 'Mesto', price: 45000, genre: 'Future House', popularity: 88, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'adam-ten', name: 'Adam Ten', price: 35000, genre: 'Indie Dance', popularity: 86, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'topic', name: 'Topic', price: 95000, genre: 'Dance Pop', popularity: 95, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'zorza', name: 'Zorza', price: 20000, genre: 'Techno', popularity: 82, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'azzecca', name: 'Azzecca', price: 25000, genre: 'House', popularity: 85, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'sam-wolfe', name: 'Sam WOLFE', price: 22000, genre: 'Techno', popularity: 84, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
-    { id: 'nitti', name: 'NITTI', price: 65000, genre: 'House', popularity: 88, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
-    { id: 'eliminate', name: 'Eliminate', price: 55000, genre: 'Bass', popularity: 87, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
-    { id: 'topic', name: 'Topic', price: 95000, genre: 'Dance Pop', popularity: 95, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
-    { id: 'hugel', name: 'Hugel', price: 85000, genre: 'Latin House', popularity: 93, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
-    { id: 'wade', name: 'Wade', price: 90000, genre: 'Tech House', popularity: 95, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
-    { id: 'cassian', name: 'Cassian', price: 85000, genre: 'Melodic Techno', popularity: 94, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
 ];
 
 const FIX_COSTS = [
