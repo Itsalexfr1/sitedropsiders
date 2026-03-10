@@ -4213,14 +4213,6 @@ export function AdminDashboard() {
                                                             >
                                                                 <div className="flex items-start justify-between gap-6">
                                                                     <div className="flex-1">
-                                                                        <div className="flex items-center gap-3 mb-3">
-                                                                            <span className="px-3 py-1 bg-white/5 border border-white/10 rounded-full text-[8px] font-black text-gray-400 uppercase tracking-widest">
-                                                                                {quiz.type}
-                                                                            </span>
-                                                                            {quiz.author && (
-                                                                                <span className="text-[9px] font-bold text-gray-500">PAR : {quiz.author.toUpperCase()}</span>
-                                                                            )}
-                                                                        </div>
                                                                         <h4 className="text-lg font-bold text-white mb-4">{quiz.question}</h4>
                                                                         <div className="grid grid-cols-2 gap-2">
                                                                             {quiz.options.map((opt: string, idx: number) => (
