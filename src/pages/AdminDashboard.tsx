@@ -284,6 +284,8 @@ export function AdminDashboard() {
     };
 
     const handleUpdateQuiz = async (quiz: any) => {
+        if (isSavingQuiz) return;
+        setIsSavingQuiz(true);
         try {
             const endpoint = quiz.id ? '/api/quiz/update' : '/api/quiz/submit';
             const res = await apiFetch(endpoint, {
@@ -291,12 +293,19 @@ export function AdminDashboard() {
                 headers: getAuthHeaders(),
                 body: JSON.stringify(quiz)
             });
+
             if (res.ok) {
                 setIsEditQuizModalOpen(false);
                 fetchQuizzes();
+            } else {
+                const errData = await res.json();
+                alert(`Erreur lors de la sauvegarde: ${errData.error || 'Erreur inconnue'}`);
             }
         } catch (err) {
             console.error("Error updating quiz:", err);
+            alert("Erreur réseau lors de la sauvegarde.");
+        } finally {
+            setIsSavingQuiz(false);
         }
     };
 
@@ -4331,7 +4340,7 @@ export function AdminDashboard() {
                                         />
                                     </div>
 
-                                    
+
 
                                     {/* BLIND TEST / VIDEO SPECIFIC (Spotify / YouTube) */}
                                     {(quizToEdit.type === 'BLIND_TEST' || quizToEdit.type === 'VIDEO') && (
@@ -4369,22 +4378,22 @@ export function AdminDashboard() {
                                                                         // 1. Guess Metadata from filename
                                                                         const rawName = file.name.replace(/\.[^/.]+$/, "");
 
-                                                                                                                                                 const musicTitlesPool = [
+                                                                        const musicTitlesPool = [
                                                                             "Carl Cox - I Want You", "Nina Kraviz - Ghetto Kraviz", "Amelie Lens - Follow", "Charlotte de Witte - Sgadi Li Mi", "Adam Beyer - Your Mind", "Skrillex - Bangarang", "SVDDEN DEATH - Behemoth", "Excision - Throwin' Elbows", "Subtronics - Griztronics", "Boris Brejcha - Gravity", "Laurent Garnier - The Man With The Red Face", "Jeff Mills - The Bells", "Derrick May - Strings of Life", "Carl Craig - Sandstorms", "Ummet Ozcan - Xanadu", "David Guetta - Titanium", "Martin Garrix - Animals", "Swedish House Mafia - One", "Avicii - Levels", "Tiësto - The Business", "Fisher - Losing It", "Fred again.. - Marea (We’ve Lost Dancing)", "Meduza - Piece Of Your Heart", "Zurb - Mwaki", "James Hype - Ferrari", "Mau P - Drugs From Amsterdam", "Peggy Gou - (It Goes Like) Nanana", "Anyma - Eternity", "Tale Of Us - Afterlife", "Chris Lake - Turn Off The Lights", "Dom Dolla - Rhyme Dust", "John Summit - Where You Are", "Mochakk - Jealous", "Hugel - Morenita", "Vintage Culture - Deep Down", "Alok - Hear Me Now", "Don Diablo - Cutting Shapes", "Oliver Heldens - Gecko", "Tchami - Adieu", "Malaa - Notorious", "DJ Snake - Turn Down For What", "Kungs - This Girl"
                                                                         ];
 
-                                                                         // Cleaning Function
-                                                                         const clean = (str: string) => {
-                                                                             return str
-                                                                                 .replace(/^\d+[\s.-]+/, '')
-                                                                                 .replace(/(\[|\()(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)?\s*(Mix|Edit|Version).*?(\]|\))/gi, "")
-                                                                                 .replace(/\s+(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)\s+(Mix|Edit|Version).*?$/gi, "")
-                                                                                 .replace(/\[(FREE DOWNLOAD|OUT NOW|OFFICIAL|HQ|AUDIO)\]/gi, "")
-                                                                                 .replace(/\(?Official Music Video\)?/gi, "")
-                                                                                 .replace(/\(?Lyric Video\)?/gi, "")
-                                                                                 .replace(/\s+/g, " ")
-                                                                                 .trim();
-                                                                         };
+                                                                        // Cleaning Function
+                                                                        const clean = (str: string) => {
+                                                                            return str
+                                                                                .replace(/^\d+[\s.-]+/, '')
+                                                                                .replace(/(\[|\()(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)?\s*(Mix|Edit|Version).*?(\]|\))/gi, "")
+                                                                                .replace(/\s+(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)\s+(Mix|Edit|Version).*?$/gi, "")
+                                                                                .replace(/\[(FREE DOWNLOAD|OUT NOW|OFFICIAL|HQ|AUDIO)\]/gi, "")
+                                                                                .replace(/\(?Official Music Video\)?/gi, "")
+                                                                                .replace(/\(?Lyric Video\)?/gi, "")
+                                                                                .replace(/\s+/g, " ")
+                                                                                .trim();
+                                                                        };
 
 
                                                                         // 🔍 Identification automatique
@@ -4411,11 +4420,11 @@ export function AdminDashboard() {
                                                                         }
                                                                         const fullLabel = artist ? `${artist} - ${title}` : title;
 
-                                                                         // Distractors
-                                                                         const distractors = musicTitlesPool
-                                                                             .filter(t => t.toLowerCase() !== fullLabel.toLowerCase())
-                                                                             .sort(() => 0.5 - Math.random())
-                                                                             .slice(0, 3);
+                                                                        // Distractors
+                                                                        const distractors = musicTitlesPool
+                                                                            .filter(t => t.toLowerCase() !== fullLabel.toLowerCase())
+                                                                            .sort(() => 0.5 - Math.random())
+                                                                            .slice(0, 3);
 
                                                                         // 2. Upload
                                                                         const url = await uploadFile(file);
@@ -4427,19 +4436,19 @@ export function AdminDashboard() {
 
                                                                         // Logic for creation
                                                                         const processFile = (startSec: number) => {
-                                                                             const quizData = {
-                                                                                 ...quizToEdit,
-                                                                                 type: 'BLIND_TEST',
-                                                                                 audioUrl: url,
-                                                                                 question: 'Quel est ce morceau ?',
-                                                                                 correctAnswer: fullLabel,
-                                                                                 options: [fullLabel, ...distractors].sort(() => 0.5 - Math.random()),
-                                                                                 startTime: startSec,
-                                                                                 approved: true,
-                                                                                 category: 'Blind Test'
-                                                                             };
-                                                                            
-if (i === 0) {
+                                                                            const quizData = {
+                                                                                ...quizToEdit,
+                                                                                type: 'BLIND_TEST',
+                                                                                audioUrl: url,
+                                                                                question: 'Quel est ce morceau ?',
+                                                                                correctAnswer: fullLabel,
+                                                                                options: [fullLabel, ...distractors].sort(() => 0.5 - Math.random()),
+                                                                                startTime: startSec,
+                                                                                approved: true,
+                                                                                category: 'Blind Test'
+                                                                            };
+
+                                                                            if (i === 0) {
                                                                                 // Update the current modal state for the first one
                                                                                 setQuizToEdit(quizData);
                                                                             } else {
@@ -4561,8 +4570,23 @@ if (i === 0) {
                                 <div className="mt-8 flex gap-3">
                                     <button onClick={() => setIsEditQuizModalOpen(false)}
                                         className="flex-1 py-4 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all hover:bg-white/10">Annuler</button>
-                                    <button onClick={() => handleUpdateQuiz(quizToEdit)}
-                                        className="flex-1 py-4 bg-neon-red text-white rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl shadow-neon-red/20 transition-all hover:scale-[1.02] active:scale-[0.98]">Enregistrer</button>
+                                    <button
+                                        onClick={() => handleUpdateQuiz(quizToEdit)}
+                                        disabled={isSavingQuiz}
+                                        className={`flex-1 py-4 rounded-2xl font-black uppercase text-[10px] tracking-widest shadow-xl transition-all flex items-center justify-center gap-2 ${isSavingQuiz ? 'bg-gray-700 text-gray-400 cursor-not-allowed' : 'bg-neon-red text-white shadow-neon-red/20 hover:scale-[1.02] active:scale-[0.98]'}`}
+                                    >
+                                        {isSavingQuiz ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                Enregistrement...
+                                            </>
+                                        ) : (
+                                            <>
+                                                <Save className="w-4 h-4" />
+                                                Enregistrer
+                                            </>
+                                        )}
+                                    </button>
                                 </div>
                             </motion.div>
                         </div>
@@ -4597,7 +4621,7 @@ if (i === 0) {
                                             <span className="px-3 py-1 bg-neon-red/20 text-neon-red border border-neon-red/30 rounded-full text-[8px] font-black uppercase tracking-widest">{testQuiz.type}</span>
                                         </div>
 
-                                        
+
 
                                         <h3 className="text-2xl font-bold text-white mb-8 uppercase italic tracking-tight leading-tight">{testQuiz.question}</h3>
 
