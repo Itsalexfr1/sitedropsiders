@@ -6419,14 +6419,15 @@ export default {
             return new Response(JSON.stringify({ error: 'Not Found' }), { status: 404, headers });
         }
 
+        const assetsBinding = env.APP_ASSETS || env.ASSETS;
         let response;
-        if (env.ASSETS) {
-            response = await env.ASSETS.fetch(request);
-            if (response.status === 404) {
-                response = await env.ASSETS.fetch(new URL('/index.html', request.url));
+        if (assetsBinding) {
+            response = await assetsBinding.fetch(request);
+            if (response.status === 404 || path === '/admin') {
+                response = await assetsBinding.fetch(new URL('/index.html', request.url));
             }
         } else {
-            return new Response("Not Found", { status: 404 });
+            return new Response("Not Found (No Assets Binding)", { status: 404 });
         }
 
         const contentType = response.headers.get("content-type");
