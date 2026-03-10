@@ -212,12 +212,12 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                     <motion.div key={venue.id} whileHover={{ y: -4, scale: 1.02 }}
                                         className={`group relative rounded-2xl overflow-hidden border transition-all duration-300 cursor-pointer ${selected?.id === venue.id ? 'border-neon-red shadow-[0_0_20px_rgba(255,0,0,0.3)]' : 'border-white/10 hover:border-white/30'}`}>
 
-                                        {/* Photo — photo entière + fondu premium en bas */}
-                                        <div className="relative aspect-[3/4] bg-black overflow-hidden" onClick={() => setSelected(selected?.id === venue.id ? null : venue)}>
+                                        {/* Photo — format carré + logo contenu */}
+                                        <div className="relative aspect-square bg-black overflow-hidden" onClick={() => setSelected(selected?.id === venue.id ? null : venue)}>
                                             <img src={venue.image} alt={venue.name}
-                                                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105" />
-                                            {/* Fondu premium vers le bas */}
-                                            <div className="absolute bottom-0 left-0 right-0 h-3/5 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
+                                                className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105" />
+                                            {/* Fondu premium réduit pour le format carré */}
+                                            <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
                                             {/* Custom badge */}
                                             {venue.custom && <div className="absolute top-2 left-2 bg-white/20 backdrop-blur text-white text-[7px] font-black px-1.5 py-0.5 rounded-full">📍</div>}
                                             {/* Info on gradient */}
@@ -287,19 +287,19 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                 </button>
 
                                 {/* Links */}
-                                <div className="grid grid-cols-2 gap-3">
+                                <div className="flex flex-wrap gap-3">
                                     {selected.website && (
                                         <a href={selected.website} target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center gap-3 bg-white/5 hover:bg-white/10 p-4 rounded-2xl border border-white/10 transition-colors group">
-                                            <Globe className="w-5 h-5 text-white/60 group-hover:text-white shrink-0" />
-                                            <span className="text-[10px] font-black text-white/60 group-hover:text-white uppercase">Site officiel</span>
+                                            title="Site officiel"
+                                            className="w-12 h-12 flex items-center justify-center bg-white/5 hover:bg-white/10 rounded-2xl border border-white/10 transition-all hover:scale-105 active:scale-95 group">
+                                            <Globe className="w-5 h-5 text-white/60 group-hover:text-white" />
                                         </a>
                                     )}
                                     {selected.instagram && (
                                         <a href={selected.instagram} target="_blank" rel="noopener noreferrer"
-                                            className="flex items-center gap-3 bg-[#E1306C]/10 hover:bg-[#E1306C]/20 p-4 rounded-2xl border border-[#E1306C]/20 transition-colors">
-                                            <Instagram className="w-5 h-5 text-[#E1306C] shrink-0" />
-                                            <span className="text-[10px] font-black text-[#E1306C] uppercase">Instagram</span>
+                                            title="Instagram"
+                                            className="w-12 h-12 flex items-center justify-center bg-[#E1306C]/10 hover:bg-[#E1306C]/20 rounded-2xl border border-[#E1306C]/20 transition-all hover:scale-105 active:scale-95 group">
+                                            <Instagram className="w-5 h-5 text-[#E1306C]" />
                                         </a>
                                     )}
                                 </div>

@@ -257,13 +257,37 @@ export function WikiDropsiders() {
                                     ) : (
                                         <motion.div key="links" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
                                             <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Liens officiels</p>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                {selectedDj.spotify && <a href={selectedDj.spotify} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 p-4 rounded-2xl border border-[#1DB954]/20 transition-colors"><Music2 className="w-5 h-5 text-[#1DB954] shrink-0" /><span className="text-[10px] font-black text-[#1DB954] uppercase">Spotify</span></a>}
-                                                {selectedDj.beatport && <a href={selectedDj.beatport} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-[#02FF95]/10 hover:bg-[#02FF95]/20 p-4 rounded-2xl border border-[#02FF95]/20 transition-colors"><Headphones className="w-5 h-5 text-[#02FF95] shrink-0" /><span className="text-[10px] font-black text-[#02FF95] uppercase">Beatport</span></a>}
-                                                {selectedDj.instagram && <a href={selectedDj.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-[#E1306C]/10 hover:bg-[#E1306C]/20 p-4 rounded-2xl border border-[#E1306C]/20 transition-colors"><Instagram className="w-5 h-5 text-[#E1306C] shrink-0" /><span className="text-[10px] font-black text-[#E1306C] uppercase">Instagram</span></a>}
-                                                {(selectedDj as any).youtube && <a href={(selectedDj as any).youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-[#FF0000]/10 hover:bg-[#FF0000]/20 p-4 rounded-2xl border border-[#FF0000]/20 transition-colors"><Youtube className="w-5 h-5 text-[#FF0000] shrink-0" /><span className="text-[10px] font-black text-[#FF0000] uppercase">YouTube</span></a>}
+                                            <div className="flex flex-wrap gap-3">
+                                                {selectedDj.spotify && (
+                                                    <a href={selectedDj.spotify} target="_blank" rel="noopener noreferrer" 
+                                                        title="Spotify"
+                                                        className="w-12 h-12 flex items-center justify-center bg-[#1DB954]/10 hover:bg-[#1DB954]/20 rounded-2xl border border-[#1DB954]/20 transition-all hover:scale-105 active:scale-95 group">
+                                                        <Music2 className="w-5 h-5 text-[#1DB954]" />
+                                                    </a>
+                                                )}
+                                                {selectedDj.beatport && (
+                                                    <a href={selectedDj.beatport} target="_blank" rel="noopener noreferrer" 
+                                                        title="Beatport"
+                                                        className="w-12 h-12 flex items-center justify-center bg-[#02FF95]/10 hover:bg-[#02FF95]/20 rounded-2xl border border-[#02FF95]/20 transition-all hover:scale-105 active:scale-95 group">
+                                                        <Headphones className="w-5 h-5 text-[#02FF95]" />
+                                                    </a>
+                                                )}
+                                                {selectedDj.instagram && (
+                                                    <a href={selectedDj.instagram} target="_blank" rel="noopener noreferrer" 
+                                                        title="Instagram"
+                                                        className="w-12 h-12 flex items-center justify-center bg-[#E1306C]/10 hover:bg-[#E1306C]/20 rounded-2xl border border-[#E1306C]/20 transition-all hover:scale-105 active:scale-95 group">
+                                                        <Instagram className="w-5 h-5 text-[#E1306C]" />
+                                                    </a>
+                                                )}
+                                                {(selectedDj as any).youtube && (
+                                                    <a href={(selectedDj as any).youtube} target="_blank" rel="noopener noreferrer" 
+                                                        title="YouTube"
+                                                        className="w-12 h-12 flex items-center justify-center bg-[#FF0000]/10 hover:bg-[#FF0000]/20 rounded-2xl border border-[#FF0000]/20 transition-all hover:scale-105 active:scale-95 group">
+                                                        <Youtube className="w-5 h-5 text-[#FF0000]" />
+                                                    </a>
+                                                )}
                                                 {!selectedDj.spotify && !selectedDj.beatport && !selectedDj.instagram && !(selectedDj as any).youtube && (
-                                                    <p className="col-span-2 text-gray-600 text-xs font-bold uppercase tracking-widest text-center py-4">Aucun lien renseigné</p>
+                                                    <p className="w-full text-gray-600 text-[10px] font-black uppercase tracking-widest py-2">Aucun lien renseigné</p>
                                                 )}
                                             </div>
                                             {isAdmin && (
