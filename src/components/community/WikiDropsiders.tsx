@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, X, Youtube, Heart } from 'lucide-react';
 import { apiFetch, getAuthHeaders } from '../../utils/auth';
-
 import DJ_DATA_RAW from '../../data/wiki_djs.json';
 
 type DjEntry = {
@@ -15,20 +14,13 @@ type DjEntry = {
     rating: string;
     spotify?: string;
     instagram?: string;
-    facebook?: string;
-    soundcloud?: string;
     beatport?: string;
     youtube?: string;
 };
 
 const VOTE_KEY = 'dropsiders_votes_djs';
-
-function loadVotes(): Set<string> {
-    try { return new Set(JSON.parse(localStorage.getItem(VOTE_KEY) || '[]')); } catch { return new Set(); }
-}
-function saveVotes(votes: Set<string>) {
-    localStorage.setItem(VOTE_KEY, JSON.stringify([...votes]));
-}
+function loadVotes(): Set<string> { try { return new Set(JSON.parse(localStorage.getItem(VOTE_KEY) || '[]')); } catch { return new Set(); } }
+function saveVotes(v: Set<string>) { localStorage.setItem(VOTE_KEY, JSON.stringify([...v])); }
 
 const initialData: DjEntry[] = (DJ_DATA_RAW as DjEntry[]).sort((a, b) =>
     a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
@@ -48,45 +40,31 @@ export function WikiDropsiders() {
     const [djData, setDjData] = useState<DjEntry[]>(initialData);
     const [selectedDj, setSelectedDj] = useState<DjEntry | null>(null);
     const [votes, setVotes] = useState<Set<string>>(() => loadVotes());
-
     const isAdmin = localStorage.getItem('admin_auth') === 'true';
     const [editMode, setEditMode] = useState(false);
     const [editValues, setEditValues] = useState<Partial<DjEntry>>({});
     const [isSaving, setIsSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState('');
 
-    const filtered = search
-        ? djData.filter(dj => dj.name.toLowerCase().includes(search.toLowerCase()))
-        : djData;
-
+    const filtered = search ? djData.filter(dj => dj.name.toLowerCase().includes(search.toLowerCase())) : djData;
     const grouped = groupByLetter(filtered);
     const sortedLetters = Object.keys(grouped).sort();
     const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-    const toggleVote = (id: string, e: React.MouseEvent) => {
-        e.stopPropagation();
-        const newVotes = new Set(votes);
-        if (newVotes.has(id)) newVotes.delete(id);
-        else newVotes.add(id);
-        setVotes(newVotes);
-        saveVotes(newVotes);
+    const toggleVote = (id: string, e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        const n = new Set(votes);
+        n.has(id) ? n.delete(id) : n.add(id);
+        setVotes(n); saveVotes(n);
     };
 
     const handleSelectDj = (dj: DjEntry) => {
-        setSelectedDj(dj);
-        setEditMode(false);
-        setEditValues({});
-        setSaveMsg('');
+        setSelectedDj(dj); setEditMode(false); setEditValues({}); setSaveMsg('');
     };
 
     const handleEdit = () => {
         if (!selectedDj) return;
-        setEditValues({
-            spotify: selectedDj.spotify || '',
-            instagram: selectedDj.instagram || '',
-            beatport: selectedDj.beatport || '',
-            youtube: (selectedDj as any).youtube || '',
-        });
+        setEditValues({ spotify: selectedDj.spotify || '', instagram: selectedDj.instagram || '', beatport: selectedDj.beatport || '', youtube: (selectedDj as any).youtube || '' });
         setEditMode(true);
     };
 
@@ -98,16 +76,12 @@ export function WikiDropsiders() {
         setSelectedDj(updatedDj);
         try {
             const res = await apiFetch('/api/wiki/update', {
-                method: 'POST',
-                headers: getAuthHeaders(),
+                method: 'POST', headers: getAuthHeaders(),
                 body: JSON.stringify({ id: selectedDj.id, updates: editValues })
             });
             setSaveMsg(res.ok ? '✓ Sauvegardé !' : '✓ Modifié en local');
-        } catch {
-            setSaveMsg('✓ Modifié en local');
-        }
-        setEditMode(false);
-        setIsSaving(false);
+        } catch { setSaveMsg('✓ Modifié en local'); }
+        setEditMode(false); setIsSaving(false);
         setTimeout(() => setSaveMsg(''), 3000);
     };
 
@@ -125,41 +99,29 @@ export function WikiDropsiders() {
                 </div>
                 <div className="relative w-full md:w-80">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                    <input
-                        type="text"
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        placeholder="Rechercher un DJ..."
-                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-all text-sm"
-                    />
+                    <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un DJ..."
+                        className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-all text-sm" />
                 </div>
             </div>
 
             {/* Alphabet nav */}
             <div className="flex flex-wrap gap-1.5">
                 {allLetters.map(letter => {
-                    const hasEntries = grouped[letter]?.length > 0;
+                    const has = !!grouped[letter]?.length;
                     return (
-                        <button
-                            key={letter}
-                            onClick={() => hasEntries && document.getElementById(`section-${letter}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                            className={`w-8 h-8 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${
-                                hasEntries
-                                    ? 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red hover:text-white cursor-pointer'
-                                    : 'bg-white/[0.03] border border-white/5 text-white/10 cursor-default'
-                            }`}
-                        >
+                        <button key={letter}
+                            onClick={() => has && document.getElementById(`dj-section-${letter}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                            className={`w-8 h-8 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${has ? 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red hover:text-white cursor-pointer' : 'bg-white/[0.03] border border-white/5 text-white/10 cursor-default'}`}>
                             {letter}
                         </button>
                     );
                 })}
             </div>
 
-            {/* Encyclopedia grid */}
+            {/* A-Z sections */}
             <div className="space-y-12">
                 {sortedLetters.map(letter => (
-                    <div key={letter} id={`section-${letter}`}>
-                        {/* Letter header */}
+                    <div key={letter} id={`dj-section-${letter}`}>
                         <div className="flex items-center gap-4 mb-6">
                             <div className="w-14 h-14 bg-neon-red rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(255,0,0,0.3)] shrink-0">
                                 <span className="text-white font-display font-black text-2xl italic">{letter}</span>
@@ -168,61 +130,37 @@ export function WikiDropsiders() {
                             <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">{grouped[letter].length} artiste{grouped[letter].length > 1 ? 's' : ''}</span>
                         </div>
 
-                        {/* Artists grid */}
                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
                             {grouped[letter].map(dj => {
                                 const hasVoted = votes.has(dj.id);
                                 return (
-                                    <motion.div
-                                        key={dj.id}
-                                        whileHover={{ y: -4, scale: 1.02 }}
-                                        className={`relative group rounded-2xl overflow-hidden border transition-all duration-300 ${
-                                            selectedDj?.id === dj.id
-                                                ? 'border-neon-red shadow-[0_0_20px_rgba(255,0,0,0.3)]'
-                                                : 'border-white/10 hover:border-white/30'
-                                        }`}
-                                    >
-                                        {/* Photo — full image */}
-                                        <div
-                                            className="w-full bg-black flex items-center justify-center cursor-pointer overflow-hidden"
-                                            onClick={() => handleSelectDj(dj)}
-                                        >
-                                            <img
-                                                src={dj.image}
-                                                alt={dj.name}
-                                                className="w-full object-contain max-h-44 transition-transform duration-500 group-hover:scale-105"
-                                                style={{ background: 'black' }}
-                                            />
-                                        </div>
+                                    <motion.div key={dj.id} whileHover={{ y: -4, scale: 1.02 }}
+                                        className={`group relative rounded-2xl overflow-hidden border transition-all duration-300 cursor-pointer ${selectedDj?.id === dj.id ? 'border-neon-red shadow-[0_0_20px_rgba(255,0,0,0.3)]' : 'border-white/10 hover:border-white/30'}`}>
 
-                                        {/* Rating badge */}
-                                        <div className="absolute top-2 right-2 flex items-center gap-0.5 bg-black/70 backdrop-blur-sm rounded-full px-1.5 py-0.5">
-                                            <Star className="w-2.5 h-2.5 text-neon-red fill-current" />
-                                            <span className="text-[8px] font-black text-white">{dj.rating}</span>
-                                        </div>
-
-                                        {/* Info + vote */}
-                                        <div className="p-2.5 bg-black/80">
-                                            <div
-                                                className="cursor-pointer mb-2"
-                                                onClick={() => handleSelectDj(dj)}
-                                            >
+                                        {/* Photo — portrait, full visible, gradient overlay */}
+                                        <div className="relative aspect-[3/4] bg-black overflow-hidden" onClick={() => handleSelectDj(dj)}>
+                                            <img src={dj.image} alt={dj.name}
+                                                className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
+                                            {/* Gradient fade bottom */}
+                                            <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none" />
+                                            {/* Name on gradient */}
+                                            <div className="absolute bottom-0 left-0 right-0 p-2.5">
                                                 <div className="text-[9px] font-black text-white uppercase tracking-widest leading-tight line-clamp-1">{dj.name}</div>
                                                 <div className="text-[7px] text-gray-400 font-bold uppercase mt-0.5 line-clamp-1">{dj.genre}</div>
                                             </div>
-                                            {/* Vote button */}
-                                            <button
-                                                onClick={(e) => toggleVote(dj.id, e)}
-                                                className={`w-full flex items-center justify-center gap-1 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-wider transition-all ${
-                                                    hasVoted
-                                                        ? 'bg-neon-red/20 border border-neon-red/40 text-neon-red'
-                                                        : 'bg-white/5 border border-white/10 text-gray-500 hover:border-neon-red/30 hover:text-neon-red/70'
-                                                }`}
-                                            >
-                                                <Heart className={`w-3 h-3 ${hasVoted ? 'fill-current' : ''}`} />
-                                                {hasVoted ? 'Voté !' : 'Voter'}
-                                            </button>
+                                            {/* Rating */}
+                                            <div className="absolute top-2 right-2 flex items-center gap-0.5 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5">
+                                                <Star className="w-2.5 h-2.5 text-neon-red fill-current" />
+                                                <span className="text-[8px] font-black text-white">{dj.rating}</span>
+                                            </div>
                                         </div>
+
+                                        {/* Vote button */}
+                                        <button onClick={e => toggleVote(dj.id, e)}
+                                            className={`w-full flex items-center justify-center gap-1 py-2 text-[8px] font-black uppercase tracking-wider transition-all border-t ${hasVoted ? 'bg-neon-red/15 border-neon-red/30 text-neon-red' : 'bg-black border-white/10 text-gray-500 hover:text-neon-red/70'}`}>
+                                            <Heart className={`w-3 h-3 ${hasVoted ? 'fill-current' : ''}`} />
+                                            {hasVoted ? 'Voté !' : 'Voter'}
+                                        </button>
                                     </motion.div>
                                 );
                             })}
@@ -235,62 +173,42 @@ export function WikiDropsiders() {
             <AnimatePresence>
                 {selectedDj && (
                     <>
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                             onClick={() => { setSelectedDj(null); setEditMode(false); }}
-                            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40"
-                        />
+                            className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40" />
                         <motion.div
-                            initial={{ x: '100%', opacity: 0 }}
-                            animate={{ x: 0, opacity: 1 }}
-                            exit={{ x: '100%', opacity: 0 }}
+                            initial={{ x: '100%', opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: '100%', opacity: 0 }}
                             transition={{ type: 'spring', damping: 28, stiffness: 260 }}
-                            className="fixed right-0 top-0 h-full w-full max-w-xl bg-[#0a0a0a] border-l border-white/10 z-50 overflow-y-auto"
-                        >
-                            <button
-                                onClick={() => { setSelectedDj(null); setEditMode(false); }}
-                                className="absolute top-6 right-6 p-2 bg-white/10 rounded-full hover:bg-white/20 transition-all z-10"
-                            >
-                                <X className="w-5 h-5 text-white" />
-                            </button>
+                            className="fixed right-0 top-0 h-full w-full max-w-xl bg-[#0a0a0a] border-l border-white/10 z-50 overflow-y-auto">
 
-                            {/* Full photo — no crop */}
-                            <div className="w-full bg-black flex items-center justify-center">
-                                <img
-                                    src={selectedDj.image}
-                                    alt={selectedDj.name}
-                                    className="w-full object-contain max-h-96"
-                                    style={{ background: 'black' }}
-                                />
+                            {/* Hero image — full photo + gradient fade bottom */}
+                            <div className="relative w-full bg-black">
+                                <img src={selectedDj.image} alt={selectedDj.name}
+                                    className="w-full h-auto block" style={{ maxHeight: '75vh', objectFit: 'contain', objectPosition: 'center top' }} />
+                                {/* Gradient fade at bottom of image */}
+                                <div className="absolute bottom-0 left-0 right-0 h-52 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none" />
+                                {/* Name on gradient */}
+                                <div className="absolute bottom-6 left-6 right-16">
+                                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                                        <span className="px-2 py-0.5 bg-neon-red text-white text-[8px] font-black uppercase rounded">Top Rated</span>
+                                        <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{selectedDj.country} · {selectedDj.genre}</span>
+                                        {saveMsg && <span className="px-2 py-0.5 bg-green-500/20 border border-green-500/30 text-green-400 text-[8px] font-black rounded">{saveMsg}</span>}
+                                    </div>
+                                    <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter drop-shadow-lg">{selectedDj.name}</h3>
+                                </div>
+                                {/* Close button */}
+                                <button onClick={() => { setSelectedDj(null); setEditMode(false); }}
+                                    className="absolute top-4 right-4 p-2 bg-black/60 backdrop-blur rounded-full hover:bg-black/80 transition-all z-10">
+                                    <X className="w-5 h-5 text-white" />
+                                </button>
                             </div>
 
                             <div className="p-8 space-y-6">
-                                <div>
-                                    <div className="flex items-center gap-3 flex-wrap mb-2">
-                                        <span className="px-2 py-0.5 bg-neon-red text-white text-[8px] font-black uppercase rounded">Top Rated</span>
-                                        <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{selectedDj.country} • {selectedDj.genre}</span>
-                                        {saveMsg && (
-                                            <span className="px-3 py-1 bg-green-500/20 border border-green-500/30 text-green-400 text-[9px] font-black rounded-full uppercase tracking-widest">
-                                                {saveMsg}
-                                            </span>
-                                        )}
-                                    </div>
-                                    <h3 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter">{selectedDj.name}</h3>
-                                </div>
-
                                 <p className="text-gray-300 leading-relaxed text-sm">{selectedDj.bio}</p>
 
-                                {/* Vote big */}
-                                <button
-                                    onClick={(e) => toggleVote(selectedDj.id, e)}
-                                    className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-black uppercase tracking-widest transition-all ${
-                                        votes.has(selectedDj.id)
-                                            ? 'bg-neon-red text-white shadow-[0_0_30px_rgba(255,0,0,0.3)]'
-                                            : 'bg-white/5 border border-white/10 text-gray-300 hover:border-neon-red/50 hover:text-neon-red'
-                                    }`}
-                                >
+                                {/* Vote */}
+                                <button onClick={e => toggleVote(selectedDj.id, e)}
+                                    className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-black uppercase tracking-widest transition-all ${votes.has(selectedDj.id) ? 'bg-neon-red text-white shadow-[0_0_30px_rgba(255,0,0,0.3)]' : 'bg-white/5 border border-white/10 text-gray-300 hover:border-neon-red/50 hover:text-neon-red'}`}>
                                     <Heart className={`w-5 h-5 ${votes.has(selectedDj.id) ? 'fill-current' : ''}`} />
                                     {votes.has(selectedDj.id) ? 'Tu as voté pour cet artiste !' : 'Voter pour cet artiste'}
                                 </button>
@@ -304,7 +222,7 @@ export function WikiDropsiders() {
                                     </div>
                                 </div>
 
-                                {/* Links or Edit */}
+                                {/* Links / Edit toggle */}
                                 <AnimatePresence mode="wait">
                                     {editMode ? (
                                         <motion.div key="edit" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
@@ -319,13 +237,9 @@ export function WikiDropsiders() {
                                                     <span style={{ color }}>{icon}</span>
                                                     <div className="flex-1">
                                                         <p className="text-[8px] font-black uppercase tracking-widest mb-1" style={{ color }}>{label}</p>
-                                                        <input
-                                                            type="url"
-                                                            value={(editValues as any)[key] || ''}
-                                                            onChange={(e) => setEditValues(prev => ({ ...prev, [key]: e.target.value }))}
-                                                            placeholder="https://..."
-                                                            className="w-full bg-transparent text-xs text-white font-bold outline-none placeholder-gray-700"
-                                                        />
+                                                        <input type="url" value={(editValues as any)[key] || ''}
+                                                            onChange={e => setEditValues(p => ({ ...p, [key]: e.target.value }))}
+                                                            placeholder="https://..." className="w-full bg-transparent text-xs text-white font-bold outline-none placeholder-gray-700" />
                                                     </div>
                                                 </div>
                                             ))}
@@ -335,7 +249,7 @@ export function WikiDropsiders() {
                                                     <Save className="w-3.5 h-3.5" />Enregistrer
                                                 </button>
                                                 <button onClick={() => { setEditMode(false); setEditValues({}); }}
-                                                    className="px-5 py-3 bg-white/5 border border-white/10 text-gray-400 rounded-xl font-black uppercase tracking-widest text-xs hover:bg-white/10 transition-all">
+                                                    className="px-5 py-3 bg-white/5 border border-white/10 text-gray-400 rounded-xl hover:bg-white/10 transition-all">
                                                     <X className="w-3.5 h-3.5" />
                                                 </button>
                                             </div>
@@ -344,41 +258,16 @@ export function WikiDropsiders() {
                                         <motion.div key="links" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
                                             <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Liens officiels</p>
                                             <div className="grid grid-cols-2 gap-3">
-                                                {selectedDj.spotify && (
-                                                    <a href={selectedDj.spotify} target="_blank" rel="noopener noreferrer"
-                                                        className="flex items-center gap-3 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 p-4 rounded-2xl border border-[#1DB954]/20 transition-colors group">
-                                                        <Music2 className="w-5 h-5 text-[#1DB954] shrink-0" />
-                                                        <span className="text-[10px] font-black text-[#1DB954] uppercase">Spotify</span>
-                                                    </a>
-                                                )}
-                                                {selectedDj.beatport && (
-                                                    <a href={selectedDj.beatport} target="_blank" rel="noopener noreferrer"
-                                                        className="flex items-center gap-3 bg-[#02FF95]/10 hover:bg-[#02FF95]/20 p-4 rounded-2xl border border-[#02FF95]/20 transition-colors group">
-                                                        <Headphones className="w-5 h-5 text-[#02FF95] shrink-0" />
-                                                        <span className="text-[10px] font-black text-[#02FF95] uppercase">Beatport</span>
-                                                    </a>
-                                                )}
-                                                {selectedDj.instagram && (
-                                                    <a href={selectedDj.instagram} target="_blank" rel="noopener noreferrer"
-                                                        className="flex items-center gap-3 bg-[#E1306C]/10 hover:bg-[#E1306C]/20 p-4 rounded-2xl border border-[#E1306C]/20 transition-colors group">
-                                                        <Instagram className="w-5 h-5 text-[#E1306C] shrink-0" />
-                                                        <span className="text-[10px] font-black text-[#E1306C] uppercase">Instagram</span>
-                                                    </a>
-                                                )}
-                                                {(selectedDj as any).youtube && (
-                                                    <a href={(selectedDj as any).youtube} target="_blank" rel="noopener noreferrer"
-                                                        className="flex items-center gap-3 bg-[#FF0000]/10 hover:bg-[#FF0000]/20 p-4 rounded-2xl border border-[#FF0000]/20 transition-colors group">
-                                                        <Youtube className="w-5 h-5 text-[#FF0000] shrink-0" />
-                                                        <span className="text-[10px] font-black text-[#FF0000] uppercase">YouTube</span>
-                                                    </a>
-                                                )}
+                                                {selectedDj.spotify && <a href={selectedDj.spotify} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-[#1DB954]/10 hover:bg-[#1DB954]/20 p-4 rounded-2xl border border-[#1DB954]/20 transition-colors"><Music2 className="w-5 h-5 text-[#1DB954] shrink-0" /><span className="text-[10px] font-black text-[#1DB954] uppercase">Spotify</span></a>}
+                                                {selectedDj.beatport && <a href={selectedDj.beatport} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-[#02FF95]/10 hover:bg-[#02FF95]/20 p-4 rounded-2xl border border-[#02FF95]/20 transition-colors"><Headphones className="w-5 h-5 text-[#02FF95] shrink-0" /><span className="text-[10px] font-black text-[#02FF95] uppercase">Beatport</span></a>}
+                                                {selectedDj.instagram && <a href={selectedDj.instagram} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-[#E1306C]/10 hover:bg-[#E1306C]/20 p-4 rounded-2xl border border-[#E1306C]/20 transition-colors"><Instagram className="w-5 h-5 text-[#E1306C] shrink-0" /><span className="text-[10px] font-black text-[#E1306C] uppercase">Instagram</span></a>}
+                                                {(selectedDj as any).youtube && <a href={(selectedDj as any).youtube} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 bg-[#FF0000]/10 hover:bg-[#FF0000]/20 p-4 rounded-2xl border border-[#FF0000]/20 transition-colors"><Youtube className="w-5 h-5 text-[#FF0000] shrink-0" /><span className="text-[10px] font-black text-[#FF0000] uppercase">YouTube</span></a>}
                                                 {!selectedDj.spotify && !selectedDj.beatport && !selectedDj.instagram && !(selectedDj as any).youtube && (
                                                     <p className="col-span-2 text-gray-600 text-xs font-bold uppercase tracking-widest text-center py-4">Aucun lien renseigné</p>
                                                 )}
                                             </div>
                                             {isAdmin && (
-                                                <button onClick={handleEdit}
-                                                    className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:bg-neon-red/10 hover:border-neon-red/30 hover:text-neon-red transition-all">
+                                                <button onClick={handleEdit} className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:bg-neon-red/10 hover:border-neon-red/30 hover:text-neon-red transition-all">
                                                     <Pencil className="w-3 h-3" />Modifier les liens (admin)
                                                 </button>
                                             )}
