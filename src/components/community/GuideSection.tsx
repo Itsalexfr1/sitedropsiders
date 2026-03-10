@@ -2,6 +2,8 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MessageSquare, Plus, CheckCircle2, Send, Info, User, Search, Zap, Music2, Cpu, Headphones, Settings, Layout, Layers, Radio, Sliders, Play, Disc, Activity, Volume2, Eye, Sparkles } from 'lucide-react';
 
+import { WikiDropsiders } from './WikiDropsiders';
+
 interface Review {
     id: string;
     festival: string;
@@ -17,7 +19,7 @@ interface Review {
 }
 
 export function GuideSection() {
-    const [activeTab, setActiveTab] = useState<'reviews' | 'submit' | 'encyclopedia'>('reviews');
+    const [activeTab, setActiveTab] = useState<'reviews' | 'submit' | 'encyclopedia' | 'wiki'>('reviews');
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -313,10 +315,17 @@ export function GuideSection() {
                 </button>
                 <button
                     onClick={() => setActiveTab('encyclopedia')}
-                    className={`px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all hover:scale-105 active:scale-95 ${activeTab === 'encyclopedia' ? 'bg-neon-red text-white shadow-lg shadow-neon-red/10' : 'bg-white/5 text-white/40 border border-white/10'
+                    className={`px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all hover:scale-105 active:scale-95 ${activeTab === 'encyclopedia' ? 'bg-[#FF0000] text-white shadow-lg shadow-red-500/10' : 'bg-white/5 text-white/40 border border-white/10'
                         }`}
                 >
                     ENCYCLOPÉDIE (A-Z)
+                </button>
+                <button
+                    onClick={() => setActiveTab('wiki')}
+                    className={`px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all hover:scale-105 active:scale-95 ${activeTab === 'wiki' ? 'bg-white text-black shadow-lg shadow-white/10' : 'bg-white/5 text-white/40 border border-white/10'
+                        }`}
+                >
+                    WIKI DJ
                 </button>
                 <button
                     onClick={() => setActiveTab('submit')}
@@ -445,6 +454,10 @@ export function GuideSection() {
                             </div>
                         ))}
                     </div>
+                </div>
+            ) : activeTab === 'wiki' ? (
+                <div className="w-full">
+                    <WikiDropsiders />
                 </div>
             ) : (
                 <div className="max-w-2xl mx-auto bg-white/5 border border-white/10 rounded-3xl p-8">

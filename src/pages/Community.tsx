@@ -6,7 +6,7 @@ import {
     Music, Shield, Palette, Megaphone, Lock,
     RefreshCw, X, Heart, Ticket, Euro,
     Flame, Search, Filter, Globe,
-    Book, Share2, MessageSquare, Wand2
+    Share2, MessageSquare, Wand2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
@@ -17,7 +17,6 @@ import { GuideSection } from '../components/community/GuideSection';
 import { CovoitSection } from '../components/community/CovoitSection';
 import { AlertsSection } from '../components/community/AlertsSection';
 import { DjNameGenerator } from '../components/community/DjNameGenerator';
-import { WikiDropsiders } from '../components/community/WikiDropsiders';
 import { PlaylistSharing } from '../components/community/PlaylistSharing';
 import { TrackIdForum } from '../components/community/TrackIdForum';
 import { useEffect } from 'react';
@@ -263,7 +262,7 @@ export function Community() {
     const navigate = useNavigate();
 
     // --- TAB TYPE UPDATE ---
-    type TabType = 'WALL' | 'PHOTOS' | 'QUIZZ' | 'GAME' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'ALERTS' | 'WIKI' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB';
+    type TabType = 'WALL' | 'PHOTOS' | 'QUIZZ' | 'GAME' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'ALERTS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB';
     const [activeTab, setActiveTab] = useState<TabType>('WALL');
 
     // Game State
@@ -834,7 +833,6 @@ export function Community() {
                                 { id: 'PHOTOS', icon: Camera, label: 'Albums Photo' },
                                 { id: 'QUIZZ', icon: Gamepad2, label: 'Quiz' },
                                 { id: 'GAME', icon: Sparkles, iconClass: 'text-amber-400', label: 'PRODUCER' },
-                                { id: 'WIKI', icon: Book, label: 'Wiki' },
                                 { id: 'GUIDE', icon: Info, label: 'Guide Pratique' },
                                 { id: 'TRACK_ID', icon: MessageSquare, label: 'TrackID' },
                                 { id: 'PLAYLISTS', icon: Share2, label: 'Mixs' },
@@ -1875,17 +1873,6 @@ export function Community() {
                                 exit={{ opacity: 0, x: -20 }}
                             >
                                 <AlertsSection />
-                            </motion.div>
-                        )}
-
-                        {activeTab === 'WIKI' && (
-                            <motion.div
-                                key="wiki"
-                                initial={{ opacity: 0, scale: 0.98 }}
-                                animate={{ opacity: 1, scale: 1 }}
-                                exit={{ opacity: 0, scale: 1.02 }}
-                            >
-                                <WikiDropsiders />
                             </motion.div>
                         )}
 
