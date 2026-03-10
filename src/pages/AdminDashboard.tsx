@@ -58,6 +58,7 @@ export function AdminDashboard() {
     const [isDownloaderOpen, setIsDownloaderOpen] = useState(false);
     const [pushSubscribersCount, setPushSubscribersCount] = useState<number | null>(null);
     const [wikiTab, setWikiTab] = useState<'djs' | 'clubs' | 'festivals'>('djs');
+    const [isWikiExpanded, setIsWikiExpanded] = useState(false);
     const [socialRecentArticles, setSocialRecentArticles] = useState<any[]>([]);
     const [selectedSocialArticle, setSelectedSocialArticle] = useState<any | null>(null);
     const [isLoadingSocial, setIsLoadingSocial] = useState(false);
@@ -1235,8 +1236,9 @@ export function AdminDashboard() {
                     const djR = [...(WIKI_DJS as any[])].map(d => ({ ...d, tv: djVotes.has(d.id) ? 1 : 0 })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
                     const clubR = [...(WIKI_CLUBS as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (clubVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
                     const festR = [...(WIKI_FESTIVALS as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (festVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
-                    const ranked = wikiTab === 'djs' ? djR : wikiTab === 'clubs' ? clubR : festR;
-                    const topVotes = ranked[0]?.tv || 1;
+                    const allRanked = wikiTab === 'djs' ? djR : wikiTab === 'clubs' ? clubR : festR;
+                    const ranked = isWikiExpanded ? allRanked : allRanked.slice(0, 5);
+                    const topVotes = allRanked[0]?.tv || 1;
                     const medals = ['🥇', '🥈', '🥉'];
                     return (
                         <div className="mb-12 bg-white/[0.03] border border-white/10 rounded-3xl p-6 md:p-8">
@@ -1249,13 +1251,31 @@ export function AdminDashboard() {
                                     <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Wiki Votes</h2>
                                     <p className="text-gray-600 text-[9px] font-black uppercase tracking-widest mt-0.5">Top 50 basé sur les votes communauté</p>
                                 </div>
-                                <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-1 gap-1">
-                                    {(['djs', 'clubs', 'festivals'] as const).map(id => (
-                                        <button key={id} onClick={() => setWikiTab(id)}
-                                            className={`px-4 py-2 rounded-lg font-black uppercase tracking-widest text-[9px] transition-all ${wikiTab === id ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-                                            {id === 'djs' ? '🎧 DJs' : id === 'clubs' ? '🏛️ Clubs' : '🎪 Festivals'}
-                                        </button>
-                                    ))}
+                                <div className="flex flex-wrap items-center gap-2">
+                                    <button
+                                        onClick={() => setIsWikiExpanded(!isWikiExpanded)}
+                                        className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center gap-2"
+                                    >
+                                        {isWikiExpanded ? (
+                                            <>
+                                                <ChevronUp className="w-3 h-3" />
+                                                Réduire
+                                            </>
+                                        ) : (
+                                            <>
+                                                <ChevronDown className="w-3 h-3" />
+                                                Voir Tout (Top 50)
+                                            </>
+                                        )}
+                                    </button>
+                                    <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-1 gap-1">
+                                        {(['djs', 'clubs', 'festivals'] as const).map(id => (
+                                            <button key={id} onClick={() => setWikiTab(id)}
+                                                className={`px-4 py-2 rounded-lg font-black uppercase tracking-widest text-[9px] transition-all ${wikiTab === id ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+                                                {id === 'djs' ? '🎧 DJs' : id === 'clubs' ? '🏛️ Clubs' : '🎪 Festivals'}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
                             </div>
                             <div className="space-y-2">
