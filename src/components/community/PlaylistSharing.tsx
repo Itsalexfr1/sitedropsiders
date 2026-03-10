@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Share2, Plus, Play, Info, Heart, MessageCircle } from 'lucide-react';
+import { Plus, Heart, MessageCircle } from 'lucide-react';
 
 const MOCK_PLAYLISTS = [
     { id: '1', title: 'AFTERLIFE SELECTS', author: 'ALEX', type: 'SPOTIFY', likes: 124, comments: 12, embed: 'https://open.spotify.com/embed/playlist/37i9dQZF1DX6Xv8700pSwu' },
@@ -56,6 +55,7 @@ export function PlaylistSharing() {
                                 height="100%"
                                 frameBorder="0"
                                 allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
+                                title={pl.title}
                                 loading="lazy"
                             />
                         </div>

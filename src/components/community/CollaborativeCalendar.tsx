@@ -1,7 +1,5 @@
-import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Calendar as CalendarIcon, MapPin, Plus, Clock, Users, Star, Filter } from 'lucide-react';
-import { twMerge } from 'tailwind-merge';
+import { Calendar as CalendarIcon, MapPin, Plus, Star, Filter } from 'lucide-react';
 
 const MOCK_EVENTS = [
     { id: '1', title: 'SECRET RAVE - WAREHOUSE', date: 'SAM 15 MAR', time: '23:00 - 07:00', location: 'LYON - SECRET', genre: 'Industrial Techno', price: '15€', community: true },

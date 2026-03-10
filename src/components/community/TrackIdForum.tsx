@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { MessageSquare, Play, Plus, Clock, User, CheckCircle2, Music, Youtube, Share2 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { MessageSquare, Play, Plus, Clock, User, Music, Youtube, Share2 } from 'lucide-react';
 
 const MOCK_REQUESTS = [
     { id: '1', author: 'LUCAS_TML', date: '2h', preview: 'https://i1.sndcdn.com/artworks-mXzR1Nf8x8z2-0-t500x500.jpg', title: 'DROP INCROYABLE @ TOMORROWLAND W1', desc: 'Joué par Anyma, drop très mélodique avec une voix féminine.', solved: false, replies: 3 },
