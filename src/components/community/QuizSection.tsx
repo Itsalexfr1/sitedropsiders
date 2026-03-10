@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Gamepad2, Headphones, Plus, CheckCircle2, XCircle, Trophy, Send, Play, User, Zap, Camera, Upload, Image as ImageIcon } from 'lucide-react';
+import { Gamepad2, Headphones, Plus, CheckCircle2, XCircle, Trophy, Send, Play, User, Zap, Camera, Upload, Image as ImageIcon, Activity } from 'lucide-react';
 import { uploadFile } from '../../utils/uploadService';
 import { useLanguage } from '../../context/LanguageContext';
 import { AudioWaveformSelector } from '../admin/AudioWaveformSelector';
@@ -18,7 +18,7 @@ interface Quiz {
     audioUrl?: string;
     imageUrl?: string;
     imageType?: 'FESTIVAL' | 'ARTIST';
-    revealEffect?: 'BLUR' | 'MOSAIC' | 'SILHOUETTE';
+    revealEffect?: 'BLUR' | 'MOSAIC' | 'SILHOUETTE' | 'THERMAL';
     youtubeId?: string;
     spotifyUrl?: string;
     startTime?: number;
@@ -67,7 +67,7 @@ export function QuizSection() {
         type: 'QCM' as QuizType,
         category: 'Festivals',
         imageType: 'FESTIVAL' as 'FESTIVAL' | 'ARTIST',
-        revealEffect: 'BLUR' as 'BLUR' | 'MOSAIC' | 'SILHOUETTE',
+        revealEffect: 'BLUR' as 'BLUR' | 'MOSAIC' | 'SILHOUETTE' | 'THERMAL',
         question: '',
         options: ['', '', '', ''],
         correctAnswer: '',
@@ -350,20 +350,27 @@ export function QuizSection() {
     return (
         <div className="space-y-12">
             {/* SVG Filter for Mosaic Effect */}
-            <svg className="hidden">
+            {/* SVG Filter for Mosaic Effect - Not using hidden to avoid browser issues */}
+            <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }}>
                 <defs>
                     <filter id="pixelate-mosaic">
-                        <feFlood x="4" y="4" height="2" width="2" />
-                        <feComposite width="10" height="10" />
+                        <feFlood x="2" y="2" height="2" width="2" />
+                        <feComposite width="8" height="8" />
                         <feTile result="a" />
                         <feComposite in="SourceGraphic" in2="a" operator="in" />
-                        <feMorphology operator="dilate" radius="2" />
+                        <feMorphology operator="dilate" radius="4" />
                     </filter>
-                    <filter id="silhouette-effect">
-                        <feColorMatrix type="matrix" values="0 0 0 0 0
-                                                             0 0 0 0 0
-                                                             0 0 0 0 0
-                                                             0 0 0 1 0" />
+                    <filter id="thermal-effect">
+                        <feColorMatrix type="matrix" values="
+                            -1 0 0 0 1
+                            0 -1 0 0 1
+                            0 0 -1 0 1
+                            0 0 0 1 0" />
+                        <feComponentTransfer>
+                            <feFuncR type="table" tableValues="0 0.5 1 1 1" />
+                            <feFuncG type="table" tableValues="0 0 0.5 1 1" />
+                            <feFuncB type="table" tableValues="0.5 0 0 0 1" />
+                        </feComponentTransfer>
                     </filter>
                 </defs>
             </svg>
@@ -575,10 +582,12 @@ export function QuizSection() {
                                                                 filter: (selectedAnswer || isRevealing)
                                                                     ? 'none'
                                                                     : gameQuizzes[currentQuizIndex].revealEffect === 'SILHOUETTE'
-                                                                        ? `brightness(0)`
+                                                                        ? 'brightness(0)'
                                                                         : gameQuizzes[currentQuizIndex].revealEffect === 'MOSAIC'
-                                                                            ? `url(#pixelate-mosaic)`
-                                                                            : `blur(${Math.max(0, questionTimer * 2)}px)`
+                                                                            ? 'url(#pixelate-mosaic)'
+                                                                            : gameQuizzes[currentQuizIndex].revealEffect === 'THERMAL'
+                                                                                ? 'url(#thermal-effect)'
+                                                                                : `blur(${Math.max(5, questionTimer * 3)}px)`
                                                             }}
                                                         />
                                                     ) : (
@@ -834,13 +843,26 @@ export function QuizSection() {
                                         onClick={() => setFormData({
                                             ...formData,
                                             imageType: 'ARTIST',
-                                            revealEffect: 'SILHOUETTE',
+                                            revealEffect: 'MOSAIC',
                                             question: "Arrivera tu a reconnaitre cet artiste ?"
                                         })}
-                                        className={`p-4 rounded-2xl border font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${formData.revealEffect === 'SILHOUETTE' ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
+                                        className={`p-4 rounded-2xl border font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${formData.revealEffect === 'MOSAIC' ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
                                     >
-                                        <User className="w-4 h-4" />
-                                        SILHOUETTE
+                                        <Zap className="w-4 h-4" />
+                                        MOSAÏQUE
+                                    </button>
+                                    <button
+                                        type="button"
+                                        onClick={() => setFormData({
+                                            ...formData,
+                                            imageType: 'ARTIST',
+                                            revealEffect: 'THERMAL',
+                                            question: "Arrivera tu a reconnaitre cet artiste ?"
+                                        })}
+                                        className={`p-4 rounded-2xl border font-black text-[10px] uppercase transition-all flex items-center justify-center gap-2 ${formData.revealEffect === 'THERMAL' ? 'bg-neon-red text-white border-neon-red' : 'bg-white/5 border-white/10 text-white hover:bg-white/10'}`}
+                                    >
+                                        <Activity className="w-4 h-4" />
+                                        THERMIQUE
                                     </button>
                                 </div>
 

@@ -4580,6 +4580,7 @@ export function AdminDashboard() {
                                                         <option value="BLUR">FLOU</option>
                                                         <option value="MOSAIC">MOSAÏQUE</option>
                                                         <option value="SILHOUETTE">SILHOUETTE</option>
+                                                        <option value="THERMAL">THERMIQUE</option>
                                                     </select>
                                                 </div>
                                             </div>
