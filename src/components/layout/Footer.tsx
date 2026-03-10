@@ -129,7 +129,7 @@ export function Footer() {
                                     </motion.a>
                                 ))}
                             </div>
-                            <div className="bg-gradient-to-br from-neon-red/10 to-neon-purple/10 border border-neon-red/20 rounded-2xl px-5 py-6 text-center space-y-4 relative overflow-hidden group/form">
+                            <div className="bg-gradient-to-br from-neon-red/10 to-neon-red/5 border border-neon-red/20 rounded-2xl px-5 py-6 text-center space-y-4 relative overflow-hidden group/form">
                                 <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 bg-neon-red/20 blur-3xl rounded-full" />
                                 <div className="relative z-10 space-y-2">
                                     <div className="w-10 h-10 mx-auto bg-neon-red/20 rounded-full flex items-center justify-center border border-neon-red/30 group-hover/form:scale-110 transition-transform">

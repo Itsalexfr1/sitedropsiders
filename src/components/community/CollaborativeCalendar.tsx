@@ -1,10 +1,7 @@
 import { motion } from 'framer-motion';
 import { Calendar as CalendarIcon, MapPin, Plus, Star, Filter } from 'lucide-react';
 
-const MOCK_EVENTS = [
-    { id: '1', title: 'SECRET RAVE - WAREHOUSE', date: 'SAM 15 MAR', time: '23:00 - 07:00', location: 'LYON - SECRET', genre: 'Industrial Techno', price: '15€', community: true },
-    { id: '2', title: 'OPEN AIR - PARC DES BOIS', date: 'DIM 16 MAR', time: '14:00 - 22:00', location: 'NANTES', genre: 'House / Tech House', price: 'GRATUIT', community: true }
-];
+const MOCK_EVENTS: any[] = [];
 
 export function CollaborativeCalendar() {
     return (

@@ -147,7 +147,7 @@ export function NewsletterForm({ variant = 'default' }: NewsletterFormProps) {
                     disabled={isSubmitting}
                     whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
                     whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
-                    className={`w-full ${isCompact ? 'py-3 text-sm' : 'py-5 text-lg'} bg-gradient-to-r from-neon-red to-neon-pink text-white font-display font-black uppercase tracking-tight rounded-xl hover:shadow-[0_0_30px_rgba(255,0,51,0.5)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${isCompact ? 'gap-2' : 'gap-3'}`}
+                    className={`w-full ${isCompact ? 'py-3 text-sm' : 'py-5 text-lg'} bg-gradient-to-r from-neon-red to-neon-red text-white font-display font-black uppercase tracking-tight rounded-xl hover:shadow-[0_0_30px_rgba(255,0,51,0.5)] transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center ${isCompact ? 'gap-2' : 'gap-3'}`}
                 >
                     {isSubmitting ? (
                         <>

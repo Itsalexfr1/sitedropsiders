@@ -1,10 +1,7 @@
 import { motion } from 'framer-motion';
 import { Plus, Heart, MessageCircle } from 'lucide-react';
 
-const MOCK_PLAYLISTS = [
-    { id: '1', title: 'AFTERLIFE SELECTS', author: 'ALEX', type: 'SPOTIFY', likes: 124, comments: 12, embed: 'https://open.spotify.com/embed/playlist/37i9dQZF1DX6Xv8700pSwu' },
-    { id: '2', title: 'DARK TECHNO 2026', author: 'TECHNOKID', type: 'SOUNDCLOUD', likes: 89, comments: 5, embed: 'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/123456789' }
-];
+const MOCK_PLAYLISTS: any[] = [];
 
 export function PlaylistSharing() {
     return (
