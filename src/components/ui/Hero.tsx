@@ -1,15 +1,23 @@
 export function Hero({ videoId, videoUrl, accentColor = 'cyan', resolvedColor }: { videoId?: string, videoUrl?: string, accentColor?: string, resolvedColor?: string }) {
     const finalVideoId = videoId || "xoB5fdoOMV8";
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
+    const isImageUrl = videoUrl && /\.(jpg|jpeg|png|webp|gif|avif|svg)(\?.*)?$/i.test(videoUrl);
+    const isVideoUrl = videoUrl && /\.(mp4|webm|mov|ogg)(\?.*)?$/i.test(videoUrl);
 
     return (
         <section className="relative h-[50vh] md:h-[65vh] min-h-[480px] w-full flex items-center overflow-hidden bg-black">
-            {/* Background Video - Hidden on mobile for cleaner look and performance */}
+            {/* Background Media */}
             <div className="absolute inset-0 z-0 hidden md:block">
                 <div className="absolute inset-0 bg-gradient-to-r from-dark-bg/90 via-dark-bg/40 to-transparent z-10" />
                 <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-dark-bg z-10" />
                 <div className="absolute inset-0 w-full h-full">
-                    {videoUrl ? (
+                    {isImageUrl ? (
+                        <img
+                            className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 object-cover scale-110"
+                            src={videoUrl}
+                            alt="Hero banner"
+                        />
+                    ) : isVideoUrl ? (
                         <video
                             className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 object-cover scale-110"
                             src={videoUrl}
