@@ -10,7 +10,6 @@ type Venue = {
     name: string;
     city: string;
     country: string;
-    genre: string;
     djmag_rank: number;
     description: string;
     image: string;
@@ -57,7 +56,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
     const [festVotes, setFestVotes] = useState<Set<string>>(() => loadVotes(VOTE_KEY_FESTIVALS));
     const [customClubs, setCustomClubs] = useState<Venue[]>(() => loadCustom(CUSTOM_KEY_CLUBS));
     const [customFests, setCustomFests] = useState<Venue[]>(() => loadCustom(CUSTOM_KEY_FESTIVALS));
-    const [addForm, setAddForm] = useState({ name: '', city: '', country: '', genre: '', description: '', website: '', instagram: '' });
+    const [addForm, setAddForm] = useState({ name: '', city: '', country: '', description: '', website: '', instagram: '' });
     const [addSuccess, setAddSuccess] = useState(false);
 
     const votes = mode === 'clubs' ? clubVotes : festVotes;
@@ -93,10 +92,10 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
         if (!addForm.name || !addForm.city || !addForm.country) return;
         const id = `custom_${Date.now()}`;
         const img = `https://images.unsplash.com/photo-${mode === 'clubs' ? '1566737236500-c8ac02b87b0c' : '1470229722913-7c0e2dbbafd3'}?w=600&h=800&fit=crop&q=80&sig=${Date.now()}`;
-        const newVenue: Venue = { id, name: addForm.name, city: addForm.city, country: addForm.country.toUpperCase(), genre: addForm.genre || 'Electronic', djmag_rank: 9999, description: addForm.description || 'Lieu ajouté par la communauté Dropsiders.', image: img, website: addForm.website, instagram: addForm.instagram, votes: 0, custom: true };
+        const newVenue: Venue = { id, name: addForm.name, city: addForm.city, country: addForm.country.toUpperCase(), djmag_rank: 9999, description: addForm.description || 'Lieu ajouté par la communauté Dropsiders.', image: img, website: addForm.website, instagram: addForm.instagram, votes: 0, custom: true };
         if (mode === 'clubs') { const u = [...customClubs, newVenue]; setCustomClubs(u); saveCustom(CUSTOM_KEY_CLUBS, u); }
         else { const u = [...customFests, newVenue]; setCustomFests(u); saveCustom(CUSTOM_KEY_FESTIVALS, u); }
-        setAddForm({ name: '', city: '', country: '', genre: '', description: '', website: '', instagram: '' });
+        setAddForm({ name: '', city: '', country: '', description: '', website: '', instagram: '' });
         setAddSuccess(true);
         setTimeout(() => { setAddSuccess(false); setShowAdd(false); }, 2000);
     };
@@ -155,7 +154,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                             <button onClick={() => setShowAdd(false)}><X className="w-5 h-5 text-gray-400 hover:text-white" /></button>
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            {[{ key: 'name', label: 'Nom *', placeholder: mode === 'clubs' ? 'Fabric' : 'Tomorrowland' }, { key: 'city', label: 'Ville *', placeholder: 'Londres' }, { key: 'country', label: 'Pays (code 2 lettres) *', placeholder: 'GB' }, { key: 'genre', label: 'Genre musical', placeholder: 'Techno / House' }, { key: 'website', label: 'Site web', placeholder: 'https://...' }, { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/...' }].map(({ key, label, placeholder }) => (
+                            {[{ key: 'name', label: 'Nom *', placeholder: mode === 'clubs' ? 'Fabric' : 'Tomorrowland' }, { key: 'city', label: 'Ville *', placeholder: 'Londres' }, { key: 'country', label: 'Pays (code 2 lettres) *', placeholder: 'GB' }, { key: 'website', label: 'Site web', placeholder: 'https://...' }, { key: 'instagram', label: 'Instagram', placeholder: 'https://instagram.com/...' }].map(({ key, label, placeholder }) => (
                                 <div key={key}>
                                     <label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">{label}</label>
                                     <input type="text" value={(addForm as any)[key]} onChange={e => setAddForm(p => ({ ...p, [key]: e.target.value }))} placeholder={placeholder}
@@ -264,7 +263,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                 <div className="absolute bottom-6 left-6 right-16">
                                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                                         {selected.custom && <span className="px-2 py-0.5 bg-white/20 text-white text-[8px] font-black uppercase rounded">📍 Community</span>}
-                                        <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{FLAG[selected.country] || '🌍'} {selected.city} · {selected.genre}</span>
+                                        <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{FLAG[selected.country] || '🌍'} {selected.city}</span>
                                     </div>
                                     <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter drop-shadow-lg">{selected.name}</h3>
                                 </div>

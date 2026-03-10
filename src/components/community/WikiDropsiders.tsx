@@ -7,7 +7,6 @@ import DJ_DATA_RAW from '../../data/wiki_djs.json';
 type DjEntry = {
     id: string;
     name: string;
-    genre: string;
     bio: string;
     country: string;
     image: string;
@@ -146,7 +145,6 @@ export function WikiDropsiders() {
                                             {/* Name on gradient */}
                                             <div className="absolute bottom-0 left-0 right-0 p-2.5">
                                                 <div className="text-[9px] font-black text-white uppercase tracking-widest leading-tight line-clamp-1">{dj.name}</div>
-                                                <div className="text-[7px] text-gray-400 font-bold uppercase mt-0.5 line-clamp-1">{dj.genre}</div>
                                             </div>
                                             {/* Rating */}
                                             <div className="absolute top-2 right-2 flex items-center gap-0.5 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5">
@@ -191,7 +189,7 @@ export function WikiDropsiders() {
                                 <div className="absolute bottom-6 left-6 right-16">
                                     <div className="flex items-center gap-2 mb-1 flex-wrap">
                                         <span className="px-2 py-0.5 bg-neon-red text-white text-[8px] font-black uppercase rounded">Top Rated</span>
-                                        <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{selectedDj.country} · {selectedDj.genre}</span>
+                                        <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{selectedDj.country}</span>
                                         {saveMsg && <span className="px-2 py-0.5 bg-green-500/20 border border-green-500/30 text-green-400 text-[8px] font-black rounded">{saveMsg}</span>}
                                     </div>
                                     <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter drop-shadow-lg">{selectedDj.name}</h3>
