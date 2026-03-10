@@ -36,7 +36,7 @@ export function CommunityTabs({ activeTab, setActiveTab }: CommunityTabsProps) {
                             transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                         />
                     )}
-                    <tab.icon className={`w-4 h-4 relative z-10 ${activeTab === tab.id ? 'text-neon-red' : ''}`} />
+                    <tab.icon className={`w-4 h-4 relative z-10 ${activeTab === tab.id ? 'text-[#FF0000]' : ''}`} />
                     <span className="relative z-10">{tab.label}</span>
                 </button>
             ))}
