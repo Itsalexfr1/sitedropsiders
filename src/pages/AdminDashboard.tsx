@@ -4361,20 +4361,50 @@ export function AdminDashboard() {
                                                                 const files = e.target.files;
                                                                 if (!files || files.length === 0) return;
 
-                                                                setIsSaving(true); // Re-use saving state for feedback
+                                                                setIsSaving(true);
+
+                                                                const getDuration = (file: File): Promise<number> => {
+                                                                    return new Promise((resolve) => {
+                                                                        const audio = new Audio();
+                                                                        audio.preload = 'metadata';
+                                                                        const objectUrl = URL.createObjectURL(file);
+                                                                        audio.src = objectUrl;
+                                                                        audio.onloadedmetadata = () => {
+                                                                            URL.revokeObjectURL(objectUrl);
+                                                                            resolve(audio.duration || 0);
+                                                                        };
+                                                                        audio.onerror = () => {
+                                                                            URL.revokeObjectURL(objectUrl);
+                                                                            resolve(0);
+                                                                        };
+                                                                        // Fallback if metadata takes too long
+                                                                        setTimeout(() => resolve(0), 5000);
+                                                                    });
+                                                                };
+
+                                                                const createQuizDirect = async (data: any) => {
+                                                                    try {
+                                                                        const res = await apiFetch('/api/quiz/submit', {
+                                                                            method: 'POST',
+                                                                            headers: getAuthHeaders(),
+                                                                            body: JSON.stringify(data)
+                                                                        });
+                                                                        return res.ok;
+                                                                    } catch (e) {
+                                                                        console.error("Bulk create error:", e);
+                                                                        return false;
+                                                                    }
+                                                                };
 
                                                                 try {
                                                                     for (let i = 0; i < files.length; i++) {
                                                                         const file = files[i];
-
-                                                                        // 1. Guess Metadata from filename
                                                                         const rawName = file.name.replace(/\.[^/.]+$/, "");
 
                                                                         const musicTitlesPool = [
                                                                             "Carl Cox - I Want You", "Nina Kraviz - Ghetto Kraviz", "Amelie Lens - Follow", "Charlotte de Witte - Sgadi Li Mi", "Adam Beyer - Your Mind", "Skrillex - Bangarang", "SVDDEN DEATH - Behemoth", "Excision - Throwin' Elbows", "Subtronics - Griztronics", "Boris Brejcha - Gravity", "Laurent Garnier - The Man With The Red Face", "Jeff Mills - The Bells", "Derrick May - Strings of Life", "Carl Craig - Sandstorms", "Ummet Ozcan - Xanadu", "David Guetta - Titanium", "Martin Garrix - Animals", "Swedish House Mafia - One", "Avicii - Levels", "Tiësto - The Business", "Fisher - Losing It", "Fred again.. - Marea (We’ve Lost Dancing)", "Meduza - Piece Of Your Heart", "Zurb - Mwaki", "James Hype - Ferrari", "Mau P - Drugs From Amsterdam", "Peggy Gou - (It Goes Like) Nanana", "Anyma - Eternity", "Tale Of Us - Afterlife", "Chris Lake - Turn Off The Lights", "Dom Dolla - Rhyme Dust", "John Summit - Where You Are", "Mochakk - Jealous", "Hugel - Morenita", "Vintage Culture - Deep Down", "Alok - Hear Me Now", "Don Diablo - Cutting Shapes", "Oliver Heldens - Gecko", "Tchami - Adieu", "Malaa - Notorious", "DJ Snake - Turn Down For What", "Kungs - This Girl"
                                                                         ];
 
-                                                                        // Cleaning Function
                                                                         const clean = (str: string) => {
                                                                             return str
                                                                                 .replace(/^\d+[\s.-]+/, '')
@@ -4387,12 +4417,11 @@ export function AdminDashboard() {
                                                                                 .trim();
                                                                         };
 
-
-                                                                        // 🔍 Identification automatique
+                                                                        // Identification Shazam
                                                                         let identifiedLabel = null;
                                                                         try {
                                                                             const idFormData = new FormData();
-                                                                            idFormData.append('audio', file.slice(0, 3 * 1024 * 1024)); // 3MB snippet
+                                                                            idFormData.append('audio', file.slice(0, 3 * 1024 * 1024));
                                                                             const idRes = await fetch('/api/shazam/identify', { method: 'POST', body: idFormData });
                                                                             if (idRes.ok) {
                                                                                 const idData = await idRes.json();
@@ -4412,52 +4441,41 @@ export function AdminDashboard() {
                                                                         }
                                                                         const fullLabel = artist ? `${artist} - ${title}` : title;
 
-                                                                        // Distractors
                                                                         const distractors = musicTitlesPool
                                                                             .filter(t => t.toLowerCase() !== fullLabel.toLowerCase())
                                                                             .sort(() => 0.5 - Math.random())
                                                                             .slice(0, 3);
 
-                                                                        // 2. Upload
-                                                                        const url = await uploadFile(file);
+                                                                        // Sequential waits
+                                                                        const [url, duration] = await Promise.all([
+                                                                            uploadFile(file),
+                                                                            getDuration(file)
+                                                                        ]);
 
-                                                                        // 3. Get middle start time
-                                                                        const audio = new Audio();
-                                                                        const objectUrl = URL.createObjectURL(file);
-                                                                        audio.src = objectUrl;
+                                                                        const mid = duration > 30 ? Math.floor(duration / 2) - 15 : 0;
 
-                                                                        // Logic for creation
-                                                                        const processFile = (startSec: number) => {
-                                                                            const quizData = {
-                                                                                ...quizToEdit,
-                                                                                type: 'BLIND_TEST',
-                                                                                audioUrl: url,
-                                                                                question: 'Quel est ce morceau ?',
-                                                                                correctAnswer: fullLabel,
-                                                                                options: [fullLabel, ...distractors].sort(() => 0.5 - Math.random()),
-                                                                                startTime: startSec,
-                                                                                approved: true,
-                                                                                category: 'Blind Test'
-                                                                            };
-
-                                                                            if (i === 0) {
-                                                                                // Update the current modal state for the first one
-                                                                                setQuizToEdit(quizData);
-                                                                            } else {
-                                                                                // Auto-create others in bulk
-                                                                                const { id, ...bulkData } = quizData;
-                                                                                handleUpdateQuiz(bulkData);
-                                                                            }
+                                                                        const quizData = {
+                                                                            ...quizToEdit,
+                                                                            type: 'BLIND_TEST',
+                                                                            audioUrl: url,
+                                                                            question: 'Quel est ce morceau ?',
+                                                                            correctAnswer: fullLabel,
+                                                                            options: [fullLabel, ...distractors].sort(() => 0.5 - Math.random()),
+                                                                            startTime: Math.max(0, mid),
+                                                                            approved: true,
+                                                                            category: 'Blind Test'
                                                                         };
 
-                                                                        audio.onloadedmetadata = () => {
-                                                                            const mid = Math.floor(audio.duration / 2) - 15;
-                                                                            processFile(Math.max(0, mid));
-                                                                            URL.revokeObjectURL(objectUrl);
-                                                                        };
+                                                                        if (i === 0) {
+                                                                            setQuizToEdit(quizData);
+                                                                        } else {
+                                                                            const { id, ...bulkData } = quizData;
+                                                                            await createQuizDirect(bulkData);
+                                                                        }
                                                                     }
+                                                                    fetchQuizzes();
                                                                     if (files.length > 1) {
-                                                                        alert(`${files.length} fichiers traités ! Les quiz supplémentaires ont été créés automatiquement.`);
+                                                                        alert(`${files.length} fichiers traités ! Les morceaux ont été calés au milieu automatiquement.`);
                                                                     }
                                                                 } catch (err) {
                                                                     alert('Erreur lors du traitement bulk');
