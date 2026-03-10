@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { MessageSquare, Plus, CheckCircle2, Send, Info, User, Search, Zap, Music2, Cpu, Headphones, Settings, Layout, Layers, Radio, Sliders, Play, Disc, Activity, Volume2, Eye, Sparkles } from 'lucide-react';
 
 import { WikiDropsiders } from './WikiDropsiders';
+import { WikiVenues } from './WikiVenues';
 
 interface Review {
     id: string;
@@ -19,7 +20,7 @@ interface Review {
 }
 
 export function GuideSection() {
-    const [activeTab, setActiveTab] = useState<'reviews' | 'submit' | 'encyclopedia' | 'wiki'>('reviews');
+    const [activeTab, setActiveTab] = useState<'reviews' | 'submit' | 'encyclopedia' | 'wiki' | 'clubs' | 'festivals'>('reviews');
     const [reviews, setReviews] = useState<Review[]>([]);
     const [loading, setLoading] = useState(true);
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -328,6 +329,20 @@ export function GuideSection() {
                     WIKI DJ
                 </button>
                 <button
+                    onClick={() => setActiveTab('clubs')}
+                    className={`px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all hover:scale-105 active:scale-95 ${activeTab === 'clubs' ? 'bg-neon-red text-white shadow-lg shadow-red-500/10' : 'bg-white/5 text-white/40 border border-white/10'
+                        }`}
+                >
+                    🏛️ TOP CLUBS
+                </button>
+                <button
+                    onClick={() => setActiveTab('festivals')}
+                    className={`px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all hover:scale-105 active:scale-95 ${activeTab === 'festivals' ? 'bg-neon-red text-white shadow-lg shadow-red-500/10' : 'bg-white/5 text-white/40 border border-white/10'
+                        }`}
+                >
+                    🎪 TOP FESTIVALS
+                </button>
+                <button
                     onClick={() => setActiveTab('submit')}
                     className={`px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all hover:scale-105 active:scale-95 ${activeTab === 'submit' ? 'bg-white text-black shadow-lg shadow-white/10' : 'bg-white/5 text-white/40 border border-white/10'
                         }`}
@@ -458,6 +473,14 @@ export function GuideSection() {
             ) : activeTab === 'wiki' ? (
                 <div className="w-full">
                     <WikiDropsiders />
+                </div>
+            ) : activeTab === 'clubs' ? (
+                <div className="w-full">
+                    <WikiVenues initialMode="clubs" />
+                </div>
+            ) : activeTab === 'festivals' ? (
+                <div className="w-full">
+                    <WikiVenues initialMode="festivals" />
                 </div>
             ) : (
                 <div className="max-w-2xl mx-auto bg-white/5 border border-white/10 rounded-3xl p-8">
