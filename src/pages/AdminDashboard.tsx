@@ -80,6 +80,7 @@ export function AdminDashboard() {
     const [quizToEdit, setQuizToEdit] = useState<any>(null);
     const [testQuiz, setTestQuiz] = useState<any>(null);
     const [isTestingModalOpen, setIsTestingModalOpen] = useState(false);
+    const [isSavingQuiz, setIsSavingQuiz] = useState(false);
 
     const quizCounts = useMemo(() => {
         const all = [...allActiveQuizzes, ...allPendingQuizzes];
@@ -241,6 +242,7 @@ export function AdminDashboard() {
             question: '',
             options: ['', '', '', ''],
             correctAnswer: '',
+            category: 'Général',
             author: username,
             revealEffect: 'BLUR'
         });
@@ -4318,16 +4320,18 @@ export function AdminDashboard() {
 
                                     <div>
                                         <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">
-                                            {quizToEdit.type === 'BLIND_TEST' ? 'Titre (Utilisée comme Bonne Réponse)' : 'Question'}
+                                            {quizToEdit.type === 'BLIND_TEST' ? 'Question / Titre' : 'Question'}
                                         </label>
                                         <input
                                             type="text"
                                             value={quizToEdit.question}
                                             onChange={(e) => setQuizToEdit({ ...quizToEdit, question: e.target.value })}
                                             className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none text-xs"
-                                            placeholder={quizToEdit.type === 'BLIND_TEST' ? 'Ex: Martin Garrix - Animals' : 'Ex: Quel DJ est headliner ?'}
+                                            placeholder={quizToEdit.type === 'BLIND_TEST' ? 'Ex: Quel est ce morceau ?' : 'Ex: Quel DJ est headliner ?'}
                                         />
                                     </div>
+
+                                    
 
                                     {/* BLIND TEST / VIDEO SPECIFIC (Spotify / YouTube) */}
                                     {(quizToEdit.type === 'BLIND_TEST' || quizToEdit.type === 'VIDEO') && (
@@ -4372,6 +4376,7 @@ export function AdminDashboard() {
                                                                          // Cleaning Function
                                                                          const clean = (str: string) => {
                                                                              return str
+                                                                                 .replace(/^\d+[\s.-]+/, '')
                                                                                  .replace(/(\[|\()(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)?\s*(Mix|Edit|Version).*?(\]|\))/gi, "")
                                                                                  .replace(/\s+(Original|Extended|Radio|Club|Vocal|Main|Dub|Instrumental)\s+(Mix|Edit|Version).*?$/gi, "")
                                                                                  .replace(/\[(FREE DOWNLOAD|OUT NOW|OFFICIAL|HQ|AUDIO)\]/gi, "")
@@ -4430,7 +4435,8 @@ export function AdminDashboard() {
                                                                                  correctAnswer: fullLabel,
                                                                                  options: [fullLabel, ...distractors].sort(() => 0.5 - Math.random()),
                                                                                  startTime: startSec,
-                                                                                 approved: true
+                                                                                 approved: true,
+                                                                                 category: 'Blind Test'
                                                                              };
                                                                             
 if (i === 0) {
@@ -4591,10 +4597,7 @@ if (i === 0) {
                                             <span className="px-3 py-1 bg-neon-red/20 text-neon-red border border-neon-red/30 rounded-full text-[8px] font-black uppercase tracking-widest">{testQuiz.type}</span>
                                         </div>
 
-                                        <div className="flex items-center gap-2 mb-6">
-                                            <div className="w-2 h-2 rounded-full bg-neon-red animate-pulse" />
-                                            <span className="text-[10px] text-gray-500 font-black uppercase tracking-widest">{testQuiz.category}</span>
-                                        </div>
+                                        
 
                                         <h3 className="text-2xl font-bold text-white mb-8 uppercase italic tracking-tight leading-tight">{testQuiz.question}</h3>
 
