@@ -184,7 +184,7 @@ export function WikiDropsiders() {
                             {/* Hero image — full photo + gradient fade bottom */}
                             <div className="relative w-full bg-black">
                                 <img src={selectedDj.image} alt={selectedDj.name}
-                                    className="w-full h-auto block" style={{ maxHeight: '75vh', objectFit: 'contain', objectPosition: 'center top' }} />
+                                    className="w-full block" style={{ maxHeight: '70vh', objectFit: 'contain', objectPosition: 'center top', background: 'black' }} />
                                 {/* Gradient fade at bottom of image */}
                                 <div className="absolute bottom-0 left-0 right-0 h-52 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none" />
                                 {/* Name on gradient */}

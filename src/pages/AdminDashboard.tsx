@@ -7,7 +7,7 @@ import {
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type,
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram, Bell, Zap,
-    Play, Gamepad2, Upload, Activity, Star
+    Play, Gamepad2, Upload, Activity, Star, Heart
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -18,6 +18,9 @@ import { ModerationModal } from '../components/admin/ModerationModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { Downloader } from './Downloader';
 import { AudioWaveformSelector } from '../components/admin/AudioWaveformSelector';
+import WIKI_DJS from '../data/wiki_djs.json';
+import WIKI_CLUBS from '../data/wiki_clubs.json';
+import WIKI_FESTIVALS from '../data/wiki_festivals.json';
 
 export function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -54,6 +57,7 @@ export function AdminDashboard() {
     const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
     const [isDownloaderOpen, setIsDownloaderOpen] = useState(false);
     const [pushSubscribersCount, setPushSubscribersCount] = useState<number | null>(null);
+    const [wikiTab, setWikiTab] = useState<'djs' | 'clubs' | 'festivals'>('djs');
     const [socialRecentArticles, setSocialRecentArticles] = useState<any[]>([]);
     const [selectedSocialArticle, setSelectedSocialArticle] = useState<any | null>(null);
     const [isLoadingSocial, setIsLoadingSocial] = useState(false);
@@ -1223,11 +1227,69 @@ export function AdminDashboard() {
                     </div>
                 </div>
 
+                {/* ─── CLASSEMENT WIKI VOTES ─── */}
+                {(() => {
+                    const djVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_djs') || '[]'); } catch { return []; } })());
+                    const clubVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_clubs') || '[]'); } catch { return []; } })());
+                    const festVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_festivals') || '[]'); } catch { return []; } })());
+                    const djR = [...(WIKI_DJS as any[])].map(d => ({ ...d, tv: djVotes.has(d.id) ? 1 : 0 })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 10);
+                    const clubR = [...(WIKI_CLUBS as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (clubVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 10);
+                    const festR = [...(WIKI_FESTIVALS as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (festVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 10);
+                    const ranked = wikiTab === 'djs' ? djR : wikiTab === 'clubs' ? clubR : festR;
+                    const topVotes = ranked[0]?.tv || 1;
+                    const medals = ['🥇', '🥈', '🥉'];
+                    return (
+                        <div className="mb-12 bg-white/[0.03] border border-white/10 rounded-3xl p-6 md:p-8">
+                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
+                                <div>
+                                    <div className="flex items-center gap-2 mb-1">
+                                        <Star className="w-4 h-4 text-neon-red fill-current" />
+                                        <span className="text-neon-red font-black tracking-[0.3em] text-[9px] uppercase">Classement</span>
+                                    </div>
+                                    <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Wiki Votes</h2>
+                                    <p className="text-gray-600 text-[9px] font-black uppercase tracking-widest mt-0.5">Top 10 basé sur les votes communauté</p>
+                                </div>
+                                <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-1 gap-1">
+                                    {(['djs', 'clubs', 'festivals'] as const).map(id => (
+                                        <button key={id} onClick={() => setWikiTab(id)}
+                                            className={`px-4 py-2 rounded-lg font-black uppercase tracking-widest text-[9px] transition-all ${wikiTab === id ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-gray-300'}`}>
+                                            {id === 'djs' ? '🎧 DJs' : id === 'clubs' ? '🏛️ Clubs' : '🎪 Festivals'}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                            <div className="space-y-2">
+                                {ranked.length === 0 ? (
+                                    <p className="text-center text-gray-600 text-xs font-black uppercase tracking-widest py-8">Aucun vote pour l'instant</p>
+                                ) : ranked.map((item: any, idx: number) => (
+                                    <div key={item.id} className="flex items-center gap-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 rounded-2xl px-4 py-3 transition-all">
+                                        <div className="w-8 text-center shrink-0">{idx < 3 ? <span className="text-lg">{medals[idx]}</span> : <span className="text-[11px] font-black text-gray-500">#{idx + 1}</span>}</div>
+                                        {item.image && <div className="w-10 h-10 rounded-xl overflow-hidden bg-black shrink-0"><img src={item.image} alt={item.name} className="w-full h-full object-cover" /></div>}
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-[11px] font-black text-white uppercase tracking-widest truncate">{item.name}</div>
+                                            <div className="text-[9px] text-gray-500 font-bold uppercase">{item.genre || ''}{item.city ? ` · ${item.city}` : ''}</div>
+                                        </div>
+                                        <div className="flex items-center gap-1.5 shrink-0">
+                                            <Heart className="w-3.5 h-3.5 text-neon-red fill-current" />
+                                            <span className="text-sm font-black text-white">{item.tv}</span>
+                                            <span className="text-[9px] font-black text-gray-600 uppercase">vote{item.tv !== 1 ? 's' : ''}</span>
+                                        </div>
+                                        <div className="w-16 h-1 bg-white/5 rounded-full overflow-hidden shrink-0">
+                                            <div className="h-full bg-neon-red rounded-full" style={{ width: `${Math.min(100, (item.tv / topVotes) * 100)}%` }} />
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })()}
+
                 <div className="space-y-16 relative">
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <AnimatePresence>
                             {filteredActions.map((action) => {
                                 const globalIndex = filteredActions.findIndex(a => a.title === action.title);
+
                                 return (
                                     <motion.div
                                         key={action.title}

@@ -257,7 +257,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                             {/* Full image + gradient */}
                             <div className="relative w-full bg-black">
                                 <img src={selected.image} alt={selected.name}
-                                    className="w-full h-auto block" style={{ maxHeight: '75vh', objectFit: 'cover', objectPosition: 'center' }} />
+                                    className="w-full block" style={{ maxHeight: '70vh', objectFit: 'contain', objectPosition: 'center', background: 'black' }} />
                                 {/* Gradient fade bottom */}
                                 <div className="absolute bottom-0 left-0 right-0 h-56 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none" />
                                 {/* Info overlaid on gradient */}
