@@ -827,8 +827,9 @@ export function Community() {
                     </motion.div>
 
                     {/* Enhanced Tabs */}
-                    <div className="mb-16">
-                        <div className="flex overflow-x-auto no-scrollbar items-center gap-3 p-1.5 bg-white/5 backdrop-blur-3xl rounded-3xl border border-white/10 max-w-full lg:w-fit">
+                    <div className="mb-16 w-full -mx-4 px-4 sm:mx-0 sm:px-0">
+                        <div className="flex overflow-x-auto no-scrollbar pb-4 -mb-4 snap-x">
+                            <div className="flex items-center gap-2 md:gap-3 p-1.5 bg-white/5 backdrop-blur-3xl rounded-3xl border border-white/10 w-max custom-scrollbar">
                             {[
                                 { id: 'WALL', icon: Star, label: 'Mur de Souvenirs' },
                                 { id: 'PHOTOS', icon: Camera, label: 'Albums Photo' },
@@ -858,6 +859,8 @@ export function Community() {
                                     <span className="relative z-10 tracking-widest">{tab.label}</span>
                                 </button>
                             ))}
+                            <div className="w-2 md:w-0 shrink-0" />
+                        </div>
                         </div>
                     </div>
 
