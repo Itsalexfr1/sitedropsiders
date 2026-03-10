@@ -368,7 +368,36 @@ export default {
             return new Response(JSON.stringify({ error: 'Données manquantes' }), { status: 400, headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' } });
         }
 
+        // --- API: COMMUNITY PLAYER XP ---
+        if (path === '/api/community/sync-xp' && request.method === 'POST') {
+            const body = await request.json();
+            const { email, xp, level } = body;
+            if (!email) return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
+
+            const key = `community_player_xp_${email.toLowerCase().trim()}`;
+            const data = {
+                xp: xp || 0,
+                level: level || 0,
+                lastUpdate: new Date().toISOString()
+            };
+
+            await env.CHAT_KV.put(key, JSON.stringify(data));
+            return new Response(JSON.stringify({ success: true, data }), { headers });
+        }
+
+        if (path === '/api/community/get-xp' && request.method === 'GET') {
+            const email = url.searchParams.get('email');
+            if (!email) return new Response(JSON.stringify({ error: 'Email requis' }), { status: 400, headers });
+
+            const key = `community_player_xp_${email.toLowerCase().trim()}`;
+            const data = await env.CHAT_KV.get(key);
+
+            if (!data) return new Response(JSON.stringify({ xp: 0, level: 0 }), { headers });
+            return new Response(data, { headers });
+        }
+
         // --- API: DOWNLOADER PROXY ---
+
         if (path === '/api/downloader-proxy' && request.method === 'POST') {
             const body = await request.json();
             const targetUrl = body.url;

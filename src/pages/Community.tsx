@@ -5,7 +5,7 @@ import {
     Sparkles, Trophy, Plus, Check, AlertCircle,
     Music, Shield, Palette, Megaphone, Lock,
     RefreshCw, X, Heart, Ticket, Euro,
-    Flame, Search, Filter
+    Flame, Search, Filter, Globe
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
@@ -20,6 +20,23 @@ import confetti from 'canvas-confetti';
 
 // --- STAGE & LOCATION DATA ---
 const FESTIVAL_LOCATIONS = [
+    // 🎪 RÉGIONAL & DÉBUTANT (Rank 0-1)
+    { id: 'camping', name: 'Camping Municipal - Le Grau-du-Roi', cost: 3000, prestige: 1, capacity: 500, minRank: 0 },
+    { id: 'fete-village', name: 'Fête de la Musique - Place de l\'Église', cost: 8000, prestige: 2, capacity: 1200, minRank: 0 },
+    { id: 'salle-fetes', name: 'Salle des Fêtes - Saint-Étienne', cost: 12000, prestige: 2, capacity: 1500, minRank: 0 },
+    { id: 'club-local', name: 'Le Petit Club Underground - Lyon', cost: 18000, prestige: 3, capacity: 600, minRank: 0 },
+    { id: 'bar-concert', name: 'La Maroquinerie - Paris', cost: 25000, prestige: 3, capacity: 1000, minRank: 0 },
+    { id: 'zenith-nantes', name: 'Zénith Nantes Métropole', cost: 55000, prestige: 4, capacity: 9000, minRank: 0 },
+    { id: 'zenith-paris', name: 'Zénith Paris - La Villette', cost: 80000, prestige: 5, capacity: 6300, minRank: 0 },
+    { id: 'zenith-lyon', name: 'Zénith de Lyon', cost: 65000, prestige: 4, capacity: 7500, minRank: 0 },
+    { id: 'accor-arena', name: 'Accor Arena - Paris (Bercy)', cost: 200000, prestige: 7, capacity: 20000, minRank: 1 },
+    { id: 'arenes-nimes', name: 'Arènes de Nîmes 🏛️', cost: 95000, prestige: 8, capacity: 16000, minRank: 1 },
+    { id: 'sportpaleis', name: 'Sportpaleis - Anvers (BE)', cost: 180000, prestige: 7, capacity: 23000, minRank: 1 },
+    { id: 'o2-london', name: 'The O2 Arena - London', cost: 320000, prestige: 8, capacity: 20000, minRank: 1 },
+    { id: 'sap-center', name: 'SAP Center - San Jose (USA)', cost: 270000, prestige: 7, capacity: 17000, minRank: 1 },
+    { id: 'tokyo-dome', name: 'Tokyo Dome - Japan', cost: 380000, prestige: 8, capacity: 55000, minRank: 1 },
+    { id: 'maracana', name: 'Stade Maracanã - Rio de Janeiro', cost: 420000, prestige: 9, capacity: 78000, minRank: 2 },
+
     // TOMORROWLAND
     { id: 'boom', name: 'Boom - De Schorre (TML)', cost: 450000, prestige: 10, capacity: 200000, minRank: 2 },
     { id: 'alpe-dhuez', name: "Alpe d'Huez (TML Winter)", cost: 280000, prestige: 8, capacity: 25000, minRank: 1 },
@@ -946,9 +963,11 @@ export function Community() {
                                                             <label className="text-[10px] font-black uppercase text-white/40 ml-4">Le Festival</label>
                                                             <input type="text" value={festivalName} onChange={(e) => setFestivalName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-xl font-black italic uppercase focus:border-amber-400 outline-none" placeholder="NOM DU FESTIVAL" />
                                                         </div>
-                                                        <div className="space-y-2">
-                                                            <label className="text-[10px] font-black uppercase text-white/40 ml-4">Email Contact</label>
-                                                            <input type="email" value={playerEmail} onChange={(e) => setPlayerEmail(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-xl font-black uppercase focus:border-amber-400 outline-none" placeholder="PRO@DROPSIDERS.COM" />
+                                                        <div className="p-5 bg-amber-400/10 border border-amber-400/20 rounded-2xl flex items-start gap-3">
+                                                            <Info className="w-5 h-5 text-amber-400 mt-0.5 shrink-0" />
+                                                            <p className="text-[10px] font-bold text-white/60 uppercase leading-relaxed">
+                                                                Ton email de sauvegarde cloud sera demandé à la fin de la résidence pour synchroniser ton XP.
+                                                            </p>
                                                         </div>
                                                     </div>
                                                     <div className="space-y-6">
@@ -974,7 +993,7 @@ export function Community() {
                                                         </div>
                                                     </div>
                                                 </div>
-                                                <button disabled={!playerName || !festivalName || !playerEmail} onClick={() => setGameState('LOCATION')} className="w-full py-8 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.4em] disabled:opacity-20 hover:bg-amber-400 transition-all">VALIDER ET CONTINUER →</button>
+                                                <button disabled={!playerName || !festivalName} onClick={() => setGameState('LOCATION')} className="w-full py-8 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.4em] disabled:opacity-20 hover:bg-amber-400 transition-all">VALIDER ET CONTINUER →</button>
                                             </div>
                                         </motion.div>
                                     )}
@@ -1575,9 +1594,62 @@ export function Community() {
                                                         </p>
                                                     </div>
 
-                                                    <div className="flex flex-col sm:flex-row gap-4">
-                                                        <button onClick={() => window.print()} className="flex-1 py-6 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all">Sauvegarder Affiche</button>
-                                                        <button onClick={resetGame} className="flex-1 py-6 bg-white/10 border border-white/20 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all">Nouveau Festival</button>
+                                                    <div className="space-y-6">
+                                                        {/* Cloud Sync */}
+                                                        <div className="p-10 bg-white/5 border border-white/10 rounded-[3rem] backdrop-blur-3xl">
+                                                            <div className="flex items-center gap-4 mb-6">
+                                                                <div className="w-10 h-10 rounded-full bg-amber-400/10 flex items-center justify-center">
+                                                                    <Globe className="w-5 h-5 text-amber-400" />
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="text-xs font-black uppercase tracking-widest text-white">Cloud XP Sync</h4>
+                                                                    <p className="text-[8px] font-bold text-white/40 uppercase tracking-tighter">Sauvegarde ta progression sur Cloudflare</p>
+                                                                </div>
+                                                            </div>
+                                                            {!playerEmail ? (
+                                                                <input
+                                                                    type="email"
+                                                                    placeholder="TON@EMAIL.COM POUR SAUVEGARDER TA CARRIÈRE"
+                                                                    value={playerEmail}
+                                                                    onChange={(e) => setPlayerEmail(e.target.value)}
+                                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-sm font-black uppercase focus:border-amber-400 outline-none transition-all placeholder:text-white/20"
+                                                                />
+                                                            ) : (
+                                                                <div className="flex items-center gap-3 px-6 py-4 bg-emerald-400/10 border border-emerald-400/20 rounded-2xl">
+                                                                    <Check className="w-4 h-4 text-emerald-400" />
+                                                                    <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{playerEmail} – Prêt pour la sync</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="flex flex-col sm:flex-row gap-4">
+                                                            <button onClick={() => window.print()} className="flex-1 py-6 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all">Sauvegarder Affiche</button>
+                                                            <button
+                                                                onClick={async () => {
+                                                                    const earnedXp = Math.floor((profit > 0 ? profit / 1000 : 0) + (attendance / 200));
+                                                                    const newXp = (promoterXP || 0) + earnedXp;
+                                                                    setPromoterXP(newXp);
+                                                                    localStorage.setItem('dropsiders_xp', newXp.toString());
+                                                                    if (playerEmail) {
+                                                                        try {
+                                                                            await fetch('/api/community/sync-xp', {
+                                                                                method: 'POST',
+                                                                                headers: { 'Content-Type': 'application/json' },
+                                                                                body: JSON.stringify({ email: playerEmail, xp: newXp, level: currentRank.level })
+                                                                            });
+                                                                        } catch (e) {
+                                                                            console.error('Cloud Sync failed', e);
+                                                                        }
+                                                                    }
+                                                                    resetGame();
+                                                                    alert(`Félicitations ! Vous avez gagné ${earnedXp} XP${playerEmail ? ' – Progression synchronisée sur le Cloud !' : ' – Sauvegardé localement.'}`);
+                                                                }}
+                                                                className="flex-1 py-6 bg-amber-400 text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-amber-500 transition-all shadow-[0_10px_30px_rgba(251,191,36,0.2)]"
+                                                            >
+                                                                {playerEmail ? 'SYNCHRONISER XP & QUITTER' : 'ENREGISTRER XP & TERMINER'}
+                                                            </button>
+                                                            <button onClick={resetGame} className="flex-1 py-6 bg-white/10 border border-white/20 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all">Nouveau Festival</button>
+                                                        </div>
                                                     </div>
                                                 </div>
 
