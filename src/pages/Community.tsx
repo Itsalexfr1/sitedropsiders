@@ -3,8 +3,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
     Users, Camera, Gamepad2, Star, Info, Car, Bell,
     Sparkles, Trophy, Plus, Check, AlertCircle,
-    Music, Shield, Palette, Megaphone,
-    RefreshCw, X, Download, Heart,
+    Music, Shield, Palette, Megaphone, Lock,
+    RefreshCw, X, Download, Heart, Ticket, Euro,
     Flame, Share2, Instagram, Facebook, Twitter, Search, Filter
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -21,47 +21,94 @@ import confetti from 'canvas-confetti';
 // --- STAGE & LOCATION DATA ---
 const FESTIVAL_LOCATIONS = [
     // TOMORROWLAND
-    { id: 'boom', name: 'Boom - De Schorre (TML)', cost: 450000, prestige: 10, capacity: 200000 },
-    { id: 'alpe-dhuez', name: "Alpe d'Huez (TML Winter)", cost: 280000, prestige: 8, capacity: 25000 },
-    { id: 'itu', name: 'Itu - São Paulo (TML BR)', cost: 180000, prestige: 6, capacity: 150000 },
+    { id: 'boom', name: 'Boom - De Schorre (TML)', cost: 450000, prestige: 10, capacity: 200000, minRank: 2 },
+    { id: 'alpe-dhuez', name: "Alpe d'Huez (TML Winter)", cost: 280000, prestige: 8, capacity: 25000, minRank: 1 },
+    { id: 'itu', name: 'Itu - São Paulo (TML BR)', cost: 180000, prestige: 6, capacity: 150000, minRank: 1 },
 
     // ULTRA MUSIC FESTIVAL
-    { id: 'miami', name: 'Miami - Bayfront Park (UMF)', cost: 550000, prestige: 10, capacity: 165000 },
-    { id: 'split', name: 'Split - Park Mladeži (Ultra EU)', cost: 220000, prestige: 8, capacity: 120000 },
-    { id: 'johannesburg', name: 'Jo\'burg - Expo Centre (Ultra SA)', cost: 140000, prestige: 6, capacity: 80000 },
-    { id: 'sejong', name: 'Seoul - Olympic Stadium (Ultra KR)', cost: 190000, prestige: 7, capacity: 100000 },
-    { id: 'tokyo', name: 'Tokyo - Odaiba (Ultra JP)', cost: 240000, prestige: 8, capacity: 100000 },
+    { id: 'miami', name: 'Miami - Bayfront Park (UMF)', cost: 550000, prestige: 10, capacity: 165000, minRank: 2 },
+    { id: 'split', name: 'Split - Park Mladeži (Ultra EU)', cost: 220000, prestige: 8, capacity: 120000, minRank: 1 },
+    { id: 'johannesburg', name: 'Jo\'burg - Expo Centre (Ultra SA)', cost: 140000, prestige: 6, capacity: 80000, minRank: 1 },
+    { id: 'sejong', name: 'Seoul - Olympic Stadium (Ultra KR)', cost: 190000, prestige: 7, capacity: 100000, minRank: 1 },
+    { id: 'tokyo', name: 'Tokyo - Odaiba (Ultra JP)', cost: 240000, prestige: 8, capacity: 100000, minRank: 1 },
 
     // EDC
-    { id: 'vegas', name: 'Vegas - Speedway (EDC LV)', cost: 600000, prestige: 10, capacity: 450000 },
-    { id: 'mexico', name: 'CDMX - Autódromo (EDC MX)', cost: 210000, prestige: 7, capacity: 120000 },
-    { id: 'orlando', name: 'Orlando - Tinker Field (EDC ORL)', cost: 170000, prestige: 6, capacity: 90000 },
+    { id: 'vegas', name: 'Vegas - Speedway (EDC LV)', cost: 600000, prestige: 10, capacity: 450000, minRank: 2 },
+    { id: 'mexico', name: 'CDMX - Autódromo (EDC MX)', cost: 210000, prestige: 7, capacity: 120000, minRank: 1 },
+    { id: 'orlando', name: 'Orlando - Tinker Field (EDC ORL)', cost: 170000, prestige: 6, capacity: 90000, minRank: 0 },
 
     // CONCERT HALLS, STADIUMS & SUPER-CLUBS
-    { id: 'sphere', name: 'Vegas - MSG Sphere', cost: 750000, prestige: 10, capacity: 18000 },
-    { id: 'omnia', name: 'Vegas - Omnia Club', cost: 400000, prestige: 9, capacity: 3500 },
-    { id: 'space-miami', name: 'Miami - Club Space', cost: 350000, prestige: 9, capacity: 2500 },
-    { id: 'ushuaia', name: 'Ibiza - Ushuaïa', cost: 450000, prestige: 10, capacity: 7000 },
-    { id: 'hi-ibiza', name: 'Ibiza - Hï Ibiza', cost: 430000, prestige: 10, capacity: 5000 },
-    { id: 'stade-france', name: 'Paris - Stade de France', cost: 500000, prestige: 9, capacity: 80000 },
-    { id: 'wembley', name: 'London - Wembley Stadium', cost: 550000, prestige: 9, capacity: 90000 },
-    { id: 'msg', name: 'NYC - Madison Sq Garden', cost: 420000, prestige: 9, capacity: 20000 },
-    { id: 'red-rocks', name: 'Colorado - Red Rocks', cost: 220000, prestige: 8, capacity: 9500 },
-    { id: 'berghain', name: 'Berlin - Berghain (Main)', cost: 130000, prestige: 9, capacity: 1500 },
-    { id: 'gashouder', name: 'Amsterdam - Gashouder', cost: 280000, prestige: 8, capacity: 3500 },
+    { id: 'sphere', name: 'Vegas - MSG Sphere', cost: 750000, prestige: 10, capacity: 18000, minRank: 3 },
+    { id: 'omnia', name: 'Vegas - Omnia Club', cost: 400000, prestige: 9, capacity: 3500, minRank: 2 },
+    { id: 'space-miami', name: 'Miami - Club Space', cost: 350000, prestige: 9, capacity: 2500, minRank: 2 },
+    { id: 'ushuaia', name: 'Ibiza - Ushuaïa', cost: 450000, prestige: 10, capacity: 7000, minRank: 3 },
+    { id: 'hi-ibiza', name: 'Ibiza - Hï Ibiza', cost: 430000, prestige: 10, capacity: 5000, minRank: 3 },
+    { id: 'stade-france', name: 'Paris - Stade de France', cost: 500000, prestige: 9, capacity: 80000, minRank: 2 },
+    { id: 'wembley', name: 'London - Wembley Stadium', cost: 550000, prestige: 9, capacity: 90000, minRank: 2 },
+    { id: 'msg', name: 'NYC - Madison Sq Garden', cost: 420000, prestige: 9, capacity: 20000, minRank: 2 },
+    { id: 'red-rocks', name: 'Colorado - Red Rocks', cost: 220000, prestige: 8, capacity: 9500, minRank: 1 },
+    { id: 'berghain', name: 'Berlin - Berghain (Main)', cost: 130000, prestige: 9, capacity: 1500, minRank: 2 },
+    { id: 'gashouder', name: 'Amsterdam - Gashouder', cost: 280000, prestige: 8, capacity: 3500, minRank: 1 },
 
     // CLASSICS
-    { id: 'paris', name: 'Paris - Longchamp', cost: 150000, prestige: 7, capacity: 50000 },
-    { id: 'ibiza', name: 'Ibiza - Playa d\'en Bossa', cost: 350000, prestige: 8, capacity: 100000 },
-    { id: 'lyon', name: 'Lyon - Eurexpo', cost: 80000, prestige: 5, capacity: 30000 },
-    { id: 'berlin', name: 'Berlin - Tempelhof', cost: 120000, prestige: 7, capacity: 40000 },
+    { id: 'paris', name: 'Paris - Longchamp', cost: 150000, prestige: 7, capacity: 50000, minRank: 0 },
+    { id: 'ibiza-beach', name: 'Ibiza - Playa d\'en Bossa', cost: 350000, prestige: 8, capacity: 100000, minRank: 2 },
+    { id: 'lyon', name: 'Lyon - Eurexpo', cost: 80000, prestige: 5, capacity: 30000, minRank: 0 },
+    { id: 'berlin', name: 'Berlin - Tempelhof', cost: 120000, prestige: 7, capacity: 40000, minRank: 1 },
+];
+
+const PROM_RANKS = [
+    { level: 0, name: "Bedroom Promoter", minXp: 0, color: "text-white/40" },
+    { level: 1, name: "Underground Hero", minXp: 1000, color: "text-blue-400" },
+    { level: 2, name: "City Night King", minXp: 5000, color: "text-purple-400" },
+    { level: 3, name: "Festival Legend", minXp: 15000, color: "text-amber-400" }
+];
+
+const STAGE_EFFECTS = [
+    { id: 'pyro', name: 'Pyrotechnie Lourde', cost: 150000, hype: 0.2, icon: Flame },
+    { id: 'drones', name: 'Show de Drones', cost: 250000, hype: 0.3, icon: Sparkles },
+    { id: 'holo', name: 'Visuels 3D / Holo', cost: 100000, hype: 0.15, icon: Camera }
+];
+
+const NEGOTIATION_PERKS = [
+    { id: 'jet', name: 'Jet Privé', cost: 50000, chance: 0.4, desc: "Pour les bookings express." },
+    { id: 'hotel', name: 'Suite Royale', cost: 15000, chance: 0.2, desc: "Confort 5 étoiles." },
+    { id: 'prime', name: 'Prime de Signature', cost: 100000, chance: 0.6, desc: "Cash immédiat." }
 ];
 
 const SPONSORS = [
-    { id: 'redbull', name: 'Red Bull', bonus: 150000, impact: 'hype', desc: '+150k€ & Boost de Hype' },
-    { id: 'pioneer', name: 'Pioneer DJ', bonus: 80000, impact: 'tech', desc: '+80k€ & Scénographie Pro' },
-    { id: 'mercedes', name: 'Mercedes-Benz', bonus: 250000, impact: 'luxury', desc: '+250k€ & Prestige VIP' },
-    { id: 'heineken', name: 'Heineken', bonus: 120000, impact: 'commercial', desc: '+120k€ & Ventes Boissons' },
+    { id: 'redbull', name: 'Red Bull', bonus: 250000, impact: 'hype', threshold: 50000, failPenalty: 1000, desc: 'Objectif: 50k Fans. Récompense: 250k€.' },
+    { id: 'pioneer', name: 'Pioneer DJ', bonus: 120000, impact: 'tech', threshold: 30000, failPenalty: 500, desc: 'Objectif: 30k Fans. Récompense: 120k€.' },
+    { id: 'mercedes', name: 'Mercedes-Benz', bonus: 400000, impact: 'luxury', threshold: 80000, failPenalty: 2000, desc: 'Objectif: 80k Fans. Récompense: 400k€.' },
+    { id: 'heineken', name: 'Heineken', bonus: 180000, impact: 'commercial', threshold: 40000, failPenalty: 800, desc: 'Objectif: 40k Fans. Récompense: 180k€.' },
+];
+
+const MERCH_OPTIONS = [
+    { id: 'tshirt', name: 'T-Shirts Dropsiders', cost: 15000, revPerPerson: 5, icon: Palette },
+    { id: 'beer', name: 'Bière Artisanale', cost: 25000, revPerPerson: 8, icon: Flame },
+    { id: 'vip_area', name: 'Pack Zone VIP', cost: 50000, revPerPerson: 15, icon: Heart },
+];
+
+const CRISIS_EVENTS = [
+    {
+        id: 'late_dj',
+        name: 'DJ en Retard !',
+        desc: 'Ta tête d\'affiche est coincée à l\'aéroport. Que fais-tu ?',
+        options: [
+            { id: 'heli', name: 'Payer un Hélicoptère', cost: 50000, impact: 0, sat: 0, result: 'Le DJ arrive à temps ! (--- 50k€)' },
+            { id: 'wait', name: 'Faire attendre le public', cost: 0, impact: -0.1, sat: -0.2, result: 'Le public est furieux, la hype baisse.' },
+            { id: 'extend', name: 'Prolonger le set précédent', cost: 10000, impact: -0.05, sat: 0.1, result: 'Transition réussie, mais coût additionnel.' }
+        ]
+    },
+    {
+        id: 'rain_storm',
+        name: 'Tempête Imminente',
+        desc: 'Une tempête approche. Doit-on couvrir la scène ?',
+        options: [
+            { id: 'cover', name: 'Équipement de Protection', cost: 30000, impact: 0, sat: 0.1, result: 'Le matériel est protégé. (+ Sat)' },
+            { id: 'risk', name: 'Prendre le risque', cost: 0, impact: -0.2, sat: -0.1, result: 'Dégâts matériels importants ! (--- Hype)' }
+        ]
+    }
 ];
 
 const RANDOM_EVENTS = [
@@ -74,37 +121,33 @@ const RANDOM_EVENTS = [
 const STAGE_COST_PER_UNIT = 100000;
 
 // --- HALL OF FAME MOCK DATA ---
-const HALL_OF_FAME = [
-    { id: 'h1', playerName: 'Alex', festivalName: 'NEON WAVE', djs: ['Boris Brejcha', 'Charlotte de Witte', 'Amelie Lens'], budget: '2.4M€', date: 'Juin 2026', likes: 124, location: 'Ibiza - Hï Ibiza' },
-    { id: 'h2', playerName: 'Lucas', festivalName: 'BASS MOUNTAIN', djs: ['Skrillex', 'Fred again..', 'I Hate Models'], budget: '4.1M€', date: 'Août 2026', likes: 89, location: 'Vegas - Speedway (EDC LV)' },
-    { id: 'h3', playerName: 'Emma', festivalName: 'TECHNO GARDEN', djs: ['Nina Kraviz', 'Carl Cox', 'Adam Beyer'], budget: '1.8M€', date: 'Juillet 2026', likes: 256, location: 'Paris - Stade de France' },
-];
+const HALL_OF_FAME: any[] = [];
 
 // --- FESTIVAL CREATOR GAME DATA ---
 const DJ_POOL = [
     // --- HEADLINERS & MAINSTREAM (The 1% of the Industry) ---
-    { id: 'ch', name: 'Calvin Harris', price: 1200000, genre: 'Dance Pop', popularity: 99, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Calvin_Harris_2012.jpg/800px-Calvin_Harris_2012.jpg' },
-    { id: 'shm', name: 'Swedish House Mafia', price: 1100000, genre: 'House', popularity: 99, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Swedish_House_Mafia_-_Ushuaia.jpg/800px-Swedish_House_Mafia_-_Ushuaia.jpg' },
-    { id: 'fa', name: 'Fred again..', price: 950000, genre: 'Future Garage', popularity: 99, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Fred_again.._-_Pritat_-_2022.jpg/800px-Fred_again.._-_Pritat_-_2022.jpg' },
-    { id: 'ko', name: 'Keinemusik (CRME)', price: 950000, genre: 'Afro House', popularity: 99, image: 'https://i1.sndcdn.com/avatars-000499628310-j8m2j2-t500x500.jpg' },
-    { id: 'dg', name: 'David Guetta', price: 850000, genre: 'Mainstage', popularity: 99, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/David_Guetta_Pau_2012.jpg/800px-David_Guetta_Pau_2012.jpg' },
-    { id: 'kygo', name: 'Kygo', price: 850000, genre: 'Tropical House', popularity: 99, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Kygo_NRJ_Music_Awards_2017.jpg/800px-Kygo_NRJ_Music_Awards_2017.jpg' },
-    { id: 'mh', name: 'Martin Garrix', price: 800000, genre: 'Progressive House', popularity: 99, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Martin_Garrix_2013-11-20_001.jpg/800px-Martin_Garrix_2013-11-20_001.jpg' },
-    { id: 'tiesto', name: 'Tiësto', price: 750000, genre: 'Big Room', popularity: 99, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Tiesto_%26_Logo.jpg/800px-Tiesto_%26_Logo.jpg' },
-    { id: 'sk_v2', name: 'Skrillex', price: 720000, genre: 'Bass Music', popularity: 99, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Skrillex_cropped.jpg/800px-Skrillex_cropped.jpg' },
-    { id: 'ru_v2', name: 'Rüfüs Du Sol', price: 750000, genre: 'Live Electronic', popularity: 99, image: 'https://i1.sndcdn.com/avatars-000407133372-r5x4r5-t500x500.jpg' },
+    { id: 'ch', name: 'Calvin Harris', price: 1200000, genre: 'Dance Pop', popularity: 99, label: 'Sony Music', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Calvin_Harris_2012.jpg/800px-Calvin_Harris_2012.jpg' },
+    { id: 'shm', name: 'Swedish House Mafia', price: 1100000, genre: 'House', popularity: 99, label: 'Mainstage', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Swedish_House_Mafia_-_Ushuaia.jpg/800px-Swedish_House_Mafia_-_Ushuaia.jpg' },
+    { id: 'fa', name: 'Fred again..', price: 950000, genre: 'Future Garage', popularity: 99, label: 'Atlantic', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/ef/Fred_again.._-_Pritat_-_2022.jpg/800px-Fred_again.._-_Pritat_-_2022.jpg' },
+    { id: 'ko', name: 'Keinemusik (CRME)', price: 950000, genre: 'Afro House', popularity: 99, label: 'Keinemusik', image: 'https://i1.sndcdn.com/avatars-000499628310-j8m2j2-t500x500.jpg' },
+    { id: 'dg', name: 'David Guetta', price: 850000, genre: 'Mainstage', popularity: 99, label: 'Warner Music', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/33/David_Guetta_Pau_2012.jpg/800px-David_Guetta_Pau_2012.jpg' },
+    { id: 'kygo', name: 'Kygo', price: 850000, genre: 'Tropical House', popularity: 99, label: 'Sony Music', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/Kygo_NRJ_Music_Awards_2017.jpg/800px-Kygo_NRJ_Music_Awards_2017.jpg' },
+    { id: 'mh', name: 'Martin Garrix', price: 800000, genre: 'Progressive House', popularity: 99, label: 'STMPD RCRDS', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7a/Martin_Garrix_2013-11-20_001.jpg/800px-Martin_Garrix_2013-11-20_001.jpg' },
+    { id: 'tiesto', name: 'Tiësto', price: 750000, genre: 'Big Room', popularity: 99, label: 'Musical Freedom', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Tiesto_%26_Logo.jpg/800px-Tiesto_%26_Logo.jpg' },
+    { id: 'sk_v2', name: 'Skrillex', price: 720000, genre: 'Bass Music', popularity: 99, label: 'OWSLA', image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/bf/Skrillex_cropped.jpg/800px-Skrillex_cropped.jpg' },
+    { id: 'ru_v2', name: 'Rüfüs Du Sol', price: 750000, genre: 'Live Electronic', popularity: 99, label: 'Rose Avenue', image: 'https://i1.sndcdn.com/avatars-000407133372-r5x4r5-t500x500.jpg' },
     { id: 'chainsmokers_v2', name: 'The Chainsmokers', price: 750000, genre: 'Electro Pop', popularity: 99, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/6/6f/The_Chainsmokers_2017.jpg/800px-The_Chainsmokers_2017.jpg' },
     { id: 'ms', name: 'Marshmello', price: 700000, genre: 'Future Bass', popularity: 99, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/0/0f/Marshmello_2016.jpg/800px-Marshmello_2016.jpg' },
-    { id: 'tale-of-us-v2', name: 'Tale of Us', price: 650000, genre: 'Afterlife', popularity: 99, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'tale-of-us-v2', name: 'Tale of Us', price: 650000, genre: 'Afterlife', popularity: 99, label: 'Afterlife', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'h', name: 'Hardwell', price: 600000, genre: 'Big Room Techno', popularity: 98, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/3/3d/Hardwell_NRJ_Music_Awards_2014.jpg/800px-Hardwell_NRJ_Music_Awards_2014.jpg' },
     { id: 'ds_v2', name: 'DJ Snake', price: 550000, genre: 'Trap', popularity: 98, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/41/DJ_Snake_Day_Off_2014.jpg/800px-DJ_Snake_Day_Off_2014.jpg' },
     { id: 'fg_v2', name: 'Fisher', price: 550000, genre: 'Tech House', popularity: 99, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'ep', name: 'Eric Prydz', price: 550000, genre: 'Progressive House', popularity: 99, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Eric_Prydz_2011.jpg/800px-Eric_Prydz_2011.jpg' },
-    { id: 'anyma_v2', name: 'Anyma', price: 550000, genre: 'Afterlife', popularity: 98, image: 'https://i1.sndcdn.com/avatars-T3WXZtGkY0J8Z8V6-X6rQGQ-t500x500.jpg' },
+    { id: 'anyma_v2', name: 'Anyma', price: 550000, genre: 'Afterlife', popularity: 98, label: 'Afterlife', image: 'https://i1.sndcdn.com/avatars-T3WXZtGkY0J8Z8V6-X6rQGQ-t500x500.jpg' },
     { id: 'dvlm', name: 'Dimitri Vegas & Like Mike', price: 480000, genre: 'Big Room', popularity: 98, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/7/77/Dimitri_Vegas_%26_Like_Mike_logo.jpg/800px-Dimitri_Vegas_%26_Like_Mike_logo.jpg' },
     { id: 'ex_v2', name: 'Excision', price: 480000, genre: 'Dubstep', popularity: 98, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e3/Excision_cropped.jpg/800px-Excision_cropped.jpg' },
     { id: 'av', name: 'Armin van Buuren', price: 450000, genre: 'Trance', popularity: 98, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/a/ae/Armin_van_Buuren_Electronic_Family_2013-07-20_003.jpg/800px-Armin_van_Buuren_Electronic_Family_2013-07-20_003.jpg' },
-    { id: 'cdw_v2', name: 'Charlotte de Witte', price: 450000, genre: 'Techno', popularity: 99, image: 'https://i1.sndcdn.com/avatars-000570887142-v3v3v3-t500x500.jpg' },
+    { id: 'cdw_v2', name: 'Charlotte de Witte', price: 450000, genre: 'Techno', popularity: 99, label: 'KNTXT', image: 'https://i1.sndcdn.com/avatars-000570887142-v3v3v3-t500x500.jpg' },
     { id: 'pg_v2', name: 'Peggy Gou', price: 450000, genre: 'House', popularity: 98, image: 'https://i1.sndcdn.com/avatars-000499628310-j8m2j2-t500x500.jpg' },
     { id: 'solomun_v2', name: 'Solomun', price: 450000, genre: 'Deep House', popularity: 98, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Solomun_@_Tomorrowland_2015.jpg/800px-Solomun_@_Tomorrowland_2015.jpg' },
     { id: 'illumineum_v2', name: 'Illenium', price: 450000, genre: 'Future Bass', popularity: 98, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Illenium_Electric_Zoo_2017.jpg/800px-Illenium_Electric_Zoo_2017.jpg' },
@@ -115,7 +158,7 @@ const DJ_POOL = [
     { id: 'alok', name: 'Alok', price: 400000, genre: 'Slap House', popularity: 97, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Alok_2016.jpg/800px-Alok_2016.jpg' },
     { id: 'z', name: 'Zedd', price: 380000, genre: 'Electro Pop', popularity: 97, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d5/Zedd_2013-09-07_001.jpg/800px-Zedd_2013-09-07_001.jpg' },
     { id: 'sa', name: 'Steve Aoki', price: 380000, genre: 'Electro House', popularity: 97, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/23/Steve_Aoki_Electric_Forest_2015.jpg/800px-Steve_Aoki_Electric_Forest_2015.jpg' },
-    { id: 'al_v2', name: 'Amelie Lens', price: 380000, genre: 'Techno', popularity: 98, image: 'https://i1.sndcdn.com/avatars-000499628310-j8m2j2-t500x500.jpg' },
+    { id: 'al_v2', name: 'Amelie Lens', price: 380000, genre: 'Techno', popularity: 98, label: 'Lenske', image: 'https://i1.sndcdn.com/avatars-000499628310-j8m2j2-t500x500.jpg' },
     { id: 'james-hype_v2', name: 'James Hype', price: 380000, genre: 'Tech House', popularity: 98, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'tt', name: 'Timmy Trumpet', price: 350000, genre: 'Psytrance', popularity: 96, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/4/4b/Timmy_Trumpet_Tomorrowland_2017.jpg/800px-Timmy_Trumpet_Tomorrowland_2017.jpg' },
     { id: 'js_v2', name: 'John Summit', price: 350000, genre: 'Tech House', popularity: 98, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
@@ -136,9 +179,9 @@ const DJ_POOL = [
     { id: 'jeff-mills_v2', name: 'Jeff Mills', price: 320000, genre: 'Legendary', popularity: 98, image: 'https://upload.wikimedia.org/wikipedia/commons/thumb/c/cb/Jeff_Mills_2004.jpg/800px-Jeff_Mills_2004.jpg' },
 
     // --- TECH HOUSE / HOUSE / MINIMAL ---
-    { id: 'js-v2', name: 'John Summit', price: 350000, genre: 'Tech House', popularity: 98, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'js-v2', name: 'John Summit', price: 350000, genre: 'Tech House', popularity: 98, label: 'Experts Only', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'm-v2', name: 'Mochakk', price: 280000, genre: 'Tech House', popularity: 97, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
-    { id: 'bb-v3', name: 'Michael Bibi', price: 320000, genre: 'Tech House', popularity: 96, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
+    { id: 'bb-v3', name: 'Michael Bibi', price: 320000, genre: 'Tech House', popularity: 96, label: 'Solid Grooves', image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'fg-v3', name: 'Fisher', price: 550000, genre: 'Tech House', popularity: 99, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'pg-v3', name: 'Peggy Gou', price: 450000, genre: 'House', popularity: 98, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
     { id: 'fa-v3', name: 'Fred again..', price: 950000, genre: 'Future Garage', popularity: 99, image: 'https://i1.sndcdn.com/avatars-000305886364-m3v3m3-t500x500.jpg' },
@@ -162,7 +205,7 @@ const DJ_POOL = [
     { id: 'cdw', name: 'Charlotte de Witte', price: 450000, genre: 'Techno', popularity: 99 },
     { id: 'al', name: 'Amelie Lens', price: 380000, genre: 'Techno', popularity: 98 },
     { id: 'cc', name: 'Carl Cox', price: 400000, genre: 'Legendary', popularity: 99 },
-    { id: 'ab', name: 'Adam Beyer', price: 260000, genre: 'Techno', popularity: 97 },
+    { id: 'ab', name: 'Adam Beyer', price: 260000, genre: 'Techno', popularity: 97, label: 'Drumcode' },
     { id: 'nk', name: 'Nina Kraviz', price: 280000, genre: 'Techno', popularity: 96 },
     { id: 'ihm', name: 'I Hate Models', price: 220000, genre: 'Industrial', popularity: 95 },
     { id: 'br', name: 'Boris Brejcha', price: 320000, genre: 'High-Tech Minimal', popularity: 98 },
@@ -170,15 +213,16 @@ const DJ_POOL = [
     { id: 'ip', name: 'Indira Paganotto', price: 210000, genre: 'Psy-Techno', popularity: 94 },
     { id: 'sara-landry', name: 'Sara Landry', price: 240000, genre: 'Hard Techno', popularity: 93 },
     { id: 'deborah-de-luca', name: 'Deborah De Luca', price: 220000, genre: 'Techno', popularity: 95 },
-    { id: 'enrico-sangiuliano', name: 'Enrico Sangiuliano', price: 190000, genre: 'Techno', popularity: 93 },
+    { id: 'enrico-sangiuliano', name: 'Enrico Sangiuliano', price: 190000, genre: 'Techno', popularity: 93, label: 'Drumcode' },
     { id: 'reinier-zonneveld', name: 'Reinier Zonneveld', price: 250000, genre: 'Acid Techno', popularity: 96 },
     { id: 'nicole-moudaber', name: 'Nicole Moudaber', price: 160000, genre: 'Techno', popularity: 92 },
     { id: 'pan-pot', name: 'Pan-Pot', price: 150000, genre: 'Techno', popularity: 92 },
     { id: 'maceo-plex', name: 'Maceo Plex', price: 220000, genre: 'Melodic Techno', popularity: 95 },
-    { id: 'tale-of-us', name: 'Tale of Us', price: 650000, genre: 'Afterlife', popularity: 99 },
-    { id: 'anyma', name: 'Anyma', price: 550000, genre: 'Afterlife', popularity: 98 },
+    { id: 'tale-of-us', name: 'Tale of Us', price: 650000, genre: 'Afterlife', popularity: 99, label: 'Afterlife' },
+    { id: 'anyma', name: 'Anyma', price: 550000, genre: 'Afterlife', popularity: 98, label: 'Afterlife' },
     { id: 'innellea', name: 'Innellea', price: 140000, genre: 'Melodic Techno', popularity: 92 },
-    { id: 'kevin-de-vries', name: 'Kevin de Vries', price: 130000, genre: 'Melodic Techno', popularity: 91 },
+    { id: 'kevin-de-vries', name: 'Kevin de Vries', price: 130000, genre: 'Melodic Techno', popularity: 91, label: 'Afterlife' },
+    { id: 'layton-giordani', name: 'Layton Giordani', price: 110000, genre: 'Techno', popularity: 90, label: 'Drumcode' },
 
     // --- MELODIC / PROGRESSIVE / AFRO ---
     { id: 'ko', name: 'Keinemusik (CRME)', price: 950000, genre: 'Afro House', popularity: 99 },
@@ -282,9 +326,18 @@ export function Community() {
     const [budget, setBudget] = useState(0);
     const [selectedDjs, setSelectedDjs] = useState<typeof DJ_POOL>([]);
     const [selectedCosts, setSelectedCosts] = useState<string[]>([]);
-    const [gameState, setGameState] = useState<'SETUP' | 'ONBOARDING' | 'BOOKING' | 'POSTER'>('SETUP');
+    const [gameState, setGameState] = useState<'ONBOARDING' | 'LOCATION' | 'DATE' | 'LOGISTICS' | 'STAGES' | 'BOOKING' | 'GENERATION' | 'RESULTS'>('ONBOARDING');
     const [bookingStatus, setBookingStatus] = useState<{ djId: string; status: 'PENDING' | 'ACCEPTED' | 'REJECTED'; message: string } | null>(null);
     const [hallOfFame, setHallOfFame] = useState(HALL_OF_FAME);
+    const [ticketingProgress, setTicketingProgress] = useState(0);
+    const [isSellingTickets, setIsSellingTickets] = useState(false);
+    const [weather, setWeather] = useState<'CLEAR' | 'RAIN' | 'HEAT'>('CLEAR');
+
+    // RPG State
+    const [promoterXP, setPromoterXP] = useState(() => Number(localStorage.getItem('dropsiders_xp')) || 0);
+    const [selectedEffects, setSelectedEffects] = useState<string[]>([]);
+    const [negotiatingDj, setNegotiatingDj] = useState<typeof DJ_POOL[0] | null>(null);
+    const [aftermovieSummary, setAftermovieSummary] = useState('');
 
     // Player Info
     const [playerName, setPlayerName] = useState('');
@@ -295,6 +348,12 @@ export function Community() {
     const [festivalDuration, setFestivalDuration] = useState(1); // Days
     const [ticketPrice, setTicketPrice] = useState(150);
     const [selectedSponsors, setSelectedSponsors] = useState<string[]>([]);
+    const [selectedMerch, setSelectedMerch] = useState<string[]>([]);
+    const [activeCrisis, setActiveCrisis] = useState<typeof CRISIS_EVENTS[0] | null>(null);
+    const [archives, setArchives] = useState<any[]>(() => {
+        const saved = localStorage.getItem('dropsiders_archives');
+        return saved ? JSON.parse(saved) : [];
+    });
     const [selectedDate, setSelectedDate] = useState<string>('');
     const [randomEvent, setRandomEvent] = useState<typeof RANDOM_EVENTS[0] | null>(null);
     const [searchQuery, setSearchQuery] = useState('');
@@ -303,6 +362,10 @@ export function Community() {
     const [advisorTip, setAdvisorTip] = useState<{ name: string, tip: string, avatar: string } | null>(null);
     const [posterStyle, setPosterStyle] = useState<'ULTRA' | 'TOMORROWLAND' | 'EDC'>('ULTRA');
 
+    const currentRank = useMemo(() => {
+        return [...PROM_RANKS].reverse().find(r => promoterXP >= r.minXp) || PROM_RANKS[0];
+    }, [promoterXP]);
+
     // Stats
     const sponsorsBonus = useMemo(() => {
         return SPONSORS.filter(s => selectedSponsors.includes(s.id)).reduce((acc, s) => acc + s.bonus, 0);
@@ -310,13 +373,25 @@ export function Community() {
 
     const totalDjsCost = useMemo(() => {
         // Riders cost: +15% for top DJs
-        return selectedDjs.reduce((acc, dj) => acc + (dj.price * (dj.popularity > 95 ? 1.15 : 1)), 0);
-    }, [selectedDjs]);
+        return selectedDjs.reduce((acc, dj) => {
+            // Seasonality: +20% in Summer (June, July, August)
+            const month = selectedDate ? new Date(selectedDate).getMonth() : 5;
+            const seasonFactor = (month >= 5 && month <= 7) ? 1.2 : 1;
+            return acc + (dj.price * (dj.popularity > 95 ? 1.15 : 1) * seasonFactor);
+        }, 0);
+    }, [selectedDjs, selectedDate]);
     const totalExtraCost = useMemo(() => {
-        return FIX_COSTS
+        const fix = FIX_COSTS
             .filter(c => selectedCosts.includes(c.id))
             .reduce((acc, c) => acc + c.basePrice, 0);
-    }, [selectedCosts]);
+        const effects = STAGE_EFFECTS
+            .filter(e => selectedEffects.includes(e.id))
+            .reduce((acc, e) => acc + e.cost, 0);
+        const merch = MERCH_OPTIONS
+            .filter(m => selectedMerch.includes(m.id))
+            .reduce((acc, m) => acc + m.cost, 0);
+        return fix + effects + merch;
+    }, [selectedCosts, selectedEffects, selectedMerch]);
     const locationCost = selectedLocation.cost;
     const stagesCost = stageCount * STAGE_COST_PER_UNIT;
     const totalSpent = (totalDjsCost + totalExtraCost + locationCost + stagesCost) * (1 + (festivalDuration - 1) * 0.4);
@@ -324,20 +399,55 @@ export function Community() {
     const remainingBudget = totalBudgetWithSponsors - totalSpent;
 
     // Simulation logic
-    const { attendance, revenue, profit, hype } = useMemo(() => {
+    const { attendance, profit, hype } = useMemo(() => {
         const prestigeBase = (selectedLocation as any).prestige || 5;
         const lineupPower = selectedDjs.reduce((acc, dj) => acc + (dj.popularity / 10), 0);
 
         // Genre Synergy: +5% hype for each DJ of the same genre if more than 2
         const genreCounts: { [key: string]: number } = {};
-        selectedDjs.forEach(d => { genreCounts[d.genre] = (genreCounts[d.genre] || 0) + 1; });
-        const genreSynergy = Object.values(genreCounts).reduce((acc, count) => acc + (count > 2 ? count * 0.05 : 0), 0);
+        const labelCounts: { [key: string]: number } = {};
+        selectedDjs.forEach(d => {
+            genreCounts[d.genre] = (genreCounts[d.genre] || 0) + 1;
+            if ((d as any).label) labelCounts[(d as any).label] = (labelCounts[(d as any).label] || 0) + 1;
+        });
 
-        // Hype formula: Lineup + Prestige + Marketing + Synergies
+        const genreSynergy = Object.values(genreCounts).reduce((acc, count) => acc + (count > 2 ? count * 0.05 : 0), 0);
+        const labelSynergy = Object.values(labelCounts).reduce((acc, count) => acc + (count >= 3 ? 0.15 : 0), 0);
+
+        // Stage Constraint Penalty: 5 artists per stage mandatory
+        const requiredArtists = stageCount * 5;
+        const artistShortfall = Math.max(0, requiredArtists - selectedDjs.length);
+        const stagePenalty = artistShortfall > 0 ? (1 - (artistShortfall * 0.15)) : 1; // -15% per missing artist
+
+        // Hype formula: Lineup + Prestige + Marketing + Synergies + Effects
         let currentHype = (lineupPower * 2) + (prestigeBase * 5);
-        currentHype *= (1 + genreSynergy);
+        currentHype *= (1 + genreSynergy + labelSynergy);
+        currentHype *= stagePenalty;
+
+        // Incoherence penalty: Mix of Hard Techno and Tropical House?
+        const hasHardTechno = selectedDjs.some(d => d.genre === 'Hard Techno');
+        const hasTropical = selectedDjs.some(d => d.genre === 'Tropical House');
+        if (hasHardTechno && hasTropical) currentHype *= 0.8;
+
+        // Effects Boost
+        const effectsHype = STAGE_EFFECTS
+            .filter(e => selectedEffects.includes(e.id))
+            .reduce((acc, e) => acc + e.hype, 0);
+        currentHype *= (1 + effectsHype);
+
+        // AI Date Check Impact (Seasonality)
+        const month = selectedDate ? new Date(selectedDate).getMonth() : 5;
+        const isPeakSeason = month >= 5 && month <= 7; // June, July, August
+        if (isPeakSeason) currentHype *= 1.25; // Summer boost!
+
         if (selectedCosts.includes('marketing')) currentHype *= 1.3;
-        if (selectedSponsors.includes('redbull')) currentHype *= 1.15;
+
+        // Sponsoring Impact
+        selectedSponsors.forEach(sId => {
+            const s = SPONSORS.find(sp => sp.id === sId);
+            if (s?.impact === 'hype') currentHype *= 1.15;
+        });
+
         if (randomEvent?.id === 'viral') currentHype *= 1.3;
 
         // Pricing sensitivity
@@ -346,19 +456,24 @@ export function Community() {
 
         let finalAttendance = Math.floor(selectedLocation.capacity * (currentHype / 150) * (1 - pricePenalty));
         finalAttendance = Math.min(finalAttendance, selectedLocation.capacity);
+
         if (randomEvent?.id === 'rain') finalAttendance *= 0.8;
         if (randomEvent?.id === 'cancel') finalAttendance *= 0.85;
 
-        const currentRevenue = finalAttendance * ticketPrice;
+        // Merch Revenue
+        const merchRevPerPerson = MERCH_OPTIONS
+            .filter(m => selectedMerch.includes(m.id))
+            .reduce((acc, m) => acc + m.revPerPerson, 0);
+
+        const currentRevenue = finalAttendance * (ticketPrice + merchRevPerPerson);
         const currentProfit = currentRevenue - totalSpent;
 
         return {
             attendance: finalAttendance,
-            revenue: currentRevenue,
             profit: currentProfit,
             hype: currentHype
         };
-    }, [selectedLocation, selectedDjs, selectedCosts, selectedSponsors, ticketPrice, totalSpent, randomEvent]);
+    }, [selectedLocation, selectedDjs, selectedCosts, selectedSponsors, selectedMerch, ticketPrice, totalSpent, randomEvent, selectedDate, stageCount]);
 
     const sortedHallOfFame = useMemo(() => {
         return [...hallOfFame].sort((a, b) => (b.likes || 0) - (a.likes || 0));
@@ -370,6 +485,7 @@ export function Community() {
         setSelectedDjs([]);
         setSelectedCosts([]);
         setSelectedSponsors([]);
+        setSelectedEffects([]);
         setTicketPrice(150);
 
         // Random event chance
@@ -389,8 +505,14 @@ export function Community() {
         ];
         setAdvisorTip(tips[Math.floor(Math.random() * tips.length)]);
 
+        // Weather randomization
+        const weatherOptions: ('CLEAR' | 'RAIN' | 'HEAT')[] = ['CLEAR', 'CLEAR', 'RAIN', 'HEAT'];
+        setWeather(weatherOptions[Math.floor(Math.random() * weatherOptions.length)]);
+
         setGameState('ONBOARDING');
         setGameStarted(true);
+        setIsSellingTickets(false);
+        setTicketingProgress(0);
     };
 
     const confirmOnboarding = () => {
@@ -462,14 +584,48 @@ export function Community() {
                 message: `${activeAgent.name}: "C'est validé. On envoie le contrat. On se voit sur scène !"`
             });
         } else {
+            setNegotiatingDj(dj);
             setBookingStatus({
                 djId: dj.id,
                 status: 'REJECTED',
-                message: `${activeAgent.name}: "Désolé, l'offre ne correspond pas aux attentes de l'artiste pour ce weekend."`
+                message: `${activeAgent.name}: "Hum... l'artiste hésite. Si tu rajoutes des garanties, ça peut passer."`
             });
         }
 
-        setTimeout(() => setBookingStatus(null), 5000);
+        setTimeout(() => {
+            if (!negotiatingDj) setBookingStatus(null);
+        }, 5000);
+    };
+
+    const handleNegotiate = (perk: typeof NEGOTIATION_PERKS[0]) => {
+        if (!negotiatingDj) return;
+        const finalPrice = negotiatingDj.price + perk.cost;
+        if (totalSpent + perk.cost > budget) return;
+
+        setBookingStatus({
+            djId: negotiatingDj.id,
+            status: 'PENDING',
+            message: `Négociation: Option "${perk.name}" activée...`
+        });
+
+        setTimeout(() => {
+            if (Math.random() < perk.chance || perk.id === 'prime') {
+                setSelectedDjs(prev => [...prev, { ...negotiatingDj, price: finalPrice }]);
+                setBookingStatus({
+                    djId: negotiatingDj.id,
+                    status: 'ACCEPTED',
+                    message: `L'artiste a accepté la prime ! Booking confirmé.`
+                });
+            } else {
+                setBookingStatus({
+                    djId: negotiatingDj.id,
+                    status: 'REJECTED',
+                    message: `Même avec le bonus, l'artiste refuse. Dommage.`
+                });
+            }
+            setNegotiatingDj(null);
+            setTimeout(() => setBookingStatus(null), 3000);
+        }, 1500);
     };
 
     const handleShare = (platform: 'twitter' | 'facebook' | 'instagram' | 'tiktok' | 'native') => {
@@ -508,11 +664,49 @@ export function Community() {
         });
     };
 
-    const generatePoster = () => {
+    const handleCrisisChoice = (option: any) => {
+        if (!activeCrisis) return;
+        // Apply costs and impacts (simplified logic)
+        setBudget(prev => prev - option.cost);
+        // We could add more state for satisfaction if needed, but for now we impact the final XP/Hype
+        setActiveCrisis(null);
+
+        // Feed back to the user
+        setBookingStatus({
+            djId: 'crisis',
+            status: 'ACCEPTED',
+            message: `CRISE RÉSOLUE: ${option.result}`
+        });
+        setTimeout(() => setBookingStatus(null), 3000);
+    };
+
+    const generatePoster = async () => {
         if (selectedCosts.length < 3 || selectedDjs.length < 5 || !selectedDate) return;
 
         const styles: ('ULTRA' | 'TOMORROWLAND' | 'EDC')[] = ['ULTRA', 'TOMORROWLAND', 'EDC'];
         setPosterStyle(styles[Math.floor(Math.random() * styles.length)]);
+
+        // Generate Aftermovie Summary
+        const bestDj = selectedDjs[0]?.name;
+        const weatherText = weather === 'RAIN' ? "sous une pluie diluvienne" : weather === 'HEAT' ? "sous une chaleur écrasante" : "sous un ciel étoilé";
+        const effectText = selectedEffects.includes('pyro') ? "les feux d'artifice ont illuminé le ciel" : "l'ambiance était électrique";
+        const merchText = selectedMerch.length > 0 ? `Le merchandising (${selectedMerch.join(', ')}) a été dévalisé.` : "";
+
+        setAftermovieSummary(`Le triomphe de ${bestDj} ${weatherText} restera dans les annales. ${effectText} et la foule de ${attendance.toLocaleString()} personnes a vibré comme jamais. ${merchText} Un succès qui marque l'entrée de ${playerName} dans l'histoire.`);
+
+        // Ticketing Phase
+        setIsSellingTickets(true);
+        setGameState('GENERATION');
+
+        for (let i = 0; i <= 100; i += 2) {
+            setTicketingProgress(i);
+            // Trigger Crisis at 40%
+            if (i === 40 && Math.random() < 0.3) {
+                setActiveCrisis(CRISIS_EVENTS[Math.floor(Math.random() * CRISIS_EVENTS.length)]);
+                // Pause ticketing until resolved? (simplified: just show it)
+            }
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
 
         confetti({
             particleCount: 150,
@@ -520,29 +714,116 @@ export function Community() {
             origin: { y: 0.6 },
             colors: ['#ff0033', '#00ffff', '#ffffff']
         });
-        setGameState('POSTER');
+
+        setIsSellingTickets(false);
+
+        // Sponsor Validation
+        let sponsorPenalty = 0;
+        selectedSponsors.forEach(sId => {
+            const s = SPONSORS.find(sp => sp.id === sId);
+            if (s && attendance < s.threshold) {
+                sponsorPenalty += (s.failPenalty || 0);
+            }
+        });
+
+        // Calculate XP and Progress
+        const gainXpFinal = Math.max(0, Math.floor(profit / 5000) + Math.floor(attendance / 100) - sponsorPenalty);
+        const newTotalXp = promoterXP + gainXpFinal;
+        setPromoterXP(newTotalXp);
+        localStorage.setItem('dropsiders_xp', newTotalXp.toString());
+
+        // Save to Archives
+        const newFestival = {
+            id: Date.now(),
+            name: festivalName,
+            location: selectedLocation.name,
+            djs: selectedDjs.map(d => d.name),
+            attendance,
+            profit,
+            rank: currentRank.name,
+            date: selectedDate,
+            xpGained: gainXpFinal
+        };
+        const updatedArchives = [newFestival, ...archives].slice(0, 10);
+        setArchives(updatedArchives);
+        localStorage.setItem('dropsiders_archives', JSON.stringify(updatedArchives));
+
+        // Add to Hall of Fame
+        const newEntry = {
+            id: Date.now().toString(),
+            playerName,
+            festivalName,
+            djs: selectedDjs.slice(0, 3).map(d => d.name),
+            budget: `${(totalSpent / 1000000).toFixed(1)}M€`,
+            date: new Date(selectedDate).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
+            likes: 0,
+            location: selectedLocation.name
+        };
+        setHallOfFame(prev => [newEntry, ...prev]);
+        setGameState('RESULTS');
     };
 
     const resetGame = () => {
-        setGameState('SETUP');
         setGameStarted(false);
+        setGameState('ONBOARDING');
+        setBudget(0);
+        setSelectedDjs([]);
+        setSelectedCosts([]);
+        setSelectedEffects([]);
+        setSelectedMerch([]);
+        setActiveCrisis(null);
+        setNegotiatingDj(null);
+        setBookingStatus(null);
+        setAftermovieSummary('');
+        setTicketingProgress(0);
+        setIsSellingTickets(false);
         setPlayerName('');
         setPlayerEmail('');
         setFestivalName('');
-        setSelectedLocation(FESTIVAL_LOCATIONS[0]);
-        setStageCount(1);
-        setFestivalDuration(1);
-        setSelectedDjs([]);
-        setSelectedCosts([]);
-        setBookingStatus(null);
     };
 
+    const isNightMode = useMemo(() => {
+        return selectedEffects.includes('holo') || selectedEffects.includes('drones');
+    }, [selectedEffects]);
+
     return (
-        <div className="min-h-screen bg-[#050505] text-white pt-24 pb-32">
+        <div className={twMerge(
+            "min-h-screen transition-colors duration-1000 pb-32 pt-24",
+            isNightMode ? "bg-[#020202]" : "bg-[#050505]",
+            "text-white"
+        )}>
             {/* Background Ambient Glows */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
-                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-neon-red/5 rounded-full blur-[150px] animate-pulse" />
-                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-neon-cyan/5 rounded-full blur-[150px] animate-pulse [animation-delay:2s]" />
+                <div className={twMerge(
+                    "absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] animate-pulse transition-all duration-1000",
+                    isNightMode ? "bg-neon-red/10 scale-110" : "bg-neon-red/5"
+                )} />
+                <div className={twMerge(
+                    "absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] animate-pulse [animation-delay:2s] transition-all duration-1000",
+                    isNightMode ? "bg-neon-cyan/10 scale-110" : "bg-neon-cyan/5"
+                )} />
+
+                {isNightMode && (
+                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,255,255,0.02)_0%,transparent_70%)] animate-pulse" />
+                )}
+
+                {/* Weather Effects */}
+                {weather === 'RAIN' && (
+                    <div className="absolute inset-0 opacity-40">
+                        {[...Array(20)].map((_, i) => (
+                            <motion.div
+                                key={i}
+                                initial={{ top: -20, left: `${Math.random() * 100}%` }}
+                                animate={{ top: '120%' }}
+                                transition={{ duration: 1 + Math.random(), repeat: Infinity, ease: "linear" }}
+                                className="absolute w-[1px] h-8 bg-blue-400"
+                            />
+                        ))}
+                    </div>
+                )}
+                {weather === 'HEAT' && (
+                    <div className="absolute inset-0 bg-orange-500/5 animate-pulse mix-blend-overlay blur-3xl" />
+                )}
             </div>
 
             <div className="relative z-10 container mx-auto px-4 md:px-12">
@@ -712,850 +993,678 @@ export function Community() {
                                     >
                                         DÉMARRER LA PRODUCTION
                                     </motion.button>
-
-                                    {/* Hall of Fame Section */}
-                                    <div className="max-w-5xl mx-auto mt-20">
-                                        <div className="flex items-center gap-4 mb-12 justify-center">
-                                            <div className="h-[1px] flex-1 bg-white/10" />
-                                            <h3 className="text-2xl font-black italic tracking-tighter uppercase text-white/40">Hall of Fame</h3>
-                                            <div className="h-[1px] flex-1 bg-white/10" />
-                                        </div>
-                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-                                            {sortedHallOfFame.map((poster) => (
-                                                <motion.div
-                                                    key={poster.id}
-                                                    whileHover={{ y: -10, rotate: 1 }}
-                                                    className="group relative aspect-[1.3/2] bg-[#111] border-[6px] border-white shadow-2xl rounded-2xl p-6 overflow-hidden flex flex-col items-center text-center"
-                                                >
-                                                    <div className="absolute inset-0 opacity-10 flex items-center justify-center -rotate-12 pointer-events-none text-2xl font-black uppercase tracking-tighter leading-none">DROPS<br />IDERS</div>
-
-                                                    <div className="relative z-10 w-full h-full flex flex-col">
-                                                        <span className="text-[6px] font-black uppercase tracking-[0.3em] text-neon-red block mb-1">Production par {poster.playerName}</span>
-                                                        <h4 className="text-xl font-display font-black uppercase italic tracking-tighter text-white leading-none mb-3">{poster.festivalName}</h4>
-                                                        <div className="w-10 h-0.5 bg-white mx-auto mb-6" />
-
-                                                        <div className="space-y-1 mb-6 flex-1">
-                                                            {(poster as any).djs.map((dj: string, idx: number) => (
-                                                                <p key={dj} className={`text-[7px] font-bold text-white uppercase tracking-widest ${idx === 0 ? 'text-[9px] font-black' : 'opacity-60'}`}>{dj}</p>
-                                                            ))}
+                                </div>
+                            ) : (
+                                <div className="space-y-12">
+                                    {/* Steps 1-5 logic */}
+                                    {gameState === 'ONBOARDING' && (
+                                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="max-w-4xl mx-auto space-y-10">
+                                            <div className="bg-white/5 p-12 rounded-[4rem] border border-white/10 space-y-10 backdrop-blur-3xl">
+                                                <div className="text-center space-y-4">
+                                                    <h3 className="text-5xl font-black uppercase italic tracking-tighter text-amber-400">1. Dossier de Production</h3>
+                                                    <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">Étape 1/8 : Identité & Financement</p>
+                                                </div>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                    <div className="space-y-6">
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black uppercase text-white/40 ml-4">Ton Nom</label>
+                                                            <input type="text" value={playerName} onChange={(e) => setPlayerName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-xl font-black italic uppercase focus:border-amber-400 outline-none" placeholder="TON NOM" />
                                                         </div>
-
-                                                        <div className="pt-4 border-t border-white/10 flex flex-col gap-3 w-full">
-                                                            <div className="flex justify-between items-end">
-                                                                <div className="text-left">
-                                                                    <p className="text-[5px] font-black text-white/40 uppercase tracking-widest leading-none mb-1">Lieu</p>
-                                                                    <p className="text-[7px] font-black text-white uppercase italic truncate max-w-[100px] leading-none mb-2">{poster.location}</p>
-                                                                    <p className="text-[5px] font-black text-white/40 uppercase tracking-widest leading-none">Budget Final</p>
-                                                                    <p className="text-[7px] font-black text-white uppercase italic leading-none">{poster.budget}</p>
-                                                                </div>
-                                                                <div className="text-right">
-                                                                    <img src="/Logo.png" className="h-2 w-auto object-contain opacity-50" alt="" />
-                                                                </div>
-                                                            </div>
-
-                                                            <button
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    handleLike(poster.id);
-                                                                }}
-                                                                className="flex items-center justify-center gap-2 py-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg transition-all active:scale-95 group/like"
-                                                            >
-                                                                <Heart className={`w-3 h-3 ${poster.likes && poster.likes > 100 ? 'text-neon-red fill-neon-red' : 'text-white/40 group-hover/like:text-neon-red'}`} />
-                                                                <span className="text-[8px] font-black uppercase tracking-widest text-white/60">{poster.likes || 0} LIKES</span>
-                                                            </button>
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black uppercase text-white/40 ml-4">Le Festival</label>
+                                                            <input type="text" value={festivalName} onChange={(e) => setFestivalName(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-xl font-black italic uppercase focus:border-amber-400 outline-none" placeholder="NOM DU FESTIVAL" />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <label className="text-[10px] font-black uppercase text-white/40 ml-4">Email Contact</label>
+                                                            <input type="email" value={playerEmail} onChange={(e) => setPlayerEmail(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-xl font-black uppercase focus:border-amber-400 outline-none" placeholder="PRO@DROPSIDERS.COM" />
                                                         </div>
                                                     </div>
-                                                </motion.div>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : gameState === 'ONBOARDING' ? (
-                                <motion.div
-                                    initial={{ opacity: 0, x: 20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    className="max-w-4xl mx-auto space-y-12"
-                                >
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                                        <div className="p-12 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] space-y-6">
-                                            <h3 className="text-3xl font-black italic tracking-tighter uppercase mb-8 text-amber-400">Dossier de Production</h3>
-                                            <div className="space-y-6">
-                                                <div>
-                                                    <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 ml-2">Prénom de l'organisateur</label>
-                                                    <input
-                                                        type="text"
-                                                        value={playerName}
-                                                        onChange={(e) => setPlayerName(e.target.value)}
-                                                        className="w-full px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-amber-400 transition-colors"
-                                                        placeholder="TON PRÉNOM"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 ml-2">Email (pour l'envoi de l'affiche)</label>
-                                                    <input
-                                                        type="email"
-                                                        value={playerEmail}
-                                                        onChange={(e) => setPlayerEmail(e.target.value)}
-                                                        className="w-full px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-amber-400 transition-colors"
-                                                        placeholder="TON@EMAIL.COM"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-[10px] font-black uppercase tracking-widest text-white/40 mb-3 ml-2">Nom du Festival</label>
-                                                    <input
-                                                        type="text"
-                                                        value={festivalName}
-                                                        onChange={(e) => setFestivalName(e.target.value)}
-                                                        className="w-full px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-amber-400 transition-colors"
-                                                        placeholder="NOM DE TON FESTIVAL"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="p-12 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] space-y-8">
-                                            <div className="flex justify-between items-center mb-4">
-                                                <h3 className="text-2xl font-black italic tracking-tighter uppercase text-white">Sponsors & Partenaires</h3>
-                                                <span className="text-[10px] font-bold text-amber-400 uppercase tracking-widest">Bonus Budget</span>
-                                            </div>
-                                            <div className="grid grid-cols-1 gap-4">
-                                                {SPONSORS.map(sponsor => (
-                                                    <button
-                                                        key={sponsor.id}
-                                                        onClick={() => {
-                                                            if (selectedSponsors.includes(sponsor.id)) {
-                                                                setSelectedSponsors(prev => prev.filter(id => id !== sponsor.id));
-                                                            } else if (selectedSponsors.length < 2) {
-                                                                setSelectedSponsors(prev => [...prev, sponsor.id]);
-                                                            }
-                                                        }}
-                                                        className={twMerge(
-                                                            "p-6 rounded-2xl border transition-all text-left flex justify-between items-center group",
-                                                            selectedSponsors.includes(sponsor.id)
-                                                                ? "bg-amber-400 border-amber-400 text-black"
-                                                                : "bg-white/5 border-white/10 text-white/40 hover:border-white/20"
-                                                        )}
-                                                    >
-                                                        <div>
-                                                            <p className="text-sm font-black uppercase italic tracking-tighter mb-1">{sponsor.name}</p>
-                                                            <p className={`text-[8px] font-bold uppercase tracking-widest ${selectedSponsors.includes(sponsor.id) ? 'text-black/60' : 'text-white/20'}`}>{sponsor.desc}</p>
+                                                    <div className="space-y-6">
+                                                        <p className="text-[10px] font-black uppercase tracking-widest text-white/40 ml-4">Sponsors (Max 2)</p>
+                                                        <div className="grid grid-cols-1 gap-3">
+                                                            {SPONSORS.map(sponsor => (
+                                                                <button key={sponsor.id} onClick={() => selectedSponsors.includes(sponsor.id) ? setSelectedSponsors(p => p.filter(id => id !== sponsor.id)) : selectedSponsors.length < 2 && setSelectedSponsors(p => [...p, sponsor.id])} className={twMerge("p-4 rounded-xl border transition-all text-left flex justify-between items-center", selectedSponsors.includes(sponsor.id) ? "bg-amber-400 border-amber-400 text-black" : "bg-white/5 border-white/10 text-white/40")}>
+                                                                    <div><p className="text-[10px] font-black uppercase italic leading-none mb-1">{sponsor.name}</p><p className="text-[7px] font-bold opacity-60">+{sponsor.bonus.toLocaleString()}€</p></div>
+                                                                    {selectedSponsors.includes(sponsor.id) && <Check className="w-3 h-3" />}
+                                                                </button>
+                                                            ))}
                                                         </div>
-                                                        <span className={`text-xs font-mono font-black ${selectedSponsors.includes(sponsor.id) ? 'text-black' : 'text-amber-400'}`}>
-                                                            +{sponsor.bonus.toLocaleString()}€
-                                                        </span>
+                                                    </div>
+                                                </div>
+                                                <button disabled={!playerName || !festivalName || !playerEmail} onClick={() => setGameState('LOCATION')} className="w-full py-8 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.4em] disabled:opacity-20 hover:bg-amber-400 transition-all">VALIDER ET CONTINUER →</button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+
+                                    {gameState === 'LOCATION' && (
+                                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
+                                            <div className="text-center space-y-4">
+                                                <h3 className="text-6xl font-black uppercase italic tracking-tighter text-amber-400">2. Choisir le Lieu</h3>
+                                                <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">Étape 2/8 : Ton arène pour l'histoire</p>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                                {FESTIVAL_LOCATIONS.map(loc => {
+                                                    const isLocked = currentRank.level < (loc.minRank || 0);
+                                                    return (
+                                                        <button key={loc.id} disabled={isLocked} onClick={() => { setSelectedLocation(loc); setGameState('DATE'); }} className={twMerge("p-8 rounded-[3rem] border-2 transition-all flex flex-col items-start gap-4 text-left group min-h-[200px]", selectedLocation.id === loc.id ? "bg-white border-white text-black scale-105" : isLocked ? "bg-black/40 border-white/5 opacity-20 grayscale pointer-events-none" : "bg-white/5 border-white/10 hover:border-white/30")}>
+                                                            <div className="w-full flex justify-between items-start">
+                                                                <span className="text-[8px] font-black uppercase tracking-widest opacity-40">Cap: {loc.capacity.toLocaleString()}</span>
+                                                                {isLocked && <Lock className="w-3 h-3" />}
+                                                            </div>
+                                                            <h4 className="text-xl font-black italic uppercase leading-tight mb-2">{loc.name}</h4>
+                                                            <div className="mt-auto pt-4 border-t border-black/5 w-full">
+                                                                <p className="text-sm font-black">{loc.cost.toLocaleString()}€</p>
+                                                            </div>
+                                                        </button>
+                                                    );
+                                                })}
+                                            </div>
+                                        </motion.div>
+                                    )}
+
+                                    {gameState === 'DATE' && (
+                                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="max-w-2xl mx-auto space-y-10 bg-white/5 p-12 rounded-[3.5rem] border border-white/10 backdrop-blur-3xl">
+                                            <div className="text-center space-y-4">
+                                                <h3 className="text-4xl font-black uppercase italic tracking-tighter text-amber-400">3. Fixer la Date</h3>
+                                                <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">Étape 3/8 : Vérification IA</p>
+                                            </div>
+                                            <div className="space-y-8">
+                                                <input type="date" value={selectedDate} onChange={(e) => setSelectedDate(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-3xl p-10 text-4xl font-black italic text-center uppercase [color-scheme:dark]" />
+                                                {selectedDate && (
+                                                    <div className="p-8 bg-amber-400/10 border border-amber-400/20 rounded-2xl flex items-start gap-4">
+                                                        <Sparkles className="w-6 h-6 text-amber-400 flex-shrink-0" />
+                                                        <p className="text-xs text-white/60 font-medium font-mono">DATE DISPONIBLE : Créneau optimal validé par l'IA Dropsiders.</p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            <button disabled={!selectedDate} onClick={() => setGameState('LOGISTICS')} className="w-full py-8 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.4em] disabled:opacity-20 hover:bg-amber-400 transition-all shadow-xl">CONTINUER →</button>
+                                        </motion.div>
+                                    )}
+
+                                    {gameState === 'LOGISTICS' && (
+                                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
+                                            <div className="text-center space-y-4">
+                                                <h3 className="text-6xl font-black uppercase italic tracking-tighter text-amber-400">4. Logistique</h3>
+                                                <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">Étape 4/8 : Sécurité & Services (Min. 3)</p>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                                                {FIX_COSTS.map(cost => (
+                                                    <button key={cost.id} onClick={() => selectedCosts.includes(cost.id) ? setSelectedCosts(p => p.filter(c => c !== cost.id)) : setSelectedCosts(p => [...p, cost.id])} className={twMerge("p-10 rounded-[3rem] border-2 transition-all flex flex-col items-center gap-6 text-center", selectedCosts.includes(cost.id) ? "bg-white border-white text-black scale-105" : "bg-white/5 border-white/10 hover:border-white/30")}>
+                                                        <cost.icon className="w-10 h-10" />
+                                                        <h4 className="text-xs font-black uppercase tracking-widest">{cost.name}</h4>
+                                                        <p className="text-[10px] font-mono opacity-60 italic">{cost.basePrice.toLocaleString()}€</p>
                                                     </button>
                                                 ))}
                                             </div>
-                                            <div className="pt-6 border-t border-white/10">
-                                                <div className="flex justify-between items-end">
-                                                    <div>
-                                                        <p className="text-[10px] font-black text-white/40 uppercase tracking-widest mb-1">Budget Total Provisoire</p>
-                                                        <p className="text-2xl font-mono font-black text-white">{(budget + sponsorsBonus).toLocaleString()}€</p>
-                                                    </div>
-                                                    {randomEvent && (
-                                                        <div className="text-right">
-                                                            <p className="text-[8px] font-black text-neon-red uppercase tracking-widest mb-1 animate-pulse">Alerte Marché</p>
-                                                            <p className="text-[10px] font-bold text-white uppercase italic max-w-[150px] leading-tight">{randomEvent.name}</p>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex justify-center pt-8">
-                                        <button
-                                            onClick={confirmOnboarding}
-                                            disabled={!playerName || !playerEmail || !festivalName}
-                                            className="px-24 py-8 bg-white text-black rounded-3xl font-black text-sm uppercase tracking-[0.4em] hover:bg-amber-400 hover:scale-105 transition-all duration-500 disabled:opacity-20 shadow-[0_20px_60px_rgba(255,255,255,0.1)]"
-                                        >
-                                            LANCER LA PRODUCTION
-                                        </button>
-                                    </div>
-                                </motion.div>
-                            ) : gameState === 'BOOKING' ? (
-                                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-                                    {/* Sidebar: Budget & Controls */}
-                                    <div className="lg:col-span-4 space-y-8">
-                                        <div className="sticky top-24 p-10 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[2.5rem] shadow-2xl">
-                                            <div className="flex items-center justify-between mb-10">
-                                                <h3 className="text-2xl font-black italic tracking-tighter uppercase">Production Control</h3>
-                                                <button onClick={resetGame} className="p-2 text-white/20 hover:text-white transition-colors">
-                                                    <X className="w-6 h-6" />
-                                                </button>
-                                            </div>
-
-                                            <div className="space-y-10">
-                                                <div>
-                                                    <div className="flex justify-between items-end mb-4">
-                                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Budget Total</span>
-                                                        <span className="text-2xl font-black font-mono text-white tracking-widest">{budget.toLocaleString()}€</span>
-                                                    </div>
-                                                    <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden">
-                                                        <motion.div
-                                                            className={`h-full ${remainingBudget < 0 ? 'bg-red-500' : 'bg-amber-400'}`}
-                                                            animate={{ width: `${(totalSpent / budget) * 100}%` }}
-                                                        />
-                                                    </div>
-                                                    <div className="flex justify-between mt-3">
-                                                        <span className="text-[9px] font-bold text-white/30 uppercase tracking-widest">Dépensé: {totalSpent.toLocaleString()}€</span>
-                                                        <span className={`text-[9px] font-black uppercase tracking-widest ${remainingBudget < 0 ? 'text-red-500' : 'text-emerald-400'}`}>
-                                                            Reste: {remainingBudget.toLocaleString()}€
-                                                        </span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-4">
-                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Infrastructure & Logistique</span>
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        {FIX_COSTS.map(cost => (
-                                                            <button
-                                                                key={cost.id}
-                                                                onClick={() => {
-                                                                    if (selectedCosts.includes(cost.id)) {
-                                                                        setSelectedCosts(prev => prev.filter(id => id !== cost.id));
-                                                                    } else if (totalSpent + cost.basePrice <= budget) {
-                                                                        setSelectedCosts(prev => [...prev, cost.id]);
-                                                                    }
-                                                                }}
-                                                                className={twMerge(
-                                                                    "p-4 rounded-2xl border transition-all flex flex-col items-center gap-2",
-                                                                    selectedCosts.includes(cost.id)
-                                                                        ? "bg-amber-400 border-amber-400 text-black shadow-[0_0_20px_rgba(251,191,36,0.2)]"
-                                                                        : "bg-white/5 border-white/10 text-white/40 hover:border-white/20"
-                                                                )}
-                                                            >
-                                                                <cost.icon className="w-5 h-5" />
-                                                                <span className="text-[8px] font-black uppercase tracking-tighter text-center">{cost.name}</span>
-                                                                <span className="text-[7px] font-mono opacity-60">+{cost.basePrice.toLocaleString()}€</span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-4">
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Prix du Pass (Billet)</span>
-                                                        <span className="text-xl font-mono font-black text-white">{ticketPrice}€</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-4 px-6 py-4 bg-white/5 border border-white/10 rounded-2xl">
-                                                        <input
-                                                            type="range"
-                                                            min="50"
-                                                            max="800"
-                                                            step="5"
-                                                            value={ticketPrice}
-                                                            onChange={(e) => setTicketPrice(parseInt(e.target.value))}
-                                                            className="flex-1 accent-white"
-                                                        />
-                                                    </div>
-                                                    <div className="flex justify-between mt-2">
-                                                        <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Low Cost</span>
-                                                        <span className="text-[8px] font-black text-white/20 uppercase tracking-widest">Ultra VIP</span>
-                                                    </div>
-                                                </div>
-
-                                                {randomEvent && (
-                                                    <div className="p-6 bg-neon-red/10 border border-neon-red/20 rounded-2xl">
-                                                        <div className="flex items-center gap-3 mb-2 text-neon-red">
-                                                            <AlertCircle className="w-4 h-4" />
-                                                            <span className="text-[10px] font-black uppercase tracking-widest">Market Info</span>
-                                                        </div>
-                                                        <p className="text-[10px] font-bold text-white uppercase italic leading-snug">{randomEvent.name}: {randomEvent.message}</p>
-                                                    </div>
-                                                )}
-
-                                                {/* Advisor Character */}
-                                                <div className="p-6 bg-white/[0.03] border border-white/10 rounded-[2rem] relative overflow-hidden group hover:border-amber-400/30 transition-all duration-500">
-                                                    <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                                                        <Sparkles className="w-12 h-12 text-amber-400" />
-                                                    </div>
-                                                    <div className="flex gap-5 relative z-10">
-                                                        <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center shrink-0 shadow-2xl overflow-hidden border-2 border-white/10">
-                                                            <span className="text-3xl">{advisorTip?.avatar || "👤"}</span>
-                                                        </div>
-                                                        <div>
-                                                            <div className="flex items-center gap-2 mb-1">
-                                                                <h4 className="text-[10px] font-black uppercase text-amber-400 tracking-[0.2em]">{advisorTip?.name || "Conseiller Talent"}</h4>
-                                                                <div className="w-1 h-1 bg-emerald-400 rounded-full animate-pulse" />
-                                                            </div>
-                                                            <p className="text-xs font-bold text-white/70 italic leading-relaxed">
-                                                                "{advisorTip?.tip}"
-                                                            </p>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-4">
-                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Lieu du Festival (Destinations)</span>
-                                                    <div className="grid grid-cols-3 gap-2 overflow-y-auto max-h-[300px] pr-2 scrollbar-hide">
-                                                        {FESTIVAL_LOCATIONS.map(loc => (
-                                                            <button
-                                                                key={loc.id}
-                                                                onClick={() => {
-                                                                    const diff = loc.cost - selectedLocation.cost;
-                                                                    if (totalSpent + diff <= budget) {
-                                                                        setSelectedLocation(loc);
-                                                                    }
-                                                                }}
-                                                                className={twMerge(
-                                                                    "p-2 rounded-lg border transition-all text-center flex flex-col justify-center min-h-[60px]",
-                                                                    selectedLocation.id === loc.id
-                                                                        ? "bg-white text-black border-white shadow-[0_0_15px_rgba(255,255,255,0.3)]"
-                                                                        : "bg-white/5 border-white/10 text-white/40 hover:border-white/20"
-                                                                )}
-                                                            >
-                                                                <span className="text-[7px] font-black uppercase block leading-tight">{loc.name}</span>
-                                                                <span className="text-[6px] font-mono opacity-60 mt-0.5">{loc.cost.toLocaleString()}€</span>
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-4">
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Date de l'Event</span>
-                                                        <span className="text-[9px] font-mono text-amber-400 italic">Mandatoire</span>
-                                                    </div>
-                                                    <div className="relative group">
-                                                        <input
-                                                            type="date"
-                                                            value={selectedDate}
-                                                            onChange={(e) => setSelectedDate(e.target.value)}
-                                                            className="w-full px-6 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-white uppercase focus:outline-none focus:border-amber-400 transition-all duration-300"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-4">
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Durée du Festival ({festivalDuration} Jours)</span>
-                                                        <span className="text-[9px] font-mono text-amber-400">Multiplicateur x{1 + (festivalDuration - 1) * 0.4}</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-4 px-6 py-4 bg-white/5 border border-white/10 rounded-2xl">
-                                                        <input
-                                                            type="range"
-                                                            min="1"
-                                                            max="3"
-                                                            step="1"
-                                                            value={festivalDuration}
-                                                            onChange={(e) => {
-                                                                const val = parseInt(e.target.value);
-                                                                const tempSpent = (totalDjsCost + totalExtraCost + locationCost + stagesCost) * (1 + (val - 1) * 0.4);
-                                                                if (tempSpent <= budget) {
-                                                                    setFestivalDuration(val);
-                                                                }
-                                                            }}
-                                                            className="flex-1 accent-amber-400"
-                                                        />
-                                                        <span className="text-white font-mono font-black">{festivalDuration}J</span>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-4">
-                                                    <div className="flex justify-between items-center">
-                                                        <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Stages ({stageCount})</span>
-                                                        <span className="text-[9px] font-mono text-amber-400">+{stagesCost.toLocaleString()}€</span>
-                                                    </div>
-                                                    <div className="flex items-center gap-4 px-6 py-4 bg-white/5 border border-white/10 rounded-2xl">
-                                                        <input
-                                                            type="range"
-                                                            min="1"
-                                                            max="5"
-                                                            step="1"
-                                                            value={stageCount}
-                                                            onChange={(e) => {
-                                                                const val = parseInt(e.target.value);
-                                                                const diff = (val - stageCount) * STAGE_COST_PER_UNIT;
-                                                                if (totalSpent + diff <= budget) {
-                                                                    setStageCount(val);
-                                                                }
-                                                            }}
-                                                            className="flex-1 accent-amber-400"
-                                                        />
-                                                        <span className="text-white font-mono font-black">{stageCount}</span>
-                                                    </div>
-                                                </div>
-
-                                                <button
-                                                    disabled={selectedCosts.length < 3 || selectedDjs.length < 5 || remainingBudget < 0 || !selectedDate}
-                                                    onClick={generatePoster}
-                                                    className="w-full py-6 rounded-[1.5rem] bg-white text-black font-black text-xs uppercase tracking-[0.3em] disabled:opacity-20 disabled:cursor-not-allowed hover:bg-neon-red hover:text-white transition-all duration-500 flex items-center justify-center gap-4"
-                                                >
-                                                    {!selectedDate ? "Choisis une date..." : selectedDjs.length < 5 ? `Encore ${5 - selectedDjs.length} artistes...` : "Générer la Line-up"}
-                                                    <Sparkles className="w-4 h-4" />
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Main: DJ List */}
-                                    <div className="lg:col-span-8 flex flex-col min-h-[800px] relative">
-                                        <div className="sticky top-0 z-40 bg-[#050505]/60 backdrop-blur-3xl pb-8 pt-4 border-b border-white/5 mx-[-1rem] px-4 rounded-b-[3rem]">
-                                            <div className="flex flex-col xl:flex-row items-center justify-between gap-8 py-4">
-                                                <div className="text-center xl:text-left">
-                                                    <h3 className="text-4xl font-black italic tracking-tighter uppercase mb-2 bg-gradient-to-r from-white via-white to-white/20 bg-clip-text text-transparent">Booking Gallery</h3>
-                                                    <p className="text-[11px] font-black text-amber-400 uppercase tracking-[0.4em]">{selectedDjs.length} / 5 Artistes Minimum</p>
-                                                </div>
-
-                                                <div className="flex flex-wrap items-center justify-center gap-4 w-full xl:w-auto">
-                                                    <div className="relative group flex-1 md:w-80">
-                                                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400" />
-                                                        <input
-                                                            type="text"
-                                                            placeholder="Rechercher une star..."
-                                                            value={searchQuery}
-                                                            onChange={(e) => setSearchQuery(e.target.value)}
-                                                            className="w-full pl-14 pr-8 py-4 bg-white/5 border border-white/10 rounded-[2rem] text-xs font-black text-white placeholder:text-white/20 focus:outline-none focus:border-amber-400 focus:bg-white/10 transition-all duration-500 shadow-2xl"
-                                                        />
-                                                    </div>
-
-                                                    <div className="flex items-center gap-2">
-                                                        <div className="relative">
-                                                            <Filter className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
-                                                            <select
-                                                                value={selectedGenreFilter}
-                                                                onChange={(e) => setSelectedGenreFilter(e.target.value)}
-                                                                className="pl-14 pr-10 py-4 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-white appearance-none focus:outline-none focus:border-white/20 transition-all cursor-pointer hover:bg-white/10"
-                                                            >
-                                                                <option value="ALL">Tous les Styles</option>
-                                                                <option value="EDM">EDM</option>
-                                                                <option value="TECHNO">Techno</option>
-                                                                <option value="HOUSE">House</option>
-                                                                <option value="TECH HOUSE">Tech House</option>
-                                                                <option value="AFRO HOUSE">Afro House</option>
-                                                                <option value="MELODIC TECHNO">Melodic</option>
-                                                                <option value="BASS MUSIC">Bass</option>
-                                                            </select>
-                                                        </div>
-
-                                                        <button
-                                                            onClick={() => setPriceSort(prev => prev === 'DESC' ? 'ASC' : 'DESC')}
-                                                            className="px-6 py-4 bg-white/5 border border-white/10 rounded-full flex items-center gap-3 hover:bg-white/10 transition-all"
-                                                        >
-                                                            <Trophy className={twMerge("w-4 h-4", priceSort !== 'NONE' ? "text-amber-400" : "text-white/20")} />
-                                                            <span className="text-[10px] font-black uppercase tracking-widest">Prix {priceSort === 'DESC' ? '↓' : priceSort === 'ASC' ? '↑' : ''}</span>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </div>
-
-                                            {/* AI Booking Notification Status */}
-                                            <AnimatePresence mode="wait">
-                                                {/* Status Placeholder for layout spacing */}
-                                                {!bookingStatus && (
-                                                    <div className="p-5 rounded-[2rem] bg-white/[0.03] border border-white/5 flex items-center gap-4 text-white/20">
-                                                        <div className="w-10 h-10 border border-white/10 rounded-xl flex items-center justify-center">
-                                                            <Music className="w-4 h-4 opacity-50" />
-                                                        </div>
-                                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] italic">Clique sur un artiste pour lancer la négociation...</span>
-                                                    </div>
-                                                )}
-                                                {bookingStatus && (
-                                                    <div className="p-5 rounded-[2rem] bg-amber-400/5 border border-amber-400/10 flex items-center gap-4 text-amber-400/40">
-                                                        <RefreshCw className="w-4 h-4 animate-spin" />
-                                                        <span className="text-[10px] font-black uppercase tracking-[0.4em] italic">Négociation en cours (voir carte)...</span>
-                                                    </div>
-                                                )}
-                                            </AnimatePresence>
-                                        </div>
-
-                                        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 pt-12">
-                                            {[...DJ_POOL]
-                                                .filter(dj => {
-                                                    const matchesSearch = dj.name.toLowerCase().includes(searchQuery.toLowerCase());
-                                                    const matchesGenre = selectedGenreFilter === 'ALL' || dj.genre.toUpperCase().includes(selectedGenreFilter);
-                                                    return matchesSearch && matchesGenre;
-                                                })
-                                                .sort((a, b) => {
-                                                    if (priceSort === 'ASC') return a.price - b.price;
-                                                    if (priceSort === 'DESC') return b.price - a.price;
-                                                    return 0;
-                                                })
-                                                .map((dj, i) => {
-                                                    const isSelected = selectedDjs.find(d => d.id === dj.id);
-                                                    const canAfford = remainingBudget >= (dj.price * (dj.popularity > 95 ? 1.15 : 1));
-                                                    const isHeadliner = dj.price > 600000;
-
-                                                    return (
-                                                        <motion.button
-                                                            key={dj.id}
-                                                            initial={{ opacity: 0, y: 20 }}
-                                                            animate={{ opacity: 1, y: 0 }}
-                                                            transition={{ delay: Math.min(i * 0.03, 0.6) }}
-                                                            onClick={() => toggleDj(dj)}
-                                                            disabled={!isSelected && !canAfford}
-                                                            className={twMerge(
-                                                                "relative group p-8 rounded-[3rem] border-2 transition-all duration-500 text-left overflow-hidden flex flex-col min-h-[340px] shadow-2xl",
-                                                                isSelected
-                                                                    ? "bg-amber-400 border-amber-400 text-black scale-105 z-10"
-                                                                    : !canAfford && !isSelected
-                                                                        ? "bg-white/[0.02] border-white/5 opacity-20 grayscale pointer-events-none"
-                                                                        : isHeadliner
-                                                                            ? "bg-gradient-to-br from-white/[0.08] to-transparent border-white/20 hover:border-amber-400/50"
-                                                                            : "bg-white/[0.04] border-white/10 hover:border-white/20"
-                                                            )}
-                                                        >
-                                                            {/* Glow Effect for Selected/Headliners */}
-                                                            {isSelected && (
-                                                                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.4),transparent)] opacity-50" />
-                                                            )}
-
-                                                            <div className="flex justify-between items-start mb-8 relative z-10">
-                                                                <div className={twMerge(
-                                                                    "w-14 h-14 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 overflow-hidden bg-black/20",
-                                                                    isSelected ? "border-black/10 shadow-lg" : "border-white/10 group-hover:border-amber-400 group-hover:shadow-[0_0_20px_rgba(251,191,36,0.5)]"
-                                                                )}>
-                                                                    {(dj as any).image ? (
-                                                                        <img
-                                                                            src={(dj as any).image}
-                                                                            alt={dj.name}
-                                                                            className="w-full h-full object-cover"
-                                                                            onError={(e) => {
-                                                                                (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${dj.name}&backgroundColor=050505`;
-                                                                            }}
-                                                                        />
-                                                                    ) : (
-                                                                        <Music className="w-7 h-7" />
-                                                                    )}
-                                                                </div>
-
-                                                                <div className="flex flex-col items-end gap-2">
-                                                                    {isSelected ? (
-                                                                        <div className="bg-black text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                                                                            <Check className="w-3 h-3" /> Confirmé
-                                                                        </div>
-                                                                    ) : isHeadliner ? (
-                                                                        <div className="bg-amber-400/20 text-amber-500 border border-amber-500/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
-                                                                            Elite Tier
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div className="bg-white/5 text-white/40 border border-white/10 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
-                                                                            Artiste
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex-1 relative z-10">
-                                                                <h4 className={twMerge(
-                                                                    "text-2xl font-black uppercase italic tracking-tighter mb-1 leading-none transition-colors",
-                                                                    isSelected ? "text-black" : "text-white group-hover:text-amber-400"
-                                                                )}>
-                                                                    {dj.name}
-                                                                </h4>
-                                                                <p className={twMerge(
-                                                                    "text-[10px] font-black uppercase tracking-[0.3em] mb-6 opacity-40",
-                                                                    isSelected ? "text-black" : "text-white"
-                                                                )}>
-                                                                    {dj.genre}
-                                                                </p>
-
-                                                                <div className="space-y-4">
-                                                                    <AnimatePresence>
-                                                                        {bookingStatus?.djId === dj.id && (
-                                                                            <motion.div
-                                                                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                                                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                                                exit={{ opacity: 0, scale: 0.9, y: 10 }}
-                                                                                className={twMerge(
-                                                                                    "p-4 rounded-2xl border flex flex-col gap-2 shadow-2xl",
-                                                                                    bookingStatus.status === 'PENDING' ? "bg-amber-400/20 border-amber-400/40" :
-                                                                                        bookingStatus.status === 'ACCEPTED' ? "bg-emerald-400/20 border-emerald-400/40" :
-                                                                                            "bg-red-400/20 border-red-400/40"
-                                                                                )}
-                                                                            >
-                                                                                <div className="flex items-center justify-between">
-                                                                                    <span className="text-[8px] font-black uppercase tracking-widest opacity-60">Status Agent</span>
-                                                                                    {bookingStatus.status === 'PENDING' && <RefreshCw className="w-3 h-3 animate-spin text-amber-400" />}
-                                                                                </div>
-                                                                                <p className="text-[10px] font-bold text-white leading-tight italic">
-                                                                                    {bookingStatus.message}
-                                                                                </p>
-                                                                            </motion.div>
-                                                                        )}
-                                                                    </AnimatePresence>
-
-                                                                    <div className="flex justify-between items-end">
-                                                                        <span className="text-[9px] font-black uppercase tracking-widest opacity-30">Power Rating</span>
-                                                                        <span className={twMerge("text-xs font-black", isSelected ? "text-black" : "text-amber-400")}>{dj.popularity}%</span>
-                                                                    </div>
-                                                                    <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
-                                                                        <motion.div
-                                                                            initial={{ width: 0 }}
-                                                                            animate={{ width: `${dj.popularity}%` }}
-                                                                            className={twMerge("h-full", isSelected ? "bg-black" : "bg-amber-400")}
-                                                                        />
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="flex items-center justify-between pt-8 mt-8 border-t border-black/5 relative z-10">
-                                                                <div className="flex flex-col">
-                                                                    <span className="text-[8px] font-black uppercase tracking-widest opacity-30 mb-0.5">Booking Fee</span>
-                                                                    <span className={twMerge(
-                                                                        "text-2xl font-mono font-black",
-                                                                        isSelected ? "text-black" : "text-white"
-                                                                    )}>
-                                                                        {dj.price.toLocaleString()}€
-                                                                    </span>
-                                                                </div>
-                                                                <div className={twMerge(
-                                                                    "p-3 rounded-2xl transition-all",
-                                                                    isSelected ? "bg-black/10" : "bg-white/5 group-hover:bg-amber-400 group-hover:text-black"
-                                                                )}>
-                                                                    <Plus className="w-5 h-5" />
-                                                                </div>
-                                                            </div>
-
-                                                            {!isSelected && !canAfford && (
-                                                                <div className="absolute inset-0 bg-[#050505]/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center z-20">
-                                                                    <AlertCircle className="w-10 h-10 text-red-500 mb-4" />
-                                                                    <span className="text-xs font-black text-white uppercase tracking-[0.3em] mb-2 leading-tight">Trésorerie Insuffisante</span>
-                                                                    <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest leading-relaxed">Cet artiste prestigieux demande une avance que vous ne possédez pas.</p>
-                                                                </div>
-                                                            )}
-                                                        </motion.button>
-                                                    );
-                                                })}
-                                        </div>
-                                    </div>
-                                </div>
-                            ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-start">
-                                    <motion.div
-                                        initial={{ scale: 0.9, opacity: 0 }}
-                                        animate={{ scale: 1, opacity: 1 }}
-                                        className={twMerge(
-                                            "relative aspect-[1.3/2] border-[12px] shadow-[0_60px_120px_rgba(0,0,0,0.9)] rounded-[2.5rem] p-8 md:p-12 overflow-hidden transition-all duration-1000",
-                                            posterStyle === 'ULTRA' ? "bg-gradient-to-b from-[#00bfff] via-[#000033] to-black border-white" :
-                                                posterStyle === 'TOMORROWLAND' ? "bg-[#0a0a0a] border-[#d4af37] shadow-[0_0_50px_rgba(212,175,55,0.2)]" :
-                                                    "bg-[#050505] border-transparent"
-                                        )}
-                                    >
-                                        {/* EDC Specific Border Aura */}
-                                        {posterStyle === 'EDC' && (
-                                            <div className="absolute inset-0 border-[12px] border-transparent rounded-[2.5rem] shadow-[inset_0_0_50px_rgba(255,0,255,0.5),0_0_50px_rgba(0,255,255,0.5)] z-50 pointer-events-none" />
-                                        )}
-
-                                        {/* Background Patterns based on Style */}
-                                        {posterStyle === 'ULTRA' && (
-                                            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white opacity-[0.02] rounded-full blur-3xl" />
-                                                <div className="absolute top-20 left-1/2 -translate-x-1/2 text-[250px] md:text-[300px] font-black text-white/5 select-none leading-none">U</div>
-                                            </div>
-                                        )}
-                                        {posterStyle === 'TOMORROWLAND' && (
-                                            <div className="absolute inset-0 pointer-events-none">
-                                                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/black-paper.png')] opacity-20" />
-                                                <div className="absolute inset-0 border-[2px] border-[#d4af37]/30 m-4 rounded-[1.8rem]" />
-                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_40%,#d4af3715,transparent_60%)]" />
-                                            </div>
-                                        )}
-                                        {posterStyle === 'EDC' && (
-                                            <div className="absolute inset-0 pointer-events-none">
-                                                <div className="absolute top-[-20%] left-[-20%] w-[140%] h-[140%] bg-[conic-gradient(from_0deg,#ff00ff,#00ffff,#ffff00,#ff00ff)] opacity-10 animate-spin-slow" />
-                                                <div className="absolute inset-0 backdrop-blur-[100px]" />
-                                                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-[radial-gradient(circle_at_50%_50%,#ff00ff22,transparent_70%)]" />
-                                            </div>
-                                        )}
-
-                                        <div className="relative z-10 h-full flex flex-col items-center text-center">
-                                            <div className="flex flex-col items-center gap-4 md:gap-6 mb-12 md:mb-16">
-                                                <div className={twMerge(
-                                                    "px-6 py-2 text-[8px] md:text-[9px] font-black uppercase tracking-[0.5em] rounded-full border",
-                                                    posterStyle === 'ULTRA' ? "bg-white text-black border-white" :
-                                                        posterStyle === 'TOMORROWLAND' ? "bg-transparent text-[#d4af37] border-[#d4af37]/50" :
-                                                            "bg-gradient-to-r from-[#ff00ff] to-[#00ffff] text-white border-transparent"
-                                                )}>
-                                                    {posterStyle} EXPERIENCE PRESENTS
-                                                </div>
-                                                <h1 className={twMerge(
-                                                    "text-5xl md:text-7xl font-display font-black uppercase tracking-tighter leading-[0.9]",
-                                                    posterStyle === 'ULTRA' ? "text-white italic" :
-                                                        posterStyle === 'TOMORROWLAND' ? "text-[#fafafa] font-serif tracking-normal" :
-                                                            "text-white drop-shadow-[0_0_20px_rgba(255,255,255,0.5)]"
-                                                )}>
-                                                    {festivalName.split(' ')[0]} <br />
-                                                    <span className={twMerge(
-                                                        "text-3xl md:text-4xl",
-                                                        posterStyle === 'TOMORROWLAND' ? "text-[#d4af37]/80" : "text-white/80"
-                                                    )}>
-                                                        {festivalName.split(' ').slice(1).join(' ') || 'FESTIVAL'}
-                                                    </span>
-                                                </h1>
-                                                <div className={twMerge(
-                                                    "w-24 h-1",
-                                                    posterStyle === 'TOMORROWLAND' ? "bg-[#d4af37]" : "bg-white"
-                                                )} />
-                                            </div>
-
-                                            <div className="flex-1 w-full space-y-8 md:space-y-10 overflow-y-auto custom-scrollbar pr-2">
-                                                <div className="space-y-4 md:space-y-6">
-                                                    <span className={twMerge(
-                                                        "text-[8px] md:text-[9px] font-black uppercase tracking-[0.6em] block",
-                                                        posterStyle === 'TOMORROWLAND' ? "text-[#d4af37]/60" : "text-white/40"
-                                                    )}>Starring In Order of Appearance</span>
-
-                                                    <div className="flex flex-col gap-3 md:gap-4">
-                                                        {selectedDjs.map((dj, i) => (
-                                                            <motion.div
-                                                                initial={{ opacity: 0, scale: 0.9 }}
-                                                                animate={{ opacity: 1, scale: 1 }}
-                                                                transition={{ delay: 0.5 + (i * 0.1) }}
-                                                                key={dj.id}
-                                                                className="flex items-center justify-center gap-3 md:gap-4"
-                                                            >
-                                                                {i === 0 && <div className={twMerge("w-1.5 md:w-2 h-1.5 md:h-2 rounded-full", posterStyle === 'TOMORROWLAND' ? "bg-[#d4af37]" : "bg-white")} />}
-                                                                <span className={twMerge(
-                                                                    "font-display font-black uppercase leading-none",
-                                                                    posterStyle === 'ULTRA' ? "text-white italic tracking-tighter" :
-                                                                        posterStyle === 'TOMORROWLAND' ? "text-[#fafafa] font-serif tracking-wide" :
-                                                                            "text-white tracking-widest",
-                                                                    i === 0 ? 'text-4xl md:text-5xl' : i < 3 ? 'text-xl md:text-2xl opacity-80' : 'text-sm md:text-lg opacity-50'
-                                                                )}>
-                                                                    {dj.name}
-                                                                </span>
-                                                                {i === 0 && <div className={twMerge("w-1.5 md:w-2 h-1.5 md:h-2 rounded-full", posterStyle === 'TOMORROWLAND' ? "bg-[#d4af37]" : "bg-white")} />}
-                                                            </motion.div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-
-                                                <div className="pt-6 md:pt-8 flex flex-wrap justify-center gap-2 md:gap-3 opacity-60">
-                                                    {FIX_COSTS.filter(c => selectedCosts.includes(c.id)).map(cost => (
-                                                        <div key={cost.id} className={twMerge(
-                                                            "px-3 py-1 border rounded-sm flex items-center gap-2 md:gap-3",
-                                                            posterStyle === 'TOMORROWLAND' ? "border-[#d4af37]/20 text-[#d4af37]" : "border-white/20 text-white"
-                                                        )}>
-                                                            <cost.icon className="w-2.5 md:w-3 h-2.5 md:h-3" />
-                                                            <span className="text-[7px] md:text-[8px] font-black uppercase tracking-widest leading-none">{cost.name.split(' ')[0]}</span>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-
-                                            <div className={twMerge(
-                                                "w-full pt-8 md:pt-10 border-t flex justify-between items-center",
-                                                posterStyle === 'TOMORROWLAND' ? "border-[#d4af37]/30" : "border-white/10"
-                                            )}>
-                                                <div className="text-left space-y-2 md:space-y-3">
-                                                    <div>
-                                                        <p className={twMerge("text-[7px] md:text-[8px] font-black uppercase tracking-widest", posterStyle === 'TOMORROWLAND' ? "text-[#d4af37]/60" : "text-white/40")}>Location & Setup</p>
-                                                        <p className={twMerge("text-xs md:text-sm font-black uppercase italic leading-none mt-1", posterStyle === 'TOMORROWLAND' ? "text-[#d4af37]" : "text-white")}>
-                                                            {selectedLocation.name.split(' - ')[0]} • {stageCount} MAIN SESSIONS
-                                                        </p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="text-center bg-white/5 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 rounded-lg border border-white/10 shrink-0">
-                                                    <p className="text-[7px] md:text-[8px] font-black text-white/40 uppercase tracking-widest mb-0.5 md:mb-1 leading-none">Live Date</p>
-                                                    <p className="text-xs md:text-sm font-mono font-black text-white uppercase tracking-tighter leading-none">
-                                                        {selectedDate ? new Date(selectedDate).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' }) : '01.06.1988'} — 2026
-                                                    </p>
-                                                </div>
-
-                                                <div className="text-right">
-                                                    <img
-                                                        src="/Logo.png"
-                                                        className={twMerge(
-                                                            "h-8 md:h-12 w-auto object-contain",
-                                                            posterStyle === 'TOMORROWLAND' ? "brightness-150 sepia" : "brightness-200"
-                                                        )}
-                                                        alt="DROPSIDERS"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </motion.div>
-
-                                    <div className="space-y-8">
-                                        <motion.div
-                                            initial={{ opacity: 0, x: 20 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 1 }}
-                                            className="p-10 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] space-y-8"
-                                        >
-                                            <h3 className="text-3xl font-black italic tracking-tighter uppercase text-amber-400">Rapport Financier</h3>
-
-                                            <div className="grid grid-cols-2 gap-8">
-                                                <div className="space-y-1">
-                                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Affluence</p>
-                                                    <p className="text-2xl font-mono font-black text-white">{attendance.toLocaleString()} <span className="text-xs text-white/20 font-sans">FANS</span></p>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Hype Score</p>
-                                                    <p className="text-2xl font-mono font-black text-white">{Math.floor(hype)} / 100</p>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Revenus Bruts</p>
-                                                    <p className="text-2xl font-mono font-black text-white">{revenue.toLocaleString()}€</p>
-                                                </div>
-                                                <div className="space-y-1">
-                                                    <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Dépenses Totales</p>
-                                                    <p className="text-2xl font-mono font-black text-white">{totalSpent.toLocaleString()}€</p>
-                                                </div>
-                                            </div>
-
-                                            <div className={twMerge(
-                                                "p-8 rounded-[2rem] border animate-pulse",
-                                                profit > 0 ? "bg-emerald-500/10 border-emerald-500/20" : "bg-red-500/10 border-red-500/20"
-                                            )}>
-                                                <p className="text-[10px] font-black uppercase tracking-[0.4em] mb-2 opacity-60">Résultat Net</p>
-                                                <p className={twMerge(
-                                                    "text-5xl font-mono font-black tracking-tighter",
-                                                    profit > 0 ? "text-emerald-400" : "text-red-500"
-                                                )}>
-                                                    {profit > 0 ? "+" : ""}{profit.toLocaleString()}€
-                                                </p>
-                                                <p className="text-[10px] font-bold uppercase italic tracking-widest mt-4 opacity-40">
-                                                    {profit > 1000000 ? "MAGNAT DES FESTIVALS" : profit > 0 ? "PROJET RENTABLE" : "DÉFICIT PRODUCTION"}
-                                                </p>
-                                            </div>
-
-                                            <div className="flex flex-col gap-4 pt-6">
-                                                <div className="grid grid-cols-2 gap-4 mb-4">
-                                                    <button
-                                                        onClick={() => handleShare('native')}
-                                                        className="flex items-center justify-center gap-3 py-4 bg-white/10 hover:bg-white/20 border border-white/20 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
-                                                    >
-                                                        <Share2 className="w-4 h-4" /> Partager
-                                                    </button>
-                                                    <button
-                                                        onClick={() => handleShare('twitter')}
-                                                        className="flex items-center justify-center gap-3 py-4 bg-[#1DA1F2]/10 hover:bg-[#1DA1F2]/20 border border-[#1DA1F2]/20 text-[#1DA1F2] rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all"
-                                                    >
-                                                        <Twitter className="w-4 h-4" /> X / Twitter
-                                                    </button>
-                                                </div>
-
-                                                <div className="flex justify-center gap-6 mb-8 px-4 py-2 bg-white/5 rounded-2xl border border-white/10">
-                                                    <button onClick={() => handleShare('instagram')} className="p-2 text-white/40 hover:text-pink-500 transition-colors">
-                                                        <Instagram className="w-5 h-5" />
-                                                    </button>
-                                                    <button onClick={() => handleShare('tiktok')} className="p-2 text-white/40 hover:text-white transition-colors">
-                                                        <Music className="w-5 h-5" />
-                                                    </button>
-                                                    <button onClick={() => handleShare('facebook')} className="p-2 text-white/40 hover:text-blue-500 transition-colors">
-                                                        <Facebook className="w-5 h-5" />
-                                                    </button>
-                                                </div>
-
-                                                <button
-                                                    onClick={() => window.print()}
-                                                    className="w-full py-6 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-neon-red hover:text-white transition-all duration-500 flex items-center justify-center gap-4"
-                                                >
-                                                    <Download className="w-4 h-4" /> Sauvegarder l'Affiche
-                                                </button>
-                                                <button
-                                                    onClick={resetGame}
-                                                    className="w-full py-6 bg-white/5 border border-white/10 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-white/10 transition-all flex items-center justify-center gap-4"
-                                                >
-                                                    <RefreshCw className="w-4 h-4" /> Nouvelle Production
-                                                </button>
+                                            <div className="flex justify-center">
+                                                <button disabled={selectedCosts.length < 3} onClick={() => setGameState('STAGES')} className="px-24 py-8 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.4em] disabled:opacity-20 hover:bg-amber-400 transition-all">CONFIRMER LOGISTIQUE →</button>
                                             </div>
                                         </motion.div>
-                                    </div>
+                                    )}
+
+                                    {gameState === 'STAGES' && (
+                                        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-12">
+                                            <div className="text-center space-y-4">
+                                                <h3 className="text-6xl font-black uppercase italic tracking-tighter text-amber-400">5. Scènes & Show</h3>
+                                                <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">Étape 5/8 : Configuration Scénique</p>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto">
+                                                <div className="p-12 bg-white/5 border border-white/10 rounded-[4rem] space-y-10 backdrop-blur-3xl">
+                                                    <h4 className="text-sm font-black uppercase tracking-widest text-center">Quantité de Scènes</h4>
+                                                    <div className="flex justify-center gap-8">
+                                                        {[1, 2, 3].map(n => (
+                                                            <button key={n} onClick={() => setStageCount(n)} className={twMerge("w-24 h-24 rounded-[2rem] border-2 flex flex-col items-center justify-center gap-1 transition-all", stageCount === n ? "bg-amber-400 border-amber-400 text-black scale-110 shadow-2xl" : "bg-white/5 border-white/10 text-white/40")}>
+                                                                <span className="text-3xl font-black italic">{n}</span>
+                                                                <span className="text-[8px] font-black uppercase">Stages</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    <p className="text-[10px] font-bold text-white/40 text-center uppercase italic">Un malus sera appliqué si vous ne bookez pas 5 artistes par scène.</p>
+                                                </div>
+                                                <div className="p-12 bg-white/5 border border-white/10 rounded-[4rem] space-y-10 backdrop-blur-3xl">
+                                                    <h4 className="text-sm font-black uppercase tracking-widest text-center">Effets Visuels</h4>
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        {STAGE_EFFECTS.map(e => (
+                                                            <button key={e.id} onClick={() => selectedEffects.includes(e.id) ? setSelectedEffects(p => p.filter(id => id !== e.id)) : setSelectedEffects(p => [...p, e.id])} className={twMerge("p-6 rounded-2xl border transition-all flex flex-col items-center gap-2", selectedEffects.includes(e.id) ? "bg-white border-white text-black" : "bg-white/5 border-white/10 text-white/40")}>
+                                                                <e.icon className="w-6 h-6" />
+                                                                <span className="text-[9px] font-black uppercase">{e.name}</span>
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="flex justify-center">
+                                                <button onClick={() => { setBudget(2500000 + (currentRank.level * 800000) + sponsorsBonus); setGameState('BOOKING'); }} className="px-32 py-8 bg-white text-black rounded-3xl font-black text-xs uppercase tracking-[0.4em] hover:bg-amber-400 transition-all shadow-2xl">LANCER LE BOOKING →</button>
+                                            </div>
+                                        </motion.div>
+                                    )}
+                                    {/* --- STEP 6: BOOKING & PRODUCTION --- */}
+                                    {gameState === 'BOOKING' && (
+                                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                                            {/* Sidebar: Production Control */}
+                                            <div className="lg:col-span-4 space-y-8">
+                                                <div className="sticky top-24 p-10 bg-white/5 backdrop-blur-3xl border border-white/10 rounded-[3rem] shadow-2xl space-y-10">
+                                                    <div className="flex items-center justify-between">
+                                                        <h3 className="text-2xl font-black italic tracking-tighter uppercase text-white">Production</h3>
+                                                        <button onClick={resetGame} className="p-2 text-white/20 hover:text-white transition-colors">
+                                                            <X className="w-6 h-6" />
+                                                        </button>
+                                                    </div>
+
+                                                    {/* Budget Progress */}
+                                                    <div className="space-y-4">
+                                                        <div className="flex justify-between items-end">
+                                                            <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Trésorerie</span>
+                                                            <span className="text-2xl font-black font-mono text-white tracking-widest">{totalSpent.toLocaleString()}€</span>
+                                                        </div>
+                                                        <div className="w-full h-3 bg-white/5 rounded-full overflow-hidden border border-white/5">
+                                                            <motion.div
+                                                                className={twMerge("h-full transition-colors duration-500", remainingBudget < 0 ? "bg-neon-red" : "bg-amber-400")}
+                                                                animate={{ width: `${Math.min(100, (totalSpent / (budget + sponsorsBonus)) * 100)}%` }}
+                                                            />
+                                                        </div>
+                                                        <div className="flex justify-between">
+                                                            <span className="text-[9px] font-bold text-white/20 uppercase">Budget Max: {(budget + sponsorsBonus).toLocaleString()}€</span>
+                                                            <span className={twMerge("text-[9px] font-black uppercase", remainingBudget < 0 ? "text-neon-red animate-pulse" : "text-emerald-400")}>
+                                                                Reste: {remainingBudget.toLocaleString()}€
+                                                            </span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Quick Settings */}
+                                                    <div className="space-y-8">
+                                                        <div className="space-y-4">
+                                                            <div className="flex justify-between items-center text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">
+                                                                <span>Prix Billet</span>
+                                                                <span className="text-white font-mono">{ticketPrice}€</span>
+                                                            </div>
+                                                            <input type="range" min="50" max="800" step="10" value={ticketPrice} onChange={(e) => setTicketPrice(parseInt(e.target.value))} className="w-full accent-amber-400" />
+                                                        </div>
+
+                                                        <div className="p-6 bg-white/[0.03] border border-white/10 rounded-[2rem] relative overflow-hidden group">
+                                                            <div className="flex gap-5 relative z-10">
+                                                                <div className="w-14 h-14 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center shrink-0 shadow-xl border border-white/10">
+                                                                    <span className="text-3xl">{advisorTip?.avatar || "👤"}</span>
+                                                                </div>
+                                                                <div>
+                                                                    <h4 className="text-[10px] font-black uppercase text-amber-400 tracking-[0.2em] mb-1">{advisorTip?.name || "Conseiller"}</h4>
+                                                                    <p className="text-[11px] font-bold text-white/70 italic leading-snug">"{advisorTip?.tip}"</p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-4">
+                                                            <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.3em]">Services ({selectedCosts.length})</span>
+                                                            <div className="grid grid-cols-4 gap-2">
+                                                                {FIX_COSTS.map(cost => (
+                                                                    <button
+                                                                        key={cost.id}
+                                                                        onClick={() => selectedCosts.includes(cost.id) ? setSelectedCosts(p => p.filter(id => id !== cost.id)) : setSelectedCosts(p => [...p, cost.id])}
+                                                                        className={twMerge(
+                                                                            "p-3 rounded-xl border-2 transition-all flex items-center justify-center",
+                                                                            selectedCosts.includes(cost.id) ? "bg-white border-white text-black shadow-lg" : "bg-white/5 border-white/10 text-white/20"
+                                                                        )}
+                                                                        title={cost.name}
+                                                                    >
+                                                                        <cost.icon className="w-4 h-4" />
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <button
+                                                        disabled={selectedDjs.length < 5 || remainingBudget < 0 || !selectedDate}
+                                                        onClick={generatePoster}
+                                                        className="w-full py-6 rounded-[1.5rem] bg-white text-black font-black text-[10px] uppercase tracking-[0.3em] disabled:opacity-20 hover:bg-neon-red hover:text-white transition-all duration-500 shadow-2xl"
+                                                    >
+                                                        {selectedDjs.length < 5 ? `Artistes: ${selectedDjs.length}/5` : "Lancer le Festival"}
+                                                    </button>
+                                                </div>
+                                            </div>
+
+                                            {/* Main: DJ List */}
+                                            <div className="lg:col-span-8 flex flex-col min-h-[800px] relative">
+                                                <div className="sticky top-0 z-40 bg-[#050505]/60 backdrop-blur-3xl pb-8 pt-4 border-b border-white/5 mx-[-1rem] px-4 rounded-b-[3rem]">
+                                                    <div className="flex flex-col xl:flex-row items-center justify-between gap-8 py-4">
+                                                        <div className="text-center xl:text-left">
+                                                            <h3 className="text-4xl font-black italic tracking-tighter uppercase mb-2 bg-gradient-to-r from-white via-white to-white/20 bg-clip-text text-transparent">Booking Gallery</h3>
+                                                            <p className="text-[11px] font-black text-amber-400 uppercase tracking-[0.4em]">{selectedDjs.length} / 5 Artistes Minimum</p>
+                                                        </div>
+
+                                                        <div className="flex flex-wrap items-center justify-center gap-4 w-full xl:w-auto">
+                                                            <div className="relative group flex-1 md:w-80">
+                                                                <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400" />
+                                                                <input
+                                                                    type="text"
+                                                                    placeholder="Rechercher une star..."
+                                                                    value={searchQuery}
+                                                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                                                    className="w-full pl-14 pr-8 py-4 bg-white/5 border border-white/10 rounded-[2rem] text-xs font-black text-white placeholder:text-white/20 focus:outline-none focus:border-amber-400 focus:bg-white/10 transition-all duration-500 shadow-2xl"
+                                                                />
+                                                            </div>
+
+                                                            <div className="flex items-center gap-2">
+                                                                <div className="relative">
+                                                                    <Filter className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40" />
+                                                                    <select
+                                                                        value={selectedGenreFilter}
+                                                                        onChange={(e) => setSelectedGenreFilter(e.target.value)}
+                                                                        className="pl-14 pr-10 py-4 bg-white/5 border border-white/10 rounded-full text-[10px] font-black uppercase tracking-widest text-white appearance-none focus:outline-none focus:border-white/20 transition-all cursor-pointer hover:bg-white/10"
+                                                                    >
+                                                                        <option value="ALL">Tous les Styles</option>
+                                                                        <option value="EDM">EDM</option>
+                                                                        <option value="TECHNO">Techno</option>
+                                                                        <option value="HOUSE">House</option>
+                                                                        <option value="TECH HOUSE">Tech House</option>
+                                                                        <option value="AFRO HOUSE">Afro House</option>
+                                                                        <option value="MELODIC TECHNO">Melodic</option>
+                                                                        <option value="BASS MUSIC">Bass</option>
+                                                                    </select>
+                                                                </div>
+
+                                                                <button
+                                                                    onClick={() => setPriceSort(prev => prev === 'DESC' ? 'ASC' : 'DESC')}
+                                                                    className="px-6 py-4 bg-white/5 border border-white/10 rounded-full flex items-center gap-3 hover:bg-white/10 transition-all"
+                                                                >
+                                                                    <Trophy className={twMerge("w-4 h-4", priceSort !== 'NONE' ? "text-amber-400" : "text-white/20")} />
+                                                                    <span className="text-[10px] font-black uppercase tracking-widest">Prix {priceSort === 'DESC' ? '↓' : priceSort === 'ASC' ? '↑' : ''}</span>
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* AI Booking Notification Status + Negotiation */}
+                                                    <AnimatePresence mode="wait">
+                                                        {negotiatingDj ? (
+                                                            <motion.div
+                                                                key="negotiation"
+                                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                                animate={{ opacity: 1, scale: 1 }}
+                                                                exit={{ opacity: 0 }}
+                                                                className="p-8 rounded-[3rem] bg-amber-400 text-black border border-amber-500 shadow-2xl z-50 flex flex-col items-center gap-6"
+                                                            >
+                                                                <div className="text-center">
+                                                                    <h4 className="text-xl font-black uppercase italic tracking-tighter">NÉGOCIATION EN COURS</h4>
+                                                                    <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">L'agent de {negotiatingDj.name} demande un extra.</p>
+                                                                </div>
+                                                                <div className="grid grid-cols-3 gap-4 w-full">
+                                                                    {NEGOTIATION_PERKS.map(perk => (
+                                                                        <button
+                                                                            key={perk.id}
+                                                                            onClick={() => handleNegotiate(perk)}
+                                                                            className="p-4 bg-black/10 border border-black/10 rounded-2xl hover:bg-black/20 transition-all flex flex-col items-center gap-2"
+                                                                        >
+                                                                            <span className="text-[9px] font-black uppercase">{perk.name}</span>
+                                                                            <span className="text-xs font-mono font-black">{perk.cost.toLocaleString()}€</span>
+                                                                            <span className="text-[7px] opacity-40 uppercase font-bold text-center">{perk.desc}</span>
+                                                                        </button>
+                                                                    ))}
+                                                                </div>
+                                                                <button
+                                                                    onClick={() => setNegotiatingDj(null)}
+                                                                    className="text-[9px] font-black uppercase tracking-widest opacity-40 hover:opacity-100"
+                                                                >
+                                                                    Annuler le booking
+                                                                </button>
+                                                            </motion.div>
+                                                        ) : bookingStatus ? (
+                                                            <div className="p-5 rounded-[2rem] bg-amber-400/5 border border-amber-400/10 flex items-center gap-4 text-amber-400/40">
+                                                                <RefreshCw className="w-4 h-4 animate-spin" />
+                                                                <span className="text-[10px] font-black uppercase tracking-[0.4em] italic">Négociation en cours (voir carte)...</span>
+                                                            </div>
+                                                        ) : (
+                                                            <div className="p-5 rounded-[2rem] bg-white/[0.03] border border-white/5 flex items-center gap-4 text-white/20">
+                                                                <div className="w-10 h-10 border border-white/10 rounded-xl flex items-center justify-center">
+                                                                    <Music className="w-4 h-4 opacity-50" />
+                                                                </div>
+                                                                <span className="text-[10px] font-black uppercase tracking-[0.4em] italic">Clique sur un artiste pour lancer la négociation...</span>
+                                                            </div>
+                                                        )}
+                                                    </AnimatePresence>
+
+                                                    {/* Crisis Modal */}
+                                                    <AnimatePresence>
+                                                        {activeCrisis && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0 }}
+                                                                animate={{ opacity: 1 }}
+                                                                exit={{ opacity: 0 }}
+                                                                className="fixed inset-0 z-[110] bg-black/95 backdrop-blur-xl flex items-center justify-center p-6"
+                                                            >
+                                                                <motion.div
+                                                                    initial={{ scale: 0.9, y: 20 }}
+                                                                    animate={{ scale: 1, y: 0 }}
+                                                                    className="max-w-xl w-full p-12 bg-white/5 border border-white/10 rounded-[4rem] space-y-10"
+                                                                >
+                                                                    <div className="text-center space-y-4">
+                                                                        <div className="w-20 h-20 bg-neon-red/20 rounded-3xl flex items-center justify-center mx-auto border border-neon-red/30">
+                                                                            <AlertCircle className="w-10 h-10 text-neon-red animate-pulse" />
+                                                                        </div>
+                                                                        <h2 className="text-4xl font-black italic tracking-tighter uppercase text-white">{activeCrisis.name}</h2>
+                                                                        <p className="text-white/40 text-xs font-black uppercase tracking-[0.2em]">{activeCrisis.desc}</p>
+                                                                    </div>
+
+                                                                    <div className="grid grid-cols-1 gap-4">
+                                                                        {activeCrisis.options.map(option => (
+                                                                            <button
+                                                                                key={option.id}
+                                                                                onClick={() => handleCrisisChoice(option)}
+                                                                                className="p-6 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 hover:border-amber-400/30 transition-all text-left group"
+                                                                            >
+                                                                                <div className="flex justify-between items-center">
+                                                                                    <span className="text-sm font-black uppercase tracking-widest group-hover:text-amber-400 transition-colors">{option.name}</span>
+                                                                                    <span className="text-[10px] font-mono text-white/40">{option.cost > 0 ? `-${option.cost.toLocaleString()}€` : 'Gratuit'}</span>
+                                                                                </div>
+                                                                                <p className="text-[9px] font-bold text-white/20 uppercase mt-2">{option.result}</p>
+                                                                            </button>
+                                                                        ))}
+                                                                    </div>
+                                                                </motion.div>
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 pt-12">
+                                                    {[...DJ_POOL]
+                                                        .filter(dj => {
+                                                            const matchesSearch = dj.name.toLowerCase().includes(searchQuery.toLowerCase());
+                                                            const matchesGenre = selectedGenreFilter === 'ALL' || dj.genre.toUpperCase().includes(selectedGenreFilter);
+                                                            return matchesSearch && matchesGenre;
+                                                        })
+                                                        .sort((a, b) => {
+                                                            if (priceSort === 'ASC') return a.price - b.price;
+                                                            if (priceSort === 'DESC') return b.price - a.price;
+                                                            return 0;
+                                                        })
+                                                        .map((dj, i) => {
+                                                            const isSelected = selectedDjs.find(d => d.id === dj.id);
+                                                            const canAfford = remainingBudget >= (dj.price * (dj.popularity > 95 ? 1.15 : 1));
+                                                            const isHeadliner = dj.price > 600000;
+
+                                                            return (
+                                                                <motion.button
+                                                                    key={dj.id}
+                                                                    initial={{ opacity: 0, y: 20 }}
+                                                                    animate={{ opacity: 1, y: 0 }}
+                                                                    transition={{ delay: Math.min(i * 0.03, 0.6) }}
+                                                                    onClick={() => toggleDj(dj)}
+                                                                    disabled={!isSelected && !canAfford}
+                                                                    className={twMerge(
+                                                                        "relative group p-8 rounded-[3rem] border-2 transition-all duration-500 text-left overflow-hidden flex flex-col min-h-[340px] shadow-2xl",
+                                                                        isSelected
+                                                                            ? "bg-amber-400 border-amber-400 text-black scale-105 z-10"
+                                                                            : !canAfford && !isSelected
+                                                                                ? "bg-white/[0.02] border-white/5 opacity-20 grayscale pointer-events-none"
+                                                                                : isHeadliner
+                                                                                    ? "bg-gradient-to-br from-white/[0.08] to-transparent border-white/20 hover:border-amber-400/50"
+                                                                                    : "bg-white/[0.04] border-white/10 hover:border-white/20"
+                                                                    )}
+                                                                >
+                                                                    {/* Glow Effect for Selected/Headliners */}
+                                                                    {isSelected && (
+                                                                        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(255,255,255,0.4),transparent)] opacity-50" />
+                                                                    )}
+
+                                                                    <div className="flex justify-between items-start mb-8 relative z-10">
+                                                                        <div className={twMerge(
+                                                                            "w-14 h-14 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 overflow-hidden bg-black/20",
+                                                                            isSelected ? "border-black/10 shadow-lg" : "border-white/10 group-hover:border-amber-400 group-hover:shadow-[0_0_20px_rgba(251,191,36,0.5)]"
+                                                                        )}>
+                                                                            {(dj as any).image ? (
+                                                                                <img
+                                                                                    src={(dj as any).image}
+                                                                                    alt={dj.name}
+                                                                                    className="w-full h-full object-cover"
+                                                                                    onError={(e) => {
+                                                                                        (e.target as HTMLImageElement).src = `https://api.dicebear.com/7.x/initials/svg?seed=${dj.name}&backgroundColor=050505`;
+                                                                                    }}
+                                                                                />
+                                                                            ) : (
+                                                                                <Music className="w-7 h-7" />
+                                                                            )}
+                                                                        </div>
+
+                                                                        <div className="flex flex-col items-end gap-2">
+                                                                            {isSelected ? (
+                                                                                <div className="bg-black text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                                                                                    <Check className="w-3 h-3" /> Confirmé
+                                                                                </div>
+                                                                            ) : isHeadliner ? (
+                                                                                <div className="bg-amber-400/20 text-amber-500 border border-amber-500/30 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] animate-pulse">
+                                                                                    Elite Tier
+                                                                                </div>
+                                                                            ) : (
+                                                                                <div className="bg-white/5 text-white/40 border border-white/10 px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest">
+                                                                                    Artiste
+                                                                                </div>
+                                                                            )}
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="flex-1 relative z-10">
+                                                                        <h4 className={twMerge(
+                                                                            "text-2xl font-black uppercase italic tracking-tighter mb-1 leading-none transition-colors",
+                                                                            isSelected ? "text-black" : "text-white group-hover:text-amber-400"
+                                                                        )}>
+                                                                            {dj.name}
+                                                                        </h4>
+                                                                        <p className={twMerge(
+                                                                            "text-[10px] font-black uppercase tracking-[0.3em] mb-6 opacity-40",
+                                                                            isSelected ? "text-black" : "text-white"
+                                                                        )}>
+                                                                            {dj.genre}
+                                                                        </p>
+
+                                                                        <div className="space-y-4">
+                                                                            <AnimatePresence>
+                                                                                {bookingStatus?.djId === dj.id && (
+                                                                                    <motion.div
+                                                                                        initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                                                                        animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                                                        exit={{ opacity: 0, scale: 0.9, y: 10 }}
+                                                                                        className={twMerge(
+                                                                                            "p-4 rounded-2xl border flex flex-col gap-2 shadow-2xl",
+                                                                                            bookingStatus.status === 'PENDING' ? "bg-amber-400/20 border-amber-400/40" :
+                                                                                                bookingStatus.status === 'ACCEPTED' ? "bg-emerald-400/20 border-emerald-400/40" :
+                                                                                                    "bg-red-400/20 border-red-400/40"
+                                                                                        )}
+                                                                                    >
+                                                                                        <div className="flex items-center justify-between">
+                                                                                            <span className="text-[8px] font-black uppercase tracking-widest opacity-60">Status Agent</span>
+                                                                                            {bookingStatus.status === 'PENDING' && <RefreshCw className="w-3 h-3 animate-spin text-amber-400" />}
+                                                                                        </div>
+                                                                                        <p className="text-[10px] font-bold text-white leading-tight italic">
+                                                                                            {bookingStatus.message}
+                                                                                        </p>
+                                                                                    </motion.div>
+                                                                                )}
+                                                                            </AnimatePresence>
+
+                                                                            <div className="flex justify-between items-end">
+                                                                                <span className="text-[9px] font-black uppercase tracking-widest opacity-30">Power Rating</span>
+                                                                                <span className={twMerge("text-xs font-black", isSelected ? "text-black" : "text-amber-400")}>{dj.popularity}%</span>
+                                                                            </div>
+                                                                            <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden">
+                                                                                <motion.div
+                                                                                    initial={{ width: 0 }}
+                                                                                    animate={{ width: `${dj.popularity}%` }}
+                                                                                    className={twMerge("h-full", isSelected ? "bg-black" : "bg-amber-400")}
+                                                                                />
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+
+                                                                    <div className="flex items-center justify-between pt-8 mt-8 border-t border-black/5 relative z-10">
+                                                                        <div className="flex flex-col">
+                                                                            <span className="text-[8px] font-black uppercase tracking-widest opacity-30 mb-0.5">Booking Fee</span>
+                                                                            <span className={twMerge(
+                                                                                "text-2xl font-mono font-black",
+                                                                                isSelected ? "text-black" : "text-white"
+                                                                            )}>
+                                                                                {dj.price.toLocaleString()}€
+                                                                            </span>
+                                                                        </div>
+                                                                        <div className={twMerge(
+                                                                            "p-3 rounded-2xl transition-all",
+                                                                            isSelected ? "bg-black/10" : "bg-white/5 group-hover:bg-amber-400 group-hover:text-black"
+                                                                        )}>
+                                                                            <Plus className="w-5 h-5" />
+                                                                        </div>
+                                                                    </div>
+
+                                                                    {!isSelected && !canAfford && (
+                                                                        <div className="absolute inset-0 bg-[#050505]/80 backdrop-blur-md flex flex-col items-center justify-center p-8 text-center z-20">
+                                                                            <AlertCircle className="w-10 h-10 text-red-500 mb-4" />
+                                                                            <span className="text-xs font-black text-white uppercase tracking-[0.3em] mb-2 leading-tight">Trésorerie Insuffisante</span>
+                                                                            <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest leading-relaxed">Cet artiste prestigieux demande une avance que vous ne possédez pas.</p>
+                                                                        </div>
+                                                                    )}
+                                                                </motion.button>
+                                                            );
+                                                        })}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* --- STEP 7: TICKETING SIMULATION --- */}
+                                    {gameState === 'GENERATION' && (
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl flex flex-col items-center justify-center p-12 text-center"
+                                        >
+                                            <div className="max-w-md w-full space-y-12">
+                                                <div className="relative w-32 h-32 mx-auto">
+                                                    <motion.div
+                                                        animate={{ rotate: 360 }}
+                                                        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                                                        className="absolute inset-0 border-4 border-amber-400/20 border-t-amber-400 rounded-full"
+                                                    />
+                                                    <div className="absolute inset-0 flex items-center justify-center">
+                                                        <Ticket className="w-12 h-12 text-amber-400" />
+                                                    </div>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <h2 className="text-4xl font-black italic tracking-tighter uppercase text-white">Simulation Billeterie</h2>
+                                                    <p className="text-white/40 text-[10px] font-black uppercase tracking-[0.3em]">Analyse des algorithmes de vente...</p>
+                                                </div>
+                                                <div className="space-y-4">
+                                                    <div className="h-2 bg-white/5 rounded-full overflow-hidden border border-white/10">
+                                                        <motion.div
+                                                            initial={{ width: 0 }}
+                                                            animate={{ width: `${ticketingProgress}%` }}
+                                                            className="h-full bg-amber-400 shadow-[0_0_20px_rgba(251,191,36,0.3)]"
+                                                        />
+                                                    </div>
+                                                    <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-amber-400">
+                                                        <span>Ventes Directes</span>
+                                                        <span>{Math.round(ticketingProgress)}%</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </motion.div>
+                                    )}
+
+                                    {/* --- STEP 8: FINAL RESULTS --- */}
+                                    {gameState === 'RESULTS' && (
+                                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+                                            {/* Left: Poster Display */}
+                                            <div className="lg:col-span-12 xl:col-span-5">
+                                                <motion.div
+                                                    initial={{ scale: 0.9, opacity: 0 }}
+                                                    animate={{ scale: 1, opacity: 1 }}
+                                                    className={twMerge(
+                                                        "relative aspect-[1.3/2] border-[12px] shadow-[0_60px_120px_rgba(0,0,0,0.9)] rounded-[2.5rem] p-8 md:p-12 overflow-hidden bg-[#050505]",
+                                                        posterStyle === 'ULTRA' ? "border-white" :
+                                                            posterStyle === 'TOMORROWLAND' ? "border-[#d4af37]" : "border-white/10"
+                                                    )}
+                                                >
+                                                    <div className="relative z-10 h-full flex flex-col items-center text-center">
+                                                        <div className="mb-12">
+                                                            <div className="text-[10px] font-black text-amber-400 uppercase tracking-[0.5em] mb-4">World Premiere</div>
+                                                            <h3 className="text-4xl md:text-6xl font-display font-black uppercase text-white italic tracking-tighter leading-none">{festivalName}</h3>
+                                                        </div>
+                                                        <div className="flex-1 w-full space-y-6">
+                                                            {selectedDjs.map((dj, i) => (
+                                                                <div key={dj.id} className={twMerge("font-black uppercase tracking-widest", i === 0 ? "text-4xl text-white" : "text-xl text-white/50")}>
+                                                                    {dj.name}
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                        <div className="mt-auto pt-10 border-t border-white/10 w-full text-white/20 text-[9px] font-black uppercase tracking-[0.6em]">
+                                                            {selectedLocation.name} • {selectedDate}
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            </div>
+
+                                            {/* Right: Detailed Report & Archives */}
+                                            <div className="lg:col-span-12 xl:col-span-7 space-y-8">
+                                                <div className="p-10 bg-white/5 border border-white/10 rounded-[3rem] backdrop-blur-3xl space-y-10">
+                                                    <div className="flex justify-between items-center">
+                                                        <h3 className="text-2xl font-black italic tracking-tighter uppercase text-white">Rapport de Production</h3>
+                                                        <div className="px-4 py-2 bg-emerald-400/10 border border-emerald-400/20 rounded-xl text-emerald-400 text-[10px] font-black uppercase">Statut: Succès</div>
+                                                    </div>
+
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        <div className="p-8 bg-white/[0.03] rounded-[2rem] border border-white/5 text-center">
+                                                            <Users className="w-8 h-8 text-amber-400 mx-auto mb-4" />
+                                                            <span className="text-[9px] font-black text-white/40 uppercase block mb-1 tracking-widest">Affluence Totale</span>
+                                                            <span className="text-3xl font-black text-white">{attendance.toLocaleString()}</span>
+                                                        </div>
+                                                        <div className="p-8 bg-white/[0.03] rounded-[2rem] border border-white/5 text-center">
+                                                            <Euro className="w-8 h-8 text-emerald-400 mx-auto mb-4" />
+                                                            <span className="text-[9px] font-black text-white/40 uppercase block mb-1 tracking-widest">Profit Net</span>
+                                                            <span className={twMerge("text-3xl font-black", profit >= 0 ? "text-emerald-400" : "text-neon-red")}>{profit.toLocaleString()}€</span>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-8 bg-white/[0.03] border border-white/5 rounded-[2rem] relative overflow-hidden group text-center">
+                                                        <h4 className="text-[10px] font-black uppercase text-amber-400 tracking-[0.3em] mb-4">Analyse Critique</h4>
+                                                        <p className="text-lg font-bold italic text-white/80 leading-relaxed uppercase tracking-tight">
+                                                            "{aftermovieSummary}"
+                                                        </p>
+                                                    </div>
+
+                                                    <div className="flex flex-col sm:flex-row gap-4">
+                                                        <button onClick={() => window.print()} className="flex-1 py-6 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all">Sauvegarder Affiche</button>
+                                                        <button onClick={resetGame} className="flex-1 py-6 bg-white/10 border border-white/20 text-white rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-white/20 transition-all">Nouveau Festival</button>
+                                                    </div>
+                                                </div>
+
+                                                {/* Career Archives */}
+                                                <div className="p-10 bg-white/5 border border-white/10 rounded-[3rem] backdrop-blur-3xl space-y-8">
+                                                    <div className="flex items-center gap-4">
+                                                        <Trophy className="w-6 h-6 text-amber-400" />
+                                                        <h3 className="text-xl font-black italic tracking-tighter uppercase text-white">Archives de Carrière</h3>
+                                                    </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[400px] overflow-y-auto pr-4 custom-scrollbar">
+                                                        {archives.length === 0 ? (
+                                                            <div className="col-span-full py-20 text-center opacity-20">
+                                                                <p className="text-[10px] font-black uppercase tracking-widest italic">Aucune archive disponible...</p>
+                                                            </div>
+                                                        ) : (
+                                                            archives.map((entry, idx) => (
+                                                                <div key={idx} className="p-6 bg-white/[0.03] border border-white/5 rounded-2xl group hover:bg-white/[0.05] transition-all">
+                                                                    <div className="flex justify-between items-start mb-4">
+                                                                        <h4 className="text-[10px] font-black uppercase text-white group-hover:text-amber-400">{entry.festivalName}</h4>
+                                                                        <span className="text-[8px] font-bold text-white/20 uppercase">{entry.date}</span>
+                                                                    </div>
+                                                                    <div className="flex justify-between items-end">
+                                                                        <span className="text-[9px] font-bold text-white/40">{entry.location}</span>
+                                                                        <span className={twMerge("text-xs font-black font-mono", entry.profit >= 0 ? "text-emerald-400" : "text-neon-red")}>{entry.profit.toLocaleString()}€</span>
+                                                                    </div>
+                                                                </div>
+                                                            ))
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </motion.div>
@@ -1606,35 +1715,32 @@ export function Community() {
                     )}
                 </AnimatePresence>
 
-                {/* Footer CTA */}
-                {
-                    activeTab !== 'GAME' && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            className="mt-32 p-12 md:p-24 bg-gradient-to-br from-neon-red/[0.05] to-neon-cyan/[0.05] border border-white/10 rounded-[4rem] text-center"
-                        >
-                            <h2 className="text-4xl md:text-6xl font-display font-black mb-8 uppercase italic tracking-tighter">
-                                REJOINS LE <span className="text-neon-cyan">MOUVEMENT</span>
-                            </h2>
-                            <p className="text-white/40 max-w-2xl mx-auto text-xs font-black uppercase tracking-[0.3em] leading-loose mb-12">
-                                Abonne-toi à notre newsletter pour ne rien rater des futures extensions du Lab Dropsiders.
-                            </p>
-                            <div className="flex flex-col md:flex-row gap-4 max-w-md mx-auto">
-                                <input
-                                    type="email"
-                                    placeholder="TON.EMAIL@FESTIVAL.FR"
-                                    className="flex-1 px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-colors"
-                                />
-                                <button className="px-10 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all">
-                                    OK
-                                </button>
-                            </div>
-                        </motion.div>
-                    )
-                }
-            </div >
-        </div >
+                {activeTab !== 'GAME' && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        whileInView={{ opacity: 1 }}
+                        className="mt-32 p-12 md:p-24 bg-gradient-to-br from-neon-red/[0.05] to-neon-cyan/[0.05] border border-white/10 rounded-[4rem] text-center"
+                    >
+                        <h2 className="text-4xl md:text-6xl font-display font-black mb-8 uppercase italic tracking-tighter">
+                            REJOINS LE <span className="text-neon-cyan">MOUVEMENT</span>
+                        </h2>
+                        <p className="text-white/40 max-w-2xl mx-auto text-xs font-black uppercase tracking-[0.3em] leading-loose mb-12">
+                            Abonne-toi à notre newsletter pour ne rien rater des futures extensions du Lab Dropsiders.
+                        </p>
+                        <div className="flex flex-col md:flex-row gap-4 max-w-md mx-auto">
+                            <input
+                                type="email"
+                                placeholder="TON.EMAIL@FESTIVAL.FR"
+                                className="flex-1 px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-colors"
+                            />
+                            <button className="px-10 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all">
+                                OK
+                            </button>
+                        </div>
+                    </motion.div>
+                )}
+            </div>
+        </div>
     );
 }
 
