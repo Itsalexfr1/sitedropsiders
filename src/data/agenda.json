@@ -4007,5 +4007,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 304,
+    "title": "Tony Romera présent House Delivery",
+    "date": "2026-04-17",
+    "startDate": "2026-04-17",
+    "endDate": "2026-03-10",
+    "venue": "Baby",
+    "location": "Marseille",
+    "country": "France",
+    "type": "Events",
+    "image": "/uploads/uploads/6f89792278ea2207-HOUSE_DELIVERY_PASSE_UN_CAP___.mp4",
+    "url": "https://shotgun.live/fr/events/house-delivry-tour-tony-romera-jodie",
+    "genre": "House",
+    "month": "AVRIL",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
