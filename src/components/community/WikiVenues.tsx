@@ -212,12 +212,12 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                     <motion.div key={venue.id} whileHover={{ y: -4, scale: 1.02 }}
                                         className={`group relative rounded-2xl overflow-hidden border transition-all duration-300 cursor-pointer ${selected?.id === venue.id ? 'border-neon-red shadow-[0_0_20px_rgba(255,0,0,0.3)]' : 'border-white/10 hover:border-white/30'}`}>
 
-                                        {/* Photo — portrait format, full image, gradient */}
+                                        {/* Photo — photo entière + fondu premium en bas */}
                                         <div className="relative aspect-[3/4] bg-black overflow-hidden" onClick={() => setSelected(selected?.id === venue.id ? null : venue)}>
                                             <img src={venue.image} alt={venue.name}
-                                                className="w-full h-full object-cover object-center transition-transform duration-500 group-hover:scale-105" />
-                                            {/* Gradient fade bottom */}
-                                            <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-black via-black/70 to-transparent pointer-events-none" />
+                                                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105" />
+                                            {/* Fondu premium vers le bas */}
+                                            <div className="absolute bottom-0 left-0 right-0 h-3/5 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
                                             {/* Custom badge */}
                                             {venue.custom && <div className="absolute top-2 left-2 bg-white/20 backdrop-blur text-white text-[7px] font-black px-1.5 py-0.5 rounded-full">📍</div>}
                                             {/* Info on gradient */}

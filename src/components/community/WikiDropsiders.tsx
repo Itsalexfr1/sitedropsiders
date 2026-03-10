@@ -137,12 +137,12 @@ export function WikiDropsiders() {
                                     <motion.div key={dj.id} whileHover={{ y: -4, scale: 1.02 }}
                                         className={`group relative rounded-2xl overflow-hidden border transition-all duration-300 cursor-pointer ${selectedDj?.id === dj.id ? 'border-neon-red shadow-[0_0_20px_rgba(255,0,0,0.3)]' : 'border-white/10 hover:border-white/30'}`}>
 
-                                        {/* Photo — portrait, full visible, gradient overlay */}
+                                        {/* Photo — photo entière visible + fondu premium en bas */}
                                         <div className="relative aspect-[3/4] bg-black overflow-hidden" onClick={() => handleSelectDj(dj)}>
                                             <img src={dj.image} alt={dj.name}
-                                                className="w-full h-full object-cover object-top transition-transform duration-500 group-hover:scale-105" />
-                                            {/* Gradient fade bottom */}
-                                            <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-black via-black/60 to-transparent pointer-events-none" />
+                                                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105" />
+                                            {/* Fondu premium vers le bas */}
+                                            <div className="absolute bottom-0 left-0 right-0 h-3/5 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
                                             {/* Name on gradient */}
                                             <div className="absolute bottom-0 left-0 right-0 p-2.5">
                                                 <div className="text-[9px] font-black text-white uppercase tracking-widest leading-tight line-clamp-1">{dj.name}</div>
