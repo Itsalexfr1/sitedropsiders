@@ -1,6 +1,10 @@
-
+// --- CONFIGURATION PUSH ---
+// Ta clé VAPID publique (générée via web-push)
 export const VAPID_PUBLIC_KEY = 'BGMpEqmZLss9GcRaT-ON63yjLvQYjowck_ZYpePbiV5qHeC0sBXkcIgyGOa0k98wD62nv69XEAlGz6_PKKqqiaA';
 
+/**
+ * Convertit une clé VAPID base64 en Uint8Array pour le navigateur
+ */
 export function urlBase64ToUint8Array(base64String: string) {
     const padding = '='.repeat((4 - base64String.length % 4) % 4);
     const base64 = (base64String + padding)
@@ -16,37 +20,75 @@ export function urlBase64ToUint8Array(base64String: string) {
     return outputArray;
 }
 
+/**
+ * Souscrit l'utilisateur aux notifications Push
+ */
 export async function subscribeUser() {
-    if (!('serviceWorker' in navigator)) return null;
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+        console.warn('Push Notifications are not supported in this browser.');
+        return null;
+    }
 
     try {
         const registration = await navigator.serviceWorker.ready;
+        console.log('SW Ready for push subscription');
 
-        // Check for existing subscription
-        let subscription = await registration.pushManager.getSubscription();
-
-        if (subscription) {
-            return subscription;
+        // On demande la permission explicitement SI ce n'est pas déjà fait
+        const permission = await Notification.requestPermission();
+        if (permission !== 'granted') {
+            throw new Error('Notification permission denied');
         }
 
-        const subscribeOptions = {
-            userVisibleOnly: true,
-            applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
-        };
+        // On récupère ou crée la souscription
+        let subscription = await registration.pushManager.getSubscription();
 
-        subscription = await registration.pushManager.subscribe(subscribeOptions);
+        if (!subscription) {
+            console.log('No existing subscription, creating new one...');
+            const subscribeOptions = {
+                userVisibleOnly: true,
+                applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY)
+            };
+            subscription = await registration.pushManager.subscribe(subscribeOptions);
+        }
 
-        // Send to server
-        await fetch('/api/push/subscribe', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ subscription })
-        });
+        console.log('User is subscribed:', subscription);
+
+        // Envoyer au serveur (Optionnel si tu n'as pas encore de backend Push)
+        try {
+            await fetch('/api/push/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ subscription })
+            });
+        } catch (e) {
+            console.warn('Backend sync failed, but local subscription ok', e);
+        }
 
         return subscription;
     } catch (error: any) {
         console.error('Failed to subscribe user:', error);
-        return null;
+        throw error;
+    }
+}
+
+/**
+ * Déclenche une notification locale (test)
+ */
+export async function triggerTestNotification() {
+    if (!('serviceWorker' in navigator)) return;
+
+    const registration = await navigator.serviceWorker.ready;
+    const permission = await Notification.requestPermission();
+
+    if (permission === 'granted') {
+        const options: any = {
+            body: 'Ceci est une notification de test locale ! Tout fonctionne.',
+            icon: '/android-chrome-192x192.png',
+            badge: '/android-chrome-192x192.png',
+            vibrate: [100, 50, 100],
+            data: { url: '/' }
+        };
+        registration.showNotification('DROPSIDERS TEST 🚀', options);
     }
 }
 
@@ -61,11 +103,13 @@ export async function unsubscribeUser() {
             await subscription.unsubscribe();
 
             // Notify server
-            await fetch('/api/push/unsubscribe', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ endpoint: subscription.endpoint })
-            });
+            try {
+                await fetch('/api/push/unsubscribe', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ endpoint: subscription.endpoint })
+                });
+            } catch (e) { /* ignore */ }
         }
         return true;
     } catch (error: any) {

@@ -7,6 +7,7 @@ import { CookieConsent } from './components/ui/CookieConsent';
 import { GoogleAdSense } from './components/analytics/GoogleAdSense';
 import { ScrollToTop } from './components/utils/ScrollToTop';
 import { NotificationPrompt } from './components/NotificationPrompt';
+import { useRegisterSW } from 'virtual:pwa-register/react';
 
 // Lazy load pages for better mobile performance
 const Home = lazy(() => import('./pages/Home').then(m => ({ default: m.Home })));
@@ -154,6 +155,16 @@ const router = createBrowserRouter([
 function App() {
   const [initialLoad, setInitialLoad] = useState(true);
   const isMobile = window.innerWidth < 1024;
+
+  // Enregistrement explicite du Service Worker pour les Pushs
+  useRegisterSW({
+    onRegistered(r: ServiceWorkerRegistration | undefined) {
+      console.log('SW Registered: ', r);
+    },
+    onRegisterError(error: any) {
+      console.error('SW registration error', error);
+    }
+  });
 
   useEffect(() => {
     // Shorter splash on mobile for faster time-to-interactive
