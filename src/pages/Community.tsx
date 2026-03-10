@@ -4,8 +4,8 @@ import {
     Users, Camera, Gamepad2, Star, Info, Car, Bell,
     Sparkles, Trophy, Plus, Check, AlertCircle,
     Music, Shield, Palette, Megaphone, Lock,
-    RefreshCw, X, Download, Heart, Ticket, Euro,
-    Flame, Share2, Instagram, Facebook, Twitter, Search, Filter
+    RefreshCw, X, Heart, Ticket, Euro,
+    Flame, Search, Filter
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
@@ -119,9 +119,6 @@ const RANDOM_EVENTS = [
 ];
 
 const STAGE_COST_PER_UNIT = 100000;
-
-// --- HALL OF FAME MOCK DATA ---
-const HALL_OF_FAME: any[] = [];
 
 // --- FESTIVAL CREATOR GAME DATA ---
 const DJ_POOL = [
@@ -328,9 +325,7 @@ export function Community() {
     const [selectedCosts, setSelectedCosts] = useState<string[]>([]);
     const [gameState, setGameState] = useState<'ONBOARDING' | 'LOCATION' | 'DATE' | 'LOGISTICS' | 'STAGES' | 'BOOKING' | 'GENERATION' | 'RESULTS'>('ONBOARDING');
     const [bookingStatus, setBookingStatus] = useState<{ djId: string; status: 'PENDING' | 'ACCEPTED' | 'REJECTED'; message: string } | null>(null);
-    const [hallOfFame, setHallOfFame] = useState(HALL_OF_FAME);
     const [ticketingProgress, setTicketingProgress] = useState(0);
-    const [isSellingTickets, setIsSellingTickets] = useState(false);
     const [weather, setWeather] = useState<'CLEAR' | 'RAIN' | 'HEAT'>('CLEAR');
 
     // RPG State
@@ -345,7 +340,7 @@ export function Community() {
     const [festivalName, setFestivalName] = useState('');
     const [selectedLocation, setSelectedLocation] = useState(FESTIVAL_LOCATIONS[0]);
     const [stageCount, setStageCount] = useState(1);
-    const [festivalDuration, setFestivalDuration] = useState(1); // Days
+    const [festivalDuration] = useState(1); // Days
     const [ticketPrice, setTicketPrice] = useState(150);
     const [selectedSponsors, setSelectedSponsors] = useState<string[]>([]);
     const [selectedMerch, setSelectedMerch] = useState<string[]>([]);
@@ -399,7 +394,7 @@ export function Community() {
     const remainingBudget = totalBudgetWithSponsors - totalSpent;
 
     // Simulation logic
-    const { attendance, profit, hype } = useMemo(() => {
+    const { attendance, profit } = useMemo(() => {
         const prestigeBase = (selectedLocation as any).prestige || 5;
         const lineupPower = selectedDjs.reduce((acc, dj) => acc + (dj.popularity / 10), 0);
 
@@ -470,14 +465,11 @@ export function Community() {
 
         return {
             attendance: finalAttendance,
-            profit: currentProfit,
-            hype: currentHype
+            profit: currentProfit
         };
     }, [selectedLocation, selectedDjs, selectedCosts, selectedSponsors, selectedMerch, ticketPrice, totalSpent, randomEvent, selectedDate, stageCount]);
 
-    const sortedHallOfFame = useMemo(() => {
-        return [...hallOfFame].sort((a, b) => (b.likes || 0) - (a.likes || 0));
-    }, [hallOfFame]);
+    // Start game logic
 
     const startNewGame = () => {
         const randomBudget = Math.floor(Math.random() * (10000000 - 1000000 + 1)) + 1000000;
@@ -511,14 +503,10 @@ export function Community() {
 
         setGameState('ONBOARDING');
         setGameStarted(true);
-        setIsSellingTickets(false);
         setTicketingProgress(0);
     };
 
-    const confirmOnboarding = () => {
-        if (!playerName || !playerEmail || !festivalName) return;
-        setGameState('BOOKING');
-    };
+    // Auto-update advisor tips based on festival status
 
     // Auto-update advisor tips based on festival status
     useMemo(() => {
@@ -628,42 +616,6 @@ export function Community() {
         }, 1500);
     };
 
-    const handleShare = (platform: 'twitter' | 'facebook' | 'instagram' | 'tiktok' | 'native') => {
-        const artistsText = selectedDjs.map(dj => `@${dj.name.replace(/\s+/g, '')}`).join(' ');
-        const shareText = `Line-up de folie pour mon festival "${festivalName}" ! ⚡️ Avec ${artistsText}. Bilan : ${attendance.toLocaleString()} fans ! 🚀🕺 @Dropsiders #Tycoon #Festival`;
-        const shareUrl = "https://dropsiders.com/communaute";
-
-        if (platform === 'native' && navigator.share) {
-            navigator.share({
-                title: festivalName,
-                text: shareText,
-                url: shareUrl
-            }).catch(() => { });
-            return;
-        }
-
-        const links = {
-            twitter: `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
-            facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-            instagram: `https://www.instagram.com/`,
-            tiktok: `https://www.tiktok.com/`
-        };
-
-        if (platform !== 'native') {
-            window.open(links[platform], '_blank');
-        }
-    };
-
-    const handleLike = (id: string) => {
-        setHallOfFame(prev => prev.map(p => p.id === id ? { ...p, likes: (p.likes || 0) + 1 } : p));
-        confetti({
-            particleCount: 40,
-            spread: 50,
-            origin: { y: 0.8 },
-            colors: ['#ff0033']
-        });
-    };
-
     const handleCrisisChoice = (option: any) => {
         if (!activeCrisis) return;
         // Apply costs and impacts (simplified logic)
@@ -695,7 +647,6 @@ export function Community() {
         setAftermovieSummary(`Le triomphe de ${bestDj} ${weatherText} restera dans les annales. ${effectText} et la foule de ${attendance.toLocaleString()} personnes a vibré comme jamais. ${merchText} Un succès qui marque l'entrée de ${playerName} dans l'histoire.`);
 
         // Ticketing Phase
-        setIsSellingTickets(true);
         setGameState('GENERATION');
 
         for (let i = 0; i <= 100; i += 2) {
@@ -714,8 +665,6 @@ export function Community() {
             origin: { y: 0.6 },
             colors: ['#ff0033', '#00ffff', '#ffffff']
         });
-
-        setIsSellingTickets(false);
 
         // Sponsor Validation
         let sponsorPenalty = 0;
@@ -749,17 +698,7 @@ export function Community() {
         localStorage.setItem('dropsiders_archives', JSON.stringify(updatedArchives));
 
         // Add to Hall of Fame
-        const newEntry = {
-            id: Date.now().toString(),
-            playerName,
-            festivalName,
-            djs: selectedDjs.slice(0, 3).map(d => d.name),
-            budget: `${(totalSpent / 1000000).toFixed(1)}M€`,
-            date: new Date(selectedDate).toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' }),
-            likes: 0,
-            location: selectedLocation.name
-        };
-        setHallOfFame(prev => [newEntry, ...prev]);
+        // Save to Hall of Fame is disabled for now
         setGameState('RESULTS');
     };
 
@@ -776,7 +715,6 @@ export function Community() {
         setBookingStatus(null);
         setAftermovieSummary('');
         setTicketingProgress(0);
-        setIsSellingTickets(false);
         setPlayerName('');
         setPlayerEmail('');
         setFestivalName('');
