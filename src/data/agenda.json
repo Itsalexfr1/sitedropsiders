@@ -3989,5 +3989,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 303,
+    "title": "Tony Romera présent House Delivery ",
+    "date": "2026-04-30",
+    "startDate": "2026-04-30",
+    "endDate": "2026-03-10",
+    "venue": "Rockstore",
+    "location": "Montpellier",
+    "country": "France",
+    "type": "Events",
+    "image": "/uploads/uploads/5f8c4c220493c8cb-tony_romera_fer_br_house_deliv.webp",
+    "url": "https://xceed.me/fr/montpellier/event/tony-romera-fer-br-house-delivery-x-club-sandwich-montpellier-rockstore-2/221788?srsltid=AfmBOopS4KKduS83QdBEmcMZ8mtdWQXaMqcP08B6sKQmshT58DkqzHx_",
+    "genre": "House",
+    "month": "AVRIL",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
