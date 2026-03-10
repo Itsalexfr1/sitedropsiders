@@ -120,11 +120,10 @@ const RANDOM_EVENTS = [
 
 const STAGE_COST_PER_UNIT = 100000;
 
-// --- HALL OF FAME MOCK DATA ---
-const HALL_OF_FAME = [
+// --- HALL OF FAME MOCK DATA (Remover later if needed) ---
+const DEFAULT_HALL_OF_FAME = [
     { id: '1', playerName: 'Alex', festivalName: 'Sideral Vision', profit: 1250000, location: 'Stadium' },
     { id: '2', playerName: 'Bebou', festivalName: 'Techno Temple', profit: 890000, location: 'Hangars' },
-    { id: '3', playerName: 'Léa', festivalName: 'Neon Jungle', profit: 450000, location: 'Forbidden Forest' },
 ];
 
 // --- FESTIVAL CREATOR GAME DATA ---
@@ -240,6 +239,10 @@ export function Community() {
     const [archives, setArchives] = useState<any[]>(() => {
         const saved = localStorage.getItem('dropsiders_archives');
         return saved ? JSON.parse(saved) : [];
+    });
+    const [hallOfFame, setHallOfFame] = useState<any[]>(() => {
+        const saved = localStorage.getItem('dropsiders_hall_of_fame');
+        return saved ? JSON.parse(saved) : DEFAULT_HALL_OF_FAME;
     });
     const [selectedDate, setSelectedDate] = useState<string>('');
     const [randomEvent, setRandomEvent] = useState<typeof RANDOM_EVENTS[0] | null>(null);
@@ -589,8 +592,22 @@ export function Community() {
         setArchives(updatedArchives);
         localStorage.setItem('dropsiders_archives', JSON.stringify(updatedArchives));
 
-        // Add to Hall of Fame
-        // Save to Hall of Fame is disabled for now
+        // Add to Hall of Fame (Real Players Only)
+        if (profit > 100000) {
+            const entry = {
+                id: Date.now(),
+                playerName: playerName || 'Anonyme',
+                festivalName,
+                profit,
+                location: selectedLocation.name
+            };
+            const newHallOfFame = [entry, ...hallOfFame]
+                .sort((a, b) => b.profit - a.profit)
+                .slice(0, 10);
+            setHallOfFame(newHallOfFame);
+            localStorage.setItem('dropsiders_hall_of_fame', JSON.stringify(newHallOfFame));
+        }
+
         setGameState('RESULTS');
     };
 
@@ -1520,10 +1537,13 @@ export function Community() {
                                                             <h3 className="text-xl font-black italic tracking-tighter uppercase text-white">Hall of Fame (Légendes)</h3>
                                                         </div>
                                                         <div className="grid grid-cols-1 gap-3">
-                                                            {HALL_OF_FAME.map((legend) => (
-                                                                <div key={legend.id} className="p-4 bg-amber-400/5 border border-amber-400/10 rounded-xl flex justify-between items-center group hover:bg-amber-400/10 transition-all">
+                                                            {hallOfFame.map((legend, idx) => (
+                                                                <div key={idx} className="p-4 bg-amber-400/5 border border-amber-400/10 rounded-xl flex justify-between items-center group hover:bg-amber-400/10 transition-all">
                                                                     <div className="flex flex-col">
-                                                                        <span className="text-[10px] font-black text-amber-400 uppercase tracking-[0.2em]">{legend.playerName}</span>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <span className="text-[10px] font-black text-amber-400 uppercase tracking-[0.2em]">{legend.playerName}</span>
+                                                                            {idx === 0 && <Trophy className="w-3 h-3 text-amber-400" />}
+                                                                        </div>
                                                                         <span className="text-[9px] font-bold text-white/40 italic">{legend.festivalName}</span>
                                                                     </div>
                                                                     <span className="text-sm font-black text-amber-400 font-mono">+{legend.profit.toLocaleString()}€</span>
