@@ -148,6 +148,7 @@ export function AdminDashboard() {
     const [isUpdatingCharts, setIsUpdatingCharts] = useState(false);
     const [takeoverTab, setTakeoverTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'blocked' | 'access'>('general');
     const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
+    const [previewTimer, setPreviewTimer] = useState(15);
     const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'CONTENU' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP'>('ALL');
 
     const DASHBOARD_TABS = [
@@ -4610,25 +4611,69 @@ export function AdminDashboard() {
                                             </div>
 
                                             {quizToEdit.imageUrl && (
-                                                <div className="space-y-2">
-                                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Prévisualisation (Rendu Jeu)</label>
-                                                    <div className="relative aspect-video rounded-xl overflow-hidden border border-white/10 bg-black">
+                                                <div className="space-y-4">
+                                                    <div className="flex items-center justify-between">
+                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Prévisualisation (Rendu Jeu)</label>
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-[10px] font-black text-neon-red tabular-nums">{previewTimer.toFixed(1)}s</span>
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    setPreviewTimer(15);
+                                                                    const start = Date.now();
+                                                                    const duration = 15000;
+                                                                    const interval = setInterval(() => {
+                                                                        const elapsed = Date.now() - start;
+                                                                        const remaining = Math.max(0, 15 - (elapsed / 1000));
+                                                                        setPreviewTimer(remaining);
+                                                                        if (remaining <= 0) clearInterval(interval);
+                                                                    }, 50);
+                                                                }}
+                                                                className="px-3 py-1 bg-white/5 border border-white/10 rounded-lg text-[8px] font-black text-white hover:bg-neon-red hover:border-neon-red transition-all"
+                                                            >
+                                                                JOUER RÉVÉLATION
+                                                            </button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="relative aspect-video rounded-xl overflow-hidden border border-white/10 bg-black group-hover:shadow-2xl transition-all">
                                                         <img
                                                             src={quizToEdit.imageUrl}
-                                                            className="w-full h-full object-cover transition-all duration-500"
+                                                            className="absolute inset-0 w-full h-full object-cover"
+                                                        />
+                                                        <img
+                                                            src={quizToEdit.imageUrl}
+                                                            className="absolute inset-0 w-full h-full object-cover z-10"
                                                             style={{
-                                                                filter: quizToEdit.revealEffect === 'MOSAIC'
-                                                                    ? 'url(#pixelate-mosaic)'
-                                                                    : quizToEdit.revealEffect === 'THERMAL'
-                                                                        ? 'url(#thermal-effect)'
-                                                                        : quizToEdit.revealEffect === 'SILHOUETTE'
-                                                                            ? 'brightness(0)'
-                                                                            : 'blur(20px)'
+                                                                filter: quizToEdit.revealEffect === 'SILHOUETTE'
+                                                                    ? `brightness(0) opacity(${Math.max(0, (previewTimer / 15))})`
+                                                                    : quizToEdit.revealEffect === 'MOSAIC'
+                                                                        ? `url(#pixelate-mosaic) opacity(${Math.max(0, (previewTimer / 15))})`
+                                                                        : quizToEdit.revealEffect === 'THERMAL'
+                                                                            ? `url(#thermal-effect) opacity(${Math.max(0, (previewTimer / 15))})`
+                                                                            : `blur(${Math.max(0, previewTimer * 4)}px)`
                                                             }}
                                                         />
-                                                        <div className="absolute top-2 right-2 px-2 py-1 bg-black/60 rounded text-[8px] font-black text-white/50 uppercase tracking-widest backdrop-blur-sm">
-                                                            Aperçu Effet
+                                                        <div className="absolute top-2 right-2 px-2 py-1 bg-black/60 rounded text-[8px] font-black text-white/50 uppercase tracking-widest backdrop-blur-sm z-20">
+                                                            Aperçu Dynamique
                                                         </div>
+                                                    </div>
+
+                                                    <div className="space-y-2 p-3 bg-black/40 border border-white/5 rounded-xl">
+                                                        <div className="flex justify-between items-center text-[8px] font-black text-gray-500 uppercase tracking-widest px-1">
+                                                            <span>Début (15s)</span>
+                                                            <span>Fin (0s)</span>
+                                                        </div>
+                                                        <input
+                                                            type="range"
+                                                            min="0"
+                                                            max="15"
+                                                            step="0.1"
+                                                            value={15 - previewTimer}
+                                                            onChange={(e) => setPreviewTimer(15 - parseFloat(e.target.value))}
+                                                            className="w-full accent-neon-red h-1.5 bg-white/10 rounded-lg appearance-none cursor-pointer"
+                                                        />
+                                                        <p className="text-[8px] font-medium text-gray-600 italic text-center">Glisse pour simuler la progression du temps dans le jeu</p>
                                                     </div>
                                                 </div>
                                             )}

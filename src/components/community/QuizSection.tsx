@@ -574,22 +574,32 @@ export function QuizSection() {
                                             ) : (
                                                 <div className="w-full h-full relative">
                                                     {gameQuizzes[currentQuizIndex].type === 'IMAGE' && gameQuizzes[currentQuizIndex].imageUrl ? (
-                                                        <img
-                                                            src={gameQuizzes[currentQuizIndex].imageUrl}
-                                                            alt="Quiz"
-                                                            className="w-full h-full object-cover transition-all duration-300"
-                                                            style={{
-                                                                filter: (selectedAnswer || isRevealing)
-                                                                    ? 'none'
-                                                                    : gameQuizzes[currentQuizIndex].revealEffect === 'SILHOUETTE'
-                                                                        ? 'brightness(0)'
+                                                        <div className="w-full h-full relative">
+                                                            {/* Base Image (Result) */}
+                                                            <img
+                                                                src={gameQuizzes[currentQuizIndex].imageUrl}
+                                                                alt="Quiz Result"
+                                                                className="absolute inset-0 w-full h-full object-cover"
+                                                            />
+                                                            {/* Filtered Layer (Revealing) */}
+                                                            <motion.img
+                                                                src={gameQuizzes[currentQuizIndex].imageUrl}
+                                                                alt="Quiz Hidden"
+                                                                className="absolute inset-0 w-full h-full object-cover z-10"
+                                                                animate={{
+                                                                    opacity: (selectedAnswer || isRevealing) ? 0 : 1
+                                                                }}
+                                                                style={{
+                                                                    filter: gameQuizzes[currentQuizIndex].revealEffect === 'SILHOUETTE'
+                                                                        ? `brightness(0) opacity(${Math.max(0, (questionTimer / 15))})`
                                                                         : gameQuizzes[currentQuizIndex].revealEffect === 'MOSAIC'
-                                                                            ? 'url(#pixelate-mosaic)'
+                                                                            ? `url(#pixelate-mosaic) opacity(${Math.max(0, (questionTimer / 15))})`
                                                                             : gameQuizzes[currentQuizIndex].revealEffect === 'THERMAL'
-                                                                                ? 'url(#thermal-effect)'
-                                                                                : `blur(${Math.max(5, questionTimer * 3)}px)`
-                                                            }}
-                                                        />
+                                                                                ? `url(#thermal-effect) opacity(${Math.max(0, (questionTimer / 15))})`
+                                                                                : `blur(${Math.max(0, questionTimer * 4)}px)`
+                                                                }}
+                                                            />
+                                                        </div>
                                                     ) : (
                                                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-[#0a0a0a] to-[#1a1a1a]">
                                                             <Gamepad2 className="w-24 h-24 text-white/5 rotate-12" />
