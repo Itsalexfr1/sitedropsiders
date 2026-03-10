@@ -4043,5 +4043,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 306,
+    "title": "ARC Music Festival",
+    "date": "2026-09-04",
+    "startDate": "2026-09-04",
+    "endDate": "2026-09-07",
+    "venue": "UNION PARK",
+    "location": "CHICAGO",
+    "country": "USA",
+    "type": "Festival",
+    "image": "/uploads/uploads/b6b65d76846496ae-13a556ae_a36c_4c84_5b3c_2ea13b.png",
+    "url": "https://arcmusicfestival.com",
+    "genre": "House",
+    "month": "SEPTEMBRE",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
