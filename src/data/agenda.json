@@ -4025,5 +4025,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 305,
+    "title": "Tony Romera présent House Delivery",
+    "date": "2026-04-24",
+    "startDate": "2026-04-24",
+    "endDate": "2026-03-10",
+    "venue": "Rex",
+    "location": "Toulouse",
+    "country": "France",
+    "type": "Events",
+    "image": "/uploads/uploads/c112fa8bdd674722-slider_1448.jpg",
+    "url": "https://shotgun.live/fr/events/tony-romera-rex?fbclid=IwY2xjawQX41VleHRuA2FlbQIxMABicmlkETFJazcycWFFYllVMGtqcVh1c3J0YwZhcHBfaWQQMjIyMDM5MTc4ODIwMDg5MgABHrL41I8wKgm59Iyxv5vNs1gWsZu6Rht4h3IZYUayxMI-bAjklpxN-xQOrHnx_aem_418tYm0dKsF9DRndY7BwQw",
+    "genre": "House",
+    "month": "AVRIL",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
