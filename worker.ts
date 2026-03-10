@@ -663,7 +663,7 @@ export default {
 
             if (isMasterPass) {
                 // For the invoice route, we only care about the password matching
-                if (path === '/api/facture/send') {
+                if (path === '/api/facture/send' || path === '/api/upload') {
                     authenticated = true;
                     userPermissions = ['all'];
                 } else {
