@@ -163,6 +163,102 @@ export default {
             return new Response(null, { headers });
         }
 
+        // --- DISCORD OAUTH ---
+        const DISCORD_CLIENT_ID = '1481163258080788602';
+        const DISCORD_REDIRECT_URI = path.startsWith('/auth/discord') 
+            ? (url.origin.includes('localhost') ? 'http://localhost:5173/auth/discord/callback' : 'https://dropsiders.fr/auth/discord/callback')
+            : '';
+
+        if (path === '/auth/discord' && request.method === 'GET') {
+            const discordAuthUrl = new URL('https://discord.com/oauth2/authorize');
+            discordAuthUrl.searchParams.set('client_id', DISCORD_CLIENT_ID);
+            discordAuthUrl.searchParams.set('redirect_uri', url.origin.includes('localhost') ? 'http://localhost:5173/auth/discord/callback' : 'https://dropsiders.fr/auth/discord/callback');
+            discordAuthUrl.searchParams.set('response_type', 'code');
+            discordAuthUrl.searchParams.set('scope', 'identify email');
+            return Response.redirect(discordAuthUrl.toString(), 302);
+        }
+
+        if (path === '/auth/discord/callback' && request.method === 'GET') {
+            const code = url.searchParams.get('code');
+            const htmlError = (msg: string) => new Response(`
+                <!DOCTYPE html><html><head><title>Erreur</title></head>
+                <body style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;">
+                    <div style="text-align:center">
+                        <h2 style="color:#ff1241">Erreur d'authentification</h2>
+                        <p>${msg}</p>
+                        <script>setTimeout(()=>window.close(),3000)</script>
+                    </div>
+                </body></html>`, { status: 400, headers: {'Content-Type': 'text/html'} });
+
+            if (!code) return htmlError('Code manquant');
+            if (!env.DISCORD_CLIENT_SECRET) return htmlError('Configuration serveur manquante');
+
+            try {
+                // Exchange code for token
+                const tokenRes = await fetch('https://discord.com/api/oauth2/token', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: new URLSearchParams({
+                        client_id: DISCORD_CLIENT_ID,
+                        client_secret: env.DISCORD_CLIENT_SECRET,
+                        grant_type: 'authorization_code',
+                        code: code,
+                        redirect_uri: url.origin.includes('localhost') ? 'http://localhost:5173/auth/discord/callback' : 'https://dropsiders.fr/auth/discord/callback'
+                    })
+                });
+
+                if (!tokenRes.ok) {
+                    const err = await tokenRes.text();
+                    console.error('Discord token error:', err);
+                    return htmlError('Erreur lors de l\'échange du code');
+                }
+
+                const tokenData = await tokenRes.json();
+
+                // Get user info
+                const userRes = await fetch('https://discord.com/api/users/@me', {
+                    headers: { 'Authorization': `Bearer ${tokenData.access_token}` }
+                });
+
+                if (!userRes.ok) return htmlError('Impossible de récupérer le profil Discord');
+
+                const discordUser = await userRes.json();
+                const userData = {
+                    id: discordUser.id,
+                    username: discordUser.global_name || discordUser.username,
+                    email: discordUser.email,
+                    avatar: discordUser.avatar 
+                        ? `https://cdn.discordapp.com/avatars/${discordUser.id}/${discordUser.avatar}.png`
+                        : `https://cdn.discordapp.com/embed/avatars/${parseInt(discordUser.discriminator || '0') % 5}.png`,
+                    provider: 'discord'
+                };
+
+                // Return HTML that sends user data to parent window via postMessage
+                return new Response(`
+                    <!DOCTYPE html><html><head><title>Connexion...</title></head>
+                    <body style="background:#000;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;">
+                        <div style="text-align:center">
+                            <div style="width:40px;height:40px;border:3px solid #5865F2;border-top-color:transparent;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto 16px"></div>
+                            <p style="color:#888;font-size:12px">Connexion en cours...</p>
+                        </div>
+                        <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+                        <script>
+                            try {
+                                const userData = ${JSON.stringify(userData)};
+                                if (window.opener) {
+                                    window.opener.postMessage({ type: 'DISCORD_AUTH_SUCCESS', user: userData }, '*');
+                                }
+                            } catch(e) {}
+                            setTimeout(() => window.close(), 1000);
+                        </script>
+                    </body></html>`, { status: 200, headers: {'Content-Type': 'text/html'} });
+
+            } catch(e: any) {
+                console.error('Discord callback error:', e);
+                return htmlError('Erreur interne: ' + e.message);
+            }
+        }
+
         // Serve ads.txt directly for Google AdSense verification
         if (path === '/ads.txt') {
             const adsResponse = await env.APP_ASSETS.fetch(request);
