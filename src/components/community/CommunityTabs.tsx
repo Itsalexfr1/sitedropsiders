@@ -21,7 +21,7 @@ export function CommunityTabs({ activeTab, setActiveTab }: CommunityTabsProps) {
     ];
 
     return (
-        <div className="flex overflow-x-auto no-scrollbar items-center gap-2 p-1 bg-white/5 rounded-2xl max-w-full mb-8 md:w-fit">
+        <div className="flex overflow-x-auto no-scrollbar items-center gap-2 p-1 pr-3 bg-white/5 rounded-2xl max-w-full mb-8 md:w-fit">
             {tabs.map((tab) => (
                 <button
                     key={tab.id}

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, User, Mail, Trophy, Music, LogOut, ChevronRight, Heart } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
@@ -55,10 +57,10 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
         exit: { opacity: 0, scale: 0.9, y: 20 }
     };
 
-    return (
+    const modalContent = (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[200] overflow-y-auto">
+                <div className="fixed inset-0 z-[99999] overflow-y-auto">
                     <div className="flex min-h-full items-center justify-center p-4 text-center">
                         <motion.div
                             initial={{ opacity: 0 }}
@@ -254,4 +256,6 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
             )}
         </AnimatePresence>
     );
+
+    return createPortal(modalContent, document.body);
 }

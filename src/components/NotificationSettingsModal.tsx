@@ -1,4 +1,6 @@
 import { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
+
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, X, Check, Zap, ShieldCheck, AlertCircle, BellOff, Settings2, Info } from 'lucide-react';
 import { subscribeUser, unsubscribeUser, triggerTestNotification } from '../utils/push';
@@ -82,11 +84,11 @@ export function NotificationSettingsModal({ isOpen, onClose }: NotificationSetti
         }
     };
 
-    return (
+    const modalContent = (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[10000] overflow-y-auto">
-                    <div className="flex min-h-full items-center justify-center p-4 text-center">
+                <div className="fixed inset-0 z-[99999] overflow-y-auto">
+                    <div className="flex min-h-full items-center justify-center p-4">
                         <motion.div
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
@@ -201,4 +203,6 @@ export function NotificationSettingsModal({ isOpen, onClose }: NotificationSetti
             )}
         </AnimatePresence>
     );
+
+    return createPortal(modalContent, document.body);
 }
