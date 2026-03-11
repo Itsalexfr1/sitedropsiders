@@ -123,7 +123,7 @@ export function NotificationSettings() {
     }
 
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
+        <div className="w-full max-w-4xl mx-auto space-y-8 overflow-hidden">
             {/* Main Toggle */}
             <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 relative overflow-hidden group">
                 <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] rounded-full -mr-32 -mt-32 transition-all group-hover:bg-neon-red/10" />
@@ -148,7 +148,7 @@ export function NotificationSettings() {
                     <button
                         onClick={handleTogglePush}
                         disabled={status === 'loading'}
-                        className={`px-8 py-5 rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] transition-all flex items-center gap-3 ${isSubscribed ? 'bg-white/5 border border-white/10 text-white hover:bg-white/10' : 'bg-neon-red text-white shadow-[0_20px_40px_rgba(255,18,65,0.3)] hover:shadow-[0_25px_50px_rgba(255,18,65,0.5)] active:scale-95'}`}
+                        className={`shrink-0 px-6 py-4 rounded-2xl font-black uppercase tracking-[0.15em] text-[10px] transition-all flex items-center gap-3 ${isSubscribed ? 'bg-white/5 border border-white/10 text-white hover:bg-white/10' : 'bg-neon-red text-white shadow-[0_20px_40px_rgba(255,18,65,0.3)] hover:shadow-[0_25px_50px_rgba(255,18,65,0.5)] active:scale-95'}`}
                     >
                         {status === 'loading' ? (
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -174,7 +174,7 @@ export function NotificationSettings() {
             <div className={`transition-all duration-500 ${isSubscribed ? 'opacity-100' : 'opacity-40 pointer-events-none grayscale'}`}>
                 <h3 className="text-xs font-black text-gray-500 uppercase tracking-[0.3em] mb-6 ml-4">Configure tes Alertes</h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                     {[
                         { id: 'live', label: 'Alertes Live', icon: Zap, color: 'text-neon-red', desc: 'Quand un DJ passe en live ou qu\'un set commence.' },
                         { id: 'news', label: 'Actualités', icon: Bell, color: 'text-neon-cyan', desc: 'Les dernières news du monde de l\'électro.' },

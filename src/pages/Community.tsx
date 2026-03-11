@@ -809,7 +809,7 @@ export function Community() {
                     )}
                 </div>
 
-                <div className="relative z-10 container mx-auto px-4 md:px-12">
+                <div className="relative z-10 container mx-auto px-4 md:px-12 overflow-x-hidden">
                     {/* Header Section */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
