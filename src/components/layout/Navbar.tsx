@@ -1,9 +1,11 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video, Settings } from 'lucide-react';
+import { X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video, Settings, User } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useHoverSound } from '../../hooks/useHoverSound';
+import { useUser } from '../../context/UserContext';
+import { UserAuthModal } from '../auth/UserAuthModal';
 import newsData from '../../data/news.json';
 import recapsData from '../../data/recaps.json';
 import agendaData from '../../data/agenda.json';
@@ -33,6 +35,8 @@ export function Navbar() {
     const isMobile = window.innerWidth < 1024;
     const [isAdmin, setIsAdmin] = useState(false);
     const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+    const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+    const { isLoggedIn, user } = useUser();
 
     useEffect(() => {
         if (isMobile) return;
@@ -278,6 +282,24 @@ export function Navbar() {
                             </motion.button>
                         )}
 
+                        {/* Account Toggle Button */}
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onMouseEnter={playHoverSound}
+                            onClick={() => setIsUserModalOpen(true)}
+                            className={twMerge(
+                                "p-2 transition-all rounded-lg hover:bg-white/5 relative group",
+                                isLoggedIn ? "text-neon-red bg-neon-red/5 border border-neon-red/20 shadow-[0_0_15px_rgba(255,0,51,0.1)]" : "text-gray-400 hover:text-white"
+                            )}
+                            title={isLoggedIn ? `Compte (${user?.username})` : "Connexion"}
+                        >
+                            <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                            {isLoggedIn && (
+                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-neon-red rounded-full shadow-[0_0_10px_#ff0033]" />
+                            )}
+                        </motion.button>
+
                         <motion.button
                             whileHover={{ opacity: 1, scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
@@ -490,6 +512,10 @@ export function Navbar() {
             <NotificationSettingsModal
                 isOpen={isNotificationModalOpen}
                 onClose={() => setIsNotificationModalOpen(false)}
+            />
+            <UserAuthModal
+                isOpen={isUserModalOpen}
+                onClose={() => setIsUserModalOpen(false)}
             />
         </nav >
     );

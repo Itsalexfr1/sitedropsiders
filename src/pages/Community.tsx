@@ -20,6 +20,7 @@ import { DjNameGenerator } from '../components/community/DjNameGenerator';
 import { PlaylistSharing } from '../components/community/PlaylistSharing';
 import { TrackIdForum } from '../components/community/TrackIdForum';
 import { NotificationSettings } from '../components/community/NotificationSettings';
+import { useUser } from '../context/UserContext';
 import { useEffect } from 'react';
 import galerieData from '../data/galerie.json';
 import confetti from 'canvas-confetti';
@@ -262,6 +263,7 @@ const FIX_COSTS = [
 ];
 
 export function Community() {
+    const { isLoggedIn, user, updateScore } = useUser();
     const navigate = useNavigate();
 
     // --- TAB TYPE UPDATE ---
@@ -314,7 +316,13 @@ export function Community() {
 
     // Player Info
     const [playerName, setPlayerName] = useState('');
-    const [playerEmail, setPlayerEmail] = useState('');
+    const [playerEmail, setPlayerEmail] = useState(user?.email || '');
+
+    useEffect(() => {
+        if (isLoggedIn && user) {
+            setPlayerEmail(user.email);
+        }
+    }, [isLoggedIn, user]);
     const [festivalName, setFestivalName] = useState('');
     const [selectedLocation, setSelectedLocation] = useState(FESTIVAL_LOCATIONS[0]);
     const [stageCount, setStageCount] = useState(1);
@@ -1733,21 +1741,26 @@ export function Community() {
                                                                     </div>
                                                                     <div>
                                                                         <h4 className="text-xs font-black uppercase tracking-widest text-white">Cloud XP Sync</h4>
-                                                                        <p className="text-[8px] font-bold text-white/40 uppercase tracking-tighter">Sauvegarde ta progression sur Cloudflare</p>
+                                                                        <p className="text-[8px] font-bold text-white/40 uppercase tracking-tighter">
+                                                                            {isLoggedIn ? 'Sauvegarde automatique activée' : 'Sauvegarde ta progression sur Cloudflare'}
+                                                                        </p>
                                                                     </div>
                                                                 </div>
-                                                                {!playerEmail ? (
-                                                                    <input
-                                                                        type="email"
-                                                                        placeholder="TON@EMAIL.COM POUR SAUVEGARDER TA CARRIÈRE"
-                                                                        value={playerEmail}
-                                                                        onChange={(e) => setPlayerEmail(e.target.value)}
-                                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-sm font-black uppercase focus:border-amber-400 outline-none transition-all placeholder:text-white/20"
-                                                                    />
+                                                                {!isLoggedIn ? (
+                                                                    <div className="space-y-4">
+                                                                        <input
+                                                                            type="email"
+                                                                            placeholder="TON@EMAIL.COM POUR SAUVEGARDER TA CARRIÈRE"
+                                                                            value={playerEmail}
+                                                                            onChange={(e) => setPlayerEmail(e.target.value)}
+                                                                            className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-sm font-black uppercase focus:border-amber-400 outline-none transition-all placeholder:text-white/20"
+                                                                        />
+                                                                        <p className="text-[9px] text-gray-500 font-bold uppercase text-center italic">Connecte-toi à ton compte pour une synchronisation automatique</p>
+                                                                    </div>
                                                                 ) : (
                                                                     <div className="flex items-center gap-3 px-6 py-4 bg-emerald-400/10 border border-emerald-400/20 rounded-2xl">
                                                                         <Check className="w-4 h-4 text-emerald-400" />
-                                                                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{playerEmail} – Prêt pour la sync</span>
+                                                                        <span className="text-[10px] font-black text-emerald-400 uppercase tracking-widest">{user?.username} – Compte Synchronisé</span>
                                                                     </div>
                                                                 )}
                                                             </div>
@@ -1766,19 +1779,23 @@ export function Community() {
                                                                         localStorage.setItem('dropsiders_xp', newXp.toString());
                                                                         localStorage.setItem('dropsiders_drops', newDrops.toString());
 
-                                                                        if (playerEmail) {
+                                                                        if (isLoggedIn) {
+                                                                            updateScore('festival_producer', newXp);
+                                                                        }
+
+                                                                        if (playerEmail || isLoggedIn) {
                                                                             try {
                                                                                 await fetch('/api/community/sync-xp', {
                                                                                     method: 'POST',
                                                                                     headers: { 'Content-Type': 'application/json' },
-                                                                                    body: JSON.stringify({ email: playerEmail, xp: newXp, drops: newDrops, level: currentRank.level })
+                                                                                    body: JSON.stringify({ email: playerEmail || user?.email, xp: newXp, drops: newDrops, level: currentRank.level })
                                                                                 });
                                                                             } catch (e) {
                                                                                 console.error('Cloud Sync failed', e);
                                                                             }
                                                                         }
                                                                         resetGame();
-                                                                        alert(`Félicitations ! Vous avez gagné ${earnedXp} XP et ${earnedDrops} Drops${playerEmail ? ' – Progression synchronisée sur le Cloud !' : ' – Sauvegardé localement.'}`);
+                                                                        alert(`Félicitations ! Vous avez gagné ${earnedXp} XP et ${earnedDrops} Drops${(playerEmail || isLoggedIn) ? ' – Progression synchronisée !' : ' – Sauvegardé localement.'}`);
                                                                     }}
                                                                     className="flex-1 py-6 bg-amber-400 text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-amber-500 transition-all shadow-[0_10px_30px_rgba(251,191,36,0.2)]"
                                                                 >
@@ -1933,30 +1950,6 @@ export function Community() {
                         )}
                     </AnimatePresence>
 
-                    {activeTab !== 'GAME' && (
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            whileInView={{ opacity: 1 }}
-                            className="mt-32 p-12 md:p-24 bg-gradient-to-br from-neon-red/[0.05] to-neon-cyan/[0.05] border border-white/10 rounded-[4rem] text-center"
-                        >
-                            <h2 className="text-4xl md:text-6xl font-display font-black mb-8 uppercase italic tracking-tighter">
-                                REJOINS LE <span className="text-neon-cyan">MOUVEMENT</span>
-                            </h2>
-                            <p className="text-white/40 max-w-2xl mx-auto text-xs font-black uppercase tracking-[0.3em] leading-loose mb-12">
-                                Abonne-toi à notre newsletter pour ne rien rater des futures extensions du Lab Dropsiders.
-                            </p>
-                            <div className="flex flex-col md:flex-row gap-4 max-w-md mx-auto">
-                                <input
-                                    type="email"
-                                    placeholder="TON.EMAIL@FESTIVAL.FR"
-                                    className="flex-1 px-8 py-5 bg-black/40 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-colors"
-                                />
-                                <button className="px-10 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all">
-                                    OK
-                                </button>
-                            </div>
-                        </motion.div>
-                    )}
                 </div>
             </div>
             <AdminEditBar

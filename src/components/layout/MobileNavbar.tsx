@@ -1,10 +1,12 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Newspaper, Video, Calendar, X, Music, Users, ShoppingBag, Shield, Info, MoreHorizontal, Home, Settings } from 'lucide-react';
+import { Newspaper, Video, Calendar, X, Music, Users, ShoppingBag, Shield, Info, MoreHorizontal, Home, Settings, User } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useState, useEffect } from 'react';
 import settings from '../../data/settings.json';
 import { useLanguage } from '../../context/LanguageContext';
+import { useUser } from '../../context/UserContext';
+import { UserAuthModal } from '../auth/UserAuthModal';
 
 export function MobileNavbar() {
     const location = useLocation();
@@ -13,6 +15,8 @@ export function MobileNavbar() {
     const [takeoverStatus, setTakeoverStatus] = useState(settings.takeover?.status || 'off');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isUserModalOpen, setIsUserModalOpen] = useState(false);
+    const { isLoggedIn, user } = useUser();
 
     useEffect(() => {
         const auth = localStorage.getItem('admin_auth');
@@ -60,6 +64,7 @@ export function MobileNavbar() {
         { icon: Users, label: t('nav.team'), path: '/team', color: 'text-neon-yellow' },
         { icon: ShoppingBag, label: t('nav.shop'), path: '/shop', color: 'text-neon-red' },
         { icon: Settings, label: 'Alertes', path: '/communaute?tab=NOTIFICATIONS', color: 'text-neon-cyan' },
+        { icon: User, label: isLoggedIn ? (user?.username || 'Compte') : 'Compte', path: '#', onClick: () => setIsUserModalOpen(true), color: isLoggedIn ? 'text-neon-red shadow-[0_0_15px_rgba(255,0,51,0.4)]' : 'text-gray-400' },
         ...(isAdmin ? [{ icon: Shield, label: 'Admin', path: '/admin', color: 'text-white' }] : [])
     ];
 
@@ -157,7 +162,13 @@ export function MobileNavbar() {
                                     <Link
                                         key={item.label}
                                         to={item.path}
-                                        onClick={() => setIsMenuOpen(false)}
+                                        onClick={() => {
+                                            if ((item as any).onClick) {
+                                                (item as any).onClick();
+                                            } else {
+                                                setIsMenuOpen(false);
+                                            }
+                                        }}
                                         className="flex items-center gap-4 p-4 bg-white/5 border border-white/5 rounded-2xl active:bg-white/10 transition-all"
                                     >
                                         <div className={twMerge("p-2 rounded-xl bg-dark-bg/50", item.color)}>
@@ -175,6 +186,10 @@ export function MobileNavbar() {
                     </div>
                 )}
             </AnimatePresence>
+            <UserAuthModal
+                isOpen={isUserModalOpen}
+                onClose={() => setIsUserModalOpen(false)}
+            />
         </>
     );
 }

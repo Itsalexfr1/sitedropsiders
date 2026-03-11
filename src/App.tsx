@@ -10,6 +10,7 @@ import { NotificationPrompt } from './components/NotificationPrompt';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { lazyRetry } from './utils/lazyRetry';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { UserProvider } from './context/UserContext';
 
 // Lazy load pages for better mobile performance
 const Home = lazyRetry(() => import('./pages/Home').then(m => m.Home));
@@ -259,7 +260,11 @@ function App() {
     );
   }
 
-  return <RouterProvider router={router} />;
+  return (
+    <UserProvider>
+      <RouterProvider router={router} />
+    </UserProvider>
+  );
 }
 
 export default App;

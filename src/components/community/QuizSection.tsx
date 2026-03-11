@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Gamepad2, Headphones, Plus, CheckCircle2, XCircle, Trophy, Send, Play, User, Zap, Camera, Upload, Image as ImageIcon, Activity, Flame, Shield } from 'lucide-react';
 import { uploadFile } from '../../utils/uploadService';
+import { useUser } from '../../context/UserContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { AudioWaveformSelector } from '../admin/AudioWaveformSelector';
 
@@ -35,6 +36,7 @@ interface ScoreRecord {
 }
 
 export function QuizSection() {
+    const { isLoggedIn, user, updateScore } = useUser();
     useLanguage();
     const [activeTab, setActiveTab] = useState<'play' | 'submit'>('play');
     const [gameState, setGameState] = useState<'selection' | 'playing' | 'results'>('selection');
@@ -47,7 +49,7 @@ export function QuizSection() {
     const [score, setScore] = useState(0);
     const [selectedAnswer, setSelectedAnswer] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
-    const [gamePseudo, setGamePseudo] = useState(localStorage.getItem('user_pseudo') || '');
+    const [gamePseudo, setGamePseudo] = useState(user?.username || localStorage.getItem('user_pseudo') || '');
     const [drops, setDrops] = useState(parseInt(localStorage.getItem('user_drops') || '0'));
     const [isSurvivalMode, setIsSurvivalMode] = useState(false);
     const [isGhostMode, setIsGhostMode] = useState(false);
@@ -79,8 +81,15 @@ export function QuizSection() {
         youtubeId: '',
         spotifyUrl: '',
         startTime: 0,
-        author: ''
+        author: user?.username || ''
     });
+
+    useEffect(() => {
+        if (isLoggedIn && user) {
+            setGamePseudo(user.username);
+            setFormData(p => ({ ...p, author: user.username }));
+        }
+    }, [isLoggedIn, user]);
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [questionTimer, setQuestionTimer] = useState(15);
     const [totalGameTime, setTotalGameTime] = useState(0);
@@ -270,6 +279,10 @@ export function QuizSection() {
         const newTotalDrops = drops + earnedDrops;
         setDrops(newTotalDrops);
         localStorage.setItem('user_drops', newTotalDrops.toString());
+
+        if (isLoggedIn) {
+            updateScore('quiz', score);
+        }
 
         // Save record if not in ghost mode
         if (!isGhostMode) {

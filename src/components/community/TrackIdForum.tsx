@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, X, Music, Youtube, ExternalLink, Clock, User, MessageSquare, CheckCircle, Send } from 'lucide-react';
+import { Plus, X, Music, Youtube, ExternalLink, Clock, User as UserIcon, MessageSquare, CheckCircle, Send, Heart } from 'lucide-react';
+import { useUser } from '../../context/UserContext';
+import { useEffect } from 'react';
+import { twMerge } from 'tailwind-merge';
 
 type TrackRequest = {
     id: string;
@@ -24,9 +27,16 @@ function saveRequests(reqs: TrackRequest[]) {
 }
 
 export function TrackIdForum() {
+    const { isLoggedIn, user, toggleTrackId } = useUser();
     const [requests, setRequests] = useState<TrackRequest[]>(getRequests);
     const [showForm, setShowForm] = useState(false);
     const [submitStatus, setSubmitStatus] = useState<'idle' | 'loading' | 'success'>('idle');
+
+    useEffect(() => {
+        if (isLoggedIn && user && !form.author) {
+            setForm(p => ({ ...p, author: user.username }));
+        }
+    }, [isLoggedIn, user]);
 
     const [form, setForm] = useState({
         title: '',
@@ -200,7 +210,7 @@ export function TrackIdForum() {
 
                             <div className="flex flex-wrap items-center gap-4">
                                 <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
-                                    <User className="w-3 h-3" /> {req.author}
+                                    <UserIcon className="w-3 h-3" /> {req.author}
                                 </span>
                                 <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest flex items-center gap-1.5">
                                     <Clock className="w-3 h-3" /> {formatDate(req.timestamp)}
@@ -229,14 +239,30 @@ export function TrackIdForum() {
                             )}
 
                             {req.solved && req.result && (
-                                <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center gap-4">
-                                    <div className="w-10 h-10 bg-emerald-500 text-black rounded-xl flex items-center justify-center shrink-0">
-                                        <Music className="w-5 h-5" />
+                                <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-2xl flex items-center justify-between gap-4">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 bg-emerald-500 text-black rounded-xl flex items-center justify-center shrink-0">
+                                            <Music className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <div className="text-[8px] font-black text-emerald-500 uppercase mb-0.5">Track Identifiée</div>
+                                            <div className="text-[10px] font-black text-white uppercase">{req.result}</div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <div className="text-[8px] font-black text-emerald-500 uppercase mb-0.5">Track Identifiée</div>
-                                        <div className="text-[10px] font-black text-white uppercase">{req.result}</div>
-                                    </div>
+                                    {isLoggedIn && (
+                                        <button
+                                            onClick={() => toggleTrackId(req.result!)}
+                                            className={twMerge(
+                                                "p-3 rounded-xl transition-all",
+                                                user?.trackIds.includes(req.result!)
+                                                    ? "bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]"
+                                                    : "bg-white/5 text-gray-500 hover:text-white"
+                                            )}
+                                            title="Sauvegarder dans mon profil"
+                                        >
+                                            <Heart className={twMerge("w-4 h-4", user?.trackIds.includes(req.result!) && "fill-current")} />
+                                        </button>
+                                    )}
                                 </div>
                             )}
                         </motion.div>
