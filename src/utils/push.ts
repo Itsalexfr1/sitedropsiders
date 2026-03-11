@@ -22,19 +22,32 @@ export function urlBase64ToUint8Array(base64String: string) {
 
 /**
  * Souscrit l'utilisateur aux notifications Push
+ * @param favorites - Liste optionnelle d'artistes favoris pour recevoir des notifs ciblées
  */
-export async function subscribeUser() {
+export async function subscribeUser(favorites: string[] = []) {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
         console.warn('Push Notifications are not supported in this browser.');
         return null;
     }
 
     try {
-        const registration = await navigator.serviceWorker.ready;
-        console.log('SW Ready for push subscription');
+        let registration = await navigator.serviceWorker.getRegistration();
+        
+        if (!registration) {
+            console.log('No registration found, waiting for ready...');
+            registration = await navigator.serviceWorker.ready;
+        }
+
+        if (!registration) {
+            throw new Error('Could not find service worker registration.');
+        }
+
+        console.log('SW Ready for push subscription:', registration.active?.state);
 
         // On demande la permission explicitement SI ce n'est pas déjà fait
         const permission = await Notification.requestPermission();
+        console.log('Notification permission result:', permission);
+        
         if (permission !== 'granted') {
             throw new Error('Notification permission denied');
         }
@@ -51,15 +64,23 @@ export async function subscribeUser() {
             subscription = await registration.pushManager.subscribe(subscribeOptions);
         }
 
-        console.log('User is subscribed:', subscription);
+        console.log('User is subscribed:', subscription.endpoint.substring(0, 40) + '...');
 
-        // Envoyer au serveur (Optionnel si tu n'as pas encore de backend Push)
+        // Envoyer au serveur avec les favoris
         try {
-            await fetch('/api/push/subscribe', {
+            const response = await fetch('/api/push/subscribe', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ subscription })
+                body: JSON.stringify({ 
+                    subscription,
+                    favorites: favorites.length > 0 ? favorites : getUserFavoritesFromLocalStorage()
+                })
             });
+            if (!response.ok) {
+                console.warn('Backend sync returned non-ok:', response.status);
+            } else {
+                console.log('Push subscription synced to backend ok.');
+            }
         } catch (e) {
             console.warn('Backend sync failed, but local subscription ok', e);
         }
@@ -70,6 +91,22 @@ export async function subscribeUser() {
         throw error;
     }
 }
+
+/**
+ * Récupère les artistes favoris depuis le localStorage
+ */
+function getUserFavoritesFromLocalStorage(): string[] {
+    try {
+        // Essaie de récupérer les artistes favoris du jeu de classement
+        const votedDjs = JSON.parse(localStorage.getItem('dropsiders_voted_djs') || '[]');
+        const notifArtists = JSON.parse(localStorage.getItem('dropsiders_notif_artists') || '[]');
+        return [...new Set([...votedDjs, ...notifArtists])];
+    } catch {
+        return [];
+    }
+}
+
+
 
 /**
  * Déclenche une notification locale (test)

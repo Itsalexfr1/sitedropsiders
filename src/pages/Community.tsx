@@ -267,7 +267,7 @@ export function Community() {
     const navigate = useNavigate();
 
     // --- TAB TYPE UPDATE ---
-    type TabType = 'WALL' | 'PHOTOS' | 'QUIZZ' | 'GAME' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'ALERTS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB' | 'NOTIFICATIONS';
+    type TabType = 'WALL' | 'UPLOADS' | 'QUIZZ' | 'GAME' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'ALERTS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB' | 'NOTIFICATIONS';
     const [activeTab, setActiveTab] = useState<TabType>('WALL');
     const location = useLocation();
 
@@ -275,7 +275,7 @@ export function Community() {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const tab = params.get('tab');
-        if (tab && ['WALL', 'PHOTOS', 'QUIZZ', 'GAME', 'AVIS', 'GUIDE', 'COVOIT', 'ALERTS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB', 'NOTIFICATIONS'].includes(tab)) {
+        if (tab && ['WALL', 'UPLOADS', 'QUIZZ', 'GAME', 'AVIS', 'GUIDE', 'COVOIT', 'ALERTS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB', 'NOTIFICATIONS'].includes(tab)) {
             setActiveTab(tab as TabType);
         }
     }, [location.search]);
@@ -851,7 +851,7 @@ export function Community() {
                         <div className="inline-flex items-center gap-2 md:gap-3 p-1.5 bg-white/5 backdrop-blur-3xl rounded-3xl border border-white/10">
                             {[
                                 { id: 'WALL', icon: Star, label: 'Mur de Souvenirs' },
-                                { id: 'PHOTOS', icon: Camera, label: 'Albums Photo' },
+                                { id: 'UPLOADS', icon: Camera, label: 'Vos Photos' },
                                 { id: 'QUIZZ', icon: Gamepad2, label: 'Quiz' },
                                 { id: 'GAME', icon: Sparkles, iconClass: 'text-amber-400', label: 'PRODUCER' },
                                 { id: 'GUIDE', icon: Info, label: 'Guide Pratique' },
@@ -906,51 +906,59 @@ export function Community() {
                             </motion.div>
                         )}
 
-                        {activeTab === 'PHOTOS' && (
+                        {activeTab === 'UPLOADS' && (
                             <motion.div
-                                key="photos"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8"
+                                key="uploads"
+                                initial={{ opacity: 0, y: 30 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -30 }}
+                                className="max-w-4xl mx-auto"
                             >
-                                {/* Reuse Galerie components or similar styled cards */}
-                                {galerieData.slice(0, 8).map((album, idx) => (
-                                    <motion.div
-                                        key={album.id}
-                                        initial={{ opacity: 0, y: 30 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: idx * 0.1 }}
-                                        className="group relative aspect-[4/5] bg-white/5 rounded-[2rem] overflow-hidden border border-white/10 hover:border-white/30 transition-all duration-700 shadow-2xl"
-                                    >
-                                        <img
-                                            src={album.cover}
-                                            className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-60 group-hover:opacity-100"
-                                            alt=""
-                                        />
-                                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
-                                        <div className="absolute bottom-0 left-0 right-0 p-8">
-                                            <div className="flex items-center gap-2 mb-3">
-                                                <span className="px-2 py-0.5 bg-neon-red text-white text-[8px] font-black uppercase tracking-wider rounded-md">
-                                                    {album.category}
-                                                </span>
+                                <div className="bg-white/5 border border-white/10 rounded-[4rem] p-12 md:p-20 backdrop-blur-3xl text-center space-y-10">
+                                    <div className="inline-flex p-4 bg-neon-red/10 rounded-3xl">
+                                        <Camera className="w-12 h-12 text-neon-red" />
+                                    </div>
+                                    <div className="space-y-4">
+                                        <h2 className="text-4xl md:text-6xl font-display font-black uppercase italic tracking-tighter">
+                                            PARTAGEZ VOS <span className="text-neon-red">SOUVENIRS</span>
+                                        </h2>
+                                        <p className="text-white/40 max-w-xl mx-auto text-xs font-black uppercase tracking-widest leading-loose">
+                                            Vos meilleures photos de festivals méritent d'être vues. Envoyez-les nous pour qu'elles rejoignent le Memory Wall de la communauté Dropsiders.
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
+                                        <div className="p-8 bg-white/[0.02] border border-white/5 rounded-3xl space-y-4">
+                                            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center mx-auto">
+                                                <Sparkles className="w-5 h-5 text-neon-red" />
                                             </div>
-                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter leading-tight group-hover:text-neon-red transition-colors">
-                                                {album.title}
-                                            </h3>
-                                            <p className="text-[9px] text-white/40 font-black uppercase tracking-[0.2em] mt-3">
-                                                {album.date} • {album.images.length} Photos
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest">Visibility</h4>
+                                            <p className="text-[9px] text-white/30 font-bold uppercase leading-relaxed">
+                                                Toutes les photos sont modérées avant d'être publiées sur le site.
                                             </p>
                                         </div>
+                                        <div className="p-8 bg-white/[0.02] border border-white/5 rounded-3xl space-y-4">
+                                            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center mx-auto">
+                                                <Trophy className="w-5 h-5 text-neon-red" />
+                                            </div>
+                                            <h4 className="text-[10px] font-black uppercase tracking-widest">Credits</h4>
+                                            <p className="text-[9px] text-white/30 font-bold uppercase leading-relaxed">
+                                                Gagnez des points d'XP et faites monter votre rang de Dropsider.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div className="pt-10">
                                         <motion.button
-                                            whileHover={{ scale: 1.1 }}
-                                            className="absolute top-6 right-6 w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                                            onClick={() => navigate(`/galerie/${album.id}`)}
+                                            whileHover={{ scale: 1.05, y: -5 }}
+                                            whileTap={{ scale: 0.95 }}
+                                            onClick={() => navigate('/communaute/partager')}
+                                            className="px-16 py-6 bg-white text-black rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(255,255,255,0.05)] hover:bg-neon-red hover:text-white transition-all duration-500"
                                         >
-                                            <Plus className="w-5 h-5 text-white" />
+                                            ACCÉDER AU FORMULAIRE D'ENVOI
                                         </motion.button>
-                                    </motion.div>
-                                ))}
+                                    </div>
+                                </div>
                             </motion.div>
                         )}
 

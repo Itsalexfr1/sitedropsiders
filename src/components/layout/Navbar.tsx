@@ -78,11 +78,11 @@ export function Navbar() {
         { name: t('nav.interviews'), path: '/interviews', color: 'neon-blue' },
         { name: t('nav.team'), path: '/team', color: 'neon-yellow' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop', color: 'neon-red' }] : []),
-        ...((isAdmin || (takeoverEnabled && (takeoverSettings as any)?.status !== 'off')) && ((takeoverSettings as any)?.showInNavbar !== false || isAdmin) ? [{
+        ...(((takeoverEnabled && (takeoverSettings as any)?.status === 'live')) && ((takeoverSettings as any)?.showInNavbar !== false) ? [{
             name: 'LIVE',
             path: '/live',
             icon: Video,
-            isLive: (takeoverSettings as any)?.status === 'live',
+            isLive: true,
             color: 'neon-red',
             onClick: () => {
                 sessionStorage.removeItem('exited_live');
@@ -206,7 +206,7 @@ export function Navbar() {
                     </div>
 
                     {/* Desktop Navigation */}
-                    <div className="hidden lg:flex items-center gap-1">
+                    <div className="hidden lg:flex items-center gap-0.5 xl:gap-1">
                         {navItems.map((item) => (
                             <NavItem key={item.path} item={item} isActive={location.pathname === item.path} />
                         ))}
@@ -214,59 +214,104 @@ export function Navbar() {
 
 
                     {/* Right Side Actions */}
-                    <div className="flex items-center gap-2">
-                        {/* Search Button */}
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onMouseEnter={playHoverSound}
-                            onClick={() => setIsSearchOpen(!isSearchOpen)}
-                            className="p-2 text-gray-400 hover:text-neon-red transition-colors rounded-lg hover:bg-white/5"
-                        >
-                            <Search className="w-5 h-5" />
-                        </motion.button>
+                    <div className="flex items-center gap-1 xl:gap-3 shrink-0">
+                        {/* Search & Theme Group */}
+                        <div className="hidden xl:flex items-center gap-1 bg-white/5 border border-white/10 p-1 rounded-2xl backdrop-blur-md">
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onMouseEnter={playHoverSound}
+                                onClick={() => setIsSearchOpen(!isSearchOpen)}
+                                className="p-2 text-gray-400 hover:text-neon-red transition-colors rounded-xl hover:bg-white/5"
+                                title="Rechercher"
+                            >
+                                <Search className="w-4 h-4" />
+                            </motion.button>
 
-                        {/* Theme Toggle Button */}
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onMouseEnter={playHoverSound}
-                            onClick={toggleTheme}
-                            className="p-2 text-gray-400 hover:text-neon-red transition-colors rounded-lg hover:bg-white/5"
-                        >
-                            {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-                        </motion.button>
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onMouseEnter={playHoverSound}
+                                onClick={toggleTheme}
+                                className="p-2 text-gray-400 hover:text-neon-red transition-colors rounded-xl hover:bg-white/5"
+                                title="Thème"
+                            >
+                                {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                            </motion.button>
+                        </div>
 
-                        {/* Notifications Toggle Button */}
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onMouseEnter={playHoverSound}
-                            onClick={() => setIsNotificationModalOpen(true)}
-                            className="p-2 text-gray-400 hover:text-neon-red transition-colors rounded-lg hover:bg-white/5 relative"
-                            title="Notifications"
-                        >
-                            <Bell className="w-5 h-5" />
-                            {'Notification' in window && Notification.permission === 'granted' && (
-                                <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                            )}
-                        </motion.button>
-
-                        <div className="flex gap-1 bg-white/5 backdrop-blur-md border border-white/10 p-1 rounded-full pointer-events-auto">
+                        {/* Language Selector */}
+                        <div className="flex gap-1 bg-white/5 backdrop-blur-md border border-white/10 p-1 rounded-full">
                             <button
                                 onClick={() => setLanguage('fr')}
-                                className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black transition-all ${language === 'fr' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,51,51,0.4)]' : 'text-gray-400 hover:text-white'}`}
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black transition-all ${language === 'fr' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,51,51,0.4)]' : 'text-gray-400 hover:text-white'}`}
                             >
-                                <FlagIcon location="France" className="w-3.5 h-2.5" />
-                                <span className="hidden sm:block">FR</span>
+                                <FlagIcon location="France" className="w-3 h-2" />
+                                <span className="hidden 2xl:block">FR</span>
                             </button>
                             <button
                                 onClick={() => setLanguage('en')}
-                                className={`flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black transition-all ${language === 'en' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,51,51,0.4)]' : 'text-gray-400 hover:text-white'}`}
+                                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[9px] font-black transition-all ${language === 'en' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,51,51,0.4)]' : 'text-gray-400 hover:text-white'}`}
                             >
-                                <FlagIcon location="USA" className="w-3.5 h-2.5" />
-                                <span className="hidden sm:block">EN</span>
+                                <FlagIcon location="USA" className="w-3 h-2" />
+                                <span className="hidden 2xl:block">EN</span>
                             </button>
+                        </div>
+
+                        {/* LE CADRE COMPTE ET NOTIFS - High Visibility */}
+                        <div className="flex items-center gap-1 bg-gradient-to-r from-neon-red/10 to-neon-purple/10 backdrop-blur-2xl border border-white/20 p-1.5 rounded-[1.5rem] shadow-[0_0_30px_rgba(0,0,0,0.3)] ring-1 ring-white/5 px-2">
+                            {/* Notifications */}
+                            <motion.button
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                                onMouseEnter={playHoverSound}
+                                onClick={() => setIsNotificationModalOpen(true)}
+                                className="p-2.5 text-gray-400 hover:text-neon-red transition-all rounded-xl relative hover:bg-white/10"
+                                title="Notifications"
+                            >
+                                <Bell className="w-5 h-5" />
+                                {'Notification' in window && Notification.permission === 'granted' && (
+                                    <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-dark-bg animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                                )}
+                            </motion.button>
+
+                            {/* Line Separator */}
+                            <div className="w-[1px] h-6 bg-white/10 mx-1" />
+
+                            {/* Account Button */}
+                            <motion.button
+                                whileHover={{ scale: 1.05 }}
+                                whileTap={{ scale: 0.95 }}
+                                onMouseEnter={playHoverSound}
+                                onClick={() => setIsUserModalOpen(true)}
+                                className={twMerge(
+                                    "px-4 py-2.5 transition-all rounded-xl flex items-center gap-2 group",
+                                    isLoggedIn ? "bg-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.3)]" : "text-gray-400 hover:text-white hover:bg-white/10"
+                                )}
+                                title={isLoggedIn ? `Compte (${user?.username})` : "Connexion"}
+                            >
+                                <div className="relative">
+                                    <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                    {isLoggedIn && (
+                                        <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
+                                    )}
+                                </div>
+                                <span className="text-[10px] font-black uppercase tracking-widest hidden xl:block">
+                                    {isLoggedIn ? user?.username : t('nav.account') || 'Compte'}
+                                </span>
+                            </motion.button>
+
+                            {/* Settings / Quick Actions */}
+                            <motion.button
+                                whileHover={{ rotate: 90 }}
+                                whileTap={{ scale: 0.9 }}
+                                onMouseEnter={playHoverSound}
+                                onClick={() => navigate('/communaute?tab=NOTIFICATIONS')}
+                                className="p-2.5 text-gray-400 hover:text-neon-red transition-all rounded-xl hover:bg-white/10"
+                                title="Réglages"
+                            >
+                                <Settings className="w-5 h-5" />
+                            </motion.button>
                         </div>
 
                         {isAdmin && (
@@ -275,41 +320,12 @@ export function Navbar() {
                                 whileTap={{ scale: 0.95 }}
                                 onMouseEnter={playHoverSound}
                                 onClick={() => navigate('/admin')}
-                                className="p-2.5 bg-white/5 backdrop-blur-md border border-white/10 rounded-full text-gray-400 hover:text-neon-red hover:border-neon-red/30 transition-all shadow-lg"
+                                className="p-3 bg-neon-red text-white border border-neon-red/20 rounded-2xl shadow-[0_0_20px_rgba(255,0,0,0.2)] hover:shadow-[0_0_30px_rgba(255,0,0,0.4)] transition-all"
                                 title="Administration"
                             >
-                                <Shield className="w-4 h-4" />
+                                <Shield className="w-5 h-5" />
                             </motion.button>
                         )}
-
-                        {/* Account Toggle Button */}
-                        <motion.button
-                            whileHover={{ scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onMouseEnter={playHoverSound}
-                            onClick={() => setIsUserModalOpen(true)}
-                            className={twMerge(
-                                "p-2 transition-all rounded-lg hover:bg-white/5 relative group",
-                                isLoggedIn ? "text-neon-red bg-neon-red/5 border border-neon-red/20 shadow-[0_0_15px_rgba(255,0,51,0.1)]" : "text-gray-400 hover:text-white"
-                            )}
-                            title={isLoggedIn ? `Compte (${user?.username})` : "Connexion"}
-                        >
-                            <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
-                            {isLoggedIn && (
-                                <span className="absolute -top-1 -right-1 w-2 h-2 bg-neon-red rounded-full shadow-[0_0_10px_#ff0033]" />
-                            )}
-                        </motion.button>
-
-                        <motion.button
-                            whileHover={{ opacity: 1, scale: 1.05 }}
-                            whileTap={{ scale: 0.95 }}
-                            onMouseEnter={playHoverSound}
-                            onClick={() => navigate('/communaute?tab=NOTIFICATIONS')}
-                            className="p-2 text-gray-400 hover:text-neon-red transition-colors rounded-lg hover:bg-white/5"
-                            title="Réglages"
-                        >
-                            <Settings className="w-5 h-5" />
-                        </motion.button>
                     </div>
                 </div>
 
@@ -549,7 +565,7 @@ function NavItem({ item, isActive }: NavItemProps) {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className={twMerge(
-                    "relative block px-4 py-2 text-sm font-bold tracking-wider transition-all duration-300",
+                    "relative block px-2.5 xl:px-4 py-2 text-[11px] xl:text-sm font-bold tracking-wider transition-all duration-300",
                     isActive
                         ? (item.color === 'neon-green' ? "text-neon-green drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]" :
                             item.color === 'neon-purple' ? "text-neon-purple drop-shadow-[0_0_8px_rgba(191,0,255,0.5)]" :

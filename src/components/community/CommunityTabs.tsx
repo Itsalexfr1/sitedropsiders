@@ -12,7 +12,7 @@ export function CommunityTabs({ activeTab, setActiveTab }: CommunityTabsProps) {
 
     const tabs = [
         { id: 'WALL', icon: Star, label: t('communaute.tab_wall') },
-        { id: 'PHOTOS', icon: Camera, label: t('communaute.tab_photos') },
+        { id: 'UPLOADS', icon: Camera, label: t('communaute.tab_uploads') },
         { id: 'QUIZZ', icon: Gamepad2, label: t('communaute.tab_quizz') },
         { id: 'AVIS', icon: Star, label: 'Avis & Notes' },
         { id: 'GUIDE', icon: Info, label: t('communaute.tab_guide') },

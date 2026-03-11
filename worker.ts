@@ -4,8 +4,11 @@ import webpush from 'web-push';
 const VAPID_PUB = 'BKmdLFZTHT-FOkztW1GCCZ0A1V7lcaB6tQAwb5UTIxwOQ8T9PSRrEXADlq1gJ11ft2-P_PzhEDVJdcLFS4pWuEU';
 const VAPID_PRI = 'n2uvSqlfHshW622OW0rSHK0o-BZVfIYtUccZIHMUcAM';
 
-async function sendPushNotification(env, payload) {
-    if (!env.CHAT_KV) return;
+async function sendPushNotification(env, payload, filterFn = null) {
+    if (!env.CHAT_KV) {
+        console.error('CHAT_KV not bound, cannot send push');
+        return;
+    }
     try {
         const list = await env.CHAT_KV.list({ prefix: 'push_sub_' });
         const publicKey = env.VAPID_PUBLIC_KEY || VAPID_PUB;
@@ -18,9 +21,17 @@ async function sendPushNotification(env, payload) {
             const subRaw = await env.CHAT_KV.get(key.name);
             if (!subRaw) return;
             try {
-                const { subscription } = JSON.parse(subRaw);
+                const subData = JSON.parse(subRaw);
+                const { subscription } = subData;
+                
+                // If a filter function is provided, check if this subscription matches
+                if (filterFn && !filterFn(subData)) {
+                    return;
+                }
+
                 if (subscription && subscription.endpoint) {
                     await webpush.sendNotification(subscription, JSON.stringify(payload));
+                    console.log('Push sent to:', subscription.endpoint.substring(0, 30) + '...');
                 }
             } catch (err) {
                 // Remove expired/invalid subscriptions
@@ -713,38 +724,61 @@ ${urls.map(u => `  <url>
             path === '/api/upload'
         );
 
-        // --- API: PUSH NOTIFICATIONS ---
+        // --- API: PUSH NOTIFICATIONS (pre-auth, public endpoints) ---
+        // Helper: generate a short stable KV key from endpoint URL
+        const makePushKey = async (endpoint) => {
+            const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(endpoint));
+            const hex = Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('').substring(0,32);
+            return `push_sub_${hex}`;
+        };
+
         if (path === '/api/push/subscribe' && request.method === 'POST') {
-            const { subscription, favorites } = await request.json();
-            if (!subscription || !subscription.endpoint) {
-                return new Response(JSON.stringify({ error: 'Invalid subscription' }), { status: 400, headers });
+            try {
+                const { subscription, favorites } = await request.json();
+                if (!subscription || !subscription.endpoint) {
+                    return new Response(JSON.stringify({ error: 'Invalid subscription' }), { status: 400, headers });
+                }
+                if (env.CHAT_KV) {
+                    const subKey = await makePushKey(subscription.endpoint);
+                    await env.CHAT_KV.put(subKey, JSON.stringify({
+                        subscription,
+                        favorites: favorites || [],
+                        timestamp: Date.now()
+                    }), { expirationTtl: 60 * 60 * 24 * 90 }); // 90 days
+                    console.log('Push subscription saved:', subKey);
+                }
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
-            if (env.CHAT_KV) {
-                const subKey = `push_sub_${subscription.endpoint}`;
-                await env.CHAT_KV.put(subKey, JSON.stringify({ subscription, favorites, timestamp: Date.now() }), { expirationTtl: 60 * 60 * 24 * 30 }); // 30 days
-            }
-            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 
         if (path === '/api/push/unsubscribe' && request.method === 'POST') {
-            const { endpoint } = await request.json();
-            if (env.CHAT_KV && endpoint) {
-                await env.CHAT_KV.delete(`push_sub_${endpoint}`);
+            try {
+                const { endpoint } = await request.json();
+                if (env.CHAT_KV && endpoint) {
+                    const subKey = await makePushKey(endpoint);
+                    await env.CHAT_KV.delete(subKey);
+                }
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
-            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 
         if (path === '/api/push/test' && request.method === 'POST') {
             const body = await request.json().catch(() => ({}));
             const { password, title, body: pushBody } = body;
-            if (password !== env.ADMIN_PASS && password !== '01061988') {
+            const validPass = (env.ADMIN_PASSWORD || '01061988').trim();
+            if (password !== validPass) {
                 return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             }
             ctx.waitUntil(sendPushNotification(env, {
                 title: title || "ALERTE TEST 🚀",
                 body: pushBody || "Les notifications Push sont maintenant opérationnelles !",
                 url: "https://dropsiders.fr",
-                icon: "/android-chrome-192x192.png"
+                icon: "/android-chrome-192x192.png",
+                badge: "/android-chrome-192x192.png"
             }));
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
@@ -2742,42 +2776,7 @@ ${urls.map(u => `  <url>
             }
         }
 
-        // --- API: PUSH NOTIFICATIONS ---
-        if (path === '/api/push/subscribe' && request.method === 'POST') {
-            try {
-                const { subscription, favorites } = await request.json();
-                if (!subscription || !subscription.endpoint) {
-                    return new Response(JSON.stringify({ error: 'Invalid subscription' }), { status: 400, headers });
-                }
-
-                // Store in KV
-                // Use endpoint hash as key to avoid duplicates and long keys
-                const key = `push_sub_${btoa(subscription.endpoint).substring(0, 100)}`;
-                await env.CHAT_KV.put(key, JSON.stringify({
-                    subscription,
-                    favorites: favorites || [],
-                    date: new Date().toISOString()
-                }));
-
-                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-            } catch (e) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
-            }
-        }
-
-        if (path === '/api/push/unsubscribe' && request.method === 'POST') {
-            try {
-                const { endpoint } = await request.json();
-                if (!endpoint) return new Response(JSON.stringify({ error: 'Missing endpoint' }), { status: 400, headers });
-
-                const key = `push_sub_${btoa(endpoint).substring(0, 100)}`;
-                await env.CHAT_KV.delete(key);
-
-                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-            } catch (e) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
-            }
-        }
+        // Note: /api/push/subscribe and /api/push/unsubscribe are handled above (pre-auth)
 
         if (path === '/api/push/subscribers-count' && request.method === 'GET') {
             try {
@@ -2794,32 +2793,18 @@ ${urls.map(u => `  <url>
                 if (!title || !body) return new Response(JSON.stringify({ error: 'Title and body required' }), { status: 400, headers });
 
                 const list = await env.CHAT_KV.list({ prefix: 'push_sub_' });
+                const count = list.keys.length;
 
                 // Use waitUntil to not block the response
-                ctx.waitUntil((async () => {
-                    for (const key of list.keys) {
-                        const subRaw = await env.CHAT_KV.get(key.name);
-                        if (!subRaw) continue;
-                        const { subscription } = JSON.parse(subRaw);
+                ctx.waitUntil(sendPushNotification(env, {
+                    title: title,
+                    body: body,
+                    url: url || 'https://dropsiders.fr',
+                    icon: '/android-chrome-192x192.png',
+                    badge: '/android-chrome-192x192.png'
+                }));
 
-                        if (env.ONESIGNAL_APP_ID && env.ONESIGNAL_API_KEY) {
-                            await fetch('https://onesignal.com/api/v1/notifications', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json', 'Authorization': `Basic ${env.ONESIGNAL_API_KEY}` },
-                                body: JSON.stringify({
-                                    app_id: env.ONESIGNAL_APP_ID,
-                                    contents: { "fr": body, "en": body },
-                                    headings: { "fr": title, "en": title },
-                                    url: url || 'https://dropsiders.fr',
-                                    include_subscription_ids: [subscription.endpoint.split('/').pop()]
-                                })
-                            });
-                        }
-                        console.log(`Manual broadcast to ${subscription.endpoint}`);
-                    }
-                })());
-
-                return new Response(JSON.stringify({ success: true, sentTo: list.keys.length }), { status: 200, headers });
+                return new Response(JSON.stringify({ success: true, sentTo: count }), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
@@ -6784,32 +6769,21 @@ ${urls.map(u => `  <url>
 
         await env.CHAT_KV.put('last_notified_artists', JSON.stringify(lastNotified), { expirationTtl: 86400 });
 
-        const { keys } = await env.CHAT_KV.list({ prefix: 'push_sub_' });
-        for (const key of keys) {
-            const subDataRaw = await env.CHAT_KV.get(key.name);
-            if (!subDataRaw) continue;
-            const { subscription, favorites } = JSON.parse(subDataRaw);
-            const matchingArtists = newArtistsToNotify.filter(i => favorites.includes(i.artist));
-
-            for (const artist of matchingArtists) {
-                console.log(`Sending push for ${artist.artist}`);
-                if (env.ONESIGNAL_APP_ID) {
-                    await fetch('https://onesignal.com/api/v1/notifications', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'Authorization': `Basic ${env.ONESIGNAL_API_KEY}`
-                        },
-                        body: JSON.stringify({
-                            app_id: env.ONESIGNAL_APP_ID,
-                            contents: { "en": `${artist.artist} est en LIVE sur Dropsiders !`, "fr": `${artist.artist} est en LIVE sur Dropsiders !` },
-                            headings: { "en": "DROPSIDERS LIVE", "fr": "DROPSIDERS LIVE" },
-                            url: `https://dropsiders.fr/takeover`,
-                            include_subscription_ids: [subscription.endpoint.split('/').pop()]
-                        })
-                    });
-                }
-            }
+        // Send one notification per artist to subscribers who have them as favorites
+        for (const artist of newArtistsToNotify) {
+            console.log(`Sending push for ${artist.artist}`);
+            await sendPushNotification(
+                env,
+                {
+                    title: '🎧 DROPSIDERS LIVE',
+                    body: `${artist.artist} est maintenant en LIVE !`,
+                    url: 'https://dropsiders.fr/live',
+                    icon: '/android-chrome-192x192.png',
+                    badge: '/android-chrome-192x192.png'
+                },
+                // Only send to subscribers who have this artist in favorites
+                (subData) => Array.isArray(subData.favorites) && subData.favorites.includes(artist.artist)
+            );
         }
 
         const threeDaysMs = 3 * 24 * 60 * 60 * 1000;

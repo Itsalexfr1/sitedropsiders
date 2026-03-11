@@ -108,7 +108,16 @@ export function NotificationSettings() {
             <div className="bg-white/5 border border-white/10 rounded-3xl p-8 max-w-2xl mx-auto text-center">
                 <BellOff className="w-12 h-12 text-gray-600 mx-auto mb-4" />
                 <h3 className="text-xl font-black text-white italic uppercase mb-2">Non Supporté</h3>
-                <p className="text-gray-400 text-sm">Votre navigateur ne supporte pas les notifications push. Utilisez un navigateur moderne (Chrome, Safari, Firefox) pour profiter de cette fonctionnalité.</p>
+                <p className="text-gray-400 text-sm mb-4">Votre navigateur ne supporte pas les notifications push dans ce mode.</p>
+                <div className="bg-white/5 p-4 rounded-2xl text-[10px] text-left space-y-2">
+                    <p className="font-bold text-white uppercase italic">📱 Utilisateurs iPhone / iPad :</p>
+                    <p className="text-gray-500 font-medium">Pour activer les notifications, vous devez d'abord ajouter le site à votre écran d'accueil :</p>
+                    <ol className="list-decimal list-inside text-gray-400 space-y-1">
+                        <li>Appuyez sur le bouton <span className="text-white italic">Partager</span> (carré avec flèche).</li>
+                        <li>Faites défiler et choisissez <span className="text-white italic">"Sur l'écran d'accueil"</span>.</li>
+                        <li>Ouvrez l'application depuis votre écran et revenez ici.</li>
+                    </ol>
+                </div>
             </div>
         );
     }
