@@ -4079,5 +4079,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 308,
+    "title": "Nameless Festival",
+    "date": "2026-05-30",
+    "startDate": "2026-05-30",
+    "endDate": "2026-06-01",
+    "venue": "Lac Como",
+    "location": "LECCO",
+    "country": "Italie",
+    "type": "Festival",
+    "image": "/uploads/uploads/b78cc379605f911f-645724159_18571893715046093_75.jpg",
+    "url": "https://www.namelessfestival.it/en",
+    "genre": "Multi Styles",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
