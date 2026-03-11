@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { FlagIcon } from '../components/ui/FlagIcon';
+import { AgendaModal } from '../components/AgendaModal';
 
 // Import des données locales (fallback si GitHub inaccessible)
 import newsDataLocal from '../data/news.json';
@@ -97,6 +98,8 @@ export function AdminManage() {
     const [deleteTarget, setDeleteTarget] = useState<{ id: number | string, title: string } | null>(null);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [activePhotoId, setActivePhotoId] = useState<number | string | null>(null);
+    const [isAgendaModalOpen, setIsAgendaModalOpen] = useState(false);
+    const [editingAgendaItem, setEditingAgendaItem] = useState<any>(null);
     const [team, setTeam] = useState<any[]>([]);
     const [featuredTarget, setFeaturedTarget] = useState<any | null>(null);
     const [socialItem, setSocialItem] = useState<any | null>(null);
@@ -304,7 +307,9 @@ export function AdminManage() {
             } else if (isMusique) {
                 editPath = `/news/create?type=Musique&id=${item.id}`;
             } else if (activeTab === 'Agenda') {
-                editPath = `/agenda/create?id=${item.id}`;
+                setEditingAgendaItem(fullItem);
+                setIsAgendaModalOpen(true);
+                return;
             } else if (activeTab === 'Communauté') {
                 editPath = `/galerie/create?id=${item.id}`;
             } else if (activeTab === 'Focus') {
@@ -319,11 +324,15 @@ export function AdminManage() {
             // Toujours naviguer même en cas d'erreur de chargement du contenu
             let fallbackPath = isInterview ? `/news/create?type=Interview&id=${item.id}` :
                 isMusique ? `/news/create?type=Musique&id=${item.id}` :
-                    activeTab === 'Recaps' ? `/recaps/create?id=${item.id}` :
-                        activeTab === 'Agenda' ? `/agenda/create?id=${item.id}` :
+                        activeTab === 'Agenda' ? '' :
                             activeTab === 'Communauté' ? `/galerie/create?id=${item.id}` :
                                 `/news/create?id=${item.id}`;
-            navigate(fallbackPath, { state: { isEditing: true, item: item } });
+            if (activeTab === 'Agenda') {
+                setEditingAgendaItem(item);
+                setIsAgendaModalOpen(true);
+            } else {
+                navigate(fallbackPath, { state: { isEditing: true, item: item } });
+            }
         } finally {
             setLoadingEditId(null);
         }
@@ -572,20 +581,31 @@ export function AdminManage() {
                             <RefreshCw className={`w-5 h-5 ${loading ? 'animate-spin' : 'group-hover:rotate-180 transition-transform duration-500'}`} />
                         </button>
                         {canCreate && (
-                            <Link
-                                to={
-                                    activeTab === 'News' ? '/news/create' :
-                                        activeTab === 'Musique' ? '/news/create?type=Musique' :
-                                            activeTab === 'Recaps' ? '/recaps/create' :
-                                                activeTab === 'Interviews' ? '/news/create?type=Interview' :
-                                                    activeTab === 'Focus' ? '/news/create?tab=Focus' :
-                                                        activeTab === 'Agenda' ? '/agenda/create' :
+                            activeTab === 'Agenda' ? (
+                                <button
+                                    onClick={() => {
+                                        setEditingAgendaItem(null);
+                                        setIsAgendaModalOpen(true);
+                                    }}
+                                    className="p-4 bg-neon-red text-white rounded-full hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center group flex-shrink-0"
+                                >
+                                    <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform" />
+                                </button>
+                            ) : (
+                                <Link
+                                    to={
+                                        activeTab === 'News' ? '/news/create' :
+                                            activeTab === 'Musique' ? '/news/create?type=Musique' :
+                                                activeTab === 'Recaps' ? '/recaps/create' :
+                                                    activeTab === 'Interviews' ? '/news/create?type=Interview' :
+                                                        activeTab === 'Focus' ? '/news/create?tab=Focus' :
                                                             activeTab === 'Communauté' ? '/galerie/create' : '#'
-                                }
-                                className="p-4 bg-neon-red text-white rounded-full hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center group flex-shrink-0"
-                            >
-                                <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform" />
-                            </Link>
+                                    }
+                                    className="p-4 bg-neon-red text-white rounded-full hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20 flex items-center justify-center group flex-shrink-0"
+                                >
+                                    <Plus className="w-6 h-6 group-hover:rotate-90 transition-transform" />
+                                </Link>
+                            )
                         )}
                     </div>
                 </div>
@@ -1071,6 +1091,19 @@ export function AdminManage() {
                     />
                 )}
             </AnimatePresence>
+            <AgendaModal
+                isOpen={isAgendaModalOpen}
+                onClose={() => {
+                    setIsAgendaModalOpen(false);
+                    setEditingAgendaItem(null);
+                }}
+                onSuccess={() => {
+                    fetchData();
+                    setIsAgendaModalOpen(false);
+                    setEditingAgendaItem(null);
+                }}
+                editingItem={editingAgendaItem}
+            />
         </div>
     );
 }

@@ -6,9 +6,9 @@ import {
     Music, Shield, Palette, Megaphone, Lock,
     RefreshCw, X, Heart, Ticket, Euro,
     Flame, Search, Filter, Globe,
-    Share2, MessageSquare, Wand2
+    Share2, MessageSquare, Wand2, Bell
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
 import { MemoryWall } from '../components/community/MemoryWall';
 import { QuizSection } from '../components/community/QuizSection';
@@ -19,6 +19,7 @@ import { AlertsSection } from '../components/community/AlertsSection';
 import { DjNameGenerator } from '../components/community/DjNameGenerator';
 import { PlaylistSharing } from '../components/community/PlaylistSharing';
 import { TrackIdForum } from '../components/community/TrackIdForum';
+import { NotificationSettings } from '../components/community/NotificationSettings';
 import { useEffect } from 'react';
 import galerieData from '../data/galerie.json';
 import confetti from 'canvas-confetti';
@@ -264,8 +265,18 @@ export function Community() {
     const navigate = useNavigate();
 
     // --- TAB TYPE UPDATE ---
-    type TabType = 'WALL' | 'PHOTOS' | 'QUIZZ' | 'GAME' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'ALERTS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB';
+    type TabType = 'WALL' | 'PHOTOS' | 'QUIZZ' | 'GAME' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'ALERTS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB' | 'NOTIFICATIONS';
     const [activeTab, setActiveTab] = useState<TabType>('WALL');
+    const location = useLocation();
+
+    // Handle initial tab from URL
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const tab = params.get('tab');
+        if (tab && ['WALL', 'PHOTOS', 'QUIZZ', 'GAME', 'AVIS', 'GUIDE', 'COVOIT', 'ALERTS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB', 'NOTIFICATIONS'].includes(tab)) {
+            setActiveTab(tab as TabType);
+        }
+    }, [location.search]);
 
     // Game State
     const [gameStarted, setGameStarted] = useState(false);
@@ -840,6 +851,7 @@ export function Community() {
                                 { id: 'PLAYLISTS', icon: Share2, label: 'Mixs' },
                                 { id: 'LAB', icon: Wand2, label: 'Lab' },
                                 { id: 'COVOIT', icon: Car, label: 'Covoit' },
+                                { id: 'NOTIFICATIONS', icon: Bell, label: 'Alertes' },
                             ].map((tab) => (
                                 <button
                                     key={tab.id}
@@ -1867,14 +1879,22 @@ export function Community() {
                             </motion.div>
                         )}
 
-                        {activeTab === 'ALERTS' && (
+                        {(activeTab === 'NOTIFICATIONS' || activeTab === 'ALERTS') && (
                             <motion.div
-                                key="alerts"
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
+                                key="notifications"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="space-y-16"
                             >
-                                <AlertsSection />
+                                <NotificationSettings />
+                                <div className="pt-16 border-t border-white/10">
+                                    <div className="text-center mb-12">
+                                        <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">Alertes Email <span className="text-neon-cyan">Festivals</span></h3>
+                                        <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-2">Planifiez vos surveillances pour ne rater aucun lineup</p>
+                                    </div>
+                                    <AlertsSection />
+                                </div>
                             </motion.div>
                         )}
 

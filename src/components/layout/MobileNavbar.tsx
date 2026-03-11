@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Newspaper, Video, Calendar, X, Music, Users, ShoppingBag, Shield, Info, MoreHorizontal, Home } from 'lucide-react';
+import { Newspaper, Video, Calendar, X, Music, Users, ShoppingBag, Shield, Info, MoreHorizontal, Home, Settings } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useState, useEffect } from 'react';
 import settings from '../../data/settings.json';
@@ -59,6 +59,7 @@ export function MobileNavbar() {
         { icon: Info, label: t('nav.interviews'), path: '/interviews', color: 'text-neon-blue' },
         { icon: Users, label: t('nav.team'), path: '/team', color: 'text-neon-yellow' },
         { icon: ShoppingBag, label: t('nav.shop'), path: '/shop', color: 'text-neon-red' },
+        { icon: Settings, label: 'Alertes', path: '/communaute?tab=NOTIFICATIONS', color: 'text-neon-cyan' },
         ...(isAdmin ? [{ icon: Shield, label: 'Admin', path: '/admin', color: 'text-white' }] : [])
     ];
 

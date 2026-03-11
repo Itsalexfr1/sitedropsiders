@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video } from 'lucide-react';
+import { X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video, Settings } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import newsData from '../../data/news.json';
@@ -13,6 +13,8 @@ import { useTheme } from '../../context/ThemeContext';
 import { getArticleLink, getRecapLink, getAgendaLink, getGalleryLink } from '../../utils/slugify';
 import { FlagIcon } from '../ui/FlagIcon';
 import settings from '../../data/settings.json';
+import { NotificationSettingsModal } from '../NotificationSettingsModal';
+import { Bell } from 'lucide-react';
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -30,6 +32,7 @@ export function Navbar() {
     const [takeoverSettings, setTakeoverSettings] = useState(settings.takeover);
     const isMobile = window.innerWidth < 1024;
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
     useEffect(() => {
         if (isMobile) return;
@@ -230,6 +233,21 @@ export function Navbar() {
                             {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                         </motion.button>
 
+                        {/* Notifications Toggle Button */}
+                        <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onMouseEnter={playHoverSound}
+                            onClick={() => setIsNotificationModalOpen(true)}
+                            className="p-2 text-gray-400 hover:text-neon-red transition-colors rounded-lg hover:bg-white/5 relative"
+                            title="Notifications"
+                        >
+                            <Bell className="w-5 h-5" />
+                            {'Notification' in window && Notification.permission === 'granted' && (
+                                <span className="absolute top-2 right-2 w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                            )}
+                        </motion.button>
+
                         <div className="flex gap-1 bg-white/5 backdrop-blur-md border border-white/10 p-1 rounded-full pointer-events-auto">
                             <button
                                 onClick={() => setLanguage('fr')}
@@ -259,6 +277,17 @@ export function Navbar() {
                                 <Shield className="w-4 h-4" />
                             </motion.button>
                         )}
+
+                        <motion.button
+                            whileHover={{ opacity: 1, scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onMouseEnter={playHoverSound}
+                            onClick={() => navigate('/communaute?tab=NOTIFICATIONS')}
+                            className="p-2 text-gray-400 hover:text-neon-red transition-colors rounded-lg hover:bg-white/5"
+                            title="Réglages"
+                        >
+                            <Settings className="w-5 h-5" />
+                        </motion.button>
                     </div>
                 </div>
 
@@ -458,6 +487,10 @@ export function Navbar() {
                     </motion.div>
                 )}
             </AnimatePresence>
+            <NotificationSettingsModal
+                isOpen={isNotificationModalOpen}
+                onClose={() => setIsNotificationModalOpen(false)}
+            />
         </nav >
     );
 }
