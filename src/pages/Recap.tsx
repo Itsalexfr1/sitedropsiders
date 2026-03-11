@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Edit2, Loader2, Filter, Video } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit2, Loader2, Filter, Video, ArrowRight, Calendar } from 'lucide-react';
 import recapsData from '../data/recaps.json';
+import galerieData from '../data/galerie.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
-import { getRecapLink } from '../utils/slugify';
+import { getRecapLink, getGalleryLink } from '../utils/slugify';
 import { standardizeContent } from '../utils/standardizer';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { Pagination } from '../components/ui/Pagination';
@@ -30,6 +31,7 @@ export function Recap() {
     useEffect(() => {
         setIsAdmin(localStorage.getItem('admin_auth') === 'true');
     }, []);
+    const [mainMode, setMainMode] = useState<'WRITTEN' | 'PHOTOS'>('WRITTEN');
     const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
 
     const handleEdit = async (item: any) => {
@@ -53,18 +55,33 @@ export function Recap() {
 
     const recapsByYear = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
-        const base = (recapsData as any[])
-            .filter(item => (item.date || '').substring(0, 10) <= today)
-            .sort((a, b) => {
-                // Primary sort: Year (desc)
-                const yearA = Number(a.year) || new Date(a.date).getFullYear();
-                const yearB = Number(b.year) || new Date(b.date).getFullYear();
-                if (yearB !== yearA) return yearB - yearA;
-                // Secondary sort: Date (desc)
-                return new Date(b.date).getTime() - new Date(a.date).getTime();
-            });
-
-        const filtered = activeTab === 'all' ? base : base.filter(item => item.type === activeTab);
+        
+        let filtered: any[] = [];
+        
+        if (mainMode === 'WRITTEN') {
+            const base = (recapsData as any[])
+                .filter(item => (item.date || '').substring(0, 10) <= today)
+                .sort((a, b) => {
+                    const yearA = Number(a.year) || new Date(a.date).getFullYear();
+                    const yearB = Number(b.year) || new Date(b.date).getFullYear();
+                    if (yearB !== yearA) return yearB - yearA;
+                    return new Date(b.date).getTime() - new Date(a.date).getTime();
+                });
+            filtered = activeTab === 'all' ? base : base.filter(item => item.type === activeTab);
+        } else {
+            // Photos (Official only)
+            const base = (galerieData as any[])
+                .filter(item => !item.isCommunity && !(item.category || '').toLowerCase().includes('communauté'))
+                .sort((a, b) => {
+                    const yearA = Number(a.year) || new Date(a.date).getFullYear();
+                    const yearB = Number(b.year) || new Date(b.date).getFullYear();
+                    if (yearB !== yearA) return yearB - yearA;
+                    // Sort by date inside year? galerie dates are often just "2024" or full ISO.
+                    // If it's just a year string, sorting might be less precise.
+                    return new Date(b.date).getTime() - new Date(a.date).getTime();
+                });
+            filtered = base;
+        }
 
         // Group by year
         const groups: Record<number, any[]> = {};
@@ -82,7 +99,7 @@ export function Recap() {
                 year: y,
                 items: groups[y]
             }));
-    }, [activeTab]);
+    }, [activeTab, mainMode]);
 
     const totalArticles = useMemo(() => recapsByYear.reduce((acc, group) => acc + group.items.length, 0), [recapsByYear]);
     const totalPages = Math.ceil(totalArticles / articlesPerPage);
@@ -196,40 +213,63 @@ export function Recap() {
                     {t('news.subtitle')}
                 </p>
             </motion.div>
+            {/* ── Main Category Switcher ── */}
+            <motion.div
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="flex items-center gap-1 p-1 bg-white/5 rounded-2xl w-fit mb-8"
+            >
+                <button
+                    onClick={() => { setMainMode('WRITTEN'); setCurrentPage(1); }}
+                    className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${mainMode === 'WRITTEN' ? 'bg-white text-black shadow-lg font-black' : 'text-gray-500 hover:text-white font-bold'}`}
+                >
+                    Nos Récaps Écrits
+                </button>
+                <button
+                    onClick={() => { setMainMode('PHOTOS'); setCurrentPage(1); }}
+                    className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${mainMode === 'PHOTOS' ? 'bg-white text-black shadow-lg font-black' : 'text-gray-500 hover:text-white font-bold'}`}
+                >
+                    Nos Récaps Photos
+                </button>
+            </motion.div>
 
             {/* ── Category Tabs ── */}
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 }}
-                className="mb-10"
-            >
-                <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-2 text-gray-500 mr-2">
-                        <Filter className="w-4 h-4" />
-                        <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('galerie.filter_by')}</span>
-                    </div>
-                    {TABS.map((tab) => {
-                        const isActive = activeTab === tab.key;
-                        return (
-                            <motion.button
-                                key={tab.key}
-                                onClick={() => handleTabChange(tab.key)}
-                                data-cursor-color="neon-red"
-                                whileHover={{ scale: 1.04 }}
-                                whileTap={{ scale: 0.96 }}
-                                className={`relative px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all duration-300 border
-                                    ${isActive
-                                        ? `bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)] border-transparent`
-                                        : `bg-white/5 text-white/40 border-white/10 hover:border-white/30 hover:text-white`
-                                    }`}
-                            >
-                                {tab.label}
-                            </motion.button>
-                        );
-                    })}
-                </div>
-            </motion.div>
+            <AnimatePresence>
+                {mainMode === 'WRITTEN' && (
+                    <motion.div
+                        initial={{ opacity: 0, height: 0 }}
+                        animate={{ opacity: 1, height: 'auto' }}
+                        exit={{ opacity: 0, height: 0 }}
+                        className="mb-10 overflow-hidden"
+                    >
+                        <div className="flex flex-wrap items-center gap-4">
+                            <div className="flex items-center gap-2 text-gray-500 mr-2">
+                                <Filter className="w-4 h-4" />
+                                <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('galerie.filter_by')}</span>
+                            </div>
+                            {TABS.map((tab) => {
+                                const isActive = activeTab === tab.key;
+                                return (
+                                    <motion.button
+                                        key={tab.key}
+                                        onClick={() => handleTabChange(tab.key)}
+                                        data-cursor-color="neon-red"
+                                        whileHover={{ scale: 1.04 }}
+                                        whileTap={{ scale: 0.96 }}
+                                        className={`relative px-6 py-2 rounded-full font-black uppercase tracking-widest text-[10px] transition-all duration-300 border
+                                            ${isActive
+                                                ? `bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)] border-transparent`
+                                                : `bg-white/5 text-white/40 border-white/10 hover:border-white/30 hover:text-white`
+                                            }`}
+                                    >
+                                        {tab.label}
+                                    </motion.button>
+                                );
+                            })}
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             <div className="relative">
                 {/* Left Arrow */}
@@ -278,7 +318,12 @@ export function Recap() {
                                                 >
                                                     {isAdmin && (
                                                         <button
-                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEdit(item); }}
+                                                            onClick={(e) => { 
+                                                                e.preventDefault(); 
+                                                                e.stopPropagation(); 
+                                                                if (mainMode === 'WRITTEN') handleEdit(item);
+                                                                else navigate(`/galerie/create?id=${item.id}`, { state: { isEditing: true, item } });
+                                                            }}
                                                             disabled={loadingEditId === item.id}
                                                             className="absolute top-4 right-4 z-20 p-2.5 bg-black/60 backdrop-blur-md rounded-2xl border border-neon-cyan/50 text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all disabled:opacity-50 disabled:cursor-wait"
                                                             title="Modifier"
@@ -286,46 +331,80 @@ export function Recap() {
                                                             {loadingEditId === item.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Edit2 className="w-4 h-4" />}
                                                         </button>
                                                     )}
-                                                    <Link to={getRecapLink(item)} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="absolute inset-0 md:static block w-full h-full">
-                                                        {/* Mobile: full-cover card */}
-                                                        <div className="absolute inset-0 md:hidden">
-                                                            <img src={item.coverImage || item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                                                            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
-                                                            <div className="absolute inset-0 p-6 flex flex-col justify-end text-left z-10">
-                                                                <div className="flex items-center gap-2 mb-3">
-                                                                    {item.festival && <span className="text-[10px] font-black px-3 py-1.5 rounded-xl bg-neon-red/80 text-white backdrop-blur-md">{item.festival}</span>}
-                                                                    {item.location && <span className="text-[10px] font-bold px-2 py-1 rounded-xl bg-white/10 text-white border border-white/20">{item.location}</span>}
-                                                                </div>
-                                                                <h2 className="text-2xl sm:text-3xl font-display font-black text-white italic uppercase leading-tight tracking-tight line-clamp-4 drop-shadow-lg"
-                                                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        {/* Desktop: standard card */}
-                                                        <div className="hidden md:flex flex-col h-full overflow-hidden">
-                                                            <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center relative">
+                                                    {mainMode === 'WRITTEN' ? (
+                                                        <Link to={getRecapLink(item)} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="absolute inset-0 md:static block w-full h-full">
+                                                            {/* Mobile: full-cover card */}
+                                                            <div className="absolute inset-0 md:hidden">
                                                                 <img src={item.coverImage || item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
-                                                                <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent" />
-                                                                {item.festival && <div className="absolute top-4 left-4 px-3 py-1 bg-neon-red/90 backdrop-blur-sm rounded-full"><span className="text-[10px] font-black tracking-widest text-white uppercase">{item.festival}</span></div>}
-                                                                {item.location && <div className="absolute top-4 right-4 px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center gap-2"><span className="text-[10px] font-bold tracking-wider text-white uppercase">{item.location}</span><FlagIcon location={item.location} className="w-3.5 h-2.5" /></div>}
+                                                                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
+                                                                <div className="absolute inset-0 p-6 flex flex-col justify-end text-left z-10">
+                                                                    <div className="flex items-center gap-2 mb-3">
+                                                                        {item.festival && <span className="text-[10px] font-black px-3 py-1.5 rounded-xl bg-neon-red/80 text-white backdrop-blur-md">{item.festival}</span>}
+                                                                        {item.location && <span className="text-[10px] font-bold px-2 py-1 rounded-xl bg-white/10 text-white border border-white/20">{item.location}</span>}
+                                                                    </div>
+                                                                    <h2 className="text-2xl sm:text-3xl font-display font-black text-white italic uppercase leading-tight tracking-tight line-clamp-4 drop-shadow-lg"
+                                                                        dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
+                                                                    />
+                                                                </div>
                                                             </div>
-                                                            <div className="p-6 flex flex-col flex-1">
-                                                                <div className="flex justify-between items-center mb-3">
-                                                                    <span className="text-[10px] font-black tracking-widest text-neon-red border border-neon-red/30 px-3 py-1 rounded-full uppercase">{t('home.recap_badge')}</span>
-                                                                    <div className="flex flex-col items-end">
-                                                                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{new Date(item.date).toLocaleDateString(locale, { year: 'numeric', month: 'short' })}</span>
-                                                                        <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em] mt-0.5">{item.author || 'Alex'}</span>
+                                                            {/* Desktop: standard card */}
+                                                            <div className="hidden md:flex flex-col h-full overflow-hidden">
+                                                                <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center relative">
+                                                                    <img src={item.coverImage || item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                                                    <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent" />
+                                                                    {item.festival && <div className="absolute top-4 left-4 px-3 py-1 bg-neon-red/90 backdrop-blur-sm rounded-full"><span className="text-[10px] font-black tracking-widest text-white uppercase">{item.festival}</span></div>}
+                                                                    {item.location && <div className="absolute top-4 right-4 px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center gap-2"><span className="text-[10px] font-bold tracking-wider text-white uppercase">{item.location}</span><FlagIcon location={item.location} className="w-3.5 h-2.5" /></div>}
+                                                                </div>
+                                                                <div className="p-6 flex flex-col flex-1">
+                                                                    <div className="flex justify-between items-center mb-3">
+                                                                        <span className="text-[10px] font-black tracking-widest text-neon-red border border-neon-red/30 px-3 py-1 rounded-full uppercase">{t('home.recap_badge')}</span>
+                                                                        <div className="flex flex-col items-end">
+                                                                            <span className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{new Date(item.date).toLocaleDateString(locale, { year: 'numeric', month: 'short' })}</span>
+                                                                            <span className="text-[9px] text-neon-cyan font-black uppercase tracking-[0.2em] mt-0.5">{item.author || 'Alex'}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                    <h2 className="text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors line-clamp-2"
+                                                                        dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
+                                                                    />
+                                                                    <p className="text-gray-400 text-sm line-clamp-3"
+                                                                        dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </Link>
+                                                    ) : (
+                                                        <Link to={getGalleryLink(item)} className="block h-full group">
+                                                            <div className="relative aspect-square overflow-hidden bg-white/5">
+                                                                <img
+                                                                    src={item.cover}
+                                                                    alt={item.title}
+                                                                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
+                                                                />
+                                                                <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+                                                                
+                                                                <div className="absolute inset-0 p-6 flex flex-col justify-end">
+                                                                    <div className="flex items-center gap-2 mb-3">
+                                                                        <span className="px-2 py-0.5 bg-neon-red text-white text-[9px] font-black uppercase tracking-wider rounded">
+                                                                            {item.category}
+                                                                        </span>
+                                                                        <span className="text-[8px] font-black text-white/60 tracking-widest uppercase">
+                                                                            {item.images.length}+ PHOTOS
+                                                                        </span>
+                                                                    </div>
+                                                                    <h3 className="text-lg font-display font-black text-white italic leading-tight uppercase tracking-tighter group-hover:text-neon-red transition-colors">
+                                                                        {item.title}
+                                                                    </h3>
+                                                                    <div className="mt-4 flex items-center justify-between">
+                                                                        <div className="flex items-center gap-2 text-white/60">
+                                                                            <Calendar className="w-3 h-3" />
+                                                                            <span className="text-[9px] font-bold uppercase tracking-widest">{item.date}</span>
+                                                                        </div>
+                                                                        <ArrowRight className="w-4 h-4 text-white group-hover:translate-x-1 transition-transform" />
                                                                     </div>
                                                                 </div>
-                                                                <h2 className="text-xl font-bold text-white mb-3 group-hover:text-neon-red transition-colors line-clamp-2"
-                                                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
-                                                                />
-                                                                <p className="text-gray-400 text-sm line-clamp-3"
-                                                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedSummaries[item.id] || item.summary) }}
-                                                                />
                                                             </div>
-                                                        </div>
-                                                    </Link>
+                                                        </Link>
+                                                    )}
                                                 </motion.article>
                                             ))}
                                         </div>

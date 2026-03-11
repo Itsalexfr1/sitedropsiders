@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen } from 'lucide-react';
+import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen, Upload, Image as ImageIcon } from 'lucide-react';
+import { ImageUploadModal } from '../ImageUploadModal';
 
 import CLUBS_RAW from '../../data/wiki_clubs.json';
 import FESTIVALS_RAW from '../../data/wiki_festivals.json';
@@ -47,7 +48,7 @@ function groupByLetter(data: Venue[]): Record<string, Venue[]> {
 }
 
 export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
-    const [mode, setMode] = useState<Mode>(initialMode);
+    const [mode] = useState<Mode>(initialMode);
     const [search, setSearch] = useState('');
     const [selected, setSelected] = useState<Venue | null>(null);
     const [showAdd, setShowAdd] = useState(false);
@@ -56,7 +57,8 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
     const [festVotes, setFestVotes] = useState<Set<string>>(() => loadVotes(VOTE_KEY_FESTIVALS));
     const [customClubs, setCustomClubs] = useState<Venue[]>(() => loadCustom(CUSTOM_KEY_CLUBS));
     const [customFests, setCustomFests] = useState<Venue[]>(() => loadCustom(CUSTOM_KEY_FESTIVALS));
-    const [addForm, setAddForm] = useState({ name: '', city: '', country: '', description: '', website: '', instagram: '' });
+    const [addForm, setAddForm] = useState({ name: '', city: '', country: '', description: '', website: '', instagram: '', image: '' });
+    const [showImageModal, setShowImageModal] = useState(false);
     const [addSuccess, setAddSuccess] = useState(false);
 
     const votes = mode === 'clubs' ? clubVotes : festVotes;
@@ -89,13 +91,24 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
     const getVoteCount = (v: Venue) => (v.votes || 0) + (votes.has(v.id) ? 1 : 0);
 
     const handleAdd = () => {
-        if (!addForm.name || !addForm.city || !addForm.country) return;
+        if (!addForm.name || !addForm.city || !addForm.country || !addForm.image) return;
         const id = `custom_${Date.now()}`;
-        const img = `https://images.unsplash.com/photo-${mode === 'clubs' ? '1566737236500-c8ac02b87b0c' : '1470229722913-7c0e2dbbafd3'}?w=600&h=800&fit=crop&q=80&sig=${Date.now()}`;
-        const newVenue: Venue = { id, name: addForm.name, city: addForm.city, country: addForm.country.toUpperCase(), djmag_rank: 9999, description: addForm.description || 'Lieu ajouté par la communauté Dropsiders.', image: img, website: addForm.website, instagram: addForm.instagram, votes: 0, custom: true };
+        const newVenue: Venue = { 
+            id, 
+            name: addForm.name, 
+            city: addForm.city, 
+            country: addForm.country.toUpperCase(), 
+            djmag_rank: 9999, 
+            description: addForm.description || 'Lieu ajouté par la communauté Dropsiders.', 
+            image: addForm.image, 
+            website: addForm.website, 
+            instagram: addForm.instagram, 
+            votes: 0, 
+            custom: true 
+        };
         if (mode === 'clubs') { const u = [...customClubs, newVenue]; setCustomClubs(u); saveCustom(CUSTOM_KEY_CLUBS, u); }
         else { const u = [...customFests, newVenue]; setCustomFests(u); saveCustom(CUSTOM_KEY_FESTIVALS, u); }
-        setAddForm({ name: '', city: '', country: '', description: '', website: '', instagram: '' });
+        setAddForm({ name: '', city: '', country: '', description: '', website: '', instagram: '', image: '' });
         setAddSuccess(true);
         setTimeout(() => { setAddSuccess(false); setShowAdd(false); }, 2000);
     };
@@ -117,17 +130,6 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                     </p>
                 </div>
 
-                {/* Mode switcher */}
-                <div className="flex items-center bg-white/5 border border-white/10 rounded-2xl p-1 gap-1">
-                    <button onClick={() => { setMode('clubs'); setSearch(''); setSelected(null); }}
-                        className={`px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${mode === 'clubs' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,0,0.3)]' : 'text-gray-400 hover:text-white'}`}>
-                        🏛️ Clubs
-                    </button>
-                    <button onClick={() => { setMode('festivals'); setSearch(''); setSelected(null); }}
-                        className={`px-5 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${mode === 'festivals' ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,0,0.3)]' : 'text-gray-400 hover:text-white'}`}>
-                        🎪 Festivals
-                    </button>
-                </div>
             </div>
 
             {/* Controls */}
@@ -167,10 +169,54 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                     placeholder="Décris ce lieu en quelques mots..." rows={2}
                                     className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white text-sm focus:outline-none focus:border-neon-red transition-all resize-none" />
                             </div>
+
+                            <div className="sm:col-span-2">
+                                <label className="block text-[9px] font-black text-gray-500 uppercase tracking-widest mb-1">Photo (Obligatoire) *</label>
+                                <div className="flex gap-3">
+                                    <div className="flex-1 relative group">
+                                        <ImageIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-red transition-colors" />
+                                        <input 
+                                            type="text" 
+                                            value={addForm.image} 
+                                            onChange={e => setAddForm(p => ({ ...p, image: e.target.value }))} 
+                                            placeholder="URL d'image ou cliquez sur Upload"
+                                            className="w-full bg-black/40 border border-white/10 rounded-xl py-3 pl-11 pr-4 text-white text-sm focus:outline-none focus:border-neon-red transition-all" 
+                                        />
+                                    </div>
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowImageModal(true)}
+                                        className="px-4 py-3 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-neon-red/20 transition-all flex items-center gap-2"
+                                    >
+                                        <Upload className="w-3.5 h-3.5" />
+                                        Upload
+                                    </button>
+                                </div>
+                                {addForm.image && (
+                                    <div className="mt-3 relative w-20 h-20 rounded-lg overflow-hidden border border-white/10">
+                                        <img src={addForm.image} alt="preview" className="w-full h-full object-cover" />
+                                        <button 
+                                            type="button"
+                                            onClick={() => setAddForm(p => ({ ...p, image: '' }))}
+                                            className="absolute top-1 right-1 p-0.5 bg-black/60 rounded-full hover:bg-black/80 transition-all"
+                                        >
+                                            <X className="w-3 h-3 text-white" />
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                        <button onClick={handleAdd} className="mt-4 flex items-center gap-2 px-6 py-3 bg-neon-red text-white rounded-xl font-black uppercase tracking-widest text-[10px] hover:bg-neon-red/80 transition-all">
-                            {addSuccess ? '✓ Ajouté !' : <><Save className="w-3.5 h-3.5" />Ajouter</>}
-                        </button>
+                        <div className="flex items-center gap-4 mt-6">
+                            <button 
+                                onClick={handleAdd} 
+                                disabled={!addForm.name || !addForm.city || !addForm.country || !addForm.image}
+                                className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all ${(!addForm.name || !addForm.city || !addForm.country || !addForm.image) ? 'bg-white/5 text-gray-600 grayscale cursor-not-allowed' : 'bg-neon-red text-white hover:bg-neon-red/80 shadow-[0_0_20px_rgba(255,0,0,0.3)]'}`}>
+                                {addSuccess ? '✓ Ajouté !' : <><Save className="w-4 h-4" />Ajouter au Wiki</>}
+                            </button>
+                            {(!addForm.name || !addForm.city || !addForm.country || !addForm.image) && (
+                                <span className="text-[8px] font-black text-neon-red/60 uppercase tracking-widest italic animate-pulse">Tous les champs avec * sont obligatoires</span>
+                            )}
+                        </div>
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -307,6 +353,16 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                     </>
                 )}
             </AnimatePresence>
+
+            <ImageUploadModal 
+                isOpen={showImageModal}
+                onClose={() => setShowImageModal(false)}
+                onUploadSuccess={(url) => {
+                    setAddForm(p => ({ ...p, image: url }));
+                    setShowImageModal(false);
+                }}
+                accentColor="neon-red"
+            />
         </div>
     );
 }

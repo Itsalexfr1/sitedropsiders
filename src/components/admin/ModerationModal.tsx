@@ -75,21 +75,22 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex justify-center items-start overflow-y-auto p-4 py-12 md:py-20">
-            <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                onClick={onClose}
-                className="fixed inset-0 bg-black/90 backdrop-blur-md"
-            />
+        <div className="fixed inset-0 z-[100] overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    onClick={onClose}
+                    className="fixed inset-0 bg-black/90 backdrop-blur-md"
+                />
 
-            <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                className="relative w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] my-auto"
-            >
+                <motion.div
+                    initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                    className="relative w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-left my-8"
+                >
                 {/* Header */}
                 <div className="p-8 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-neon-green/10 to-transparent">
                     <div className="flex items-center gap-4">
@@ -204,6 +205,7 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
                     </p>
                 </div>
             </motion.div>
+            </div>
         </div>
     );
 }

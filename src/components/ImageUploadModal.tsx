@@ -157,13 +157,21 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, onClear, ac
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[200] flex justify-center items-start overflow-y-auto p-6 py-20 md:py-32 bg-black/90 backdrop-blur-xl">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                        animate={{ opacity: 1, scale: 1, y: 0 }}
-                        exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                        className="relative w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-[40px] p-10 shadow-3xl overflow-hidden my-auto"
-                    >
+                <div className="fixed inset-0 z-[200] overflow-y-auto">
+                    <div className="flex min-h-full items-center justify-center p-6 text-center">
+                        <motion.div
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="fixed inset-0 bg-black/90 backdrop-blur-xl"
+                            onClick={onClose}
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="relative w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-[40px] p-10 shadow-3xl overflow-hidden text-left my-8"
+                        >
                         <div className={`absolute top-0 right-0 w-64 h-64 ${bgClass.replace('/20', '/5')} rounded-full blur-[100px] pointer-events-none`} />
 
                         <div className="flex justify-between items-start mb-8 relative z-10">
@@ -312,6 +320,7 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, onClear, ac
                             )}
                         </div>
                     </motion.div>
+                    </div>
                 </div>
             )}
             {isCropOpen && selectedImage && (

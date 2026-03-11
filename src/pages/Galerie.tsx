@@ -22,7 +22,7 @@ export function Galerie() {
     const { t } = useLanguage();
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<'WALL' | 'PHOTOS' | 'QUIZZ' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'ALERTS'>('WALL');
-    const [activeSegment, setActiveSegment] = useState<'OFFICIAL' | 'COMMUNITY' | 'CLIPS'>('OFFICIAL');
+    const [activeSegment, setActiveSegment] = useState<'COMMUNITY' | 'CLIPS'>('COMMUNITY');
     const [activeCategory, setActiveCategory] = useState('ALL');
     const [currentPage, setCurrentPage] = useState(1);
     const [direction, setDirection] = useState(0);
@@ -59,9 +59,7 @@ export function Galerie() {
     ];
 
     const filteredAlbums = useMemo(() => {
-        const baseData = activeSegment === 'OFFICIAL'
-            ? galerieData.filter(album => !(album as any).isCommunity)
-            : galerieData.filter(album => (album as any).isCommunity);
+        const baseData = galerieData.filter(album => (album as any).isCommunity || (album.category || '').toLowerCase().includes('communauté'));
 
         if (activeCategory === 'ALL') return baseData;
 
@@ -70,7 +68,7 @@ export function Galerie() {
             if (activeCategory === 'CLUBS & EVENTS') return cat.includes('CLUB');
             return cat === activeCategory;
         });
-    }, [activeCategory, activeSegment]);
+    }, [activeCategory]);
 
     const totalPages = Math.ceil(filteredAlbums.length / ALBUMS_PER_PAGE);
 
@@ -149,12 +147,6 @@ export function Galerie() {
                 {activeTab === 'PHOTOS' && (
                     <>
                         <div className="flex items-center gap-1 p-1 bg-white/5 rounded-2xl w-fit mb-8">
-                            <button
-                                onClick={() => setActiveSegment('OFFICIAL')}
-                                className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeSegment === 'OFFICIAL' ? 'bg-white text-black shadow-lg font-black' : 'text-gray-500 hover:text-white font-bold'}`}
-                            >
-                                Nos Récaps Photos
-                            </button>
                             <button
                                 onClick={() => setActiveSegment('COMMUNITY')}
                                 className={`px-8 py-3 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] transition-all ${activeSegment === 'COMMUNITY' ? 'bg-white text-black shadow-lg font-black' : 'text-gray-500 hover:text-white font-bold'}`}
