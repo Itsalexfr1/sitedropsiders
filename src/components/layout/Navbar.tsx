@@ -297,7 +297,7 @@ export function Navbar() {
                                     )}
                                 </div>
                                 <span className="text-[10px] font-black uppercase tracking-widest hidden xl:block">
-                                    {isLoggedIn ? user?.username : t('nav.account') || 'Compte'}
+                                    {isLoggedIn ? user?.username : 'Compte'}
                                 </span>
                             </motion.button>
 
