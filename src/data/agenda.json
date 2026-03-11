@@ -4061,5 +4061,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 307,
+    "title": "Ultra Europe",
+    "date": "2026-07-10",
+    "startDate": "2026-07-10",
+    "endDate": "2026-07-12",
+    "venue": "Croatia Park Mladeži",
+    "location": "Split",
+    "country": "Croatie",
+    "type": "Festival",
+    "image": "/uploads/uploads/b393f9aa27a87652-ULTRA_EUROPE_26_PH1_WEBBANER.png",
+    "url": "https://ultraeurope.com",
+    "genre": "Multi Styles",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
