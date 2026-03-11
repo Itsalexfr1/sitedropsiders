@@ -32,7 +32,8 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                     username: googleUser.name,
                     email: googleUser.email,
                     avatar: googleUser.picture,
-                    id: googleUser.sub
+                    id: googleUser.sub,
+                    provider: 'google'
                 });
                 onClose();
             } catch (error) {
@@ -59,7 +60,8 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                     username: discordUser.username,
                     email: discordUser.email,
                     avatar: discordUser.avatar,
-                    id: discordUser.id
+                    id: discordUser.id,
+                    provider: 'discord'
                 });
                 window.removeEventListener('message', handleMessage);
                 setDiscordLoading(false);

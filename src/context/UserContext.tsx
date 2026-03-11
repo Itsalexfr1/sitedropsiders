@@ -5,10 +5,12 @@ interface UserProfile {
     username: string;
     email: string;
     avatar?: string;
+    provider?: string;
     scores: Record<string, number>;
     trackIds: string[];
     createdAt: string;
 }
+
 
 interface UserContextType {
     user: UserProfile | null;
@@ -46,16 +48,33 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         }
     }, [user]);
 
+    const saveToRegisteredUsers = (userToSave: UserProfile) => {
+        try {
+            const existing: UserProfile[] = JSON.parse(localStorage.getItem('dropsiders_registered_users') || '[]');
+            const idx = existing.findIndex(u => u.id === userToSave.id);
+            if (idx >= 0) {
+                existing[idx] = { ...existing[idx], ...userToSave };
+            } else {
+                existing.push(userToSave);
+            }
+            localStorage.setItem('dropsiders_registered_users', JSON.stringify(existing));
+        } catch (e) {
+            console.error('Failed to save to registered users', e);
+        }
+    };
+
     const login = (username: string, email: string) => {
         const newUser: UserProfile = {
             id: crypto.randomUUID(),
             username,
             email,
+            provider: 'email',
             scores: {},
             trackIds: [],
             createdAt: new Date().toISOString()
         };
         setUser(newUser);
+        saveToRegisteredUsers(newUser);
     };
 
     const loginSocial = (data: Partial<UserProfile>) => {
@@ -64,11 +83,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             username: data.username || 'Utilisateur',
             email: data.email || '',
             avatar: data.avatar,
+            provider: data.provider,
             scores: data.scores || {},
             trackIds: data.trackIds || [],
             createdAt: data.createdAt || new Date().toISOString()
         };
         setUser(newUser);
+        saveToRegisteredUsers(newUser);
     };
 
     const logout = () => {
