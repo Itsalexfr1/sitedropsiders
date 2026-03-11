@@ -46,20 +46,20 @@ export function ConfirmModal({
 
     return (
         <AnimatePresence>
-            <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div className="fixed inset-0 z-[9999] flex justify-center items-start overflow-y-auto p-4 py-20 md:py-32">
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     exit={{ opacity: 0 }}
                     onClick={onCancel}
-                    className="absolute inset-0 bg-black/80 backdrop-blur-sm"
+                    className="fixed inset-0 bg-black/80 backdrop-blur-sm"
                 />
 
                 <motion.div
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className={`relative w-full max-w-md bg-[#0a0a0a] border ${currentColors.border} rounded-[2.5rem] p-8 shadow-2xl overflow-hidden`}
+                    className={`relative w-full max-w-md bg-[#0a0a0a] border ${currentColors.border} rounded-[2.5rem] p-8 shadow-2xl overflow-hidden my-auto`}
                 >
                     {/* Background glow */}
                     <div className={`absolute -top-24 -right-24 w-48 h-48 rounded-full blur-[80px] opacity-20 ${type === 'danger' ? 'bg-red-500' : type === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'}`} />

@@ -1,12 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, ChevronLeft, ChevronRight, Edit2, Loader2, Filter, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit2, Loader2, Filter, ArrowRight } from 'lucide-react';
 import newsData from '../data/news.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { getArticleLink } from '../utils/slugify';
-import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { standardizeContent } from '../utils/standardizer';
 import { Pagination } from '../components/ui/Pagination';
 import { translateText } from '../utils/translate';
@@ -383,29 +382,6 @@ export function News() {
                     totalPages={totalPages}
                     onPageChange={handlePageChange}
                 />
-                {/* Newsletter Section */}
-                <motion.section
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="mt-32 border-t border-white/5 pt-20"
-                >
-                    <div className="bg-gradient-to-br from-neon-red/10 via-transparent to-neon-purple/10 border border-white/10 rounded-[40px] p-8 md:p-16 text-center relative overflow-hidden">
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-64 h-64 bg-neon-red/10 blur-[100px] rounded-full" />
-                        <div className="relative z-10 max-w-2xl mx-auto">
-                            <div className="w-16 h-16 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-center mx-auto mb-8">
-                                <Mail className="w-8 h-8 text-neon-red" />
-                            </div>
-                            <h2 className="text-3xl md:text-4xl font-display font-black text-white uppercase italic tracking-tight mb-4">
-                                S'INSCRIRE À LA <span className="text-neon-red">NEWSLETTER</span>
-                            </h2>
-                            <p className="text-gray-400 mb-10 text-lg">
-                                {t('article_detail.newsletter_subtitle')}
-                            </p>
-                            <NewsletterForm variant="compact" />
-                        </div>
-                    </div>
-                </motion.section>
             </div>
             <AdminEditBar
                 pageName="News & Articles"

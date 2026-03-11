@@ -1,10 +1,9 @@
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Calendar, Share2, Download, Maximize2, Check, Mail, Edit2 } from 'lucide-react';
+import { ArrowLeft, Calendar, Share2, Download, Maximize2, Check, Edit2 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import galerieData from '../data/galerie.json';
 import { useLanguage } from '../context/LanguageContext';
-import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { extractIdFromSlug } from '../utils/slugify';
 import { trackPageView } from '../utils/analytics';
 import { MediaInteractions } from '../components/shared/MediaInteractions';
@@ -230,24 +229,6 @@ export function AlbumDetail() {
                 )}
             </AnimatePresence>
 
-            {/* Newsletter Section */}
-            <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-20 border-t border-white/5">
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="bg-gradient-to-br from-white/[0.03] to-transparent border border-white/10 rounded-[32px] p-8 md:p-12 text-center relative overflow-hidden"
-                >
-                    <div className="relative z-10 max-w-xl mx-auto">
-                        <Mail className="w-10 h-10 text-neon-red mx-auto mb-6" />
-                        <h2 className="text-2xl md:text-3xl font-display font-black text-white uppercase italic mb-4" dangerouslySetInnerHTML={{ __html: t('article_detail.newsletter_title') }} />
-                        <p className="text-gray-400 mb-8">
-                            {t('article_detail.newsletter_subtitle')}
-                        </p>
-                        <NewsletterForm variant="compact" />
-                    </div>
-                </motion.div>
-            </div>
         </div>
     );
 }

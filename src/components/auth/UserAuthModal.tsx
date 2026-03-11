@@ -58,13 +58,13 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                <div className="fixed inset-0 z-[200] flex justify-center items-start overflow-y-auto p-4 py-20 md:py-32">
                     <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         onClick={onClose}
-                        className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+                        className="fixed inset-0 bg-black/80 backdrop-blur-xl"
                     />
 
                     <motion.div
@@ -72,7 +72,7 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        className="relative w-full max-w-lg bg-dark-bg border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl"
+                        className="relative w-full max-w-lg bg-dark-bg border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl my-auto"
                     >
                         {/* Header Gradient */}
                         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-red" />

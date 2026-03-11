@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X, Mail, Edit2, Instagram, Facebook, Globe, Youtube, Link2 } from 'lucide-react';
+import { Clock, ArrowLeft, ArrowRight, Play, Camera, Share2, Check, MapPin, X, Edit2, Instagram, Facebook, Globe, Youtube, Link2 } from 'lucide-react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
-import { NewsletterForm } from '../components/widgets/NewsletterForm';
 import { standardizeContent as standardizeText } from '../utils/standardizer';
 import { translateText, translateHTML } from '../utils/translate';
 import { getArticleLink, getRecapLink } from '../utils/slugify';
@@ -928,27 +927,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                         </div>
                                     )}
 
-                                    {/* Newsletter Widget (Interview Style) */}
-                                    <div className="bg-gradient-to-br from-neon-red/10 to-neon-purple/10 border border-neon-red/20 rounded-2xl px-5 py-6 text-center space-y-4 relative overflow-hidden origin-top newsletter-sidebar-compact">
-                                        <div className="absolute top-0 left-1/2 -translate-x-1/2 w-24 h-24 bg-neon-red/20 blur-3xl rounded-full" />
-                                        <div className="relative z-10 space-y-2">
-                                            <div className="w-10 h-10 mx-auto bg-neon-red/20 rounded-full flex items-center justify-center border border-neon-red/30">
-                                                <Mail className="w-5 h-5 text-neon-red" />
-                                            </div>
-                                            <div className="space-y-0.5">
-                                                <h4 className="text-sm font-display font-black text-white uppercase italic tracking-tight" dangerouslySetInnerHTML={{ __html: t('article_detail.newsletter_title') }} />
-                                                <p className="text-[9px] text-gray-400 uppercase tracking-wide leading-relaxed">
-                                                    {t('article_detail.newsletter_subtitle')}
-                                                </p>
-                                            </div>
-                                            <div className="space-y-1">
-                                                <NewsletterForm variant="compact" />
-                                            </div>
-                                            <p className="text-[8px] text-gray-600 uppercase tracking-widest mt-1">
-                                                {t('article_detail.newsletter_count')}
-                                            </p>
-                                        </div>
-                                    </div>
+
                                 </div>
                             </aside>
                         </div>
