@@ -31,6 +31,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
     const [isMultiDay, setIsMultiDay] = useState(false);
     const [isSoldOut, setIsSoldOut] = useState(false);
     const [isLiveDropsiders, setIsLiveDropsiders] = useState(false);
+    const [isContest, setIsContest] = useState(false);
     const [additionalDates, setAdditionalDates] = useState<string[]>([]);
     const [showUploadModal, setShowUploadModal] = useState(false);
 
@@ -103,6 +104,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
             setIsWeekly(editingItem.isWeekly || false);
             setIsSoldOut(editingItem.isSoldOut || false);
             setIsLiveDropsiders(editingItem.isLiveDropsiders || false);
+            setIsContest(editingItem.isContest || false);
             setAdditionalDates(editingItem.additionalDates || []);
         }
     }, [isEditing, editingItem]);
@@ -167,6 +169,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                 isWeekly,
                 isSoldOut,
                 isLiveDropsiders,
+                isContest,
                 additionalDates: additionalDates.filter(d => d),
                 month: new Date(startDate).toLocaleString('fr-FR', { month: 'long' }).toUpperCase()
             };
@@ -338,9 +341,6 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                                     } else {
                                         setIsWeekly(false);
                                     }
-                                    if (val === 'Jeux Concours' && !url) {
-                                        setUrl('/communaute?tab=CONCOURS');
-                                    }
                                 }}
                                 className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white outline-none appearance-none cursor-pointer"
                             >
@@ -351,7 +351,6 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                                 <option value="Opening">Opening</option>
                                 <option value="Events">Events</option>
                                 <option value="Live Take Over">LIVE TAKE OVER</option>
-                                <option value="Jeux Concours">Jeux Concours</option>
                             </select>
                         </div>
 
@@ -429,6 +428,24 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                             <div className="flex flex-col">
                                 <span className="text-[9px] font-black uppercase tracking-widest">Sold Out</span>
                                 <span className="text-[7px] opacity-70 italic lowercase">Plus de tickets</span>
+                            </div>
+                        </label>
+
+                        <label className={`flex items-center gap-3 cursor-pointer p-3 border rounded-xl transition-all ${isContest ? 'bg-neon-yellow/10 border-neon-yellow/50 text-neon-yellow' : 'bg-black/40 border-white/10 text-gray-400'}`}>
+                            <input
+                                type="checkbox"
+                                checked={isContest}
+                                onChange={(e) => {
+                                    setIsContest(e.target.checked);
+                                    if (e.target.checked && !url) {
+                                        setUrl('/communaute?tab=CONCOURS');
+                                    }
+                                }}
+                                className="w-4 h-4 rounded bg-dark-bg text-neon-yellow focus:ring-neon-yellow transition-all"
+                            />
+                            <div className="flex flex-col">
+                                <span className="text-[9px] font-black uppercase tracking-widest">Jeux Concours</span>
+                                <span className="text-[7px] opacity-70 italic lowercase">Lien auto concours</span>
                             </div>
                         </label>
                     </div>

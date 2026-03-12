@@ -4445,17 +4445,20 @@ export function AdminDashboard() {
                                                                 <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Score</th>
                                                                 <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Temps</th>
                                                                 <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Date / IP</th>
+                                                                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Action</th>
                                                             </tr>
                                                         </thead>
                                                         <tbody className="divide-y divide-white/5">
                                                             {contestResults.length === 0 ? (
                                                                 <tr>
-                                                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500 uppercase font-black text-xs italic">
+                                                                    <td colSpan={6} className="px-6 py-12 text-center text-gray-500 uppercase font-black text-xs italic">
                                                                         Aucun résultat pour le moment
                                                                     </td>
                                                                 </tr>
                                                             ) : (
-                                                                contestResults.map((res, i) => (
+                                                                [...contestResults]
+                                                                    .sort((a, b) => (b.score - a.score) || (a.time - b.time))
+                                                                    .map((res: any, i: number) => (
                                                                     <tr key={res.id || i} className="hover:bg-white/[0.02] transition-colors">
                                                                         <td className="px-6 py-4">
                                                                             <span className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-[10px] ${i === 0 ? 'bg-yellow-500 text-black' : i === 1 ? 'bg-gray-300 text-black' : i === 2 ? 'bg-orange-400 text-black' : 'bg-white/10 text-white'}`}>
@@ -4484,6 +4487,18 @@ export function AdminDashboard() {
                                                                                 {new Date(res.timestamp || Date.now()).toLocaleString('fr-FR')}
                                                                             </div>
                                                                             <div className="text-[8px] text-gray-600 font-mono italic">{res.ip}</div>
+                                                                        </td>
+                                                                        <td className="px-6 py-4">
+                                                                            {i < 3 && res.userEmail && (
+                                                                                <a
+                                                                                    href={`mailto:${res.userEmail}?subject=Félicitations - Concours Dropsiders&body=Bonjour ${res.pseudo}, félicitations pour votre top 3 au concours Dropsiders ! Vous terminez à la ${i + 1}ème place avec un score de ${res.score}/${res.total} en ${res.time?.toFixed(1)}s. À très vite !`}
+                                                                                    className="p-2 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 rounded-lg text-neon-cyan transition-all flex items-center gap-1.5 w-fit group/mail"
+                                                                                    title="Envoyer un email au gagnant"
+                                                                                >
+                                                                                    <Mail className="w-3.5 h-3.5" />
+                                                                                    <span className="text-[8px] font-black uppercase">Contacter</span>
+                                                                                </a>
+                                                                            )}
                                                                         </td>
                                                                     </tr>
                                                                 ))
