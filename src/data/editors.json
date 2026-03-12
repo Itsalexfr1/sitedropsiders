@@ -48,7 +48,15 @@
     "permissions": [
       "publications",
       "messages",
-      "send_messages"
+      "send_messages",
+      "news",
+      "agenda",
+      "recaps",
+      "interviews",
+      "musique",
+      "community",
+      "social",
+      "live"
     ],
     "created": "2026-02-24T19:52:44.407Z"
   },
