@@ -158,7 +158,6 @@ export function AdminDashboard() {
     const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
     const [previewTimer, setPreviewTimer] = useState(15);
     const [isContestModeEnabled, setIsContestModeEnabled] = useState(false);
-    const [isResettingLeaderboards, setIsResettingLeaderboards] = useState(false);
     const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'CONTENU' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP'>('ALL');
 
     const DASHBOARD_TABS = [
@@ -560,34 +559,6 @@ export function AdminDashboard() {
         } catch (e) {
             console.error("Reset contest error:", e);
             alert("Erreur réseau.");
-        }
-    };
-
-    const handleResetLeaderboard = async (type: 'xp' | 'wiki' | 'all') => {
-        const message = type === 'xp' ? "Voulez-vous vraiment remettre à zéro tous les scores XP et niveaux des joueurs ?" :
-                       type === 'wiki' ? "Voulez-vous vraiment remettre à zéro tous les votes et notes des DJs, Clubs et Festivals ?" :
-                       "Voulez-vous vraiment remettre à zéro TOUS les classements (XP + Wiki) ?";
-        
-        if (!window.confirm(message)) return;
-
-        setIsResettingLeaderboards(true);
-        try {
-            const res = await apiFetch('/api/admin/reset-leaderboards', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ type })
-            });
-
-            if (res.ok) {
-                alert("Réinitialisation effectuée avec succès !");
-            } else {
-                alert("Erreur lors de la réinitialisation.");
-            }
-        } catch (e) {
-            console.error("Reset error:", e);
-            alert("Erreur réseau.");
-        } finally {
-            setIsResettingLeaderboards(false);
         }
     };
 
@@ -4470,7 +4441,7 @@ export function AdminDashboard() {
                                                         <thead>
                                                             <tr className="border-b border-white/10 bg-white/[0.02]">
                                                                 <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Rang</th>
-                                                                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Pseudo</th>
+                                                                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Utilisateur</th>
                                                                 <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Score</th>
                                                                 <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Temps</th>
                                                                 <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Date / IP</th>
@@ -4495,6 +4466,11 @@ export function AdminDashboard() {
                                                                             <div className="font-black text-white uppercase text-xs">
                                                                                 {res.pseudo}
                                                                             </div>
+                                                                            {res.userEmail && (
+                                                                                <div className="text-[10px] text-neon-cyan lowercase opacity-70 truncate max-w-[150px]">
+                                                                                    {res.userEmail}
+                                                                                </div>
+                                                                            )}
                                                                             {res.userId && <div className="text-[8px] text-gray-500 uppercase">UID: {res.userId}</div>}
                                                                         </td>
                                                                         <td className="px-6 py-4">
