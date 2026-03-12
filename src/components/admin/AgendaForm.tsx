@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Calendar, MapPin, Tag, Image as ImageIcon, Link as LinkIcon, Send, AlertCircle, FileText, Globe, Upload } from 'lucide-react';
+import { Calendar, MapPin, Tag, Image as ImageIcon, Link as LinkIcon, Send, AlertCircle, FileText, Globe, Upload, Plus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders } from '../../utils/auth';
 import { ImageUploadModal } from '../ImageUploadModal';
@@ -31,6 +31,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
     const [isMultiDay, setIsMultiDay] = useState(false);
     const [isSoldOut, setIsSoldOut] = useState(false);
     const [isLiveDropsiders, setIsLiveDropsiders] = useState(false);
+    const [additionalDates, setAdditionalDates] = useState<string[]>([]);
     const [showUploadModal, setShowUploadModal] = useState(false);
 
     // Autocomplete State
@@ -102,6 +103,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
             setIsWeekly(editingItem.isWeekly || false);
             setIsSoldOut(editingItem.isSoldOut || false);
             setIsLiveDropsiders(editingItem.isLiveDropsiders || false);
+            setAdditionalDates(editingItem.additionalDates || []);
         }
     }, [isEditing, editingItem]);
 
@@ -165,6 +167,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                 isWeekly,
                 isSoldOut,
                 isLiveDropsiders,
+                additionalDates: additionalDates.filter(d => d),
                 month: new Date(startDate).toLocaleString('fr-FR', { month: 'long' }).toUpperCase()
             };
 
@@ -276,6 +279,44 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                                 />
                             </motion.div>
                         )}
+
+                        {/* Additional Dates */}
+                        <div className="pt-4 border-t border-white/5 space-y-4">
+                            <h4 className="text-[10px] font-black text-gray-400 uppercase tracking-widest flex items-center justify-between">
+                                Dates Additionnelles
+                                <button
+                                    type="button"
+                                    onClick={() => setAdditionalDates([...additionalDates, ''])}
+                                    className="p-1.5 bg-neon-yellow/10 border border-neon-yellow/30 text-neon-yellow rounded-lg hover:bg-neon-yellow/20 transition-all"
+                                >
+                                    <Plus className="w-3 h-3" />
+                                </button>
+                            </h4>
+
+                            <div className="space-y-3">
+                                {additionalDates.map((date, idx) => (
+                                    <div key={idx} className="flex gap-2">
+                                        <input
+                                            type="date"
+                                            value={date}
+                                            onChange={(e) => {
+                                                const newDates = [...additionalDates];
+                                                newDates[idx] = e.target.value;
+                                                setAdditionalDates(newDates);
+                                            }}
+                                            className="flex-1 bg-black/40 border border-white/10 rounded-xl py-2 px-3 text-white text-[10px] focus:border-neon-yellow outline-none transition-all"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setAdditionalDates(additionalDates.filter((_, i) => i !== idx))}
+                                            className="p-2 bg-red-500/10 border border-red-500/30 text-red-500 rounded-xl hover:bg-red-500/20 transition-all"
+                                        >
+                                            <X className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
                     </div>
 
                     {/* Section: Type & Genre */}

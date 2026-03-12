@@ -77,13 +77,37 @@ export function Agenda() {
     const [selectedMonth, setSelectedMonth] = useState<string | null>(null);
     const [searchParams, setSearchParams] = useSearchParams();
     const selectedLocation = searchParams.get('location');
+    
+    // Create an exploded version of the data where events with extra dates appear multiple times
+    const explodedAgenda = useMemo(() => {
+        const exploded: any[] = [];
+        agendaData.forEach(event => {
+            // Primary occurrence
+            exploded.push({ ...event, compositeId: `${event.id}-primary` });
+            
+            // Additional occurrences
+            if (event.additionalDates && Array.isArray(event.additionalDates)) {
+                event.additionalDates.forEach((date: string, idx: number) => {
+                    // Create a copy with the different date
+                    exploded.push({
+                        ...event,
+                        date: date,
+                        startDate: date,
+                        endDate: date,
+                        compositeId: `${event.id}-extra-${idx}`
+                    });
+                });
+            }
+        });
+        return exploded;
+    }, [agendaData]);
 
     // Available months based on upcoming events for the active category
     const months = useMemo(() => {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        const categoryFiltered = agendaData.filter((event: any) => {
+        const categoryFiltered = explodedAgenda.filter((event: any) => {
             if (activeCategory === 'ALL') return true;
             if (activeCategory === 'LIVE') return event.isLiveDropsiders;
             const genre = (event.genre || '').toLowerCase();
@@ -145,7 +169,7 @@ export function Agenda() {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
 
-        return agendaData
+        return explodedAgenda
             .filter((event: any) => {
                 if (!event.date && !event.startDate) return false;
 
@@ -198,7 +222,7 @@ export function Agenda() {
                 }
                 return new Date(a.startDate || a.date).getTime() - new Date(b.startDate || b.date).getTime()
             });
-    }, [activeCategory, selectedMonth, selectedLocation, agendaData]);
+    }, [activeCategory, selectedMonth, selectedLocation, explodedAgenda]);
 
     const formatMonthName = (monthKey: string) => {
         const [year, month] = monthKey.split('-');
@@ -210,14 +234,14 @@ export function Agenda() {
     // Auto-expand event from URL parameter
     useEffect(() => {
         const eventParam = searchParams.get('event');
-        if (eventParam && agendaData.length > 0) {
+        if (eventParam && explodedAgenda.length > 0) {
             const id = extractIdFromSlug(eventParam);
-            const event = agendaData.find((e: any) => e.id === id);
+            const event = explodedAgenda.find((e: any) => e.id === id);
             if (event) {
                 const date = new Date(event.startDate || event.date);
                 const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
                 setSelectedMonth(monthKey);
-                setExpandedEvent(event.id);
+                setExpandedEvent(event.compositeId);
             }
             // Remove the parameter from URL after opening
             setSearchParams({});
@@ -231,7 +255,7 @@ export function Agenda() {
         }
     }, [searchParams, setSearchParams, agendaData]);
 
-    const toggleEvent = (eventId: number) => {
+    const toggleEvent = (eventId: string) => {
         const wasExpanded = expandedEvent === eventId;
         setExpandedEvent(wasExpanded ? null : eventId);
 
@@ -458,7 +482,7 @@ export function Agenda() {
                         {months.length > 0 && filteredEvents.length > 0 ? (
                             filteredEvents.map((event: any, index: number) => {
                                 const styles = getEventStyles(event.genre, event.type);
-                                const isExpanded = expandedEvent === event.id;
+                                const isExpanded = expandedEvent === event.compositeId;
                                 const isSelected = selectedEvents.has(event.id);
 
                                 const eventDate = new Date(event.startDate || event.date);
@@ -480,8 +504,8 @@ export function Agenda() {
 
                                 return (
                                     <motion.div
-                                        id={`event-${event.id}`}
-                                        key={event.id}
+                                        id={`event-${event.compositeId}`}
+                                        key={event.compositeId}
                                         initial={{ opacity: 0, x: -20 }}
                                         animate={{ opacity: 1, x: 0 }}
                                         transition={{ delay: index * 0.05 }}
@@ -545,7 +569,7 @@ export function Agenda() {
                                                 )}
                                                 <div
                                                     className="flex-1 p-3 md:p-6 cursor-pointer hover:bg-white/10 transition-colors"
-                                                    onClick={() => toggleEvent(event.id)}
+                                                    onClick={() => toggleEvent(event.compositeId)}
                                                 >
                                                     <div className="flex flex-row items-center justify-between gap-4 md:gap-6">
                                                         <div className="flex items-center gap-4 md:gap-6">
@@ -671,7 +695,8 @@ export function Agenda() {
                                                                         <button
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
-                                                                                setEditingEvent(event);
+                                                                                const original = agendaData.find((a: any) => a.id === event.id);
+                                                                                setEditingEvent(original || event);
                                                                                 setIsEditModalOpen(true);
                                                                             }}
                                                                             className="w-full md:w-auto flex items-center justify-center gap-3 px-8 py-4 bg-neon-cyan/10 text-neon-cyan border border-neon-cyan/20 rounded-xl font-black uppercase tracking-widest hover:bg-neon-cyan/20 transition-all text-xs"

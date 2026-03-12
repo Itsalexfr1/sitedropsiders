@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { MapPin } from 'lucide-react';
 import { Camera } from 'lucide-react';
 import agendaData from '../../data/agenda.json';
@@ -31,16 +31,37 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
         image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=2070&auto=format&fit=crop"
     } : null;
 
-    const allEvents = scheduledTakeover ? [...agendaData, scheduledTakeover] : agendaData;
+    const allEventsBase = scheduledTakeover ? [...agendaData, scheduledTakeover] : agendaData;
 
-    const upcomingEvents = allEvents
-        .filter((event: any) => {
-            const eventDate = new Date(event.date);
-            eventDate.setHours(23, 59, 59, 999); // Inclusion search
-            return eventDate >= today;
-        })
-        .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())
-        .slice(0, maxItems);
+    const upcomingEvents = useMemo(() => {
+        const exploded: any[] = [];
+        (allEventsBase as any[]).forEach(event => {
+            // Primary date
+            exploded.push({ ...event, compositeId: `${event.id}-primary` });
+            
+            // Additional dates
+            if (event.additionalDates && Array.isArray(event.additionalDates)) {
+                event.additionalDates.forEach((date: string, idx: number) => {
+                    exploded.push({
+                        ...event,
+                        date: date,
+                        startDate: date,
+                        endDate: date,
+                        compositeId: `${event.id}-extra-${idx}`
+                    });
+                });
+            }
+        });
+
+        return exploded
+            .filter((event: any) => {
+                const eventDate = new Date(event.date || event.startDate);
+                eventDate.setHours(23, 59, 59, 999);
+                return eventDate >= today;
+            })
+            .sort((a: any, b: any) => new Date(a.date || a.startDate).getTime() - new Date(b.date || b.startDate).getTime())
+            .slice(0, maxItems);
+    }, [allEventsBase, today.getTime(), maxItems]);
 
     const playHoverSound = useHoverSound();
 
@@ -241,7 +262,7 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                     const styles = getEventStyles(event.genre);
                     return (
                         <Link
-                            key={event.id}
+                            key={event.compositeId}
                             to={getAgendaLink(event)}
                             className="block"
                         >
