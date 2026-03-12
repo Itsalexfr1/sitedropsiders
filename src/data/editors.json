@@ -59,7 +59,13 @@
     "permissions": [
       "create",
       "messages",
-      "publications"
+      "publications",
+      "news",
+      "musique",
+      "interviews",
+      "recaps",
+      "agenda",
+      "wiki"
     ],
     "created": "2026-02-24T22:02:20.569Z"
   }
