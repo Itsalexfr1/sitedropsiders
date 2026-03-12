@@ -4097,5 +4097,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 309,
+    "title": "Street Parade",
+    "date": "2026-08-08",
+    "startDate": "2026-08-08",
+    "endDate": "2026-08-08",
+    "venue": "",
+    "location": "ZÜRICH",
+    "country": "SUISSE",
+    "type": "Festival",
+    "image": "/uploads/uploads/256d95ffea8ae5d3-cropped_1773339314965.jpg",
+    "url": "https://www.streetparade.com/en",
+    "genre": "Multi Styles",
+    "month": "AOÛT",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
