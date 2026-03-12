@@ -2158,7 +2158,7 @@ ${urls.map(u => `  <url>
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
-                const { id, title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek } = body;
+                const { id, title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek, additionalDates } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig);
@@ -2232,7 +2232,8 @@ ${urls.map(u => `  <url>
                         isWeekly: isWeekly !== undefined ? isWeekly : existing.isWeekly,
                         dayOfWeek: dayOfWeek !== undefined ? dayOfWeek : existing.dayOfWeek,
                         isSoldOut: isSoldOut !== undefined ? isSoldOut : existing.isSoldOut,
-                        isLiveDropsiders: isLiveDropsiders !== undefined ? isLiveDropsiders : existing.isLiveDropsiders
+                        isLiveDropsiders: isLiveDropsiders !== undefined ? isLiveDropsiders : existing.isLiveDropsiders,
+                        additionalDates: additionalDates || existing.additionalDates || []
                     };
                 }
 
@@ -2259,7 +2260,7 @@ ${urls.map(u => `  <url>
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
-                const { title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek } = body;
+                const { title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek, additionalDates } = body;
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
                 const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig) || { content: [], sha: null };
@@ -2319,7 +2320,8 @@ ${urls.map(u => `  <url>
                         isWeekly: isWeekly || false,
                         dayOfWeek: dayOfWeek,
                         isSoldOut: isSoldOut || false,
-                        isLiveDropsiders: isLiveDropsiders || false
+                        isLiveDropsiders: isLiveDropsiders || false,
+                        additionalDates: additionalDates || []
                     };
                     currentData = [...currentData, newItem];
                 }
