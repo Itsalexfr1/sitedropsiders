@@ -4115,5 +4115,23 @@
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false
+  },
+  {
+    "id": 310,
+    "title": "Black Coffee",
+    "date": "2026-05-27",
+    "startDate": "2026-05-27",
+    "endDate": "2026-05-27",
+    "venue": "UNVRS",
+    "location": "IBIZA",
+    "country": "ESPAGNE",
+    "type": "Events",
+    "image": "/uploads/uploads/7a23d42ecc2c829c-d2703562_0f40_4119_b46e_f3f94c.webp",
+    "url": "https://www.unvrs.com/events/2026/black-coffee?utm_source=ActiveCampaign&utm_medium=email&utm_campaign=UNVRS+-+BLACK+COFFEE&utm_content=Black+Coffee+x+[UNVRS]",
+    "genre": "House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false
   }
 ]
