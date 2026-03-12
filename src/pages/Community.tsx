@@ -267,7 +267,7 @@ export function Community() {
     const navigate = useNavigate();
 
     // --- TAB TYPE UPDATE ---
-    type TabType = 'WALL' | 'UPLOADS' | 'QUIZZ' | 'GAME' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'ALERTS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB' | 'NOTIFICATIONS';
+    type TabType = 'WALL' | 'UPLOADS' | 'CONCOURS' | 'GAME' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'ALERTS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB' | 'NOTIFICATIONS';
     const [activeTab, setActiveTab] = useState<TabType>('WALL');
     const location = useLocation();
 
@@ -275,7 +275,7 @@ export function Community() {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const tab = params.get('tab');
-        if (tab && ['WALL', 'UPLOADS', 'QUIZZ', 'GAME', 'AVIS', 'GUIDE', 'COVOIT', 'ALERTS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB', 'NOTIFICATIONS'].includes(tab)) {
+        if (tab && ['WALL', 'UPLOADS', 'CONCOURS', 'GAME', 'AVIS', 'GUIDE', 'COVOIT', 'ALERTS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB', 'NOTIFICATIONS'].includes(tab)) {
             setActiveTab(tab as TabType);
         }
     }, [location.search]);
@@ -852,7 +852,7 @@ export function Community() {
                             {[
                                 { id: 'WALL',          icon: Star,         label: 'Mur de Souvenirs',  multiline: false },
                                 { id: 'UPLOADS',       icon: Camera,       label: 'Vos Photos',        multiline: false },
-                                { id: 'QUIZZ',         icon: Gamepad2,     label: 'Quiz',              multiline: false },
+                                { id: 'CONCOURS',      icon: Trophy,       label: 'Jeux Concours',     multiline: false },
                                 { id: 'GAME',          icon: Sparkles,     label: 'PRODUCER',          multiline: false, iconClass: 'text-amber-400' },
                                 { id: 'GUIDE',         icon: Info,         label: 'Guide\nPratique',   multiline: true  },
                                 { id: 'TRACK_ID',      icon: MessageSquare,label: 'TrackID',           multiline: false },
@@ -901,9 +901,9 @@ export function Community() {
                             </motion.div>
                         )}
 
-                        {activeTab === 'QUIZZ' && (
+                        {activeTab === 'CONCOURS' && (
                             <motion.div
-                                key="quizz"
+                                key="concours"
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 1.05 }}

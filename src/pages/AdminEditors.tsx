@@ -50,6 +50,7 @@ const PERMISSION_CATEGORIES = [
             { id: 'social', label: 'Social Studio', description: 'Générer des visuels pour les réseaux sociaux.' },
             { id: 'broadcast', label: 'Push & Newsletter', description: 'Envoyer des notifications push et gérer les campagnes de mails.' },
             { id: 'shop', label: 'Boutique', description: 'Gérer la section merchandising et les commandes.' },
+            { id: 'messages', label: 'Messagerie & Contact', description: 'Répondre aux messages reçus via le formulaire de contact.' },
             { id: 'stats', label: 'Statistiques', description: 'Voir les chiffres d\'audience et d\'analyse du site.' },
             { id: 'accueil', label: 'Page d\'Accueil', description: 'Modifier la disposition et les sélections de la page d\'accueil.' }
         ]

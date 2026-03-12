@@ -3405,6 +3405,49 @@ ${urls.map(u => `  <url>
             return new Response(JSON.stringify({ error: 'Quiz not found' }), { status: 404, headers });
         }
 
+        // Reset all leaderboards
+        if (path === '/api/admin/reset-leaderboards' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const { type } = await request.json(); // 'xp', 'wiki', 'all'
+
+            if (type === 'xp' || type === 'all') {
+                const keys = await env.CHAT_KV.list({ prefix: 'community_player_xp_' });
+                for (const key of keys.keys) {
+                    await env.CHAT_KV.delete(key.name);
+                }
+            }
+
+            if (type === 'wiki' || type === 'all') {
+                const DJS_PATH = 'src/data/wiki_djs.json';
+                const CLUBS_PATH = 'src/data/wiki_clubs.json';
+                const FESTS_PATH = 'src/data/wiki_festivals.json';
+
+                try {
+                    const djFile = await fetchGitHubFile(DJS_PATH, gitConfig);
+                    if (djFile) {
+                        const content = djFile.content.map(d => ({ ...d, rating: "0" }));
+                        await saveGitHubFile(DJS_PATH, content, "Reset DJ ratings", djFile.sha, gitConfig);
+                    }
+
+                    const clubFile = await fetchGitHubFile(CLUBS_PATH, gitConfig);
+                    if (clubFile) {
+                        const content = clubFile.content.map(c => ({ ...c, votes: 0 }));
+                        await saveGitHubFile(CLUBS_PATH, content, "Reset Club votes", clubFile.sha, gitConfig);
+                    }
+
+                    const festFile = await fetchGitHubFile(FESTS_PATH, gitConfig);
+                    if (festFile) {
+                        const content = festFile.content.map(f => ({ ...f, votes: 0 }));
+                        await saveGitHubFile(FESTS_PATH, content, "Reset Festival votes", festFile.sha, gitConfig);
+                    }
+                } catch (e) {
+                    console.error("GitHub reset failed:", e);
+                }
+            }
+
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
         // Reset all BLIND_TEST questions
         if (path === '/api/quiz/reset-blind-test' && request.method === 'POST') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
@@ -3422,6 +3465,7 @@ ${urls.map(u => `  <url>
             const removedCount = (active.length - filteredActive.length) + (pending.length - filteredPending.length);
             return new Response(JSON.stringify({ success: true, removed: removedCount }), { status: 200, headers });
         }
+
 
         if (path === '/api/quiz/active' && request.method === 'GET') {
             const activeRaw = await env.CHAT_KV.get('quiz_active') || "[]";
@@ -6475,6 +6519,38 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/quiz/leaderboard' && request.method === 'POST') {
             const result = await request.json();
+            const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+
+            // IF CONTEST MODE, ENFORCE ONE ENTRY PER IP AND ACCOUNT
+            if (result.isContest) {
+                const logRaw = await env.CHAT_KV.get('quiz_contest_participation_log') || "{\"ips\":{},\"users\":{}}";
+                let log;
+                try {
+                    log = JSON.parse(logRaw);
+                } catch (e) {
+                    log = { ips: {}, users: {} };
+                }
+
+                if (!log.ips) log.ips = {};
+                if (!log.users) log.users = {};
+
+                const alreadyParticipated = (result.userId && log.users[result.userId]) || log.ips[ip];
+
+                if (alreadyParticipated) {
+                    return new Response(JSON.stringify({ 
+                        success: false, 
+                        error: 'Désolé, une seule participation par compte et par IP est autorisée pour ce concours !' 
+                    }), { status: 403, headers });
+                }
+
+                // Record participation
+                log.ips[ip] = { timestamp: Date.now(), pseudo: result.pseudo };
+                if (result.userId) {
+                    log.users[result.userId] = { timestamp: Date.now(), pseudo: result.pseudo, email: result.userEmail };
+                }
+                await env.CHAT_KV.put('quiz_contest_participation_log', JSON.stringify(log));
+            }
+
             const raw = await env.CHAT_KV.get('quiz_leaderboard') || "[]";
             const leaderboard = JSON.parse(raw);
 
@@ -6488,6 +6564,16 @@ ${urls.map(u => `  <url>
             // Keep only top 20
             const sliced = leaderboard.slice(0, 20);
             await env.CHAT_KV.put('quiz_leaderboard', JSON.stringify(sliced));
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
+        if (path === '/api/quiz/contest/reset' && request.method === 'POST') {
+            const adminPass = (request.headers.get('X-Admin-Password') || '').trim();
+            const requiredPass = '01061988';
+            if (adminPass !== requiredPass) {
+                return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            }
+            await env.CHAT_KV.delete('quiz_contest_participation_log');
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 

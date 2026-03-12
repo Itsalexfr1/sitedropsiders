@@ -338,6 +338,9 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                                     } else {
                                         setIsWeekly(false);
                                     }
+                                    if (val === 'Jeux Concours' && !url) {
+                                        setUrl('/communaute?tab=CONCOURS');
+                                    }
                                 }}
                                 className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white outline-none appearance-none cursor-pointer"
                             >
@@ -348,6 +351,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                                 <option value="Opening">Opening</option>
                                 <option value="Events">Events</option>
                                 <option value="Live Take Over">LIVE TAKE OVER</option>
+                                <option value="Jeux Concours">Jeux Concours</option>
                             </select>
                         </div>
 

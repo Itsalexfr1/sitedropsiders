@@ -7,7 +7,7 @@ import {
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type,
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram, Bell, Zap,
-    Play, Gamepad2, Upload, Activity, Star, Heart
+    Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -156,6 +156,8 @@ export function AdminDashboard() {
     const [takeoverTab, setTakeoverTab] = useState<'general' | 'planning' | 'mods' | 'bot' | 'ticker' | 'moderation' | 'blocked' | 'access'>('general');
     const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
     const [previewTimer, setPreviewTimer] = useState(15);
+    const [isContestModeEnabled, setIsContestModeEnabled] = useState(false);
+    const [isResettingLeaderboards, setIsResettingLeaderboards] = useState(false);
     const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'CONTENU' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP'>('ALL');
 
     const DASHBOARD_TABS = [
@@ -498,8 +500,74 @@ export function AdminDashboard() {
                         status: data.takeover.status || (data.takeover.enabled ? 'live' : 'off')
                     });
                 }
+                if (data.contest_mode !== undefined) {
+                    setIsContestModeEnabled(data.contest_mode);
+                }
             }
         } catch (e: any) { }
+    };
+
+    const toggleContestMode = async () => {
+        const newValue = !isContestModeEnabled;
+        setIsContestModeEnabled(newValue);
+        try {
+            const res = await apiFetch('/api/settings', { headers: getAuthHeaders() });
+            const data = res.ok ? await res.json() : {};
+            await apiFetch('/api/settings/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ ...data, contest_mode: newValue })
+            });
+        } catch (e) {
+            console.error("Failed to toggle contest mode:", e);
+        }
+    };
+
+    const handleResetContest = async () => {
+        if (!window.confirm("Voulez-vous vraiment réinitialiser la liste des participants ? Cela permettra à tout le monde de rejouer une fois.")) return;
+        
+        try {
+            const res = await apiFetch('/api/quiz/contest/reset', {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+            if (res.ok) {
+                alert("Liste des participations remise à zéro !");
+            } else {
+                alert("Erreur lors de la réinitialisation.");
+            }
+        } catch (e) {
+            console.error("Reset contest error:", e);
+            alert("Erreur réseau.");
+        }
+    };
+
+    const handleResetLeaderboard = async (type: 'xp' | 'wiki' | 'all') => {
+        const message = type === 'xp' ? "Voulez-vous vraiment remettre à zéro tous les scores XP et niveaux des joueurs ?" :
+                       type === 'wiki' ? "Voulez-vous vraiment remettre à zéro tous les votes et notes des DJs, Clubs et Festivals ?" :
+                       "Voulez-vous vraiment remettre à zéro TOUS les classements (XP + Wiki) ?";
+        
+        if (!window.confirm(message)) return;
+
+        setIsResettingLeaderboards(true);
+        try {
+            const res = await apiFetch('/api/admin/reset-leaderboards', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ type })
+            });
+
+            if (res.ok) {
+                alert("Réinitialisation effectuée avec succès !");
+            } else {
+                alert("Erreur lors de la réinitialisation.");
+            }
+        } catch (e) {
+            console.error("Reset error:", e);
+            alert("Erreur réseau.");
+        } finally {
+            setIsResettingLeaderboards(false);
+        }
     };
 
     useEffect(() => {
@@ -712,7 +780,7 @@ export function AdminDashboard() {
 
         // SHOP & CONTACT
         { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP & CONTACT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
-        { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "messages", baseColor: "green", columns: 1 },
+        { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "broadcast", baseColor: "green", columns: 1 },
         { title: "MESSAGERIE & CONTACT", description: "Emails Reçus & Factures", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
 
         // SYSTÀˆME & TEAM
@@ -909,7 +977,6 @@ export function AdminDashboard() {
             'social_studio': 'social',
             'galeries': 'community',
             'notifications': 'broadcast',
-            'messages': 'broadcast',
             'team': 'all',
             'publications': 'news',
             'takeover_full': 'live',
@@ -4293,8 +4360,6 @@ export function AdminDashboard() {
                                             En attente ({allPendingQuizzes.length})
                                         </button>
 
-                                        <div className="h-6 w-[1px] bg-white/10 mx-2" />
-
                                         <div className="flex items-center gap-3 px-3 py-2 bg-black/60 border border-white/10 rounded-xl mx-2 shadow-xl group">
                                             <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">
                                                 Progression : <span className={quizCounts.blindTest < 30 ? 'text-neon-red' : 'text-neon-green'}>{quizCounts.blindTest}/30 BT</span> • <span className={quizCounts.image < 30 ? 'text-neon-red' : 'text-neon-green'}>{quizCounts.image}/30 Image</span>
@@ -4303,14 +4368,37 @@ export function AdminDashboard() {
 
                                         <div className="h-6 w-[1px] bg-white/10 mx-2" />
 
-                                        {['ALL', 'QCM', 'BLIND_TEST', 'IMAGE'].map(filter => {
+                                        {/* Contest Mode Toggle */}
+                                        <div className="flex items-center gap-1">
+                                            <button
+                                                onClick={toggleContestMode}
+                                                className={`px-4 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all border flex items-center gap-2 ${isContestModeEnabled ? 'bg-neon-yellow/10 border-neon-yellow text-neon-yellow shadow-[0_0_15px_rgba(255,187,0,0.2)]' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                            >
+                                                <Gamepad2 className="w-3 h-3" />
+                                                Mode Concours : {isContestModeEnabled ? 'ACTIF' : 'INACTIF'}
+                                            </button>
+
+                                            {isContestModeEnabled && (
+                                                <button
+                                                    onClick={handleResetContest}
+                                                    className="p-2.5 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl hover:bg-red-500/20 transition-all group relative"
+                                                    title="Réinitialiser la liste des participants pour un nouveau concours"
+                                                >
+                                                    <RotateCcw className="w-3 h-3" />
+                                                </button>
+                                            )}
+                                        </div>
+
+                                        <div className="h-6 w-[1px] bg-white/10 mx-2" />
+
+                                        {['ALL', 'QCM', 'BLIND_TEST', 'IMAGE', 'CONCOURS'].map(filter => {
                                             return (
                                                 <button
                                                     key={filter}
                                                     onClick={() => setQuizFilter(filter)}
                                                     className={`px-4 py-2.5 text-[9px] font-black uppercase tracking-widest rounded-xl transition-all border border-white/5 ${quizFilter === filter ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 text-gray-500 hover:text-white'}`}
                                                 >
-                                                    {filter.replace('_', ' ')}
+                                                    {filter === 'CONCOURS' ? 'JEUX CONCOURS' : filter.replace('_', ' ')}
                                                 </button>
                                             );
                                         })}
@@ -4338,7 +4426,7 @@ export function AdminDashboard() {
                                             <div className="space-y-4">
                                                 {(quizTab === 'active' ? allActiveQuizzes : allPendingQuizzes)
                                                     .filter(q => {
-                                                        const matchType = quizFilter === 'ALL' || q.type === quizFilter;
+                                                        const matchType = quizFilter === 'ALL' || q.type === quizFilter || (quizFilter === 'CONCOURS' && q.category === 'CONCOURS');
                                                         const matchSearch = !quizSearch ||
                                                             q.question?.toUpperCase().includes(quizSearch.toUpperCase()) ||
                                                             q.author?.toUpperCase().includes(quizSearch.toUpperCase());
@@ -4351,7 +4439,7 @@ export function AdminDashboard() {
                                                 ) : (
                                                     (quizTab === 'active' ? allActiveQuizzes : allPendingQuizzes)
                                                         .filter(q => {
-                                                            const matchType = quizFilter === 'ALL' || q.type === quizFilter;
+                                                            const matchType = quizFilter === 'ALL' || q.type === quizFilter || (quizFilter === 'CONCOURS' && q.category === 'CONCOURS');
                                                             const matchSearch = !quizSearch ||
                                                                 q.question?.toUpperCase().includes(quizSearch.toUpperCase()) ||
                                                                 q.author?.toUpperCase().includes(quizSearch.toUpperCase());
@@ -4470,17 +4558,33 @@ export function AdminDashboard() {
                                 <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-1">
 
 
-                                    <div>
-                                        <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">
-                                            {quizToEdit.type === 'BLIND_TEST' ? 'Question / Titre' : 'Question'}
-                                        </label>
-                                        <input
-                                            type="text"
-                                            value={quizToEdit.question}
-                                            onChange={(e) => setQuizToEdit({ ...quizToEdit, question: e.target.value })}
-                                            className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none text-xs"
-                                            placeholder={quizToEdit.type === 'BLIND_TEST' ? 'Ex: Quel est ce morceau ?' : 'Ex: Quel DJ est headliner ?'}
-                                        />
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] font-black text-neon-red uppercase tracking-widest block mb-2">
+                                                {quizToEdit.type === 'BLIND_TEST' ? 'Question / Titre' : 'Question'}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={quizToEdit.question}
+                                                onChange={(e) => setQuizToEdit({ ...quizToEdit, question: e.target.value })}
+                                                className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none text-xs"
+                                                placeholder={quizToEdit.type === 'BLIND_TEST' ? 'Ex: Quel est ce morceau ?' : 'Ex: Quel DJ est headliner ?'}
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2">Catégorie</label>
+                                            <select
+                                                value={quizToEdit.category || 'Général'}
+                                                onChange={(e) => setQuizToEdit({ ...quizToEdit, category: e.target.value })}
+                                                className="w-full bg-black border border-white/10 rounded-xl p-3 text-white focus:border-neon-red outline-none text-xs"
+                                            >
+                                                <option value="Général">GÉNÉRAL</option>
+                                                <option value="CONCOURS">JEUX CONCOURS</option>
+                                                <option value="Artistes">ARTISTES</option>
+                                                <option value="Festivals">FESTIVALS</option>
+                                                <option value="Blind Test">BLIND TEST</option>
+                                            </select>
+                                        </div>
                                     </div>
 
 

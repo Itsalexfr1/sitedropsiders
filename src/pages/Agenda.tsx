@@ -290,6 +290,8 @@ export function Agenda() {
         else if (g.includes('hybride')) color = 'red';
         else if (g.includes('hardcore')) color = 'red';
         else if (g.includes('hardtechno')) color = 'purple';
+        
+        if (t === 'jeux concours') color = 'yellow';
 
         const isMulti = g.includes('multi styles');
         const isHybride = g.includes('hybride');
@@ -518,7 +520,7 @@ export function Agenda() {
                                         )}
 
                                         {/* Mobile Variant */}
-                                        <div className="absolute inset-0 md:hidden block" onClick={() => { if (event.url) window.open(event.url, '_blank') }}>
+                                        <div className="absolute inset-0 md:hidden block" onClick={() => { if (event.url) window.location.href = event.url }}>
                                             {event.image && (
                                                 <img
                                                     src={event.image}
@@ -631,15 +633,40 @@ export function Agenda() {
                                                                     <Calendar className="w-5 h-5 text-gray-500 group-hover/btn:text-neon-red" />
                                                                 </button>
                                                             )}
-                                                            <a
-                                                                href={event.url}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className={`hidden md:block px-8 py-3 rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all ${event.isSoldOut ? 'bg-neon-red/10 text-neon-red border-neon-red/30' : 'bg-white/5 border-white/10 text-white hover:bg-neon-red hover:border-neon-red hover:shadow-[0_0_20px_rgba(255,0,51,0.3)]'}`}
-                                                                onClick={e => e.stopPropagation()}
-                                                            >
-                                                                {event.isSoldOut ? 'Sold Out' : t('agenda.infos_tickets')}
-                                                            </a>
+                                                            {event.type === 'Jeux Concours' ? (
+                                                                <div className="hidden md:flex items-center gap-2">
+                                                                    <button
+                                                                        onClick={e => {
+                                                                            e.stopPropagation();
+                                                                            window.location.href = '/communaute?tab=CONCOURS';
+                                                                        }}
+                                                                        className="px-6 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all bg-neon-red border-neon-red text-white hover:shadow-[0_0_20px_rgba(255,0,51,0.3)]"
+                                                                    >
+                                                                        Participer
+                                                                    </button>
+                                                                    {event.url && !event.url.includes('tab=CONCOURS') && (
+                                                                        <a
+                                                                            href={event.url}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="px-6 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all bg-white/5 border-white/10 text-white hover:bg-white/10"
+                                                                            onClick={e => e.stopPropagation()}
+                                                                        >
+                                                                            Tickets
+                                                                        </a>
+                                                                    )}
+                                                                </div>
+                                                             ) : (
+                                                                <a
+                                                                    href={event.url}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className={`hidden md:block px-8 py-3 rounded-xl border text-[11px] font-black uppercase tracking-widest transition-all ${event.isSoldOut ? 'bg-neon-red/10 text-neon-red border-neon-red/30' : 'bg-white/5 border-white/10 text-white hover:bg-neon-red hover:border-neon-red hover:shadow-[0_0_20px_rgba(255,0,51,0.3)]'}`}
+                                                                    onClick={e => e.stopPropagation()}
+                                                                >
+                                                                    {event.isSoldOut ? 'Sold Out' : t('agenda.infos_tickets')}
+                                                                </a>
+                                                             )}
                                                             <ChevronDown className={`w-5 h-5 md:w-6 md:h-6 text-gray-600 transition-transform ${isExpanded ? 'rotate-180 text-neon-red' : ''}`} />
                                                         </div>
                                                     </div>
@@ -672,14 +699,38 @@ export function Agenda() {
                                                                 </div>
 
                                                                 <div className="flex flex-wrap gap-4 md:gap-6 pt-2">
-                                                                    <a
-                                                                        href={event.url}
-                                                                        target="_blank"
-                                                                        rel="noopener noreferrer"
-                                                                        className="flex-1 md:flex-none px-10 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)] text-center text-xs md:text-sm"
-                                                                    >
-                                                                        {t('agenda.book_tickets')}
-                                                                    </a>
+                                                                    {event.type === 'Jeux Concours' ? (
+                                                                        <>
+                                                                            <button
+                                                                                onClick={() => {
+                                                                                    window.location.href = '/communaute?tab=CONCOURS';
+                                                                                }}
+                                                                                className="flex-1 md:flex-none px-10 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)] text-center text-xs md:text-sm"
+                                                                            >
+                                                                                Participer au Concours
+                                                                            </button>
+
+                                                                            {event.url && !event.url.includes('tab=CONCOURS') && (
+                                                                                <a
+                                                                                    href={event.url}
+                                                                                    target="_blank"
+                                                                                    rel="noopener noreferrer"
+                                                                                    className="flex-1 md:flex-none px-10 py-5 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase tracking-widest hover:bg-white/10 transition-all text-center text-xs md:text-sm"
+                                                                                >
+                                                                                    Billetterie & Infos
+                                                                                </a>
+                                                                            )}
+                                                                        </>
+                                                                    ) : (
+                                                                        <a
+                                                                            href={event.url}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="flex-1 md:flex-none px-10 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)] text-center text-xs md:text-sm"
+                                                                        >
+                                                                            {t('agenda.book_tickets')}
+                                                                        </a>
+                                                                    )}
 
                                                                     {!isPast && (
                                                                         <button

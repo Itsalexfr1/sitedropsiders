@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, AlertCircle, Inbox, Plus, Archive, FileText, Video } from 'lucide-react';
 import { getAuthHeaders } from '../utils/auth';
 import editorsData from '../data/editors.json';
@@ -34,6 +34,19 @@ interface ContactMessage {
 }
 
 export function AdminMessages() {
+    const navigate = useNavigate();
+    
+    // Permission check
+    const storedPermissions = useMemo(() => JSON.parse(localStorage.getItem('admin_permissions') || '[]'), []);
+    const isAlex = localStorage.getItem('admin_user') === 'alex' || localStorage.getItem('admin_user') === 'contact@dropsiders.fr';
+    const canAccess = isAlex || storedPermissions.includes('all') || storedPermissions.includes('messages');
+
+    useEffect(() => {
+        if (!canAccess) {
+            navigate('/admin');
+        }
+    }, [canAccess, navigate]);
+
     const [messages, setMessages] = useState<ContactMessage[]>([]);
     const [selected, setSelected] = useState<ContactMessage | null>(null);
     const [loading, setLoading] = useState(true);

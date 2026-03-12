@@ -5,6 +5,7 @@ import { uploadFile } from '../../utils/uploadService';
 import { useUser } from '../../context/UserContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { AudioWaveformSelector } from '../admin/AudioWaveformSelector';
+import { UserAuthModal } from '../auth/UserAuthModal';
 
 type QuizType = 'QCM' | 'BLIND_TEST' | 'IMAGE';
 type GameLength = 5 | 10 | 20;
@@ -96,9 +97,18 @@ export function QuizSection() {
     const [isRevealing, setIsRevealing] = useState(false);
     const [uploading, setUploading] = useState(false);
 
+    const [isContestModeActive, setIsContestModeActive] = useState(false);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
     useEffect(() => {
         fetchQuizzes();
         fetchLeaderboard();
+        
+        // Fetch contest mode setting
+        fetch('/api/settings')
+            .then(res => res.json())
+            .then(data => setIsContestModeActive(data.contest_mode === true))
+            .catch(() => setIsContestModeActive(false));
     }, []);
 
     useEffect(() => {
@@ -146,12 +156,26 @@ export function QuizSection() {
     };
 
     const startNewGame = () => {
+        if (isContestModeActive && !isLoggedIn) {
+            setIsAuthModalOpen(true);
+            return;
+        }
+
         if (!gamePseudo.trim()) {
             alert("Veuillez entrer votre prénom / pseudo pour participer !");
             return;
         }
 
         let filtered = quizzes;
+        
+        // Force CONCOURS category if contest mode is active
+        if (isContestModeActive) {
+            const contestQuizzes = quizzes.filter(q => q.category === 'CONCOURS');
+            if (contestQuizzes.length > 0) {
+                filtered = contestQuizzes;
+            }
+        }
+
         if (selectedMode !== 'ALL') {
             filtered = filtered.filter(q => q.type === selectedMode);
         } else {
@@ -287,18 +311,32 @@ export function QuizSection() {
         // Save record if not in ghost mode
         if (!isGhostMode) {
             try {
-                await fetch('/api/quiz/leaderboard', {
+                const response = await fetch('/api/quiz/leaderboard', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
                         pseudo: gamePseudo,
                         score,
                         total: gameQuizzes.length,
-                        time: totalGameTime
+                        time: totalGameTime,
+                        userEmail: user?.email,
+                        userProvider: user?.provider,
+                        userId: user?.id,
+                        isContest: isContestModeActive
                     })
                 });
+                
+                if (!response.ok) {
+                    const error = await response.json();
+                    if (response.status === 403) {
+                        alert(error.error || "Une seule participation autorisée !");
+                    }
+                }
+                
                 fetchLeaderboard();
-            } catch (e) { }
+            } catch (e) {
+                console.error("Leaderboard error:", e);
+            }
         }
     };
 
@@ -428,6 +466,16 @@ export function QuizSection() {
                                         <h3 className="text-3xl font-display font-black text-white italic uppercase flex items-center gap-4">
                                             <Gamepad2 className="w-8 h-8 text-neon-red" />
                                             Quizz
+                                            {isContestModeActive && (
+                                                <motion.span 
+                                                    initial={{ scale: 0.8 }}
+                                                    animate={{ scale: [0.8, 1.1, 0.8] }}
+                                                    transition={{ duration: 2, repeat: Infinity }}
+                                                    className="ml-2 px-3 py-1 bg-neon-red text-white text-[8px] font-black rounded-full italic shadow-lg shadow-neon-red/20"
+                                                >
+                                                    JEU CONCOURS ACTIF
+                                                </motion.span>
+                                            )}
                                         </h3>
                                         <div className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-2xl">
                                             <Zap className="w-4 h-4 text-neon-cyan animate-pulse" />
@@ -443,10 +491,16 @@ export function QuizSection() {
                                                 <input
                                                     type="text"
                                                     value={gamePseudo}
+                                                    disabled={isContestModeActive && isLoggedIn}
                                                     onChange={e => setGamePseudo(e.target.value.toUpperCase())}
-                                                    placeholder="COMMENCE PAR TON NOM..."
-                                                    className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-black uppercase tracking-wider focus:outline-none focus:border-neon-red transition-all"
+                                                    placeholder={isContestModeActive && !isLoggedIn ? "CONNEXION REQUISE POUR LE CONCOURS..." : "COMMENCE PAR TON NOM..."}
+                                                    className={`w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white font-black uppercase tracking-wider focus:outline-none focus:border-neon-red transition-all ${isContestModeActive && isLoggedIn ? 'opacity-50 cursor-not-allowed' : ''}`}
                                                 />
+                                                {isContestModeActive && !isLoggedIn && (
+                                                    <div className="absolute right-4 top-1/2 -translate-y-1/2">
+                                                        <Shield className="w-4 h-4 text-neon-red animate-pulse" />
+                                                    </div>
+                                                )}
                                             </div>
                                         </div>
 
@@ -523,10 +577,19 @@ export function QuizSection() {
 
                                         <button
                                             onClick={startNewGame}
-                                            className="w-full py-5 bg-white text-black rounded-3xl font-black uppercase tracking-[0.3em] text-xs hover:bg-neon-red hover:text-white transition-all shadow-2xl flex items-center justify-center gap-4 group"
+                                            className={`w-full py-5 rounded-3xl font-black uppercase tracking-[0.3em] text-[10px] md:text-xs transition-all shadow-2xl flex items-center justify-center gap-4 group ${isContestModeActive && !isLoggedIn ? 'bg-neon-red text-white hover:bg-white hover:text-black' : 'bg-white text-black hover:bg-neon-red hover:text-white'}`}
                                         >
-                                            {isSurvivalMode ? 'LANCER LE DÉFI SURVIE' : 'COMMENCER LE JEU'}
-                                            <Play className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                            {isContestModeActive && !isLoggedIn ? (
+                                                <>
+                                                    <User className="w-5 h-5" />
+                                                    SE CONNECTER POUR PARTICIPER
+                                                </>
+                                            ) : (
+                                                <>
+                                                    {isSurvivalMode ? 'LANCER LE DÉFI SURVIE' : 'COMMENCER LE JEU'}
+                                                    <Play className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                                                </>
+                                            )}
                                         </button>
                                     </div>
                                 </motion.div>
@@ -1171,6 +1234,11 @@ export function QuizSection() {
                 </div>
             )
             }
-        </div >
+            {/* Authentication Modal */}
+            <UserAuthModal 
+                isOpen={isAuthModalOpen} 
+                onClose={() => setIsAuthModalOpen(false)} 
+            />
+        </div>
     );
 }

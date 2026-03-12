@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff, X, CheckCircle2, AlertCircle, Share2, Youtube, Globe, Facebook, Music, Instagram, Bell, Send, Info } from 'lucide-react';
+import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff, X, CheckCircle2, AlertCircle, Share2, Youtube, Globe, Facebook, Music, Instagram, Bell, Send, Info, RefreshCw } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -180,6 +180,30 @@ export function AdminSettings() {
         }
     };
 
+    const handleResetLeaderboard = async (type: 'xp' | 'wiki' | 'all') => {
+        const message = type === 'xp' ? "Voulez-vous vraiment remettre à zéro tous les scores XP et niveaux des joueurs ?" :
+                       type === 'wiki' ? "Voulez-vous vraiment remettre à zéro tous les votes et notes des DJs, Clubs et Festivals ?" :
+                       "Voulez-vous vraiment remettre à zéro TOUS les classements (XP + Wiki) ?";
+        
+        if (!window.confirm(message)) return;
+
+        try {
+            const res = await apiFetch('/api/admin/reset-leaderboards', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ type })
+            });
+
+            if (res.ok) {
+                showNotification("Réinitialisation effectuée avec succès !", 'success');
+            } else {
+                showNotification("Erreur lors de la réinitialisation.", 'error');
+            }
+        } catch (e) {
+            showNotification("Erreur réseau.", 'error');
+        }
+    };
+
     if (!isAdmin) return null;
 
     return (
@@ -313,6 +337,67 @@ export function AdminSettings() {
                                 <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic">
                                     Mot de passe à donner aux marques pour afficher le Kit Media / Les Statistiques.
                                 </p>
+                            </div>
+                        </div>
+                    </motion.div>
+
+                    {/* Maintenance / Leaderboards Section */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-10 backdrop-blur-xl mt-8"
+                    >
+                        <div className="flex items-center gap-4 mb-8">
+                            <div className="p-3 bg-neon-purple/10 rounded-2xl">
+                                <RefreshCw className="w-6 h-6 text-neon-purple" />
+                            </div>
+                            <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tight">Maintenance Classements</h2>
+                        </div>
+
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div className="p-6 bg-white/[0.03] border border-white/5 rounded-3xl space-y-4">
+                                <div>
+                                    <h3 className="text-white font-black uppercase text-xs tracking-widest mb-2 italic">Reset XP & Levels</h3>
+                                    <p className="text-gray-500 text-[9px] uppercase font-bold tracking-tight leading-relaxed">
+                                        Efface tous les scores XP, rangs et badges de la communauté.
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => handleResetLeaderboard('xp')}
+                                    className="w-full py-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white border border-red-500/20 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all"
+                                >
+                                    Reset Community XP
+                                </button>
+                            </div>
+
+                            <div className="p-6 bg-white/[0.03] border border-white/5 rounded-3xl space-y-4">
+                                <div>
+                                    <h3 className="text-white font-black uppercase text-xs tracking-widest mb-2 italic">Reset Wiki Votes</h3>
+                                    <p className="text-gray-500 text-[9px] uppercase font-bold tracking-tight leading-relaxed">
+                                        Remet à zéro les votes/notes pour DJs, Clubs et Festivals.
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => handleResetLeaderboard('wiki')}
+                                    className="w-full py-3 bg-orange-500/10 hover:bg-orange-500 text-orange-500 hover:text-white border border-orange-500/20 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all"
+                                >
+                                    Reset Wiki Votes
+                                </button>
+                            </div>
+
+                            <div className="p-6 bg-white/[0.03] border border-white/5 rounded-3xl space-y-4">
+                                <div>
+                                    <h3 className="text-white font-black uppercase text-xs tracking-widest mb-2 italic">Reset Global</h3>
+                                    <p className="text-gray-500 text-[9px] uppercase font-bold tracking-tight leading-relaxed">
+                                        Remet à zéro absolument tous les classements du site.
+                                    </p>
+                                </div>
+                                <button
+                                    onClick={() => handleResetLeaderboard('all')}
+                                    className="w-full py-3 bg-white/5 hover:bg-white text-white/50 hover:text-black border border-white/10 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all"
+                                >
+                                    Reset Tout (Full Wipe)
+                                </button>
                             </div>
                         </div>
                     </motion.div>
