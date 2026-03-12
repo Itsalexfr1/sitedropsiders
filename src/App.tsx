@@ -6,7 +6,6 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { CookieConsent } from './components/ui/CookieConsent';
 import { GoogleAdSense } from './components/analytics/GoogleAdSense';
 import { ScrollToTop } from './components/utils/ScrollToTop';
-import { NotificationPrompt } from './components/NotificationPrompt';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { lazyRetry } from './utils/lazyRetry';
 import { AlertCircle, RefreshCw } from 'lucide-react';
@@ -114,7 +113,6 @@ function Root() {
         </AnimatePresence>
       </Layout>
       <CookieConsent />
-      <NotificationPrompt />
     </>
   );
 }
