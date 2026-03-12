@@ -6561,10 +6561,34 @@ ${urls.map(u => `  <url>
                 return a.time - b.time;
             });
 
-            // Keep only top 20
+            // If it's a contest, also save to a dedicated contest results list
+            if (result.isContest) {
+                const contestRaw = await env.CHAT_KV.get('quiz_contest_results') || "[]";
+                const contestResults = JSON.parse(contestRaw);
+                contestResults.push({
+                    ...result,
+                    timestamp: Date.now(),
+                    ip
+                });
+                // Sort contest results
+                contestResults.sort((a, b) => {
+                    if (b.score !== a.score) return b.score - a.score;
+                    return a.time - b.time;
+                });
+                // Keep all contest results for the current session (admin can reset them)
+                await env.CHAT_KV.put('quiz_contest_results', JSON.stringify(contestResults));
+            }
+
+            // Keep only top 20 for global
             const sliced = leaderboard.slice(0, 20);
             await env.CHAT_KV.put('quiz_leaderboard', JSON.stringify(sliced));
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
+        if (path === '/api/quiz/contest/results' && request.method === 'GET') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const results = await env.CHAT_KV.get('quiz_contest_results') || "[]";
+            return new Response(results, { status: 200, headers });
         }
 
         if (path === '/api/quiz/contest/reset' && request.method === 'POST') {

@@ -79,8 +79,9 @@ export function AdminDashboard() {
     const [pendingMessagesCount, setPendingMessagesCount] = useState(0);
     const [allActiveQuizzes, setAllActiveQuizzes] = useState<any[]>([]);
     const [allPendingQuizzes, setAllPendingQuizzes] = useState<any[]>([]);
+    const [contestResults, setContestResults] = useState<any[]>([]);
     const [isQuizLoading, setIsQuizLoading] = useState(false);
-    const [quizTab, setQuizTab] = useState<'active' | 'pending'>('active');
+    const [quizTab, setQuizTab] = useState<'active' | 'pending' | 'results'>('active');
     const [isEditQuizModalOpen, setIsEditQuizModalOpen] = useState(false);
     const [quizFilter, setQuizFilter] = useState('ALL');
     const [quizSearch, setQuizSearch] = useState('');
@@ -243,6 +244,41 @@ export function AdminDashboard() {
             console.error("Error fetching quizzes:", err);
         } finally {
             setIsQuizLoading(false);
+        }
+    };
+
+    const fetchContestResults = async () => {
+        setIsQuizLoading(true);
+        try {
+            const res = await apiFetch('/api/quiz/contest/results', { headers: getAuthHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                setContestResults(Array.isArray(data) ? data : []);
+            }
+        } catch (err) {
+            console.error("Error fetching contest results:", err);
+        } finally {
+            setIsQuizLoading(false);
+        }
+    };
+
+    const handleResetContest = async () => {
+        if (!window.confirm("Voulez-vous vraiment remettre à zéro le concours actuel ?\nCeci effacera tous les résultats et autorisera de nouvelles participations.")) return;
+        
+        try {
+            const res = await apiFetch('/api/quiz/contest/reset', {
+                method: 'POST',
+                headers: {
+                    ...getAuthHeaders(),
+                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                }
+            });
+            if (res.ok) {
+                alert("Concours réinitialisé !");
+                fetchContestResults();
+            }
+        } catch (err) {
+            console.error("Error resetting contest:", err);
         }
     };
 
@@ -4359,6 +4395,15 @@ export function AdminDashboard() {
                                         >
                                             En attente ({allPendingQuizzes.length})
                                         </button>
+                                        <button
+                                            onClick={() => {
+                                                setQuizTab('results');
+                                                fetchContestResults();
+                                            }}
+                                            className={`px-6 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${quizTab === 'results' ? 'bg-yellow-500/10 text-yellow-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                        >
+                                            Résultats Concours
+                                        </button>
 
                                         <div className="flex items-center gap-3 px-3 py-2 bg-black/60 border border-white/10 rounded-xl mx-2 shadow-xl group">
                                             <span className="text-[8px] font-bold text-gray-500 uppercase tracking-widest whitespace-nowrap">
@@ -4416,18 +4461,82 @@ export function AdminDashboard() {
                                         </div>
                                     </div>
 
-                                    <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                                    <div className="flex-1 overflow-y-auto scrollbar-hide pr-2">
                                         {isQuizLoading ? (
-                                            <div className="h-full flex flex-col items-center justify-center gap-4">
+                                            <div className="h-full flex flex-col items-center justify-center gap-4 py-20">
                                                 <Loader2 className="w-10 h-10 text-neon-red animate-spin" />
-                                                <p className="text-xs font-black text-gray-500 uppercase tracking-widest animate-pulse">Chargement des questions...</p>
+                                                <p className="text-xs font-black text-gray-500 uppercase tracking-widest animate-pulse">Chargement des données...</p>
+                                            </div>
+                                        ) : quizTab === 'results' ? (
+                                            <div className="space-y-6 pb-20">
+                                                <div className="flex items-center justify-between">
+                                                    <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tight">Classement du Concours</h3>
+                                                    <button
+                                                        onClick={handleResetContest}
+                                                        className="px-4 py-2 bg-red-500/10 border border-red-500/20 text-red-500 rounded-xl font-black uppercase text-[10px] hover:bg-red-500 hover:text-white transition-all flex items-center gap-2"
+                                                    >
+                                                        <RotateCcw className="w-3 h-3" />
+                                                        Réinitialiser le concours
+                                                    </button>
+                                                </div>
+
+                                                <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                                                    <table className="w-full text-left">
+                                                        <thead>
+                                                            <tr className="border-b border-white/10 bg-white/[0.02]">
+                                                                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Rang</th>
+                                                                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Pseudo</th>
+                                                                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Score</th>
+                                                                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Temps</th>
+                                                                <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Date / IP</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody className="divide-y divide-white/5">
+                                                            {contestResults.length === 0 ? (
+                                                                <tr>
+                                                                    <td colSpan={5} className="px-6 py-12 text-center text-gray-500 uppercase font-black text-xs italic">
+                                                                        Aucun résultat pour le moment
+                                                                    </td>
+                                                                </tr>
+                                                            ) : (
+                                                                contestResults.map((res, i) => (
+                                                                    <tr key={res.id || i} className="hover:bg-white/[0.02] transition-colors">
+                                                                        <td className="px-6 py-4">
+                                                                            <span className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-[10px] ${i === 0 ? 'bg-yellow-500 text-black' : i === 1 ? 'bg-gray-300 text-black' : i === 2 ? 'bg-orange-400 text-black' : 'bg-white/10 text-white'}`}>
+                                                                                {i + 1}
+                                                                            </span>
+                                                                        </td>
+                                                                        <td className="px-6 py-4">
+                                                                            <div className="font-black text-white uppercase text-xs">
+                                                                                {res.pseudo}
+                                                                            </div>
+                                                                            {res.userId && <div className="text-[8px] text-gray-500 uppercase">UID: {res.userId}</div>}
+                                                                        </td>
+                                                                        <td className="px-6 py-4">
+                                                                            <span className="text-neon-cyan font-black italic">{res.score}/{res.total}</span>
+                                                                        </td>
+                                                                        <td className="px-6 py-4 text-xs font-mono text-gray-400">
+                                                                            {res.time?.toFixed(1)}s
+                                                                        </td>
+                                                                        <td className="px-6 py-4">
+                                                                            <div className="text-[10px] text-gray-400">
+                                                                                {new Date(res.timestamp || Date.now()).toLocaleString('fr-FR')}
+                                                                            </div>
+                                                                            <div className="text-[8px] text-gray-600 font-mono italic">{res.ip}</div>
+                                                                        </td>
+                                                                    </tr>
+                                                                ))
+                                                            )}
+                                                        </tbody>
+                                                    </table>
+                                                </div>
                                             </div>
                                         ) : (
                                             <div className="space-y-4">
                                                 {(quizTab === 'active' ? allActiveQuizzes : allPendingQuizzes)
                                                     .filter(q => {
                                                         const matchType = quizFilter === 'ALL' || q.type === quizFilter || (quizFilter === 'CONCOURS' && q.category === 'CONCOURS');
-                                                        const matchSearch = !quizSearch ||
+                                                        const matchSearch = !quizSearch || 
                                                             q.question?.toUpperCase().includes(quizSearch.toUpperCase()) ||
                                                             q.author?.toUpperCase().includes(quizSearch.toUpperCase());
                                                         return matchType && matchSearch;
