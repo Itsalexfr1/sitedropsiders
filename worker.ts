@@ -928,46 +928,53 @@ ${urls.map(u => `  <url>
                 }), { status: 401, headers });
             }
 
-            // --- PERMISSION CHECKS ---
+            // --- PERMISSIONS MAPPING & CHECKS ---
             const hasAll = userPermissions.includes('all');
 
-            // Content (News, Recaps, etc)
-            const isContentRoute = path.startsWith('/api/news') || path.startsWith('/api/recaps') ||
-                path.startsWith('/api/agenda') || path.startsWith('/api/galerie');
-            if (isContentRoute && !hasAll && !userPermissions.includes('publications')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : publications' }), { status: 403, headers });
+            // 1. News
+            if (path.startsWith('/api/news') && !hasAll && !userPermissions.includes('news')) {
+                return new Response(JSON.stringify({ error: 'Permission refusée : news' }), { status: 403, headers });
             }
 
-            // Shop
+            // 2. Agenda
+            if (path.startsWith('/api/agenda') && !hasAll && !userPermissions.includes('agenda')) {
+                return new Response(JSON.stringify({ error: 'Permission refusée : agenda' }), { status: 403, headers });
+            }
+
+            // 3. Recaps
+            if (path.startsWith('/api/recaps') && !hasAll && !userPermissions.includes('recaps')) {
+                return new Response(JSON.stringify({ error: 'Permission refusée : recaps' }), { status: 403, headers });
+            }
+
+            // 4. Communauté & Galerie
+            if ((path.startsWith('/api/galerie') || path.startsWith('/api/photos')) && !hasAll && !userPermissions.includes('community')) {
+                return new Response(JSON.stringify({ error: 'Permission refusée : community' }), { status: 403, headers });
+            }
+
+            // 5. Shop
             if (path.includes('/api/shop') && !hasAll && !userPermissions.includes('shop')) {
                 return new Response(JSON.stringify({ error: 'Permission refusée : shop' }), { status: 403, headers });
             }
 
-            // Newsletter
-            if ((path.startsWith('/api/newsletter') || path === '/api/subscribers') && !hasAll && !userPermissions.includes('newsletter')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : newsletter' }), { status: 403, headers });
+            // 6. Broadcast (Newsletter & Messages)
+            const isBroadcastRoute = path.startsWith('/api/newsletter') || path === '/api/subscribers' || path.startsWith('/api/contacts');
+            if (isBroadcastRoute && !hasAll && !userPermissions.includes('broadcast')) {
+                return new Response(JSON.stringify({ error: 'Permission refusée : broadcast' }), { status: 403, headers });
             }
 
-            // Spotify
-            if (path === '/api/spotify/update' && !hasAll && !userPermissions.includes('spotify')) {
-                return new Response(JSON.stringify({ error: 'Permission refusée : spotify' }), { status: 403, headers });
+            // 7. Spotify
+            if (path === '/api/spotify/update' && !hasAll && !userPermissions.includes('musique')) {
+                return new Response(JSON.stringify({ error: 'Permission refusée : musique' }), { status: 403, headers });
             }
 
-            // Messages & Contacts
-            if (path.startsWith('/api/contacts')) {
-                // Accessing the messages list
-                if (!hasAll && !userPermissions.includes('messages')) {
-                    return new Response(JSON.stringify({ error: 'Permission refusée : messagerie' }), { status: 403, headers });
-                }
-                // Replying/Sending emails
-                if (path === '/api/contacts/reply' && !hasAll && !userPermissions.includes('send_messages')) {
-                    return new Response(JSON.stringify({ error: 'Permission refusée : envoi de messages' }), { status: 403, headers });
-                }
+            // 8. Accueil (Layout)
+            if (path === '/api/home-layout/update' && !hasAll && !userPermissions.includes('accueil')) {
+                return new Response(JSON.stringify({ error: 'Permission refusée : accueil' }), { status: 403, headers });
             }
 
-            // Factures: allow alex OR any authenticated user with 'all' or 'publications' permission
+            // 9. Factures: allow alex OR any authenticated user with 'all' or 'news' permission
             if (path === '/api/facture/send') {
-                const isAuthorized = requestUsername === 'alex' || requestUsername === 'contact@dropsiders.fr' || hasAll || userPermissions.includes('publications');
+                const isAuthorized = requestUsername === 'alex' || requestUsername === 'contact@dropsiders.fr' || hasAll || userPermissions.includes('news');
                 if (!isAuthorized) {
                     return new Response(JSON.stringify({ error: "Accès réservé au personnel autorisé" }), { status: 403, headers });
                 }
