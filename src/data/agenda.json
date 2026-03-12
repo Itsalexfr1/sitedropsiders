@@ -4132,6 +4132,10 @@
     "month": "MAI",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "additionalDates": [
+      "2026-09-22",
+      "2026-10-01"
+    ]
   }
 ]
