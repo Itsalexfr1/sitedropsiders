@@ -262,25 +262,6 @@ export function AdminDashboard() {
         }
     };
 
-    const handleResetContest = async () => {
-        if (!window.confirm("Voulez-vous vraiment remettre à zéro le concours actuel ?\nCeci effacera tous les résultats et autorisera de nouvelles participations.")) return;
-        
-        try {
-            const res = await apiFetch('/api/quiz/contest/reset', {
-                method: 'POST',
-                headers: {
-                    ...getAuthHeaders(),
-                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
-                }
-            });
-            if (res.ok) {
-                alert("Concours réinitialisé !");
-                fetchContestResults();
-            }
-        } catch (err) {
-            console.error("Error resetting contest:", err);
-        }
-    };
 
     const handleCreateQuiz = () => {
         setQuizToEdit({
@@ -560,15 +541,19 @@ export function AdminDashboard() {
     };
 
     const handleResetContest = async () => {
-        if (!window.confirm("Voulez-vous vraiment réinitialiser la liste des participants ? Cela permettra à tout le monde de rejouer une fois.")) return;
+        if (!window.confirm("Voulez-vous vraiment réinitialiser le concours actuel ?\nCela effacera tous les résultats et permettra à tout le monde de rejouer.")) return;
         
         try {
             const res = await apiFetch('/api/quiz/contest/reset', {
                 method: 'POST',
-                headers: getAuthHeaders()
+                headers: {
+                    ...getAuthHeaders(),
+                    'X-Admin-Password': localStorage.getItem('admin_password') || ''
+                }
             });
             if (res.ok) {
-                alert("Liste des participations remise à zéro !");
+                alert("Concours réinitialisé avec succès !");
+                fetchContestResults();
             } else {
                 alert("Erreur lors de la réinitialisation.");
             }
