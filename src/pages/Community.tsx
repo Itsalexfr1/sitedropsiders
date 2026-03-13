@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    Users, Camera, Star, Info, Car,
+    Users, Camera, Star, Info,
     Sparkles, Trophy, Plus, Check, AlertCircle,
     Music, Shield, Palette, Megaphone, Lock,
     RefreshCw, X, Heart, Ticket, Euro,
