@@ -161,14 +161,28 @@ export function AdminDashboard() {
     const [bannedChatUsers, setBannedChatUsers] = useState<string[]>([]);
     const [previewTimer, setPreviewTimer] = useState(15);
     const [isContestModeEnabled, setIsContestModeEnabled] = useState(false);
-    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'CONTENU' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP'>('ALL');
+
+    // GESTION TEAM STATES
+    const [teamMembers, setTeamMembers] = useState<any[]>([]);
+    const [editors, setEditors] = useState<any[]>([]);
+    const [isLoadingTeam, setIsLoadingTeam] = useState(false);
+    const [isLoadingEditors, setIsLoadingEditors] = useState(false);
+    const [isSavingTeam, setIsSavingTeam] = useState(false);
+    const [isSavingEditor, setIsSavingEditor] = useState(false);
+    const [editingMember, setEditingMember] = useState<any>(null);
+    const [editingEditor, setEditingEditor] = useState<any>(null);
+    const [showMemberModal, setShowMemberModal] = useState(false);
+    const [showEditorModal, setShowEditorModal] = useState(false);
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+
+    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'CONTENU' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM' | 'CONCOURS'>('ALL');
 
     const DASHBOARD_TABS = [
         { id: 'ALL', label: 'Tout' },
+        { id: 'TEAM', label: 'Gestion Team' },
+        { id: 'CONCOURS', label: 'Jeux Concours' },
         { id: 'NEWS', label: 'News' },
-        { id: 'CONTENU', label: 'Éditorial' },
         { id: 'STUDIO', label: 'Studio' },
-        { id: 'COMMUNAUTÉ', label: 'Communauté' },
         { id: 'SHOP', label: 'Shop' }
     ];
     const [confirmModal, setConfirmModal] = useState<{
@@ -288,6 +302,22 @@ export function AdminDashboard() {
             });
             if (res.ok) {
                 fetchInstagramParticipants();
+            }
+        } catch (err) {
+            console.error("Error updating status:", err);
+        }
+    };
+
+
+    const updateContestResultStatus = async (email: string, timestamp: number, status: string) => {
+        try {
+            const res = await apiFetch('/api/quiz/contest/update-status', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ email, timestamp, status })
+            });
+            if (res.ok) {
+                fetchContestResults();
             }
         } catch (err) {
             console.error("Error updating status:", err);
@@ -597,28 +627,91 @@ export function AdminDashboard() {
 
     useEffect(() => {
         if (isAuthenticated) {
-            // Photos count
-            fetch('/api/photos/pending', { headers: getAuthHeaders() })
-                .then(r => r.json())
-                .then(data => setPendingPhotosCount(Array.isArray(data) ? data.length : 0))
-                .catch(() => setPendingPhotosCount(0));
-
-            // Messages count
-            fetch('/api/contacts', { headers: getAuthHeaders() })
-                .then(r => r.json())
-                .then(data => {
-                    const count = Array.isArray(data) ? data.filter((m: any) => !m.read).length : 0;
-                    setPendingMessagesCount(count);
-                })
-                .catch(() => setPendingMessagesCount(0));
-
-            // Quizzes count
-            fetch('/api/quiz/pending', { headers: getAuthHeaders() })
-                .then(res => res.json())
-                .then(data => setPendingQuizzesCount(Array.isArray(data) ? data.length : 0))
-                .catch(() => setPendingQuizzesCount(0));
+            fetchInterviews();
+            fetchPhotosCount();
+            fetchMessagesCount();
+            fetchTeam();
+            fetchEditors();
+            if (isContestModeEnabled) fetchContestResults();
         }
-    }, [isAuthenticated, isModerationModalOpen, isMessagesModalOpen, isQuizModalOpen, isCommunauteModalOpen]);
+    }, [isAuthenticated, isContestModeEnabled]);
+
+    const fetchInterviews = async () => {
+        try {
+            const response = await apiFetch('/api/news', { headers: getAuthHeaders() });
+            if (response.ok) {
+                const data = await response.json();
+                const count = Array.isArray(data) ? data.filter((n: any) => n.category === 'Interview').length : 0;
+                // No specific state for interview count but function is called
+            }
+        } catch (e) { }
+    };
+
+    const fetchTeam = async () => {
+        setIsLoadingTeam(true);
+        try {
+            const response = await fetch('/api/team', { headers: getAuthHeaders(null) });
+            if (response.ok) {
+                const data = await response.json();
+                setTeamMembers(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch team', err);
+        } finally {
+            setIsLoadingTeam(false);
+        }
+    };
+
+    const fetchEditors = async () => {
+        setIsLoadingEditors(true);
+        try {
+            const response = await apiFetch('/api/editors', { headers: getAuthHeaders(null) });
+            if (response.ok) {
+                const data = await response.json();
+                setEditors(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch editors', err);
+        } finally {
+            setIsLoadingEditors(false);
+        }
+    };
+
+    const fetchMessagesCount = async () => {
+        try {
+            const r = await fetch('/api/contacts', { headers: getAuthHeaders() });
+            if (r.ok) {
+                const data = await r.json();
+                const count = Array.isArray(data) ? data.filter((m: any) => !m.read).length : 0;
+                setPendingMessagesCount(count);
+            }
+        } catch (e) {
+            setPendingMessagesCount(0);
+        }
+    };
+
+    const fetchPhotosCount = async () => {
+        try {
+            const r = await fetch('/api/photos/pending', { headers: getAuthHeaders() });
+            if (r.ok) {
+                const data = await r.json();
+                setPendingPhotosCount(Array.isArray(data) ? data.length : 0);
+            }
+        } catch (e) {
+            setPendingPhotosCount(0);
+        }
+
+        // Also fetch pending quizzes count here as it was in the old block
+        try {
+            const res = await fetch('/api/quiz/pending', { headers: getAuthHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                setPendingQuizzesCount(Array.isArray(data) ? data.length : 0);
+            }
+        } catch (e) {
+            setPendingQuizzesCount(0);
+        }
+    };
 
     const saveTakeoverSettings = async () => {
         setIsUpdatingTakeover(true);
@@ -790,29 +883,31 @@ export function AdminDashboard() {
     };
 
     const getFallbackActions = () => [
-        // CONTENU & À‰DITORIAL
-        { title: "Contenu", description: "News, Musique, Interviews...", icon: "FileText", category: "CONTENU & À‰DITORIAL", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news", baseColor: "cyan", columns: 2 },
-        { title: "Agenda", description: "Programmation", icon: "Calendar", category: "CONTENU & À‰DITORIAL", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
+        // CONTENU & ÉDITORIAL
+        { title: "Contenu", description: "News, Musique, Interviews...", icon: "FileText", category: "NEWS", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news", baseColor: "cyan", columns: 2 },
+        { title: "Agenda", description: "Programmation", icon: "Calendar", category: "NEWS", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
 
         // STUDIO & ANALYTICS
-        { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
-        { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
-        { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO & ANALYTICS", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
+        { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", category: "STUDIO", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
+        { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
+        { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
 
-        // COMMUNAUTÉ & ENGAGEMENT
-        { title: "Communauté", description: "Moération & Jeux", icon: "ImageIcon", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
-        { title: "Notifications", description: "Alertes Push", icon: "Bell", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
-        { title: "Concours Insta", description: "Participants Instagram", icon: "Instagram", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "all", baseColor: "pink", columns: 1 },
+        // JEUX CONCOURS
+        { title: "Quiz & Blind Test", description: "Questions & Musique", icon: "Gamepad2", category: "CONCOURS", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 2 },
+        { title: "Concours Insta", description: "Participants Instagram", icon: "Instagram", category: "CONCOURS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "all", baseColor: "pink", columns: 1 },
+
+        // GESTION TEAM
+        { title: "Éditeurs", description: "Équipe & Accès", icon: "Users", category: "TEAM", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 1 },
+        { title: "Team", description: "Page Team du site", icon: "Users", category: "TEAM", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "all", baseColor: "purple", columns: 1 },
 
         // SHOP & CONTACT
-        { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP & CONTACT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
-        { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "broadcast", baseColor: "green", columns: 1 },
-        { title: "MESSAGERIE & CONTACT", description: "Emails Reçus & Factures", icon: "Mail", category: "SHOP & CONTACT", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
+        { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
+        { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "broadcast", baseColor: "green", columns: 1 },
+        { title: "Messagerie", description: "Emails & Factures", icon: "Mail", category: "SHOP", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
 
-        // SYSTÀˆME & TEAM
-        { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
-        { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "SYSTÀˆME & TEAM", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
-        { title: "Éditeurs", description: "Équipe & Accès", icon: "Users", category: "SYSTÀˆME & TEAM", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 1 },
+        // SYSTÈME
+        { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "ALL", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
+        { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "ALL", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
     ];
 
 
@@ -1121,10 +1216,11 @@ export function AdminDashboard() {
             return action.title === 'Contenu' || action.title === 'Agenda' || action.title === 'News Focus' || action.title === 'Social Studio';
         }
 
-        if (dashboardTab === 'CONTENU') return action.category?.includes('CONTENU');
-        if (dashboardTab === 'STUDIO') return action.category?.includes('STUDIO');
-        if (dashboardTab === 'COMMUNAUTÉ') return action.category?.includes('COMMUNAUTÉ');
-        if (dashboardTab === 'SHOP') return action.category?.includes('SHOP');
+        if (dashboardTab === 'TEAM') return action.category === 'TEAM';
+        if (dashboardTab === 'CONCOURS') return action.category === 'CONCOURS';
+        if (dashboardTab === 'NEWS') return action.category === 'NEWS';
+        if (dashboardTab === 'STUDIO') return action.category === 'STUDIO';
+        if (dashboardTab === 'SHOP') return action.category === 'SHOP';
 
         return true;
     });
@@ -1325,7 +1421,371 @@ export function AdminDashboard() {
                 </div>
 
                 <div className="space-y-16 relative">
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    {dashboardTab === 'TEAM' ? (
+                        <div className="space-y-12 pb-20">
+                            {/* ÉDITEURS */}
+                            <div>
+                                <div className="flex justify-between items-center mb-8">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-neon-red/10 rounded-2xl border border-neon-red/20">
+                                            <Shield className="w-6 h-6 text-neon-red" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-3xl font-display font-black text-white uppercase italic leading-none">Gestion <span className="text-neon-red">Éditeurs</span></h2>
+                                            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">Accès back-office & permissions</p>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => {
+                                            setEditingEditor({ username: '', password: '', name: '', permissions: [] });
+                                            setShowEditorModal(true);
+                                        }}
+                                        className="px-6 py-3 bg-neon-red text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20"
+                                    >
+                                        Nouvel Éditeur
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    <AnimatePresence>
+                                        {editors.map((editor) => (
+                                            <motion.div
+                                                key={editor.username}
+                                                layout
+                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                className="bg-white/5 border border-white/10 rounded-2xl p-6 group hover:border-white/20 transition-all relative overflow-hidden"
+                                            >
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 rounded-full bg-neon-red/10 border border-neon-red/20 flex items-center justify-center text-neon-red">
+                                                        <User className="w-6 h-6" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-lg font-bold text-white uppercase italic">{editor.name || editor.username}</h3>
+                                                        <p className="text-gray-500 text-xs font-mono">@{editor.username}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="mt-4 flex flex-wrap gap-2">
+                                                    {(editor.permissions || []).map((p: string) => (
+                                                        <span key={p} className="px-2 py-0.5 bg-white/5 border border-white/10 rounded text-[8px] text-gray-400 font-bold uppercase tracking-widest">{p}</span>
+                                                    ))}
+                                                </div>
+                                                <div className="mt-6 pt-4 border-t border-white/5 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setEditingEditor({ ...editor, password: '' });
+                                                            setShowEditorModal(true);
+                                                        }}
+                                                        className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-all"
+                                                    >
+                                                        <Pencil className="w-4 h-4" />
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => {
+                                                            if (confirm('Supprimer cet éditeur ?')) {
+                                                                apiFetch('/api/editors/delete', {
+                                                                    method: 'POST',
+                                                                    headers: getAuthHeaders(),
+                                                                    body: JSON.stringify({ username: editor.username })
+                                                                }).then(r => r.ok && fetchEditors());
+                                                            }
+                                                        }}
+                                                        className="p-2 hover:bg-red-500/10 rounded-lg text-gray-400 hover:text-red-500 transition-all"
+                                                    >
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                </div>
+                            </div>
+
+                            {/* TEAM SITE */}
+                            <div>
+                                <div className="flex justify-between items-center mb-8">
+                                    <div className="flex items-center gap-4">
+                                        <div className="p-3 bg-neon-purple/10 rounded-2xl border border-neon-purple/20">
+                                            <Users className="w-6 h-6 text-neon-purple" />
+                                        </div>
+                                        <div>
+                                            <h2 className="text-3xl font-display font-black text-white uppercase italic leading-none">Gérer <span className="text-neon-purple">La Team</span></h2>
+                                            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">Équipe affichée sur la page Team</p>
+                                        </div>
+                                    </div>
+                                    <button 
+                                        onClick={() => {
+                                            setEditingMember({ id: Date.now(), name: '', role: '', image: '/images/team/default.jpg', socials: { instagram: '', tiktok: '' } });
+                                            setShowMemberModal(true);
+                                        }}
+                                        className="px-6 py-3 bg-neon-purple text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-neon-purple/80 transition-all shadow-lg shadow-neon-purple/20"
+                                    >
+                                        Ajouter Membre
+                                    </button>
+                                </div>
+                                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                                    <AnimatePresence>
+                                        {teamMembers.map((member) => (
+                                            <motion.div
+                                                key={member.id}
+                                                layout
+                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                className="bg-white/5 border border-white/10 rounded-3xl p-4 group hover:border-neon-purple/30 transition-all relative overflow-hidden"
+                                            >
+                                                <div className="aspect-[4/5] rounded-2xl overflow-hidden mb-4 bg-black/40 border border-white/5 relative">
+                                                    <img src={member.image} alt={member.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                    <div className="absolute inset-x-0 bottom-0 p-3 bg-gradient-to-t from-black/80 to-transparent">
+                                                        <p className="text-[8px] font-black text-neon-purple uppercase tracking-widest">{member.role}</p>
+                                                        <h4 className="text-sm font-bold text-white uppercase italic tracking-tight">{member.name}</h4>
+                                                    </div>
+                                                </div>
+                                                <div className="flex justify-between gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                                    <button 
+                                                        onClick={() => {
+                                                            setEditingMember({ ...member });
+                                                            setShowMemberModal(true);
+                                                        }}
+                                                        className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[8px] font-black text-white uppercase tracking-widest transition-all"
+                                                    >
+                                                        Modifier
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => {
+                                                            if (confirm('Supprimer ce membre ?')) {
+                                                                const newTeam = teamMembers.filter(m => m.id !== member.id);
+                                                                fetch('/api/team/update', {
+                                                                    method: 'POST',
+                                                                    headers: getAuthHeaders(),
+                                                                    body: JSON.stringify({ members: newTeam })
+                                                                }).then(r => r.ok && fetchTeam());
+                                                            }
+                                                        }}
+                                                        className="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all"
+                                                    >
+                                                        <Trash2 className="w-3 h-3" />
+                                                    </button>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                </div>
+                            </div>
+                        </div>
+                    ) : dashboardTab === 'CONCOURS' ? (
+                        <div className="space-y-12 pb-20">
+                            {/* ACTIVATION SECTION */}
+                            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 flex flex-col md:flex-row justify-between items-center gap-10 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/5 blur-[100px] pointer-events-none" />
+                                <div className="relative z-10 text-center md:text-left">
+                                    <div className="flex items-center justify-center md:justify-start gap-4 mb-4">
+                                        <div className={`p-3 rounded-2xl border ${isContestModeEnabled ? 'bg-neon-red/20 border-neon-red/40 animate-pulse' : 'bg-white/10 border-white/20'}`}>
+                                            <Gamepad2 className={`w-8 h-8 ${isContestModeEnabled ? 'text-neon-red' : 'text-gray-500'}`} />
+                                        </div>
+                                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
+                                            Activation du <span className="text-neon-red">Concours</span>
+                                        </h2>
+                                    </div>
+                                    <p className="text-gray-400 font-medium max-w-xl">
+                                        Le mode concours active la page des jeux et permet aux utilisateurs de participer. 
+                                        Lorsqu'il est actif, le bandeau de navigation met en avant le jeu actuel.
+                                    </p>
+                                </div>
+                                <div className="flex items-center gap-6 relative z-10 w-full md:w-auto">
+                                    <button 
+                                        onClick={toggleContestMode}
+                                        className={`flex-1 md:flex-none px-10 py-5 rounded-2xl font-black uppercase tracking-[0.2em] transition-all transform hover:scale-105 active:scale-95 ${isContestModeEnabled 
+                                            ? 'bg-neon-red text-white shadow-2xl shadow-neon-red/40 border border-neon-red/50' 
+                                            : 'bg-white/5 border border-white/10 text-gray-500 hover:text-white hover:bg-white/10'}`}
+                                    >
+                                        {isContestModeEnabled ? 'CONCOURS ACTIF' : 'ACTIVER CONCOURS'}
+                                    </button>
+                                    <button 
+                                        onClick={handleResetContest}
+                                        title="Réinitialiser les scores"
+                                        className="p-5 bg-white/5 border border-white/10 text-gray-500 hover:text-white rounded-2xl transition-all hover:bg-white/10 hover:border-white/20"
+                                    >
+                                        <RotateCcw className="w-6 h-6" />
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
+                                {/* PARTICIPANTS LIST */}
+                                <div className="lg:col-span-8 space-y-8">
+                                    <div className="flex justify-between items-center px-4">
+                                        <div className="flex items-center gap-3">
+                                            <Users className="w-5 h-5 text-neon-blue" />
+                                            <h3 className="text-xl font-display font-black text-white uppercase italic">Participants <span className="text-neon-blue">Quiz & Blindtest</span></h3>
+                                        </div>
+                                        <div className="px-3 py-1 bg-neon-blue/10 border border-neon-blue/20 rounded-full">
+                                            <span className="text-[10px] font-black text-neon-blue uppercase">{contestResults.length} Inscrits</span>
+                                        </div>
+                                    </div>
+
+                                    <div className="bg-black/40 border border-white/5 rounded-[2rem] overflow-hidden">
+                                        <table className="w-full text-left">
+                                            <thead>
+                                                <tr className="border-b border-white/5 bg-white/[0.02]">
+                                                    <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Participant</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Score</th>
+                                                    <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Actions</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-white/5">
+                                                {contestResults.slice(0, 10).map((p, idx) => (
+                                                    <tr key={idx} className="group hover:bg-white/[0.02] transition-colors">
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-gray-300">
+                                                                    {idx + 1}
+                                                                </div>
+                                                                <div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <p className="font-bold text-white text-sm">{p.handle || p.email}</p>
+                                                                        {p.status === 'validated' && <div className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_5px_rgba(34,197,94,0.5)]" />}
+                                                                    </div>
+                                                                    <p className="text-[10px] text-gray-500 uppercase tracking-widest">{new Date(p.timestamp).toLocaleDateString()}</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4">
+                                                            <div className="flex items-center gap-4">
+                                                                <div className="text-center">
+                                                                    <p className="text-xs font-black text-neon-green">{p.score} pts</p>
+                                                                    <p className="text-[8px] font-bold text-gray-600 uppercase">Correct</p>
+                                                                </div>
+                                                                <div className="w-px h-6 bg-white/5" />
+                                                                <div className="text-center">
+                                                                    <p className="text-xs font-black text-neon-blue">{p.avgTime?.toFixed(1)}s</p>
+                                                                    <p className="text-[8px] font-bold text-gray-600 uppercase">Vitesse</p>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="px-6 py-4 text-center">
+                                                            <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                                                {p.status !== 'validated' ? (
+                                                                    <button 
+                                                                        onClick={() => updateContestResultStatus(p.email, p.timestamp, 'validated')}
+                                                                        className="px-3 py-1.5 bg-neon-green/10 text-neon-green hover:bg-neon-green hover:text-white rounded-lg text-[8px] font-black uppercase transition-all"
+                                                                    >
+                                                                        Valider
+                                                                    </button>
+                                                                ) : (
+                                                                    <button 
+                                                                        onClick={() => updateContestResultStatus(p.email, p.timestamp, 'pending')}
+                                                                        className="px-3 py-1.5 bg-white/5 text-gray-400 hover:text-white rounded-lg text-[8px] font-black uppercase transition-all"
+                                                                    >
+                                                                        Annuler
+                                                                    </button>
+                                                                )}
+                                                                <button className="px-3 py-1.5 bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white rounded-lg text-[8px] font-black uppercase transition-all">Détails</button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                                {contestResults.length === 0 && (
+                                                    <tr>
+                                                        <td colSpan={3} className="px-6 py-20 text-center text-gray-500 italic text-sm">Aucun participant pour le moment...</td>
+                                                    </tr>
+                                                )}
+                                            </tbody>
+                                        </table>
+                                        {contestResults.length > 0 && (
+                                            <div className="p-4 bg-white/[0.01] text-center">
+                                                <button className="text-[10px] font-bold text-gray-500 uppercase tracking-widest hover:text-white transition-colors">Voir tous les participants ({contestResults.length})</button>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* SIDEBAR : QUESTIONS & MP3 */}
+                                <div className="lg:col-span-4 space-y-10">
+                                    {/* BLIND TEST QUESTIONS */}
+                                    <div className="space-y-6">
+                                        <div className="flex justify-between items-center">
+                                            <h3 className="text-xl font-display font-black text-white uppercase italic">Blind <span className="text-neon-pink">Test</span></h3>
+                                            <button 
+                                                onClick={() => setIsQuizModalOpen(true)}
+                                                className="px-3 py-1.5 bg-neon-pink/10 border border-neon-pink/20 text-neon-pink text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-neon-pink hover:text-white transition-all"
+                                            >
+                                                Gérer Tout
+                                            </button>
+                                        </div>
+
+                                        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
+                                            <div className="space-y-4">
+                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Ajouter un morceau</p>
+                                                <div className="flex gap-2">
+                                                    <input 
+                                                        type="file" 
+                                                        id="blindtest-upload" 
+                                                        className="hidden" 
+                                                        accept="audio/*" 
+                                                        onChange={async (e) => {
+                                                            const file = e.target.files?.[0];
+                                                            if (file) {
+                                                                const url = await uploadFile(file);
+                                                                if (url) {
+                                                                    // Here we would normally create a new quiz question
+                                                                    setQuizToEdit({
+                                                                        type: 'BLIND_TEST',
+                                                                        question: 'Quel est ce morceau ?',
+                                                                        audioUrl: url,
+                                                                        options: ['', '', '', ''],
+                                                                        correctAnswer: '',
+                                                                        category: 'Blind Test',
+                                                                        author: username,
+                                                                        startTime: 0
+                                                                    });
+                                                                    setIsEditQuizModalOpen(true);
+                                                                }
+                                                            }
+                                                        }}
+                                                    />
+                                                    <div 
+                                                        onClick={() => document.getElementById('blindtest-upload')?.click()}
+                                                        className="flex-1 h-12 bg-black/40 border border-white/10 rounded-xl flex items-center px-4 text-gray-500 text-[9px] font-bold uppercase italic cursor-pointer hover:bg-white/5 transition-all"
+                                                    >
+                                                        Cliquez pour ajouter un MP3...
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => document.getElementById('blindtest-upload')?.click()}
+                                                        className="w-12 h-12 bg-neon-pink text-white rounded-xl flex items-center justify-center shadow-lg shadow-neon-pink/20 hover:scale-105 active:scale-95 transition-all"
+                                                    >
+                                                        <Upload className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                                <p className="text-[8px] text-gray-600 uppercase tracking-widest italic">*Le titre et l'artiste sont identifiés automatiquement par Shazam.</p>
+                                            </div>
+
+                                            <div className="pt-6 border-t border-white/5 space-y-4">
+                                                <div className="flex justify-between items-center">
+                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Questions Actives</p>
+                                                    <span className="text-[10px] font-black text-neon-pink">{allActiveQuizzes.length}</span>
+                                                </div>
+                                                <div className="space-y-2">
+                                                    {allActiveQuizzes.slice(0, 3).map(q => (
+                                                        <div key={q.id} className="p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center justify-between group">
+                                                            <div className="flex items-center gap-3 overflow-hidden">
+                                                                <div className="w-8 h-8 rounded-lg bg-neon-pink/5 flex items-center justify-center text-neon-pink shrink-0">
+                                                                    <Music className="w-4 h-4" />
+                                                                </div>
+                                                                <p className="text-[10px] font-bold text-white uppercase truncate">{q.question}</p>
+                                                            </div>
+                                                            <button className="p-1.5 text-gray-600 hover:text-white transition-colors opacity-0 group-hover:opacity-100 shrink-0">
+                                                                <Pencil className="w-3 h-3" />
+                                                            </button>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <AnimatePresence>
                             {filteredActions.map((action) => {
                                 const globalIndex = filteredActions.findIndex(a => a.title === action.title);
@@ -1522,7 +1982,7 @@ export function AdminDashboard() {
                                             <div className="flex justify-between items-start mb-4">
                                                 <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors relative">
                                                     {getIcon(action.icon, action.baseColor)}
-                                                    {action.title === 'Moération' && pendingPhotosCount > 0 && (
+                                                    {action.title === 'Modération' && pendingPhotosCount > 0 && (
                                                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
                                                             <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
                                                         </div>
@@ -1713,7 +2173,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
                     </div>
-
+                )}
                 </div>
 
                 {/* ─── CLASSEMENT WIKI VOTES ─── */}
