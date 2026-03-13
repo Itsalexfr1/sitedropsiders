@@ -283,7 +283,7 @@ export function Community() {
     
     // Sub-tabs for Contest
     const [contestTab, setContestTab] = useState<'QUIZ' | 'INSTAGRAM'>('QUIZ');
-    const [isContestActive, setIsContestActive] = useState(true);
+    const [isContestActive, setIsContestActive] = useState(false);
 
     // Photo Upload Form States
     const [uploadFestival, setUploadFestival] = useState('');
@@ -300,6 +300,10 @@ export function Community() {
                     const data = await res.json();
                     if (data.is_contest_active !== undefined) {
                         setIsContestActive(data.is_contest_active);
+                        // If we were on CONCOURS but it's now inactive, switch back to WALL
+                        if (!data.is_contest_active && activeTab === 'CONCOURS') {
+                            setActiveTab('WALL');
+                        }
                     }
                 }
             } catch (error) {
@@ -307,7 +311,7 @@ export function Community() {
             }
         };
         fetchSettings();
-    }, []);
+    }, [activeTab]);
 
     const festivals = useMemo(() => {
         const unique = new Set(agendaData.map(a => a.title));

@@ -45,6 +45,7 @@ export function Agenda() {
     const [editingEvent, setEditingEvent] = useState<any>(null);
     const [isDeleting, setIsDeleting] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<number[] | null>(null);
+    const [isContestActive, setIsContestActive] = useState(false);
 
     const fetchAgenda = async () => {
         try {
@@ -56,6 +57,15 @@ export function Agenda() {
                 // API unavailable (preview/dev without worker), fallback to local JSON
                 setAgendaData(agendaDataLocal as any[]);
             }
+            try {
+                const response = await fetch('/api/settings');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.is_contest_active !== undefined) {
+                        setIsContestActive(data.is_contest_active);
+                    }
+                }
+            } catch (e) { }
         } catch (error: any) {
             console.error('Failed to fetch agenda, using local data:', error);
             setAgendaData(agendaDataLocal as any[]);
@@ -635,15 +645,17 @@ export function Agenda() {
                                                             )}
                                                             {event.type === 'Jeux Concours' ? (
                                                                 <div className="hidden md:flex items-center gap-2">
-                                                                    <button
-                                                                        onClick={e => {
-                                                                            e.stopPropagation();
-                                                                            window.location.href = '/communaute?tab=CONCOURS';
-                                                                        }}
-                                                                        className="px-6 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all bg-neon-red border-neon-red text-white hover:shadow-[0_0_20px_rgba(255,0,51,0.3)]"
-                                                                    >
-                                                                        Participer
-                                                                    </button>
+                                                                    {isContestActive && (
+                                                                        <button
+                                                                            onClick={e => {
+                                                                                e.stopPropagation();
+                                                                                window.location.href = '/communaute?tab=CONCOURS';
+                                                                            }}
+                                                                            className="px-6 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all bg-neon-red border-neon-red text-white hover:shadow-[0_0_20px_rgba(255,0,51,0.3)]"
+                                                                        >
+                                                                            Participer
+                                                                        </button>
+                                                                    )}
                                                                     {event.url && !event.url.includes('tab=CONCOURS') && (
                                                                         <a
                                                                             href={event.url}
@@ -701,14 +713,16 @@ export function Agenda() {
                                                                 <div className="flex flex-wrap gap-4 md:gap-6 pt-2">
                                                                     {event.type === 'Jeux Concours' ? (
                                                                         <>
-                                                                            <button
-                                                                                onClick={() => {
-                                                                                    window.location.href = '/communaute?tab=CONCOURS';
-                                                                                }}
-                                                                                className="flex-1 md:flex-none px-10 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)] text-center text-xs md:text-sm"
-                                                                            >
-                                                                                Participer au Concours
-                                                                            </button>
+                                                                            {isContestActive && (
+                                                                                <button
+                                                                                    onClick={() => {
+                                                                                        window.location.href = '/communaute?tab=CONCOURS';
+                                                                                    }}
+                                                                                    className="flex-1 md:flex-none px-10 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)] text-center text-xs md:text-sm"
+                                                                                >
+                                                                                    Participer au Concours
+                                                                                </button>
+                                                                            )}
 
                                                                             {event.url && !event.url.includes('tab=CONCOURS') && (
                                                                                 <a
