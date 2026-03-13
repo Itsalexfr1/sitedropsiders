@@ -207,27 +207,15 @@ export function AdminMessages() {
 
 Dropsiders V2 est enfin là ! 🎙️ 
 
-Nous avons le plaisir de vous annoncer le lancement de notre nouvelle plateforme média dédiée aux festivals, artistes et organisateurs d'événements.
+Nous lançons notre nouvelle plateforme interactive et nous souhaiterions collaborer avec vous pour mettre en avant vos prochains événements via nos nouveaux outils :
 
-Nouveautés majeures :
+- Agenda Interactif complet : Votre événement est déjà listé pour aider notre communauté à planifier ses sorties.
 
-- Agenda Interactif complet : Retrouvez tous les prochains festivals en un coup d'œil et planifiez vos sorties.
+- Système de Concours Blind Test : Un outil exclusif où nos lecteurs jouent sur votre programmation et partagent leurs scores en Story Instagram en vous identifiant pour valider leur participation.
 
-- Boutique en ligne (Shop) : Découvrez notre sélection exclusive d'articles.
+- Live Takeover : Un chat interactif activé directement sur notre page d'accueil lors des grands directs.
 
-- Lecteur Audio intelligent (IA haute fidélité) pour tous les articles.
-
-- Interface Premium ultra-immersive.
-
-- Accessibilité multilingue instantanée (Français / Anglais).
-
-- Engagement Boosté : Sections réseaux sociaux optimisées & Posts dédiés.
-
-- Live Takeover : Lors des gros directs de festivals tels que Tomorrowland, Ultra, EDC, ou Creamfields, nous activerons un chat interactif directement sur la page d'accueil du site !
-
-Nous avons également mis en place un tout nouvel agenda dynamique pour centraliser toute l'actualité événementielle.
-
-Nous serions ravis de collaborer avec vous pour mettre en avant vos prochains événements avec ces nouveaux outils technologiques innovants.
+Nous sommes à votre disposition pour discuter d'une mise en avant de votre actualité.
 
 ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
         } else {
@@ -235,130 +223,110 @@ ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
 
 Dropsiders V2 is finally here! 🎙️ 
 
-We are pleased to announce the launch of our new media platform dedicated to festivals, artists, and event organizers.
+We are launching our new interactive platform and we would like to collaborate with you to highlight your upcoming events using our new tools:
 
-Key features:
+- Complete Interactive Agenda: Your event is already listed to help our community plan their trips.
 
-- Complete Interactive Agenda: Find all upcoming festivals at a glance and plan your trips.
+- Blind Test Contest System: An exclusive tool where our readers play based on your lineup and share their scores on Instagram Story, tagging you to validate their entry.
 
-- Online Shop: Discover our exclusive selection of items.
+- Live Takeover: An interactive chat activated directly on our homepage during major broadcasts.
 
-- Smart Audio Player (High-fidelity AI) for all articles.
-
-- Ultra-immersive Premium Interface.
-
-- Instant multilingual accessibility (French / English).
-
-- Boosted Engagement: Optimized social media sections & dedicated posts.
-
-- Live Takeover: During major festival broadcasts such as Tomorrowland, Ultra, EDC, or Creamfields, we will activate an interactive chat directly on the website's homepage!
-
-We have also implemented a brand new dynamic agenda to centralize all event news.
-
-We would be delighted to collaborate with you to highlight your upcoming events using these innovative technological tools.
+We are at your disposal to discuss highlighting your news.
 
 ${name ? name + '\n' : ''}The Dropsiders Team.`;
         }
     };
 
     const getAccreditationTemplate = (lang: 'FR' | 'EN', festival: string, dates: string, name: string) => {
+        const festivalUpper = (festival || '[NOM DU FESTIVAL]').toUpperCase();
+        const datesUpper = (dates || '[DATES]').toUpperCase();
+        const year = new Date().getFullYear();
+
         if (lang === 'FR') {
             return `Bonjour,
 
-Dropsiders est un média immersif dédié à la culture électronique et à l'univers des festivals. Dans le cadre de notre couverture éditoriale, nous souhaiterions solliciter une accréditation média pour l'événement suivant :
+Je me permets de vous contacter au nom de DROPSIDERS, média de référence dédié à la culture électronique, afin de solliciter une accréditation presse pour l'édition ${year} de **${festivalUpper}**.
 
-ÉVÉNEMENT : ${festival || '[NOM DU FESTIVAL]'}
-DATES : ${dates || '[DATES]'}
+Après avoir couvert des événements mondiaux comme Tomorrowland, EDC Las Vegas ou l'Ultra Europe, nous souhaiterions cette année mettre notre expertise et nos nouveaux outils interactifs au service de **${festivalUpper}** prévu du **${datesUpper}**.
 
-Dropsiders propose une couverture premium unique :
-- Articles avec lecteur audio IA haute fidélité.
-- Mise en avant dans notre nouvel Agenda Interactif & Boutique.
-- Reportages photos et récaps immersifs.
-- Promotion sur nos réseaux sociaux (Instagram, TikTok, etc.).
-- Audience engagée et passionnée.
+Pourquoi collaborer avec nous ? Nous activons un dispositif digital global et carré pour maximiser la visibilité de votre événement :
 
-Découvrez nos derniers reportages : https://dropsiders.fr/recaps
-Consultez notre agenda : https://dropsiders.fr/agenda
+1. Visibilité Multi-Plateforme (Agenda & Communauté) : Votre festival bénéficie déjà d'une mise en avant sur notre Agenda (https://dropsiders.fr/agenda). De plus, nous avons intégré **${festivalUpper}** dans notre nouvel espace "Communauté" : nos utilisateurs peuvent désormais voter, partager leurs photos et laisser des avis détaillés, créant ainsi une base de données sociale précieuse pour votre promotion.
 
-Nous serions ravis de couvrir votre événement et de le mettre en lumière auprès de notre communauté avec nos nouveaux outils technologiques.
+2. Le Concours Blind Test (Levier de Viralité) : Pour booster l'engagement, nos lecteurs participent à un quiz dédié à votre programmation et partagent obligatoirement leur score en Story Instagram en identifiant **votre compte officiel** et @Dropsiders.eu. Cela génère un flux massif de mentions organiques authentiques.
 
-Dans l'attente de votre retour,
+3. Proposition de Partenariat & Échange : En échange de 1 ou 2 pass presse, nous vous proposons un pack de couverture complet :
+   - Organisation du jeu concours pour faire gagner des invitations à notre communauté.
+   - Relais massifs en Stories (Teasing & Live-report sur place).
+   - Articles dédiés et interviews exclusifs sur notre plateforme.
+   - Posts permanents sur nos réseaux sociaux pour une visibilité sur le long terme.
+
+Nous serions ravis d'activer ce dispositif "carré" pour mettre en lumière l'édition ${year} de **${festivalUpper}**.
+
+Dans l'attente de votre retour pour en discuter,
+
 ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
         } else {
             return `Hello,
 
-Dropsiders is an immersive media dedicated to electronic culture and festivals. As part of our editorial coverage, we would like to request media accreditation for the following event:
+I am contacting you on behalf of DROPSIDERS, a leading media dedicated to electronic culture, to request press accreditation for the ${year} edition of **${festivalUpper}**.
 
-EVENT: ${festival || '[FESTIVAL NAME]'}
-DATES: ${dates || '[DATES]'}
+Having covered global events such as Tomorrowland, EDC Las Vegas, and Ultra Europe, we would like to bring our expertise and new interactive tools to **${festivalUpper}** scheduled from **${datesUpper}**.
 
-Dropsiders offers a unique premium coverage:
-- Articles with high-fidelity AI audio player.
-- Featured in our new Interactive Agenda & Shop.
-- Immersive photo reports and recaps.
-- Social media promotion (Instagram, TikTok, etc.).
-- Engaged and passionate audience.
+Why collaborate with us? We activate a comprehensive and professional digital package to maximize your event's visibility:
 
-Discover our latest recaps: https://dropsiders.fr/recaps
-Check our agenda: https://dropsiders.fr/agenda
+1. Multi-Platform Visibility (Agenda & Community): Your festival is already featured on our Agenda (https://dropsiders.fr/agenda). Additionally, we have integrated **${festivalUpper}** into our new "Community" hub: our users can now vote, share their photos, and leave detailed reviews, creating a valuable social proof database for your promotion.
 
-We would be delighted to cover your event and highlight it to our community using our innovative technological tools.
+2. Blind Test Contest (Virality Lever): To boost engagement, our readers complete a quiz dedicated to your lineup and must share their score on Instagram Story, tagging your official account and @Dropsiders.eu. This generates a massive flow of authentic organic mentions.
 
-Looking forward to hearing from you,
+3. Partnership & Exchange Proposal: In exchange for 1 or 2 press passes, we offer a full coverage pack:
+   - Hosting a giveaway contest for our community.
+   - Massive Story coverage (Pre-event teasing & On-site live reporting).
+   - Dedicated articles and exclusive interviews on our platform.
+   - Permanent posts on our social networks for long-term visibility.
+
+We would be delighted to activate this professional package to highlight the ${year} edition of **${festivalUpper}**.
+
+Looking forward to hearing from you to discuss this,
+
 ${name ? name + '\n' : ''}The Dropsiders Team.`;
         }
     };
 
     const getPhotoAccreditationTemplate = (lang: 'FR' | 'EN', festival: string, dates: string, firstName: string, lastName: string, portfolio: string, name: string) => {
+        const festivalUpper = (festival || '[NOM DU FESTIVAL]').toUpperCase();
+        const datesUpper = (dates || '[DATES]').toUpperCase();
+        const year = new Date().getFullYear();
+
         if (lang === 'FR') {
             return `Bonjour,
 
-Dropsiders est un média immersif dédié à la culture électronique et à l'univers des festivals. Dans le cadre de notre couverture éditoriale, nous souhaiterions solliciter une accréditation photo pour l'événement suivant :
+Dropsiders souhaite solliciter une accréditation photo pour l'édition ${year} de **${festivalUpper}** prévue du **${datesUpper}**.
 
-ÉVÉNEMENT : ${festival || '[NOM DU FESTIVAL]'}
-DATES : ${dates || '[DATES]'}
-
-Photographe délégué :
-Nom : ${lastName || '[NOM]'}
-Prénom : ${firstName || '[PRÉNOM]'}
+Photographe délégué : ${firstName || '[PRÉNOM]'} ${lastName || '[NOM]'}
 Portfolio : ${portfolio || '[LIEN PORTFOLIO]'}
 
-Dropsiders propose une couverture premium unique :
-- Articles avec lecteur audio IA haute fidélité.
-- Mise en avant dans notre nouvel Agenda Interactif & Boutique.
-- Reportages photos et récaps immersifs.
-- Promotion sur nos réseaux sociaux (Instagram, TikTok, etc.).
-
-Découvrez nos derniers reportages : https://dropsiders.fr/recaps
-Consultez notre agenda : https://dropsiders.fr/agenda
-
-Nous serions ravis de couvrir votre événement en images et de le mettre en lumière auprès de notre communauté avec nos nouveaux outils.
+En échange de nos accès, nous proposons un pack de visibilité "carré" incluant :
+- Mise en avant sur notre Agenda et espace Communauté (Votes, Avis, Photos).
+- Organisation d'un Concours Blind Test (invitations à gagner pour notre communauté via Story Instagram).
+- Couverture complète en Stories, Articles et Posts permanents.
+- Mentions organiques massives pour votre compte via le partage des scores.
 
 Dans l'attente de votre retour,
 ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
         } else {
             return `Hello,
 
-Dropsiders is an immersive media dedicated to electronic culture and festivals. As part of our editorial coverage, we would like to request photo accreditation for the following event:
+Dropsiders would like to request photo accreditation for the ${year} edition of **${festivalUpper}** scheduled from **${datesUpper}**.
 
-EVENT: ${festival || '[FESTIVAL NAME]'}
-DATES: ${dates || '[DATES]'}
-
-Delegated Photographer:
-Last Name: ${lastName || '[LAST NAME]'}
-First Name: ${firstName || '[FIRST NAME]'}
+Delegated Photographer: ${firstName || '[FIRST NAME]'} ${lastName || '[LAST NAME]'}
 Portfolio: ${portfolio || '[PORTFOLIO LINK]'}
 
-Dropsiders offers a unique premium coverage:
-- Articles with high-fidelity AI audio player.
-- Featured in our new Interactive Agenda & Shop.
-- Immersive photo reports and recaps.
-- Social media promotion (Instagram, TikTok, etc.).
-
-Discover our latest recaps: https://dropsiders.fr/recaps
-Check our agenda: https://dropsiders.fr/agenda
-
-We would be delighted to cover your event in pictures and highlight it to our community using our innovative tools.
+In exchange for our access, we propose a professional visibility package including:
+- Featured placement on our Agenda and Community hub (Votes, Reviews, Photos).
+- Blind Test Contest hosting (ticket giveaways for our community via Instagram Story).
+- Full coverage in Stories, Articles and permanent Posts.
+- Massive organic mentions for your account via score sharing.
 
 Looking forward to hearing from you,
 ${name ? name + '\n' : ''}The Dropsiders Team.`;
@@ -369,38 +337,36 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         if (lang === 'FR') {
             return `Bonjour,
 
-Dropsiders est un média immersif dédié à la culture électronique et à l'univers des festivals. Dans le cadre de notre couverture éditoriale, nous souhaiterions vous proposer une interview pour mettre en avant l'artiste suivant :
+Dropsiders est un média immersif de référence dédié à la culture électronique. Nous souhaiterions vous proposer une interview exclusive pour mettre en avant l'artiste :
 
 ARTISTE : ${dj || "[NOM DE L'ARTISTE]"}
 FORMAT : Interview ${type}
 
-Dropsiders propose une vitrine premium :
-- Articles avec lecteur audio IA haute fidélité.
-- Promotion sur nos réseaux sociaux (Instagram, TikTok, etc.).
-- Audience engagée et passionnée.
+Travailler avec Dropsiders, c'est bénéficier d'une vitrine premium et "carrée" :
+- Articles interactifs haute performance (lecteur audio IA, design immersif).
+- Visibilité accrue via notre Agenda et notre nouvel espace Communauté (Votes, Avis).
+- Promotion ciblée sur nos réseaux sociaux (Instagram, TikTok).
+- Audience de passionnés et de professionnels ultra-engagés.
 
-Vous pouvez consulter nos dernières interviews ici : https://dropsiders.fr/news (Filtre Interviews)
-
-Nous serions ravis de collaborer avec vous pour réaliser ce projet.
+Nous serions ravis de collaborer pour mettre en lumière l'actualité de votre artiste.
 
 Dans l'attente de votre retour,
 ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
         } else {
             return `Hello,
 
-Dropsiders is an immersive media dedicated to electronic culture and festivals. As part of our editorial coverage, we would like to propose an interview to highlight the following artist:
+Dropsiders is a leading immersive media dedicated to electronic culture. We would like to propose an exclusive interview to highlight the artist:
 
-ARTISTE: ${dj || '[ARTIST NAME]'}
+ARTIST: ${dj || "[ARTIST NAME]"}
 FORMAT: ${type} Interview
 
-Dropsiders offers a unique premium showcase:
-- Articles with high-fidelity AI audio player.
-- Social media promotion (Instagram, TikTok, etc.).
-- Engaged and passionate audience.
+Partnering with Dropsiders means benefiting from a premium and professional showcase:
+- High-performance interactive articles (AI audio player, immersive design).
+- Increased visibility through our Agenda and our new Community hub (Votes, Reviews).
+- Targeted promotion on our social networks (Instagram, TikTok).
+- Highly engaged audience of fans and industry professionals.
 
-You can check our latest interviews here: https://dropsiders.fr/news
-
-We would be delighted to work with you on this project.
+We would be delighted to collaborate to highlight your artist's latest news.
 
 Looking forward to hearing from you,
 ${name ? name + '\n' : ''}The Dropsiders Team.`;
@@ -1122,3 +1088,5 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         </div >
     );
 }
+
+export default AdminMessages;

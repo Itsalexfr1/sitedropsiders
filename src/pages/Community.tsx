@@ -6,7 +6,7 @@ import {
     Music, Shield, Palette, Megaphone, Lock,
     RefreshCw, X, Heart, Ticket, Euro,
     Flame, Search, Filter, Globe,
-    Share2, MessageSquare, Wand2, Bell
+    Share2, MessageSquare, Wand2, Bell, Instagram, Users as UsersIcon
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
@@ -23,10 +23,11 @@ import { NotificationSettings } from '../components/community/NotificationSettin
 import { useUser } from '../context/UserContext';
 import { useEffect } from 'react';
 import galerieData from '../data/galerie.json';
+import agendaData from '../data/agenda.json';
+import { InstagramContest } from '../components/community/InstagramContest';
 import confetti from 'canvas-confetti';
 import { SEO } from '../components/utils/SEO';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
-import { Users as UsersIcon } from 'lucide-react';
 
 // --- STAGE & LOCATION DATA ---
 const FESTIVAL_LOCATIONS = [
@@ -279,6 +280,38 @@ export function Community() {
             setActiveTab(tab as TabType);
         }
     }, [location.search]);
+    
+    // Sub-tabs for Contest
+    const [contestTab, setContestTab] = useState<'QUIZ' | 'INSTAGRAM'>('QUIZ');
+    const [isContestActive, setIsContestActive] = useState(true);
+
+    // Photo Upload Form States
+    const [uploadFestival, setUploadFestival] = useState('');
+    const [uploadMessage, setUploadMessage] = useState('');
+    const [uploadSuccess, setUploadSuccess] = useState(false);
+
+    // Fetch Settings
+    useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const res = await fetch('/api/settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.is_contest_active !== undefined) {
+                        setIsContestActive(data.is_contest_active);
+                    }
+                }
+            } catch (error) {
+                console.error('Failed to fetch settings', error);
+            }
+        };
+        fetchSettings();
+    }, []);
+
+    const festivals = useMemo(() => {
+        const unique = new Set(agendaData.map(a => a.title));
+        return Array.from(unique).sort();
+    }, []);
 
     // Game State
     const [gameStarted, setGameStarted] = useState(false);
@@ -849,18 +882,18 @@ export function Community() {
                     {/* Enhanced Tabs */}
                     <div className="mb-16 w-full overflow-x-auto no-scrollbar">
                         <div className="inline-flex items-center gap-1 p-1.5 bg-white/5 backdrop-blur-3xl rounded-3xl border border-white/10">
-                            {[
-                                { id: 'WALL',          icon: Star,         label: 'Mur de Souvenirs',  multiline: false },
+                            {([
+                                { id: 'WALL',          icon: Star,         label: 'Souvenirs',         multiline: false },
                                 { id: 'UPLOADS',       icon: Camera,       label: 'Vos Photos',        multiline: false },
-                                { id: 'CONCOURS',      icon: Trophy,       label: 'Jeux Concours',     multiline: false },
+                                { id: 'AVIS',          icon: MessageSquare,label: 'Avis & Votes',      multiline: false },
+                                { id: 'CONCOURS',      icon: Trophy,       label: 'Jeux Concours',     multiline: false, hidden: !isContestActive },
                                 { id: 'GAME',          icon: Sparkles,     label: 'PRODUCER',          multiline: false, iconClass: 'text-amber-400' },
                                 { id: 'GUIDE',         icon: Info,         label: 'Guide\nPratique',   multiline: true  },
-                                { id: 'TRACK_ID',      icon: MessageSquare,label: 'TrackID',           multiline: false },
+                                { id: 'TRACK_ID',      icon: Music,        label: 'TrackID',           multiline: false },
                                 { id: 'PLAYLISTS',     icon: Share2,       label: 'Mixs',              multiline: false },
                                 { id: 'LAB',           icon: Wand2,        label: 'Lab',               multiline: false },
-                                { id: 'COVOIT',        icon: Car,          label: 'Covoit',            multiline: false },
                                 { id: 'NOTIFICATIONS', icon: Bell,         label: 'Alertes',           multiline: false },
-                            ].map((tab) => (
+                            ] as any[]).filter(tab => !tab.hidden).map((tab) => (
                                 <button
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id as any)}
@@ -901,14 +934,68 @@ export function Community() {
                             </motion.div>
                         )}
 
-                        {activeTab === 'CONCOURS' && (
+                        {activeTab === 'AVIS' && (
+                            <motion.div
+                                key="avis"
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: 20 }}
+                            >
+                                <AvisSection />
+                            </motion.div>
+                        )}
+
+                        {activeTab === 'CONCOURS' && isContestActive && (
                             <motion.div
                                 key="concours"
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 exit={{ opacity: 0, scale: 1.05 }}
+                                className="space-y-12"
                             >
-                                <QuizSection />
+                                <div className="flex flex-col items-center gap-8">
+                                    <div className="flex bg-white/5 p-1.5 rounded-2xl border border-white/10 backdrop-blur-xl">
+                                        {[
+                                            { id: 'QUIZ', label: 'Jouer au Quiz', icon: Music },
+                                            { id: 'INSTAGRAM', label: 'Règlement & Partage', icon: Instagram }
+                                        ].map(tab => (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setContestTab(tab.id as any)}
+                                                className={twMerge(
+                                                    "px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-3 transition-all",
+                                                    contestTab === tab.id 
+                                                        ? "bg-white text-black shadow-xl" 
+                                                        : "text-white/40 hover:text-white hover:bg-white/5"
+                                                )}
+                                            >
+                                                <tab.icon className="w-4 h-4" />
+                                                {tab.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    
+                                    <div className="text-center space-y-2">
+                                        <h2 className="text-4xl md:text-6xl font-display font-black uppercase italic tracking-tighter">
+                                            ESPACE <span className="text-neon-red">CONCOURS</span>
+                                        </h2>
+                                        <p className="text-white/40 font-black uppercase tracking-widest text-[10px]">
+                                            {contestTab === 'QUIZ' ? 'Tentez de gagner en répondant au Blind Test' : 'Comment valider votre participation via Instagram'}
+                                        </p>
+                                    </div>
+                                </div>
+
+                                <AnimatePresence mode="wait">
+                                    <motion.div
+                                        key={contestTab}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
+                                        exit={{ opacity: 0, y: -20 }}
+                                        transition={{ duration: 0.3 }}
+                                    >
+                                        {contestTab === 'QUIZ' ? <QuizSection /> : <InstagramContest onPlayClick={() => setContestTab('QUIZ')} />}
+                                    </motion.div>
+                                </AnimatePresence>
                             </motion.div>
                         )}
 
@@ -920,49 +1007,98 @@ export function Community() {
                                 exit={{ opacity: 0, y: -30 }}
                                 className="max-w-4xl mx-auto"
                             >
-                                <div className="bg-white/5 border border-white/10 rounded-[4rem] p-12 md:p-20 backdrop-blur-3xl text-center space-y-10">
-                                    <div className="inline-flex p-4 bg-neon-red/10 rounded-3xl">
-                                        <Camera className="w-12 h-12 text-neon-red" />
-                                    </div>
-                                    <div className="space-y-4">
-                                        <h2 className="text-4xl md:text-6xl font-display font-black uppercase italic tracking-tighter">
+                                <div className="bg-white/5 border border-white/10 rounded-[4rem] p-8 md:p-16 backdrop-blur-3xl space-y-12">
+                                    <div className="text-center space-y-4">
+                                        <div className="inline-flex p-4 bg-neon-red/10 rounded-3xl mb-4">
+                                            <Camera className="w-10 h-10 text-neon-red" />
+                                        </div>
+                                        <h2 className="text-3xl md:text-5xl font-display font-black uppercase italic tracking-tighter">
                                             PARTAGEZ VOS <span className="text-neon-red">SOUVENIRS</span>
                                         </h2>
-                                        <p className="text-white/40 max-w-xl mx-auto text-xs font-black uppercase tracking-widest leading-loose">
-                                            Vos meilleures photos de festivals méritent d'être vues. Envoyez-les nous pour qu'elles rejoignent le Memory Wall de la communauté Dropsiders.
+                                        <p className="text-white/40 max-w-xl mx-auto text-[10px] font-black uppercase tracking-widest leading-loose">
+                                            Indiquez l'événement et envoyez vos pépites. Elles seront classées automatiquement dans l'album correspondant après modération.
                                         </p>
                                     </div>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-6">
-                                        <div className="p-8 bg-white/[0.02] border border-white/5 rounded-3xl space-y-4">
-                                            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center mx-auto">
-                                                <Sparkles className="w-5 h-5 text-neon-red" />
+                                    {!uploadSuccess ? (
+                                        <div className="space-y-8 bg-black/20 p-8 md:p-12 rounded-[3rem] border border-white/5">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                <div className="space-y-3">
+                                                    <label className="text-[10px] font-black uppercase text-white/40 ml-4">Événement / Festival</label>
+                                                    <select 
+                                                        value={uploadFestival}
+                                                        onChange={(e) => setUploadFestival(e.target.value)}
+                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-xs font-black italic uppercase focus:border-neon-red outline-none appearance-none cursor-pointer"
+                                                    >
+                                                        <option value="">Sélectionner l'événement</option>
+                                                        {festivals.map(f => (
+                                                            <option key={f} value={f}>{f}</option>
+                                                        ))}
+                                                        <option value="AUTRE">AUTRE (PRÉCISER DANS LE MESSAGE)</option>
+                                                    </select>
+                                                </div>
+                                                <div className="space-y-3">
+                                                    <label className="text-[10px] font-black uppercase text-white/40 ml-4">Ton Message (Optionnel)</label>
+                                                    <input 
+                                                        type="text" 
+                                                        value={uploadMessage}
+                                                        onChange={(e) => setUploadMessage(e.target.value)}
+                                                        placeholder="UN PETIT MOT SUR CETTE PHOTO..."
+                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-xs font-black italic uppercase focus:border-neon-red outline-none"
+                                                    />
+                                                </div>
                                             </div>
-                                            <h4 className="text-[10px] font-black uppercase tracking-widest">Visibility</h4>
-                                            <p className="text-[9px] text-white/30 font-bold uppercase leading-relaxed">
-                                                Toutes les photos sont modérées avant d'être publiées sur le site.
-                                            </p>
-                                        </div>
-                                        <div className="p-8 bg-white/[0.02] border border-white/5 rounded-3xl space-y-4">
-                                            <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center mx-auto">
-                                                <Trophy className="w-5 h-5 text-neon-red" />
-                                            </div>
-                                            <h4 className="text-[10px] font-black uppercase tracking-widest">Credits</h4>
-                                            <p className="text-[9px] text-white/30 font-bold uppercase leading-relaxed">
-                                                Gagnez des points d'XP et faites monter votre rang de Dropsider.
-                                            </p>
-                                        </div>
-                                    </div>
 
-                                    <div className="pt-10">
-                                        <motion.button
-                                            whileHover={{ scale: 1.05, y: -5 }}
-                                            whileTap={{ scale: 0.95 }}
-                                            onClick={() => navigate('/communaute/partager')}
-                                            className="px-16 py-6 bg-white text-black rounded-[2rem] font-black text-xs uppercase tracking-[0.3em] shadow-[0_20px_40px_rgba(255,255,255,0.05)] hover:bg-neon-red hover:text-white transition-all duration-500"
+                                            <div className="border-2 border-dashed border-white/10 rounded-[2.5rem] p-12 text-center group hover:border-neon-red/50 transition-all cursor-pointer bg-white/[0.02]">
+                                                <input type="file" className="hidden" id="photo-upload" accept="image/*" multiple />
+                                                <label htmlFor="photo-upload" className="cursor-pointer block">
+                                                    <Plus className="w-12 h-12 text-white/20 mx-auto mb-4 group-hover:scale-110 group-hover:text-neon-red transition-all" />
+                                                    <span className="block text-[10px] font-black uppercase tracking-[0.2em] text-white/40 group-hover:text-white transition-colors">Déposer vos photos ici</span>
+                                                    <span className="block text-[8px] font-bold text-white/20 uppercase mt-2">JPG, PNG, WEBP (Max 10MB)</span>
+                                                </label>
+                                            </div>
+
+                                            <button 
+                                                onClick={() => {
+                                                    if (!uploadFestival) return alert('Veuillez sélectionner un festival');
+                                                    setUploadSuccess(true);
+                                                    setTimeout(() => setUploadSuccess(false), 5000);
+                                                }}
+                                                className="w-full py-6 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-neon-red hover:text-white transition-all duration-500 shadow-xl"
+                                            >
+                                                Envoyer pour modération & Tri Auto
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <motion.div 
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            className="bg-green-500/10 border border-green-500/20 rounded-[3rem] p-12 text-center space-y-4"
                                         >
-                                            ACCÉDER AU FORMULAIRE D'ENVOI
-                                        </motion.button>
+                                            <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <Check className="w-8 h-8 text-green-500" />
+                                            </div>
+                                            <h3 className="text-xl font-black uppercase italic">Merci !</h3>
+                                            <p className="text-[10px] font-black uppercase tracking-widest text-white/60">
+                                                Vos photos ont été transmises. <br />
+                                                Elles seront ajoutées à l'album <span className="text-green-500">{uploadFestival}</span> après validation.
+                                            </p>
+                                        </motion.div>
+                                    )}
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl flex items-center gap-4">
+                                            <Sparkles className="w-5 h-5 text-neon-red shrink-0" />
+                                            <p className="text-[9px] text-white/40 font-bold uppercase leading-relaxed">
+                                                Tri automatique par festival pour un accès facilité la saison prochaine.
+                                            </p>
+                                        </div>
+                                        <div className="p-6 bg-white/[0.02] border border-white/5 rounded-3xl flex items-center gap-4">
+                                            <Trophy className="w-5 h-5 text-neon-red shrink-0" />
+                                            <p className="text-[9px] text-white/40 font-bold uppercase leading-relaxed">
+                                                Les contributeurs actifs gagnent des points d'XP exclusifs.
+                                            </p>
+                                        </div>
                                     </div>
                                 </div>
                             </motion.div>

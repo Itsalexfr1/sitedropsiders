@@ -6601,6 +6601,76 @@ ${urls.map(u => `  <url>
             return new Response(JSON.stringify({ success: true }), { status: 200, headers });
         }
 
+        // --- API: INSTAGRAM CONTEST ---
+        if (path === '/api/instagram-contest/participate' && request.method === 'POST') {
+            const result = await request.json();
+            const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+
+            // Check if already participated (account level)
+            const logRaw = await env.CHAT_KV.get('instagram_contest_participation_log') || "{\"ips\":{},\"users\":{}}";
+            let log;
+            try {
+                log = JSON.parse(logRaw);
+            } catch (e) {
+                log = { ips: {}, users: {} };
+            }
+
+            if (!log.ips) log.ips = {};
+            if (!log.users) log.users = {};
+
+            const alreadyParticipated = (result.userId && log.users[result.userId]) || log.ips[ip];
+
+            if (alreadyParticipated) {
+                return new Response(JSON.stringify({ 
+                    success: false, 
+                    error: 'Désolé, une seule participation par compte et par IP est autorisée !' 
+                }), { status: 403, headers });
+            }
+
+            // Record participation log
+            log.ips[ip] = { timestamp: Date.now(), handle: result.handle };
+            if (result.userId) {
+                log.users[result.userId] = { timestamp: Date.now(), handle: result.handle, email: result.email };
+            }
+            await env.CHAT_KV.put('instagram_contest_participation_log', JSON.stringify(log));
+
+            // Save entries
+            const entriesRaw = await env.CHAT_KV.get('instagram_contest_entries') || "[]";
+            const entries = JSON.parse(entriesRaw);
+            entries.push({
+                ...result,
+                timestamp: Date.now(),
+                ip
+            });
+            await env.CHAT_KV.put('instagram_contest_entries', JSON.stringify(entries));
+
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
+        if (path === '/api/instagram-contest/participants' && request.method === 'GET') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const entries = await env.CHAT_KV.get('instagram_contest_entries') || "[]";
+            return new Response(entries, { status: 200, headers });
+        }
+
+        if (path === '/api/instagram-contest/update-status' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const { handle, timestamp, status } = await request.json();
+            
+            const entriesRaw = await env.CHAT_KV.get('instagram_contest_entries') || "[]";
+            let entries = JSON.parse(entriesRaw);
+            
+            entries = entries.map((e: any) => {
+                if (e.handle === handle && e.timestamp === timestamp) {
+                    return { ...e, status };
+                }
+                return e;
+            });
+            
+            await env.CHAT_KV.put('instagram_contest_entries', JSON.stringify(entries));
+            return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+        }
+
         if (path === '/api/musique/charts/update' && request.method === 'POST') {
             const adminPass = (request.headers.get('X-Admin-Password') || '').trim();
             const requiredPass = '01061988';

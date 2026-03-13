@@ -6,6 +6,8 @@ import { useUser } from '../../context/UserContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { AudioWaveformSelector } from '../admin/AudioWaveformSelector';
 import { UserAuthModal } from '../auth/UserAuthModal';
+import { ContestValidationModal } from './ContestValidationModal';
+import { Instagram } from 'lucide-react';
 
 type QuizType = 'QCM' | 'BLIND_TEST' | 'IMAGE';
 type GameLength = 5 | 10 | 20;
@@ -99,6 +101,7 @@ export function QuizSection() {
 
     const [isContestModeActive, setIsContestModeActive] = useState(false);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [isContestValidationOpen, setIsContestValidationOpen] = useState(false);
 
     useEffect(() => {
         fetchQuizzes();
@@ -830,10 +833,28 @@ export function QuizSection() {
 
                                         <button
                                             onClick={() => setGameState('selection')}
-                                            className="px-12 py-4 bg-white text-black rounded-full font-black uppercase tracking-[0.2em] text-[10px] hover:bg-neon-red hover:text-white transition-all shadow-xl"
+                                            className="px-12 py-4 bg-white/5 border border-white/10 text-white rounded-full font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white hover:text-black transition-all shadow-xl"
                                         >
                                             RETOURNER AU MENU
                                         </button>
+
+                                        {isContestModeActive && (
+                                            <button
+                                                onClick={() => setIsContestValidationOpen(true)}
+                                                className="px-12 py-4 bg-neon-pink text-white rounded-full font-black uppercase tracking-[0.2em] text-[10px] hover:bg-white hover:text-black transition-all shadow-xl shadow-neon-pink/20 flex items-center gap-3"
+                                            >
+                                                <Instagram className="w-4 h-4" />
+                                                VALIDER MA PARTICIPATION AU CONCOURS
+                                            </button>
+                                        )}
+
+                                        <ContestValidationModal 
+                                            isOpen={isContestValidationOpen}
+                                            onClose={() => setIsContestValidationOpen(false)}
+                                            score={score}
+                                            total={gameQuizzes.length}
+                                            pseudo={gamePseudo}
+                                        />
                                     </div>
                                 </motion.div>
                             )}

@@ -7,7 +7,7 @@ import {
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type,
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram, Bell, Zap,
-    Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw
+    Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -89,6 +89,9 @@ export function AdminDashboard() {
     const [testQuiz, setTestQuiz] = useState<any>(null);
     const [isTestingModalOpen, setIsTestingModalOpen] = useState(false);
     const [isSavingQuiz, setIsSavingQuiz] = useState(false);
+    const [instagramParticipants, setInstagramParticipants] = useState<any[]>([]);
+    const [isInstagramContestModalOpen, setIsInstagramContestModalOpen] = useState(false);
+    const [isFetchingInstagram, setIsFetchingInstagram] = useState(false);
 
     const quizCounts = useMemo(() => {
         const all = [...allActiveQuizzes, ...allPendingQuizzes];
@@ -258,6 +261,36 @@ export function AdminDashboard() {
             console.error("Error fetching contest results:", err);
         } finally {
             setIsQuizLoading(false);
+        }
+    };
+
+    const fetchInstagramParticipants = async () => {
+        setIsFetchingInstagram(true);
+        try {
+            const res = await apiFetch('/api/instagram-contest/participants', { headers: getAuthHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                setInstagramParticipants(Array.isArray(data) ? data : []);
+            }
+        } catch (err) {
+            console.error("Error fetching instagram participants:", err);
+        } finally {
+            setIsFetchingInstagram(false);
+        }
+    };
+
+    const updateParticipantStatus = async (handle: string, timestamp: number, status: string) => {
+        try {
+            const res = await apiFetch('/api/instagram-contest/update-status', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ handle, timestamp, status })
+            });
+            if (res.ok) {
+                fetchInstagramParticipants();
+            }
+        } catch (err) {
+            console.error("Error updating status:", err);
         }
     };
 
@@ -769,6 +802,7 @@ export function AdminDashboard() {
         // COMMUNAUTÉ & ENGAGEMENT
         { title: "Communauté", description: "Moération & Jeux", icon: "ImageIcon", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "galeries", baseColor: "pink", columns: 1 },
         { title: "Notifications", description: "Alertes Push", icon: "Bell", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "notifications", baseColor: "red", columns: 1 },
+        { title: "Concours Insta", description: "Participants Instagram", icon: "Instagram", category: "COMMUNAUTÉ & ENGAGEMENT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "all", baseColor: "pink", columns: 1 },
 
         // SHOP & CONTACT
         { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP & CONTACT", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
@@ -1007,6 +1041,7 @@ export function AdminDashboard() {
             case 'Youtube': return <Youtube className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'CheckCircle2': return <CheckCircle2 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'Gamepad2': return <Gamepad2 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+            case 'Instagram': return <Instagram className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             default: return <FileText className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
         }
     };
@@ -1456,6 +1491,10 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'MESSAGERIE & CONTACT') {
                                                     e.preventDefault();
                                                     setIsMessagesModalOpen(true);
+                                                } else if (action.title === 'Concours Insta') {
+                                                    e.preventDefault();
+                                                    fetchInstagramParticipants();
+                                                    setIsInstagramContestModalOpen(true);
                                                 }
                                             }}
                                             className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -1518,7 +1557,161 @@ export function AdminDashboard() {
                                     </motion.div>
                                 );
                             })}
-                        </AnimatePresence>
+                       </AnimatePresence>
+
+                {/* Modal Concours Instagram */}
+                <AnimatePresence>
+                    {isInstagramContestModalOpen && (
+                        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsInstagramContestModalOpen(false)}
+                                className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="relative w-full max-w-5xl bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl h-[85vh] flex flex-col"
+                            >
+                                <div className="p-8 md:p-10 flex flex-col h-full">
+                                    <div className="flex items-center justify-between mb-8 shrink-0">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-3 bg-neon-pink/10 rounded-2xl border border-neon-pink/20">
+                                                <Instagram className="w-6 h-6 text-neon-pink" />
+                                            </div>
+                                            <div>
+                                                <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
+                                                    Participants <span className="text-neon-pink">Instagram</span>
+                                                </h2>
+                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Concours de partage réseaux</p>
+                                            </div>
+                                        </div>
+                                        <div className="flex items-center gap-4">
+                                            <button
+                                                onClick={fetchInstagramParticipants}
+                                                className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all shadow-xl"
+                                                title="Actualiser"
+                                            >
+                                                <RefreshCw className={`w-5 h-5 ${isFetchingInstagram ? 'animate-spin' : ''}`} />
+                                            </button>
+                                            <button
+                                                onClick={() => setIsInstagramContestModalOpen(false)}
+                                                className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all shadow-xl"
+                                            >
+                                                <X className="w-6 h-6" />
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                        <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                                            <table className="w-full text-left">
+                                                <thead>
+                                                    <tr className="border-b border-white/10 bg-white/[0.02]">
+                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Date</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Handle Instagram</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Utilisateur</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Email</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Score</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Statut</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">IP</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-white/5">
+                                                    {instagramParticipants.length === 0 ? (
+                                                        <tr>
+                                                            <td colSpan={7} className="px-6 py-12 text-center text-gray-500 uppercase font-black text-xs italic">
+                                                                {isFetchingInstagram ? 'Chargement...' : 'Aucun participant pour le moment'}
+                                                            </td>
+                                                        </tr>
+                                                    ) : (
+                                                        [...instagramParticipants]
+                                                            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                                                            .map((res: any, i: number) => (
+                                                            <tr key={res.id || i} className="hover:bg-white/[0.02] transition-colors">
+                                                                <td className="px-6 py-4 text-[10px] text-gray-400">
+                                                                    {new Date(res.timestamp).toLocaleString('fr-FR')}
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span className="text-neon-pink font-black uppercase text-xs">@{res.handle}</span>
+                                                                        <a 
+                                                                            href={`https://instagram.com/${res.handle.replace('@', '')}`}
+                                                                            target="_blank"
+                                                                            rel="noopener noreferrer"
+                                                                            className="p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-white transition-all"
+                                                                        >
+                                                                            <ExternalLink className="w-3 h-3" />
+                                                                        </a>
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <div className="font-black text-white uppercase text-xs">{res.username}</div>
+                                                                    <div className="text-[8px] text-gray-500 uppercase">UID: {res.userId}</div>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-xs text-gray-400 lowercase">
+                                                                    {res.email}
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    {res.score !== undefined ? (
+                                                                        <div className="flex flex-col">
+                                                                            <span className="text-white font-black text-xs">{res.score}/{res.total || res.totalQuestions || '?'}</span>
+                                                                            <span className="text-[8px] text-neon-cyan uppercase font-black mt-0.5">Quiz Done</span>
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="text-gray-600 text-[10px] uppercase font-bold italic">N/A</span>
+                                                                    )}
+                                                                </td>
+                                                                <td className="px-6 py-4">
+                                                                    <div className="flex items-center gap-2">
+                                                                        {res.status === 'validated' ? (
+                                                                            <div className="px-3 py-1 bg-neon-green/10 border border-neon-green/20 rounded-full flex items-center gap-1.5">
+                                                                                <Check className="w-3 h-3 text-neon-green" />
+                                                                                <span className="text-[8px] font-black text-neon-green uppercase tracking-widest">Validé</span>
+                                                                            </div>
+                                                                        ) : res.status === 'rejected' ? (
+                                                                            <div className="px-3 py-1 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center gap-1.5">
+                                                                                <X className="w-3 h-3 text-neon-red" />
+                                                                                <span className="text-[8px] font-black text-neon-red uppercase tracking-widest">Rejeté</span>
+                                                                            </div>
+                                                                        ) : (
+                                                                            <div className="flex items-center gap-2">
+                                                                                <button 
+                                                                                    onClick={() => updateParticipantStatus(res.handle, res.timestamp, 'validated')}
+                                                                                    className="p-1.5 bg-neon-green/10 hover:bg-neon-green/20 border border-neon-green/20 rounded-lg text-neon-green transition-all"
+                                                                                    title="Valider"
+                                                                                >
+                                                                                    <Check className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                                <button 
+                                                                                    onClick={() => updateParticipantStatus(res.handle, res.timestamp, 'rejected')}
+                                                                                    className="p-1.5 bg-neon-red/10 hover:bg-neon-red/20 border border-neon-red/20 rounded-lg text-neon-red transition-all"
+                                                                                    title="Rejeter"
+                                                                                >
+                                                                                    <X className="w-3.5 h-3.5" />
+                                                                                </button>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </td>
+                                                                <td className="px-6 py-4 text-[10px] font-mono text-gray-600">
+                                                                    {res.ip}
+                                                                </td>
+                                                            </tr>
+                                                        ))
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
                     </div>
 
                 </div>

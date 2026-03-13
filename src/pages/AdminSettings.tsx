@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff, X, CheckCircle2, AlertCircle, Share2, Youtube, Globe, Facebook, Music, Instagram, Bell, Send, Info, RefreshCw } from 'lucide-react';
+import { Save, Lock, ArrowLeft, ShieldCheck, Mail, Eye, EyeOff, X, CheckCircle2, AlertCircle, Share2, Youtube, Globe, Facebook, Music, Instagram, Bell, Send, Info, RefreshCw, Trophy } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -21,6 +21,8 @@ export function AdminSettings() {
     const [showAdminPassword, setShowAdminPassword] = useState(false);
     const [showShopPassword, setShowShopPassword] = useState(false);
     const [showKitMediaPassword, setShowKitMediaPassword] = useState(false);
+    const [contestFestivalHandle, setContestFestivalHandle] = useState('@tomorrowland');
+    const [isContestActive, setIsContestActive] = useState(false);
 
     const [isSaving, setIsSaving] = useState(false);
     const [isRevoking, setIsRevoking] = useState(false);
@@ -57,6 +59,8 @@ export function AdminSettings() {
                     if (data.shop_password) setShopPassword(data.shop_password);
                     if (data.kit_media_password) setKitMediaPassword(data.kit_media_password);
                     if (data.socials) setSocials(data.socials);
+                    if (data.contest_festival_handle) setContestFestivalHandle(data.contest_festival_handle);
+                    if (data.is_contest_active !== undefined) setIsContestActive(data.is_contest_active);
                 }
 
                 const resAuth = await apiFetch('/api/editors', { headers: getAuthHeaders() });
@@ -88,7 +92,9 @@ export function AdminSettings() {
                 ...data,
                 shop_password: shopPassword,
                 kit_media_password: kitMediaPassword,
-                socials: socials
+                socials: socials,
+                contest_festival_handle: contestFestivalHandle,
+                is_contest_active: isContestActive
             };
 
             const saveRes = await apiFetch('/api/settings/update', {
@@ -415,7 +421,7 @@ export function AdminSettings() {
                             <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tight">Réseaux Sociaux</h2>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12 border-b border-white/5">
                             {[
                                 { id: 'instagram', label: 'Instagram', color: 'text-pink-500', icon: Instagram, placeholder: 'dropsiders.eu' },
                                 { id: 'tiktok', label: 'TikTok', color: 'text-white', icon: Share2, placeholder: 'dropsiders.eu' },
@@ -442,6 +448,54 @@ export function AdminSettings() {
                                     </div>
                                 </div>
                             ))}
+                        </div>
+
+                        {/* Contest Festival Handle */}
+                        <div className="mt-12">
+                            <div className="flex items-center gap-4 mb-8">
+                                <div className="p-3 bg-neon-cyan/10 rounded-2xl">
+                                    <Trophy className="w-6 h-6 text-neon-cyan" />
+                                </div>
+                                <h2 className="text-xl font-display font-black text-white uppercase italic tracking-tight">Paramètres du Concours QUIZ</h2>
+                            </div>
+                            <div>
+                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-3 ml-1">
+                                    Compte Festival à Identifier (Instagram)
+                                </label>
+                                <div className="relative">
+                                    <div className="absolute inset-y-0 left-0 pl-6 flex items-center pointer-events-none">
+                                        <Instagram className="w-5 h-5 text-neon-cyan/50" />
+                                    </div>
+                                    <input
+                                        type="text"
+                                        value={contestFestivalHandle}
+                                        onChange={(e) => setContestFestivalHandle(e.target.value)}
+                                        className="w-full bg-black/40 border border-white/10 rounded-2xl pl-14 pr-6 py-5 text-white font-black italic uppercase focus:outline-none focus:border-neon-cyan transition-all"
+                                        placeholder="EX: @TOMORROWLAND"
+                                    />
+                                </div>
+                                <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic uppercase">
+                                    C'est le compte que l'utilisateur devra identifier dans sa story en plus de @Dropsiders.eu.
+                                </p>
+                            </div>
+
+                            <div className="mt-8 p-6 bg-white/[0.03] border border-white/10 rounded-2xl flex items-center justify-between gap-4 transition-all hover:bg-white/[0.05]">
+                                <div className="flex items-center gap-4">
+                                    <div className={`p-2 rounded-lg transition-colors ${isContestActive ? 'bg-green-500/20 text-green-500' : 'bg-white/10 text-white/40'}`}>
+                                        <Trophy className="w-4 h-4" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-[10px] font-black uppercase text-white tracking-widest">Activer les Jeux Concours</span>
+                                        <span className="text-[8px] font-bold text-white/40 uppercase">Affiche ou masque la section concours sur le site</span>
+                                    </div>
+                                </div>
+                                <button 
+                                    onClick={() => setIsContestActive(!isContestActive)}
+                                    className={`w-12 h-6 rounded-full transition-all relative ${isContestActive ? 'bg-green-500' : 'bg-white/10'}`}
+                                >
+                                    <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${isContestActive ? 'right-1' : 'left-1'}`} />
+                                </button>
+                            </div>
                         </div>
                     </motion.div>
 
