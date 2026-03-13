@@ -5,7 +5,7 @@
   "shop_password_image": "",
   "takeover": {
     "enabled": true,
-    "youtubeId": "325m8PqVH74",
+    "youtubeId": "",
     "title": "TOMORROWLAND WINTER 2026",
     "moderators": "",
     "lineup": "[]",
@@ -28,7 +28,19 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "edit"
+    "status": "edit",
+    "mainFluxName": "",
+    "currentTrack": "ID - UNRELEASED",
+    "streams": [],
+    "activeStreamId": "",
+    "highlightPrice": 100,
+    "lots": [],
+    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
+    "dropsAmount": 10,
+    "dropsInterval": 5,
+    "sponsorText": "LIVE RENDU POSSIBLE GRÂCE À NOS PARTENAIRES 🤝",
+    "sponsorLink": "https://dropsiders.fr",
+    "showSponsorBanner": true
   },
   "socials": {
     "instagram": "dropsiders.eu",
