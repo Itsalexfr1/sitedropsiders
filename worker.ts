@@ -817,7 +817,9 @@ ${urls.map(u => `  <url>
             path === '/api/avis/moderate' ||
             path === '/api/facture/send' ||
             path.startsWith('/api/invoices') ||
-            path === '/api/upload'
+            path === '/api/upload' ||
+            path.startsWith('/api/instagram-contest') ||
+            path.startsWith('/api/quiz/contest')
         );
 
         // --- API: PUSH NOTIFICATIONS (pre-auth, public endpoints) ---
@@ -947,7 +949,12 @@ ${urls.map(u => `  <url>
             }
 
             // 4. Communauté & Galerie
-            if ((path.startsWith('/api/galerie') || path.startsWith('/api/photos')) && !hasAll && !userPermissions.includes('community')) {
+            const isCommunityRoute = path.startsWith('/api/galerie') || 
+                                   path.startsWith('/api/photos') || 
+                                   path.startsWith('/api/instagram-contest') || 
+                                   path.includes('/quiz/contest');
+                                   
+            if (isCommunityRoute && !hasAll && !userPermissions.includes('community')) {
                 return new Response(JSON.stringify({ error: 'Permission refusée : community' }), { status: 403, headers });
             }
 
@@ -6925,6 +6932,7 @@ ${urls.map(u => `  <url>
         const scheduledGitConfig = { OWNER, REPO, TOKEN };
 
         // 1. Fetch current settings to get the lineup
+        const lastChartsUpdate = await env.CHAT_KV.get('last_charts_update');
         const res = await fetchGitHubFile(SETTINGS_PATH, scheduledGitConfig);
         if (!res) return;
         const content = res.content;
