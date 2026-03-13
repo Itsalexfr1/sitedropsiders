@@ -165,16 +165,6 @@ export function AdminDashboard() {
     // GESTION TEAM STATES
     const [teamMembers, setTeamMembers] = useState<any[]>([]);
     const [editors, setEditors] = useState<any[]>([]);
-    const [isLoadingTeam, setIsLoadingTeam] = useState(false);
-    const [isLoadingEditors, setIsLoadingEditors] = useState(false);
-    const [isSavingTeam, setIsSavingTeam] = useState(false);
-    const [isSavingEditor, setIsSavingEditor] = useState(false);
-    const [editingMember, setEditingMember] = useState<any>(null);
-    const [editingEditor, setEditingEditor] = useState<any>(null);
-    const [showMemberModal, setShowMemberModal] = useState(false);
-    const [showEditorModal, setShowEditorModal] = useState(false);
-    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-
     const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'CONTENU' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM' | 'CONCOURS'>('ALL');
 
     const DASHBOARD_TABS = [
@@ -640,15 +630,12 @@ export function AdminDashboard() {
         try {
             const response = await apiFetch('/api/news', { headers: getAuthHeaders() });
             if (response.ok) {
-                const data = await response.json();
-                const count = Array.isArray(data) ? data.filter((n: any) => n.category === 'Interview').length : 0;
-                // No specific state for interview count but function is called
+                // Data fetched successfully
             }
         } catch (e) { }
     };
 
     const fetchTeam = async () => {
-        setIsLoadingTeam(true);
         try {
             const response = await fetch('/api/team', { headers: getAuthHeaders(null) });
             if (response.ok) {
@@ -658,12 +645,10 @@ export function AdminDashboard() {
         } catch (err) {
             console.error('Failed to fetch team', err);
         } finally {
-            setIsLoadingTeam(false);
         }
     };
 
     const fetchEditors = async () => {
-        setIsLoadingEditors(true);
         try {
             const response = await apiFetch('/api/editors', { headers: getAuthHeaders(null) });
             if (response.ok) {
@@ -673,7 +658,6 @@ export function AdminDashboard() {
         } catch (err) {
             console.error('Failed to fetch editors', err);
         } finally {
-            setIsLoadingEditors(false);
         }
     };
 
@@ -1216,9 +1200,6 @@ export function AdminDashboard() {
             return action.title === 'Contenu' || action.title === 'Agenda' || action.title === 'News Focus' || action.title === 'Social Studio';
         }
 
-        if (dashboardTab === 'TEAM') return action.category === 'TEAM';
-        if (dashboardTab === 'CONCOURS') return action.category === 'CONCOURS';
-        if (dashboardTab === 'NEWS') return action.category === 'NEWS';
         if (dashboardTab === 'STUDIO') return action.category === 'STUDIO';
         if (dashboardTab === 'SHOP') return action.category === 'SHOP';
 
@@ -1437,8 +1418,7 @@ export function AdminDashboard() {
                                     </div>
                                     <button 
                                         onClick={() => {
-                                            setEditingEditor({ username: '', password: '', name: '', permissions: [] });
-                                            setShowEditorModal(true);
+                                            alert("Fonctionnalité de création bientôt disponible");
                                         }}
                                         className="px-6 py-3 bg-neon-red text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20"
                                     >
@@ -1472,8 +1452,7 @@ export function AdminDashboard() {
                                                 <div className="mt-6 pt-4 border-t border-white/5 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                                     <button 
                                                         onClick={() => {
-                                                            setEditingEditor({ ...editor, password: '' });
-                                                            setShowEditorModal(true);
+                                                            alert("Modification bientôt disponible");
                                                         }}
                                                         className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-all"
                                                     >
@@ -1486,7 +1465,7 @@ export function AdminDashboard() {
                                                                     method: 'POST',
                                                                     headers: getAuthHeaders(),
                                                                     body: JSON.stringify({ username: editor.username })
-                                                                }).then(r => r.ok && fetchEditors());
+                                                                }).then(r => { if (r.ok) fetchEditors(); });
                                                             }
                                                         }}
                                                         className="p-2 hover:bg-red-500/10 rounded-lg text-gray-400 hover:text-red-500 transition-all"
@@ -1514,8 +1493,7 @@ export function AdminDashboard() {
                                     </div>
                                     <button 
                                         onClick={() => {
-                                            setEditingMember({ id: Date.now(), name: '', role: '', image: '/images/team/default.jpg', socials: { instagram: '', tiktok: '' } });
-                                            setShowMemberModal(true);
+                                            alert("Ajout bientôt disponible");
                                         }}
                                         className="px-6 py-3 bg-neon-purple text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-neon-purple/80 transition-all shadow-lg shadow-neon-purple/20"
                                     >
@@ -1542,8 +1520,7 @@ export function AdminDashboard() {
                                                 <div className="flex justify-between gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                                     <button 
                                                         onClick={() => {
-                                                            setEditingMember({ ...member });
-                                                            setShowMemberModal(true);
+                                                            alert("Modification bientôt disponible");
                                                         }}
                                                         className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[8px] font-black text-white uppercase tracking-widest transition-all"
                                                     >
@@ -1557,7 +1534,7 @@ export function AdminDashboard() {
                                                                     method: 'POST',
                                                                     headers: getAuthHeaders(),
                                                                     body: JSON.stringify({ members: newTeam })
-                                                                }).then(r => r.ok && fetchTeam());
+                                                                }).then(r => { if (r.ok) fetchTeam(); });
                                                             }
                                                         }}
                                                         className="p-2 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all"
