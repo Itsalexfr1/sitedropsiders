@@ -169,7 +169,7 @@ export function AdminDashboard() {
 
     const DASHBOARD_TABS = [
         { id: 'ALL', label: 'Tout' },
-        { id: 'TEAM', label: 'Gestion Team' },
+        { id: 'TEAM', label: 'L\'Équipe & Éditeurs' },
         { id: 'CONCOURS', label: 'Jeux Concours' },
         { id: 'NEWS', label: 'News' },
         { id: 'STUDIO', label: 'Studio' },
@@ -881,13 +881,12 @@ export function AdminDashboard() {
         { title: "Concours Insta", description: "Participants Instagram", icon: "Instagram", category: "CONCOURS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "all", baseColor: "pink", columns: 1 },
 
         // GESTION TEAM
-        { title: "Éditeurs", description: "Équipe & Accès", icon: "Users", category: "TEAM", link: "/admin/editors", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 1 },
-        { title: "Team", description: "Page Team du site", icon: "Users", category: "TEAM", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "all", baseColor: "purple", columns: 1 },
+        { title: "L'Équipe & Éditeurs", description: "Accès & Membres", icon: "Users", category: "TEAM", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "all", baseColor: "purple", columns: 2 },
 
         // SHOP & CONTACT
         { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
         { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "broadcast", baseColor: "green", columns: 1 },
-        { title: "Messagerie", description: "Emails & Factures", icon: "Mail", category: "SHOP", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
+        { title: "Messagerie", description: "Emails & Contact", icon: "Mail", category: "SHOP", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
 
         // SYSTÈME
         { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "ALL", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
@@ -1330,6 +1329,18 @@ export function AdminDashboard() {
                                 <RefreshCw className="w-4 h-4 md:w-4 md:h-4" />
                                 <span className="hidden md:inline">Actualiser</span>
                             </button>
+
+                            {/* Contest Mode Global Toggle */}
+                            {(isAdminAcc || storedPermissions.includes('messages')) && (
+                                <button
+                                    onClick={toggleContestMode}
+                                    title={isContestModeEnabled ? "Désactiver le concours" : "Activer le concours"}
+                                    className={`w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center rounded-xl md:rounded-full text-xs font-black uppercase tracking-widest transition-all gap-2 border ${isContestModeEnabled ? 'bg-neon-red/20 border-neon-red/40 text-neon-red animate-pulse' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                >
+                                    <Gamepad2 className="w-4 h-4" />
+                                    <span className="hidden md:inline">{isContestModeEnabled ? 'CONCOURS ON' : 'CONCOURS OFF'}</span>
+                                </button>
+                            )}
                             {/* Boutons Admin : Bandeau et Takeover */}
                             {(isAdminAcc || storedPermissions.includes('takeover_modo')) && (
                                 <>
@@ -1925,9 +1936,15 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'Spotify') {
                                                     e.preventDefault();
                                                     setIsSpotifyModalOpen(true);
-                                                } else if (action.title === 'MESSAGERIE & CONTACT') {
+                                                } else if (action.title === 'Messagerie') {
                                                     e.preventDefault();
                                                     setIsMessagesModalOpen(true);
+                                                } else if (action.title === 'Quiz & Blind Test') {
+                                                    e.preventDefault();
+                                                    setIsQuizModalOpen(true);
+                                                } else if (action.title === 'L\'Équipe & Éditeurs') {
+                                                    e.preventDefault();
+                                                    setDashboardTab('TEAM');
                                                 } else if (action.title === 'Concours Insta') {
                                                     e.preventDefault();
                                                     fetchInstagramParticipants();
@@ -1964,12 +1981,12 @@ export function AdminDashboard() {
                                                             <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
                                                         </div>
                                                     )}
-                                                    {(action.title === 'Quizz' || action.title === 'Contenu') && pendingQuizzesCount > 0 && (
+                                                    {(action.title === 'Quiz & Blind Test' || action.title === 'Contenu') && pendingQuizzesCount > 0 && (
                                                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
                                                             <span className="text-[9px] font-black text-white">{pendingQuizzesCount}</span>
                                                         </div>
                                                     )}
-                                                    {action.title === 'MESSAGERIE & CONTACT' && pendingMessagesCount > 0 && (
+                                                    {action.title === 'Messagerie' && pendingMessagesCount > 0 && (
                                                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
                                                             <span className="text-[9px] font-black text-white">{pendingMessagesCount}</span>
                                                         </div>
@@ -2027,6 +2044,13 @@ export function AdminDashboard() {
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-4">
+                                            {/* Quick Toggle for Contest Mode in Insta Modal */}
+                                            <button 
+                                                onClick={toggleContestMode}
+                                                className={`px-4 py-2 rounded-xl font-black uppercase text-[10px] transition-all border ${isContestModeEnabled ? 'bg-neon-red/20 border-neon-red/40 text-neon-red' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                            >
+                                                {isContestModeEnabled ? 'CONCOURS ACTIF' : 'ACTIVER CONCOURS'}
+                                            </button>
                                             <button
                                                 onClick={fetchInstagramParticipants}
                                                 className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all shadow-xl"
@@ -4316,7 +4340,7 @@ export function AdminDashboard() {
                                                     };
 
                                                     const moveRow = (direction: 'up' | 'down') => {
-                                                        const rows = (takeoverState.lineup || '').split('\n');
+                                                        const rows = (takeoverState.lineup || '').split('\n').filter(l => l.trim().length > 0);
                                                         if (direction === 'up' && idx > 0) {
                                                             [rows[idx], rows[idx - 1]] = [rows[idx - 1], rows[idx]];
                                                         } else if (direction === 'down' && idx < rows.length - 1) {
