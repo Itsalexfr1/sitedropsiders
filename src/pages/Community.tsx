@@ -287,8 +287,10 @@ export function Community() {
 
     // Photo Upload Form States
     const [uploadFestival, setUploadFestival] = useState('');
+    const [showSuggestions, setShowSuggestions] = useState(false);
     const [uploadMessage, setUploadMessage] = useState('');
     const [uploadSuccess, setUploadSuccess] = useState(false);
+    const [isAutoCorrected, setIsAutoCorrected] = useState(false);
 
     // Fetch Settings
     useEffect(() => {
@@ -312,6 +314,35 @@ export function Community() {
         const unique = new Set(agendaData.map(a => a.title));
         return Array.from(unique).sort();
     }, []);
+
+    const filteredSuggestions = useMemo(() => {
+        if (!uploadFestival || uploadFestival.length < 2) return [];
+        return festivals.filter(f => 
+            f.toLowerCase().includes(uploadFestival.toLowerCase())
+        ).slice(0, 5);
+    }, [uploadFestival, festivals]);
+
+    const handleAutoCorrect = (val: string) => {
+        const trimmed = val.trim();
+        if (!trimmed) return "";
+        
+        // Exact match (case insensitive)
+        const exactMatch = festivals.find(f => f.toLowerCase() === trimmed.toLowerCase());
+        if (exactMatch) {
+            setIsAutoCorrected(true);
+            return exactMatch;
+        }
+
+        // Fuzzy match (starts with)
+        const partialMatch = festivals.find(f => f.toLowerCase().startsWith(trimmed.toLowerCase()));
+        if (partialMatch) {
+            setIsAutoCorrected(true);
+            return partialMatch;
+        }
+
+        setIsAutoCorrected(false);
+        return trimmed.toUpperCase();
+    };
 
     // Game State
     const [gameStarted, setGameStarted] = useState(false);
@@ -1023,19 +1054,64 @@ export function Community() {
                                     {!uploadSuccess ? (
                                         <div className="space-y-8 bg-black/20 p-8 md:p-12 rounded-[3rem] border border-white/5">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                                <div className="space-y-3">
+                                                <div className="space-y-3 relative">
                                                     <label className="text-[10px] font-black uppercase text-white/40 ml-4">Événement / Festival</label>
-                                                    <select 
-                                                        value={uploadFestival}
-                                                        onChange={(e) => setUploadFestival(e.target.value)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl p-5 text-xs font-black italic uppercase focus:border-neon-red outline-none appearance-none cursor-pointer"
-                                                    >
-                                                        <option value="">Sélectionner l'événement</option>
-                                                        {festivals.map(f => (
-                                                            <option key={f} value={f}>{f}</option>
-                                                        ))}
-                                                        <option value="AUTRE">AUTRE (PRÉCISER DANS LE MESSAGE)</option>
-                                                    </select>
+                                                    <div className="relative group/input">
+                                                        <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20 group-focus-within/input:text-neon-red transition-colors" />
+                                                        <input 
+                                                            type="text"
+                                                            value={uploadFestival}
+                                                            onChange={(e) => {
+                                                                setUploadFestival(e.target.value);
+                                                                setShowSuggestions(true);
+                                                                setIsAutoCorrected(false);
+                                                            }}
+                                                            onBlur={() => {
+                                                                setTimeout(() => {
+                                                                    setShowSuggestions(false);
+                                                                    if (uploadFestival) setUploadFestival(handleAutoCorrect(uploadFestival));
+                                                                }, 200);
+                                                            }}
+                                                            onFocus={() => setShowSuggestions(true)}
+                                                            placeholder="NOM DU FESTIVAL OU ÉVÉNEMENT..."
+                                                            className="w-full bg-white/5 border border-white/10 rounded-2xl pl-12 pr-5 py-5 text-xs font-black italic uppercase focus:border-neon-red outline-none transition-all placeholder:text-white/10"
+                                                        />
+                                                        {isAutoCorrected && uploadFestival && (
+                                                            <motion.span 
+                                                                initial={{ opacity: 0, x: -10 }}
+                                                                animate={{ opacity: 1, x: 0 }}
+                                                                className="absolute right-5 top-1/2 -translate-y-1/2 text-[8px] font-black text-green-500 uppercase italic tracking-widest bg-green-500/10 px-2 py-1 rounded-md border border-green-500/20"
+                                                            >
+                                                                Corrigé ✓
+                                                            </motion.span>
+                                                        )}
+                                                    </div>
+
+                                                    <AnimatePresence>
+                                                        {showSuggestions && filteredSuggestions.length > 0 && (
+                                                            <motion.div 
+                                                                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                                animate={{ opacity: 1, y: 0, scale: 1 }}
+                                                                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                                                                className="absolute z-50 top-full left-0 right-0 mt-2 bg-[#0a0a0a] border border-white/10 rounded-2xl overflow-hidden shadow-2xl backdrop-blur-3xl"
+                                                            >
+                                                                {filteredSuggestions.map((f, i) => (
+                                                                    <button
+                                                                        key={i}
+                                                                        onClick={() => {
+                                                                            setUploadFestival(f);
+                                                                            setIsAutoCorrected(true);
+                                                                            setShowSuggestions(false);
+                                                                        }}
+                                                                        className="w-full text-left px-6 py-4 text-[10px] font-black uppercase italic text-white/60 hover:text-white hover:bg-white/5 border-b border-white/5 last:border-0 transition-all flex items-center justify-between group"
+                                                                    >
+                                                                        {f}
+                                                                        <Plus className="w-3 h-3 opacity-0 group-hover:opacity-100 text-neon-red transition-all" />
+                                                                    </button>
+                                                                ))}
+                                                            </motion.div>
+                                                        )}
+                                                    </AnimatePresence>
                                                 </div>
                                                 <div className="space-y-3">
                                                     <label className="text-[10px] font-black uppercase text-white/40 ml-4">Ton Message (Optionnel)</label>
