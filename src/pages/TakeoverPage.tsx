@@ -3658,7 +3658,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     </div>
 
                     {
-                        isConnected && (
+                        isConnected && activeChatTab === 'chat' && (
                             <div className="p-4 bg-black/40 border-t border-white/5 space-y-3">
                                 {/* Reply support removed from footer */}
                                 {isHighlightChecked && (
