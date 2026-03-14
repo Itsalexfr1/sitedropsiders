@@ -7,13 +7,12 @@ import {
     Pin, Star, ShieldCheck, Ban, Megaphone, User,
     BarChart3, Clock, Sword, Crown, Maximize2, Minimize2,
     Trophy, Stars, Heart, Volume2, Timer, ShieldAlert, Calendar,
-    Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles
+    Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
+    Search, ChevronUp, ChevronDown
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
 import { FlagIcon } from '../components/ui/FlagIcon';
-import { getAuthHeaders } from '../utils/auth';
-import { uploadFile } from '../utils/uploadService';
 
 interface LineupItem {
     id: string;
@@ -78,14 +77,6 @@ interface TracklistSet {
     tracks: TrackItem[];
 }
 
-interface ShazamTrack {
-    id: string;
-    artist: string;
-    title: string;
-    time: string;
-    image: string;
-    spotify?: string;
-}
 
 export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => {
     const navigate = useNavigate();
@@ -490,12 +481,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editTickerBg, setEditTickerBg] = useState(settings.tickerBgColor);
     const [editTickerTextC, setEditTickerTextC] = useState(settings.tickerTextColor);
     const [editHighlightPrice, setEditHighlightPrice] = useState(settings.highlightPrice || 100);
-    const [editAuddToken, setEditAuddToken] = useState(settings.auddToken || '');
     const [editDropsAmount, setEditDropsAmount] = useState(settings.dropsAmount || 10);
     const [editDropsInterval, setEditDropsInterval] = useState(settings.dropsInterval || 5);
     const [adminActiveTab, setAdminActiveTab] = useState('general');
-    const [editSponsorText, setEditSponsorText] = useState(settings.sponsorText);
-    const [editSponsorLink, setEditSponsorLink] = useState(settings.sponsorLink);
+    const [editSponsorText, setEditSponsorText] = useState(settings.sponsorText || '');
+    const [editSponsorLink, setEditSponsorLink] = useState(settings.sponsorLink || '');
     const [editShowSponsorBanner, setEditShowSponsorBanner] = useState(settings.showSponsorBanner !== undefined ? settings.showSponsorBanner : true);
     const [editInsta, setEditInsta] = useState(settings.instagramLink || '');
     const [editTiktok, setEditTiktok] = useState(settings.tiktokLink || '');
@@ -1205,34 +1195,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const showNotification = (message: string, type: 'success' | 'error') => {
         setToast({ show: true, message, type });
         setTimeout(() => setToast(prev => ({ ...prev, show: false })), 3000);
-    };
-
-    const cleanMusicTitle = (filename: string) => {
-        let title = filename.replace(/\.[^/.]+$/, ""); // Remove extension
-        title = title.replace(/_/g, " "); // Replace underscores
-
-        // Specific removals requested by user
-        const toRemove = [
-            /\(?original mix\)?/gi,
-            /\(?extended mix\)?/gi,
-            /\(?radio edit\)?/gi,
-            /\[.*?\]/g, // Metadata in brackets
-            /\(official video\)/gi,
-            /\(lyric video\)/gi,
-            /\[(FREE DOWNLOAD|OUT NOW|OFFICIAL|HQ|AUDIO|FREE)\]/gi,
-            /\(?Official Music Video\)?/gi,
-            /\(?Lyric Video\)?/gi,
-            /\(?Official Audio\)?/gi
-        ];
-
-        toRemove.forEach(regex => {
-            title = title.replace(regex, "");
-        });
-
-        // Clean up symbols and spaces
-        title = title.replace(/\(\s*\)/g, ""); // Remove empty parens
-        title = title.replace(/\s+/g, " ").trim();
-        return title;
     };
 
 
@@ -3595,7 +3557,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                                         if (lot.name.startsWith('TITRE:')) {
                                                             const t = lot.name.replace('TITRE: ', '');
-                                                            setUserTitle(t);
+                                                            // setUserTitle(t); // Désactivé car les titres ont été remplacés par les drapeaux
                                                             localStorage.setItem('user_chat_title', t);
                                                             showNotification(`Titre équipé : ${t}`, 'success');
                                                         } else if (lot.name.startsWith('BORDURE:')) {
