@@ -868,25 +868,25 @@ export function AdminDashboard() {
 
     const getFallbackActions = () => [
         // CONTENU & ÉDITORIAL
-        { title: "Contenu", description: "News, Musique, Interviews...", icon: "FileText", category: "NEWS", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news", baseColor: "cyan", columns: 2 },
-        { title: "Agenda", description: "Programmation", icon: "Calendar", category: "NEWS", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda", baseColor: "yellow", columns: 1 },
+        { title: "Contenu", description: "News, Musique, Interviews...", icon: "FileText", category: "NEWS", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news_focus", baseColor: "cyan", columns: 2 },
+        { title: "Agenda", description: "Programmation", icon: "Calendar", category: "NEWS", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda_events", baseColor: "yellow", columns: 1 },
 
         // STUDIO & ANALYTICS
         { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", category: "STUDIO", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
-        { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats", baseColor: "cyan", columns: 1 },
-        { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "spotify", baseColor: "green", columns: 1 },
+        { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats_analytics", baseColor: "cyan", columns: 1 },
+        { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
 
         // JEUX CONCOURS
-        { title: "Quiz & Blind Test", description: "Questions & Musique", icon: "Gamepad2", category: "CONCOURS", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 2 },
-        { title: "Concours Insta", description: "Participants Instagram", icon: "Instagram", category: "CONCOURS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "all", baseColor: "pink", columns: 1 },
+        { title: "Quiz & Blind Test", description: "Questions & Musique", icon: "Gamepad2", category: "CONCOURS", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "community_mod", baseColor: "red", columns: 2 },
+        { title: "Concours Insta", description: "Participants Instagram", icon: "Instagram", category: "CONCOURS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "community_mod", baseColor: "pink", columns: 1 },
 
         // GESTION TEAM
         { title: "L'Équipe & Éditeurs", description: "Accès & Membres", icon: "Users", category: "TEAM", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "all", baseColor: "purple", columns: 2 },
 
         // SHOP & CONTACT
         { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
-        { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "broadcast", baseColor: "green", columns: 1 },
-        { title: "Messagerie", description: "Emails & Contact", icon: "Mail", category: "SHOP", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages", baseColor: "orange", columns: 1 },
+        { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "push_newsletter", baseColor: "green", columns: 1 },
+        { title: "Messagerie", description: "Emails & Contact", icon: "Mail", category: "SHOP", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages_contact", baseColor: "orange", columns: 1 },
 
         // SYSTÈME
         { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "ALL", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
@@ -1079,21 +1079,26 @@ export function AdminDashboard() {
 
         const oldToNew: Record<string, string> = {
             'social_studio': 'social',
-            'galeries': 'community',
+            'news_focus': 'news',
+            'musique_releases': 'musique',
+            'interviews_video': 'interviews',
+            'recaps_festivals': 'recaps',
+            'agenda_events': 'agenda',
+            'wiki_dropsiders': 'wiki',
+            'community_mod': 'community',
+            'push_newsletter': 'broadcast',
+            'messages_contact': 'messages',
+            'stats_analytics': 'stats',
+            'home_layout': 'accueil',
             'notifications': 'broadcast',
             'team': 'all',
             'publications': 'news',
-            'takeover_full': 'live',
-            'takeover_modo': 'live',
-            'audio_rooms': 'live',
-            'hype_drops': 'live',
-            'shazam': 'live',
-            'spotify': 'musique'
+            'galeries': 'community'
         };
 
         const checkPerm = oldToNew[p] || p;
 
-        return storedPermissions.includes(checkPerm);
+        return storedPermissions.includes(checkPerm) || storedPermissions.includes(p);
     };
 
     const getIcon = (iconName: string, baseColor: string = 'white') => {
@@ -1429,7 +1434,7 @@ export function AdminDashboard() {
                                     </div>
                                     <button 
                                         onClick={() => {
-                                            alert("Fonctionnalité de création bientôt disponible");
+                                            navigate('/admin/editors');
                                         }}
                                         className="px-6 py-3 bg-neon-red text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-neon-red/80 transition-all shadow-lg shadow-neon-red/20"
                                     >
@@ -1463,7 +1468,7 @@ export function AdminDashboard() {
                                                 <div className="mt-6 pt-4 border-t border-white/5 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                                     <button 
                                                         onClick={() => {
-                                                            alert("Modification bientôt disponible");
+                                                            navigate('/admin/editors');
                                                         }}
                                                         className="p-2 hover:bg-white/10 rounded-lg text-gray-400 hover:text-white transition-all"
                                                     >
@@ -1918,13 +1923,13 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'LIVE / TAKEOVER') {
                                                     // Redirection directe vers le live
                                                     navigate('/live');
-                                                } else if (action.link === 'social-studio') {
+                                                } else if (action.link === 'social-studio' || action.title === 'Social Studio') {
                                                     e.preventDefault();
                                                     setIsSocialModalOpen(true);
-                                                } else if (action.link === 'downloader') {
+                                                } else if (action.link === 'downloader' || action.title === 'Downloader') {
                                                     e.preventDefault();
                                                     setIsDownloaderOpen(true);
-                                                } else if (action.link === 'push-notifications') {
+                                                } else if (action.link === 'push-notifications' || action.title === 'Notifications') {
                                                     e.preventDefault();
                                                     setIsNotificationModalOpen(true);
                                                 } else if (action.title === 'Accueil') {

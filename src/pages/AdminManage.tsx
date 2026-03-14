@@ -145,6 +145,21 @@ export function AdminManage() {
         if (storedPermissions.includes('all')) return true;
         if (storedUser === 'alex') return true;
 
+        const oldToNew: Record<string, string> = {
+            'social': 'social_studio',
+            'news': 'news_focus',
+            'musique': 'musique_releases',
+            'interviews': 'interviews_video',
+            'recaps': 'recaps_festivals',
+            'agenda': 'agenda_events',
+            'wiki': 'wiki_dropsiders',
+            'community': 'community_mod',
+            'broadcast': 'push_newsletter',
+            'messages': 'messages_contact',
+            'stats': 'stats_analytics',
+            'accueil': 'home_layout'
+        };
+
         const tabToPerm: Record<string, string> = {
             'News': 'news',
             'Focus': 'news',
@@ -155,8 +170,10 @@ export function AdminManage() {
             'Communauté': 'community'
         };
 
-        const requiredPerm = tabToPerm[p] || p;
-        return storedPermissions.includes(requiredPerm);
+        const mapped = tabToPerm[p] || p;
+        const checkPerm = oldToNew[mapped] || mapped;
+
+        return storedPermissions.includes(checkPerm) || storedPermissions.includes(mapped) || storedPermissions.includes(p);
     };
 
     const isAdmin = hasPermission('all');

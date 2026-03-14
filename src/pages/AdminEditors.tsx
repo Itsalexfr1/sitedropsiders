@@ -27,19 +27,19 @@ const PERMISSION_CATEGORIES = [
         id: 'editorial',
         label: 'Rédaction & Contenu',
         permissions: [
-            { id: 'news', label: 'News & Focus', description: 'Créer, modifier et supprimer les pages News et Focus.' },
-            { id: 'musique', label: 'Musique & Sorties', description: 'Gérer les articles sur les sorties musicales.' },
-            { id: 'interviews', label: 'Interviews', description: 'Gérer les interviews écrites et vidéos.' },
-            { id: 'recaps', label: 'Recaps Festivals', description: 'Gérer les reportages festivals et événements.' },
-            { id: 'agenda', label: 'Agenda Événements', description: 'Gérer le calendrier complet des événements.' },
-            { id: 'wiki', label: 'Wiki Dropsiders', description: 'Modifier et mettre à jour la base de données des DJs.' }
+            { id: 'news_focus', label: 'News & Focus', description: 'Créer, modifier et supprimer les pages News et Focus.' },
+            { id: 'musique_releases', label: 'Musique & Sorties', description: 'Gérer les articles sur les sorties musicales.' },
+            { id: 'interviews_video', label: 'Interviews', description: 'Gérer les interviews écrites et vidéos.' },
+            { id: 'recaps_festivals', label: 'Recaps Festivals', description: 'Gérer les reportages festivals et événements.' },
+            { id: 'agenda_events', label: 'Agenda Événements', description: 'Gérer le calendrier complet des événements.' },
+            { id: 'wiki_dropsiders', label: 'Wiki Dropsiders', description: 'Modifier et mettre à jour la base de données des DJs.' }
         ]
     },
     {
         id: 'animation',
         label: 'Communauté & Live',
         permissions: [
-            { id: 'community', label: 'Communauté & Modération', description: 'Gérer la galerie photos, les quiz, et modérer le contenu utilisateur.' },
+            { id: 'community_mod', label: 'Communauté & Modération', description: 'Gérer la galerie photos, les quiz, et modérer le contenu utilisateur.' },
             { id: 'live', label: 'Live Takeover', description: 'Accès complet aux réglages du Live, y compris la modération du chat.' }
         ]
     },
@@ -47,12 +47,12 @@ const PERMISSION_CATEGORIES = [
         id: 'marketing',
         label: 'Marketing & Business',
         permissions: [
-            { id: 'social', label: 'Social Studio', description: 'Générer des visuels pour les réseaux sociaux.' },
-            { id: 'broadcast', label: 'Push & Newsletter', description: 'Envoyer des notifications push et gérer les campagnes de mails.' },
+            { id: 'social_studio', label: 'Social Studio', description: 'Générer des visuels pour les réseaux sociaux.' },
+            { id: 'push_newsletter', label: 'Push & Newsletter', description: 'Envoyer des notifications push et gérer les campagnes de mails.' },
             { id: 'shop', label: 'Boutique', description: 'Gérer la section merchandising et les commandes.' },
-            { id: 'messages', label: 'Messagerie & Contact', description: 'Répondre aux messages reçus via le formulaire de contact.' },
-            { id: 'stats', label: 'Statistiques', description: 'Voir les chiffres d\'audience et d\'analyse du site.' },
-            { id: 'accueil', label: 'Page d\'Accueil', description: 'Modifier la disposition et les sélections de la page d\'accueil.' }
+            { id: 'messages_contact', label: 'Messagerie & Contact', description: 'Répondre aux messages reçus via le formulaire de contact.' },
+            { id: 'stats_analytics', label: 'Statistiques', description: 'Voir les chiffres d\'audience et d\'analyse du site.' },
+            { id: 'home_layout', label: 'Page d\'Accueil', description: 'Modifier la disposition et les sélections de la page d\'accueil.' }
         ]
     }
 ];

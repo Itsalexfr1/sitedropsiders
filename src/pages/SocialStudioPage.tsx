@@ -6,17 +6,24 @@ import { ChevronLeft, Instagram, Zap, Smartphone, Image as ImageIcon } from 'luc
 
 export function SocialStudioPage() {
     const navigate = useNavigate();
-    const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('admin_auth') === 'true');
+    const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
+    const isAuthorized = storedPermissions.includes('all') || 
+                         storedPermissions.includes('social') || 
+                         storedPermissions.includes('social_studio') ||
+                         localStorage.getItem('admin_user') === 'alex';
+
+    const [isAuthenticated, setIsAuthenticated] = useState(isAuthorized);
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
 
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
+        // Fallback pour accès via code direct
         if (password === '01061988') {
             setIsAuthenticated(true);
             localStorage.setItem('admin_auth', 'true');
         } else {
-            setError('Code incorrect');
+            setError('Code incorrect ou accès non autorisé');
         }
     };
 
@@ -37,9 +44,14 @@ export function SocialStudioPage() {
                     <p className="text-gray-500 text-center text-[10px] font-black uppercase tracking-[0.3em] mb-10">Accès Créateur Dropsiders</p>
 
                     <form onSubmit={handleLogin} className="space-y-6">
+                        <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl mb-6">
+                            <p className="text-red-400 text-[10px] font-black text-center uppercase leading-relaxed">
+                                Vous n'avez pas les permissions nécessaires ou votre session a expiré.
+                            </p>
+                        </div>
                         <input
                             type="password"
-                            placeholder="CODE D'ACCÈS"
+                            placeholder="CODE D'ACCÈS DE SECOURS"
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="w-full bg-black/40 border border-white/10 rounded-2xl px-6 py-4 text-white text-center font-black tracking-[0.5em] focus:outline-none focus:border-neon-pink transition-all"
@@ -47,6 +59,13 @@ export function SocialStudioPage() {
                         {error && <p className="text-red-500 text-[10px] font-black text-center uppercase">{error}</p>}
                         <button className="w-full py-5 bg-white text-black font-black rounded-2xl uppercase tracking-[0.2em] hover:bg-neon-pink hover:text-white transition-all shadow-xl">
                             Entrer dans le studio
+                        </button>
+                        <button 
+                            type="button"
+                            onClick={() => navigate('/admin')}
+                            className="w-full text-gray-500 text-[9px] font-black uppercase tracking-widest hover:text-white transition-colors"
+                        >
+                            Retour au tableau de bord
                         </button>
                     </form>
                 </motion.div>

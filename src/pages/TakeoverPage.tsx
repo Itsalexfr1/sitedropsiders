@@ -56,6 +56,26 @@ interface TakeoverSettings {
     sponsorText?: string;
     sponsorLink?: string;
     showSponsorBanner?: boolean;
+    instagramLink?: string;
+    tiktokLink?: string;
+    youtubeLink?: string;
+    twitterLink?: string;
+    botCommands?: { command: string, response: string }[];
+    tracklist?: string;
+}
+
+interface TrackItem {
+    id: string;
+    time: string;
+    title: string;
+    user: string;
+}
+
+interface TracklistSet {
+    id: string;
+    artist: string;
+    startTime: string;
+    tracks: TrackItem[];
 }
 
 interface ShazamTrack {
@@ -127,17 +147,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     ];
 
     const [pinnedMessage, setPinnedMessage] = useState<any>(null);
-
-    const [shazamStatus, setShazamStatus] = useState<'idle' | 'listening' | 'processing' | 'found'>('idle');
-    const [shazamHistory, setShazamHistory] = useState<ShazamTrack[]>(() => {
-        const saved = localStorage.getItem('shazam_history');
-        return saved ? JSON.parse(saved) : [];
-    });
-
-    useEffect(() => {
-        localStorage.setItem('shazam_history', JSON.stringify(shazamHistory));
-    }, [shazamHistory]);
-
+    const [tracklist, setTracklist] = useState<TracklistSet[]>([]);
+    const [newSetArtist, setNewSetArtist] = useState('');
+    const [newSetTime, setNewSetTime] = useState('');
+    const [trackSuggestion, setTrackSuggestion] = useState('');
+    const [expandedSets, setExpandedSets] = useState<string[]>([]);
     // Chat State
     const [chatMessages, setChatMessages] = useState<any[]>([]);
     const [userCountry, setUserCountry] = useState('FR');
@@ -174,7 +188,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         tickerBgColor: initialSettings?.tickerBgColor || '#ff0033',
         tickerTextColor: initialSettings?.tickerTextColor || '#ffffff',
         lineup: initialSettings?.lineup || '',
-        status: initialSettings?.status || 'live',
+        status: 'live',
         enabled: initialSettings?.enabled !== undefined ? initialSettings.enabled : true,
         streams: initialSettings?.streams || [],
         activeStreamId: initialSettings?.activeStreamId || '',
@@ -245,7 +259,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [hypeTrain, setHypeTrain] = useState({ active: false, level: 0, progress: 0 });
     const [isMuted, setIsMuted] = useState(false);
     const [muteTimeLeft, setMuteTimeLeft] = useState(0);
-    const [userTitle, setUserTitle] = useState(localStorage.getItem('user_chat_title') || '');
+
     const [profileBorder, setProfileBorder] = useState(localStorage.getItem('user_profile_border') || 'none');
     const [pseudoColor, setPseudoColor] = useState(localStorage.getItem('user_pseudo_color') || '#ffffff');
     const [specialFontStyle, setSpecialFontStyle] = useState(localStorage.getItem('user_font_style') || 'normal');
@@ -483,24 +497,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editSponsorText, setEditSponsorText] = useState(settings.sponsorText);
     const [editSponsorLink, setEditSponsorLink] = useState(settings.sponsorLink);
     const [editShowSponsorBanner, setEditShowSponsorBanner] = useState(settings.showSponsorBanner !== undefined ? settings.showSponsorBanner : true);
+    const [editInsta, setEditInsta] = useState(settings.instagramLink || '');
+    const [editTiktok, setEditTiktok] = useState(settings.tiktokLink || '');
+    const [editYoutube, setEditYoutube] = useState(settings.youtubeLink || '');
+    const [editTwitter, setEditTwitter] = useState(settings.twitterLink || '');
     const [isSaving, setIsSaving] = useState(false);
-
-    const clearShazamHistory = async () => {
-        if (!confirm('Voulez-vous vraiment vider l\'historique Shazam ?')) return;
-        try {
-            await fetch('/api/shazam/history', { method: 'DELETE' });
-            setShazamHistory([]);
-            localStorage.removeItem('shazam_history');
-            showNotification('Historique Shazam vidé !', 'success');
-        } catch (e) {
-            showNotification('Erreur nettoyage history', 'error');
-        }
-    };
 
     const [dropsLots, setDropsLots] = useState<any[]>(settings.lots || []);
     const [pollQuestion, setPollQuestion] = useState('');
     const [pollOptions, setPollOptions] = useState(['', '']);
-    const [botCommands, setBotCommands] = useState([
+    const [botCommands, setBotCommands] = useState<{ command: string, response: string }[]>(settings.botCommands || [
         { command: "!insta", response: "Suivez-nous sur @dropsiders.eu !" },
         { command: "!lineup", response: "La lineup est disponible dans l'onglet PLANNING." }
     ]);
@@ -674,7 +680,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 stage: response.payload.stage || 'stage1',
                                 geo: response.payload.geo || '',
                                 isPrems: response.payload.isPrems || false,
-                                isHolo: response.payload.isHolo || false
+                                isHolo: response.payload.isHolo || false,
+                                userTitle: response.payload.userTitle || '',
+                                profileBorder: response.payload.profileBorder || 'none',
+                                pseudoColor: response.payload.pseudoColor || '#ffffff',
+                                specialFontStyle: response.payload.specialFontStyle || 'normal',
+                                instagram: response.payload.instagram || ''
                             }];
                         });
                     }
@@ -820,15 +831,24 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         } else if (cmd.startsWith('CLASH_VOTE:')) {
                             const [team, ps] = cmd.replace('CLASH_VOTE:', '').split(':');
                             setClashPoll(prev => {
-                                if (!prev) return prev;
-                                const isA = team === 'A';
-                                return {
-                                    ...prev,
-                                    votesA: isA ? [...new Set([...prev.votesA, ps])] : prev.votesA,
-                                    votesB: !isA ? [...new Set([...prev.votesB, ps])] : prev.votesB
-                                };
+                                if (!prev) return null;
+                                const next = { ...prev };
+                                if (team === 'A') next.votesA = [...new Set([...next.votesA, ps])];
+                                else next.votesB = [...new Set([...next.votesB, ps])];
+                                return next;
                             });
-                        } else if (cmd === 'LEGENDS_WALL') {
+                        } else if (cmd.startsWith('TRACKLIST_SET_NEW:')) {
+                            try {
+                                const nextSet = JSON.parse(cmd.replace('TRACKLIST_SET_NEW:', ''));
+                                setTracklist(prev => [nextSet, ...prev]);
+                            } catch (e) { }
+                        } else if (cmd.startsWith('TRACKLIST_TRACK_NEW:')) {
+                            try {
+                                const { setId, track } = JSON.parse(cmd.replace('TRACKLIST_TRACK_NEW:', ''));
+                                setTracklist(prev => prev.map(s => s.id === setId ? { ...s, tracks: [...s.tracks, track] } : s));
+                            } catch (e) { }
+                        }
+                        else if (cmd === 'LEGENDS_WALL') {
                             setShowLegendsWall(true);
                             setTimeout(() => setShowLegendsWall(false), 15000);
                         }
@@ -953,7 +973,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     bgColor: doc.bgColor,
                     isPrems: doc.isPrems || false,
                     isHolo: doc.isHolo || false,
-                    geo: doc.geo || ''
+                    profileBorder: doc.profileBorder || 'none',
+                    pseudoColor: doc.pseudoColor || '#ffffff',
+                    specialFontStyle: doc.specialFontStyle || 'normal',
+                    instagram: doc.instagram || ''
                 }));
             setChatMessages(msgs);
         } catch (e) { console.error("Error fetching initial chat messages:", e); }
@@ -992,9 +1015,19 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     } catch (e) { setLineupItems([]); }
                     if (data.lots) setDropsLots(data.lots);
                     if (data.highlightPrice) setEditHighlightPrice(data.highlightPrice);
-                    if (data.auddToken) setEditAuddToken(data.auddToken);
                     if (data.dropsAmount) setEditDropsAmount(data.dropsAmount);
                     if (data.dropsInterval) setEditDropsInterval(data.dropsInterval);
+                    if (data.instagramLink) setEditInsta(data.instagramLink);
+                    if (data.tiktokLink) setEditTiktok(data.tiktokLink);
+                    if (data.youtubeLink) setEditYoutube(data.youtubeLink);
+                    if (data.twitterLink) setEditTwitter(data.twitterLink);
+                    if (data.botCommands) setBotCommands(data.botCommands);
+                    if (data.tracklist) {
+                        try {
+                            const parsed = JSON.parse(data.tracklist);
+                            setTracklist(Array.isArray(parsed) ? parsed : []);
+                        } catch (e) { setTracklist([]); }
+                    }
                 }
             }
         } catch (e) { console.error("Error loading settings:", e); }
@@ -1037,91 +1070,71 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         showNotification('Connexion réussie !', 'success');
     };
 
-    const handleShazamAction = async () => {
-        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-            showNotification("Microphone non supporté sur ce navigateur", "error");
-            return;
+    const handleAddSet = async () => {
+        if (!newSetArtist) return;
+        const nextSet: TracklistSet = {
+            id: Date.now().toString(),
+            artist: newSetArtist.toUpperCase(),
+            startTime: newSetTime || new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+            tracks: []
+        };
+        const newList = [nextSet, ...tracklist];
+        setTracklist(newList);
+        setNewSetArtist('');
+        setNewSetTime('');
+        
+        // Auto-save settings if admin/mod
+        if (isMod) {
+            const updated = { ...settings, tracklist: JSON.stringify(newList) };
+            try {
+                await fetch('/api/takeover-settings', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(updated)
+                });
+                setSettings(updated);
+            } catch (e) {
+                console.error("Auto-save failed", e);
+            }
         }
 
-        setShazamStatus('listening');
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const mediaRecorder = new MediaRecorder(stream);
-            const audioChunks: Blob[] = [];
-
-            mediaRecorder.ondataavailable = (event) => {
-                audioChunks.push(event.data);
-            };
-
-            mediaRecorder.onstop = async () => {
-                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                stream.getTracks().forEach(track => track.stop());
-
-                setShazamStatus('processing');
-                try {
-                    const formData = new FormData();
-                    formData.append('audio', audioBlob);
-
-                    const res = await fetch('/api/shazam/identify', {
-                        method: 'POST',
-                        body: formData
-                    });
-
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data.status === 'success' && data.metadata) {
-                            const newTrack: ShazamTrack = {
-                                id: Date.now().toString(),
-                                title: data.metadata.title,
-                                artist: data.metadata.artist,
-                                time: new Date().toLocaleTimeString(),
-                                image: data.metadata.image || "https://placehold.co/200x200",
-                                spotify: data.metadata.spotify
-                            };
-                            setShazamHistory(prev => [newTrack, ...prev]);
-
-                            // Save to global history if possible
-                            fetch('/api/shazam/history', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ ...newTrack, user: localStorage.getItem('chat_pseudo') || 'Anonyme' })
-                            }).catch(() => { });
-
-                            setShazamStatus('found');
-                            const currentShazamCount = parseInt(localStorage.getItem('shazam_count') || '0');
-                            const next = currentShazamCount + 1;
-                            localStorage.setItem('shazam_count', next.toString());
-                            if (next === 10) unlockAchievement("Shazamer Expert (x10)");
-                        } else {
-                            showNotification(data.error || "Morceau non reconnu", "error");
-                            setShazamStatus('idle');
-                        }
-                    } else {
-                        showNotification("Erreur lors de l'identification", "error");
-                        setShazamStatus('idle');
-                    }
-                } catch (e) {
-                    console.error(e);
-                    showNotification("Erreur réseau", "error");
-                    setShazamStatus('idle');
-                }
-
-                setTimeout(() => setShazamStatus('idle'), 3000);
-            };
-
-            mediaRecorder.start();
-            setTimeout(() => {
-                if (mediaRecorder.state === "recording") {
-                    mediaRecorder.stop();
-                }
-            }, 6000); // 6 seconds of recording
-
-        } catch (err) {
-            console.error(err);
-            showNotification("Veuillez autoriser le micro pour Shazamer", "error");
-            setShazamStatus('idle');
-        }
+        // Broadcast
+        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+            pseudo: "BOT_SYSTEM",
+            message: `[SYSTEM]:TRACKLIST_SET_NEW:${JSON.stringify(nextSet)}`,
+            color: "text-neon-cyan",
+            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+            country: "FR"
+        });
+        showNotification("Nouveau set ajouté !", "success");
     };
+
+    const handleSuggestTrack = async (setId: string) => {
+        if (!trackSuggestion.trim()) return;
+        const pseudo = localStorage.getItem('chat_pseudo') || "Anonyme";
+        const newTrack: TrackItem = {
+            id: Date.now().toString(),
+            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+            title: trackSuggestion.trim(),
+            user: pseudo
+        };
+
+        const newList = tracklist.map(s => s.id === setId ? { ...s, tracks: [...s.tracks, newTrack] } : s);
+        setTracklist(newList);
+        setTrackSuggestion('');
+
+        // Broadcast
+        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+            pseudo: "BOT_SYSTEM",
+            message: `[SYSTEM]:TRACKLIST_TRACK_NEW:${JSON.stringify({ setId, track: newTrack })}`,
+            color: "text-neon-cyan",
+            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+            country: "FR"
+        });
+        showNotification("Titre suggéré !", "success");
+    };
+
+
 
     const handleSaveSettings = async () => {
         setIsSaving(true);
@@ -1142,12 +1155,17 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             activeStreamId: editActiveStreamId,
             highlightPrice: Number(editHighlightPrice),
             lots: dropsLots,
-            auddToken: editAuddToken,
             dropsAmount: Number(editDropsAmount),
             dropsInterval: Number(editDropsInterval),
             sponsorText: editSponsorText,
             sponsorLink: editSponsorLink,
-            showSponsorBanner: editShowSponsorBanner
+            showSponsorBanner: editShowSponsorBanner,
+            instagramLink: editInsta,
+            tiktokLink: editTiktok,
+            youtubeLink: editYoutube,
+            twitterLink: editTwitter,
+            botCommands: botCommands,
+            tracklist: JSON.stringify(tracklist)
         };
 
         try {
@@ -1215,90 +1233,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         title = title.replace(/\(\s*\)/g, ""); // Remove empty parens
         title = title.replace(/\s+/g, " ").trim();
         return title;
-    };
-
-    const handleBatchBlindTestUpload = async (files: FileList) => {
-        const musicTitlesPool = [
-            "Carl Cox - I Want You", "Nina Kraviz - Ghetto Kraviz", "Amelie Lens - Follow",
-            "Charlotte de Witte - Sgadi Li Mi", "Adam Beyer - Your Mind", "Skrillex - Bangarang",
-            "SVDDEN DEATH - Behemoth", "Excision - Throwin' Elbows", "Subtronics - Griztronics",
-            "Boris Brejcha - Gravity", "Laurent Garnier - The Man With The Red Face",
-            "Jeff Mills - The Bells", "Derrick May - Strings of Life", "Carl Craig - Sandstorms",
-            "Ummet Ozcan - Xanadu", "David Guetta - Titanium", "Martin Garrix - Animals",
-            "Swedish House Mafia - One", "Avicii - Levels", "Tiësto - The Business",
-            "Fisher - Losing It", "Fred again.. - Marea (We’ve Lost Dancing)",
-            "Meduza - Piece Of Your Heart", "Zurb - Mwaki", "James Hype - Ferrari",
-            "Mau P - Drugs From Amsterdam", "Peggy Gou - (It Goes Like) Nanana",
-            "Anyma - Eternity", "Tale Of Us - Afterlife", "Chris Lake - Turn Off The Lights",
-            "Dom Dolla - Rhyme Dust", "John Summit - Where You Are", "Mochakk - Jealous",
-            "Hugel - Morenita", "Vintage Culture - Deep Down", "Alok - Hear Me Now",
-            "Don Diablo - Cutting Shapes", "Oliver Heldens - Gecko", "Tchami - Adieu",
-            "Malaa - Notorious", "DJ Snake - Turn Down For What", "Kungs - This Girl"
-        ];
-
-        setIsSaving(true);
-        try {
-            for (let i = 0; i < files.length; i++) {
-                const file = files[i];
-                // 1. Upload the file securely using the shared service
-                const uploadedUrl = await uploadFile(file, 'quiz');
-                if (!uploadedUrl) throw new Error("L'upload a échoué");
-
-
-
-
-                // 🔍 Identification automatique du morceau
-                let identifiedTitle = null;
-                try {
-                    const idFormData = new FormData();
-                    // Send first 3MB for recognition
-                    idFormData.append('audio', file.slice(0, 3 * 1024 * 1024));
-                    const idRes = await fetch('/api/shazam/identify', { method: 'POST', body: idFormData });
-                    if (idRes.ok) {
-                        const idData = await idRes.json();
-                        if (idData.status === 'success' && idData.metadata) {
-                            identifiedTitle = `${idData.metadata.artist} - ${idData.metadata.title}`;
-                        }
-                    }
-                } catch (e) {
-                    console.error("ID failed", e);
-                }
-
-
-                // Get cleaned title from filename as fallback
-                const correctTitle = identifiedTitle || cleanMusicTitle(file.name);
-
-                // Get 3 random distractors from the pool (make sure they aren't the same as correct)
-                const distractors = musicTitlesPool
-                    .filter(t => t.toLowerCase() !== correctTitle.toLowerCase())
-                    .sort(() => 0.5 - Math.random())
-                    .slice(0, 3);
-
-                const quizData = {
-                    type: 'BLIND_TEST',
-                    question: 'Quel est ce morceau ?',
-                    options: [correctTitle, ...distractors].sort(() => 0.5 - Math.random()),
-                    correctAnswer: correctTitle,
-                    category: 'Blind Test',
-                    audioUrl: uploadedUrl,
-                    author: 'Dropsiders',
-                    approved: true
-                };
-
-                await fetch('/api/quiz/submit', {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify(quizData)
-                });
-            }
-            showNotification(`${files.length} Quiz Blind Test créés !`, 'success');
-            fetchPredefinedQuizzes();
-        } catch (e) {
-            console.error(e);
-            showNotification('Erreur lors du batch upload', 'error');
-        } finally {
-            setIsSaving(false);
-        }
     };
 
 
@@ -1682,7 +1616,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             }
 
             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                pseudo: userTitle ? `[${userTitle}] ${pseudo}` : pseudo,
+                pseudo: pseudo,
                 message: messageText,
                 color: isHighlightChecked ? highlightColor : (isMod ? "text-neon-red" : pseudoColor),
                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
@@ -1885,7 +1819,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     <div className="h-8 lg:h-10 bg-neon-red/10 backdrop-blur-md border-b border-neon-red/30 flex items-center overflow-hidden group">
                         <div className="bg-neon-red px-3 h-full flex items-center shrink-0 z-10 relative shadow-[0_0_15px_rgba(255,0,51,0.5)]">
                             <Megaphone className="w-3.5 h-3.5 text-white" />
-                            <span className="ml-2 text-[9px] font-black text-white uppercase tracking-tighter cursor-default">NEWS FLUX</span>
+                            <span className="ml-2 text-[9px] lg:text-[9px] font-black text-white uppercase tracking-tighter cursor-default">NEWS FLUX</span>
                         </div>
                         <motion.div
                             animate={{ x: [0, -2000] }}
@@ -2021,15 +1955,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 <div className="flex items-center justify-between border-b border-white/10 pb-6">
                                     <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Configuration du <span className="text-neon-purple">Studio</span></h2>
                                     <div className="flex gap-2">
-                                        {['GÉNÉRAL', 'PLANNING', 'SHAZAM', 'SONDAGES / QUIZ', 'DROPS', 'BOT', 'MODÉRATION'].map(t => (
-                                            <button
-                                                key={t}
-                                                onClick={() => setAdminActiveTab(t === 'SONDAGES / QUIZ' ? 'sondages' : t.toLowerCase())}
-                                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminActiveTab === (t === 'SONDAGES / QUIZ' ? 'sondages' : t.toLowerCase()) ? 'bg-white/10 text-white border border-white/20' : 'text-gray-500 hover:text-white'}`}
-                                            >
-                                                {t}
-                                            </button>
-                                        ))}
+                                        {['GÉNÉRAL', 'PLANNING', 'TRACKLIST', 'SONDAGES / QUIZ', 'DROPS', 'BOT', 'MODÉRATION'].map(t => {
+                                            const tabId = t.split(' ')[0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                                            return (
+                                                <button
+                                                    key={t}
+                                                    onClick={() => setAdminActiveTab(tabId)}
+                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminActiveTab === tabId ? 'bg-white/10 text-white border border-white/20' : 'text-gray-500 hover:text-white'}`}
+                                                >
+                                                    {t}
+                                                </button>
+                                            );
+                                        })}
                                     </div>
                                     <button onClick={() => setShowAdminPanel(false)} className="p-2 hover:bg-white/5 rounded-full"><X className="w-6 h-6 text-gray-500" /></button>
                                 </div>
@@ -2042,6 +1979,31 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     <div>
                                                         <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre du Live</label>
                                                         <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: MAIN STAGE LIVE" />
+                                                    </div>
+
+                                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
+                                                        <div className="flex items-center gap-2 mb-2">
+                                                            <Instagram className="w-4 h-4 text-neon-pink" />
+                                                            <h3 className="text-[10px] font-black text-white uppercase tracking-widest">Réseaux Sociaux</h3>
+                                                        </div>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div className="space-y-1">
+                                                                <label className="text-[8px] font-black text-gray-500 uppercase">Instagram</label>
+                                                                <input type="text" value={editInsta} onChange={e => setEditInsta(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-neon-pink" placeholder="@pseudo" />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[8px] font-black text-gray-500 uppercase">TikTok</label>
+                                                                <input type="text" value={editTiktok} onChange={e => setEditTiktok(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-neon-pink" placeholder="@pseudo" />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[8px] font-black text-gray-500 uppercase">YouTube</label>
+                                                                <input type="text" value={editYoutube} onChange={e => setEditYoutube(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-neon-pink" placeholder="@pseudo" />
+                                                            </div>
+                                                            <div className="space-y-1">
+                                                                <label className="text-[8px] font-black text-gray-500 uppercase">Twitter (X)</label>
+                                                                <input type="text" value={editTwitter} onChange={e => setEditTwitter(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-neon-pink" placeholder="@pseudo" />
+                                                            </div>
+                                                        </div>
                                                     </div>
 
                                                     <div className="pt-6 border-t border-white/5 space-y-6">
@@ -2342,80 +2304,56 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     )}
                                                 </div>
                                             </div>
-
-                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-8">
+                                        </div>
+                                    ) : adminActiveTab === 'tracklist' ? (
+                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center">
                                                         <Music className="w-6 h-6 text-neon-cyan" />
                                                     </div>
                                                     <div>
-                                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Batch Blind Test</h3>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Uploadez plusieurs MP3 et générez des quiz automatiquement</p>
+                                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion Tracklist</h3>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Ajoutez des sets et gérez les tracks</p>
                                                     </div>
                                                 </div>
 
-                                                <div className="pt-4 border-t border-white/5">
-                                                    <div className="group relative">
-                                                        <label className={`flex flex-col items-center justify-center p-12 border-2 border-dashed border-white/10 rounded-[2rem] hover:border-neon-cyan/50 hover:bg-neon-cyan/5 transition-all cursor-pointer ${isSaving ? 'opacity-50 pointer-events-none' : ''}`}>
-                                                            <input
-                                                                type="file"
-                                                                multiple
-                                                                accept="audio/mp3,audio/*"
-                                                                className="hidden"
-                                                                onChange={(e) => {
-                                                                    if (e.target.files && e.target.files.length > 0) {
-                                                                        handleBatchBlindTestUpload(e.target.files);
-                                                                    }
-                                                                }}
-                                                            />
-                                                            <Music className={`w-12 h-12 text-gray-500 group-hover:text-neon-cyan transition-colors mb-4 ${isSaving ? 'animate-bounce text-neon-cyan' : ''}`} />
-                                                            <p className="text-sm font-black text-white uppercase italic">
-                                                                {isSaving ? 'Upload en cours...' : 'Glissez ou cliquez pour uploader'}
-                                                            </p>
-                                                            <p className="text-[10px] text-gray-500 font-bold uppercase mt-1">Plusieurs MP3 acceptés</p>
-                                                        </label>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Artiste</label>
+                                                        <input type="text" value={newSetArtist} onChange={e => setNewSetArtist(e.target.value)} placeholder="NOM DE L'ARTISTE" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Début (Optionnel)</label>
+                                                        <input type="text" value={newSetTime} onChange={e => setNewSetTime(e.target.value)} placeholder="00:00" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
                                                     </div>
                                                 </div>
+                                                <button onClick={handleAddSet} className="w-full py-4 bg-neon-cyan text-black font-black uppercase rounded-2xl hover:bg-neon-cyan/80 transition-all shadow-xl shadow-neon-cyan/20">Lancer un nouveau Set</button>
                                             </div>
-                                        </div>
-                                    ) : adminActiveTab === 'shazam' ? (
-                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center">
-                                                        <Music className="w-6 h-6 text-neon-purple" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Configuration Shazam</h3>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Gérez la reconnaissance musicale et l'historique</p>
-                                                    </div>
-                                                </div>
 
-                                                <div className="space-y-4 pt-4 border-t border-white/5">
-                                                    <div className="bg-red-500/5 border border-red-500/20 rounded-2xl p-6 flex items-center justify-between">
-                                                        <div>
-                                                            <p className="text-xs font-black text-white uppercase mb-1">Vider l'historique</p>
-                                                            <p className="text-[9px] text-gray-400 font-bold uppercase">Supprime tous les morceaux identifiés du site</p>
+                                            <div className="space-y-4">
+                                                {tracklist.map(set => (
+                                                    <div key={set.id} className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <h4 className="text-white font-black uppercase text-sm">{set.artist}</h4>
+                                                                <p className="text-[10px] text-gray-500 font-mono">Début : {set.startTime}</p>
+                                                            </div>
+                                                            <button onClick={() => setTracklist(prev => prev.filter(s => s.id !== set.id))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
                                                         </div>
-                                                        <button
-                                                            onClick={clearShazamHistory}
-                                                            className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white text-[10px] font-black uppercase rounded-xl transition-all shadow-lg shadow-red-600/20"
-                                                        >
-                                                            Vider Shazam
-                                                        </button>
+                                                        <div className="space-y-2">
+                                                            {set.tracks.map(track => (
+                                                                <div key={track.id} className="flex items-center justify-between p-2 bg-black/20 rounded-lg">
+                                                                    <div className="flex items-center gap-3">
+                                                                        <span className="text-[9px] font-mono text-gray-500">{track.time}</span>
+                                                                        <span className="text-[10px] font-bold text-white uppercase">{track.title}</span>
+                                                                    </div>
+                                                                    <span className="text-[8px] text-neon-cyan font-black uppercase">@{track.user}</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
                                                     </div>
-
-                                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">AudD API Token</label>
-                                                        <input
-                                                            type="password"
-                                                            placeholder="VOTRE TOKEN AUDD.IO"
-                                                            value={editAuddToken}
-                                                            onChange={e => setEditAuddToken(e.target.value)}
-                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-purple outline-none transition-all"
-                                                        />
-                                                    </div>
-                                                </div>
+                                                ))}
                                             </div>
                                         </div>
                                     ) : adminActiveTab === 'planning' ? (
@@ -2512,7 +2450,21 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 <h4 className="text-xs font-black text-neon-cyan uppercase tracking-widest">➕ Nouvelle Commande</h4>
                                                 <input type="text" placeholder="!COMMANDE" value={newCmd.command} onChange={e => setNewCmd({ ...newCmd, command: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
                                                 <textarea placeholder="REPONSE" value={newCmd.response} onChange={e => setNewCmd({ ...newCmd, response: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white min-h-[80px]" />
-                                                <button onClick={() => { if (newCmd.command) { setBotCommands([...botCommands, { command: newCmd.command, response: newCmd.response }]); setNewCmd({ command: '', response: '' }); } }} className="w-full py-3 bg-neon-cyan text-black font-black rounded-xl hover:scale-[1.02] transition-all">Enregistrer</button>
+                                                <button onClick={async () => { 
+                                                    if (newCmd.command) { 
+                                                        const next = [...botCommands, { command: newCmd.command, response: newCmd.response }];
+                                                        setBotCommands(next); 
+                                                        setNewCmd({ command: '', response: '' });
+                                                        // Auto-save bot commands
+                                                        const updated = { ...settings, botCommands: next, tracklist: JSON.stringify(tracklist) };
+                                                        await fetch('/api/takeover-settings', {
+                                                            method: 'POST',
+                                                            headers: { 'Content-Type': 'application/json' },
+                                                            body: JSON.stringify(updated)
+                                                        });
+                                                        showNotification('Commande enregistrée !', 'success');
+                                                    } 
+                                                }} className="w-full py-3 bg-neon-cyan text-black font-black rounded-xl hover:scale-[1.02] transition-all uppercase tracking-widest text-[10px]">AJOUTER LA COMMANDE</button>
                                             </div>
 
                                             {/* List of existing commands */}
@@ -2528,7 +2480,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             <span className="text-neon-cyan font-black text-xs uppercase tracking-tight shrink-0 min-w-[100px]">{cmd.command}</span>
                                                             <span className="text-gray-400 text-xs font-bold flex-1 truncate">{cmd.response}</span>
                                                             <button
-                                                                onClick={() => setBotCommands(botCommands.filter((_, i) => i !== idx))}
+                                                                onClick={async () => {
+                                                                    const next = botCommands.filter((_, i) => i !== idx);
+                                                                    setBotCommands(next);
+                                                                    // Auto-save bot commands
+                                                                    const updated = { ...settings, botCommands: next, tracklist: JSON.stringify(tracklist) };
+                                                                    await fetch('/api/takeover-settings', {
+                                                                        method: 'POST',
+                                                                        headers: { 'Content-Type': 'application/json' },
+                                                                        body: JSON.stringify(updated)
+                                                                    });
+                                                                    showNotification('Commande supprimée', 'success');
+                                                                }}
                                                                 className="opacity-0 group-hover:opacity-100 p-2 text-gray-600 hover:text-neon-red transition-all rounded-lg hover:bg-red-500/10"
                                                             >
                                                                 <Trash2 className="w-3.5 h-3.5" />
@@ -2757,7 +2720,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         isConnected && (
                             <div className="flex items-center justify-between px-2 lg:px-4 bg-black/20 border-b border-white/10 overflow-x-auto scollbar-hide no-scrollbar">
                                 <div className="flex gap-1 p-1 lg:p-2">
-                                    {['CHAT', 'PLANNING', 'SHAZAM', 'SHOP', 'DROPS'].map(tab => (
+                                    {['CHAT', 'PLANNING', 'TRACKLIST', 'SHOP', 'DROPS'].map(tab => (
                                         <button
                                             key={tab}
                                             onClick={() => setActiveChatTab(tab === 'SHOP' ? 'shop' : tab === 'DROPS' ? 'drops' : tab.toLowerCase())}
@@ -3227,14 +3190,17 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <div className="absolute inset-0 bg-neon-red/10 border border-neon-red/30 rounded-2xl animate-pulse pointer-events-none" />
                                                     )}
                                                     <div className="flex gap-3 relative">
-                                                        <div className="w-9 h-9 rounded-xl border border-white/10 shrink-0 flex items-center justify-center bg-white/5 relative overflow-hidden group-hover:border-neon-red/30 transition-all">
-                                                            <FlagIcon location={msg.country} className="absolute inset-0 w-full h-full opacity-30 object-cover grayscale" />
-                                                            <div className="text-[10px] font-black text-gray-400 group-hover:text-white transition-colors relative z-10">{(msg.pseudo || msg.user || 'V')[0]}</div>
+                                                        <div className={`w-9 h-9 rounded-xl border border-white/10 shrink-0 flex items-center justify-center bg-white/5 relative overflow-hidden group-hover:border-neon-red/30 transition-all ${(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? 'border-neon-red/50 shadow-[0_0_10px_rgba(255,0,51,0.2)]' : ''}`}>
+                                                            <FlagIcon 
+                                                                location={(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? 'FR' : msg.country} 
+                                                                className={`absolute inset-0 w-full h-full object-cover ${(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? '' : 'grayscale'}`} 
+                                                            />
+                                                            <div className="absolute inset-0 bg-black/20" />
                                                             {isHovered && <motion.div layoutId="bg-glow" className="absolute inset-0 bg-neon-red/5 blur-md" />}
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <div className="flex items-center gap-2 mb-1">
-                                                                {msg.country && <FlagIcon location={msg.country} className="w-3 h-2" />}
+                                                                {(msg.isMod || msg.role === 'admin' || msg.pseudo === 'ALEX_FR1') ? <FlagIcon location="FR" className="w-3 h-2" /> : (msg.country && <FlagIcon location={msg.country} className="w-3 h-2" />)}
                                                                 {(msg.geo || userCity) && (
                                                                     <span className="text-[7px] font-black text-gray-500 bg-white/5 px-1 rounded flex items-center gap-0.5">
                                                                         <MapPin className="w-2 h-2" /> {msg.geo || userCity}
@@ -3262,10 +3228,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     <motion.div
                                                                         animate={{ rotate: [0, 10, -10, 0] }}
                                                                         transition={{ repeat: Infinity, duration: 2 }}
-                                                                        className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-neon-purple/20 border border-neon-purple/30"
+                                                                        className="flex items-center gap-1 px-1 py-1 rounded-md bg-neon-purple/20 border border-neon-purple/30"
                                                                     >
-                                                                        <ShieldCheck className="w-3 h-3 text-neon-purple" />
-                                                                        <span className="text-[7px] font-black text-neon-purple uppercase">ADMIN</span>
+                                                                        <ShieldCheck className="w-3 h-3" />
                                                                     </motion.div>
                                                                 )}
                                                                 {msg.bgColor && (
@@ -3377,73 +3342,154 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         )}
                                     </AnimatePresence>
                                 </motion.div >
-                            ) : activeChatTab === 'shazam' ? (
-                                <motion.div key="shazam-view" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-                                    <button onClick={handleShazamAction} disabled={shazamStatus !== 'idle'} className={`w-full py-4 rounded-2xl border-2 border-dashed flex flex-col items-center justify-center gap-2 transition-all ${shazamStatus === 'idle' ? 'border-white/20 hover:border-neon-purple/50 bg-white/5' : 'border-neon-purple/50 bg-neon-purple/5'}`}>
-                                        <div className={`w-12 h-12 rounded-full flex items-center justify-center ${shazamStatus !== 'idle' ? 'bg-neon-purple shadow-[0_0_20px_rgba(168,85,247,0.5)]' : 'bg-white/10'}`}>
-                                            <Music className={`w-6 h-6 ${shazamStatus !== 'idle' ? 'animate-pulse text-white' : 'text-gray-500'}`} />
-                                        </div>
-                                        <p className="text-[10px] font-black text-white uppercase tracking-widest">{shazamStatus === 'idle' ? 'Identifier le morceau' : shazamStatus === 'listening' ? 'Écoute en cours...' : 'Recherche...'}</p>
-                                    </button>
+                            ) : activeChatTab === 'tracklist' ? (
+                                <motion.div key="tracklist-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                                    <div className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] text-center space-y-2">
+                                        <Music className="w-8 h-8 text-neon-cyan mx-auto mb-2" />
+                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Tracklist Live</h3>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Identifiez les pépites en temps réel</p>
+                                    </div>
+
                                     <div className="space-y-4">
-                                        <h3 className="text-[10px] font-black text-gray-500 uppercase tracking-widest px-2">Historique</h3>
-                                        {shazamHistory.map(track => (
-                                            <div key={track.id} className="p-3 bg-white/5 border border-white/10 rounded-xl flex items-center gap-4 group">
-                                                <img
-                                                    src={track.image}
-                                                    onError={(e) => e.currentTarget.src = "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=200&h=200&fit=cover"}
-                                                    className="w-12 h-12 rounded-lg shrink-0 object-cover"
-                                                    alt=""
-                                                />
-                                                <div className="flex-1 min-w-0">
-                                                    <p className="text-xs font-black text-white uppercase truncate">{track.title}</p>
-                                                    <p className="text-[9px] text-gray-500 font-bold uppercase truncate">{track.artist}</p>
-                                                </div>
-                                                <div className="text-[9px] font-mono text-gray-600">{track.time}</div>
+                                        {tracklist.length === 0 ? (
+                                            <div className="py-20 text-center space-y-4 bg-white/5 border border-white/5 rounded-[2.5rem] border-dashed">
+                                                <Search className="w-12 h-12 text-gray-800 mx-auto" />
+                                                <p className="text-gray-600 font-black uppercase text-[10px] tracking-widest italic">Aucun morceau répertorié</p>
                                             </div>
-                                        ))}
+                                        ) : (
+                                            tracklist.map((set, i) => {
+                                                const isCurrent = i === 0;
+                                                const isExpanded = isCurrent || expandedSets.includes(set.id);
+
+                                                return (
+                                                    <div key={set.id} className={`bg-white/5 border border-white/10 rounded-3xl overflow-hidden transition-all duration-500 ${isCurrent ? 'ring-1 ring-neon-cyan/30' : 'opacity-60'}`}>
+                                                        <button 
+                                                            onClick={() => {
+                                                                if (!isCurrent) {
+                                                                    setExpandedSets(prev => prev.includes(set.id) ? prev.filter(id => id !== set.id) : [...prev, set.id]);
+                                                                }
+                                                            }}
+                                                            className="w-full p-4 flex items-center justify-between bg-white/[0.02] cursor-pointer"
+                                                        >
+                                                            <div className="flex items-center gap-3">
+                                                                <div className={`w-2 h-2 rounded-full ${isCurrent ? 'bg-neon-cyan animate-pulse shadow-[0_0_10px_#00ffff]' : 'bg-gray-600'}`} />
+                                                                <div className="text-left">
+                                                                    <h4 className="text-xs font-black text-white uppercase">{set.artist}</h4>
+                                                                    <p className="text-[8px] text-gray-500 font-mono uppercase">Début du set : {set.startTime}</p>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex items-center gap-2">
+                                                                {isCurrent && (
+                                                                    <div className="flex items-center gap-1.5 px-2 py-1 bg-neon-cyan/10 rounded-lg">
+                                                                        <span className="text-[8px] font-black text-neon-cyan uppercase">EN DIRECT</span>
+                                                                    </div>
+                                                                )}
+                                                                {!isCurrent && (
+                                                                    <div className="text-gray-500">
+                                                                        {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        </button>
+
+                                                        <AnimatePresence>
+                                                            {isExpanded && (
+                                                                <motion.div 
+                                                                    initial={{ height: 0, opacity: 0 }}
+                                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                                    exit={{ height: 0, opacity: 0 }}
+                                                                    className="p-4 space-y-3 overflow-hidden border-t border-white/5"
+                                                                >
+                                                                    {set.tracks.length === 0 ? (
+                                                                        <p className="text-[9px] text-gray-600 font-black uppercase italic text-center py-4">Soyez le premier à indiquer un titre !</p>
+                                                                    ) : (
+                                                                        set.tracks.map(track => (
+                                                                            <motion.div initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} key={track.id} className="flex items-center justify-between gap-4 p-3 bg-black/40 rounded-2xl border border-white/5 group hover:border-white/10 transition-all">
+                                                                                <div className="flex items-center gap-3 min-w-0">
+                                                                                    <span className="text-[9px] font-mono text-gray-600 group-hover:text-neon-cyan transition-colors">{track.time}</span>
+                                                                                    <p className="text-[10px] font-bold text-white uppercase truncate">{track.title}</p>
+                                                                                </div>
+                                                                                <div className="shrink-0 flex items-center gap-1.5 px-2 py-1 bg-white/5 rounded-lg border border-white/5">
+                                                                                    <span className="text-[8px] font-black text-gray-500 uppercase">@{track.user}</span>
+                                                                                </div>
+                                                                            </motion.div>
+                                                                        ))
+                                                                    )}
+                                                                    {isCurrent && (
+                                                                        <div className="pt-4 border-t border-white/5">
+                                                                            <div className="flex gap-2">
+                                                                                <input 
+                                                                                    type="text" 
+                                                                                    placeholder="ID DU MORCEAU ?" 
+                                                                                    value={trackSuggestion}
+                                                                                    onChange={e => setTrackSuggestion(e.target.value)}
+                                                                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-[10px] text-white font-bold outline-none focus:border-neon-cyan/50"
+                                                                                />
+                                                                                <button 
+                                                                                    onClick={() => handleSuggestTrack(set.id)}
+                                                                                    className="px-4 py-2 bg-neon-cyan text-black font-black uppercase text-[10px] rounded-xl hover:scale-105 transition-all"
+                                                                                >
+                                                                                    ENVOYER
+                                                                                </button>
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
+                                                                </motion.div>
+                                                            )}
+                                                        </AnimatePresence>
+                                                    </div>
+                                                );
+                                            })
+                                        )}
                                     </div>
                                 </motion.div>
                             ) : activeChatTab === 'planning' ? (
                                 <motion.div key="planning-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                                    {lineupItems.map(item => {
-                                        const now = new Date();
-                                        const [h, m] = (item.startTime || "00:00").split(':').map(Number);
-                                        const [eh, em] = (item.endTime || "00:00").split(':').map(Number);
-                                        const start = new Date(); start.setHours(h, m, 0);
-                                        const end = new Date(); end.setHours(eh, em, 0);
-                                        const isNow = now >= start && now <= end;
-                                        const progress = isNow ? Math.min(100, Math.max(0, ((now.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100)) : 0;
+                                    {lineupItems.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center py-20 bg-white/5 border border-white/5 rounded-[2.5rem] border-dashed">
+                                            <Calendar className="w-12 h-12 text-gray-700 mb-4" />
+                                            <p className="text-gray-500 font-black uppercase text-[10px] tracking-widest italic">Aucun planning programmé</p>
+                                        </div>
+                                    ) : (
+                                        lineupItems.map(item => {
+                                            const now = new Date();
+                                            const [h, m] = (item.startTime || "00:00").split(':').map(Number);
+                                            const [eh, em] = (item.endTime || "00:00").split(':').map(Number);
+                                            const start = new Date(); start.setHours(h, m, 0);
+                                            const end = new Date(); end.setHours(eh, em, 0);
+                                            const isNow = now >= start && now <= end;
+                                            const progress = isNow ? Math.min(100, Math.max(0, ((now.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100)) : 0;
 
-                                        return (
-                                            <div key={item.id} className={`p-4 border rounded-2xl space-y-3 transition-all ${isNow ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,255,255,0.05)]' : 'bg-white/5 border-white/10'}`}>
-                                                <div className="flex items-center justify-between">
-                                                    <div className="flex items-center gap-2">
-                                                        <Calendar className="w-3 h-3 text-gray-500" />
-                                                        <span className={`text-[10px] font-black uppercase ${isNow ? 'text-neon-cyan' : 'text-gray-500'}`}>{item.stage}</span>
-                                                    </div>
-                                                    <div className="flex flex-col items-end">
-                                                        <span className="text-[10px] font-mono text-white/80">{item.day}</span>
-                                                        <span className="text-[10px] font-mono text-gray-500">{item.startTime} - {item.endTime}</span>
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <p className="text-lg font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-2">
-                                                        {isNow && <span className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse" />}
-                                                        {item.artist}
-                                                    </p>
-                                                    {isNow && (
-                                                        <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mt-2">
-                                                            <div
-                                                                className="h-full bg-neon-cyan shadow-[0_0_10px_#00ffff] transition-all duration-1000"
-                                                                style={{ width: `${progress}%` }}
-                                                            />
+                                            return (
+                                                <div key={item.id} className={`p-4 border rounded-2xl space-y-3 transition-all ${isNow ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,255,255,0.05)]' : 'bg-white/5 border-white/10'}`}>
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <Calendar className="w-3 h-3 text-gray-500" />
+                                                            <span className={`text-[10px] font-black uppercase ${isNow ? 'text-neon-cyan' : 'text-gray-500'}`}>{item.stage}</span>
                                                         </div>
-                                                    )}
+                                                        <div className="flex flex-col items-end">
+                                                            <span className="text-[10px] font-mono text-white/80">{item.day}</span>
+                                                            <span className="text-[10px] font-mono text-gray-500">{item.startTime} - {item.endTime}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <p className="text-lg font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-2">
+                                                            {isNow && <span className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse" />}
+                                                            {item.artist}
+                                                        </p>
+                                                        {isNow && (
+                                                            <div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mt-2">
+                                                                <div
+                                                                    className="h-full bg-neon-cyan shadow-[0_0_10px_#00ffff] transition-all duration-1000"
+                                                                    style={{ width: `${progress}%` }}
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        );
-                                    })}
+                                            );
+                                        })
+                                    )}
                                 </motion.div>
                             ) : activeChatTab === 'shop' ? (
                                 <motion.div key="shop-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 overflow-y-auto space-y-6 py-6 px-4 custom-scrollbar">
@@ -3525,8 +3571,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         </button>
 
                                         {(dropsLots.length > 0 ? dropsLots : [
-                                            { id: 'sh1', name: 'TITRE: ALPHA', price: 2000 },
-                                            { id: 'sh2', name: 'TITRE: LÉGENDE', price: 5000 },
                                             { id: 'sh3', name: 'BORDURE: NEON', price: 3000 },
                                             { id: 'sh4', name: 'STYLE: ITALIC', price: 1500 },
                                             { id: 'sh5', name: 'STYLE: PIXEL', price: 1500 }
