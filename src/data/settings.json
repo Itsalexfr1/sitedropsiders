@@ -5,7 +5,7 @@
   "shop_password_image": "",
   "takeover": {
     "enabled": true,
-    "youtubeId": "",
+    "youtubeId": "325m8PqVH74",
     "title": "TOMORROWLAND WINTER 2026",
     "moderators": "",
     "lineup": "[]",
@@ -28,7 +28,45 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "edit"
+    "status": "edit",
+    "mainFluxName": "ONE WORLD RADIO",
+    "currentTrack": "ID - UNRELEASED",
+    "streams": [
+      {
+        "id": "2gecsrpp8",
+        "name": "ONE WORLD RADIO",
+        "youtubeId": "325m8PqVH74"
+      },
+      {
+        "id": "grktabzrd",
+        "name": "DAYBREAK SESSION",
+        "youtubeId": "DQHSj6cphm0"
+      }
+    ],
+    "activeStreamId": "2gecsrpp8",
+    "highlightPrice": 100,
+    "lots": [],
+    "dropsAmount": 10,
+    "dropsInterval": 5,
+    "sponsorText": "LIVE RENDU POSSIBLE GRÂCE À NOS PARTENAIRES 🤝",
+    "sponsorLink": "https://dropsiders.fr",
+    "showSponsorBanner": false,
+    "instagramLink": "",
+    "tiktokLink": "",
+    "youtubeLink": "",
+    "twitterLink": "",
+    "botCommands": [
+      {
+        "command": "!insta",
+        "response": "Suivez-nous sur @dropsiders.eu !"
+      },
+      {
+        "command": "!lineup",
+        "response": "La lineup est disponible dans l'onglet PLANNING."
+      }
+    ],
+    "tracklist": "[]",
+    "auddToken": "0707d622c51645acc2e4fa26ed64538d"
   },
   "socials": {
     "instagram": "dropsiders.eu",
