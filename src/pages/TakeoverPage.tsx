@@ -192,7 +192,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const isPopout = new URLSearchParams(window.location.search).get('popout') === 'true';
 
-    const [activeStage, setActiveStage] = useState<'stage1' | 'stage2'>('stage1');
+    const [activeStage, setActiveStage] = useState<'stage1' | 'stage2' | 'stage3' | 'stage4' | 'stage5' | 'stage6'>('stage1');
+    const [viewMode, setViewMode] = useState<'single' | 'grid'>('single');
+    const [gridCount, setGridCount] = useState<number>(4);
 
     const [currentTime, setCurrentTime] = useState(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
     const [accentColor, setAccentColor] = useState(localStorage.getItem('chat_accent_color') || '#ff0033');
@@ -1761,6 +1763,33 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <span className="text-[11px] lg:text-xs font-black text-white">{settings.status === 'off' ? 0 : Array.from(new Set(chatMessages.filter(m => m.pseudo && m.pseudo !== 'BOT_SYSTEM').map(m => m.pseudo))).length}</span>
                                 </div>
                             </button>
+                            <div className="hidden lg:flex gap-1 p-1 bg-white/5 border border-white/10 rounded-xl mr-2">
+                                <button
+                                    onClick={() => setViewMode('single')}
+                                    className={`p-2 rounded-lg transition-all ${viewMode === 'single' ? 'bg-neon-cyan text-black' : 'text-gray-500 hover:text-white'}`}
+                                    title="Vue Simple"
+                                >
+                                    <Square className="w-4 h-4" />
+                                </button>
+                                <button
+                                    onClick={() => setViewMode('grid')}
+                                    className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-neon-cyan text-black' : 'text-gray-500 hover:text-white'}`}
+                                    title="Vue Grille"
+                                >
+                                    <BarChart3 className="w-4 h-4 rotate-90" />
+                                </button>
+                                {viewMode === 'grid' && (
+                                    <select
+                                        value={gridCount}
+                                        onChange={(e) => setGridCount(Number(e.target.value))}
+                                        className="bg-black/40 border border-white/10 rounded-lg px-2 text-[10px] font-black text-white outline-none focus:border-neon-cyan"
+                                    >
+                                        {[1, 2, 3, 4, 5, 6].map(n => (
+                                            <option key={n} value={n}>{n} STAGES</option>
+                                        ))}
+                                    </select>
+                                )}
+                            </div>
                             <button
                                 onClick={() => setShowViewersList(!showViewersList)}
                                 className={`p-2 lg:p-3 rounded-xl transition-all border ${showViewersList ? 'bg-pink-600 border-pink-500 shadow-[0_0_15px_rgba(219,39,119,0.4)] text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
@@ -1890,7 +1919,25 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 {/* A. VIDEO PANEL (35% Mobile / 60% Desktop) */}
                 <div className={`transition-all duration-700 ease-in-out ${isPopout ? 'hidden' : (isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[35%] lg:h-full')} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
                     <div className="absolute inset-0 z-0">
-                        <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${settings.streams?.find((s: any) => s.id === settings.activeStreamId)?.youtubeId || settings.youtubeId || 'dQw4w9WgXcQ'}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                        {viewMode === 'single' ? (
+                            <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${settings.streams?.find((s: any) => s.id === settings.activeStreamId)?.youtubeId || settings.youtubeId || 'dQw4w9WgXcQ'}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                        ) : (
+                            <div className={`grid h-full w-full gap-1 p-1 bg-black ${gridCount === 1 ? 'grid-cols-1' : gridCount === 2 ? 'grid-cols-2' : gridCount <= 4 ? 'grid-cols-2' : 'grid-cols-3'}`}>
+                                {settings.streams?.slice(0, gridCount).map((s: any, idx: number) => (
+                                    <div key={s.id} className="relative group overflow-hidden bg-black border border-white/5 rounded-lg">
+                                        <iframe
+                                            className="w-full h-full border-none"
+                                            src={`https://www.youtube.com/embed/${s.youtubeId}?autoplay=${idx === 0 ? 1 : 0}&mute=${idx === 0 ? 0 : 1}&rel=0&modestbranding=1`}
+                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                            allowFullScreen
+                                        />
+                                        <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-md text-[8px] font-black text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
+                                            {s.name}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 </div>
 
@@ -2705,15 +2752,19 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     ))}
                                 </div>
                                 <div className="flex gap-1 p-1 bg-white/5 rounded-xl border border-white/10 my-1">
-                                    {(['stage1', 'stage2'] as const).map(s => (
-                                        <button
-                                            key={s}
-                                            onClick={() => setActiveStage(s)}
-                                            className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-tighter transition-all ${activeStage === s ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'text-gray-500 hover:text-white'}`}
-                                        >
-                                            {s === 'stage1' ? 'STAGE 1' : 'STAGE 2'}
-                                        </button>
-                                    ))}
+                                    {(['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6'] as const).map((s, idx) => {
+                                        // Only show stages that actually have a matching stream or at least stage1/stage2
+                                        if (idx >= 2 && (!settings.streams || !settings.streams[idx])) return null;
+                                        return (
+                                            <button
+                                                key={s}
+                                                onClick={() => setActiveStage(s)}
+                                                className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-tighter transition-all ${activeStage === s ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                {settings.streams?.[idx]?.name || `STAGE ${idx + 1}`}
+                                            </button>
+                                        );
+                                    })}
                                 </div>
                             </div>
                         )
