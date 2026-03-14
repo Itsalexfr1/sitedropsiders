@@ -43,7 +43,7 @@
         "youtubeId": "DQHSj6cphm0"
       }
     ],
-    "activeStreamId": "2gecsrpp8",
+    "activeStreamId": "grktabzrd",
     "highlightPrice": 100,
     "lots": [],
     "dropsAmount": 10,
@@ -56,10 +56,6 @@
     "youtubeLink": "",
     "twitterLink": "",
     "botCommands": [
-      {
-        "command": "!insta",
-        "response": "Suivez-nous sur @dropsiders.eu !"
-      },
       {
         "command": "!lineup",
         "response": "La lineup est disponible dans l'onglet PLANNING."
