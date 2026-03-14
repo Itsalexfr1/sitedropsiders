@@ -29,10 +29,11 @@
       "news_focus",
       "musique_releases",
       "recaps_festivals",
-      "wiki_dropsiders",
       "interviews_video",
+      "social_studio",
       "agenda_events",
-      "social_studio"
+      "community_mod",
+      "messages_contact"
     ],
     "created": "2026-02-24T03:38:19.957Z"
   },
