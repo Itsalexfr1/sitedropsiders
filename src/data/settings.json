@@ -67,6 +67,10 @@
       {
         "command": "!tiktok ",
         "response": "Suivez nous sur TIktok >> https://tiktok.com/@dropsiders.eu"
+      },
+      {
+        "command": "!rs",
+        "response": "Suivez nous sur Insta >> https://instagram.com/dropsiders.eu\nSuivez nous sur TIktok >> https://tiktok.com/@dropsiders.eu"
       }
     ],
     "tracklist": "[]",
