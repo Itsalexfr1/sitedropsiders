@@ -4,7 +4,7 @@
   "shop_password_protected": false,
   "shop_password_image": "",
   "takeover": {
-    "enabled": true,
+    "enabled": false,
     "youtubeId": "325m8PqVH74",
     "title": "TOMORROWLAND WINTER 2026",
     "moderators": "",
@@ -28,57 +28,7 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "edit",
-    "mainFluxName": "ONE WORLD RADIO",
-    "currentTrack": "ID - UNRELEASED",
-    "streams": [
-      {
-        "id": "2gecsrpp8",
-        "name": "ONE WORLD RADIO",
-        "youtubeId": "325m8PqVH74"
-      },
-      {
-        "id": "grktabzrd",
-        "name": "DAYBREAK SESSION",
-        "youtubeId": "DQHSj6cphm0"
-      }
-    ],
-    "activeStreamId": "2gecsrpp8",
-    "highlightPrice": 100,
-    "lots": [],
-    "dropsAmount": 10,
-    "dropsInterval": 5,
-    "sponsorText": "LIVE RENDU POSSIBLE GRÂCE À NOS PARTENAIRES 🤝",
-    "sponsorLink": "https://dropsiders.fr",
-    "showSponsorBanner": false,
-    "instagramLink": "",
-    "tiktokLink": "",
-    "youtubeLink": "",
-    "twitterLink": "",
-    "botCommands": [
-      {
-        "command": "!lineup",
-        "response": "La lineup est disponible dans l'onglet PLANNING."
-      },
-      {
-        "command": "!insta ",
-        "response": "Suivez nous sur Instagram >> https://instagram.com/dropsiders.eu"
-      },
-      {
-        "command": "!tiktok ",
-        "response": "Suivez nous sur TIktok >> https://tiktok.com/@dropsiders.eu"
-      },
-      {
-        "command": "!rs",
-        "response": "Suivez nous sur Insta >> https://instagram.com/dropsiders.eu\nSuivez nous sur TIktok >> https://tiktok.com/@dropsiders.eu"
-      },
-      {
-        "command": "!shop ",
-        "response": "Notre Shop officiel est dispo >> https://dropsiders.fr/shop"
-      }
-    ],
-    "tracklist": "[]",
-    "auddToken": "0707d622c51645acc2e4fa26ed64538d"
+    "status": "off"
   },
   "socials": {
     "instagram": "dropsiders.eu",
