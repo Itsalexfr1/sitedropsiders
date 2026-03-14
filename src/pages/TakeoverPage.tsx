@@ -668,6 +668,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 bgColor: response.payload.bgColor,
                                 xp: response.payload.xp || 0,
                                 stage: response.payload.stage || 'stage1',
+                                isModOnly: response.payload.isModOnly || false,
                                 geo: response.payload.geo || '',
                                 isPrems: response.payload.isPrems || false,
                                 isHolo: response.payload.isHolo || false,
@@ -961,6 +962,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     time: doc.time,
                     country: doc.country,
                     bgColor: doc.bgColor,
+                    stage: doc.stage || 'stage1',
+                    isModOnly: doc.isModOnly || false,
                     isPrems: doc.isPrems || false,
                     isHolo: doc.isHolo || false,
                     profileBorder: doc.profileBorder || 'none',
@@ -1233,7 +1236,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 showNotification(`ALERTE : Langage inapproprié (${warnings}/3) ⚠️`, 'error');
                 return;
             }
-            if (/(https?:\/\/[^\s]+)/g.test(messageText)) {
+            if (/(https?:\/\/[^\s]+|www\.[^\s]+|[a-z0-9-]+\.[a-z]{2,10}(\/|$))/gi.test(messageText)) {
                 showNotification("MESSAGE BLOQUÉ : Liens interdits", 'error');
                 return;
             }
@@ -1514,7 +1517,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     message: botReply,
                     color: "text-neon-cyan",
                     time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    country: "FR"
+                    country: "FR",
+                    stage: activeStage
                 });
             }, 1000);
         }
@@ -1530,7 +1534,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     message: botReply,
                     color: "text-amber-500",
                     time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    country: "FR"
+                    country: "FR",
+                    stage: activeStage
                 });
             }, 2000);
         }
@@ -1549,7 +1554,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 message: `[SYSTEM]:QUIZ_VOTE:${choiceIdx}`,
                 color: "text-neon-purple",
                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                country: "FR"
+                country: "FR",
+                stage: activeStage
             });
 
             if (messageText === activeQuiz.correct) {
@@ -1582,7 +1588,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 message: messageText,
                 color: isHighlightChecked ? highlightColor : (isMod ? "text-neon-red" : pseudoColor),
                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                country: userCountry || "FR"
+                country: userCountry || "FR",
+                stage: activeStage,
+                isModOnly: isModChat
             });
 
             // Leveling System
@@ -1607,7 +1615,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     message: `[SYSTEM]:TTS:${pseudo} dit : ${messageText}`,
                     color: "text-neon-cyan",
                     time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    country: "FR"
+                    country: "FR",
+                    stage: activeStage
                 });
             }
 
@@ -2095,7 +2104,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                             message: '[SYSTEM]:CLEAR_POLL',
                                                                             color: "text-neon-purple",
                                                                             time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                            country: "FR"
+                                                                            country: "FR",
+                                                                            stage: activeStage
                                                                         });
                                                                     }}
                                                                     className="px-6 py-3 bg-red-600 text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
@@ -2248,7 +2258,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                                 message: msg,
                                                                                 color: "text-neon-purple",
                                                                                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                                country: "FR"
+                                                                                country: "FR",
+                                                                                stage: activeStage
                                                                             });
                                                                         }}
                                                                         className="p-6 bg-white/5 border border-white/10 rounded-2xl text-left hover:border-neon-purple/50 hover:bg-white/10 transition-all group"
@@ -2482,7 +2493,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 message: sysMsg,
                                                                 color: "text-neon-purple",
                                                                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                country: "FR"
+                                                                country: "FR",
+                                                                stage: activeStage
                                                             });
                                                         }}
                                                         className={`w-full py-4 ${slowModeEnabled ? 'bg-amber-600' : 'bg-gray-600'} text-white rounded-2xl font-black uppercase transition-all`}
@@ -2984,7 +2996,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         message: `[SYSTEM]:RATING:${fluxCurrentArtist.artist}:${star}`,
                                                         color: "text-neon-cyan",
                                                         time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                        country: "FR"
+                                                        country: "FR",
+                                                        stage: activeStage
                                                     });
                                                 }}
                                                 className="group relative"
