@@ -86,7 +86,14 @@
       "musique",
       "community",
       "social",
-      "live"
+      "live",
+      "news_focus",
+      "musique_releases",
+      "interviews_video",
+      "recaps_festivals",
+      "community_mod",
+      "social_studio",
+      "messages_contact"
     ],
     "created": "2026-02-24T19:52:44.407Z"
   },
