@@ -257,6 +257,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [pseudoColor, setPseudoColor] = useState(localStorage.getItem('user_pseudo_color') || '#ffffff');
     const [specialFontStyle, setSpecialFontStyle] = useState(localStorage.getItem('user_font_style') || 'normal');
     const [showGifPicker, setShowGifPicker] = useState(false);
+    const [gifSearch, setGifSearch] = useState('');
+    const [gifResults, setGifResults] = useState<string[]>([
+        'https://media.giphy.com/media/l41lTfuxVpT6DhjPy/giphy.gif',
+        'https://media.giphy.com/media/3o7TKMGpxVfPtoog3m/giphy.gif',
+        'https://media.giphy.com/media/clotJgshs6nUUXf2i6/giphy.gif'
+    ]);
     const [activeQTE, setActiveQTE] = useState<{ id: string, type: 'click', reward: number } | null>(null);
     const [achievements, setAchievements] = useState<string[]>(JSON.parse(localStorage.getItem('user_achievements') || '[]'));
     const [isPacmanActive, setIsPacmanActive] = useState(false);
@@ -1204,6 +1210,28 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
 
 
+
+    const fetchGifs = async (query: string) => {
+        setGifSearch(query);
+        if (!query.trim()) {
+            setGifResults([
+                'https://media.giphy.com/media/l41lTfuxVpT6DhjPy/giphy.gif',
+                'https://media.giphy.com/media/3o7TKMGpxVfPtoog3m/giphy.gif',
+                'https://media.giphy.com/media/clotJgshs6nUUXf2i6/giphy.gif'
+            ]);
+            return;
+        }
+
+        try {
+            const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=dc6zaTOxFJmzC&q=${encodeURIComponent(query)}&limit=12&rating=g`);
+            const data = await res.json();
+            if (data.data) {
+                setGifResults(data.data.map((g: any) => g.images.fixed_height.url));
+            }
+        } catch (e) {
+            console.error("Giphy fetch error:", e);
+        }
+    };
 
     const handleSendMessage = async (customText?: string) => {
         const messageToSend = customText || newMessage;
@@ -3700,10 +3728,28 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     </button>
                                 </div>
                                 {showGifPicker && (
-                                    <div className="grid grid-cols-3 gap-2 p-3 bg-black/60 rounded-2xl border border-white/10 animate-in fade-in slide-in-from-bottom-2">
-                                        {['https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/3o7TKMGpxVfPtoog3m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/LScqP82pdBAlC7xs6m/giphy.gif', 'https://media.giphy.com/media/v1.Y2lkPTc5MGI3NjExOHlxMHBnMGZ4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHgmbXA9Zw/clotJgshs6nUUXf2i6/giphy.gif'].map((gif, i) => (
-                                            <img key={i} src={gif} onClick={() => { handleSendMessage(gif); setShowGifPicker(false); }} className="w-full h-16 object-cover rounded-lg cursor-pointer hover:scale-110 transition-transform" />
-                                        ))}
+                                    <div className="flex flex-col gap-3 p-3 bg-black/80 backdrop-blur-xl rounded-2xl border border-white/10 animate-in fade-in slide-in-from-bottom-2 max-h-72">
+                                        <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2 focus-within:border-neon-cyan transition-all">
+                                            <Search className="w-3.5 h-3.5 text-gray-500" />
+                                            <input 
+                                                type="text" 
+                                                placeholder="RECHERCHER UN GIF..." 
+                                                value={gifSearch}
+                                                onChange={(e) => fetchGifs(e.target.value)}
+                                                className="flex-1 bg-transparent text-[10px] font-black text-white outline-none uppercase tracking-widest"
+                                            />
+                                        </div>
+                                        <div className="grid grid-cols-3 gap-2 overflow-y-auto custom-scrollbar pr-1 min-h-[120px]">
+                                            {gifResults.map((gif, i) => (
+                                                <img 
+                                                    key={i} 
+                                                    src={gif} 
+                                                    onClick={() => { handleSendMessage(gif); setShowGifPicker(false); }} 
+                                                    className="w-full h-16 object-cover rounded-lg cursor-pointer hover:scale-110 active:scale-95 transition-all bg-white/5" 
+                                                />
+                                            ))}
+                                            {gifResults.length === 0 && <p className="col-span-3 text-center text-[8px] font-black text-gray-500 uppercase py-8 tracking-widest">Aucun résultat</p>}
+                                        </div>
                                     </div>
                                 )}
                                 <div className="flex items-center justify-between px-2">
