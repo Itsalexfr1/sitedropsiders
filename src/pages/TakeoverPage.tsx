@@ -259,9 +259,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [showGifPicker, setShowGifPicker] = useState(false);
     const [gifSearch, setGifSearch] = useState('');
     const [gifResults, setGifResults] = useState<string[]>([
-        'https://media.giphy.com/media/l41lTfuxVpT6DhjPy/giphy.gif',
-        'https://media.giphy.com/media/3o7TKMGpxVfPtoog3m/giphy.gif',
-        'https://media.giphy.com/media/clotJgshs6nUUXf2i6/giphy.gif'
+        'https://i.giphy.com/l41lTfuxVpT6DhjPy.gif',
+        'https://i.giphy.com/3o7TKMGpxVfPtoog3m.gif',
+        'https://i.giphy.com/clotJgshs6nUUXf2i6.gif'
     ]);
     const [activeQTE, setActiveQTE] = useState<{ id: string, type: 'click', reward: number } | null>(null);
     const [achievements, setAchievements] = useState<string[]>(JSON.parse(localStorage.getItem('user_achievements') || '[]'));
@@ -1215,9 +1215,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         setGifSearch(query);
         if (!query.trim()) {
             setGifResults([
-                'https://media.giphy.com/media/l41lTfuxVpT6DhjPy/giphy.gif',
-                'https://media.giphy.com/media/3o7TKMGpxVfPtoog3m/giphy.gif',
-                'https://media.giphy.com/media/clotJgshs6nUUXf2i6/giphy.gif'
+                'https://i.giphy.com/l41lTfuxVpT6DhjPy.gif',
+                'https://i.giphy.com/3o7TKMGpxVfPtoog3m.gif',
+                'https://i.giphy.com/clotJgshs6nUUXf2i6.gif'
             ]);
             return;
         }
@@ -1226,7 +1226,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=dc6zaTOxFJmzC&q=${encodeURIComponent(query)}&limit=12&rating=g`);
             const data = await res.json();
             if (data.data) {
-                setGifResults(data.data.map((g: any) => g.images.fixed_height.url));
+                // Utilisation du format i.giphy.com/${id}.gif qui est plus robuste
+                setGifResults(data.data.map((g: any) => `https://i.giphy.com/${g.id}.gif`));
             }
         } catch (e) {
             console.error("Giphy fetch error:", e);
