@@ -50,7 +50,14 @@
       "agenda",
       "community",
       "live",
-      "social"
+      "social",
+      "news_focus",
+      "musique_releases",
+      "interviews_video",
+      "recaps_festivals",
+      "agenda_events",
+      "social_studio",
+      "messages_contact"
     ],
     "created": "2026-02-24T03:40:00.617Z"
   },
