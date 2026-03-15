@@ -99,7 +99,7 @@ export function Musique() {
 
             
             {/* Hero Section */}
-            <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden">
+            <div className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden">
                 <div className="absolute inset-0">
                     <img 
                         src="/music_hero_background_1773611643174.png" 
@@ -115,14 +115,10 @@ export function Musique() {
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ duration: 1 }}
                     >
-                        <EqualizerLoader count={12} className="mb-8 scale-150" />
-                        <h1 className="text-6xl md:text-9xl font-black italic tracking-tighter uppercase leading-[0.8] mb-6">
+                        <h1 className="text-4xl md:text-7xl font-black italic tracking-tighter uppercase leading-[0.8]">
                             DROPSIDERS<br />
                             <span className="text-neon-cyan">WORLD CHARTS</span>
                         </h1>
-                        <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.5em] text-white/50 max-w-xl mx-auto">
-                            L'EPICENTRE DE LA MUSIQUE ELECTRONIQUE • MIS À JOUR CHAQUE SEMAINE
-                        </p>
                     </motion.div>
                 </div>
             </div>
