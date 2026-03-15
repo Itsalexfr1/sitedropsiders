@@ -337,31 +337,49 @@ export function Agenda() {
     }
 
     return (
-        <>
+        <div className="bg-dark-bg min-h-screen relative">
+            {/* Background Ambient Glows */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-red/10 animate-pulse transition-all duration-1000" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-cyan/5 animate-pulse [animation-delay:2s] transition-all duration-1000" />
+            </div>
+
             <SEO
                 title="Agenda des Festivals"
                 description="Le calendrier complet des festivals EDM, Techno et House dans le monde entier. Trouvez votre prochain événement."
             />
-            <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12">
+            <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12 relative z-10">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-12"
                 >
-                    <div className="flex items-center justify-between gap-6 mb-12">
-                        <h1 className="text-4xl md:text-5xl font-display font-bold text-white uppercase italic tracking-tighter">
-                            {t('agenda.title')}
-                        </h1>
+                    <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-8 mb-12">
+                        <div>
+                            <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
+                                <div className="p-2 bg-neon-red/10 rounded-xl border border-neon-red/20 shadow-[0_0_15px_rgba(255,0,51,0.1)]">
+                                    <Calendar className="w-5 h-5 text-neon-red" />
+                                </div>
+                                <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">Calendrier Officiel</span>
+                            </div>
+                            <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-none">
+                                {t('agenda.title').split(' ')[0]} <span className="text-neon-red drop-shadow-[0_0_20px_rgba(255,0,51,0.5)]">{t('agenda.title').split(' ').slice(1).join(' ')}</span>
+                            </h1>
+                            <p className="text-gray-400 max-w-2xl text-base md:text-lg font-medium leading-relaxed mx-auto sm:mx-0">
+                                Retrouvez tous les festivals EDM, Techno et House à travers le monde. Planifiez vos prochaines escapades musicales en un clin d'oeil.
+                            </p>
+                        </div>
+                        
                         {canCreate && (
                             <button
                                 onClick={() => {
                                     setEditingEvent(null);
                                     setIsEditModalOpen(true);
                                 }}
-                                className="flex items-center gap-2 px-6 py-3 bg-neon-red text-white rounded-xl font-bold uppercase tracking-widest hover:scale-105 transition-all shadow-[0_0_20px_rgba(255,0,51,0.3)]"
+                                className="flex items-center justify-center gap-3 px-8 py-4 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)] mx-auto sm:mx-0"
                             >
                                 <Plus className="w-5 h-5" />
-                                <span className="hidden sm:inline">{t('admin.add')}</span>
+                                <span>{t('admin.add')}</span>
                             </button>
                         )}
                     </div>
@@ -837,6 +855,6 @@ export function Agenda() {
                     { label: 'Ajouter un événement', icon: <Plus className="w-3.5 h-3.5" />, to: '/admin/manage?tab=Agenda', permission: 'agenda' },
                 ]}
             />
-        </>
+        </div>
     );
 }

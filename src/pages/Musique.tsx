@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Music, Disc, ExternalLink, ChevronDown, ChevronUp, Filter, Loader2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { SEO } from '../components/utils/SEO';
-import { EqualizerLoader } from '../components/ui/EqualizerLoader';
 
 interface Track {
     id: string;
@@ -42,7 +41,6 @@ export function Musique() {
     const [activeTab, setActiveTab] = useState('beatport');
     const [chartsData, setChartsData] = useState<Record<string, Track[]>>({});
     const [upcomingData, setUpcomingData] = useState<UpcomingTrack[]>([]);
-    const [lastUpdate, setLastUpdate] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
     const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
     const [allTracklists, setAllTracklists] = useState<TracklistContent[]>([]);
@@ -52,10 +50,9 @@ export function Musique() {
         fetch('/api/musique/charts')
             .then(res => res.json())
             .then(data => {
-                const { lastUpdate, upcoming, ...charts } = data;
+                const { upcoming, ...charts } = data;
                 setChartsData(charts);
                 setUpcomingData(upcoming || []);
-                setLastUpdate(lastUpdate);
                 setIsLoading(false);
             })
             .catch(err => {
@@ -93,13 +90,19 @@ export function Musique() {
         : chartsData[activeTab] || [];
 
     return (
-        <div className="min-h-screen bg-[#020202] text-white">
+        <div className="min-h-screen bg-dark-bg text-white relative">
+            {/* Background Ambient Glows */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-red/10 animate-pulse transition-all duration-1000" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-cyan/5 animate-pulse [animation-delay:2s] transition-all duration-1000" />
+            </div>
+
             <SEO
                 title="World Charts - Musique EDM"
                 description="L'épicentre de la musique électronique. Retrouvez les derniers classements Beatport, Traxsource et nos tracklists exclusives."
             />
             
-            <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 pt-24 pb-12 sm:pt-12">
+            <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 pt-24 pb-12 sm:pt-12 relative z-10">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}

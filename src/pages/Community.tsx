@@ -834,7 +834,7 @@ export function Community() {
             />
             <div className={twMerge(
                 "min-h-screen transition-colors duration-1000 pb-32 pt-24",
-                isNightMode ? "bg-[#020202]" : "bg-[#050505]",
+                "bg-dark-bg",
                 "text-white"
             )}>
                 {/* Background Ambient Glows */}
@@ -872,23 +872,23 @@ export function Community() {
                 </div>
 
                 <div className="relative z-10 container mx-auto px-4 md:px-12 overflow-x-hidden">
-                    {/* Header Section */}
+                    {/* ── Standard Page Header ── */}
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8"
+                        className="mb-12 text-center sm:text-left flex flex-col sm:flex-row sm:items-end justify-between gap-8"
                     >
                         <div>
-                            <div className="flex items-center gap-3 mb-4">
-                                <div className="p-2.5 bg-neon-red/10 rounded-xl">
-                                    <Users className="w-6 h-6 text-neon-red" />
+                            <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
+                                <div className="p-2 bg-neon-red/10 rounded-xl border border-neon-red/20 shadow-[0_0_15px_rgba(255,0,51,0.1)]">
+                                    <Users className="w-5 h-5 text-neon-red" />
                                 </div>
                                 <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">Espace Communauté</span>
                             </div>
-                            <h1 className="text-5xl md:text-8xl font-display font-black mb-4 uppercase italic tracking-tighter">
+                            <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-none">
                                 DROPSIDERS <span className="text-neon-red drop-shadow-[0_0_20px_rgba(255,0,51,0.5)]">LAB</span>
                             </h1>
-                            <p className="text-white/40 max-w-xl text-xs font-black uppercase tracking-widest leading-loose">
+                            <p className="text-gray-400 max-w-2xl text-base md:text-lg font-medium leading-relaxed mx-auto sm:mx-0">
                                 Connectez-vous avec la scène, partagez vos récaps, et créez vos propres expériences. Le futur des festivals s'écrit ici.
                             </p>
                         </div>
@@ -897,7 +897,7 @@ export function Community() {
                             whileHover={{ scale: 1.05, y: -5 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => navigate('/communaute/partager')}
-                            className="group relative px-8 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:bg-neon-red hover:text-white transition-all duration-500 overflow-hidden"
+                            className="group relative px-8 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:bg-neon-red hover:text-white transition-all duration-500 overflow-hidden mx-auto sm:mx-0"
                         >
                             <span className="relative z-10 flex items-center gap-4">
                                 Partager Album

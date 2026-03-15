@@ -26,18 +26,20 @@ export function CommunityTabs({ activeTab, setActiveTab }: CommunityTabsProps) {
                 <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`flex-shrink-0 flex items-center gap-1.5 px-3 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-[0.12em] transition-all relative ${
-                        activeTab === tab.id ? 'text-black' : 'text-gray-500 hover:text-white'
+                    className={`flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-xl text-[9px] font-black uppercase tracking-[0.1em] transition-all relative ${
+                        activeTab === tab.id 
+                            ? 'text-white shadow-[0_0_20px_rgba(255,17,17,0.4)]' 
+                            : 'text-gray-500 bg-white/[0.03] border border-white/10 hover:text-white hover:border-neon-red/40'
                     }`}
                 >
                     {activeTab === tab.id && (
                         <motion.div
                             layoutId="community-tab-bg"
-                            className="absolute inset-0 bg-white rounded-xl"
+                            className="absolute inset-0 bg-neon-red rounded-xl z-0"
                             transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                         />
                     )}
-                    <tab.icon className={`w-3.5 h-3.5 relative z-10 flex-shrink-0 ${activeTab === tab.id ? 'text-[#FF0000]' : ''}`} />
+                    <tab.icon className="w-3.5 h-3.5 relative z-10 flex-shrink-0" />
                     {tab.multiline ? (
                         <span className="relative z-10 text-center leading-tight">
                             Guide<br />Pratique

@@ -48,42 +48,50 @@ export function Galerie() {
     const currentAlbums = filteredAlbums.slice(0, ALBUMS_PER_PAGE);
 
     return (
-        <>
+        <div className="bg-dark-bg min-h-screen relative">
+            {/* Background Ambient Glows */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-red/10 animate-pulse transition-all duration-1000" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-cyan/5 animate-pulse [animation-delay:2s] transition-all duration-1000" />
+            </div>
+
             <SEO
                 title="Galerie & Souvenirs"
                 description="Replongez dans l'ambiance des plus grands festivals avec nos galeries photos et vidéos exclusives. Les meilleurs moments, capturés pour vous."
             />
-            <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12">
+            <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12 relative z-10">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mb-12 flex flex-col md:flex-row md:items-end justify-between gap-8"
+                    className="mb-12 flex flex-col sm:flex-row sm:items-end justify-between gap-8"
                 >
                     <div>
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="p-2 bg-neon-red/10 rounded-lg">
-                                <Camera className="w-6 h-6 text-neon-red" />
+                        <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
+                            <div className="p-2 bg-neon-red/10 rounded-xl border border-neon-red/20 shadow-[0_0_15px_rgba(255,0,51,0.1)]">
+                                <Camera className="w-5 h-5 text-neon-red" />
                             </div>
-                            <span className="text-neon-red font-bold tracking-widest text-sm uppercase">{t('communaute.badge')}</span>
+                            <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">{t('communaute.badge')}</span>
                         </div>
-                        <h1 className="text-4xl md:text-6xl font-display font-bold text-white mb-2 uppercase italic tracking-tighter">
-                            LA <span className="text-neon-red">COMMUNAUTÉ</span>
+                        <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-none">
+                            LA <span className="text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.4)]">COMMUNAUTÉ</span>
                         </h1>
-                        <p className="text-gray-500 max-w-xl text-sm font-medium uppercase tracking-wider">
-                            Les meilleurs souvenirs des festivals, par vous et pour vous.
+                        <p className="text-gray-400 max-w-2xl text-base md:text-lg font-medium leading-relaxed mx-auto sm:mx-0">
+                            Capturez l'instant, préservez l'émotion. Retrouvez ici les meilleurs moments partagés par la communauté sur les plus grands festivals du monde.
                         </p>
                     </div>
 
                     <motion.button
-                        whileHover={{ scale: 1.05, x: 5 }}
+                        whileHover={{ scale: 1.05, y: -5 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => navigate('/communaute/partager')}
-                        className="group flex items-center gap-4 px-8 py-5 bg-white text-black rounded-2xl font-black text-xs uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(255,255,255,0.1)] hover:shadow-[0_0_30px_rgba(255,17,17,0.3)] transition-all"
+                        className="group relative px-8 py-4 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-[0_0_30px_rgba(255,255,255,0.05)] hover:bg-neon-red hover:text-white transition-all duration-500 overflow-hidden mx-auto sm:mx-0"
                     >
-                        Partager mes photos
-                        <div className="p-2 bg-neon-red rounded-lg group-hover:rotate-12 transition-transform">
-                            <Camera className="w-4 h-4 text-white" />
-                        </div>
+                        <span className="relative z-10 flex items-center gap-4">
+                            Partager Album
+                            <div className="p-2 bg-black text-white group-hover:bg-white group-hover:text-neon-red rounded-lg transition-colors">
+                                <Camera className="w-4 h-4" />
+                            </div>
+                        </span>
                     </motion.button>
                 </motion.div>
 
@@ -184,6 +192,6 @@ export function Galerie() {
                     )}
                 </AnimatePresence>
             </div>
-        </>
+        </div>
     );
 }

@@ -191,24 +191,42 @@ export function Shop() {
     }
 
     return (
-        <div className={`min-h-screen bg-dark-bg ${isMini ? 'py-8 px-2' : 'py-32 px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24'}`}>
-            <div className="w-full">
-                <div className={`${isMini ? 'mb-8' : 'mb-20'} text-center`}>
+        <div className={`min-h-screen bg-dark-bg text-white ${isMini ? 'py-8 px-2' : 'py-32 px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24'} overflow-x-hidden relative`}>
+            {/* Background Ambient Glows */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-red/10 animate-pulse transition-all duration-1000" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-cyan/10 animate-pulse [animation-delay:2s] transition-all duration-1000" />
+            </div>
+
+            <div className="w-full max-w-[1600px] mx-auto relative z-10">
+                <div className={`${isMini ? 'mb-8' : 'mb-20'} text-center sm:text-left`}>
                     <motion.div
-                        initial={{ opacity: 0, y: -20 }}
+                        initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                     >
-                        <span className="text-neon-red font-display font-black uppercase tracking-[0.3em] text-xs mb-4 block underline decoration-4 underline-offset-8">COLLECTION 01061988</span>
-                        <h1 className={`${isMini ? 'text-4xl md:text-5xl' : 'text-6xl md:text-8xl'} font-display font-black text-white uppercase italic tracking-tighter leading-none mb-6`}>
+                        <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
+                            <div className="p-2 bg-neon-red/10 rounded-xl border border-neon-red/20 shadow-[0_0_15px_rgba(255,0,51,0.1)]">
+                                <ShoppingBag className="w-5 h-5 text-neon-red" />
+                            </div>
+                            <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">Boutique Officielle</span>
+                        </div>
+                        
+                        <h1 className={`${isMini ? 'text-4xl md:text-5xl' : 'text-4xl md:text-7xl'} font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-tight`}>
                             SHOP <span className="text-neon-red">OFFICIEL</span>
                         </h1>
 
-                        <div className="mt-8 mb-8 text-center text-white text-[10px] font-black uppercase tracking-widest bg-neon-red/10 py-4 px-6 border border-neon-red/30 rounded-xl max-w-2xl mx-auto shadow-[0_0_20px_rgba(255,0,51,0.15)] leading-relaxed">
-                            <span className="text-neon-red block text-xs mb-1">⚠️ À savoir</span>
-                            Les prix peuvent varier de quelques centimes en raison de la conversion de notre partenaire Fourthwall.
+                        <p className="text-gray-400 max-w-2xl text-base md:text-lg font-medium leading-relaxed mx-auto sm:mx-0">
+                            Explorez la collection exclusive Dropsiders. Des pièces conçues pour la scène, alliant style futuriste et confort absolu pour vos festivals.
+                        </p>
+
+                        <div className="mt-8 mb-8 text-center sm:text-left text-white text-[10px] font-black uppercase tracking-widest bg-neon-red/5 py-4 px-6 border border-neon-red/10 rounded-2xl max-w-2xl sm:mx-0 shadow-[0_0_20px_rgba(255,0,51,0.05)] leading-relaxed flex items-center gap-4">
+                            <div className="w-8 h-8 rounded-lg bg-neon-red/20 flex items-center justify-center shrink-0">
+                                <span className="text-neon-red text-xs">!</span>
+                            </div>
+                            <p>Les prix peuvent varier de quelques centimes en raison de la conversion de notre partenaire Fourthwall.</p>
                         </div>
 
-                        <div className={`flex justify-center gap-2 md:gap-4 mt-12 ${isMini ? 'mb-4' : 'mb-8'} flex-wrap`}>
+                        <div className={`flex justify-center sm:justify-start gap-3 mt-12 ${isMini ? 'mb-4' : 'mb-8'} flex-wrap`}>
                             {['Tous', 'Vetements', 'Accessoires'].map((cat) => {
                                 const isActive = activeCategory === cat;
                                 return (
@@ -217,26 +235,13 @@ export function Shop() {
                                         onClick={() => setActiveCategory(cat as any)}
                                         whileHover={{ scale: 1.05 }}
                                         whileTap={{ scale: 0.95 }}
-                                        className={`relative px-8 py-3 rounded-xl font-bold uppercase tracking-[0.2em] text-[10px] transition-all border ${isActive
-                                            ? 'text-white border-neon-red/50'
-                                            : 'text-gray-500 border-white/10 hover:text-white'
+                                        className={`relative px-7 py-3 rounded-2xl font-black uppercase tracking-[0.1em] text-[10px] transition-all duration-300 border flex-shrink-0
+                                        ${isActive
+                                                ? 'bg-neon-red text-white border-transparent shadow-[0_0_20px_rgba(255,17,17,0.4)]'
+                                                : 'bg-white/[0.03] text-white/40 border-white/10 hover:border-neon-red/40 hover:text-neon-red'
                                             }`}
                                     >
                                         <span className="relative z-10">{cat === 'Vetements' ? 'Vêtements' : cat}</span>
-
-                                        {isActive && (
-                                            <motion.div
-                                                layoutId="active-cat-bg"
-                                                className="absolute inset-0 bg-neon-red rounded-xl shadow-lg shadow-neon-red/20 z-0"
-                                                transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                                            />
-                                        )}
-
-                                        {!isActive && (
-                                            <motion.div
-                                                className="absolute inset-0 bg-white/5 rounded-xl opacity-0 hover:opacity-100 transition-opacity z-0"
-                                            />
-                                        )}
                                     </motion.button>
                                 );
                             })}
