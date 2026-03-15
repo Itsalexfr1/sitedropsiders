@@ -97,9 +97,7 @@ export function AdminDashboard() {
     const [activeTracklists, setActiveTracklists] = useState<any[]>([]);
     const [pendingTracklists, setPendingTracklists] = useState<any[]>([]);
     const [isTracklistLoading, setIsTracklistLoading] = useState(false);
-    const [tracklistTab, setTracklistTab] = useState<'active' | 'pending'>('active');
     const [isEditTracklistModalOpen, setIsEditTracklistModalOpen] = useState(false);
-    const [tracklistToEdit, setTracklistToEdit] = useState<any>(null);
     const [isFetchingInstagram, setIsFetchingInstagram] = useState(false);
 
 
@@ -459,11 +457,7 @@ export function AdminDashboard() {
         }
     };
 
-    const handleUpdateTracklist = async (updates: any) => {
-        if (!tracklistToEdit) return;
-        const action = tracklistToEdit.status === 'validated' ? 'update_validated' : 'approve';
-        handleModerateTracklist(tracklistToEdit.id, action, updates);
-    };
+
 
     const handleSendManualPush = async () => {
 
