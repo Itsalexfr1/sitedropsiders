@@ -19,6 +19,8 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { AgendaModal } from '../components/AgendaModal';
 import { Downloader } from './Downloader';
 import { AudioWaveformSelector } from '../components/admin/AudioWaveformSelector';
+import { TracklistModal } from '../components/admin/TracklistModal';
+
 import WIKI_DJS from '../data/wiki_djs.json';
 import WIKI_CLUBS from '../data/wiki_clubs.json';
 import WIKI_FESTIVALS from '../data/wiki_festivals.json';
@@ -91,7 +93,15 @@ export function AdminDashboard() {
     const [isSavingQuiz, setIsSavingQuiz] = useState(false);
     const [instagramParticipants, setInstagramParticipants] = useState<any[]>([]);
     const [isInstagramContestModalOpen, setIsInstagramContestModalOpen] = useState(false);
+    const [isTracklistModalOpen, setIsTracklistModalOpen] = useState(false);
+    const [activeTracklists, setActiveTracklists] = useState<any[]>([]);
+    const [pendingTracklists, setPendingTracklists] = useState<any[]>([]);
+    const [isTracklistLoading, setIsTracklistLoading] = useState(false);
+    const [tracklistTab, setTracklistTab] = useState<'active' | 'pending'>('active');
+    const [isEditTracklistModalOpen, setIsEditTracklistModalOpen] = useState(false);
+    const [tracklistToEdit, setTracklistToEdit] = useState<any>(null);
     const [isFetchingInstagram, setIsFetchingInstagram] = useState(false);
+
 
     const quizCounts = useMemo(() => {
         const all = [...allActiveQuizzes, ...allPendingQuizzes];
@@ -402,7 +412,61 @@ export function AdminDashboard() {
         }
     }, [isSocialModalOpen]);
 
+    useEffect(() => {
+        if (isTracklistModalOpen) {
+            fetchTracklists();
+        }
+    }, [isTracklistModalOpen]);
+
+    const fetchTracklists = async () => {
+        setIsTracklistLoading(true);
+        try {
+            const [activeRes, pendingRes] = await Promise.all([
+                fetch('/api/tracklists'),
+                fetch('/api/tracklists/pending', { headers: getAuthHeaders() })
+            ]);
+
+            if (activeRes.ok) {
+                const data = await activeRes.json();
+                setActiveTracklists(Array.isArray(data) ? data : []);
+            }
+            if (pendingRes.ok) {
+                const data = await pendingRes.json();
+                setPendingTracklists(Array.isArray(data) ? data : []);
+            }
+        } catch (err) {
+            console.error("Error fetching tracklists:", err);
+        } finally {
+            setIsTracklistLoading(false);
+        }
+    };
+
+    const handleModerateTracklist = async (id: string, action: 'approve' | 'delete' | 'update_validated' | 'delete_validated', updates?: any) => {
+
+        try {
+            const res = await fetch('/api/tracklists/moderate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify({ id, action, updates })
+            });
+
+            if (res.ok) {
+                fetchTracklists();
+                if (isEditTracklistModalOpen) setIsEditTracklistModalOpen(false);
+            }
+        } catch (err) {
+            console.error("Error moderating tracklist:", err);
+        }
+    };
+
+    const handleUpdateTracklist = async (updates: any) => {
+        if (!tracklistToEdit) return;
+        const action = tracklistToEdit.status === 'validated' ? 'update_validated' : 'approve';
+        handleModerateTracklist(tracklistToEdit.id, action, updates);
+    };
+
     const handleSendManualPush = async () => {
+
         if (!pushCustomTitle || !pushCustomBody) {
             alert('Veuillez remplir le titre et le message.');
             return;
@@ -875,6 +939,8 @@ export function AdminDashboard() {
         { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", category: "STUDIO", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats_analytics", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
+        { title: "Tracklists", description: "Vérifier & Valider", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "musique_releases", baseColor: "purple", columns: 1 },
+
 
         // JEUX CONCOURS
         { title: "Quiz & Blind Test", description: "Questions & Musique", icon: "Gamepad2", category: "CONCOURS", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "community_mod", baseColor: "red", columns: 2 },
@@ -1941,7 +2007,11 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'Spotify') {
                                                     e.preventDefault();
                                                     setIsSpotifyModalOpen(true);
+                                                } else if (action.title === 'Tracklists') {
+                                                    e.preventDefault();
+                                                    setIsTracklistModalOpen(true);
                                                 } else if (action.title === 'Messagerie') {
+
                                                     e.preventDefault();
                                                     setIsMessagesModalOpen(true);
                                                 } else if (action.title === 'Quiz & Blind Test') {
@@ -5765,7 +5835,17 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
+                <TracklistModal
+                    isOpen={isTracklistModalOpen}
+                    onClose={() => setIsTracklistModalOpen(false)}
+                    pendingTracklists={pendingTracklists}
+                    activeTracklists={activeTracklists}
+                    onModerate={handleModerateTracklist}
+                    isLoading={isTracklistLoading}
+                />
+
                 <ConfirmModal
+
                     isOpen={confirmModal.isOpen}
                     title={confirmModal.title}
                     message={confirmModal.message}

@@ -1,8 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Music, Disc, ExternalLink, Play, Pause, X, ChevronRight, Share2, Heart } from 'lucide-react';
+import { Music, Disc, ExternalLink, Play, Pause } from 'lucide-react';
+
 import { EqualizerLoader } from '../components/ui/EqualizerLoader';
-import { GlitchTransition } from '../components/ui/GlitchTransition';
 
 interface Track {
     id: string;
@@ -12,9 +12,8 @@ interface Track {
     label: string;
     url: string;
     preview?: string;
-    duration?: string;
     embedUrl?: string;
-    tracks?: { title: string; artist: string; time?: string }[];
+    tracks?: Array<{ title: string; artist: string; time?: string }>;
 }
 
 interface UpcomingTrack {
@@ -22,8 +21,8 @@ interface UpcomingTrack {
     title: string;
     artist: string;
     label: string;
-    image: string;
     releaseDate: string;
+    image: string;
     url: string;
 }
 
@@ -31,7 +30,9 @@ interface TracklistContent {
     id: string;
     title: string;
     artist: string;
-    tracks: { title: string; artist: string; time?: string }[];
+    event: string;
+    date: string;
+    tracks: Array<{ title: string; artist: string; time?: string }>;
     embedUrl?: string;
 }
 
@@ -45,7 +46,7 @@ export function Musique() {
     const [isLoading, setIsLoading] = useState(false);
     const [selectedTrack, setSelectedTrack] = useState<Track | null>(null);
     const [isPlaying, setIsPlaying] = useState(false);
-    const [selectedTracklist, setSelectedTracklist] = useState<TracklistContent | null>(null);
+    const [allTracklists, setAllTracklists] = useState<TracklistContent[]>([]);
     const audioRef = useRef<HTMLAudioElement | null>(null);
 
     useEffect(() => {
@@ -63,550 +64,428 @@ export function Musique() {
                 console.error("Charts fetch error", err);
                 setIsLoading(false);
             });
+
+        fetch('/api/tracklists')
+            .then(res => res.json())
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setAllTracklists(data.map((t: any) => ({
+                        ...t,
+                        id: t.id,
+                        title: t.title,
+                        artist: t.artist,
+                        event: t.event || 'Live Stream',
+                        date: t.date || new Date().toISOString(),
+                        tracks: t.tracks,
+                        embedUrl: t.embedUrl
+                    })));
+                }
+            })
+            .catch(err => console.error("Tracklists fetch error", err));
     }, []);
 
     useEffect(() => {
-        setIsLoading(true);
-        const timer = setTimeout(() => setIsLoading(false), 800);
-        return () => clearTimeout(timer);
-    }, [activeTab]);
-
-    useEffect(() => {
-        if (selectedTrack && !selectedTrack.embedUrl) {
+        if (selectedTrack && !selectedTrack.tracks) {
             setIsPlaying(true);
             if (audioRef.current) {
                 audioRef.current.src = selectedTrack.preview || 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
-                audioRef.current.play().catch(e => console.log("Audio play blocked by browser", e));
+                audioRef.current.play().catch(e => console.log("Audio play blocked", e));
             }
         }
     }, [selectedTrack]);
 
-    useEffect(() => {
-        if (audioRef.current && !selectedTrack?.embedUrl) {
-            if (isPlaying) audioRef.current.play().catch(() => { });
-            else audioRef.current.pause();
-        }
-    }, [isPlaying, selectedTrack]);
-
     const platforms = [
-        {
-            id: 'beatport',
-            name: 'Beatport Top 10',
-            icon: Music,
-            logo: '/images/logos/beatport.png',
-            url: 'https://www.beatport.com',
-            color: '#39ff14'
-        },
-        {
-            id: 'traxsource',
-            name: 'Traxsource Top 10',
-            icon: Disc,
-            logo: '/images/logos/traxsource.png',
-            url: 'https://www.traxsource.com',
-            color: '#ffaa00'
-        },
+        { id: 'beatport', name: 'Beatport', color: '#39ff14', icon: Music },
+        { id: 'traxsource', name: 'Traxsource', color: '#ffaa00', icon: Disc },
+        { id: 'tracklists', name: 'Live Sets', color: '#b026ff', icon: Music },
     ];
 
-    const getMockData = (platform: string): Track[] => {
-        if (chartsData[platform]) return chartsData[platform];
-
-        // Final fallback if data is totally missing
-        const samplePreview = 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
-        return Array.from({ length: 10 }, (_, i) => ({
-            id: `${platform}-${i}`,
-            rank: i + 1,
-            title: `Track #${i + 1}`,
-            artist: `Producer ${i + 1}`,
-            label: `Record Label`,
-            url: '#',
-            preview: samplePreview
-        }));
-    };
-
-    const handleTrackClick = (track: Track) => {
-        if (selectedTrack?.id === track.id) {
-            if (isPlaying) {
-                setIsPlaying(false);
-                if (!track.embedUrl) audioRef.current?.pause();
-            } else {
-                setIsPlaying(true);
-                if (!track.embedUrl) audioRef.current?.play();
-            }
-        } else {
-            setSelectedTrack(track);
-            setIsPlaying(true);
-        }
-    };
+    const currentData = activeTab === 'tracklists' 
+        ? allTracklists.map((t, i) => ({ ...t, rank: i + 1 } as unknown as Track))
+        : chartsData[activeTab] || [];
 
     return (
-        <div className="min-h-screen pt-32 pb-20 px-4 md:px-12 xl:px-16 2xl:px-24 bg-[#050505]">
+        <div className="min-h-screen bg-[#020202] text-white">
             <audio ref={audioRef} onEnded={() => setIsPlaying(false)} />
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="max-w-6xl mx-auto space-y-12 relative"
-            >
-                <GlitchTransition trigger={activeTab} />
-
-                {/* Header */}
-                <div className="text-center space-y-4">
-                    <div className="flex justify-center mb-6">
-                        <EqualizerLoader count={8} className="scale-75 opacity-50" />
-                    </div>
-                    <h1 className="text-5xl md:text-8xl font-black italic tracking-tighter uppercase leading-none">
-                        DROPSIDERS CHARTS
-                    </h1>
-                    <p className="text-gray-500 max-w-2xl mx-auto text-[10px] md:text-xs font-black uppercase tracking-[0.2em] mb-2 flex flex-col md:flex-row items-center justify-center gap-2">
-                        <span className="text-neon-cyan">LES CHARTS LES PLUS INFLUENTS DE LA PLANÈTE</span>
-                        {lastUpdate && (
-                            <>
-                                <span className="hidden md:inline w-1 h-1 rounded-full bg-white/20" />
-                                <span className="text-white/40">MIS À JOUR LE {new Date(parseInt(lastUpdate)).toLocaleDateString('fr-FR')}</span>
-                            </>
-                        )}
-                    </p>
+            
+            {/* Hero Section */}
+            <div className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden">
+                <div className="absolute inset-0">
+                    <img 
+                        src="/music_hero_background_1773611643174.png" 
+                        alt="Hero" 
+                        className="w-full h-full object-cover scale-105 blur-[2px] opacity-40"
+                    />
+                    <div className="absolute inset-0 bg-gradient-to-t from-[#020202] via-[#020202]/60 to-transparent" />
                 </div>
+                
+                <div className="relative h-full flex flex-col items-center justify-center text-center px-4">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ duration: 1 }}
+                    >
+                        <EqualizerLoader count={12} className="mb-8 scale-150" />
+                        <h1 className="text-6xl md:text-9xl font-black italic tracking-tighter uppercase leading-[0.8] mb-6">
+                            DROPSIDERS<br />
+                            <span className="text-neon-cyan">WORLD CHARTS</span>
+                        </h1>
+                        <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.5em] text-white/50 max-w-xl mx-auto">
+                            L'EPICENTRE DE LA MUSIQUE ELECTRONIQUE • MIS À JOUR CHAQUE SEMAINE
+                        </p>
+                    </motion.div>
+                </div>
+            </div>
 
-                {/* Platform Selector */}
-                <div className="flex flex-wrap justify-center gap-2 md:gap-3">
-                    {platforms.map((p) => (
-                        <button
-                            key={p.id}
-                            onClick={() => setActiveTab(p.id)}
-                            data-cursor-color={p.color}
-                            className={`group relative flex items-center gap-1 md:gap-3 px-2 md:px-8 py-1.5 md:py-5 rounded-lg md:rounded-2xl border-2 transition-all duration-500 overflow-hidden ${activeTab === p.id
-                                ? 'bg-white text-black border-white shadow-[0_0_40px_rgba(255,255,255,0.2)]'
-                                : 'bg-black/40 border-white/5 text-gray-400 hover:border-white/20 hover:text-white'
+            {/* Platform & Tabs Navigation */}
+            <div className="sticky top-0 z-[100] bg-[#020202]/80 backdrop-blur-2xl border-b border-white/5 py-6">
+                <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-8">
+                    <div className="flex items-center gap-1 bg-white/5 p-1 rounded-2xl border border-white/10">
+                        {platforms.map(p => (
+                            <button
+                                key={p.id}
+                                onClick={() => setActiveTab(p.id)}
+                                className={`px-6 md:px-10 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all relative overflow-hidden ${
+                                    activeTab === p.id ? 'text-black' : 'text-white/40 hover:text-white'
                                 }`}
-                        >
-                            {activeTab === p.id && (
-                                <motion.div
-                                    layoutId="music-tab-glow"
-                                    className="absolute inset-0 opacity-20"
-                                    style={{ backgroundColor: p.color }}
-                                />
-                            )}
-                            <p.icon className={`w-3 h-3 md:w-5 md:h-5 relative z-10 ${activeTab === p.id ? 'animate-pulse' : ''}`} />
-                            <span className="font-black text-[6px] md:text-[10px] uppercase tracking-widest relative z-10">{p.name}</span>
-                        </button>
-                    ))}
+                            >
+                                {activeTab === p.id && (
+                                    <motion.div 
+                                        layoutId="tab-bg"
+                                        className="absolute inset-0 bg-white"
+                                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                                    />
+                                )}
+                                <span className="relative z-10">{p.name}</span>
+                            </button>
+                        ))}
+                    </div>
+                    
+                    {lastUpdate && (
+                        <div className="hidden md:flex items-center gap-4 text-[9px] font-black text-white/20 uppercase tracking-widest">
+                            <div className="w-2 h-2 rounded-full bg-neon-green/20 border border-neon-green animate-pulse" />
+                            UPDATED: {new Date(parseInt(lastUpdate)).toLocaleDateString('fr-FR')}
+                        </div>
+                    )}
                 </div>
+            </div>
 
-                {/* Content List */}
-                <div className="relative min-h-[600px]">
-                    <AnimatePresence mode="wait">
-                        {isLoading ? (
-                            <motion.div
-                                key="loader"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                className="absolute inset-0 flex flex-col items-center justify-center gap-6"
-                            >
-                                <EqualizerLoader count={12} />
-                                <span className="text-[10px] font-black uppercase tracking-[0.4em] text-neon-cyan animate-pulse">
-                                    SYNCHRONISATION...
-                                </span>
-                            </motion.div>
-                        ) : (
-                            <motion.div
-                                key={activeTab}
-                                initial={{ opacity: 0, x: 20 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                exit={{ opacity: 0, x: -20 }}
-                                className="grid lg:grid-cols-1 gap-3 px-[10%] md:px-0"
-                            >
-                                {getMockData(activeTab).map((track, i) => (
-                                    <motion.div
-                                        key={track.id}
-                                        initial={{ opacity: 0, y: 10 }}
-                                        animate={{ opacity: 1, y: 0 }}
-                                        transition={{ delay: i * 0.05 }}
-                                        className="group flex flex-col gap-0 rounded-xl md:rounded-3xl bg-white/[0.02] border border-white/5 md:hover:bg-white/[0.05] md:hover:border-white/10 transition-all duration-300"
-                                    >
-                                        <div
-                                            className="flex flex-row items-center cursor-pointer group/track"
-                                            onClick={() => handleTrackClick(track)}
+            <main className="max-w-7xl mx-auto px-4 py-20">
+                <AnimatePresence mode="wait">
+                    {isLoading ? (
+                        <motion.div 
+                            key="loader"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            exit={{ opacity: 0 }}
+                            className="flex flex-col items-center justify-center py-40 gap-8"
+                        >
+                            <div className="relative">
+                                <div className="absolute inset-0 bg-neon-cyan/20 blur-3xl rounded-full" />
+                                <EqualizerLoader count={16} />
+                            </div>
+                            <span className="text-xs font-black uppercase tracking-[0.6em] animate-pulse text-neon-cyan">
+                                Syncing with {activeTab.toUpperCase()}...
+                            </span>
+                        </motion.div>
+                    ) : (
+                        <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            exit={{ opacity: 0, y: -20 }}
+                            className="space-y-32"
+                        >
+                            {/* Modern List Layout */}
+                            <div className="grid grid-cols-1 gap-4">
+                                {currentData.length === 0 ? (
+                                    <div className="text-center py-20 border border-dashed border-white/10 rounded-[40px] text-white/20 font-black uppercase tracking-widest">
+                                        No data available for this section
+                                    </div>
+                                ) : (
+                                    currentData.map((track, i) => (
+                                        <motion.div
+                                            key={track.id}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: i * 0.05 }}
+                                            className={`group relative overflow-hidden rounded-[32px] border transition-all duration-500 ${
+                                                selectedTrack?.id === track.id
+                                                ? 'bg-white border-white scale-[1.02] shadow-[0_30px_60px_rgba(255,255,255,0.1)]'
+                                                : 'bg-white/[0.02] border-white/5 hover:border-white/10'
+                                            }`}
                                         >
-                                            <div className="flex items-center gap-2 md:gap-6 p-1 md:p-6 flex-1">
-                                                <div
-                                                    className={`w-6 h-6 md:w-12 md:h-12 rounded-md md:rounded-lg flex items-center justify-center font-black transition-all duration-300 relative text-[10px] md:text-base ${selectedTrack?.id === track.id
-                                                        ? 'bg-neon-red text-white'
-                                                        : 'bg-white/5 text-gray-500 md:group-hover/track:bg-neon-red/20 md:group-hover/track:text-neon-red'
-                                                        }`}
-                                                >
-                                                    <span>{track.rank}</span>
+                                            <div 
+                                                className="flex flex-col md:flex-row items-center cursor-pointer px-6 md:px-10 py-6 md:py-8"
+                                                onClick={() => {
+                                                    if (selectedTrack?.id === track.id) setSelectedTrack(null);
+                                                    else setSelectedTrack(track);
+                                                }}
+                                            >
+                                                {/* Rank/Number */}
+                                                <div className={`text-4xl md:text-6xl font-black italic tracking-tighter mr-8 w-16 text-center ${
+                                                    selectedTrack?.id === track.id ? 'text-black' : 'text-white/10'
+                                                }`}>
+                                                    {(i + 1).toString().padStart(2, '0')}
                                                 </div>
 
-                                                <div className="flex-1 min-w-0">
-                                                    <h3 className="text-xs md:text-lg font-black text-white uppercase italic tracking-tight truncate md:group-hover/track:text-neon-red transition-colors flex items-center gap-1.5 md:gap-3">
-                                                        {track.title}
-                                                        <div className={`flex items-center gap-1 ${selectedTrack?.id === track.id ? 'flex' : 'hidden md:flex md:invisible md:group-hover/track:visible'}`}>
-                                                            <div className={`w-1 h-1 md:w-1.5 md:h-1.5 rounded-full ${selectedTrack?.id === track.id && isPlaying ? 'bg-neon-green ml-0.5 animate-pulse' : 'bg-neon-red'}`} />
-                                                            <span className={`text-[6px] md:text-[9px] font-black tracking-[0.1em] ${selectedTrack?.id === track.id && isPlaying ? 'text-neon-green' : 'text-neon-red'}`}>
-                                                                {selectedTrack?.id === track.id && isPlaying ? 'PLAY' : 'LISTEN'}
-                                                            </span>
-                                                        </div>
-                                                    </h3>
-                                                    <div className="flex items-center gap-2 md:gap-3 mt-0.5 md:mt-1">
-                                                        <span className="text-[8px] md:text-[10px] font-black text-neon-cyan uppercase tracking-widest">
-                                                            {track.artist}
-                                                        </span>
-                                                        <span className="w-1 h-1 rounded-full bg-white/20" />
-                                                        <span className="text-[8px] md:text-[10px] font-bold text-gray-500 uppercase tracking-widest truncate">
-                                                            {track.label}
-                                                        </span>
+                                                {/* Meta Info */}
+                                                <div className="flex-1 min-w-0 text-center md:text-left">
+                                                    <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4 mb-2">
+                                                        <h3 className={`text-xl md:text-3xl font-black uppercase italic tracking-tight truncate leading-none ${
+                                                            selectedTrack?.id === track.id ? 'text-black' : 'text-white'
+                                                        }`}>
+                                                            {track.title}
+                                                        </h3>
+                                                        {activeTab === 'tracklists' && (
+                                                            <div className={`inline-flex items-center px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest whitespace-nowrap ${
+                                                                selectedTrack?.id === track.id ? 'bg-black text-white' : 'bg-neon-purple/20 text-neon-purple border border-neon-purple/20'
+                                                            }`}>
+                                                                Live Set
+                                                            </div>
+                                                        )}
                                                     </div>
+                                                    <p className={`text-xs md:text-sm font-black uppercase tracking-[0.3em] ${
+                                                        selectedTrack?.id === track.id ? 'text-black/60' : 'text-neon-cyan'
+                                                    }`}>
+                                                        {track.artist}
+                                                    </p>
                                                 </div>
 
-                                                <a
-                                                    href={track.url}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    onClick={(e) => e.stopPropagation()}
-                                                    className="p-1.5 md:p-4 bg-white/5 rounded-md md:rounded-2xl border border-white/10 md:hover:bg-neon-red md:hover:border-neon-red md:hover:text-white transition-all group/btn"
-                                                >
-                                                    <ExternalLink className="w-3 h-3 md:w-5 md:h-5 md:group-hover/btn:scale-110 transition-transform" />
-                                                </a>
-                                            </div>
-                                        </div>
+                                                {/* Label / Event */}
+                                                <div className="hidden lg:block w-48 px-8">
+                                                    <span className={`text-[10px] font-black uppercase tracking-[0.4em] block truncate ${
+                                                        selectedTrack?.id === track.id ? 'text-black/40' : 'text-white/20'
+                                                    }`}>
+                                                        {track.label || (track as any).event}
+                                                    </span>
+                                                </div>
 
-                                        <AnimatePresence>
-                                            {selectedTrack?.id === track.id && (
-                                                <motion.div
-                                                    initial={{ height: 0, opacity: 0 }}
-                                                    animate={{ height: 'auto', opacity: 1 }}
-                                                    exit={{ height: 0, opacity: 0 }}
-                                                    className="px-3 md:px-6 pb-3 md:pb-6 overflow-hidden"
-                                                >
-                                                    <div className="rounded-xl overflow-hidden border border-white/10 bg-black/40 shadow-xl w-full mx-auto">
-                                                        {track.embedUrl ? (
-                                                            <iframe
-                                                                key={track.id}
-                                                                src={track.embedUrl}
-                                                                className={`w-full ${activeTab === 'juno' ? 'h-[60px] md:h-[180px]' : activeTab === 'beatport' ? 'h-[80px] md:h-[162px]' : activeTab === 'traxsource' ? 'h-[120px] md:h-[240px]' : 'h-[80px] md:h-[180px]'} border-none overflow-hidden`}
-                                                                scrolling="no"
-                                                                allow="autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                            />
+                                                {/* Controls */}
+                                                <div className="flex items-center gap-4 mt-6 md:mt-0">
+                                                    <button className={`p-4 rounded-2xl border transition-all ${
+                                                        selectedTrack?.id === track.id 
+                                                        ? 'bg-black text-white border-black' 
+                                                        : 'bg-white/5 border-white/10 hover:bg-white/10 text-white'
+                                                    }`}>
+                                                        {selectedTrack?.id === track.id && isPlaying ? (
+                                                            <Pause className="w-5 h-5 fill-current" />
                                                         ) : (
-                                                            <div className="p-8 md:p-12 space-y-8 bg-gradient-to-br from-black/90 via-black/60 to-black/90 relative overflow-hidden group/premium-player">
-                                                                {/* Animated background glow */}
-                                                                <div className="absolute top-0 right-0 w-64 h-64 bg-neon-red/10 blur-[100px] rounded-full -translate-y-1/2 translate-x-1/2 group-hover/premium-player:bg-neon-red/20 transition-all duration-1000" />
+                                                            <Play className="w-5 h-5 fill-current" />
+                                                        )}
+                                                    </button>
+                                                    
+                                                    {track.url && track.url !== '#' && (
+                                                        <a 
+                                                            href={track.url} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            onClick={e => e.stopPropagation()}
+                                                            className={`p-4 rounded-2xl border transition-all ${
+                                                                selectedTrack?.id === track.id 
+                                                                ? 'bg-black/5 border-black/10 hover:bg-black text-white hover:border-black' 
+                                                                : 'bg-white/5 border-white/10 hover:bg-white hover:text-black hover:border-white'
+                                                            }`}
+                                                        >
+                                                            <ExternalLink className="w-5 h-5" />
+                                                        </a>
+                                                    )}
+                                                </div>
+                                            </div>
 
-                                                                <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
-                                                                    {/* Play/Pause Main Control */}
-                                                                    <div className="relative">
-                                                                        <div className={`absolute inset-0 bg-neon-red/20 blur-2xl rounded-full transition-opacity duration-500 ${isPlaying ? 'opacity-100' : 'opacity-0'}`} />
-                                                                        <button
-                                                                            onClick={() => {
-                                                                                if (isPlaying) {
-                                                                                    audioRef.current?.pause();
-                                                                                    setIsPlaying(false);
-                                                                                } else {
-                                                                                    audioRef.current?.play();
-                                                                                    setIsPlaying(true);
-                                                                                }
-                                                                            }}
-                                                                            className="w-24 h-24 rounded-full bg-white/5 border border-white/10 flex items-center justify-center hover:bg-neon-red hover:border-neon-red hover:scale-110 transition-all duration-500 group/play-btn shadow-[0_0_50px_rgba(0,0,0,0.5)] active:scale-95"
-                                                                        >
-                                                                            {isPlaying ? (
-                                                                                <Pause className="w-10 h-10 text-white fill-white" />
-                                                                            ) : (
-                                                                                <Play className="w-10 h-10 text-white ml-1 fill-white" />
-                                                                            )}
-                                                                        </button>
+                                            {/* Expandable Player / Tracklist */}
+                                            <AnimatePresence>
+                                                {selectedTrack?.id === track.id && (
+                                                    <motion.div
+                                                        initial={{ height: 0, opacity: 0 }}
+                                                        animate={{ height: 'auto', opacity: 1 }}
+                                                        exit={{ height: 0, opacity: 0 }}
+                                                        className="overflow-hidden border-t border-black/5"
+                                                    >
+                                                        {track.tracks ? (
+                                                            /* Live Tracklist View */
+                                                            <div className="bg-black/5 p-8 md:p-12 space-y-12">
+                                                                <div className="grid md:grid-cols-2 gap-12">
+                                                                    <div className="space-y-8">
+                                                                        <div className="space-y-2">
+                                                                            <h4 className="text-black text-4xl font-black italic uppercase tracking-tighter leading-none">Complete Tracklist</h4>
+                                                                            <p className="text-black/40 text-[10px] font-black uppercase tracking-widest italic">Live Broadcast</p>
+                                                                        </div>
+                                                                        
+                                                                        <div className="space-y-1">
+                                                                            {track.tracks.map((t, idx) => (
+                                                                                <div key={idx} className="flex items-center gap-6 py-4 border-b border-black/5 group/t-item">
+                                                                                    <span className="text-xs font-black text-black/20 w-8">{idx + 1}</span>
+                                                                                    <div className="flex-1 min-w-0">
+                                                                                        <p className="text-sm font-black text-black uppercase tracking-tight truncate group-hover/t-item:text-neon-purple transition-colors">
+                                                                                            {t.title}
+                                                                                        </p>
+                                                                                        <p className="text-[10px] font-bold text-black/40 uppercase tracking-widest">{t.artist}</p>
+                                                                                    </div>
+                                                                                    {t.time && <span className="text-[10px] font-black text-black/40 tabular-nums">{t.time}</span>}
+                                                                                </div>
+                                                                            ))}
+                                                                        </div>
                                                                     </div>
 
-                                                                    <div className="flex-1 w-full space-y-6">
-                                                                        <div>
-                                                                            <div className="flex items-center gap-2 mb-2">
-                                                                                <span className="px-2 py-0.5 bg-neon-red/10 border border-neon-red/20 rounded text-[9px] font-black text-neon-red tracking-widest uppercase">Premium Player</span>
-                                                                                <span className="text-[10px] font-black text-gray-500 tracking-widest uppercase opacity-50">• High Quality Previews</span>
-                                                                            </div>
-                                                                            <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter mb-1 leading-none">{track.title}</h4>
-                                                                            <p className="text-neon-cyan font-black text-xs uppercase tracking-[0.3em]">{track.artist}</p>
-                                                                        </div>
-
-                                                                        <div className="space-y-3">
-                                                                            <div className="flex items-center justify-between">
-                                                                                <div className="flex items-center gap-2">
-                                                                                    <div className={`w-1.5 h-1.5 rounded-full ${isPlaying ? 'bg-neon-green animate-pulse' : 'bg-gray-600'}`} />
-                                                                                    <span className="text-[9px] font-black text-gray-500 tracking-[0.2em] uppercase">
-                                                                                        {isPlaying ? 'Streaming Live' : 'Paused'}
-                                                                                    </span>
-                                                                                </div>
-                                                                                <span className="text-[10px] font-black text-neon-red tracking-widest">HQ 320KBPS</span>
-                                                                            </div>
-
-                                                                            {/* Visualizer Mock */}
-                                                                            <div className="h-12 flex items-end gap-1 px-2">
-                                                                                {Array.from({ length: 40 }).map((_, i) => (
-                                                                                    <motion.div
-                                                                                        key={i}
-                                                                                        className="flex-1 bg-gradient-to-t from-neon-red/40 to-neon-red rounded-t-sm"
-                                                                                        animate={{
-                                                                                            height: isPlaying ? [
-                                                                                                Math.random() * 100 + "%",
-                                                                                                Math.random() * 100 + "%",
-                                                                                                Math.random() * 100 + "%"
-                                                                                            ] : "10%"
-                                                                                        }}
-                                                                                        transition={{
-                                                                                            duration: 0.5,
-                                                                                            repeat: Infinity,
-                                                                                            delay: i * 0.02,
-                                                                                            ease: "easeInOut"
-                                                                                        }}
-                                                                                    />
-                                                                                ))}
-                                                                            </div>
-
-                                                                            <div className="h-1 bg-white/5 rounded-full overflow-hidden">
-                                                                                <motion.div
-                                                                                    className="h-full bg-gradient-to-r from-neon-red to-neon-cyan shadow-[0_0_15px_rgba(255,18,65,0.6)]"
-                                                                                    initial={{ width: "0%" }}
-                                                                                    animate={{ width: isPlaying ? "100%" : "0%" }}
-                                                                                    transition={{ duration: 30, ease: "linear" }}
+                                                                    <div className="space-y-8">
+                                                                        {track.embedUrl ? (
+                                                                            <div className="rounded-[40px] overflow-hidden border border-black/10 bg-black shadow-2xl">
+                                                                                <iframe 
+                                                                                    width="100%" 
+                                                                                    height="400" 
+                                                                                    src={track.embedUrl} 
+                                                                                    frameBorder="0"
+                                                                                    className="grayscale brightness-110"
                                                                                 />
                                                                             </div>
+                                                                        ) : (
+                                                                            <div className="aspect-square rounded-[40px] bg-black flex flex-col items-center justify-center p-12 text-center text-white space-y-4">
+                                                                                <Disc className="w-16 h-16 animate-spin-slow opacity-20" />
+                                                                                <p className="text-xs font-black uppercase tracking-widest text-white/40">No preview player available for this broadcast</p>
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        ) : (
+                                                            /* Standard Player View */
+                                                            <div className="bg-black/5 p-8 md:p-12 relative overflow-hidden">
+                                                                <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
+                                                                    <div className="flex-1 w-full space-y-8 text-black">
+                                                                        <div className="space-y-2">
+                                                                            <div className="flex items-center gap-3">
+                                                                                <span className="px-3 py-1 bg-black text-white rounded-full text-[9px] font-black uppercase tracking-[0.2em]">High Res Audio</span>
+                                                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Previewing Full Track</span>
+                                                                            </div>
+                                                                            <h4 className="text-5xl font-black italic uppercase tracking-tighter leading-none">{track.title}</h4>
                                                                         </div>
 
-                                                                        <div className="flex items-center gap-4 pt-2">
+                                                                        {/* Visualizer */}
+                                                                        <div className="h-16 flex items-end gap-1 px-2 mb-12">
+                                                                            {Array.from({ length: 60 }).map((_, i) => (
+                                                                                <motion.div
+                                                                                    key={i}
+                                                                                    className="flex-1 bg-black rounded-full"
+                                                                                    animate={{
+                                                                                        height: isPlaying ? [
+                                                                                            Math.random() * 100 + "%",
+                                                                                            Math.random() * 30 + "%",
+                                                                                            Math.random() * 80 + "%"
+                                                                                        ] : "10%"
+                                                                                    }}
+                                                                                    transition={{
+                                                                                        duration: 0.6,
+                                                                                        repeat: Infinity,
+                                                                                        delay: i * 0.01,
+                                                                                    }}
+                                                                                />
+                                                                            ))}
+                                                                        </div>
+
+                                                                        <div className="flex flex-wrap items-center gap-6">
                                                                             <a
                                                                                 href={track.url}
                                                                                 target="_blank"
-                                                                                className="px-8 py-3.5 rounded-xl bg-white text-black font-black text-[10px] uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all duration-300 shadow-xl flex items-center gap-3 active:scale-95"
+                                                                                className="px-10 py-5 bg-black text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl"
                                                                             >
-                                                                                Buy Full Track <ExternalLink className="w-3.5 h-3.5" />
+                                                                                Buy on Beatport
                                                                             </a>
-                                                                            <button className="p-3.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-all">
-                                                                                <Heart className="w-4 h-4 text-white" />
+                                                                            <button className="px-10 py-5 bg-white border border-black/10 rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-lg transition-all">
+                                                                                Save to Favourites
                                                                             </button>
                                                                         </div>
+                                                                    </div>
+
+                                                                    {/* Artwork Placeholder for Premium Feel */}
+                                                                    <div className="hidden lg:block w-72 h-72 rounded-[60px] bg-black/10 border border-black/5 relative overflow-hidden group/art">
+                                                                        <EqualizerLoader count={8} className="absolute inset-0 m-auto scale-150 rotate-90" />
+                                                                        <div className="absolute inset-0 bg-gradient-to-br from-neon-red/10 via-neon-cyan/10 to-neon-purple/10" />
                                                                     </div>
                                                                 </div>
                                                             </div>
                                                         )}
+                                                    </motion.div>
+                                                )}
+                                            </AnimatePresence>
+                                        </motion.div>
+                                    ))
+                                )}
+                            </div>
+
+                            {/* Upcoming Section - Redesigned */}
+                            {upcomingData.length > 0 && (
+                                <div className="space-y-16">
+                                    <div className="text-center space-y-4">
+                                        <h2 className="text-5xl md:text-8xl font-black italic tracking-tighter uppercase leading-[0.8] text-white">
+                                            THE FUTURE <br />
+                                            <span className="text-neon-cyan opacity-50">OF DROPSIDERS</span>
+                                        </h2>
+                                        <p className="text-[10px] md:text-xs font-black uppercase tracking-[0.5em] text-white/30">Upcoming Releases • Global Distribution</p>
+                                    </div>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+                                        {upcomingData.map((release, i) => (
+                                            <motion.a
+                                                key={release.id}
+                                                href={release.url}
+                                                target="_blank"
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                whileInView={{ opacity: 1, scale: 1 }}
+                                                viewport={{ once: true }}
+                                                transition={{ delay: i * 0.1 }}
+                                                className="group space-y-6"
+                                            >
+                                                <div className="aspect-square rounded-[60px] overflow-hidden bg-white/5 border border-white/10 relative shadow-2xl transition-all duration-700 group-hover:shadow-[0_40px_80px_rgba(0,0,0,0.5)] group-hover:border-white/20">
+                                                    <img 
+                                                        src={release.image} 
+                                                        alt={release.title} 
+                                                        className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                                    />
+                                                    <div className="absolute inset-0 bg-gradient-to-tr from-[#020202] via-transparent to-transparent opacity-60" />
+                                                    
+                                                    {/* Release Date Overlay */}
+                                                    <div className="absolute top-8 left-8 p-4 bg-white text-black rounded-3xl shadow-2xl flex flex-col items-center min-w-[70px]">
+                                                        <span className="text-xl font-black leading-none">{new Date(release.releaseDate).getDate()}</span>
+                                                        <span className="text-[8px] font-black uppercase tracking-widest mt-1 opacity-40">{new Date(release.releaseDate).toLocaleDateString('fr-FR', { month: 'short' })}</span>
                                                     </div>
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
-                                    </motion.div>
-                                ))}
-                            </motion.div>
-                        )}
-                    </AnimatePresence>
-                </div>
+                                                </div>
+                                                
+                                                <div className="px-4 space-y-2">
+                                                    <h4 className="text-xl font-black italic uppercase tracking-tighter leading-tight group-hover:text-neon-cyan transition-colors">{release.title}</h4>
+                                                    <p className="text-[10px] font-black uppercase tracking-[0.4em] text-white/30">{release.artist}</p>
+                                                </div>
+                                            </motion.a>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </main>
 
-                {/* PROCHAINES RELEASES SECTION */}
-                {upcomingData.length > 0 && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 30 }}
-                        whileInView={{ opacity: 1, y: 0 }}
-                        viewport={{ once: true }}
-                        className="space-y-12 pt-24"
-                    >
-                        <div className="text-center space-y-4">
-                            <h2 className="text-4xl md:text-6xl font-black italic tracking-tighter uppercase leading-none text-neon-cyan">
-                                LES PROCHAINES RELEASES
-                            </h2>
-                            <p className="text-gray-500 max-w-2xl mx-auto text-[10px] md:text-xs font-black uppercase tracking-[0.4em]">
-                                LE FUTUR DE LA PLANÈTE ELECTRO EN AVANT-PREMIÈRE
-                            </p>
-                        </div>
-
-                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-8">
-                            {upcomingData.map((release, i) => {
-                                const relDate = new Date(release.releaseDate);
-                                const diffTime = relDate.getTime() - new Date().getTime();
-                                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-                                return (
-                                    <motion.a
-                                        key={release.id}
-                                        href={release.url}
-                                        target="_blank"
-                                        rel="noopener noreferrer"
-                                        initial={{ opacity: 0, scale: 0.95 }}
-                                        whileInView={{ opacity: 1, scale: 1 }}
-                                        viewport={{ once: true }}
-                                        transition={{ delay: i * 0.05 }}
-                                        whileHover={{ y: -10 }}
-                                        className="group relative"
-                                    >
-                                        <div className="aspect-square rounded-2xl md:rounded-[40px] overflow-hidden bg-white/5 border border-white/10 relative shadow-2xl transition-all duration-500 group-hover:shadow-neon-cyan/20 group-hover:border-neon-cyan/50">
-                                            <img
-                                                src={release.image}
-                                                alt={release.title}
-                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                            />
-                                            {/* Overlays */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent opacity-60 group-hover:opacity-80 transition-opacity" />
-
-                                            {/* Date Badge */}
-                                            <div className="absolute top-4 md:top-8 left-4 md:left-8 flex flex-col items-center justify-center p-2 md:p-4 bg-black/80 backdrop-blur-md border border-white/20 rounded-2xl md:rounded-3xl shadow-xl min-w-[50px] md:min-w-[70px]">
-                                                <span className="text-[10px] md:text-sm font-black text-neon-cyan leading-none uppercase">
-                                                    {relDate.toLocaleDateString('fr-FR', { day: '2-digit' })}
-                                                </span>
-                                                <span className="text-[8px] md:text-[10px] font-black text-white/40 uppercase tracking-widest mt-0.5 md:mt-1">
-                                                    {relDate.toLocaleDateString('fr-FR', { month: 'short' }).replace('.', '')}
-                                                </span>
-                                            </div>
-
-                                            {/* Time Reminder */}
-                                            <div className="absolute bottom-4 md:bottom-8 right-4 md:right-8 bg-white text-black px-2 md:px-4 py-1.5 md:py-2 rounded-full text-[6px] md:text-[9px] font-black uppercase tracking-[0.2em] shadow-2xl">
-                                                {diffDays <= 0 ? "SORTIE AUJOURD'HUI" : `DANS ${diffDays} JOURS`}
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-4 md:mt-6 space-y-1.5 md:space-y-2 px-2">
-                                            <h4 className="text-sm md:text-base font-black text-white uppercase italic tracking-tighter truncate group-hover:text-neon-cyan transition-colors">
-                                                {release.title}
-                                            </h4>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-[8px] md:text-[10px] font-black text-white/50 uppercase tracking-widest truncate flex-1">
-                                                    {release.artist}
-                                                </span>
-                                                <span className="text-[8px] md:text-[9px] font-bold text-gray-700 uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded border border-white/5">
-                                                    {release.label}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    </motion.a>
-                                );
-                            })}
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* Tracking Footer */}
-                <div className="pt-12 border-t border-white/5 flex flex-col items-center gap-6">
-                    <div className="flex flex-wrap items-center justify-center gap-8 md:gap-12">
-                        {platforms.map(p => (
-                            <a
-                                key={p.id}
-                                href={p.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="group flex flex-col items-center gap-3 grayscale hover:grayscale-0 transition-all duration-500 opacity-20 hover:opacity-100"
-                            >
-                                <img src={p.logo} alt={p.name} className="h-6 md:h-10 w-auto object-contain transition-transform group-hover:scale-110" />
-                                <span className="text-[7px] md:text-[9px] font-black uppercase tracking-[0.4em] text-white/40 group-hover:text-white transition-colors">{p.id} Official</span>
-                            </a>
+            {/* Premium Footer Info */}
+            <footer className="border-t border-white/5 py-40 bg-white/[0.01]">
+                <div className="max-w-7xl mx-auto px-4 text-center space-y-12">
+                    <div className="flex flex-wrap justify-center items-center gap-16 md:gap-32 grayscale opacity-20 hover:opacity-100 hover:grayscale-0 transition-all duration-700">
+                        {platforms.filter(p => p.id !== 'tracklists').map(p => (
+                            <div key={p.id} className="flex flex-col items-center gap-4">
+                                <img src={`/images/logos/${p.id}.png`} alt={p.name} className="h-10 w-auto object-contain" />
+                                <span className="text-[8px] font-black uppercase tracking-[0.4em]">Official Data Partner</span>
+                            </div>
                         ))}
                     </div>
-                    <p className="text-gray-700 text-[10px] font-black uppercase tracking-[0.3em]">
-                        DATA UPDATE EVERY 3 DAYS • DROPSIDERS NETWORK
+                    <p className="text-white/20 text-[10px] font-black uppercase tracking-[0.6em] max-w-2xl mx-auto leading-loose">
+                        Dropsiders network charts are curated from global sales and streaming data. <br />
+                        Verified broadcast tracklists are extracted directly from our live studio recording systems.
                     </p>
                 </div>
-            </motion.div>
-
-
-
-            {/* Tracklist Stylish Pop-up */}
-            <AnimatePresence>
-                {selectedTracklist && (
-                    <div className="fixed inset-0 z-[300] flex items-center justify-center p-4">
-                        <motion.div
-                            initial={{ opacity: 0 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            onClick={() => setSelectedTracklist(null)}
-                            className="absolute inset-0 bg-black/90 backdrop-blur-md"
-                        />
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                            animate={{ scale: 1, opacity: 1, y: 0 }}
-                            exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                            className="relative w-full max-w-2xl bg-[#0a0a0a] border border-white/10 rounded-[40px] overflow-hidden shadow-[0_50px_100px_rgba(0,0,0,1)]"
-                        >
-                            {/* Header Image/Background */}
-                            <div className="h-48 bg-gradient-to-br from-neon-red/20 to-neon-cyan/20 relative p-12 flex flex-col justify-end">
-                                <button
-                                    onClick={() => setSelectedTracklist(null)}
-                                    className="absolute top-8 right-8 p-3 bg-black/40 hover:bg-black/60 rounded-full transition-colors text-white"
-                                >
-                                    <X className="w-5 h-5" />
-                                </button>
-                                <div className="space-y-2">
-                                    <div className="flex items-center gap-3">
-                                        <div className="px-3 py-1 bg-neon-red rounded-full text-[9px] font-black uppercase tracking-widest text-white shadow-lg">
-                                            Tracklist
-                                        </div>
-                                        <span className="text-[10px] font-bold text-white/40 uppercase tracking-[0.3em]">Verified Source</span>
-                                    </div>
-                                    <h2 className="text-3xl md:text-4xl font-black italic text-white uppercase italic tracking-tighter leading-none">
-                                        {selectedTracklist.title}
-                                    </h2>
-                                </div>
-                            </div>
-
-                            {/* Tracks Area */}
-                            <div className="p-8 md:p-12 h-[450px] overflow-y-auto custom-scrollbar">
-                                {selectedTracklist.embedUrl && (
-                                    <div className="mb-8 rounded-3xl overflow-hidden border border-white/10 bg-black">
-                                        <iframe width="100%" height="120" src={selectedTracklist.embedUrl} frameBorder="0"></iframe>
-                                    </div>
-                                )}
-
-                                <div className="space-y-6">
-                                    {selectedTracklist.tracks.map((t, idx) => (
-                                        <motion.div
-                                            key={idx}
-                                            initial={{ opacity: 0, x: -10 }}
-                                            animate={{ opacity: 1, x: 0 }}
-                                            transition={{ delay: 0.1 + idx * 0.05 }}
-                                            className="flex items-center gap-6 group/item"
-                                        >
-                                            <span className="text-xs font-black text-white/10 w-8">{idx + 1}</span>
-                                            <div className="flex-1 min-w-0">
-                                                <h5 className="text-sm font-black text-white uppercase tracking-wider group-hover/item:text-neon-cyan transition-colors">
-                                                    {t.title}
-                                                </h5>
-                                                <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">
-                                                    {t.artist}
-                                                </p>
-                                            </div>
-                                            {t.time && <span className="text-[10px] font-bold text-white/20 whitespace-nowrap">{t.time}</span>}
-                                            <button className="p-2 text-white/5 group-hover/item:text-white transition-colors">
-                                                <Play className="w-3 h-3" />
-                                            </button>
-                                        </motion.div>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Action Bar */}
-                            <div className="p-8 border-t border-white/5 bg-white/[0.02] flex items-center justify-between">
-                                <div className="flex items-center gap-4">
-                                    <button className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase transition-all">
-                                        <Heart className="w-3 h-3" /> Like
-                                    </button>
-                                    <button className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase transition-all">
-                                        <Share2 className="w-3 h-3" /> Share
-                                    </button>
-                                </div>
-                                <a
-                                    href="#"
-                                    onClick={(e) => e.preventDefault()}
-                                    className="flex items-center gap-2 text-neon-red text-[10px] font-black uppercase tracking-widest hover:underline"
-                                >
-                                    Full Set Info <ChevronRight className="w-4 h-4" />
-                                </a>
-                            </div>
-                        </motion.div>
-                    </div>
-                )}
-            </AnimatePresence>
-
-            <div className="mt-12 py-8 border-t border-white/5 text-center">
-                <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em]">
-                    Les classements sont mis à jour tous les 3 jours via Beatport et Traxsource
-                </p>
-            </div>
+            </footer>
         </div>
     );
 }
 
 export default Musique;
+
 

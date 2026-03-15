@@ -17,17 +17,18 @@ export function MobileHeader({ onOpenSearch }: MobileHeaderProps) {
     const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
 
     return (
-        <header className="fixed top-0 left-0 right-0 h-16 bg-dark-bg/80 backdrop-blur-md z-[120] border-b border-white/10 px-4 flex items-center justify-between lg:hidden shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
-            {/* Glassy Overlay for extra premium feel */}
-            <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
+        <header className="fixed top-0 left-0 right-0 pt-safe bg-dark-bg/80 backdrop-blur-md z-[120] border-b border-white/10 lg:hidden shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
+            <div className="h-16 px-4 flex items-center justify-between relative">
+                {/* Glassy Overlay for extra premium feel */}
+                <div className="absolute inset-0 bg-gradient-to-b from-white/[0.02] to-transparent pointer-events-none" />
 
-            <Link to="/" className="relative flex items-center gap-2 active:scale-95 transition-transform duration-300 z-10">
-                <img
-                    src="/Logo.png"
-                    className={`h-6 w-auto object-contain logo-img transition-all duration-500 ${!isDarkMode ? 'invert brightness-0' : ''}`}
-                    alt="DROPSIDERS"
-                />
-            </Link>
+                <Link to="/" className="relative flex items-center gap-2 active:scale-95 transition-transform duration-300 z-10">
+                    <img
+                        src="/Logo.png"
+                        className={`h-6 w-auto object-contain logo-img transition-all duration-500 ${!isDarkMode ? 'invert brightness-0' : ''}`}
+                        alt="DROPSIDERS"
+                    />
+                </Link>
 
             <div className="relative flex items-center gap-3 z-10">
                 {/* Search Header Button */}
@@ -75,6 +76,7 @@ export function MobileHeader({ onOpenSearch }: MobileHeaderProps) {
                         <FlagIcon location="USA" className="w-3.5 h-2.5" />
                         <span>EN</span>
                     </button>
+                </div>
                 </div>
             </div>
             <NotificationSettingsModal

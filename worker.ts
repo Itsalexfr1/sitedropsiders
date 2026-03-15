@@ -81,6 +81,8 @@ const NEWS_CONTENT_FILES = ['src/data/news_content_3.json', 'src/data/news_conte
 const RECAPS_CONTENT_FILES = ['src/data/recaps_content_2.json', 'src/data/recaps_content_1.json'];
 const EDITORS_PATH = 'src/data/editors.json';
 const PENDING_SUBMISSIONS_PATH = 'src/data/pending_submissions.json';
+const TRACKLISTS_PATH = 'src/data/tracklists.json';
+const TRACKLISTS_PENDING_PATH = 'src/data/tracklists_pending.json';
 const CONTACTS_PATH = 'src/data/contacts.json';
 
 async function fetchGitHubFile(filePath, config) {
@@ -1810,6 +1812,83 @@ ${urls.map(u => `  <url>
 
             const saved = await saveGitHubFile(FILE_PATH, items, `Reorder ${type}`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
+        }
+
+        // --- API: TRACKLISTS ---
+        if (path === '/api/tracklists' && request.method === 'GET') {
+            const file = await fetchGitHubFile(TRACKLISTS_PATH, gitConfig);
+            return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
+        }
+
+        if (path === '/api/tracklists/pending' && request.method === 'GET') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            const file = await fetchGitHubFile(TRACKLISTS_PENDING_PATH, gitConfig);
+            return new Response(JSON.stringify(file ? file.content : []), { status: 200, headers });
+        }
+
+        if (path === '/api/tracklists/submit' && request.method === 'POST') {
+            try {
+                const newTracklist = await request.json();
+                const file = await fetchGitHubFile(TRACKLISTS_PENDING_PATH, gitConfig) || { content: [], sha: null };
+                
+                const submission = {
+                    ...newTracklist,
+                    id: Date.now().toString(),
+                    status: 'pending',
+                    createdAt: new Date().toISOString()
+                };
+                
+                const updated = [submission, ...file.content];
+                const saved = await saveGitHubFile(TRACKLISTS_PENDING_PATH, updated, `New tracklist submission: ${newTracklist.title}`, file.sha, gitConfig);
+                return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/tracklists/moderate' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { id, action, updates } = await request.json();
+                const pendingFile = await fetchGitHubFile(TRACKLISTS_PENDING_PATH, gitConfig);
+                if (!pendingFile) return new Response(JSON.stringify({ error: 'Pending file not found' }), { status: 404, headers });
+                
+                const tracklist = pendingFile.content.find(t => t.id === id);
+                if (!tracklist) return new Response(JSON.stringify({ error: 'Tracklist not found' }), { status: 404, headers });
+                
+                let savedPending, savedValidated;
+                
+                if (action === 'approve') {
+                    const validatedFile = await fetchGitHubFile(TRACKLISTS_PATH, gitConfig) || { content: [], sha: null };
+                    const approvedTracklist = { ...tracklist, ...(updates || {}), status: 'validated', validatedAt: new Date().toISOString() };
+                    
+                    const updatedValidated = [approvedTracklist, ...validatedFile.content];
+                    const updatedPending = pendingFile.content.filter(t => t.id !== id);
+                    
+                    savedValidated = await saveGitHubFile(TRACKLISTS_PATH, updatedValidated, `Approve tracklist: ${approvedTracklist.title}`, validatedFile.sha, gitConfig);
+                    savedPending = await saveGitHubFile(TRACKLISTS_PENDING_PATH, updatedPending, `Remove from pending: ${id}`, pendingFile.sha, gitConfig);
+                } else if (action === 'delete') {
+                    const updatedPending = pendingFile.content.filter(t => t.id !== id);
+                    savedPending = await saveGitHubFile(TRACKLISTS_PENDING_PATH, updatedPending, `Delete pending tracklist: ${id}`, pendingFile.sha, gitConfig);
+                    savedValidated = { ok: true };
+                } else if (action === 'update_validated') {
+                    const validatedFile = await fetchGitHubFile(TRACKLISTS_PATH, gitConfig);
+                    if (!validatedFile) return new Response(JSON.stringify({ error: 'Validated file not found' }), { status: 404, headers });
+                    const updatedValidated = validatedFile.content.map(t => t.id === id ? { ...t, ...updates } : t);
+                    savedValidated = await saveGitHubFile(TRACKLISTS_PATH, updatedValidated, `Update validated tracklist: ${id}`, validatedFile.sha, gitConfig);
+                    savedPending = { ok: true };
+                } else if (action === 'delete_validated') {
+                    const validatedFile = await fetchGitHubFile(TRACKLISTS_PATH, gitConfig);
+                    if (!validatedFile) return new Response(JSON.stringify({ error: 'Validated file not found' }), { status: 404, headers });
+                    const updatedValidated = validatedFile.content.filter(t => t.id !== id);
+                    savedValidated = await saveGitHubFile(TRACKLISTS_PATH, updatedValidated, `Delete validated tracklist: ${id}`, validatedFile.sha, gitConfig);
+                    savedPending = { ok: true };
+                }
+                
+                return new Response(JSON.stringify({ success: savedPending.ok && savedValidated.ok, error: savedPending.error || savedValidated.error }), { status: (savedPending.ok && savedValidated.ok) ? 200 : 500, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
         }
 
 
@@ -6751,16 +6830,16 @@ ${urls.map(u => `  <url>
             // Initial default if KV is empty
             const defaultCharts = {
                 beatport: [
-                    { id: '23308330', rank: 1, title: 'neck (Extended Mix)', artist: 'Mau P', label: 'Black Book Records', url: 'https://www.beatport.com/fr/track/neck/23308330', embedUrl: 'https://embed.beatport.com/?id=23308330&type=track' },
-                    { id: '23451068', rank: 2, title: 'Make My Day (Original Mix)', artist: 'ESSE (US)', label: 'ESSEntial.', url: 'https://www.beatport.com/fr/track/make-my-day/23451068', embedUrl: 'https://embed.beatport.com/?id=23451068&type=track' },
-                    { id: '23904036', rank: 3, title: 'Loco Loco (Extended Mix)', artist: 'Reinier Zonneveld, GORDO (US)', label: "SPINNIN' RECORDS", url: 'https://www.beatport.com/fr/track/loco-loco/23904036', embedUrl: 'https://embed.beatport.com/?id=23904036&type=track' },
-                    { id: '23567812', rank: 4, title: 'Eats Everything (TMB Remix)', artist: 'TMB', label: 'Trick', url: '#', embedUrl: 'https://embed.beatport.com/?id=23567812&type=track' },
-                    { id: '23412345', rank: 5, title: 'Saving Up (Extended)', artist: 'Dom Dolla', label: 'Three Six Zero', url: '#', embedUrl: 'https://embed.beatport.com/?id=23412345&type=track' },
-                    { id: '23112233', rank: 6, title: 'Where You Are', artist: 'John Summit, Hayla', label: 'Off The Grid', url: '#', embedUrl: 'https://embed.beatport.com/?id=23112233&type=track' },
-                    { id: '23998877', rank: 7, title: 'Be The One', artist: 'Eli Brown', label: 'Polydor', url: '#', embedUrl: 'https://embed.beatport.com/?id=23998877&type=track' },
-                    { id: '23887766', rank: 8, title: 'Drugs From Amsterdam', artist: 'Mau P', label: 'Repopulate Mars', url: '#', embedUrl: 'https://embed.beatport.com/?id=23887766&type=track' },
-                    { id: '23776655', rank: 9, title: 'Rhyme Dust', artist: 'MK, Dom Dolla', label: 'Area 10', url: '#', embedUrl: 'https://embed.beatport.com/?id=23776655&type=track' },
-                    { id: '23665544', rank: 10, title: 'Atmosphere', artist: 'Fisher, Kita Alexander', label: 'Catch & Release', url: '#', embedUrl: 'https://embed.beatport.com/?id=23665544&type=track' }
+                    { "rank": 1, "id": "24508685", "title": "Talk To You (Extended Mix)", "artist": "ANOTR, 54 Ultra", "label": "NO ART", "url": "https://www.beatport.com/track/talk-to-you/24508685", "embedUrl": "https://embed.beatport.com/?id=24508685&type=track" },
+                    { "rank": 2, "id": "24508402", "title": "Addicted To Bass (Dom Dolla Relapse)", "artist": "Puretone, Dom Dolla", "label": "TMRW Music", "url": "https://www.beatport.com/track/addicted-to-bass-dom-dolla-relapse/24508402", "embedUrl": "https://embed.beatport.com/?id=24508402&type=track" },
+                    { "rank": 3, "id": "23451068", "title": "Make My Day (Original Mix)", "artist": "ESSE (US)", "label": "ESSEntial.", "url": "https://www.beatport.com/track/make-my-day/23451068", "embedUrl": "https://embed.beatport.com/?id=23451068&type=track" },
+                    { "rank": 4, "id": "24441099", "title": "Lifting (Extended)", "artist": "Riordan, Silva Bumpa", "label": "Room Two Recordings", "url": "https://www.beatport.com/track/lifting/24441099", "embedUrl": "https://embed.beatport.com/?id=24441099&type=track" },
+                    { "rank": 5, "id": "23443670", "title": "Good Time (Extended Mix)", "artist": "Trace (UZ)", "label": "8Bit", "url": "https://www.beatport.com/track/good-time/23443670", "embedUrl": "https://embed.beatport.com/?id=23443670&type=track" },
+                    { "rank": 6, "id": "26834198", "title": "Science Fiction (Original Mix)", "artist": "Brunello", "label": "Mellow Circus Records", "url": "https://www.beatport.com/track/science-fiction/26834198", "embedUrl": "https://embed.beatport.com/?id=26834198&type=track" },
+                    { "rank": 7, "id": "23308330", "title": "neck (Extended Mix)", "artist": "Mau P", "label": "Black Book Records", "url": "https://www.beatport.com/track/neck/23308330", "embedUrl": "https://embed.beatport.com/?id=23308330&type=track" },
+                    { "rank": 8, "id": "23904036", "title": "Loco Loco (Extended Mix)", "artist": "Reinier Zonneveld, GORDO (US)", "label": "SPINNIN' RECORDS", "url": "https://www.beatport.com/track/loco-loco/23904036", "embedUrl": "https://embed.beatport.com/?id=23904036&type=track" },
+                    { "rank": 9, "id": "23451235", "title": "Out of My Mind (Extended Mix)", "artist": "Joshwa", "label": "Hellbent Records", "url": "https://www.beatport.com/track/out-of-my-mind/23451235", "embedUrl": "https://embed.beatport.com/?id=23451235&type=track" },
+                    { "rank": 10, "id": "24133364", "title": "I Can't Wait (Extended)", "artist": "Bob Sinclar, Kiesza", "label": "Yellow Productions", "url": "https://www.beatport.com/track/i-cant-wait/24133364", "embedUrl": "https://embed.beatport.com/?id=24133364&type=track" }
                 ],
                 traxsource: [
                     { id: 'ts-14359025', rank: 1, title: 'Take Me Up (ft. Donna Blakely)', artist: 'Ralphi Rosario, Bob Sinclar', label: 'Altra Moda Music', url: 'https://traxsource.com/track/14359025/take-me-up-ft-donna-blakely', embedUrl: 'https://embed.traxsource.com/player/track/14359025?autoplay=1&play=1' },

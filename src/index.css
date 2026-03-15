@@ -853,3 +853,7 @@ body {
 .pb-safe {
   padding-bottom: env(safe-area-inset-bottom) !important;
 }
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top) !important;
+}
