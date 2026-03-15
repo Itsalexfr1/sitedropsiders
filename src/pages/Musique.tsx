@@ -99,7 +99,7 @@ export function Musique() {
 
             
             {/* Hero Section */}
-            <div className="relative h-[40vh] md:h-[50vh] w-full overflow-hidden">
+            <div className="relative h-[25vh] md:h-[35vh] w-full overflow-hidden">
                 <div className="absolute inset-0">
                     <img 
                         src="/music_hero_background_1773611643174.png" 
@@ -124,7 +124,7 @@ export function Musique() {
             </div>
 
             {/* Platform & Tabs Navigation */}
-            <div className="sticky top-0 z-[100] bg-[#020202]/80 backdrop-blur-2xl border-b border-white/5 py-6">
+            <div className="sticky top-0 z-[100] bg-[#020202]/80 backdrop-blur-2xl border-b border-white/5 py-3">
                 <div className="max-w-7xl mx-auto px-4 flex flex-col md:flex-row items-center justify-between gap-8">
                     <div className="flex items-center gap-1 bg-white/5 p-1 rounded-2xl border border-white/10">
                         {platforms.map(p => (
