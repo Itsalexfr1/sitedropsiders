@@ -32,7 +32,14 @@ export function MobileHome() {
 
     // 3. Recaps
     const recapsHighlight = useMemo(() => {
-        return [...recapsData].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 6);
+        return [...recapsData]
+            .sort((a, b) => {
+                const yearA = Number(a.year) || new Date(a.date).getFullYear();
+                const yearB = Number(b.year) || new Date(b.date).getFullYear();
+                if (yearB !== yearA) return yearB - yearA;
+                return new Date(b.date).getTime() - new Date(a.date).getTime();
+            })
+            .slice(0, 6);
     }, []);
 
     // 4. Interviews

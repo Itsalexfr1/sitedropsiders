@@ -16,6 +16,12 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
         const today = new Date().toISOString().split('T')[0];
         return (recapsData as any[])
             .filter(item => (item.date || '').substring(0, 10) <= today)
+            .sort((a, b) => {
+                const yearA = Number(a.year) || new Date(a.date).getFullYear();
+                const yearB = Number(b.year) || new Date(b.date).getFullYear();
+                if (yearB !== yearA) return yearB - yearA;
+                return new Date(b.date).getTime() - new Date(a.date).getTime();
+            })
             .slice(0, 12);
     }, []);
 
