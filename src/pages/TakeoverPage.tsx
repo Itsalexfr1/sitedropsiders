@@ -1707,7 +1707,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     };
 
     return (
-        <div className="fixed inset-0 bg-[#050505] flex flex-col font-sans select-none overflow-hidden z-[100]">
+        <div className="fixed inset-0 bg-dark-bg flex flex-col font-sans select-none overflow-hidden z-[100]">
+            {/* Background Ambient Glows */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-red/10 animate-pulse transition-all duration-1000" />
+                <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-cyan/5 animate-pulse [animation-delay:2s] transition-all duration-1000" />
+            </div>
             <style>
                 {`
                     .italic-bold { font-style: italic; font-weight: 900 !important; }
