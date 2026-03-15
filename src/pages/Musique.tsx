@@ -350,69 +350,24 @@ export function Musique() {
                                                             </div>
                                                         ) : (
                                                             /* Standard Player View */
-                                                            <div className="bg-black/5 p-6 md:p-8 relative overflow-hidden">
-                                                                <div className="flex flex-col md:flex-row items-stretch gap-8 relative z-10">
-                                                                    <div className="flex-1 w-full space-y-6 text-black">
-                                                                        <div className="space-y-1">
-                                                                            <div className="flex items-center gap-2">
-                                                                                <span className="px-2 py-0.5 bg-black text-white rounded-full text-[8px] font-black uppercase tracking-[0.2em]">Preview</span>
-                                                                                <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Direct from Beatport/Traxsource</span>
-                                                                            </div>
-                                                                            <h4 className="text-3xl font-black italic uppercase tracking-tighter leading-none">{track.title}</h4>
+                                                            <div className="bg-black/5 p-4 md:p-6 lg:p-8">
+                                                                <div className="max-w-4xl mx-auto">
+                                                                    {track.embedUrl ? (
+                                                                        <div className="rounded-3xl overflow-hidden border border-black/10 bg-white shadow-xl">
+                                                                            <iframe 
+                                                                                width="100%" 
+                                                                                height="160" 
+                                                                                src={track.embedUrl} 
+                                                                                frameBorder="0"
+                                                                                className="block w-full"
+                                                                            />
                                                                         </div>
-
-                                                                        {track.embedUrl && (
-                                                                            <div className="rounded-2xl overflow-hidden border border-black/10 bg-white shadow-sm">
-                                                                                <iframe 
-                                                                                    width="100%" 
-                                                                                    height="100" 
-                                                                                    src={track.embedUrl} 
-                                                                                    frameBorder="0"
-                                                                                    className="bg-white"
-                                                                                />
-                                                                            </div>
-                                                                        )}
-
-                                                                        <div className="h-8 flex items-end gap-0.5 px-2">
-                                                                            {Array.from({ length: 60 }).map((_, i) => (
-                                                                                <motion.div
-                                                                                    key={i}
-                                                                                    className="flex-1 bg-black rounded-full"
-                                                                                    animate={{
-                                                                                        height: isPlaying ? [
-                                                                                            Math.random() * 100 + "%",
-                                                                                            Math.random() * 30 + "%",
-                                                                                            Math.random() * 80 + "%"
-                                                                                        ] : "10%"
-                                                                                    }}
-                                                                                    transition={{
-                                                                                        duration: 0.6,
-                                                                                        repeat: Infinity,
-                                                                                        delay: i * 0.01,
-                                                                                    }}
-                                                                                />
-                                                                            ))}
+                                                                    ) : (
+                                                                        <div className="py-12 flex flex-col items-center justify-center text-black/20 space-y-4">
+                                                                            <Disc className="w-12 h-12 animate-spin-slow opacity-20" />
+                                                                            <p className="text-[10px] font-black uppercase tracking-widest italic">No preview available from provider</p>
                                                                         </div>
-
-                                                                        <div className="flex flex-wrap items-center gap-4">
-                                                                            <a
-                                                                                href={track.url}
-                                                                                target="_blank"
-                                                                                className="px-8 py-4 bg-black text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
-                                                                            >
-                                                                                Buy on {activeTab === 'beatport' ? 'Beatport' : 'Traxsource'}
-                                                                            </a>
-                                                                            <button className="px-8 py-4 bg-white border border-black/10 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-md transition-all">
-                                                                                Add to Library
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-
-                                                                    {/* Artwork Placeholder for Premium Feel */}
-                                                                    <div className="hidden lg:block w-48 h-48 rounded-[32px] bg-black/10 border border-black/5 relative overflow-hidden group/art">
-                                                                        <EqualizerLoader count={6} className="absolute inset-0 m-auto scale-110 rotate-90" />
-                                                                        <div className="absolute inset-0 bg-gradient-to-br from-neon-red/5 via-neon-cyan/5 to-neon-purple/5" />
-                                                                    </div>
+                                                                    )}
                                                                 </div>
                                                             </div>
                                                         )}
