@@ -304,45 +304,45 @@ export function Musique() {
                                                     >
                                                         {track.tracks ? (
                                                             /* Live Tracklist View */
-                                                            <div className="bg-black/5 p-8 md:p-12 space-y-12">
-                                                                <div className="grid md:grid-cols-2 gap-12">
-                                                                    <div className="space-y-8">
-                                                                        <div className="space-y-2">
-                                                                            <h4 className="text-black text-4xl font-black italic uppercase tracking-tighter leading-none">Complete Tracklist</h4>
-                                                                            <p className="text-black/40 text-[10px] font-black uppercase tracking-widest italic">Live Broadcast</p>
+                                                            <div className="bg-black/5 p-6 md:p-8 space-y-8">
+                                                                <div className="grid md:grid-cols-2 gap-8">
+                                                                    <div className="space-y-6">
+                                                                        <div className="space-y-1">
+                                                                            <h4 className="text-black text-2xl font-black italic uppercase tracking-tighter leading-none">Complete Tracklist</h4>
+                                                                            <p className="text-black/40 text-[8px] font-black uppercase tracking-widest italic">Live Broadcast</p>
                                                                         </div>
                                                                         
-                                                                        <div className="space-y-1">
+                                                                        <div className="space-y-0.5">
                                                                             {track.tracks.map((t, idx) => (
-                                                                                <div key={idx} className="flex items-center gap-6 py-4 border-b border-black/5 group/t-item">
-                                                                                    <span className="text-xs font-black text-black/20 w-8">{idx + 1}</span>
+                                                                                <div key={idx} className="flex items-center gap-4 py-2 border-b border-black/5 group/t-item">
+                                                                                    <span className="text-[10px] font-black text-black/20 w-6">{idx + 1}</span>
                                                                                     <div className="flex-1 min-w-0">
-                                                                                        <p className="text-sm font-black text-black uppercase tracking-tight truncate group-hover/t-item:text-neon-purple transition-colors">
+                                                                                        <p className="text-[11px] font-black text-black uppercase tracking-tight truncate group-hover/t-item:text-neon-purple transition-colors">
                                                                                             {t.title}
                                                                                         </p>
-                                                                                        <p className="text-[10px] font-bold text-black/40 uppercase tracking-widest">{t.artist}</p>
+                                                                                        <p className="text-[8px] font-bold text-black/40 uppercase tracking-widest">{t.artist}</p>
                                                                                     </div>
-                                                                                    {t.time && <span className="text-[10px] font-black text-black/40 tabular-nums">{t.time}</span>}
+                                                                                    {t.time && <span className="text-[8px] font-black text-black/40 tabular-nums">{t.time}</span>}
                                                                                 </div>
                                                                             ))}
                                                                         </div>
                                                                     </div>
 
-                                                                    <div className="space-y-8">
+                                                                    <div className="space-y-6">
                                                                         {track.embedUrl ? (
-                                                                            <div className="rounded-[40px] overflow-hidden border border-black/10 bg-black shadow-2xl">
+                                                                            <div className="rounded-2xl overflow-hidden border border-black/10 bg-black shadow-lg">
                                                                                 <iframe 
                                                                                     width="100%" 
-                                                                                    height="400" 
+                                                                                    height="120" 
                                                                                     src={track.embedUrl} 
                                                                                     frameBorder="0"
                                                                                     className="grayscale brightness-110"
                                                                                 />
                                                                             </div>
                                                                         ) : (
-                                                                            <div className="aspect-square rounded-[40px] bg-black flex flex-col items-center justify-center p-12 text-center text-white space-y-4">
-                                                                                <Disc className="w-16 h-16 animate-spin-slow opacity-20" />
-                                                                                <p className="text-xs font-black uppercase tracking-widest text-white/40">No preview player available for this broadcast</p>
+                                                                            <div className="aspect-video rounded-2xl bg-black flex flex-col items-center justify-center p-8 text-center text-white space-y-2">
+                                                                                <Disc className="w-8 h-8 animate-spin-slow opacity-20" />
+                                                                                <p className="text-[8px] font-black uppercase tracking-widest text-white/40">No preview available</p>
                                                                             </div>
                                                                         )}
                                                                     </div>
@@ -350,19 +350,30 @@ export function Musique() {
                                                             </div>
                                                         ) : (
                                                             /* Standard Player View */
-                                                            <div className="bg-black/5 p-8 md:p-12 relative overflow-hidden">
-                                                                <div className="flex flex-col md:flex-row items-center gap-12 relative z-10">
-                                                                    <div className="flex-1 w-full space-y-8 text-black">
-                                                                        <div className="space-y-2">
-                                                                            <div className="flex items-center gap-3">
-                                                                                <span className="px-3 py-1 bg-black text-white rounded-full text-[9px] font-black uppercase tracking-[0.2em]">High Res Audio</span>
-                                                                                <span className="text-[10px] font-black uppercase tracking-[0.2em] opacity-40">Previewing Full Track</span>
+                                                            <div className="bg-black/5 p-6 md:p-8 relative overflow-hidden">
+                                                                <div className="flex flex-col md:flex-row items-stretch gap-8 relative z-10">
+                                                                    <div className="flex-1 w-full space-y-6 text-black">
+                                                                        <div className="space-y-1">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <span className="px-2 py-0.5 bg-black text-white rounded-full text-[8px] font-black uppercase tracking-[0.2em]">Preview</span>
+                                                                                <span className="text-[9px] font-black uppercase tracking-[0.2em] opacity-40">Direct from Beatport/Traxsource</span>
                                                                             </div>
-                                                                            <h4 className="text-5xl font-black italic uppercase tracking-tighter leading-none">{track.title}</h4>
+                                                                            <h4 className="text-3xl font-black italic uppercase tracking-tighter leading-none">{track.title}</h4>
                                                                         </div>
 
-                                                                        {/* Visualizer */}
-                                                                        <div className="h-16 flex items-end gap-1 px-2 mb-12">
+                                                                        {track.embedUrl && (
+                                                                            <div className="rounded-2xl overflow-hidden border border-black/10 bg-white shadow-sm">
+                                                                                <iframe 
+                                                                                    width="100%" 
+                                                                                    height="100" 
+                                                                                    src={track.embedUrl} 
+                                                                                    frameBorder="0"
+                                                                                    className="bg-white"
+                                                                                />
+                                                                            </div>
+                                                                        )}
+
+                                                                        <div className="h-8 flex items-end gap-0.5 px-2">
                                                                             {Array.from({ length: 60 }).map((_, i) => (
                                                                                 <motion.div
                                                                                     key={i}
@@ -383,24 +394,24 @@ export function Musique() {
                                                                             ))}
                                                                         </div>
 
-                                                                        <div className="flex flex-wrap items-center gap-6">
+                                                                        <div className="flex flex-wrap items-center gap-4">
                                                                             <a
                                                                                 href={track.url}
                                                                                 target="_blank"
-                                                                                className="px-10 py-5 bg-black text-white rounded-2xl font-black text-xs uppercase tracking-widest hover:scale-105 transition-all shadow-xl"
+                                                                                className="px-8 py-4 bg-black text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:scale-105 transition-all shadow-lg"
                                                                             >
-                                                                                Buy on Beatport
+                                                                                Buy on {activeTab === 'beatport' ? 'Beatport' : 'Traxsource'}
                                                                             </a>
-                                                                            <button className="px-10 py-5 bg-white border border-black/10 rounded-2xl font-black text-xs uppercase tracking-widest hover:shadow-lg transition-all">
-                                                                                Save to Favourites
+                                                                            <button className="px-8 py-4 bg-white border border-black/10 rounded-xl font-black text-[10px] uppercase tracking-widest hover:shadow-md transition-all">
+                                                                                Add to Library
                                                                             </button>
                                                                         </div>
                                                                     </div>
 
                                                                     {/* Artwork Placeholder for Premium Feel */}
-                                                                    <div className="hidden lg:block w-72 h-72 rounded-[60px] bg-black/10 border border-black/5 relative overflow-hidden group/art">
-                                                                        <EqualizerLoader count={8} className="absolute inset-0 m-auto scale-150 rotate-90" />
-                                                                        <div className="absolute inset-0 bg-gradient-to-br from-neon-red/10 via-neon-cyan/10 to-neon-purple/10" />
+                                                                    <div className="hidden lg:block w-48 h-48 rounded-[32px] bg-black/10 border border-black/5 relative overflow-hidden group/art">
+                                                                        <EqualizerLoader count={6} className="absolute inset-0 m-auto scale-110 rotate-90" />
+                                                                        <div className="absolute inset-0 bg-gradient-to-br from-neon-red/5 via-neon-cyan/5 to-neon-purple/5" />
                                                                     </div>
                                                                 </div>
                                                             </div>
