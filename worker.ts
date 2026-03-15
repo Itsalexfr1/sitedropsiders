@@ -6842,7 +6842,7 @@ ${urls.map(u => `  <url>
                     { "rank": 10, "id": "24133364", "title": "I Can't Wait (Extended)", "artist": "Bob Sinclar, Kiesza", "label": "Yellow Productions", "url": "https://www.beatport.com/track/i-cant-wait/24133364", "embedUrl": "https://embed.beatport.com/?id=24133364&type=track" }
                 ],
                 traxsource: [
-                    { id: 'ts-14359025', rank: 1, title: 'Take Me Up (ft. Donna Blakely)', artist: 'Ralphi Rosario, Bob Sinclar', label: 'Altra Moda Music', url: 'https://traxsource.com/track/14359025/take-me-up-ft-donna-blakely', embedUrl: 'https://embed.traxsource.com/player/track/14359025?autoplay=1&play=1' },
+                    { id: 'ts-14359025', rank: 1, title: 'Take Me Up (ft. Donna Blakely)', artist: 'Ralphi Rosario, Bob Sinclar', label: 'Altra Moda Music', url: 'https://traxsource.com/track/14359025/take-me-up-ft-donna-blakely', embedUrl: 'https://embed.traxsource.com/player/track/14359025' },
                     { id: 'ts-14359001', rank: 2, title: 'Need You Tonight', artist: 'David Penn', label: 'Defected', url: '#', embedUrl: 'https://embed.traxsource.com/player/track/14359001' },
                     { id: 'ts-14359002', rank: 3, title: 'Afraid To Feel', artist: 'LF SYSTEM', label: 'Warner', url: '#', embedUrl: 'https://embed.traxsource.com/player/track/14359002' },
                     { id: 'ts-14359003', rank: 4, title: 'Keep Pushing', artist: 'Boris Dlugosch', label: 'Peppermint', url: '#', embedUrl: 'https://embed.traxsource.com/player/track/14359003' },
@@ -6854,7 +6854,7 @@ ${urls.map(u => `  <url>
                     { id: 'ts-14359009', rank: 10, title: 'Your Love', artist: 'Frankie Knuckles', label: 'Trax', url: '#', embedUrl: 'https://embed.traxsource.com/player/track/14359009' }
                 ],
                 juno: [
-                    { id: 'jn-7425809-02', rank: 1, title: 'Bombaclart (Furniss remix)', artist: 'Furniss / Majistrate', label: 'Low Down Deep Recordings', url: 'https://www.junodownload.com/products/bombaclart-furniss-remix/7425809-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7425809-02.m3u/?autoplay=1' },
+                    { id: 'jn-7425809-02', rank: 1, title: 'Bombaclart (Furniss remix)', artist: 'Furniss / Majistrate', label: 'Low Down Deep Recordings', url: 'https://www.junodownload.com/products/bombaclart-furniss-remix/7425809-02/?track_number=1', embedUrl: 'https://www.junodownload.com/player-embed/7425809-02.m3u/' },
                     { id: 'jn-7425801', rank: 2, title: 'Original Nuttah', artist: 'UK Apache & Shy FX', label: 'SOUR', url: '#', embedUrl: 'https://www.junodownload.com/player-embed/7425801' },
                     { id: 'jn-7425802', rank: 3, title: 'Tour', artist: 'Macky Gee', label: 'Elevate', url: '#', embedUrl: 'https://www.junodownload.com/player-embed/7425802' },
                     { id: 'jn-7425803', rank: 4, title: 'Afterglow', artist: 'Wilkinson', label: 'RAM', url: '#', embedUrl: 'https://www.junodownload.com/player-embed/7425803' },

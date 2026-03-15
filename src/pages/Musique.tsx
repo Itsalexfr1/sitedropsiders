@@ -334,7 +334,7 @@ export function Musique() {
                                                                                 <iframe 
                                                                                     width="100%" 
                                                                                     height="120" 
-                                                                                    src={track.embedUrl} 
+                                                                                    src={track.embedUrl?.includes('?') ? `${track.embedUrl}&autoplay=0` : `${track.embedUrl}?autoplay=0`} 
                                                                                     frameBorder="0"
                                                                                     className="grayscale brightness-110"
                                                                                 />
@@ -357,7 +357,7 @@ export function Musique() {
                                                                             <iframe 
                                                                                 width="100%" 
                                                                                 height="160" 
-                                                                                src={track.embedUrl} 
+                                                                                src={track.embedUrl?.includes('?') ? `${track.embedUrl}&autoplay=0` : `${track.embedUrl}?autoplay=0`} 
                                                                                 frameBorder="0"
                                                                                 className="block w-full"
                                                                             />
