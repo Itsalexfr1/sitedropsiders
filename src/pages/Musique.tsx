@@ -320,10 +320,10 @@ export function Musique() {
 
                                                                     <div className="space-y-6">
                                                                         {track.embedUrl ? (
-                                                                            <div className="rounded-2xl overflow-hidden border border-black/10 bg-black shadow-lg">
+                                                                            <div className="rounded-xl overflow-hidden border border-black/10 bg-black shadow-lg">
                                                                                 <iframe 
                                                                                     width="100%" 
-                                                                                    height="162" 
+                                                                                    height={track.id.startsWith('ts-') ? "210" : "170"} 
                                                                                     src={track.embedUrl?.includes('?') ? `${track.embedUrl}&autoplay=0` : `${track.embedUrl}?autoplay=0`} 
                                                                                     frameBorder="0"
                                                                                     scrolling="no"
@@ -344,10 +344,10 @@ export function Musique() {
                                                             <div className="bg-black/5 p-4 md:p-6 lg:p-8">
                                                                 <div className="max-w-4xl mx-auto">
                                                                     {track.embedUrl ? (
-                                                                        <div className="rounded-3xl overflow-hidden border border-black/10 bg-white shadow-xl">
+                                                                        <div className="rounded-xl overflow-hidden border border-black/10 bg-white shadow-xl">
                                                                             <iframe 
                                                                                 width="100%" 
-                                                                                height="162" 
+                                                                                height={track.id.startsWith('ts-') ? "210" : "170"} 
                                                                                 src={track.embedUrl?.includes('?') ? `${track.embedUrl}&autoplay=0` : `${track.embedUrl}?autoplay=0`} 
                                                                                 frameBorder="0"
                                                                                 scrolling="no"
@@ -394,7 +394,7 @@ export function Musique() {
                                                 transition={{ delay: i * 0.1 }}
                                                 className="group space-y-6"
                                             >
-                                                <div className="aspect-square rounded-[60px] overflow-hidden bg-white/5 border border-white/10 relative shadow-2xl transition-all duration-700 group-hover:shadow-[0_40px_80px_rgba(0,0,0,0.5)] group-hover:border-white/20">
+                                                <div className="aspect-square rounded-[32px] overflow-hidden bg-white/5 border border-white/10 relative shadow-2xl transition-all duration-700 group-hover:shadow-[0_40px_80px_rgba(0,0,0,0.5)] group-hover:border-white/20">
                                                     <img 
                                                         src={release.image} 
                                                         alt={release.title} 
