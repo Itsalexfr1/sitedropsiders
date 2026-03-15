@@ -323,10 +323,11 @@ export function Musique() {
                                                                             <div className="rounded-2xl overflow-hidden border border-black/10 bg-black shadow-lg">
                                                                                 <iframe 
                                                                                     width="100%" 
-                                                                                    height="120" 
+                                                                                    height="162" 
                                                                                     src={track.embedUrl?.includes('?') ? `${track.embedUrl}&autoplay=0` : `${track.embedUrl}?autoplay=0`} 
                                                                                     frameBorder="0"
-                                                                                    className="grayscale brightness-110"
+                                                                                    scrolling="no"
+                                                                                    className="grayscale brightness-110 overflow-hidden"
                                                                                 />
                                                                             </div>
                                                                         ) : (
@@ -346,10 +347,11 @@ export function Musique() {
                                                                         <div className="rounded-3xl overflow-hidden border border-black/10 bg-white shadow-xl">
                                                                             <iframe 
                                                                                 width="100%" 
-                                                                                height="160" 
+                                                                                height="162" 
                                                                                 src={track.embedUrl?.includes('?') ? `${track.embedUrl}&autoplay=0` : `${track.embedUrl}?autoplay=0`} 
                                                                                 frameBorder="0"
-                                                                                className="block w-full"
+                                                                                scrolling="no"
+                                                                                className="block w-full overflow-hidden"
                                                                             />
                                                                         </div>
                                                                     ) : (
