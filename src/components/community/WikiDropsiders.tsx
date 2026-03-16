@@ -25,7 +25,6 @@ function loadVotes(): Set<string> { try { return new Set(JSON.parse(localStorage
 function saveVotes(v: Set<string>) { localStorage.setItem(VOTE_KEY, JSON.stringify([...v])); }
 
 const initialData: DjEntry[] = (DJ_DATA_RAW as any[])
-    .filter(dj => dj.status !== 'waiting')
     .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
 
 function groupByLetter(data: DjEntry[]): Record<string, DjEntry[]> {
