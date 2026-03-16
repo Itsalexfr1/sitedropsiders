@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, X, Youtube, Heart } from 'lucide-react';
 import { apiFetch, getAuthHeaders } from '../../utils/auth';
@@ -41,6 +41,24 @@ export function WikiDropsiders() {
     const { t, language } = useLanguage();
     const [search, setSearch] = useState('');
     const [djData, setDjData] = useState<DjEntry[]>(initialData);
+
+    useEffect(() => {
+        const fetchLive = async () => {
+            try {
+                const res = await fetch('/api/wiki/list?type=DJS');
+                if (res.ok) {
+                    const data: DjEntry[] = await res.json();
+                    setDjData(data
+                        .filter(dj => dj.status !== 'waiting')
+                        .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }))
+                    );
+                }
+            } catch (error) {
+                console.error('Failed to fetch live wiki data:', error);
+            }
+        };
+        fetchLive();
+    }, []);
     const [selectedDj, setSelectedDj] = useState<DjEntry | null>(null);
     const [votes, setVotes] = useState<Set<string>>(() => loadVotes());
     const isAdmin = localStorage.getItem('admin_auth') === 'true';

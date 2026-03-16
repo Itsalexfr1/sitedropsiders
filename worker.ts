@@ -3148,6 +3148,24 @@ ${urls.map(u => `  <url>
 
         }
 
+        if (path === '/api/wiki/list' && request.method === 'GET') {
+            try {
+                const type = url.searchParams.get('type');
+                let filePath = '';
+                if (type === 'DJS') filePath = WIKI_DJS_PATH;
+                else if (type === 'CLUBS') filePath = WIKI_CLUBS_PATH;
+                else if (type === 'FESTIVALS') filePath = WIKI_FESTIVALS_PATH;
+                else return new Response(JSON.stringify({ error: 'Invalid type' }), { status: 400, headers });
+
+                const file = await fetchGitHubFile(filePath, gitConfig);
+                if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+
+                return new Response(JSON.stringify(file.content), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/wiki/update-photo' && request.method === 'POST') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {

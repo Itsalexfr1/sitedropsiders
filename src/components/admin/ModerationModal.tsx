@@ -53,10 +53,21 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
                 setSubmissions(Array.isArray(data) ? data : []);
             }
             
-            // Fetch wiki waiting items
-            const djs = (WIKI_DJS as any[]).filter(d => d.status === 'waiting').map(d => ({ ...d, type: 'DJS' }));
-            const clubs = (WIKI_CLUBS as any[]).filter(c => c.status === 'waiting').map(c => ({ ...c, type: 'CLUBS' }));
-            const fests = (WIKI_FESTIVALS as any[]).filter(f => f.status === 'waiting').map(f => ({ ...f, type: 'FESTIVALS' }));
+            // Fetch wiki live data for real-time moderation
+            const [djsRes, clubsRes, festsRes] = await Promise.all([
+                fetch('/api/wiki/list?type=DJS'),
+                fetch('/api/wiki/list?type=CLUBS'),
+                fetch('/api/wiki/list?type=FESTIVALS')
+            ]);
+            
+            let djs: any[] = [];
+            let clubs: any[] = [];
+            let fests: any[] = [];
+            
+            if (djsRes.ok) djs = (await djsRes.json()).filter((d: any) => d.status === 'waiting').map((d: any) => ({ ...d, type: 'DJS' }));
+            if (clubsRes.ok) clubs = (await clubsRes.json()).filter((c: any) => c.status === 'waiting').map((c: any) => ({ ...c, type: 'CLUBS' }));
+            if (festsRes.ok) fests = (await festsRes.json()).filter((f: any) => f.status === 'waiting').map((f: any) => ({ ...f, type: 'FESTIVALS' }));
+            
             setWikiWaiting([...djs, ...clubs, ...fests]);
 
         } catch (error) {

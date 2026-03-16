@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen, Upload, Image as ImageIcon, Pencil } from 'lucide-react';
 import { ImageUploadModal } from '../ImageUploadModal';
@@ -68,6 +68,23 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
     const [isEditingPhoto, setIsEditingPhoto] = useState(false);
     const [addSuccess, setAddSuccess] = useState(false);
     const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
+    const [liveBaseData, setLiveBaseData] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchLive = async () => {
+            try {
+                const type = mode === 'clubs' ? 'CLUBS' : 'FESTIVALS';
+                const res = await fetch(`/api/wiki/list?type=${type}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setLiveBaseData(data.filter((v: any) => v.status !== 'waiting'));
+                }
+            } catch (error) {
+                console.error('Failed to fetch live wiki data:', error);
+            }
+        };
+        fetchLive();
+    }, [mode]);
 
     const reportBrokenImage = async (id: string) => {
         try {
@@ -84,7 +101,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
     const votes = mode === 'clubs' ? clubVotes : festVotes;
     const setVotes = mode === 'clubs' ? setClubVotes : setFestVotes;
     const voteKey = mode === 'clubs' ? VOTE_KEY_CLUBS : VOTE_KEY_FESTIVALS;
-    const baseData = (mode === 'clubs' ? (CLUBS_RAW as any[]) : (FESTIVALS_RAW as any[])).filter(v => v.status !== 'waiting');
+    const baseData = liveBaseData.length > 0 ? liveBaseData : (mode === 'clubs' ? (CLUBS_RAW as any[]) : (FESTIVALS_RAW as any[])).filter(v => v.status !== 'waiting');
     const customData = mode === 'clubs' ? customClubs : customFests;
 
     // Sort alphabetically and merge
