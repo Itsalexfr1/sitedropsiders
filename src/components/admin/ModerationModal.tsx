@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare, BookOpen, Edit2, Upload } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
+import { PromptModal } from '../ui/PromptModal';
 import WIKI_DJS from '../../data/wiki_djs.json';
 import WIKI_CLUBS from '../../data/wiki_clubs.json';
 import WIKI_FESTIVALS from '../../data/wiki_festivals.json';
@@ -27,6 +28,17 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [wikiWaiting, setWikiWaiting] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [promptState, setPromptState] = useState<{
+        isOpen: boolean;
+        itemId: string;
+        itemType: string;
+        itemName: string;
+    }>({
+        isOpen: false,
+        itemId: '',
+        itemType: '',
+        itemName: ''
+    });
 
     const fetchPending = async () => {
         setIsLoading(true);
@@ -81,10 +93,17 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
         }
     };
 
-    const handleUpdateWikiPhoto = async (id: string, type: string) => {
-        const imageUrl = prompt('Entrez l\'URL de la photo officielle :');
-        if (!imageUrl) return;
+    const handleUpdateWikiPhoto = (id: string, type: string, name: string) => {
+        setPromptState({
+            isOpen: true,
+            itemId: id,
+            itemType: type,
+            itemName: name
+        });
+    };
 
+    const confirmWikiPhoto = async (imageUrl: string) => {
+        const { itemId: id, itemType: type } = promptState;
         try {
             const response = await fetch('/api/wiki/update-photo', {
                 method: 'POST',
@@ -272,10 +291,13 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
                                                 <span className="text-[9px] font-black uppercase tracking-widest">En attente de photo officielle</span>
                                             </div>
                                             <button 
-                                                onClick={() => handleUpdateWikiPhoto(item.id, item.type)}
-                                                className="w-full py-3 bg-white/5 border border-white/10 hover:bg-neon-red/10 hover:border-neon-red/30 hover:text-neon-red text-gray-400 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+                                                onClick={() => handleUpdateWikiPhoto(item.id, item.type, item.name)}
+                                                className="group relative w-full h-14 bg-neon-purple text-white font-black rounded-2xl shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 overflow-hidden"
                                             >
-                                                <Edit2 className="w-3.5 h-3.5" /> METTRE À JOUR LA PHOTO
+                                                <span className="relative z-10 flex items-center gap-2">
+                                                    <Edit2 className="w-3.5 h-3.5" /> METTRE À JOUR LA PHOTO
+                                                </span>
+                                                <div className="absolute bottom-0 right-0 w-0 h-0 border-b-[12px] border-r-[12px] border-b-transparent border-r-white/40" />
                                             </button>
                                         </div>
                                     ))}
@@ -283,6 +305,14 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
                             )
                         )}
                     </div>
+
+                    <PromptModal
+                        isOpen={promptState.isOpen}
+                        onClose={() => setPromptState(prev => ({ ...prev, isOpen: false }))}
+                        onConfirm={confirmWikiPhoto}
+                        title={promptState.itemName}
+                        message={`URL de la photo officielle pour ${promptState.itemName} :`}
+                    />
 
                     {/* Footer */}
                     <div className="p-6 bg-black/40 border-t border-white/5 text-center">
