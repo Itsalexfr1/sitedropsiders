@@ -167,18 +167,6 @@
     "columns": 1
   },
   {
-    "title": "LIVESTREAM",
-    "description": "Gérer le direct",
-    "icon": "Zap",
-    "category": "STUDIO",
-    "link": "#",
-    "color": "border-neon-red/20 hover:border-neon-red",
-    "bg": "bg-neon-red/5",
-    "permission": "superadmin",
-    "baseColor": "#ff0000",
-    "columns": 1
-  },
-  {
     "title": "Downloader",
     "description": "Outil Médias",
     "icon": "Download",

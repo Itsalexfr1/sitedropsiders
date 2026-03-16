@@ -1408,7 +1408,7 @@ export function AdminDashboard() {
                                 </button>
                             )}
                         </div>
-                        <div className="flex flex-wrap items-center gap-2">
+                        <div className="flex flex-wrap items-center gap-6">
                             <button
                                 onClick={fetchActions}
                                 className="w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl md:rounded-full text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all gap-2"
@@ -1480,7 +1480,7 @@ export function AdminDashboard() {
                 </motion.div>
 
                 {/* Dashboard Tabs - Navigation Mobile Optimize */}
-                <div className="mb-12 overflow-x-auto pb-4 no-scrollbar">
+                <div className="mb-20 overflow-x-auto pb-4 no-scrollbar">
                     <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 w-max mx-auto md:mx-0">
                         {DASHBOARD_TABS.map((tab) => {
                             const isActive = dashboardTab === tab.id;
@@ -1861,7 +1861,7 @@ export function AdminDashboard() {
                             </div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
                         <AnimatePresence>
                             {filteredActions.map((action) => {
                                 const globalIndex = filteredActions.findIndex(a => a.title === action.title);
@@ -2003,9 +2003,7 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'Newsletter' || action.title === 'Abonnés') {
                                                     e.preventDefault();
                                                     setIsNewsletterModalOpen(true);
-                                                } else if (action.title === 'LIVE / TAKEOVER') {
-                                                    // Redirection directe vers le live
-                                                    navigate('/live');
+
                                                 } else if (action.link === 'social-studio' || action.title === 'Social Studio') {
                                                     e.preventDefault();
                                                     setIsSocialModalOpen(true);

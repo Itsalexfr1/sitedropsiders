@@ -89,10 +89,10 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
                             <Sparkles className="w-6 h-6 text-neon-orange" />
                         </div>
                         <div>
-                            <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
+                            <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
                                 GÉNÉRATEUR <span className="text-neon-orange">PUBLI</span>
                             </h2>
-                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Outil réservé à Alex • Social Studio Engine</p>
+                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2">Outil réservé à Alex • Social Studio Engine</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-400 hover:text-white transition-all">
@@ -100,14 +100,14 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
                     </button>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 h-full">
+                <div className="flex-1 overflow-y-auto p-12 custom-scrollbar">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-16 h-full">
                         {/* Input Section */}
-                        <div className="flex flex-col gap-6">
-                            <div className="flex-1 flex flex-col gap-6">
+                        <div className="flex flex-col gap-10">
+                            <div className="flex-1 flex flex-col gap-10">
                                 <div className="flex-1 flex flex-col">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-3 flex items-center gap-2">
-                                        <Pencil className="w-3 h-3" /> TEXTE SOURCE / IDÉE
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-5 flex items-center gap-3">
+                                        <Pencil className="w-4 h-4" /> TEXTE SOURCE / IDÉE
                                     </label>
                                     <textarea
                                         value={sourceText}
@@ -119,8 +119,8 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
 
                                 {/* Image Upload Component */}
                                 <div className="bg-white/5 border border-white/10 rounded-3xl p-6">
-                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4 block flex items-center gap-2">
-                                        <ImageIcon className="w-3 h-3" /> PHOTO ASSOCIÉE
+                                    <label className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-6 block flex items-center gap-3">
+                                        <ImageIcon className="w-4 h-4" /> PHOTO ASSOCIÉE
                                     </label>
                                     
                                     <div className="flex items-center gap-4">
@@ -193,8 +193,8 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
                                 </div>
                             ) : (
                                 <AnimatePresence mode="popLayout">
-                                    <div className="space-y-4">
-                                        <div className="flex items-center justify-between mb-2">
+                                    <div className="space-y-8">
+                                        <div className="flex items-center justify-between mb-6">
                                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Aperçus générés</span>
                                             {onOpenSocialStudio && (
                                                 <button
@@ -216,9 +216,9 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
                                                 key={platform.id}
                                                 initial={{ opacity: 0, x: 20 }}
                                                 animate={{ opacity: 1, x: 0 }}
-                                                className="bg-white/5 border border-white/10 rounded-3xl p-6 group hover:border-white/20 transition-all"
+                                                className="bg-white/5 border border-white/10 rounded-3xl p-10 group hover:border-white/20 transition-all"
                                             >
-                                                <div className="flex items-center justify-between mb-3">
+                                                <div className="flex items-center justify-between mb-6">
                                                     <div className="flex items-center gap-2">
                                                         {platform.icon}
                                                         <span className="text-[10px] font-black text-white uppercase tracking-widest">{platform.title}</span>
