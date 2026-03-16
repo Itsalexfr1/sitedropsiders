@@ -20,7 +20,7 @@
     "bg": "bg-neon-pink/5",
     "permission": "social_studio",
     "baseColor": "#ff00d0",
-    "columns": 2,
+    "columns": 1,
     "category": "STUDIO"
   },
   {
