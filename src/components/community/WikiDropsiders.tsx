@@ -179,8 +179,8 @@ export function WikiDropsiders() {
                                     <motion.div key={dj.id} whileHover={{ y: -4, scale: 1.02 }}
                                         className={`group relative rounded-2xl overflow-hidden border transition-all duration-300 cursor-pointer ${selectedDj?.id === dj.id ? 'border-neon-red shadow-[0_0_20px_rgba(255,0,0,0.3)]' : 'border-white/10 hover:border-white/30'}`}>
 
-                                        {/* Photo — photo entière visible + fondu premium en bas */}
-                                        <div className="relative aspect-[3/4] bg-black overflow-hidden" onClick={() => handleSelectDj(dj)}>
+                                        {/* Photo — format 4/5 pour tout le monde pour cohérence */}
+                                        <div className="relative aspect-[4/5] bg-black overflow-hidden" onClick={() => handleSelectDj(dj)}>
                                             <img 
                                                 src={dj.image} 
                                                 alt={dj.name}
@@ -229,12 +229,12 @@ export function WikiDropsiders() {
                             transition={{ type: 'spring', damping: 28, stiffness: 260 }}
                             className="fixed right-0 top-0 h-full w-full max-w-xl bg-[#0a0a0a] border-l border-white/10 z-50 overflow-y-auto">
 
-                            {/* Hero image — photo entière visible + fondu stylé en bas */}
-                            <div className="relative w-full bg-black">
+                            {/* Hero image — ratio 4/5 fixe pour cohérence */}
+                            <div className="relative w-full aspect-[4/5] bg-black overflow-hidden">
                                 <img src={selectedDj.image} alt={selectedDj.name}
-                                    className="w-full h-auto block" style={{ background: 'black' }} />
+                                    className="w-full h-full object-cover" />
                                 {/* Gradient fade at bottom of image */}
-                                <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent pointer-events-none" />
+                                <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent pointer-events-none" />
                                 {/* Name on gradient */}
                                 <div className="absolute bottom-6 left-6 right-16">
                                     <div className="flex items-center gap-2 mb-1 flex-wrap">
@@ -367,7 +367,7 @@ export function WikiDropsiders() {
                 onClose={() => setShowImageModal(false)}
                 onUploadSuccess={handleUpdatePhoto}
                 accentColor="neon-red"
-                aspect={3/4}
+                aspect={4/5}
             />
         </div>
     );

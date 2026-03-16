@@ -289,7 +289,7 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
                                                     {item.type}
                                                 </span>
                                             </div>
-                                            <div className="aspect-video bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-600">
+                                            <div className="aspect-[4/5] bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-600">
                                                 <Upload className="w-8 h-8 opacity-20" />
                                                 <span className="text-[9px] font-black uppercase tracking-widest">En attente de photo officielle</span>
                                             </div>
@@ -334,7 +334,7 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
                             setIsUploadModalOpen(false);
                         }}
                         accentColor="neon-purple"
-                        aspect={promptState.itemType === 'DJS' ? 3/4 : 1}
+                        aspect={4/5}
                     />
 
                     {/* Footer */}
