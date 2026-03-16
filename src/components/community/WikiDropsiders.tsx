@@ -16,6 +16,7 @@ type DjEntry = {
     instagram?: string;
     beatport?: string;
     youtube?: string;
+    status?: string;
 };
 
 const VOTE_KEY = 'dropsiders_votes_djs';
@@ -46,8 +47,22 @@ export function WikiDropsiders() {
     const [editValues, setEditValues] = useState<Partial<DjEntry>>({});
     const [isSaving, setIsSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState('');
+    const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
 
-    const filtered = search ? djData.filter(dj => dj.name.toLowerCase().includes(search.toLowerCase())) : djData;
+    const reportBrokenImage = async (id: string) => {
+        try {
+            await fetch('/api/wiki/report-broken', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, type: 'DJS' })
+            });
+        } catch (e) {
+            console.error('Failed to report broken image:', e);
+        }
+    };
+
+    const filtered = (search ? djData.filter(dj => dj.name.toLowerCase().includes(search.toLowerCase())) : djData)
+        .filter(dj => !brokenImages.has(dj.id));
     const grouped = groupByLetter(filtered);
     const sortedLetters = Object.keys(grouped).sort();
     const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
@@ -80,8 +95,8 @@ export function WikiDropsiders() {
                 method: 'POST', headers: getAuthHeaders(),
                 body: JSON.stringify({ id: selectedDj.id, updates: editValues })
             });
-            setSaveMsg(res.ok ? '✓ Sauvegardé !' : '✓ Modifié en local');
-        } catch { setSaveMsg('✓ Modifié en local'); }
+            setSaveMsg(res.ok ? t('saved_success') : t('saved_local_fallback'));
+        } catch { setSaveMsg(t('saved_local_fallback')); }
         setEditMode(false); setIsSaving(false);
         setTimeout(() => setSaveMsg(''), 3000);
     };
@@ -140,8 +155,15 @@ export function WikiDropsiders() {
 
                                         {/* Photo — photo entière visible + fondu premium en bas */}
                                         <div className="relative aspect-[3/4] bg-black overflow-hidden" onClick={() => handleSelectDj(dj)}>
-                                            <img src={dj.image} alt={dj.name}
-                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                            <img 
+                                                src={dj.image} 
+                                                alt={dj.name}
+                                                onError={() => {
+                                                    setBrokenImages(prev => new Set([...prev, dj.id]));
+                                                    reportBrokenImage(dj.id);
+                                                }}
+                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                                            />
                                             {/* Fondu premium vers le bas */}
                                             <div className="absolute bottom-0 left-0 right-0 h-3/5 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
                                             {/* Name on gradient */}

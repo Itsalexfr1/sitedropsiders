@@ -67,7 +67,7 @@ export function MobileHome() {
 
     return (
         <div
-            className="flex flex-col gap-12 pb-32 bg-black min-h-screen overflow-x-hidden"
+            className="flex flex-col gap-12 pb-32 bg-dark-bg min-h-screen overflow-x-hidden"
         >
             {/* 1. Hero / Top News - Horizontal Scroll */}
             <section className="pt-8">

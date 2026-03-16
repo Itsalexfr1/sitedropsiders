@@ -62,6 +62,19 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
     const [addForm, setAddForm] = useState({ name: '', city: '', country: '', description: '', website: '', instagram: '', image: '' });
     const [showImageModal, setShowImageModal] = useState(false);
     const [addSuccess, setAddSuccess] = useState(false);
+    const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
+
+    const reportBrokenImage = async (id: string) => {
+        try {
+            await fetch('/api/wiki/report-broken', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id, type: mode === 'clubs' ? 'CLUBS' : 'FESTIVALS' })
+            });
+        } catch (e) {
+            console.error('Failed to report broken image:', e);
+        }
+    };
 
     const votes = mode === 'clubs' ? clubVotes : festVotes;
     const setVotes = mode === 'clubs' ? setClubVotes : setFestVotes;
@@ -76,8 +89,9 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
     }, [baseData, customData]);
 
     const filtered = allVenues.filter(v =>
-        v.name.toLowerCase().includes(search.toLowerCase()) ||
-        v.city.toLowerCase().includes(search.toLowerCase())
+        (v.name.toLowerCase().includes(search.toLowerCase()) ||
+        v.city.toLowerCase().includes(search.toLowerCase())) &&
+        !brokenImages.has(v.id)
     );
 
     const grouped = groupByLetter(filtered);
@@ -261,8 +275,15 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
 
                                         {/* Photo — format carré + logo contenu */}
                                         <div className="relative aspect-square bg-black overflow-hidden" onClick={() => setSelected(selected?.id === venue.id ? null : venue)}>
-                                            <img src={venue.image} alt={venue.name}
-                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                                            <img 
+                                                src={venue.image} 
+                                                alt={venue.name}
+                                                onError={() => {
+                                                    setBrokenImages(prev => new Set([...prev, venue.id]));
+                                                    reportBrokenImage(venue.id);
+                                                }}
+                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
+                                            />
                                             {/* Fondu premium réduit pour le format carré */}
                                             <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
                                             {/* Custom badge */}
