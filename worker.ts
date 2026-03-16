@@ -2900,7 +2900,8 @@ ${urls.map(u => `  <url>
         }
 
         // --- API: DELETE CONTENT ---
-        if (path.endsWith('/delete') && request.method === 'POST') {
+        const contentDeletePaths = ['/api/news/delete', '/api/recaps/delete', '/api/agenda/delete', '/api/galerie/delete'];
+        if (contentDeletePaths.includes(path) && request.method === 'POST') {
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
 
             try {
