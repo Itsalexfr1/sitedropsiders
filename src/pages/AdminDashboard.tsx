@@ -115,7 +115,6 @@ export function AdminDashboard() {
     const [wikiSearch, setWikiSearch] = useState('');
     const [isWikiLoading, setIsWikiLoading] = useState(false);
     const [wikiFilter, setWikiFilter] = useState<'DJS' | 'CLUBS' | 'FESTIVALS'>('DJS');
-    const [isWikiExpanded, setIsWikiExpanded] = useState(false);
     const [isEditWikiModalOpen, setIsEditWikiModalOpen] = useState(false);
     const [editingWikiEntry, setEditingWikiEntry] = useState<any>(null);
     const [isSavingWiki, setIsSavingWiki] = useState(false);
