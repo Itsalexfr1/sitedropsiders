@@ -713,20 +713,7 @@
     "status": "waiting",
     "description_en": "Ancienne usine de biscuits pour chiens, Sisyphos est un terrain de jeu géant où l'on se perd pendant des jours au son d'une techno solaire."
   },
-  {
-    "id": "c74",
-    "name": "About Blank",
-    "city": "Berlin",
-    "country": "DE",
-    "djmag_rank": 74,
-    "description": "Un club militant et underground situé à Ostkreuz, réputé pour son superbe jardin et ses soirées techno et house radicales.",
-    "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&q=80&sig=c74",
-    "website": "https://www.aboutblank.com",
-    "instagram": "https://instagram.com/aboutblank",
-    "votes": 0,
-    "status": "waiting",
-    "description_en": "Un club militant et underground situé à Ostkreuz, réputé pour son superbe jardin et ses soirées techno et house radicales."
-  },
+
   {
     "id": "c75",
     "name": "Robert Johnson",
