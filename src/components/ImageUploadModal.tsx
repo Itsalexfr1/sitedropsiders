@@ -68,9 +68,19 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, onClear, ac
                 const img = new Image();
                 img.src = reader.result as string;
                 img.onload = () => {
+                    // Min dimension check: 400px
+                    if (img.width < 400 || img.height < 400) {
+                        setStatus('error');
+                        setMessage(`Image trop petite (${img.width}x${img.height}). Minimum 400x400 requis pour la validation.`);
+                        // Reset file input
+                        e.target.value = '';
+                        return;
+                    }
                     setSelectedImage(reader.result as string);
                     setSelectedFile(file);
                     setStep('preview');
+                    setStatus('idle');
+                    setMessage('');
                 };
             };
         }

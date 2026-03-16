@@ -95,18 +95,22 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
         }
     };
 
+    const [activeItem, setActiveItem] = useState<{ id: string, type: string, name: string } | null>(null);
+
     const handleUpdateWikiPhoto = (id: string, type: string, name: string) => {
-        setPromptState({
-            isOpen: false,
-            itemId: id,
-            itemType: type,
-            itemName: name
-        });
+        setActiveItem({ id, type, name });
         setIsUploadModalOpen(true);
     };
 
-    const confirmWikiPhoto = async (imageUrl: string) => {
-        const { itemId: id, itemType: type } = promptState;
+    const confirmWikiPhoto = async (imageUrl: string, overrideId?: string, overrideType?: string) => {
+        const id = overrideId || activeItem?.id || promptState.itemId;
+        const type = overrideType || activeItem?.type || promptState.itemType;
+        
+        if (!id || !type) {
+            alert('Erreur: ID ou Type manquant');
+            return;
+        }
+
         try {
             const response = await fetch('/api/wiki/update-photo', {
                 method: 'POST',
@@ -119,14 +123,14 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
 
             if (response.ok) {
                 setWikiWaiting(prev => prev.filter(item => item.id !== id));
-                // Optionnel: rafraîchir les données locales si nécessaire
+                alert('✓ Photo validée ! L\'élément est maintenant en cours de publication sur le site (attendre 1-2 min le temps du déploiement).');
             } else {
                 const err = await response.json();
                 alert('Erreur : ' + (err.error || 'Inconnue'));
             }
         } catch (error) {
             console.error('Update error:', error);
-            alert('Erreur de connexion');
+            alert('Erreur de connexion lors de la validation');
         }
     };
 
@@ -319,7 +323,7 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
                         isOpen={promptState.isOpen}
                         onClose={() => setPromptState(prev => ({ ...prev, isOpen: false }))}
                         onConfirm={(url) => {
-                            confirmWikiPhoto(url);
+                            confirmWikiPhoto(url, promptState.itemId, promptState.itemType);
                             setPromptState(prev => ({ ...prev, isOpen: false }));
                         }}
                         title={promptState.itemName}
@@ -328,10 +332,14 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
 
                     <ImageUploadModal 
                         isOpen={isUploadModalOpen}
-                        onClose={() => setIsUploadModalOpen(false)}
+                        onClose={() => {
+                            setIsUploadModalOpen(false);
+                            setActiveItem(null);
+                        }}
                         onUploadSuccess={(url) => {
                             confirmWikiPhoto(url);
                             setIsUploadModalOpen(false);
+                            setActiveItem(null);
                         }}
                         accentColor="neon-purple"
                         aspect={4/5}
