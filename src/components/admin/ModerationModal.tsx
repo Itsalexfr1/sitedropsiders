@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare, BookOpen, Upload } from 'lucide-react';
+import { X, Check, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare, BookOpen, Upload, Plus } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
 import { PromptModal } from '../ui/PromptModal';
 import { ImageUploadModal } from '../ImageUploadModal';
@@ -39,6 +39,19 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
         itemName: ''
     });
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [isAddingWiki, setIsAddingWiki] = useState(false);
+    const [newWikiType, setNewWikiType] = useState<'DJS' | 'CLUBS' | 'FESTIVALS'>('DJS');
+    const [newWikiForm, setNewWikiForm] = useState({
+        name: '',
+        city: '',
+        country: 'Intl',
+        image: '',
+        instagram: '',
+        website: '',
+        spotify: '',
+        bio: ''
+    });
+    const [isSavingNewWiki, setIsSavingNewWiki] = useState(false);
 
     const fetchPending = async () => {
         setIsLoading(true);
@@ -167,6 +180,42 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
         }
     };
 
+    const handleAddWiki = async () => {
+        if (!newWikiForm.name || !newWikiForm.image || !newWikiForm.instagram || (!newWikiForm.website && !newWikiForm.spotify)) {
+            alert('Veuillez remplir les champs obligatoires : Nom, Photo, Instagram et Site/Spotify.');
+            return;
+        }
+
+        setIsSavingNewWiki(true);
+        try {
+            const entry = {
+                ...newWikiForm,
+                website: newWikiType !== 'DJS' ? newWikiForm.website : (newWikiForm.website || newWikiForm.spotify),
+                description: newWikiForm.bio,
+                description_en: newWikiForm.bio
+            };
+
+            const response = await fetch('/api/wiki/add', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify({ type: newWikiType, entry })
+            });
+
+            if (response.ok) {
+                setIsAddingWiki(false);
+                setNewWikiForm({ name: '', city: '', country: 'Intl', image: '', instagram: '', website: '', spotify: '', bio: '' });
+                fetchPending();
+            } else {
+                const err = await response.json();
+                alert('Erreur : ' + (err.error || 'Inconnue'));
+            }
+        } catch (error) {
+            console.error('Add error:', error);
+        } finally {
+            setIsSavingNewWiki(false);
+        }
+    };
+
     if (!isOpen) return null;
 
     return (
@@ -196,20 +245,28 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
                                 <h2 className="text-2xl font-black italic uppercase tracking-tighter text-white">
                                     MODÉRATION <span className="text-neon-green">COMMUNAUTÉ</span>
                                 </h2>
-                                <div className="flex gap-4 mt-2">
+                                <div className="flex items-center gap-4 mb-10">
+                                <motion.button whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}
+                                    onClick={() => setTab('photos')}
+                                    className={`relative px-8 py-3 rounded-2xl font-black uppercase italic tracking-widest text-xs transition-all ${tab === 'photos' ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,0,0,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
+                                    MODÉRATION PHOTOS ({submissions.length})
+                                </motion.button>
+                                <motion.button whileHover={{ y: -2 }} whileTap={{ scale: 0.98 }}
+                                    onClick={() => setTab('wiki')}
+                                    className={`relative px-8 py-3 rounded-2xl font-black uppercase italic tracking-widest text-xs transition-all ${tab === 'wiki' ? 'bg-neon-purple text-white shadow-[0_0_20px_rgba(168,85,247,0.3)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
+                                    VÉRIFIER PHOTOS ({wikiWaiting.length})
+                                </motion.button>
+                                
+                                <div className="ml-auto">
                                     <button 
-                                        onClick={() => setTab('photos')} 
-                                        className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg transition-all ${tab === 'photos' ? 'bg-neon-green text-black' : 'bg-white/5 text-gray-500 hover:text-white'}`}
+                                        onClick={() => setIsAddingWiki(true)}
+                                        className="px-6 py-3 bg-white/5 border border-white/10 hover:border-neon-red/50 text-white rounded-2xl font-black uppercase italic tracking-widest text-[10px] flex items-center gap-2 transition-all shadow-xl"
                                     >
-                                        Photos Viewers ({submissions.length})
-                                    </button>
-                                    <button 
-                                        onClick={() => setTab('wiki')} 
-                                        className={`text-[9px] font-black uppercase tracking-widest px-3 py-1.5 rounded-lg transition-all ${tab === 'wiki' ? 'bg-neon-red text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}
-                                    >
-                                        Wiki Waiting ({wikiWaiting.length})
+                                        <Plus className="w-3.5 h-3.5 text-neon-red" />
+                                        Ajouter au Wiki
                                     </button>
                                 </div>
+                            </div>
                             </div>
                         </div>
                         <button onClick={onClose} className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-white transition-all">
@@ -392,6 +449,68 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
                             DROPSIDERS MODERATION SYSTEM V2 • 01061988
                         </p>
                     </div>
+
+                    {/* Quick Add Wiki Modal */}
+                    <AnimatePresence>
+                        {isAddingWiki && (
+                            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 bg-black/90 backdrop-blur-md z-[100] flex items-center justify-center p-4">
+                                <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }} className="bg-[#0a0a0a] border border-white/10 rounded-[40px] w-full max-w-2xl overflow-hidden shadow-2xl">
+                                    <div className="p-8 border-b border-white/5 flex items-center justify-between">
+                                        <div>
+                                            <h3 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Nouvelle Entrée Wiki</h3>
+                                            <p className="text-[8px] font-black uppercase tracking-[0.3em] text-neon-red mt-1">Ajout manuel direct</p>
+                                        </div>
+                                        <button onClick={() => setIsAddingWiki(false)} className="p-2 hover:bg-white/5 rounded-full transition-colors"><X className="w-6 h-6 text-white" /></button>
+                                    </div>
+                                    
+                                    <div className="p-8 space-y-6 max-h-[70vh] overflow-y-auto">
+                                        <div className="grid grid-cols-3 gap-3">
+                                            {(['DJS', 'CLUBS', 'FESTIVALS'] as const).map(t => (
+                                                <button key={t} onClick={() => setNewWikiType(t)} className={`py-4 rounded-3xl font-black uppercase italic tracking-widest text-[10px] border transition-all ${newWikiType === t ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}>
+                                                    {t}
+                                                </button>
+                                            ))}
+                                        </div>
+
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="space-y-2">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2">Nom de l'entrée *</label>
+                                                <input type="text" value={newWikiForm.name} onChange={e => setNewWikiForm(p => ({ ...p, name: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white font-bold outline-none focus:border-neon-red transition-all" placeholder="Ex: Sebastian Ingrosso" />
+                                            </div>
+                                            {newWikiType !== 'DJS' && (
+                                                <div className="space-y-2">
+                                                    <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2">Ville *</label>
+                                                    <input type="text" value={newWikiForm.city} onChange={e => setNewWikiForm(p => ({ ...p, city: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white font-bold outline-none focus:border-neon-red transition-all" placeholder="Ex: Paris" />
+                                                </div>
+                                            )}
+                                            <div className="space-y-2">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2">URL de la photo *</label>
+                                                <input type="text" value={newWikiForm.image} onChange={e => setNewWikiForm(p => ({ ...p, image: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white font-bold outline-none focus:border-neon-red transition-all" placeholder="https://..." />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2">Lien Instagram *</label>
+                                                <input type="text" value={newWikiForm.instagram} onChange={e => setNewWikiForm(p => ({ ...p, instagram: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white font-bold outline-none focus:border-neon-red transition-all" placeholder="https://instagram.com/..." />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-[9px] font-black uppercase tracking-widest text-gray-500 ml-2">Site Officiel / Spotify *</label>
+                                                <input type="text" value={newWikiForm.website} onChange={e => setNewWikiForm(p => ({ ...p, website: e.target.value, spotify: e.target.value }))} className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 px-5 text-white font-bold outline-none focus:border-neon-red transition-all" placeholder="https://..." />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="p-8 border-t border-white/5 bg-black/40">
+                                        <button 
+                                            onClick={handleAddWiki}
+                                            disabled={isSavingNewWiki}
+                                            className="w-full py-5 bg-neon-red text-white font-black uppercase italic tracking-[0.3em] rounded-3xl shadow-[0_0_30px_rgba(255,0,0,0.2)] hover:shadow-[0_0_40px_rgba(255,0,0,0.4)] hover:scale-[1.01] active:scale-[0.99] transition-all disabled:opacity-50"
+                                        >
+                                            {isSavingNewWiki ? 'CRÉATION EN COURS...' : 'CONFIRMER L\'AJOUT'}
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                 </motion.div>
             </div>
         </div>

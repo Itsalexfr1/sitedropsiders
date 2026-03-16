@@ -3235,6 +3235,49 @@ ${urls.map(u => `  <url>
             }
         }
 
+        if (path === '/api/wiki/add' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { type, entry } = await request.json();
+                if (!type || !entry) return new Response(JSON.stringify({ error: 'Missing type or entry' }), { status: 400, headers });
+
+                let filePath = '';
+                if (type === 'DJS') filePath = WIKI_DJS_PATH;
+                else if (type === 'CLUBS') filePath = WIKI_CLUBS_PATH;
+                else if (type === 'FESTIVALS') filePath = WIKI_FESTIVALS_PATH;
+                else return new Response(JSON.stringify({ error: 'Invalid type' }), { status: 400, headers });
+
+                const file = await fetchGitHubFile(filePath, gitConfig);
+                if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+
+                // Find max ID
+                let maxId = 0;
+                file.content.forEach((item: any) => {
+                    const nid = parseInt(item.id);
+                    if (!isNaN(nid) && nid > maxId) maxId = nid;
+                });
+                const newId = (maxId + 1).toString();
+
+                const newEntry = {
+                    ...entry,
+                    id: newId,
+                    rating: entry.rating || "0.0",
+                    votes: entry.votes || 0
+                };
+
+                const newContent = [...file.content, newEntry];
+                const saved = await saveGitHubFile(filePath, newContent, `Add ${newEntry.name} to Wiki (${type})`, file.sha, gitConfig);
+                
+                if (!saved.ok) {
+                    return new Response(JSON.stringify({ error: saved.error }), { status: 500, headers });
+                }
+
+                return new Response(JSON.stringify({ success: true, id: newId }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/wiki/update' && request.method === 'POST') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
