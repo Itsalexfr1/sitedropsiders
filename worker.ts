@@ -3235,6 +3235,43 @@ ${urls.map(u => `  <url>
             }
         }
 
+        if (path === '/api/wiki/update' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { id, type, entry } = await request.json();
+                if (!id || !type || !entry) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+
+                let filePath = '';
+                if (type === 'DJS') filePath = WIKI_DJS_PATH;
+                else if (type === 'CLUBS') filePath = WIKI_CLUBS_PATH;
+                else if (type === 'FESTIVALS') filePath = WIKI_FESTIVALS_PATH;
+                else return new Response(JSON.stringify({ error: 'Invalid type' }), { status: 400, headers });
+
+                const file = await fetchGitHubFile(filePath, gitConfig);
+                if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+
+                const index = file.content.findIndex((item: any) => item.id === id);
+                if (index === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
+
+                // Update entry but keep ID and votes/rating if not provided
+                file.content[index] = {
+                    ...file.content[index],
+                    ...entry,
+                    id: id // Ensure ID never changes
+                };
+
+                const saved = await saveGitHubFile(filePath, file.content, `Update ${file.content[index].name} in Wiki (${type})`, file.sha, gitConfig);
+                
+                if (!saved.ok) {
+                    return new Response(JSON.stringify({ error: saved.error }), { status: 500, headers });
+                }
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/wiki/add' && request.method === 'POST') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
@@ -3273,42 +3310,7 @@ ${urls.map(u => `  <url>
                 }
 
                 return new Response(JSON.stringify({ success: true, id: newId }), { status: 200, headers });
-            } catch (e) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
-            }
-        }
-
-        if (path === '/api/wiki/update' && request.method === 'POST') {
-            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
-            try {
-                const { id, updates } = await request.json();
-                if (!id || !updates) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
-
-                // Try to find the item in all three files
-                const files = [
-                    { path: WIKI_DJS_PATH, type: 'DJS' },
-                    { path: WIKI_CLUBS_PATH, type: 'CLUBS' },
-                    { path: WIKI_FESTIVALS_PATH, type: 'FESTIVALS' }
-                ];
-
-                for (const fInfo of files) {
-                    const file = await fetchGitHubFile(fInfo.path, gitConfig);
-                    if (!file) continue;
-
-                    const index = file.content.findIndex(item => item.id === id);
-                    if (index !== -1) {
-                        // Found it! Apply updates
-                        file.content[index] = { ...file.content[index], ...updates };
-                        
-                        const saved = await saveGitHubFile(fInfo.path, file.content, `Update ${file.content[index].name} (${fInfo.type})`, file.sha, gitConfig);
-                        if (!saved.ok) return new Response(JSON.stringify({ error: saved.error }), { status: 500, headers });
-                        
-                        return new Response(JSON.stringify({ success: true }), { status: 200, headers });
-                    }
-                }
-
-                return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
-            } catch (e) {
+            } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
         }

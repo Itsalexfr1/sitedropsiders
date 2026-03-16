@@ -111,6 +111,15 @@ export function AdminDashboard() {
             image: all.filter(q => q.type === 'IMAGE').length
         };
     }, [allActiveQuizzes, allPendingQuizzes]);
+    const [wikiEntries, setWikiEntries] = useState<any[]>([]);
+    const [wikiSearch, setWikiSearch] = useState('');
+    const [isWikiLoading, setIsWikiLoading] = useState(false);
+    const [wikiFilter, setWikiFilter] = useState<'DJS' | 'CLUBS' | 'FESTIVALS'>('DJS');
+    const [isWikiExpanded, setIsWikiExpanded] = useState(false);
+    const [isEditWikiModalOpen, setIsEditWikiModalOpen] = useState(false);
+    const [editingWikiEntry, setEditingWikiEntry] = useState<any>(null);
+    const [isSavingWiki, setIsSavingWiki] = useState(false);
+
     interface TakeoverState {
         enabled: boolean;
         youtubeId: string;
@@ -176,12 +185,13 @@ export function AdminDashboard() {
     // GESTION TEAM STATES
     const [teamMembers, setTeamMembers] = useState<any[]>([]);
     const [editors, setEditors] = useState<any[]>([]);
-    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'CONTENU' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM' | 'CONCOURS'>('ALL');
+    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'WIKI' | 'CONTENU' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM' | 'CONCOURS'>('ALL');
 
     const DASHBOARD_TABS = [
         { id: 'ALL', label: 'Tout' },
         { id: 'TEAM', label: 'L\'Équipe & Éditeurs' },
         { id: 'CONCOURS', label: 'Jeux Concours' },
+        { id: 'WIKI', label: 'Wiki' },
         { id: 'NEWS', label: 'News' },
         { id: 'STUDIO', label: 'Studio' },
         { id: 'SHOP', label: 'Shop' }
@@ -219,6 +229,27 @@ export function AdminDashboard() {
             fetchQuizzes();
         }
     }, [isQuizModalOpen]);
+
+    useEffect(() => {
+        if (dashboardTab === 'WIKI') {
+            fetchWiki();
+        }
+    }, [dashboardTab, wikiFilter]);
+
+    const fetchWiki = async () => {
+        setIsWikiLoading(true);
+        try {
+            const res = await apiFetch(`/api/wiki/list?type=${wikiFilter}`, { headers: getAuthHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                setWikiEntries(Array.isArray(data) ? data : []);
+            }
+        } catch (e) {
+            console.error("Error fetching wiki:", e);
+        } finally {
+            setIsWikiLoading(false);
+        }
+    };
 
     useEffect(() => {
         if (isNotificationModalOpen) {
@@ -1667,6 +1698,106 @@ export function AdminDashboard() {
                                     </AnimatePresence>
                                 </div>
                             </div>
+                        </div>
+                    ) : dashboardTab === 'WIKI' ? (
+                        <div className="space-y-12 pb-20">
+                            <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+                                <div className="flex items-center gap-4">
+                                    <div className="p-3 bg-neon-cyan/10 rounded-2xl border border-neon-cyan/20">
+                                        <Globe className="w-6 h-6 text-neon-cyan" />
+                                    </div>
+                                    <div>
+                                        <h2 className="text-3xl font-display font-black text-white uppercase italic leading-none">Gestion <span className="text-neon-cyan">Wiki</span></h2>
+                                        <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">Gérez les DJ, Clubs et Festivals</p>
+                                    </div>
+                                </div>
+                                <div className="flex bg-black/40 border border-white/5 rounded-xl p-1 gap-1">
+                                    {(['DJS', 'CLUBS', 'FESTIVALS'] as const).map(type => (
+                                        <button
+                                            key={type}
+                                            onClick={() => setWikiFilter(type)}
+                                            className={`px-4 py-2 rounded-lg text-[10px] font-black tracking-widest uppercase transition-all ${wikiFilter === type ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-gray-300'}`}
+                                        >
+                                            {type}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            <div className="relative mb-8">
+                                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500" />
+                                <input
+                                    type="text"
+                                    placeholder={`Rechercher un ${wikiFilter === 'DJS' ? 'DJ' : wikiFilter === 'CLUBS' ? 'Club' : 'Festival'}...`}
+                                    value={wikiSearch}
+                                    onChange={(e) => setWikiSearch(e.target.value)}
+                                    className="w-full bg-white/5 border border-white/10 rounded-[1.5rem] pl-12 pr-6 py-4 text-white focus:outline-none focus:border-neon-cyan transition-all"
+                                />
+                            </div>
+
+                            {isWikiLoading ? (
+                                <div className="py-20 flex flex-col items-center justify-center gap-4">
+                                    <Loader2 className="w-10 h-10 text-neon-cyan animate-spin" />
+                                    <p className="text-gray-500 text-xs font-black uppercase tracking-widest">Chargement du Wiki...</p>
+                                </div>
+                            ) : (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                    {wikiEntries
+                                        .filter(entry => !wikiSearch || entry.name.toLowerCase().includes(wikiSearch.toLowerCase()))
+                                        .map((entry) => (
+                                            <motion.div
+                                                key={entry.id}
+                                                layout
+                                                initial={{ opacity: 0, scale: 0.95 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                className="bg-white/5 border border-white/10 rounded-3xl p-4 group hover:border-neon-cyan/30 transition-all relative overflow-hidden"
+                                            >
+                                                <div className="aspect-square rounded-2xl overflow-hidden mb-4 bg-black/40 border border-white/5">
+                                                    <img src={entry.image} alt={entry.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                </div>
+                                                <div>
+                                                    <div className="flex justify-between items-start mb-2">
+                                                        <h3 className="font-bold text-white uppercase italic tracking-tight truncate flex-1">{entry.name}</h3>
+                                                        <div className="flex items-center gap-1 bg-neon-cyan/10 px-2 py-0.5 rounded border border-neon-cyan/20 shrink-0 ml-2">
+                                                            <Star className="w-3 h-3 text-neon-cyan fill-neon-cyan" />
+                                                            <span className="text-[10px] font-black text-neon-cyan">{entry.rating}</span>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-all">
+                                                        <button 
+                                                            onClick={() => {
+                                                                setEditingWikiEntry(entry);
+                                                                setIsEditWikiModalOpen(true);
+                                                            }}
+                                                            className="flex-1 py-3 bg-white/5 hover:bg-white/10 rounded-xl text-[9px] font-black text-white uppercase tracking-widest transition-all border border-white/10"
+                                                        >
+                                                            Modifier
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => {
+                                                                if (confirm(`Supprimer ${entry.name} du Wiki ?`)) {
+                                                                    apiFetch('/api/wiki/delete', {
+                                                                        method: 'POST',
+                                                                        headers: getAuthHeaders(),
+                                                                        body: JSON.stringify({ id: entry.id, type: wikiFilter })
+                                                                    }).then(r => { if (r.ok) fetchWiki(); });
+                                                                }
+                                                            }}
+                                                            className="p-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all border border-red-500/20"
+                                                        >
+                                                            <Trash2 className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        ))}
+                                    {wikiEntries.length === 0 && !isWikiLoading && (
+                                        <div className="col-span-full py-20 text-center text-gray-500 italic uppercase font-black tracking-widest text-xs">
+                                            Aucune entrée trouvée...
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     ) : dashboardTab === 'CONCOURS' ? (
                         <div className="space-y-12 pb-20">
@@ -5875,6 +6006,204 @@ export function AdminDashboard() {
                                         className="w-full py-5 bg-white/5 hover:bg-white/10 border border-white/10 text-white text-[10px] font-black uppercase tracking-[0.3em] rounded-[1.5rem] transition-all"
                                     >
                                         Fermer l'aperçu
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                {/* Modal Edition Wiki */}
+                <AnimatePresence>
+                    {isEditWikiModalOpen && editingWikiEntry && (
+                        <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/95 backdrop-blur-2xl">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="bg-[#0A0A0A] border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-white to-neon-cyan" />
+                                
+                                <div className="flex justify-between items-start mb-8 shrink-0">
+                                    <div>
+                                        <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
+                                            Modifier <span className="text-neon-cyan">Entrée</span>
+                                        </h2>
+                                        <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">ID: {editingWikiEntry.id} • {wikiFilter}</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsEditWikiModalOpen(false)}
+                                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-6 overflow-y-auto pr-2 custom-scrollbar pb-6">
+                                    {/* Name */}
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Nom</label>
+                                        <input
+                                            type="text"
+                                            value={editingWikiEntry.name}
+                                            onChange={(e) => setEditingWikiEntry({ ...editingWikiEntry, name: e.target.value })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
+                                        />
+                                    </div>
+
+                                    {/* Location */}
+                                    {wikiFilter !== 'DJS' && (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div>
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Ville</label>
+                                                <input
+                                                    type="text"
+                                                    value={editingWikiEntry.city || ''}
+                                                    onChange={(e) => setEditingWikiEntry({ ...editingWikiEntry, city: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Pays (Code ISO)</label>
+                                                <input
+                                                    type="text"
+                                                    value={editingWikiEntry.country || ''}
+                                                    onChange={(e) => setEditingWikiEntry({ ...editingWikiEntry, country: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
+                                                    placeholder="Ex: FR, GB, US..."
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Rating & Status */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Note (0-10)</label>
+                                            <input
+                                                type="number"
+                                                step="0.1"
+                                                min="0"
+                                                max="10"
+                                                value={editingWikiEntry.rating || ''}
+                                                onChange={(e) => setEditingWikiEntry({ ...editingWikiEntry, rating: parseFloat(e.target.value) })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Statut</label>
+                                            <div className="relative">
+                                                <select
+                                                    value={editingWikiEntry.status || 'published'}
+                                                    onChange={(e) => setEditingWikiEntry({ ...editingWikiEntry, status: e.target.value })}
+                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all appearance-none"
+                                                >
+                                                    <option value="published" className="bg-[#1A1A1A]">Publié</option>
+                                                    <option value="waiting" className="bg-[#1A1A1A]">En attente de photo</option>
+                                                    <option value="hidden" className="bg-[#1A1A1A]">Caché</option>
+                                                </select>
+                                                <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none">
+                                                    <ChevronDown className="w-4 h-4 text-gray-500" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Image URL */}
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">URL Image</label>
+                                        <div className="flex gap-4">
+                                            <input
+                                                type="text"
+                                                value={editingWikiEntry.image}
+                                                onChange={(e) => setEditingWikiEntry({ ...editingWikiEntry, image: e.target.value })}
+                                                className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
+                                            />
+                                            <div className="w-16 h-16 rounded-xl overflow-hidden border border-white/10 shrink-0">
+                                                <img src={editingWikiEntry.image} alt="Preview" className="w-full h-full object-cover" />
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Links */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block font-mono">Instagram</label>
+                                            <input
+                                                type="text"
+                                                value={editingWikiEntry.instagram || ''}
+                                                onChange={(e) => setEditingWikiEntry({ ...editingWikiEntry, instagram: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
+                                                placeholder="Lien Instagram"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Site Officiel</label>
+                                            <input
+                                                type="text"
+                                                value={editingWikiEntry.website || ''}
+                                                onChange={(e) => setEditingWikiEntry({ ...editingWikiEntry, website: e.target.value })}
+                                                className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all"
+                                                placeholder="Lien Site Web"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Bio / Description */}
+                                    <div>
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-4 mb-2 block">Biographie / Description</label>
+                                        <textarea
+                                            value={editingWikiEntry.bio || ''}
+                                            onChange={(e) => setEditingWikiEntry({ ...editingWikiEntry, bio: e.target.value })}
+                                            rows={4}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-6 py-4 text-white focus:border-neon-cyan outline-none transition-all resize-none"
+                                            placeholder="Texte de présentation..."
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="pt-8 border-t border-white/5 shrink-0 flex gap-4">
+                                    <button
+                                        onClick={() => setIsEditWikiModalOpen(false)}
+                                        className="flex-1 py-4 bg-white/5 hover:bg-white/10 rounded-2xl text-[10px] font-black text-gray-400 uppercase tracking-widest transition-all"
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        onClick={async () => {
+                                            setIsSavingWiki(true);
+                                            try {
+                                                const res = await apiFetch('/api/wiki/update', {
+                                                    method: 'POST',
+                                                    headers: getAuthHeaders(),
+                                                    body: JSON.stringify({ 
+                                                        id: editingWikiEntry.id, 
+                                                        type: wikiFilter,
+                                                        entry: editingWikiEntry
+                                                    })
+                                                });
+                                                if (res.ok) {
+                                                    setIsEditWikiModalOpen(false);
+                                                    fetchWiki();
+                                                }
+                                            } catch (e) {
+                                                console.error(e);
+                                            } finally {
+                                                setIsSavingWiki(false);
+                                            }
+                                        }}
+                                        disabled={isSavingWiki}
+                                        className="flex-[2] py-4 bg-neon-cyan text-black rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all hover:bg-neon-cyan/80 flex items-center justify-center gap-2"
+                                    >
+                                        {isSavingWiki ? (
+                                            <>
+                                                <Loader2 className="w-4 h-4 animate-spin" />
+                                                SAUVEGARDE...
+                                            </>
+                                        ) : (
+                                            'ENREGISTRER LES MODIFICATIONS'
+                                        )}
                                     </button>
                                 </div>
                             </motion.div>
