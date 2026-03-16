@@ -100,7 +100,32 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
             }
         } catch (error) {
             console.error('Moderation error:', error);
-            alert('Erreur de connexion lors de la modération');
+            alert('Erreur réseau lors de la mise à jour');
+        }
+    };
+
+    const handleDeleteWiki = async (id: string, type: string, name: string) => {
+        if (!window.confirm(`Supprimer définitivement "${name}" du Wiki ?`)) return;
+
+        try {
+            const response = await fetch('/api/wiki/delete', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders()
+                },
+                body: JSON.stringify({ id, type })
+            });
+
+            if (response.ok) {
+                setWikiWaiting(prev => prev.filter(item => item.id !== id));
+            } else {
+                const err = await response.json();
+                alert('Erreur : ' + (err.error || 'Inconnue'));
+            }
+        } catch (error) {
+            console.error('Delete error:', error);
+            alert('Erreur réseau lors de la suppression');
         }
     };
 
@@ -300,6 +325,14 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
                                                     'bg-neon-red/20 text-neon-red border border-neon-red/30'}`}>
                                                     {item.type}
                                                 </span>
+                                                <button 
+                                                    onClick={() => handleDeleteWiki(item.id, item.type, item.name)}
+                                                    className="p-1 px-2.5 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-500/60 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 group/del"
+                                                    title="Supprimer l'entrée"
+                                                >
+                                                    <Trash2 className="w-3 h-3" />
+                                                    <span className="hidden group-hover/del:inline">Supprimer</span>
+                                                </button>
                                             </div>
                                             <div className="aspect-[4/5] bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-600">
                                                 <Upload className="w-8 h-8 opacity-20" />
