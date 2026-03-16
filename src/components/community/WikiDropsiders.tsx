@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, X, Youtube, Heart } from 'lucide-react';
 import { apiFetch, getAuthHeaders } from '../../utils/auth';
 import { useLanguage } from '../../context/LanguageContext';
+import { ImageUploadModal } from '../ImageUploadModal';
 import DJ_DATA_RAW from '../../data/wiki_djs.json';
 
 type DjEntry = {
@@ -48,6 +49,7 @@ export function WikiDropsiders() {
     const [isSaving, setIsSaving] = useState(false);
     const [saveMsg, setSaveMsg] = useState('');
     const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
+    const [showImageModal, setShowImageModal] = useState(false);
 
     const reportBrokenImage = async (id: string) => {
         try {
@@ -99,6 +101,31 @@ export function WikiDropsiders() {
         } catch { setSaveMsg(t('saved_local_fallback')); }
         setEditMode(false); setIsSaving(false);
         setTimeout(() => setSaveMsg(''), 3000);
+    };
+
+    const handleUpdatePhoto = async (url: string) => {
+        if (!selectedDj) return;
+        setIsSaving(true);
+        try {
+            const res = await apiFetch('/api/wiki/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id: selectedDj.id, updates: { image: url } })
+            });
+            if (res.ok) {
+                const updatedDj = { ...selectedDj, image: url };
+                setDjData(prev => prev.map(dj => dj.id === selectedDj.id ? updatedDj : dj));
+                setSelectedDj(updatedDj);
+                setSaveMsg(t('saved_success'));
+            } else {
+                setSaveMsg(t('saved_local_fallback'));
+            }
+        } catch {
+            setSaveMsg(t('saved_local_fallback'));
+        } finally {
+            setIsSaving(false);
+            setTimeout(() => setSaveMsg(''), 3000);
+        }
     };
 
     return (
@@ -223,6 +250,14 @@ export function WikiDropsiders() {
                                     className="absolute top-4 right-4 p-2 bg-black/60 backdrop-blur rounded-full hover:bg-black/80 transition-all z-10">
                                     <X className="w-5 h-5 text-white" />
                                 </button>
+                                {/* Admin Upload Button */}
+                                {isAdmin && (
+                                    <button onClick={() => setShowImageModal(true)}
+                                        className="absolute bottom-6 right-6 p-4 bg-neon-red text-white rounded-2xl shadow-2xl hover:scale-110 active:scale-95 transition-all z-10 group">
+                                        <Pencil className="w-5 h-5" />
+                                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 bg-black text-white text-[8px] font-black rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap uppercase tracking-widest">Modifier la photo</div>
+                                    </button>
+                                )}
                             </div>
 
                             <div className="p-8 space-y-6">
@@ -327,6 +362,14 @@ export function WikiDropsiders() {
                     </>
                 )}
             </AnimatePresence>
+
+            <ImageUploadModal 
+                isOpen={showImageModal}
+                onClose={() => setShowImageModal(false)}
+                onUploadSuccess={handleUpdatePhoto}
+                accentColor="neon-red"
+                aspect={3/4}
+            />
         </div>
     );
 }

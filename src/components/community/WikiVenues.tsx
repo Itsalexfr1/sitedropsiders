@@ -1,8 +1,9 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen, Upload, Image as ImageIcon } from 'lucide-react';
+import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen, Upload, Image as ImageIcon, Pencil } from 'lucide-react';
 import { ImageUploadModal } from '../ImageUploadModal';
 import { useLanguage } from '../../context/LanguageContext';
+import { getAuthHeaders } from '../../utils/auth';
 
 import CLUBS_RAW from '../../data/wiki_clubs.json';
 import FESTIVALS_RAW from '../../data/wiki_festivals.json';
@@ -59,8 +60,12 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
     const [festVotes, setFestVotes] = useState<Set<string>>(() => loadVotes(VOTE_KEY_FESTIVALS));
     const [customClubs, setCustomClubs] = useState<Venue[]>(() => loadCustom(CUSTOM_KEY_CLUBS));
     const [customFests, setCustomFests] = useState<Venue[]>(() => loadCustom(CUSTOM_KEY_FESTIVALS));
+    const isAdmin = localStorage.getItem('admin_auth') === 'true';
+    const [isSaving, setIsSaving] = useState(false);
+    const [saveMsg, setSaveMsg] = useState('');
     const [addForm, setAddForm] = useState({ name: '', city: '', country: '', description: '', website: '', instagram: '', image: '' });
     const [showImageModal, setShowImageModal] = useState(false);
+    const [isEditingPhoto, setIsEditingPhoto] = useState(false);
     const [addSuccess, setAddSuccess] = useState(false);
     const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
 
@@ -127,6 +132,44 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
         setAddForm({ name: '', city: '', country: '', description: '', website: '', instagram: '', image: '' });
         setAddSuccess(true);
         setTimeout(() => { setAddSuccess(false); setShowAdd(false); }, 2000);
+    };
+
+    const handleUpdatePhoto = async (url: string) => {
+        if (!selected) return;
+        setIsSaving(true);
+        try {
+            const endpoint = '/api/wiki/update';
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...getAuthHeaders()
+                },
+                body: JSON.stringify({ 
+                    id: selected.id, 
+                    type: mode === 'clubs' ? 'CLUBS' : 'FESTIVALS',
+                    updates: { image: url } 
+                })
+            });
+
+            if (response.ok) {
+                const updated = { ...selected, image: url };
+                if (mode === 'clubs') {
+                    setCustomClubs(prev => prev.map(v => v.id === selected.id ? updated : v));
+                } else {
+                    setCustomFests(prev => prev.map(v => v.id === selected.id ? updated : v));
+                }
+                setSelected(updated);
+                setSaveMsg(t('saved_success'));
+            } else {
+                setSaveMsg(t('saved_local_fallback'));
+            }
+        } catch {
+            setSaveMsg(t('saved_local_fallback'));
+        } finally {
+            setIsSaving(false);
+            setTimeout(() => setSaveMsg(''), 3000);
+        }
     };
 
     return (
@@ -333,6 +376,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                     <div className="flex items-center gap-2 mb-2 flex-wrap">
                                         {selected.custom && <span className="px-2 py-0.5 bg-white/20 text-white text-[8px] font-black uppercase rounded">📍 Community</span>}
                                         <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{FLAG[selected.country] || '🌍'} {selected.city}</span>
+                                        {saveMsg && <span className="px-2 py-0.5 bg-green-500/20 border border-green-500/30 text-green-400 text-[8px] font-black rounded">{saveMsg}</span>}
                                     </div>
                                     <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter drop-shadow-lg">{selected.name}</h3>
                                 </div>
@@ -341,6 +385,14 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                     className="absolute top-4 right-4 p-2 bg-black/60 backdrop-blur rounded-full hover:bg-black/80 transition-all z-10">
                                     <X className="w-5 h-5 text-white" />
                                 </button>
+                                {/* Admin Upload Button */}
+                                {isAdmin && (
+                                    <button onClick={() => { setIsEditingPhoto(true); setShowImageModal(true); }}
+                                        className={`absolute bottom-6 right-6 p-4 bg-neon-red text-white rounded-2xl shadow-2xl hover:scale-110 active:scale-95 transition-all z-10 group ${isSaving ? 'opacity-50 cursor-wait' : ''}`}>
+                                        <Pencil className="w-5 h-5" />
+                                        <div className="absolute -top-12 left-1/2 -translate-x-1/2 px-3 py-1 bg-black text-white text-[8px] font-black rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap uppercase tracking-widest">Modifier la photo</div>
+                                    </button>
+                                )}
                             </div>
 
                             <div className="p-8 space-y-6">
@@ -381,12 +433,17 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
 
             <ImageUploadModal 
                 isOpen={showImageModal}
-                onClose={() => setShowImageModal(false)}
+                onClose={() => { setShowImageModal(false); setIsEditingPhoto(false); }}
                 onUploadSuccess={(url) => {
-                    setAddForm(p => ({ ...p, image: url }));
-                    setShowImageModal(false);
+                    if (isEditingPhoto) {
+                        handleUpdatePhoto(url);
+                    } else {
+                        setAddForm(p => ({ ...p, image: url }));
+                        setShowImageModal(false);
+                    }
                 }}
                 accentColor="neon-red"
+                aspect={1}
             />
         </div>
     );

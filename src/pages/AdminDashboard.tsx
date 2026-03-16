@@ -16,6 +16,7 @@ import { uploadFile } from '../utils/uploadService';
 import { translateText } from '../utils/translate';
 import { SocialSuite } from '../components/SocialSuite';
 import { ModerationModal } from '../components/admin/ModerationModal';
+import { PubliGenerator } from '../components/admin/PubliGenerator';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { AgendaModal } from '../components/AgendaModal';
 import { Downloader } from './Downloader';
@@ -58,6 +59,7 @@ export function AdminDashboard() {
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
     const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
+    const [isPubliModalOpen, setIsPubliModalOpen] = useState(false);
     const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
     const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
     const [isDownloaderOpen, setIsDownloaderOpen] = useState(false);
@@ -960,6 +962,7 @@ export function AdminDashboard() {
         { title: "Downloader", description: "Outil Médias", icon: "Download", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "all", baseColor: "cyan", columns: 1 },
         { title: "Notifications", description: "Push News", icon: "Bell", category: "SHOP", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "push_newsletter", baseColor: "yellow", columns: 1 },
         { title: "Communauté", description: "Commentaires & Membres", icon: "MessageSquare", category: "CONCOURS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "community_mod", baseColor: "pink", columns: 1 },
+        { title: "Générateur Publi", description: "Outil Alex", icon: "Pencil", category: "STUDIO", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "alex_only", baseColor: "orange", columns: 1 },
 
         // SYSTÈME
         { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "ALL", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
@@ -1147,6 +1150,7 @@ export function AdminDashboard() {
     const isAlex = localStorage.getItem('admin_user') === 'alex' || localStorage.getItem('admin_user') === 'contact@dropsiders.fr';
 
     const hasPermission = (p: string) => {
+        if (p === 'alex_only') return isAlex;
         if (p === 'superadmin') return isAlex || storedPermissions.includes('all');
         if (storedPermissions.includes('all') || isAlex) return true;
 
@@ -2040,6 +2044,9 @@ export function AdminDashboard() {
                                                 } else if (action.title === 'Vérifier Photos') {
                                                     e.preventDefault();
                                                     setIsModerationModalOpen(true);
+                                                } else if (action.title === 'Générateur Publi') {
+                                                    e.preventDefault();
+                                                    setIsPubliModalOpen(true);
                                                 }
                                             }}
                                             className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -2067,6 +2074,11 @@ export function AdminDashboard() {
                                             <div className="flex justify-between items-start mb-4">
                                                 <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors relative">
                                                     {getIcon(action.icon, action.baseColor)}
+                                                    {action.title === 'Vérifier Photos' && pendingPhotosCount > 0 && (
+                                                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
+                                                            <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
+                                                        </div>
+                                                    )}
                                                     {action.title === 'Modération' && pendingPhotosCount > 0 && (
                                                         <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
                                                             <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
@@ -2292,7 +2304,7 @@ export function AdminDashboard() {
                                         <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Wiki Votes</h2>
                                         <p className="text-gray-600 text-[9px] font-black uppercase tracking-widest mt-0.5">Top 50 basé on les votes communauté</p>
                                     </div>
-                                    <div className="flex flex-wrap items-center gap-2">
+                                    <div className="flex flex-wrap items-center gap-6">
                                         <button
                                             onClick={() => setIsWikiExpanded(!isWikiExpanded)}
                                             className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center gap-2"
@@ -5875,6 +5887,18 @@ export function AdminDashboard() {
                     onSuccess={() => {
                         setIsAgendaCreateModalOpen(false);
                     }}
+                />
+                <PubliGenerator 
+                    isOpen={isPubliModalOpen}
+                    onClose={() => setIsPubliModalOpen(false)}
+                    onOpenSocialStudio={(text, img) => {
+                        setSelectedSocialArticle({ title: text, image: img });
+                        setIsPubliModalOpen(false);
+                    }}
+                />
+                <ModerationModal
+                    isOpen={isModerationModalOpen}
+                    onClose={() => setIsModerationModalOpen(false)}
                 />
             </div>
         </div >

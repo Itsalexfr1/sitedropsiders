@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare, BookOpen, Edit2, Upload } from 'lucide-react';
+import { X, Check, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare, BookOpen, Upload } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
 import { PromptModal } from '../ui/PromptModal';
+import { ImageUploadModal } from '../ImageUploadModal';
 import WIKI_DJS from '../../data/wiki_djs.json';
 import WIKI_CLUBS from '../../data/wiki_clubs.json';
 import WIKI_FESTIVALS from '../../data/wiki_festivals.json';
@@ -39,6 +40,7 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
         itemType: '',
         itemName: ''
     });
+    const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
     const fetchPending = async () => {
         setIsLoading(true);
@@ -95,11 +97,12 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
 
     const handleUpdateWikiPhoto = (id: string, type: string, name: string) => {
         setPromptState({
-            isOpen: true,
+            isOpen: false,
             itemId: id,
             itemType: type,
             itemName: name
         });
+        setIsUploadModalOpen(true);
     };
 
     const confirmWikiPhoto = async (imageUrl: string) => {
@@ -295,9 +298,15 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
                                                 className="group relative w-full h-14 bg-neon-purple text-white font-black rounded-2xl shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 overflow-hidden"
                                             >
                                                 <span className="relative z-10 flex items-center gap-2">
-                                                    <Edit2 className="w-3.5 h-3.5" /> METTRE À JOUR LA PHOTO
+                                                    <Upload className="w-3.5 h-3.5" /> UPLOADER LA PHOTO
                                                 </span>
                                                 <div className="absolute bottom-0 right-0 w-0 h-0 border-b-[12px] border-r-[12px] border-b-transparent border-r-white/40" />
+                                            </button>
+                                            <button 
+                                                onClick={() => setPromptState({ isOpen: true, itemId: item.id, itemType: item.type, itemName: item.name })}
+                                                className="w-full py-2 text-[8px] font-black uppercase text-gray-600 hover:text-white transition-colors"
+                                            >
+                                                OU SAISIR UNE URL
                                             </button>
                                         </div>
                                     ))}
@@ -309,9 +318,23 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
                     <PromptModal
                         isOpen={promptState.isOpen}
                         onClose={() => setPromptState(prev => ({ ...prev, isOpen: false }))}
-                        onConfirm={confirmWikiPhoto}
+                        onConfirm={(url) => {
+                            confirmWikiPhoto(url);
+                            setPromptState(prev => ({ ...prev, isOpen: false }));
+                        }}
                         title={promptState.itemName}
                         message={`URL de la photo officielle pour ${promptState.itemName} :`}
+                    />
+
+                    <ImageUploadModal 
+                        isOpen={isUploadModalOpen}
+                        onClose={() => setIsUploadModalOpen(false)}
+                        onUploadSuccess={(url) => {
+                            confirmWikiPhoto(url);
+                            setIsUploadModalOpen(false);
+                        }}
+                        accentColor="neon-purple"
+                        aspect={promptState.itemType === 'DJS' ? 3/4 : 1}
                     />
 
                     {/* Footer */}
