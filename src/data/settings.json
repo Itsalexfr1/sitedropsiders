@@ -4,12 +4,11 @@
   "shop_password_protected": false,
   "shop_password_image": "",
   "takeover": {
-    "enabled": true,
+    "enabled": false,
     "youtubeId": "",
     "title": "LIVESTREAM",
     "moderators": "",
     "lineup": "",
-    "customCommands": "",
     "tickerType": "news",
     "tickerText": "",
     "tickerLink": "",
@@ -19,6 +18,7 @@
     "showTickerBanner": false,
     "showInNavbar": true,
     "forceHomepage": true,
+    "customCommands": "",
     "isSecret": false,
     "password": "01061988",
     "channels": "",
@@ -28,7 +28,7 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "edit"
+    "status": "off"
   },
   "socials": {
     "instagram": "dropsiders.eu",
