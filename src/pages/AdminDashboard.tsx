@@ -941,6 +941,7 @@ export function AdminDashboard() {
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats_analytics", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
         { title: "Tracklists", description: "Vérifier & Valider", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "musique_releases", baseColor: "purple", columns: 1 },
+        { title: "Vérifier Photos", description: "WIKI : Photos en attente", icon: "ShieldAlert", category: "NEWS", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "wiki_dropsiders", baseColor: "red", columns: 1 },
 
 
         // JEUX CONCOURS
