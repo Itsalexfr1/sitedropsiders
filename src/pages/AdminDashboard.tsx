@@ -958,7 +958,6 @@ export function AdminDashboard() {
         { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
         { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "push_newsletter", baseColor: "green", columns: 1 },
         { title: "Messagerie", description: "Emails & Contact", icon: "Mail", category: "SHOP", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages_contact", baseColor: "orange", columns: 1 },
-        { title: "LIVE / TAKEOVER", description: "Gérer le direct", icon: "Zap", category: "STUDIO", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 1 },
         { title: "Downloader", description: "Outil Médias", icon: "Download", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "all", baseColor: "cyan", columns: 1 },
         { title: "Notifications", description: "Push News", icon: "Bell", category: "SHOP", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "push_newsletter", baseColor: "yellow", columns: 1 },
         { title: "Communauté", description: "Commentaires & Membres", icon: "MessageSquare", category: "CONCOURS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "community_mod", baseColor: "pink", columns: 1 },
@@ -1408,7 +1407,7 @@ export function AdminDashboard() {
                                 </button>
                             )}
                         </div>
-                        <div className="flex flex-wrap items-center gap-6">
+                        <div className="flex flex-wrap items-center gap-2">
                             <button
                                 onClick={fetchActions}
                                 className="w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl md:rounded-full text-xs font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all gap-2"
@@ -1480,7 +1479,7 @@ export function AdminDashboard() {
                 </motion.div>
 
                 {/* Dashboard Tabs - Navigation Mobile Optimize */}
-                <div className="mb-20 overflow-x-auto pb-4 no-scrollbar">
+                <div className="mb-12 overflow-x-auto pb-4 no-scrollbar">
                     <div className="flex bg-black/40 p-1.5 rounded-2xl border border-white/5 w-max mx-auto md:mx-0">
                         {DASHBOARD_TABS.map((tab) => {
                             const isActive = dashboardTab === tab.id;
@@ -1861,7 +1860,7 @@ export function AdminDashboard() {
                             </div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <AnimatePresence>
                             {filteredActions.map((action) => {
                                 const globalIndex = filteredActions.findIndex(a => a.title === action.title);
@@ -2279,7 +2278,7 @@ export function AdminDashboard() {
                 </div>
 
                 {/* ─── CLASSEMENT WIKI VOTES ─── */}
-                <div className="mb-12">
+                <div className="mt-32 mb-12">
                     {(() => {
                         const djVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_djs') || '[]'); } catch { return []; } })());
                         const clubVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_clubs') || '[]'); } catch { return []; } })());
