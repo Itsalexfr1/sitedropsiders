@@ -745,11 +745,33 @@ export function AdminDashboard() {
             }
         } catch (e) { }
 
-        // Count Wiki items with 'waiting' status
-        const waitingDjs = (WIKI_DJS as any[]).filter(d => d.status === 'waiting').length;
-        const waitingClubs = (WIKI_CLUBS as any[]).filter(c => c.status === 'waiting').length;
-        const waitingFests = (WIKI_FESTIVALS as any[]).filter(f => f.status === 'waiting').length;
-        count += waitingDjs + waitingClubs + waitingFests;
+        try {
+            // Fetch live wiki counts to bypass build delays
+            const [djsRes, clubsRes, festsRes] = await Promise.all([
+                fetch('/api/wiki/list?type=DJS'),
+                fetch('/api/wiki/list?type=CLUBS'),
+                fetch('/api/wiki/list?type=FESTIVALS')
+            ]);
+            
+            if (djsRes.ok) {
+                const djs = await djsRes.json();
+                count += djs.filter((d: any) => d.status === 'waiting').length;
+            }
+            if (clubsRes.ok) {
+                const clubs = await clubsRes.json();
+                count += clubs.filter((c: any) => c.status === 'waiting').length;
+            }
+            if (festsRes.ok) {
+                const fests = await festsRes.json();
+                count += fests.filter((f: any) => f.status === 'waiting').length;
+            }
+        } catch (e) {
+            // Fallback to local data if API fails
+            const waitingDjs = (WIKI_DJS as any[]).filter(d => d.status === 'waiting').length;
+            const waitingClubs = (WIKI_CLUBS as any[]).filter(c => c.status === 'waiting').length;
+            const waitingFests = (WIKI_FESTIVALS as any[]).filter(f => f.status === 'waiting').length;
+            count += waitingDjs + waitingClubs + waitingFests;
+        }
         
         setPendingPhotosCount(count);
 
