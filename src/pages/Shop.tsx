@@ -6,11 +6,13 @@ import { useState, useEffect } from 'react';
 import initialSettings from '../data/settings.json';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
 import { Settings2 } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 export function Shop() {
     const isMini = new URLSearchParams(window.location.search).get('mini') === 'true';
 
     const [isEnabled, setIsEnabled] = useState(initialSettings.shop_enabled);
+    const { t } = useLanguage();
     const [isPasswordProtected, setIsPasswordProtected] = useState((initialSettings as any).shop_password_protected || false);
     const [passwordImage, setPasswordImage] = useState((initialSettings as any).shop_password_image || '');
     const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('shop_auth') === 'true');
@@ -100,18 +102,16 @@ export function Shop() {
                             <ShoppingBag className="w-10 h-10 text-neon-red" />
                         </div>
 
-                        <h1 className="text-4xl font-display font-black text-white mb-4 uppercase italic tracking-tighter">
-                            ACCÈS <span className="text-neon-red">RÉSERVÉ</span>
-                        </h1>
+                        <h1 className="text-4xl font-display font-black text-white mb-4 uppercase italic tracking-tighter" dangerouslySetInnerHTML={{ __html: t('shop.auth.title') }} />
                         <p className="text-gray-400 mb-10 text-xs font-black uppercase tracking-[0.2em] leading-relaxed">
-                            Cette page est actuellement protégée par un mot de passe.
+                            {t('shop.auth.subtitle')}
                         </p>
 
                         <form onSubmit={handlePasswordSubmit} className="space-y-6">
                             <div className="relative">
                                 <input
                                     type="password"
-                                    placeholder="MOT DE PASSE"
+                                    placeholder={t('shop.auth.placeholder')}
                                     value={passwordInput}
                                     onChange={(e) => setPasswordInput(e.target.value)}
                                     className={`w-full bg-black/60 border ${passwordError ? 'border-neon-red shadow-[0_0_15px_rgba(255,0,51,0.2)]' : 'border-white/10 focus:border-neon-red'} rounded-2xl px-6 py-4 text-white text-center font-bold tracking-[0.3em] outline-none transition-all placeholder:text-gray-700`}
@@ -123,7 +123,7 @@ export function Shop() {
                                         animate={{ opacity: 1, y: 0 }}
                                         className="text-[10px] text-neon-red font-black uppercase tracking-widest mt-3"
                                     >
-                                        Code incorrect
+                                        {t('shop.auth.error')}
                                     </motion.p>
                                 )}
                             </div>
@@ -132,7 +132,7 @@ export function Shop() {
                                 type="submit"
                                 className="w-full py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-[0.2em] italic hover:bg-neon-red/80 transition-all shadow-[0_10px_30px_rgba(255,0,51,0.3)] hover:shadow-[0_15px_40px_rgba(255,0,51,0.4)] active:scale-95"
                             >
-                                Entrer sur le Shop
+                                {t('shop.auth.submit')}
                             </button>
                         </form>
 
@@ -154,7 +154,7 @@ export function Shop() {
                             to="/"
                             className="mt-8 text-[10px] text-gray-600 hover:text-white font-black uppercase tracking-widest transition-colors flex items-center justify-center gap-2 mx-auto"
                         >
-                            Quitter
+                            {t('common.quit')}
                         </Link>
                     </div>
                 </motion.div>
@@ -173,17 +173,15 @@ export function Shop() {
                     <div className="w-20 h-20 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-neon-red/20 shadow-[0_0_20px_rgba(255,0,51,0.2)]">
                         <Construction className="w-10 h-10 text-neon-red" />
                     </div>
-                    <h1 className="text-5xl md:text-7xl font-display font-black text-white mb-6 uppercase italic tracking-tighter">
-                        SHOP IS COMING <span className="text-neon-red">!!!</span>
-                    </h1>
+                    <h1 className="text-5xl md:text-7xl font-display font-black text-white mb-6 uppercase italic tracking-tighter" dangerouslySetInnerHTML={{ __html: t('shop.coming_soon.title') }} />
                     <p className="text-gray-400 max-w-md mx-auto mb-10 font-bold uppercase tracking-widest text-sm opacity-60">
-                        La collection officielle arrive très prochainement.
+                        {t('shop.coming_soon.subtitle')}
                     </p>
                     <Link
                         to="/"
                         className="px-8 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold hover:bg-white/10 transition-all uppercase tracking-widest text-xs"
                     >
-                        Retour
+                        {t('common.back')}
                     </Link>
                 </motion.div>
             </div>
@@ -208,22 +206,22 @@ export function Shop() {
                             <div className="p-2 bg-neon-red/10 rounded-xl border border-neon-red/20 shadow-[0_0_15px_rgba(255,0,51,0.1)]">
                                 <ShoppingBag className="w-5 h-5 text-neon-red" />
                             </div>
-                            <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">Boutique Officielle</span>
+                            <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">{t('shop.badge')}</span>
                         </div>
                         
                         <h1 className={`${isMini ? 'text-4xl md:text-5xl' : 'text-4xl md:text-7xl'} font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-tight`}>
-                            SHOP <span className="text-neon-red">OFFICIEL</span>
+                            {t('shop.title')}<span className="text-neon-red">{t('shop.title_span')}</span>
                         </h1>
 
                         <p className="text-gray-400 max-w-2xl text-base md:text-lg font-medium leading-relaxed mx-auto sm:mx-0">
-                            Explorez la collection exclusive Dropsiders. Des pièces conçues pour la scène, alliant style futuriste et confort absolu pour vos festivals.
+                            {t('shop.subtitle')}
                         </p>
 
                         <div className="mt-8 mb-8 text-center sm:text-left text-white text-[10px] font-black uppercase tracking-widest bg-neon-red/5 py-4 px-6 border border-neon-red/10 rounded-2xl max-w-2xl sm:mx-0 shadow-[0_0_20px_rgba(255,0,51,0.05)] leading-relaxed flex items-center gap-4">
                             <div className="w-8 h-8 rounded-lg bg-neon-red/20 flex items-center justify-center shrink-0">
                                 <span className="text-neon-red text-xs">!</span>
                             </div>
-                            <p>Les prix peuvent varier de quelques centimes en raison de la conversion de notre partenaire Fourthwall.</p>
+                            <p>{t('shop.disclaimer')}</p>
                         </div>
 
                         <div className={`flex justify-center sm:justify-start gap-3 mt-12 ${isMini ? 'mb-4' : 'mb-8'} flex-wrap`}>
@@ -241,7 +239,11 @@ export function Shop() {
                                                 : 'bg-white/[0.03] text-white/40 border-white/10 hover:border-neon-red/40 hover:text-neon-red'
                                             }`}
                                     >
-                                        <span className="relative z-10">{cat === 'Vetements' ? 'Vêtements' : cat}</span>
+                                        <span className="relative z-10">
+                                            {cat === 'Tous' ? t('shop.filter.all') : 
+                                             cat === 'Vetements' ? t('shop.filter.clothes') : 
+                                             t('shop.filter.accessories')}
+                                        </span>
                                     </motion.button>
                                 );
                             })}

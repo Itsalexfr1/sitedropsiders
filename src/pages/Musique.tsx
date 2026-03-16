@@ -98,8 +98,8 @@ export function Musique() {
             </div>
 
             <SEO
-                title="World Charts - Musique EDM"
-                description="L'épicentre de la musique électronique. Retrouvez les derniers classements Beatport, Traxsource et nos tracklists exclusives."
+                title={t('musique.world_charts')}
+                description={t('musique.subtitle')}
             />
             
             <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 pt-24 pb-12 sm:pt-12 relative z-10">
@@ -108,17 +108,17 @@ export function Musique() {
                     animate={{ opacity: 1, y: 0 }}
                     className="mb-10 text-center sm:text-left"
                 >
-                    <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
-                        <div className="p-2 bg-neon-red/10 rounded-xl border border-neon-red/20 shadow-[0_0_15px_rgba(255,0,51,0.1)]">
-                            <Music className="w-5 h-5 text-neon-red" />
+                        <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
+                            <div className="p-2 bg-neon-red/10 rounded-xl border border-neon-red/20 shadow-[0_0_15px_rgba(255,0,51,0.1)]">
+                                <Music className="w-5 h-5 text-neon-red" />
+                            </div>
+                            <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">{t('musique.world_charts')}</span>
                         </div>
-                        <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">World Charts</span>
-                    </div>
-                    <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-none">
-                        DROPSIDERS <span className="text-neon-red">MUSIQUE</span>
-                    </h1>
+                        <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-none">
+                            {t('musique.title')}<span className="text-neon-red">{t('musique.title_span')}</span>
+                        </h1>
                     <p className="text-gray-400 max-w-2xl text-base md:text-lg font-medium leading-relaxed">
-                        L'épicentre de la musique électronique mondiale. Retrouvez les derniers classements Beatport, Traxsource et nos tracklists exclusives.
+                        {t('musique.subtitle')}
                     </p>
                 </motion.div>
 
@@ -170,7 +170,7 @@ export function Musique() {
                                     {isLoading ? (
                                         <div className="col-span-full py-40 flex flex-col items-center justify-center gap-4">
                                             <Loader2 className="w-12 h-12 text-neon-red animate-spin" />
-                                            <p className="text-gray-500 font-black uppercase tracking-widest text-xs">Chargement des charts...</p>
+                                            <p className="text-gray-500 font-black uppercase tracking-widest text-xs">{t('common.loading_charts')}</p>
                                         </div>
                                     ) : currentData.length === 0 ? (
                                         <div className="text-center py-20 border border-dashed border-white/10 rounded-[40px] text-white/20 font-black uppercase tracking-widest">

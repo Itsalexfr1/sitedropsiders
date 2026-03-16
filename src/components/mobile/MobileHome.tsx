@@ -76,7 +76,7 @@ export function MobileHome() {
                         <TrendingUp className="w-4 h-4 text-neon-red shadow-[0_0_10px_rgba(255,0,51,0.5)]" />
                         {t('home.featured').toUpperCase()}
                     </h2>
-                    <Link to="/news" className="text-[10px] font-black uppercase tracking-widest text-neon-red px-2 py-1 rounded-lg hover:bg-neon-red/10 transition-colors">Tout voir</Link>
+                    <Link to="/news" className="text-[10px] font-black uppercase tracking-widest text-neon-red px-2 py-1 rounded-lg hover:bg-neon-red/10 transition-colors">{t('home.view_all')}</Link>
                 </div>
                 <div className="flex gap-4 overflow-x-auto px-5 scrollbar-hide snap-x no-scrollbar">
                     {featuredNews.map((news) => (
@@ -106,9 +106,9 @@ export function MobileHome() {
                 <div className="mobile-safe-container mb-5 flex items-center justify-between">
                     <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
                         <Newspaper className="w-4 h-4 text-neon-red shadow-[0_0_10px_rgba(255,0,51,0.5)]" />
-                        DROPSIDERS NEWS
+                        {t('home.news')}
                     </h2>
-                    <Link to="/news" className="text-[10px] font-black uppercase tracking-widest text-neon-red px-2 py-1 rounded-lg hover:bg-neon-red/10 transition-colors">Tout voir</Link>
+                    <Link to="/news" className="text-[10px] font-black uppercase tracking-widest text-neon-red px-2 py-1 rounded-lg hover:bg-neon-red/10 transition-colors">{t('home.view_all')}</Link>
                 </div>
                 <div className="flex gap-4 overflow-x-auto px-5 scrollbar-hide snap-x no-scrollbar">
                     {newsHighlight.map((news) => (
@@ -140,9 +140,9 @@ export function MobileHome() {
                 <div className="mobile-safe-container mb-5 flex items-center justify-between">
                     <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
                         <Calendar className="w-4 h-4 text-neon-cyan shadow-[0_0_10px_rgba(34,211,238,0.5)]" />
-                        AGENDA PROCHAINEMENT
+                        {t('home.agenda')}
                     </h2>
-                    <Link to="/agenda" className="text-[10px] font-black uppercase tracking-widest text-neon-cyan px-2 py-1 rounded-lg hover:bg-neon-cyan/10 transition-colors">Agenda</Link>
+                    <Link to="/agenda" className="text-[10px] font-black uppercase tracking-widest text-neon-cyan px-2 py-1 rounded-lg hover:bg-neon-cyan/10 transition-colors">{t('nav.agenda')}</Link>
                 </div>
                 <div className="flex gap-4 overflow-x-auto px-5 scrollbar-hide snap-x no-scrollbar">
                     {upcomingEvents.map((event) => (
@@ -184,9 +184,9 @@ export function MobileHome() {
                 <div className="mobile-safe-container mb-5 flex items-center justify-between">
                     <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
                         <Play className="w-4 h-4 text-neon-purple shadow-[0_0_10px_rgba(189,0,255,0.5)]" />
-                        RECAPS FESTIVALS
+                        {t('home.recaps')}
                     </h2>
-                    <Link to="/recaps" className="text-[10px] font-black uppercase tracking-widest text-neon-purple px-2 py-1 rounded-lg hover:bg-neon-purple/10 transition-colors">Explorer</Link>
+                    <Link to="/recaps" className="text-[10px] font-black uppercase tracking-widest text-neon-purple px-2 py-1 rounded-lg hover:bg-neon-purple/10 transition-colors">{t('home.explore')}</Link>
                 </div>
                 <div className="flex gap-4 overflow-x-auto px-5 scrollbar-hide snap-x no-scrollbar">
                     {recapsHighlight.map((recap) => (
@@ -218,9 +218,9 @@ export function MobileHome() {
                 <div className="mobile-safe-container mb-5 flex items-center justify-between">
                     <h2 className="text-[11px] font-black uppercase tracking-[0.25em] text-white/40 flex items-center gap-2.5">
                         <MessageSquare className="w-4 h-4 text-neon-blue shadow-[0_0_10px_rgba(0,100,255,0.5)]" />
-                        INTERVIEWS
+                        {t('home.interviews')}
                     </h2>
-                    <Link to="/interviews" className="text-[10px] font-black uppercase tracking-widest text-neon-blue px-2 py-1 rounded-lg hover:bg-neon-blue/10 transition-colors">Tout voir</Link>
+                    <Link to="/interviews" className="text-[10px] font-black uppercase tracking-widest text-neon-blue px-2 py-1 rounded-lg hover:bg-neon-blue/10 transition-colors">{t('home.view_all')}</Link>
                 </div>
                 <div className="flex gap-4 overflow-x-auto px-5 scrollbar-hide snap-x no-scrollbar">
                     {interviewsHighlight.map((interview) => (

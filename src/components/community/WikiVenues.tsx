@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen, Upload, Image as ImageIcon } from 'lucide-react';
 import { ImageUploadModal } from '../ImageUploadModal';
+import { useLanguage } from '../../context/LanguageContext';
 
 import CLUBS_RAW from '../../data/wiki_clubs.json';
 import FESTIVALS_RAW from '../../data/wiki_festivals.json';
@@ -48,6 +49,7 @@ function groupByLetter(data: Venue[]): Record<string, Venue[]> {
 }
 
 export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
+    const { t, language } = useLanguage();
     const [mode] = useState<Mode>(initialMode);
     const [search, setSearch] = useState('');
     const [selected, setSelected] = useState<Venue | null>(null);
@@ -64,7 +66,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
     const votes = mode === 'clubs' ? clubVotes : festVotes;
     const setVotes = mode === 'clubs' ? setClubVotes : setFestVotes;
     const voteKey = mode === 'clubs' ? VOTE_KEY_CLUBS : VOTE_KEY_FESTIVALS;
-    const baseData = mode === 'clubs' ? (CLUBS_RAW as Venue[]) : (FESTIVALS_RAW as Venue[]);
+    const baseData = (mode === 'clubs' ? (CLUBS_RAW as any[]) : (FESTIVALS_RAW as any[])).filter(v => v.status !== 'waiting');
     const customData = mode === 'clubs' ? customClubs : customFests;
 
     // Sort alphabetically and merge
@@ -120,13 +122,13 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                 <div>
                     <div className="flex items-center gap-3 mb-2">
                         <BookOpen className="w-5 h-5 text-neon-red" />
-                        <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">Encyclopédie</span>
+                        <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">{t('wiki_encyclopedia')}</span>
                     </div>
                     <h2 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter">
-                        {mode === 'clubs' ? 'Wiki Clubs' : 'Wiki Festivals'}
+                        {mode === 'clubs' ? t('wiki_clubs_title') : t('wiki_festivals_title')}
                     </h2>
                     <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1">
-                        {filtered.length} lieux · A–Z · Vote pour tes préférés ❤️
+                        {filtered.length} {filtered.length === 1 ? t('place_count') : t('places_count')} · A–Z · {t('wiki_vote_favs')}
                     </p>
                 </div>
 
@@ -137,12 +139,12 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                 <div className="relative flex-1">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
                     <input type="text" value={search} onChange={e => setSearch(e.target.value)}
-                        placeholder={`Rechercher un ${mode === 'clubs' ? 'club' : 'festival'}...`}
+                        placeholder={t('venue_search_placeholder')}
                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-all text-sm" />
                 </div>
                 <button onClick={() => setShowAdd(!showAdd)}
                     className="flex items-center gap-2 px-5 py-3 bg-neon-red/10 border border-neon-red/30 rounded-2xl text-neon-red font-black uppercase tracking-widest text-[10px] hover:bg-neon-red/20 transition-all shrink-0">
-                    <Plus className="w-4 h-4" />Ajouter un {mode === 'clubs' ? 'club' : 'festival'}
+                    <Plus className="w-4 h-4" />{t('add_to_wiki')}
                 </button>
             </div>
 
@@ -211,10 +213,10 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                 onClick={handleAdd} 
                                 disabled={!addForm.name || !addForm.city || !addForm.country || !addForm.image}
                                 className={`flex items-center gap-2 px-8 py-4 rounded-2xl font-black uppercase tracking-widest text-[11px] transition-all ${(!addForm.name || !addForm.city || !addForm.country || !addForm.image) ? 'bg-white/5 text-gray-600 grayscale cursor-not-allowed' : 'bg-neon-red text-white hover:bg-neon-red/80 shadow-[0_0_20px_rgba(255,0,0,0.3)]'}`}>
-                                {addSuccess ? '✓ Ajouté !' : <><Save className="w-4 h-4" />Ajouter au Wiki</>}
+                                {addSuccess ? '✓ Ajouté !' : <><Save className="w-4 h-4" />{t('add_to_wiki')}</>}
                             </button>
                             {(!addForm.name || !addForm.city || !addForm.country || !addForm.image) && (
-                                <span className="text-[8px] font-black text-neon-red/60 uppercase tracking-widest italic animate-pulse">Tous les champs avec * sont obligatoires</span>
+                                <span className="text-[8px] font-black text-neon-red/60 uppercase tracking-widest italic animate-pulse">{t('all_fields_required')}</span>
                             )}
                         </div>
                     </motion.div>
@@ -245,7 +247,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                 <span className="text-white font-display font-black text-2xl italic">{letter}</span>
                             </div>
                             <div className="flex-1 h-px bg-gradient-to-r from-neon-red/30 to-transparent" />
-                            <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">{grouped[letter].length} lieu{grouped[letter].length > 1 ? 'x' : ''}</span>
+                            <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">{grouped[letter].length} {grouped[letter].length === 1 ? t('place_count') : t('places_count')}</span>
                         </div>
 
                         {/* Grid */}
@@ -260,7 +262,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                         {/* Photo — format carré + logo contenu */}
                                         <div className="relative aspect-square bg-black overflow-hidden" onClick={() => setSelected(selected?.id === venue.id ? null : venue)}>
                                             <img src={venue.image} alt={venue.name}
-                                                className="w-full h-full object-contain p-2 transition-transform duration-500 group-hover:scale-105" />
+                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                                             {/* Fondu premium réduit pour le format carré */}
                                             <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
                                             {/* Custom badge */}
@@ -278,7 +280,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                         <button onClick={e => { e.stopPropagation(); toggleVote(venue.id); }}
                                             className={`w-full flex items-center justify-center gap-1.5 py-2 text-[8px] font-black uppercase tracking-widest transition-all border-t ${hasVoted ? 'bg-neon-red/15 border-neon-red/30 text-neon-red' : 'bg-black border-white/10 text-gray-500 hover:text-neon-red/70'}`}>
                                             <Heart className={`w-3 h-3 ${hasVoted ? 'fill-current' : ''}`} />
-                                            {voteCount > 0 ? voteCount : ''} {hasVoted ? 'Voté' : 'Voter'}
+                                            {voteCount > 0 ? voteCount : ''} {hasVoted ? t('voted') : t('vote')}
                                         </button>
                                     </motion.div>
                                 );
@@ -302,7 +304,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                             {/* Full image + gradient */}
                             <div className="relative w-full bg-black">
                                 <img src={selected.image} alt={selected.name}
-                                    className="w-full block" style={{ maxHeight: '70vh', objectFit: 'contain', objectPosition: 'center', background: 'black' }} />
+                                    className="w-full block" style={{ maxHeight: '70vh', objectFit: 'cover', objectPosition: 'center', background: 'black' }} />
                                 {/* Gradient fade bottom */}
                                 <div className="absolute bottom-0 left-0 right-0 h-56 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none" />
                                 {/* Info overlaid on gradient */}
@@ -321,13 +323,15 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                             </div>
 
                             <div className="p-8 space-y-6">
-                                <p className="text-gray-300 leading-relaxed text-sm">{selected.description}</p>
+                                <p className="text-gray-300 leading-relaxed text-sm">
+                                    {language === 'fr' ? selected.description : (selected as any).description_en || selected.description}
+                                </p>
 
                                 {/* Vote */}
                                 <button onClick={() => toggleVote(selected.id)}
                                     className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-black uppercase tracking-widest transition-all ${votes.has(selected.id) ? 'bg-neon-red text-white shadow-[0_0_30px_rgba(255,0,0,0.3)]' : 'bg-white/5 border border-white/10 text-gray-300 hover:border-neon-red/50 hover:text-neon-red'}`}>
                                     <Heart className={`w-5 h-5 ${votes.has(selected.id) ? 'fill-current' : ''}`} />
-                                    {votes.has(selected.id) ? 'Tu as voté !' : 'Voter pour ce lieu'}
+                                    {votes.has(selected.id) ? t('voted_for_venue') : t('vote_for_venue')}
                                     <span className="text-sm opacity-70">· {getVoteCount(selected)} votes</span>
                                 </button>
 

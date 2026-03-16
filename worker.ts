@@ -84,6 +84,9 @@ const PENDING_SUBMISSIONS_PATH = 'src/data/pending_submissions.json';
 const TRACKLISTS_PATH = 'src/data/tracklists.json';
 const TRACKLISTS_PENDING_PATH = 'src/data/tracklists_pending.json';
 const CONTACTS_PATH = 'src/data/contacts.json';
+const WIKI_DJS_PATH = 'src/data/wiki_djs.json';
+const WIKI_CLUBS_PATH = 'src/data/wiki_clubs.json';
+const WIKI_FESTIVALS_PATH = 'src/data/wiki_festivals.json';
 
 async function fetchGitHubFile(filePath, config) {
     const { OWNER, REPO, TOKEN } = config;
@@ -821,7 +824,8 @@ ${urls.map(u => `  <url>
             path.startsWith('/api/invoices') ||
             path === '/api/upload' ||
             path.startsWith('/api/instagram-contest') ||
-            path.startsWith('/api/quiz/contest')
+            path.startsWith('/api/quiz/contest') ||
+            path === '/api/wiki/update-photo'
         );
 
         // --- API: PUSH NOTIFICATIONS (pre-auth, public endpoints) ---
@@ -3142,6 +3146,42 @@ ${urls.map(u => `  <url>
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
 
+        }
+
+        if (path === '/api/wiki/update-photo' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { id, type, imageUrl } = await request.json();
+                if (!id || !type || !imageUrl) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+
+                let filePath = '';
+                if (type === 'DJS') filePath = WIKI_DJS_PATH;
+                else if (type === 'CLUBS') filePath = WIKI_CLUBS_PATH;
+                else if (type === 'FESTIVALS') filePath = WIKI_FESTIVALS_PATH;
+                else return new Response(JSON.stringify({ error: 'Invalid type' }), { status: 400, headers });
+
+                const file = await fetchGitHubFile(filePath, gitConfig);
+                if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+
+                const index = file.content.findIndex(item => item.id === id);
+                if (index === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
+
+                // Update item
+                file.content[index].image = imageUrl;
+                if (file.content[index].status === 'waiting') {
+                    delete file.content[index].status;
+                }
+
+                const saved = await saveGitHubFile(filePath, file.content, `Update photo for ${file.content[index].name} (${type})`, file.sha, gitConfig);
+                
+                if (!saved.ok) {
+                    return new Response(JSON.stringify({ error: saved.error }), { status: 500, headers });
+                }
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
         }
 
         // --- API: MEDIA INTERACTIONS (LIKES, SHARES, COMMENTS) ---

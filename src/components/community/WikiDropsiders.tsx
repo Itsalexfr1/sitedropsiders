@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, X, Youtube, Heart } from 'lucide-react';
 import { apiFetch, getAuthHeaders } from '../../utils/auth';
+import { useLanguage } from '../../context/LanguageContext';
 import DJ_DATA_RAW from '../../data/wiki_djs.json';
 
 type DjEntry = {
@@ -21,9 +22,9 @@ const VOTE_KEY = 'dropsiders_votes_djs';
 function loadVotes(): Set<string> { try { return new Set(JSON.parse(localStorage.getItem(VOTE_KEY) || '[]')); } catch { return new Set(); } }
 function saveVotes(v: Set<string>) { localStorage.setItem(VOTE_KEY, JSON.stringify([...v])); }
 
-const initialData: DjEntry[] = (DJ_DATA_RAW as DjEntry[]).sort((a, b) =>
-    a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' })
-);
+const initialData: DjEntry[] = (DJ_DATA_RAW as any[])
+    .filter(dj => dj.status !== 'waiting')
+    .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
 
 function groupByLetter(data: DjEntry[]): Record<string, DjEntry[]> {
     return data.reduce((acc, dj) => {
@@ -35,6 +36,7 @@ function groupByLetter(data: DjEntry[]): Record<string, DjEntry[]> {
 }
 
 export function WikiDropsiders() {
+    const { t, language } = useLanguage();
     const [search, setSearch] = useState('');
     const [djData, setDjData] = useState<DjEntry[]>(initialData);
     const [selectedDj, setSelectedDj] = useState<DjEntry | null>(null);
@@ -91,14 +93,14 @@ export function WikiDropsiders() {
                 <div>
                     <div className="flex items-center gap-3 mb-2">
                         <BookOpen className="w-5 h-5 text-neon-red" />
-                        <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">Encyclopédie</span>
+                        <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">{t('wiki_encyclopedia')}</span>
                     </div>
-                    <h2 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter">Wiki DJs</h2>
-                    <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1">{djData.length} artistes · A–Z · Vote pour tes favoris ❤️</p>
+                    <h2 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter">{t('wiki_djs_title')}</h2>
+                    <p className="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1">{djData.length} {t('wiki_artist_count')} · A–Z · {t('wiki_vote_favs')}</p>
                 </div>
                 <div className="relative w-full md:w-80">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/20" />
-                    <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder="Rechercher un DJ..."
+                    <input type="text" value={search} onChange={e => setSearch(e.target.value)} placeholder={t('search_placeholder')}
                         className="w-full bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-4 text-white font-black uppercase tracking-widest focus:outline-none focus:border-neon-red transition-all text-sm" />
                 </div>
             </div>
@@ -139,7 +141,7 @@ export function WikiDropsiders() {
                                         {/* Photo — photo entière visible + fondu premium en bas */}
                                         <div className="relative aspect-[3/4] bg-black overflow-hidden" onClick={() => handleSelectDj(dj)}>
                                             <img src={dj.image} alt={dj.name}
-                                                className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105" />
+                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
                                             {/* Fondu premium vers le bas */}
                                             <div className="absolute bottom-0 left-0 right-0 h-3/5 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
                                             {/* Name on gradient */}
@@ -157,7 +159,7 @@ export function WikiDropsiders() {
                                         <button onClick={e => toggleVote(dj.id, e)}
                                             className={`w-full flex items-center justify-center gap-1 py-2 text-[8px] font-black uppercase tracking-wider transition-all border-t ${hasVoted ? 'bg-neon-red/15 border-neon-red/30 text-neon-red' : 'bg-black border-white/10 text-gray-500 hover:text-neon-red/70'}`}>
                                             <Heart className={`w-3 h-3 ${hasVoted ? 'fill-current' : ''}`} />
-                                            {hasVoted ? 'Voté !' : 'Voter'}
+                                            {hasVoted ? t('voted') : t('vote')}
                                         </button>
                                     </motion.div>
                                 );
@@ -182,13 +184,13 @@ export function WikiDropsiders() {
                             {/* Hero image — full photo + gradient fade bottom */}
                             <div className="relative w-full bg-black">
                                 <img src={selectedDj.image} alt={selectedDj.name}
-                                    className="w-full block" style={{ maxHeight: '70vh', objectFit: 'contain', objectPosition: 'center top', background: 'black' }} />
+                                    className="w-full block" style={{ maxHeight: '70vh', objectFit: 'cover', objectPosition: 'center top', background: 'black' }} />
                                 {/* Gradient fade at bottom of image */}
                                 <div className="absolute bottom-0 left-0 right-0 h-52 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none" />
                                 {/* Name on gradient */}
                                 <div className="absolute bottom-6 left-6 right-16">
                                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                                        <span className="px-2 py-0.5 bg-neon-red text-white text-[8px] font-black uppercase rounded">Top Rated</span>
+                                        <span className="px-2 py-0.5 bg-neon-red text-white text-[8px] font-black uppercase rounded">{t('top_rated')}</span>
                                         <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{selectedDj.country}</span>
                                         {saveMsg && <span className="px-2 py-0.5 bg-green-500/20 border border-green-500/30 text-green-400 text-[8px] font-black rounded">{saveMsg}</span>}
                                     </div>
@@ -202,20 +204,22 @@ export function WikiDropsiders() {
                             </div>
 
                             <div className="p-8 space-y-6">
-                                <p className="text-gray-300 leading-relaxed text-sm">{selectedDj.bio}</p>
+                                <p className="text-gray-300 leading-relaxed text-sm">
+                                    {language === 'fr' ? selectedDj.bio : (selectedDj as any).bio_en || selectedDj.bio}
+                                </p>
 
                                 {/* Vote */}
                                 <button onClick={e => toggleVote(selectedDj.id, e)}
                                     className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-black uppercase tracking-widest transition-all ${votes.has(selectedDj.id) ? 'bg-neon-red text-white shadow-[0_0_30px_rgba(255,0,0,0.3)]' : 'bg-white/5 border border-white/10 text-gray-300 hover:border-neon-red/50 hover:text-neon-red'}`}>
                                     <Heart className={`w-5 h-5 ${votes.has(selectedDj.id) ? 'fill-current' : ''}`} />
-                                    {votes.has(selectedDj.id) ? 'Tu as voté pour cet artiste !' : 'Voter pour cet artiste'}
+                                    {votes.has(selectedDj.id) ? t('voted_for_artist') : t('vote_for_artist')}
                                 </button>
 
                                 {/* Rating */}
                                 <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl p-4">
                                     <Star className="w-5 h-5 text-neon-red fill-current" />
                                     <div>
-                                        <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Fan Rating</p>
+                                        <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">{t('fan_rating')}</p>
                                         <p className="text-xl font-black text-white">{selectedDj.rating} / 5.0</p>
                                     </div>
                                 </div>
@@ -254,7 +258,7 @@ export function WikiDropsiders() {
                                         </motion.div>
                                     ) : (
                                         <motion.div key="links" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-3">
-                                            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Liens officiels</p>
+                                            <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{t('official_links')}</p>
                                             <div className="flex flex-wrap gap-3">
                                                 {selectedDj.spotify && (
                                                     <a href={selectedDj.spotify} target="_blank" rel="noopener noreferrer" 
@@ -285,12 +289,12 @@ export function WikiDropsiders() {
                                                     </a>
                                                 )}
                                                 {!selectedDj.spotify && !selectedDj.beatport && !selectedDj.instagram && !(selectedDj as any).youtube && (
-                                                    <p className="w-full text-gray-600 text-[10px] font-black uppercase tracking-widest py-2">Aucun lien renseigné</p>
+                                                    <p className="w-full text-gray-600 text-[10px] font-black uppercase tracking-widest py-2">{t('no_links')}</p>
                                                 )}
                                             </div>
                                             {isAdmin && (
                                                 <button onClick={handleEdit} className="w-full mt-2 flex items-center justify-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:bg-neon-red/10 hover:border-neon-red/30 hover:text-neon-red transition-all">
-                                                    <Pencil className="w-3 h-3" />Modifier les liens (admin)
+                                                    <Pencil className="w-3 h-3" />{t('admin_edit_links')}
                                                 </button>
                                             )}
                                         </motion.div>

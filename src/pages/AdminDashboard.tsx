@@ -733,17 +733,24 @@ export function AdminDashboard() {
     };
 
     const fetchPhotosCount = async () => {
+        let count = 0;
         try {
             const r = await fetch('/api/photos/pending', { headers: getAuthHeaders() });
             if (r.ok) {
                 const data = await r.json();
-                setPendingPhotosCount(Array.isArray(data) ? data.length : 0);
+                count += Array.isArray(data) ? data.length : 0;
             }
-        } catch (e) {
-            setPendingPhotosCount(0);
-        }
+        } catch (e) { }
 
-        // Also fetch pending quizzes count here as it was in the old block
+        // Count Wiki items with 'waiting' status
+        const waitingDjs = (WIKI_DJS as any[]).filter(d => d.status === 'waiting').length;
+        const waitingClubs = (WIKI_CLUBS as any[]).filter(c => c.status === 'waiting').length;
+        const waitingFests = (WIKI_FESTIVALS as any[]).filter(f => f.status === 'waiting').length;
+        count += waitingDjs + waitingClubs + waitingFests;
+        
+        setPendingPhotosCount(count);
+
+        // Also fetch pending quizzes count here
         try {
             const res = await fetch('/api/quiz/pending', { headers: getAuthHeaders() });
             if (res.ok) {

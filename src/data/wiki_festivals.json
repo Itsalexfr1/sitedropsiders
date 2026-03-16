@@ -9,7 +9,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ed/Tomorrowland2016mainstage.jpg/960px-Tomorrowland2016mainstage.jpg",
     "website": "https://tomorrowland.com",
     "instagram": "https://instagram.com/tomorrowland",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Tomorrowland est le festival de musique électronique le plus emblématique de la planète, se tenant chaque été à Boom en Belgique. Réputé pour ses décors féeriques et ses scènes monumentales, il attire des centaines de milliers de fans venus du monde entier pour célébrer l'unité sous le thème 'The Book of Wisdom'. Chaque édition est une expérience immersive hors du commun, portée par les plus grands DJs mondiaux et une production visuelle sans équivalent. C'est le rendez-vous ultime de la scène EDM."
   },
   {
     "id": "f2",
@@ -21,7 +23,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/0e/Ultra_Music_Festival_2014_Main_Stage.jpg/960px-Ultra_Music_Festival_2014_Main_Stage.jpg",
     "website": "https://ultramusicfestival.com",
     "instagram": "https://instagram.com/ultra",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "L'Ultra Music Festival est le bastion de l'électro au cœur de Miami, se déroulant chaque mois de mars pendant la Winter Music Conference. Situé à Bayfront Park avec une vue imprenable sur la baie de Biscayne, il est célèbre pour sa mythique Mainstage et sa structure Resistance dédiée à l'underground. Le festival marque traditionnellement le début de la saison estivale mondiale, où les artistes dévoilent leurs nouveaux titres. Une célébration urbaine et électrique devenue une marque planétaire incontournable."
   },
   {
     "id": "f3",
@@ -33,7 +37,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/81/EDC_logo_black.svg/960px-EDC_logo_black.svg.png",
     "website": "https://lasvegas.electricdaisycarnival.com",
     "instagram": "https://instagram.com/edc_lasvegas",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Electric Daisy Carnival Las Vegas est le plus grand festival de musique électronique d'Amérique du Nord, transformant le Las Vegas Motor Speedway en un terrain de jeu onirique. Sous le slogan 'All Are Welcome Here', il réunit des centaines de milliers de 'Headliners' pour trois nuits de fête du crépuscule jusqu'à l'aube. Avec ses manèges de fête foraine géants, ses installations artistiques et ses scènes à la production pharaonique, l'EDC est une expérience sensorielle totale qui célèbre l'amour et la musique."
   },
   {
     "id": "f4",
@@ -45,7 +51,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/6a/Movement_Detroit_2010.jpg/960px-Movement_Detroit_2010.jpg",
     "website": "https://movement.us",
     "instagram": "https://instagram.com/movement",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Le Movement Electronic Music Festival est un hommage annuel aux racines de la techno dans sa ville d'origine, Détroit. Se tenant à Hart Plaza pendant le weekend du Memorial Day, il attire les puristes du monde entier pour une célébration sans compromis des sons électroniques. Le festival se distingue par sa programmation pointue mêlant légendes locales et artistes d'avant-garde internationaux. C'est un événement culturel profond qui préserve l'héritage et l'avenir de la musique électronique underground."
   },
   {
     "id": "f5",
@@ -57,7 +65,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/e/ee/S%C3%B3nar_by_Day_2016.jpg/960px-S%C3%B3nar_by_Day_2016.jpg",
     "website": "https://sonar.es",
     "instagram": "https://instagram.com/sonarbcn",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Sónar est le festival pionnier dédié à la musique avancée, à la créativité et à la technologie, se tenant chaque année à Barcelone. Divisé entre le Sónar de Jour et le Sónar de Nuit, il propose un équilibre parfait entre expérimentation artistique et hédonisme clubbing. Au-delà des concerts, son volet Sónar+D explore les liens entre art numérique et innovation technologique. C'est un carrefour incontournable pour les professionnels et les fans en quête de nouvelles tendances sonores et visuelles."
   },
   {
     "id": "f6",
@@ -69,7 +79,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/76/Awakenings_%281457330255%29.jpg/960px-Awakenings_%281457330255%29.jpg",
     "website": "https://awakenings.com",
     "instagram": "https://instagram.com/awakenings",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Awakenings est l'organisation techno la plus puissante au monde, et son festival estival près d'Amsterdam en est l'apogée. Réunissant plus de 100 000 fans sur plusieurs jours, il offre une programmation techno exhaustive, des légendes aux nouveaux talents. Le festival est célèbre pour sa production technique impeccable, ses jeux de lumières lasers synchronisés et ses scènes aux atmosphères variées. C'est le pèlerinage annuel indispensable pour tout 'techno head' souhaitant vivre l'expérience ultime du genre."
   },
   {
     "id": "f7",
@@ -81,7 +93,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/3/36/Defqon.1_2017_Mainstage.jpg/960px-Defqon.1_2017_Mainstage.jpg",
     "website": "https://defqon1.com",
     "instagram": "https://instagram.com/defqon1festival",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Defqon.1 est le plus grand festival hardstyle du monde, se tenant chaque juin en Hollande. Son closing légendaire 'The Endshow' avec feux d'artifice synchronisés est une des expériences festivalières les plus mémorables."
   },
   {
     "id": "f8",
@@ -93,7 +107,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Time_Warp_2019.jpg/960px-Time_Warp_2019.jpg",
     "website": "https://time-warp.de",
     "instagram": "https://instagram.com/timewarpd",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Time Warp est le festival techno et house indoor de référence, se déroulant à Mannheim dans d'immenses halls industriels. Sa programmation exclusivement underground en fait l'événement hivernal le plus attendu d'Europe."
   },
   {
     "id": "f9",
@@ -105,7 +121,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/4/4c/Creamfields_2018.jpg/960px-Creamfields_2018.jpg",
     "website": "https://creamfields.com",
     "instagram": "https://instagram.com/creamfields",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Creamfields UK est le plus grand festival de musique électronique du Royaume-Uni, fondé en 1998. Il rassemble chaque août plus de 70 000 festivaliers autour des plus grandes stars de l'EDM et de la house culture."
   },
   {
     "id": "f10",
@@ -117,7 +135,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b9/Mysteryland_2018.jpg/960px-Mysteryland_2018.jpg",
     "website": "https://mysteryland.com",
     "instagram": "https://instagram.com/mysteryland",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Mysteryland est le plus ancien festival de musique électronique des Pays-Bas, né en 1993. Ancré dans un paysage champêtre néerlandais unique, il réunit toutes les tendances de la musique électronique sur plusieurs jours."
   },
   {
     "id": "f11",
@@ -129,7 +149,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/14/Exit_Festival_2015.jpg/960px-Exit_Festival_2015.jpg",
     "website": "https://exitfest.org",
     "instagram": "https://instagram.com/exit_festival",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Exit Festival se déroule dans la forteresse de Petrovaradin sur les bords du Danube. Ce festival serbe unique en son genre propose une programmation éclectique dans un cadre médiéval extraordinaire."
   },
   {
     "id": "f12",
@@ -141,7 +163,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/1/1e/Untold2019_fans.jpg/960px-Untold2019_fans.jpg",
     "website": "https://untold.com",
     "instagram": "https://instagram.com/untold_festival",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Untold est le festival roumain en pleine ascension, récompensé meilleur festival européen aux European Festival Awards. Autour du stade de Cluj, il rassemble 350 000 fans sur 4 jours avec les plus grands noms électroniques."
   },
   {
     "id": "f13",
@@ -153,7 +177,9 @@
     "image": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&h=400&fit=crop&q=80&sig=f13",
     "website": "https://medusafestival.com",
     "instagram": "https://instagram.com/medusa_festival",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Medusa Sunbeach est le festival de bord de mer le plus intense d'Espagne, proposant des sets marathons de 10h avec les plus grands DJs hardstyle et EDM dans un cadre méditerranéen."
   },
   {
     "id": "f14",
@@ -165,7 +191,9 @@
     "image": "https://images.unsplash.com/photo-1493676304819-0d7a8d026dcf?w=600&h=400&fit=crop&q=80&sig=f14",
     "website": "https://hideoutfestival.com",
     "instagram": "https://instagram.com/hideoutfestival",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Hideout Festival sur l'île croate de Pag est le paradis des amateurs de house et tech house. Plages de sable blanc, mer Adriatique cristalline et programmation de haute qualité sur 5 jours."
   },
   {
     "id": "f15",
@@ -177,7 +205,9 @@
     "image": "https://images.unsplash.com/photo-1533227898936-90b97741da67?w=600&h=400&fit=crop&q=80&sig=f15",
     "website": "https://dimensionsfestival.com",
     "instagram": "https://instagram.com/dimensionsfestival",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Dimensions Festival se tient dans la forteresse vénitienne de Pula, en Croatie. Ce bijou de programmation underground mêle techno, house et bass music dans un cadre historique surréaliste."
   },
   {
     "id": "f16",
@@ -189,7 +219,9 @@
     "image": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&h=400&fit=crop&q=80&sig=f16",
     "website": "https://thebpmfestival.com",
     "instagram": "https://instagram.com/thebpmfestival",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "BPM Portugal est un festival de techno et house sur 10 jours dans les clubs et plages de l'Algarve. Fondé au Mexique, il est devenu l'un des événements underground les plus courus de l'été européen."
   },
   {
     "id": "f17",
@@ -201,7 +233,9 @@
     "image": "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=600&h=400&fit=crop&q=80&sig=f17",
     "website": "https://electriczoo.com",
     "instagram": "https://instagram.com/electriczoo",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Electric Zoo se tient chaque Labor Day Weekend sur Randall's Island à New York. Ce festival urbain au cœur de Manhattan rassemble les meilleurs DJs EDM et électroniques dans un cadre unique."
   },
   {
     "id": "f18",
@@ -213,7 +247,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Nature_One_2015.jpg/960px-Nature_One_2015.jpg",
     "website": "https://nature-one.de",
     "instagram": "https://instagram.com/natureone_official",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Nature One est le plus grand rave outdoor d'Europe, se déroulant dans une ancienne base militaire américaine de l'Hunsrück. 60 000 ravers, 15 scènes et une programmation techno légendaire chaque août."
   },
   {
     "id": "f19",
@@ -225,7 +261,9 @@
     "image": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&h=400&fit=crop&q=80&sig=f19",
     "website": "https://schee-me.de/melt",
     "instagram": "https://instagram.com/meltfestival",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Melt se déroule à Ferropolis, la 'ville de fer' — un ancien site minier avec des excavateurs gigantesques comme décor. Ambiance unique mêlant musique électronique, indie et installations artistiques spectaculaires."
   },
   {
     "id": "f20",
@@ -237,7 +275,9 @@
     "image": "https://images.unsplash.com/photo-1493676304819-0d7a8d026dcf?w=600&h=400&fit=crop&q=80&sig=f20",
     "website": "https://neopop.net",
     "instagram": "https://instagram.com/neopop_festival",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Neopop est l'un des festivals techno les plus sombres et les plus intenses d'Europe, se tenant dans un vieux château portugais. Sa programmation hardcore underground en fait un pilgrimage pour les techno heads."
   },
   {
     "id": "f21",
@@ -249,7 +289,9 @@
     "image": "https://images.unsplash.com/photo-1533227898936-90b97741da67?w=600&h=400&fit=crop&q=80&sig=f21",
     "website": "https://primaverasound.com",
     "instagram": "https://instagram.com/primavera_sound",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Primavera Sound est le festival le plus influent d'Espagne, proposant une programmation éclectique de haute qualité mêlant rock, électronique et hip-hop sur le front de mer de Barcelone."
   },
   {
     "id": "f22",
@@ -261,7 +303,9 @@
     "image": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&h=400&fit=crop&q=80&sig=f22",
     "website": "https://lovelandfestival.com",
     "instagram": "https://instagram.com/lovelandfestival",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Loveland est le festival outdoor de techno et house de référence d'Amsterdam, se tenant dans le parc du Sloterpark. Ambiance inclusive et chaleureuse autour des meilleurs DJs underground."
   },
   {
     "id": "f23",
@@ -273,7 +317,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/a/a4/Musikfestival_Fusion_Festival_2004.jpg",
     "website": "https://kulturkosmos.de",
     "instagram": "https://instagram.com/fusionfestival",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Le Fusion Festival est l'événement alternatif et non-commercial le plus mythique d'Allemagne, organisé par le collectif Kulturkosmos sur une ancienne base militaire soviétique. Aucune publicité, communauté auto-gérée."
   },
   {
     "id": "f24",
@@ -285,7 +331,9 @@
     "image": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600&h=400&fit=crop&q=80&sig=f24",
     "website": "https://dgtl.nl",
     "instagram": "https://instagram.com/dgtlfestival",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "DGTL est le festival techno le plus écologique du monde, engagé dans l'économie circulaire et une empreinte carbone nulle. Ancré au NDSM Wharf d'Amsterdam, il allie musique de qualité et innovation durable."
   },
   {
     "id": "f25",
@@ -297,7 +345,9 @@
     "image": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&h=400&fit=crop&q=80&sig=f25",
     "website": "https://sw4.co.uk",
     "instagram": "https://instagram.com/sw4festival",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "SW4 est le festival électronique estival de référence à Londres, se tenant sur Clapham Common le Bank Holiday d'Août. Programmation de haute qualité allant de l'EDM à la techno underground."
   },
   {
     "id": "f26",
@@ -309,7 +359,9 @@
     "image": "https://images.unsplash.com/photo-1493676304819-0d7a8d026dcf?w=600&h=400&fit=crop&q=80&sig=f26",
     "website": "https://decibeloutdoor.nl",
     "instagram": "https://instagram.com/decibeloutdoor",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Decibel Outdoor est le festival de hardstyle le plus impressionnant des Pays-Bas, avec des stages monumentaux dans un cadre forestier spectaculaire. L'un des raves les plus intenses et les plus beaux d'Europe."
   },
   {
     "id": "f27",
@@ -321,7 +373,9 @@
     "image": "https://images.unsplash.com/photo-1533227898936-90b97741da67?w=600&h=400&fit=crop&q=80&sig=f27",
     "website": "https://www.transmission.me",
     "instagram": "https://instagram.com/transmissionfestival",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Transmission est le plus grand festival de trance au monde, avec des productions visuelles spectaculaires dignes des grands opéras. L'O2 Arena de Prague se transforme chaque année en vaisseau spatial sonique."
   },
   {
     "id": "f28",
@@ -333,7 +387,9 @@
     "image": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&h=400&fit=crop&q=80&sig=f28",
     "website": "https://thegardenfestival.eu",
     "instagram": "https://instagram.com/thegardenfestival",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Garden Festival en Croatie est une série de festivals intime et solaire au bord de l'Adriatique. Ambiance communautaire précieuse, plages privées et programmation house et électronique pointue."
   },
   {
     "id": "f29",
@@ -345,7 +401,9 @@
     "image": "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=600&h=400&fit=crop&q=80&sig=f29",
     "website": "https://electriccastle.ro",
     "instagram": "https://instagram.com/electriccastle",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Electric Castle est un festival roumain unique se déroulant dans le château de Bonțida, un joyau architectural en ruines. Programmation éclectique dans un cadre de conte de fées avec installations lumineuses grandioses."
   },
   {
     "id": "f30",
@@ -357,7 +415,9 @@
     "image": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600&h=400&fit=crop&q=80&sig=f30",
     "website": "https://outlookfestival.com",
     "instagram": "https://instagram.com/outlookfestival",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Outlook Festival est le festival Bass Music et Sound System de référence, se tenant dans la forteresse de Punta Cristo en Croatie. 5 jours de basses profondes face à la mer Adriatique."
   },
   {
     "id": "f31",
@@ -369,7 +429,9 @@
     "image": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&h=400&fit=crop&q=80&sig=f31",
     "website": "https://qlimax.nl",
     "instagram": "https://instagram.com/qlimaxofficial",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Qlimax est le festival indoor hardstyle le plus épique au monde, se tenant dans le GelreDome d'Arnhem. Ses productions laser et feux d'artifice intérieurs en font un spectacle visuel sans équivalent."
   },
   {
     "id": "f32",
@@ -381,7 +443,9 @@
     "image": "https://images.unsplash.com/photo-1493676304819-0d7a8d026dcf?w=600&h=400&fit=crop&q=80&sig=f32",
     "website": "https://sxmfestival.com",
     "instagram": "https://instagram.com/sxm_festival",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "SXM Festival est l'un des festivals les plus exclusifs au monde, se tenant sur l'île caribéenne de Sint Maarten. Programmation underground raffinée dans des lieux paradisiaques secrets."
   },
   {
     "id": "f33",
@@ -393,7 +457,9 @@
     "image": "https://images.unsplash.com/photo-1533227898936-90b97741da67?w=600&h=400&fit=crop&q=80&sig=f33",
     "website": "https://epizode.com",
     "instagram": "https://instagram.com/epizode_official",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Epizode est le festival techno et house le plus tropical au monde, se tenant sur l'île vietnamienne de Phú Quốc. Une semaine de musique underground sur la plage avec les meilleurs DJs de la scène europé."
   },
   {
     "id": "f34",
@@ -405,7 +471,9 @@
     "image": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&h=400&fit=crop&q=80&sig=f34",
     "website": "https://www.resistancefest.com",
     "instagram": "https://instagram.com/resistancefest",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Resistance est la branche underground du festival Ultra, entièrement dédiée à la techno et à la house de qualité. Ultra Worldwide propose Resistance dans de nombreuses villes du monde avec un line-up exclusif."
   },
   {
     "id": "f35",
@@ -417,7 +485,9 @@
     "image": "https://images.unsplash.com/photo-1506157786151-b8491531f063?w=600&h=400&fit=crop&q=80&sig=f35",
     "website": "https://elrow.com",
     "instagram": "https://instagram.com/elrowofficial",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Elrow est un festival itinérant espagnol unique en son genre, connu pour ses fêtes thématiques avec confettis géants, costumes fous et univers visuels excentriques. Une expérience festive totalement immersive."
   },
   {
     "id": "f36",
@@ -429,7 +499,9 @@
     "image": "https://images.unsplash.com/photo-1459749411175-04bf5292ceea?w=600&h=400&fit=crop&q=80&sig=f36",
     "website": "https://intentsfestival.nl",
     "instagram": "https://instagram.com/intentsfestival",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Intents est le festival hardstyle premium des Pays-Bas, réputé pour la qualité de sa production et ses line-ups exceptionnels. Ambiance familiale et communautaire dans un cadre naturel verdoyant."
   },
   {
     "id": "f37",
@@ -441,7 +513,9 @@
     "image": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&h=400&fit=crop&q=80&sig=f37",
     "website": "https://wideawakefestival.com",
     "instagram": "https://instagram.com/wideawakefest",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Wide Awake est un festival londonien indépendant et pointu à Brockwell Park, Brixton. Sa programmation mêle electronic, post-punk et experimentale avec les artistes les plus influents de la scène underground."
   },
   {
     "id": "f38",
@@ -453,7 +527,9 @@
     "image": "https://images.unsplash.com/photo-1493676304819-0d7a8d026dcf?w=600&h=400&fit=crop&q=80&sig=f38",
     "website": "https://pinkpop.nl",
     "instagram": "https://instagram.com/pinkpop",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Pinkpop est le plus ancien festival de music pop au monde, né en 1970 aux Pays-Bas. Bien que principalement rock et pop, il intègre chaque année une programmation électronique de qualité dans ses stages."
   },
   {
     "id": "f39",
@@ -465,7 +541,9 @@
     "image": "https://images.unsplash.com/photo-1533227898936-90b97741da67?w=600&h=400&fit=crop&q=80&sig=f39",
     "website": "https://tomorrowland.com/brasil",
     "instagram": "https://instagram.com/tomorrowlandbrasil",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Tomorrowland Brasil apporte la magie du célèbre festival belge sur le continent américain, dans la ville d'Itu, São Paulo. Même spectacle grandiose, même programmation de classe mondiale, ambiance latine en plus."
   },
   {
     "id": "f40",
@@ -477,6 +555,8 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/07/Europe_UMF_Croatia.jpg/960px-Europe_UMF_Croatia.jpg",
     "website": "https://ultraeurope.com",
     "instagram": "https://instagram.com/ultra_europe",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Ultra Europe fait partie de Ultra Worldwide et se tient chaque juillet à Split en Croatie. Avec ses événements satellite sur des îles dalmates (Hvar, Brač), c'est l'un des festivals les plus spectaculaires d'Europe."
   }
 ]

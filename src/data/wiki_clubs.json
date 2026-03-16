@@ -9,7 +9,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/3/35/Clubfabric.jpg",
     "website": "https://fabriclondon.com",
     "instagram": "https://instagram.com/fabriclondon",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Fabric est une institution légendaire de la nuit londonienne, située dans un ancien entrepôt de Farringdon. Célèbre pour ses trois salles distinctes et son dancefloor bodysonic unique, le club a façonné la culture électronique mondiale. Chaque weekend, il accueille la crème des DJs internationaux pour des sets marathon. C'est un passage obligé pour tout amateur de techno et de house en quête d'une expérience sonore immersive."
   },
   {
     "id": "c2",
@@ -21,7 +23,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/8/8c/Berlin_Berghain.jpg/960px-Berlin_Berghain.jpg",
     "website": "https://berghain.de",
     "instagram": "https://instagram.com/berghain_kantine",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Considéré comme le temple mondial de la techno, le Berghain occupe une ancienne centrale thermique à l'architecture industrielle imposante. Réputé pour son système sonore massif et ses soirées sans fin, le club est aussi célèbre pour sa politique d'entrée sélective et mystérieuse. Il représente l'essence même de la culture underground berlinoise, interdisant les photos pour préserver l'intimité et la liberté totale de ses danseurs."
   },
   {
     "id": "c3",
@@ -33,7 +37,9 @@
     "image": "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=400&h=400&fit=crop&q=80&sig=3",
     "website": "https://dc-10.net",
     "instagram": "https://instagram.com/dc10ibiza",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Situé au bout des pistes de l'aéroport d'Ibiza, le DC-10 est un club mythique né d'une ferme transformer en bastion de l'underground. Ses soirées Circoloco du lundi sont devenues un phénomène mondial, attirant une foule cosmopolite et passionnée. Sans artifices excessifs, le club mise tout sur la qualité musicale et l'énergie brute de son dancefloor. C'est l'endroit où les DJs aiment jouer leurs sets les plus risqués et innovants."
   },
   {
     "id": "c4",
@@ -45,7 +51,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Tresor_logo.png/960px-Tresor_logo.png",
     "website": "https://tresorberlin.com",
     "instagram": "https://instagram.com/tresorberlin",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Le Tresor est le pilier historique de la techno berlinoise, ouvert juste après la chute du mur dans d'anciens coffres-forts. Relocalisé dans une immense centrale électrique, il conserve son esprit brut, sombre et industriel. Le club a joué un rôle crucial dans le lien entre Berlin et Détroit, accueillant les pionniers du genre. Sa piste de danse en sous-sol, saturée de fumée et de stroboscopes, offre une expérience techno radicale."
   },
   {
     "id": "c5",
@@ -57,7 +65,9 @@
     "image": "https://images.unsplash.com/photo-1520038410233-7d35b99701d4?w=400&h=400&fit=crop&q=80&sig=5",
     "website": "https://grouperex.fr",
     "instagram": "https://instagram.com/rexclubparis",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Véritable institution de la nuit parisienne située sous le cinéma Grand Rex, le Rex Club célèbre les musiques électroniques depuis la fin des années 80. Avec son acoustique impeccable et son système sonore de pointe, il est le repère des puristes de techno et de house. Sous l'impulsion de DJs comme Laurent Garnier, il est devenu une référence européenne incontournable. Sa programmation exigeante attire chaque semaine les noms les plus respectés du circuit mondial."
   },
   {
     "id": "c6",
@@ -69,7 +79,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/99/Amnesia_ibiza.jpeg/960px-Amnesia_ibiza.jpeg",
     "website": "https://amnesia.es",
     "instagram": "https://instagram.com/amnesia_ibiza",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Amnesia est l'un des super-clubs les plus célèbres au monde, emblème de la démesure festive d'Ibiza. Connu pour sa terrasse baignée de lumière à l'aube et son canon à CO2 surpuissant, il propose des productions visuelles spectaculaires. Le club a accueilli des résidences historiques comme Cocoon ou Music On, devenant un lieu de pèlerinage pour les clubbers. Son ambiance électrique et sa capacité massive en font une étape obligatoire sur l'île blanche."
   },
   {
     "id": "c7",
@@ -81,7 +93,9 @@
     "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&q=80&sig=7",
     "website": "https://clubspace.com",
     "instagram": "https://instagram.com/clubspacemiami",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Club Space est une institution de Miami Beach, réputé pour ses soirées marathon qui durent jusqu'au lendemain matin sur le toit-terrasse avec vue sur la baie de Biscayne."
   },
   {
     "id": "c8",
@@ -93,7 +107,9 @@
     "image": "https://images.unsplash.com/photo-1571266028243-a1c4d3c49e0b?w=400&h=400&fit=crop&q=80&sig=8",
     "website": "https://codatoronto.com",
     "instagram": "https://instagram.com/codatoronto",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "CODA est le club de référence de Toronto, avec un son incomparable et une programmation pointue. Sa piste de danse est l'une des mieux sonoisées en Amérique du Nord."
   },
   {
     "id": "c9",
@@ -105,7 +121,9 @@
     "image": "https://images.unsplash.com/photo-1566737236500-c8ac02b87b0c?w=400&h=400&fit=crop&q=80&sig=9",
     "website": "https://hiibiza.com",
     "instagram": "https://instagram.com/hi.ibiza",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Successeur légendaire du Space Ibiza, Hï offre deux salles phénoménales : le Theatre pour les grandes soirées EDM et le Club pour les sets plus intimes et underground."
   },
   {
     "id": "c10",
@@ -117,7 +135,9 @@
     "image": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=400&fit=crop&q=80&sig=10",
     "website": "https://pacha.com",
     "instagram": "https://instagram.com/pachaibiza",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Reconnaissable entre mille avec ses célèbres cerises, le Pacha Ibiza est le plus ancien et le plus glamour des clubs de l'île. Ouvert en 1973 dans une ancienne finca, il a su conserver un charme unique tout en proposant des soirées à la production luxueuse. C'est ici que sont nées des résidences mondiales comme F*** Me I'm Famous ou Flower Power. Le club incarne l'élégance et l'esprit festif originel d'Ibiza, attirant célébrités et passionnés de house music."
   },
   {
     "id": "c11",
@@ -129,7 +149,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/2/2e/Glass_Animals_-_Brooklyn_Mirage_2022_03.jpg/960px-Glass_Animals_-_Brooklyn_Mirage_2022_03.jpg",
     "website": "https://avantgardner.com",
     "instagram": "https://instagram.com/avant_gardner",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "Avant Gardner est le plus grand complexe de clubs de New York, comprenant plusieurs salles dont The Great Hall et le Kings Hall. Hub incontournable de la scène New-Yorkaise."
   },
   {
     "id": "c12",
@@ -141,7 +163,9 @@
     "image": "https://images.unsplash.com/photo-1501281668745-f7f57925b8e2?w=400&h=400&fit=crop&q=80&sig=12",
     "website": "https://drumsheds.com",
     "instagram": "https://instagram.com/drumsheds",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Ancienne usine transformée en méga-club à Tottenham, les Drumsheds accueillent jusqu'à 7000 personnes avec une scénographie industrielle impressionnante et un son de compétition."
   },
   {
     "id": "c13",
@@ -153,7 +177,9 @@
     "image": "https://images.unsplash.com/photo-1520038410233-7d35b99701d4?w=400&h=400&fit=crop&q=80&sig=13",
     "website": "https://thewarehouseproject.com",
     "instagram": "https://instagram.com/warehouseproject",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "WHP est le festival hivernal mythique de Manchester, se déroulant dans d'anciens entrepôt et abris anti-bombes. Programmation haut de gamme de septembre à décembre."
   },
   {
     "id": "c14",
@@ -165,7 +191,9 @@
     "image": "https://upload.wikimedia.org/wikipedia/commons/1/12/XOYO_exterior.jpg",
     "website": "https://xoyo.co.uk",
     "instagram": "https://instagram.com/xoyolondon",
-    "votes": 0
+    "votes": 0,
+    "status": "published",
+    "description_en": "XOYO est l'un des clubs les plus prisés de Londres, situé à Shoreditch. Il accueille des résidences de longue durée permettant aux DJs de développer leur univers en profondeur."
   },
   {
     "id": "c15",
@@ -177,7 +205,9 @@
     "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&q=80&sig=15",
     "website": "https://water-gate.de",
     "instagram": "https://instagram.com/watergate_berlin",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Watergate est un club berlinois emblématique au bord de la Spree, doté d'un pont vitré donnant sur l'eau. Ses soirées Deep, tech-house et minimal sont de références."
   },
   {
     "id": "c16",
@@ -189,7 +219,9 @@
     "image": "https://images.unsplash.com/photo-1571266028243-a1c4d3c49e0b?w=400&h=400&fit=crop&q=80&sig=16",
     "website": "https://zoukclub.com",
     "instagram": "https://instagram.com/zoukclub",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Zouk Singapore est le club le plus réputé d'Asie du Sud-Est, avec plus de 30 ans d'histoire. Il a révélé de nombreux talents locaux et accueille les plus grands headliners mondiaux."
   },
   {
     "id": "c17",
@@ -201,7 +233,9 @@
     "image": "https://images.unsplash.com/photo-1566737236500-c8ac02b87b0c?w=400&h=400&fit=crop&q=80&sig=17",
     "website": "https://womb.co.jp",
     "instagram": "https://instagram.com/wombtokyo",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Womb Tokyo est la référence de la scène électronique japonaise depuis 1999. Situé à Shibuya, il est réputé pour son énorme boule à facettes vintage et sa programmation underground."
   },
   {
     "id": "c18",
@@ -213,7 +247,9 @@
     "image": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=400&fit=crop&q=80&sig=18",
     "website": "https://stereobar.ca",
     "instagram": "https://instagram.com/stereo_montreal",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Stereo Montréal est l'un des clubs les plus appréciés d'Amérique du Nord, connu pour ses after qui commencent au petit matin et son système sonore Funktion-One hors du commun."
   },
   {
     "id": "c19",
@@ -225,7 +261,9 @@
     "image": "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=400&h=400&fit=crop&q=80&sig=19",
     "website": "https://clubdervisionaere.com",
     "instagram": "https://instagram.com/clubdervisionaere",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "CDV est un club intimiste en plein air sur les bords du canal Flutgraben à Berlin. Ses soirées en extérieur et son ambiance unique en font un lieu culte de la scène underground."
   },
   {
     "id": "c20",
@@ -237,7 +275,9 @@
     "image": "https://images.unsplash.com/photo-1501281668745-f7f57925b8e2?w=400&h=400&fit=crop&q=80&sig=20",
     "website": "https://radionisamsterdam.com",
     "instagram": "https://instagram.com/radion_amsterdam",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Radion est le club phare de la scène underground d'Amsterdam, installé dans une ancienne cantine de ZAM. Connu pour sa curation exemplaire et son engagement dans la culture club."
   },
   {
     "id": "c21",
@@ -249,7 +289,9 @@
     "image": "https://images.unsplash.com/photo-1520038410233-7d35b99701d4?w=400&h=400&fit=crop&q=80&sig=21",
     "website": "https://shelteramsterdam.nl",
     "instagram": "https://instagram.com/shelter_amsterdam",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Shelter est un club souterrain mythique d'Amsterdam situé sous le cinéma A'DAM Toren, avec une piste de danse circulaire et un son d'exception pour les nuits techno intenses."
   },
   {
     "id": "c22",
@@ -261,7 +303,9 @@
     "image": "https://images.unsplash.com/photo-1545128571-b53359c44a36?w=400&h=400&fit=crop&q=80&sig=22",
     "website": "https://ministryofsound.com",
     "instagram": "https://instagram.com/ministryofsound",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Ministry of Sound est l'un des clubs les plus célèbres au monde, ouvert en 1991 à Elephant & Castle. Il a lancé les carrières de nombreux DJs et est aussi un label musical majeur."
   },
   {
     "id": "c23",
@@ -273,7 +317,9 @@
     "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&q=80&sig=23",
     "website": "https://subclub.co.uk",
     "instagram": "https://instagram.com/subclubglasgow",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Le Sub Club de Glasgow est l'un des clubs les plus anciens et les plus respectés du monde, ouvert en 1987. Son sous-sol intimiste et son Funktion-One sont légendaires."
   },
   {
     "id": "c24",
@@ -285,7 +331,9 @@
     "image": "https://images.unsplash.com/photo-1571266028243-a1c4d3c49e0b?w=400&h=400&fit=crop&q=80&sig=24",
     "website": "https://concreteparis.fr",
     "instagram": "https://instagram.com/concreteparis",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Le Concrete est le navire de la scène techno et house parisienne, amarré sur la Seine. Connu pour ses soirées marathon du vendredi soir au lundi matin, il accueille la crème des DJs européens."
   },
   {
     "id": "c25",
@@ -297,7 +345,9 @@
     "image": "https://images.unsplash.com/photo-1566737236500-c8ac02b87b0c?w=400&h=400&fit=crop&q=80&sig=25",
     "website": "https://egglondon.co.uk",
     "instagram": "https://instagram.com/egglondon",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Egg London est un club multi-salles de Kings Cross proposant des soirées sur plusieurs niveaux avec terrasse. Réputé pour ses fêtes du vendredi qui s'étendent jusqu'au dimanche."
   },
   {
     "id": "c26",
@@ -309,7 +359,9 @@
     "image": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=400&fit=crop&q=80&sig=26",
     "website": "https://salarazzmatazz.com",
     "instagram": "https://instagram.com/salarazzmatazz",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Razzmatazz est une ancienne usine devenue le plus grand club de Barcelone avec 5 salles simultanées. Chaque salle a sa propre identité musicale allant de l'indie à la techno."
   },
   {
     "id": "c27",
@@ -321,7 +373,9 @@
     "image": "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=400&h=400&fit=crop&q=80&sig=27",
     "website": "https://inputbcn.com",
     "instagram": "https://instagram.com/input.barcelona",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Input est la nouvelle référence techno de Barcelone, conçu par les créateurs du club A1 pour accueillir les sets les plus intenses. Son système audio Meyer Sound est parmi les meilleurs."
   },
   {
     "id": "c28",
@@ -333,7 +387,9 @@
     "image": "https://images.unsplash.com/photo-1501281668745-f7f57925b8e2?w=400&h=400&fit=crop&q=80&sig=28",
     "website": "https://about-blank.com",
     "instagram": "https://instagram.com/aboutblank_berlin",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "About Blank est un espace culturel autogéré de Berlin, ouvert depuis 2010. Communauté inclusive et engagée, jardin géant en plein air et programmation techno/house pointue."
   },
   {
     "id": "c29",
@@ -345,7 +401,9 @@
     "image": "https://images.unsplash.com/photo-1520038410233-7d35b99701d4?w=400&h=400&fit=crop&q=80&sig=29",
     "website": "https://corsicastudios.com",
     "instagram": "https://instagram.com/corsica_studios",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Corsica Studios est l'un des clubs les plus intimes et underground de Londres, réputé pour sa programmation avant-gardiste et son atmosphère authentique dans la banlieue sud."
   },
   {
     "id": "c30",
@@ -357,7 +415,9 @@
     "image": "https://images.unsplash.com/photo-1545128571-b53359c44a36?w=400&h=400&fit=crop&q=80&sig=30",
     "website": "https://exchangela.com",
     "instagram": "https://instagram.com/exchangela",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Exchange LA est le club le plus réputé de Los Angeles, installé dans l'ancienne Bourse de Los Angeles. Son design Art Déco spectaculaire et son son Funktion-One en font un lieu unique."
   },
   {
     "id": "c31",
@@ -369,7 +429,9 @@
     "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&q=80&sig=31",
     "website": "https://tobaccodocklondon.com",
     "instagram": "https://instagram.com/tobaccodocklondon",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Tobacco Dock est un entrepôt victorien classé monument historique transformé en espace événementiel à Wapping. Il accueille les plus grands festivals urbains comme Junction 2."
   },
   {
     "id": "c32",
@@ -381,7 +443,9 @@
     "image": "https://images.unsplash.com/photo-1571266028243-a1c4d3c49e0b?w=400&h=400&fit=crop&q=80&sig=32",
     "website": "https://socialclubparis.com",
     "instagram": "https://instagram.com/socialclubparis",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Le Social Club de Paris est une institution underground au cœur du 2e arrondissement. Ses deux salles accueillent une programmation éclectique mêlant hip-hop, funk et électro."
   },
   {
     "id": "c33",
@@ -393,7 +457,9 @@
     "image": "https://images.unsplash.com/photo-1566737236500-c8ac02b87b0c?w=400&h=400&fit=crop&q=80&sig=33",
     "website": "https://footworkmelbourne.com.au",
     "instagram": "https://instagram.com/footworkmelbourne",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Footwork est le club phare de Melbourne, réputé pour sa scène locale vibrante et ses invités internationaux de qualité. Lieu de référence de l'underground australien."
   },
   {
     "id": "c34",
@@ -405,7 +471,9 @@
     "image": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=400&fit=crop&q=80&sig=34",
     "website": "https://revolverupstairs.com.au",
     "instagram": "https://instagram.com/revolverupstairs",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Revolver Upstairs est un club mythique de Melbourne, ouvert sans interruption depuis 1999. Ses soirées marathon de 36h sont devenues légendaires sur la scène australienne."
   },
   {
     "id": "c35",
@@ -417,7 +485,9 @@
     "image": "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=400&h=400&fit=crop&q=80&sig=35",
     "website": "https://hiveclub.ch",
     "instagram": "https://instagram.com/hive_club_zurich",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Le Hive est le club techno de référence de Zurich, avec un art urbain surprenant en façade et des soirées dont la qualité est reconnue dans toute l'Europe."
   },
   {
     "id": "c36",
@@ -429,7 +499,9 @@
     "image": "https://images.unsplash.com/photo-1501281668745-f7f57925b8e2?w=400&h=400&fit=crop&q=80&sig=36",
     "website": "https://studio338.co.uk",
     "instagram": "https://instagram.com/studio338london",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Studio 338 est un complexe festif unique de Greenwich avec piste extérieure et intérieure. Connu pour ses soirées summer dans son jardin et ses weekend marathons."
   },
   {
     "id": "c37",
@@ -441,7 +513,9 @@
     "image": "https://images.unsplash.com/photo-1520038410233-7d35b99701d4?w=400&h=400&fit=crop&q=80&sig=37",
     "website": "https://batofar.org",
     "instagram": "https://instagram.com/batofar_paris",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Le Batofar est une péniche-club amarrée sur la Seine dans le 13e arrondissement. Haut lieu de l'électro alternative parisienne depuis 1999, il propose aussi des concerts et expositions."
   },
   {
     "id": "c38",
@@ -453,7 +527,9 @@
     "image": "https://images.unsplash.com/photo-1545128571-b53359c44a36?w=400&h=400&fit=crop&q=80&sig=38",
     "website": "https://sui.li",
     "instagram": "https://instagram.com/suicidecircusberlin",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Le Suicide Circus est un club outdoor/indoor berlinois apprécié pour ses afterparties sauvages et sa terrasse en plein air. Son ambiance rave authentique attire les vrais clubbers."
   },
   {
     "id": "c39",
@@ -465,7 +541,9 @@
     "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&q=80&sig=39",
     "website": "https://marqueeny.com",
     "instagram": "https://instagram.com/marqueeny",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Marquee NYC est un club emblématique de Chelsea, New York, réputé pour ses résidences de DJs mondiaux comme Tiësto et Calvin Harris. Un incontournable de la nuit new-yorkaise."
   },
   {
     "id": "c40",
@@ -477,7 +555,9 @@
     "image": "https://images.unsplash.com/photo-1571266028243-a1c4d3c49e0b?w=400&h=400&fit=crop&q=80&sig=40",
     "website": "https://ovalspace.co.uk",
     "instagram": "https://instagram.com/ovalspace",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "L'Oval Space est un entrepôt industriel transformé en lieu de concert et de club à Bethnal Green. Programmation avant-gardiste et architecture spectaculaire avec verrière."
   },
   {
     "id": "c41",
@@ -489,7 +569,9 @@
     "image": "https://images.unsplash.com/photo-1566737236500-c8ac02b87b0c?w=400&h=400&fit=crop&q=80&sig=41",
     "website": "https://yesmcr.co.uk",
     "instagram": "https://instagram.com/yesmcr",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "YES est un bar-club indépendant de Manchester sur quatre niveaux, avec une programmation éclectique et un toit-terrasse. Bar-club de référence de la scène alternative mancunienne."
   },
   {
     "id": "c42",
@@ -501,7 +583,9 @@
     "image": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=400&fit=crop&q=80&sig=42",
     "website": "https://lamachinedumoulinrouge.com",
     "instagram": "https://instagram.com/lamachineparis",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "La Machine du Moulin Rouge est un club mythique au pied du Moulin Rouge à Pigalle. Ses soirées électroniques et ses événements multi-genres en font un incontournable parisien."
   },
   {
     "id": "c43",
@@ -513,7 +597,9 @@
     "image": "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=400&h=400&fit=crop&q=80&sig=43",
     "website": "https://corsairmiami.com",
     "instagram": "https://instagram.com/corsairmiami",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Corsair est le nouveau temple de la musique house et tech house à Miami, avec une piste de danse et des terrasses outdoor face à l'eau. Un espace élégant et musical."
   },
   {
     "id": "c44",
@@ -525,7 +611,9 @@
     "image": "https://images.unsplash.com/photo-1501281668745-f7f57925b8e2?w=400&h=400&fit=crop&q=80&sig=44",
     "website": "https://fabriclondon.com",
     "instagram": "https://instagram.com/fabriclondon",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Le Room One de Fabric est célèbre pour son dancefloor bodysonic unique au monde — le son passe littéralement à travers le sol. Une experience physique incomparable."
   },
   {
     "id": "c45",
@@ -537,6 +625,8 @@
     "image": "https://images.unsplash.com/photo-1520038410233-7d35b99701d4?w=400&h=400&fit=crop&q=80&sig=45",
     "website": "https://tacheles.de",
     "instagram": "https://instagram.com/tacheles_official",
-    "votes": 0
+    "votes": 0,
+    "status": "waiting",
+    "description_en": "Ancienne galerie marchande squat devenue haut-lieu culturel berlinois, Tacheles accueille des raves underground légendaires mêlant art, musique techno et contre-culture."
   }
 ]

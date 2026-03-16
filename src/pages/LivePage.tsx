@@ -2,8 +2,10 @@ import { useState, useEffect } from 'react';
 import { TakeoverPage } from './TakeoverPage';
 import { apiFetch } from '../utils/auth';
 import { EqualizerLoader } from '../components/ui/EqualizerLoader';
+import { useLanguage } from '../context/LanguageContext';
 
 export function LivePage() {
+    const { t, language } = useLanguage();
     const [takeover, setTakeover] = useState<any>(null);
     const [loading, setLoading] = useState(true);
 
@@ -39,7 +41,7 @@ export function LivePage() {
                 </div>
                 <div className="relative z-10 flex flex-col items-center gap-6">
                     <EqualizerLoader count={8} />
-                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] animate-pulse">Syncing with satellite...</p>
+                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.4em] animate-pulse">{t('live.syncing')}</p>
                 </div>
             </div>
         );
@@ -57,14 +59,12 @@ export function LivePage() {
                     <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-cyan/5 animate-pulse [animation-delay:2s] transition-all duration-1000" />
                 </div>
                 <div className="relative z-10 flex flex-col items-center text-center">
-                    <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter mb-4">
-                        Live <span className="text-neon-red drop-shadow-[0_0_20px_rgba(255,0,51,0.5)]">Indisponible</span>
-                    </h1>
+                    <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter mb-4" dangerouslySetInnerHTML={{ __html: t('live.off_title').replace('Indisponible', '<span class="text-neon-red drop-shadow-[0_0_20px_rgba(255,0,51,0.5)]">Indisponible</span>') }} />
                     <p className="text-gray-400 font-bold uppercase tracking-widest text-sm max-w-md mx-auto">
-                        Le live n'est pas actif pour le moment. Revenez plus tard !
+                        {t('live.off_subtitle')}
                     </p>
                     <a href="/" className="mt-12 px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/10 transition-all">
-                        Retour à l'accueil
+                        {t('common.back')}
                     </a>
                 </div>
             </div>
@@ -85,15 +85,15 @@ export function LivePage() {
                         <div className="w-10 h-10 border-4 border-orange-500 border-t-transparent rounded-full animate-spin"></div>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter mb-4 text-center">
-                        Live en <span className="text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.4)]">Préparation</span>
+                        Live en <span className="text-orange-500 drop-shadow-[0_0_20px_rgba(249,115,22,0.4)]">{language === 'fr' ? 'Préparation' : 'Preparation'}</span>
                     </h1>
                     <p className="text-gray-400 font-bold uppercase tracking-widest text-sm text-center max-w-md">
-                        Nous préparons actuellement la diffusion. <br /><span className="text-white/50">Le live débutera très bientôt, restez connectés !</span>
+                        {t('live.prep_subtitle')} <br /><span className="text-white/50">{t('live.prep_wait')}</span>
                     </p>
                     <div className="mt-12 flex flex-col items-center gap-6">
-                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em] italic">Dropsiders Live Module</p>
+                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em] italic">{t('live.module')}</p>
                         <a href="/" className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black text-white uppercase tracking-widest hover:bg-white/10 transition-all">
-                            Retour à l'accueil
+                            {t('common.back')}
                         </a>
                     </div>
                 </div>

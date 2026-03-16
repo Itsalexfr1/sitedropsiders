@@ -31,7 +31,17 @@ export type TranslationKey =
     | 'communaute.guide_title' | 'communaute.guide_subtitle'
     | 'communaute.covoit_title' | 'communaute.covoit_subtitle'
     | 'communaute.alerts_title' | 'communaute.alerts_subtitle' | 'communaute.wall_search_placeholder'
-    | 'quizz.festival_question' | 'quizz.artist_question';
+    | 'quizz.festival_question' | 'quizz.artist_question'
+    | 'shop.auth.title' | 'shop.auth.subtitle' | 'shop.auth.placeholder' | 'shop.auth.error' | 'shop.auth.submit'
+    | 'shop.coming_soon.title' | 'shop.coming_soon.subtitle' | 'shop.badge' | 'shop.title' | 'shop.title_span' | 'shop.subtitle' | 'shop.disclaimer'
+    | 'shop.filter.all' | 'shop.filter.clothes' | 'shop.filter.accessories'
+    | 'musique.title' | 'musique.title_span' | 'musique.subtitle' | 'musique.world_charts' 
+    | 'home.explore'
+    | 'live.syncing' | 'live.off_title' | 'live.off_subtitle' | 'live.prep_title' | 'live.prep_subtitle' | 'live.prep_wait' | 'live.module'
+    | 'common.back' | 'common.quit' | 'common.loading_charts'
+    | 'wiki_encyclopedia' | 'wiki_artist_count' | 'wiki_vote_favs' | 'wiki_djs_title' | 'wiki_clubs_title' | 'wiki_festivals_title' | 'vote' | 'voted' | 'vote_for_artist' | 'voted_for_artist' 
+    | 'vote_for_venue' | 'voted_for_venue' | 'fan_rating' | 'official_links' | 'no_links' | 'top_rated' | 'add_to_wiki' | 'added_to_wiki' 
+    | 'all_fields_required' | 'place_count' | 'places_count' | 'searching' | 'no_results' | 'search_placeholder' | 'search_artist' | 'search_clubs' | 'search_festivals' | 'venue_search_placeholder' | 'admin_edit_links';
 
 export const translations: Record<TranslationKey, { fr: string, en: string }> = {
     'article_detail.link_copied': { fr: 'Lien copié !', en: 'Link copied!' },
@@ -323,5 +333,65 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'communaute.alerts_subtitle': { fr: 'Ne manque jamais l\'annonce de tes artistes préférés.', en: 'Never miss an announcement for your favorite artists.' },
     'communaute.wall_search_placeholder': { fr: 'Rechercher un artiste, lieu...', en: 'Search artist, location...' },
     'quizz.festival_question': { fr: "DE QUEL FESTIVAL S'AGIT-IL ?", en: "WHICH FESTIVAL IS IT?" },
-    'quizz.artist_question': { fr: "DE QUEL ARTISTE S'AGIT-IL ?", en: "WHICH ARTIST IS IT?" }
+    'quizz.artist_question': { fr: "DE QUEL ARTISTE S'AGIT-IL ?", en: "WHICH ARTIST IS IT?" },
+    'shop.auth.title': { fr: 'ACCÈS <span class="text-neon-red">RÉSERVÉ</span>', en: 'RESTRICTED <span class="text-neon-red">ACCESS</span>' },
+    'shop.auth.subtitle': { fr: 'Cette page est actuellement protégée par un mot de passe.', en: 'This page is currently protected by a password.' },
+    'shop.auth.placeholder': { fr: 'MOT DE PASSE', en: 'PASSWORD' },
+    'shop.auth.error': { fr: 'Code incorrect', en: 'Incorrect code' },
+    'shop.auth.submit': { fr: 'Entrer sur le Shop', en: 'Enter Shop' },
+    'shop.coming_soon.title': { fr: 'SHOP IS COMING <span class="text-neon-red">!!!</span>', en: 'SHOP IS COMING <span class="text-neon-red">!!!</span>' },
+    'shop.coming_soon.subtitle': { fr: 'La collection officielle arrive très prochainement.', en: 'The official collection is coming very soon.' },
+    'shop.badge': { fr: 'Boutique Officielle', en: 'Official Shop' },
+    'shop.title': { fr: 'SHOP ', en: 'OFFICIAL ' },
+    'shop.title_span': { fr: 'OFFICIEL', en: 'SHOP' },
+    'shop.subtitle': { fr: 'Explorez la collection exclusive Dropsiders. Des pièces conçues pour la scène, alliant style futuriste et confort absolu pour vos festivals.', en: 'Explore the exclusive Dropsiders collection. Pieces designed for the stage, combining futuristic style and absolute comfort for your festivals.' },
+    'shop.disclaimer': { fr: 'Les prix peuvent varier de quelques centimes en raison de la conversion de notre partenaire Fourthwall.', en: 'Prices may vary by a few cents due to conversion by our partner Fourthwall.' },
+    'shop.filter.all': { fr: 'TOUT', en: 'ALL' },
+    'shop.filter.clothes': { fr: 'VÊTEMENTS', en: 'CLOTHES' },
+    'shop.filter.accessories': { fr: 'ACCESSOIRES', en: 'ACCESSORIES' },
+    'musique.title': { fr: 'DROPSIDERS ', en: 'DROPSIDERS ' },
+    'musique.title_span': { fr: 'MUSIQUE', en: 'MUSIC' },
+    'musique.subtitle': { fr: "L'épicentre de la musique électronique mondiale. Retrouvez les derniers classements Beatport, Traxsource et nos tracklists exclusives.", en: 'The epicenter of global electronic music. Find the latest Beatport and Traxsource charts and our exclusive tracklists.' },
+    'musique.world_charts': { fr: 'World Charts', en: 'World Charts' },
+    'home.explore': { fr: 'Explorer', en: 'Explore' },
+    'live.syncing': { fr: 'Synchronisation avec le satellite...', en: 'Syncing with satellite...' },
+    'live.off_title': { fr: 'Live Indisponible', en: 'Live Unavailable' },
+    'live.off_subtitle': { fr: "Le live n'est pas actif pour le moment. Revenez plus tard !", en: "The live is not active at the moment. Check back later!" },
+    'live.prep_title': { fr: 'Live en Préparation', en: 'Live Preparation' },
+    'live.prep_subtitle': { fr: 'Nous préparons actuellement la diffusion.', en: 'We are currently preparing the broadcast.' },
+    'live.prep_wait': { fr: 'Le live débutera très bientôt, restez connectés !', en: 'The live will start very soon, stay tuned!' },
+    'live.module': { fr: 'Module Live Dropsiders', en: 'Dropsiders Live Module' },
+    'common.back': { fr: 'Retour', en: 'Back' },
+    'common.quit': { fr: 'Quitter', en: 'Quit' },
+    'common.loading_charts': { fr: 'Chargement des charts...', en: 'Loading charts...' },
+    'wiki_encyclopedia': { fr: 'Encyclopédie', en: 'Encyclopedia' },
+    'wiki_artist_count': { fr: 'artistes', en: 'artists' },
+    'wiki_vote_favs': { fr: 'Vote pour tes favoris ❤️', en: 'Vote for your favorites ❤️' },
+    'wiki_djs_title': { fr: 'Wiki DJs', en: 'DJs Wiki' },
+    'wiki_clubs_title': { fr: 'Wiki Clubs', en: 'Clubs Wiki' },
+    'wiki_festivals_title': { fr: 'Wiki Festivals', en: 'Festivals Wiki' },
+    'vote': { fr: 'Voter', en: 'Vote' },
+    'voted': { fr: 'Voté !', en: 'Voted!' },
+    'vote_for_artist': { fr: 'Voter pour cet artiste', en: 'Vote for this artist' },
+    'voted_for_artist': { fr: 'Tu as voté pour cet artiste !', en: 'You voted for this artist!' },
+    'vote_for_venue': { fr: 'Voter pour ce lieu', en: 'Vote for this venue' },
+    'voted_for_venue': { fr: 'Tu as voté !', en: 'You voted!' },
+    'fan_rating': { fr: 'Note des fans', en: 'Fan Rating' },
+    'official_links': { fr: 'Liens officiels', en: 'Official Links' },
+    'no_links': { fr: 'Aucun lien renseigné', en: 'No links provided' },
+    'top_rated': { fr: 'Mieux notés', en: 'Top Rated' },
+    'add_to_wiki': { fr: 'Ajouter au Wiki', en: 'Add to Wiki' },
+    'added_to_wiki': { fr: 'Ajouté au Wiki !', en: 'Added to Wiki!' },
+    'all_fields_required': { fr: 'Tous les champs avec * sont obligatoires', en: 'All fields with * are required' },
+    'place_count': { fr: 'lieu', en: 'venue' },
+    'places_count': { fr: 'lieux', en: 'venues' },
+    'searching': { fr: 'Recherche...', en: 'Searching...' },
+    'no_results': { fr: 'Aucun résultat trouvé', en: 'No results found' },
+    'search_placeholder': { fr: 'Rechercher...', en: 'Searching...' },
+    'search_artist': { fr: 'Rechercher un artiste...', en: 'Search an artist...' },
+    'search_clubs': { fr: 'Rechercher un club ou une ville...', en: 'Search a club or city...' },
+    'search_festivals': { fr: 'Rechercher un festival...', en: 'Search a festival...' },
+    'venue_search_placeholder': { fr: 'Rechercher un lieu ou une ville...', en: 'Search a venue or city...' },
+    'admin_edit_links': { fr: 'Modifier les liens (admin)', en: 'Edit links (admin)' },
 };
+
