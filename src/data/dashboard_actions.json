@@ -20,7 +20,7 @@
     "bg": "bg-neon-pink/5",
     "permission": "social_studio",
     "baseColor": "#ff00d0",
-    "columns": 1,
+    "columns": 2,
     "category": "STUDIO"
   },
   {
@@ -31,7 +31,7 @@
     "link": "#",
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
-    "permission": "news",
+    "permission": "news_focus",
     "baseColor": "#a600ff",
     "columns": 1
   },
@@ -41,10 +41,11 @@
     "icon": "Calendar",
     "link": "/admin/manage?tab=Agenda",
     "baseColor": "#0400ff",
-    "permission": "agenda",
+    "permission": "agenda_events",
     "category": "NEWS",
     "bg": "bg-neon-yellow/5",
-    "color": "border-neon-yellow/20 hover:border-neon-yellow"
+    "color": "border-neon-yellow/20 hover:border-neon-yellow",
+    "columns": 1
   },
   {
     "title": "Statistiques",
@@ -52,7 +53,7 @@
     "icon": "BarChart3",
     "link": "/admin/stats",
     "baseColor": "#00bfff",
-    "permission": "stats",
+    "permission": "stats_analytics",
     "columns": 1,
     "category": "STUDIO",
     "bg": "bg-neon-cyan/5",
@@ -75,7 +76,7 @@
     "icon": "Music",
     "link": "/admin/spotify",
     "baseColor": "#1eff00",
-    "permission": "spotify",
+    "permission": "musique_releases",
     "columns": 1,
     "category": "STUDIO",
     "bg": "bg-neon-green/5",
@@ -87,7 +88,7 @@
     "icon": "Mail",
     "link": "/newsletter/studio",
     "baseColor": "#fbff00",
-    "permission": "broadcast",
+    "permission": "push_newsletter",
     "columns": 1,
     "category": "SHOP",
     "bg": "bg-green-400/5",
@@ -101,7 +102,7 @@
     "link": "#",
     "color": "border-neon-red/20 hover:border-neon-red",
     "bg": "bg-neon-red/5",
-    "permission": "all",
+    "permission": "community_mod",
     "baseColor": "#ffa200",
     "columns": 1
   },
@@ -113,7 +114,7 @@
     "link": "#",
     "color": "border-neon-pink/20 hover:border-neon-pink",
     "bg": "bg-neon-pink/5",
-    "permission": "all",
+    "permission": "community_mod",
     "baseColor": "#ff4d00",
     "columns": 1
   },
@@ -137,8 +138,20 @@
     "link": "#",
     "color": "border-neon-orange/20 hover:border-neon-orange",
     "bg": "bg-neon-orange/5",
-    "permission": "messages",
-    "baseColor": "#5d6d92",
-    "columns": 1
+    "permission": "messages_contact",
+    "baseColor": "#ffffff",
+    "columns": 2
+  },
+  {
+    "title": "Tracklists",
+    "description": "Vérifier & Valider",
+    "icon": "Music",
+    "category": "STUDIO",
+    "link": "#",
+    "color": "border-neon-purple/20 hover:border-neon-purple",
+    "bg": "bg-neon-purple/5",
+    "permission": "musique_releases",
+    "baseColor": "#00357a",
+    "columns": 2
   }
 ]
