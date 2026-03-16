@@ -1191,6 +1191,7 @@ export function AdminDashboard() {
             case 'Youtube': return <Youtube className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'CheckCircle2': return <CheckCircle2 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'Gamepad2': return <Gamepad2 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+            case 'ShieldAlert': return <ShieldAlert className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'Instagram': return <Instagram className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             default: return <FileText className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
         }
@@ -2025,6 +2026,9 @@ export function AdminDashboard() {
                                                     e.preventDefault();
                                                     fetchInstagramParticipants();
                                                     setIsInstagramContestModalOpen(true);
+                                                } else if (action.title === 'Vérifier Photos') {
+                                                    e.preventDefault();
+                                                    setIsModerationModalOpen(true);
                                                 }
                                             }}
                                             className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"

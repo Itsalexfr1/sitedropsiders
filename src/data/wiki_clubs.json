@@ -378,20 +378,6 @@
     "description_en": "Input est la nouvelle référence techno de Barcelone, conçu par les créateurs du club A1 pour accueillir les sets les plus intenses. Son système audio Meyer Sound est parmi les meilleurs."
   },
   {
-    "id": "c28",
-    "name": "About Blank",
-    "city": "Berlin",
-    "country": "DE",
-    "djmag_rank": 28,
-    "description": "About Blank est un espace culturel autogéré de Berlin, ouvert depuis 2010. Communauté inclusive et engagée, jardin géant en plein air et programmation techno/house pointue.",
-    "image": "https://images.unsplash.com/photo-1501281668745-f7f57925b8e2?w=400&h=400&fit=crop&q=80&sig=28",
-    "website": "https://about-blank.com",
-    "instagram": "https://instagram.com/aboutblank_berlin",
-    "votes": 0,
-    "status": "waiting",
-    "description_en": "About Blank est un espace culturel autogéré de Berlin, ouvert depuis 2010. Communauté inclusive et engagée, jardin géant en plein air et programmation techno/house pointue."
-  },
-  {
     "id": "c29",
     "name": "Corsica Studios",
     "city": "Londres",

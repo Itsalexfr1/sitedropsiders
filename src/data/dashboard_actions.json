@@ -153,5 +153,17 @@
     "permission": "musique_releases",
     "baseColor": "#00357a",
     "columns": 2
+  },
+  {
+    "title": "Vérifier Photos",
+    "description": "Clubs, DJs, Festivals",
+    "icon": "ShieldAlert",
+    "category": "ALL",
+    "link": "#",
+    "color": "border-neon-red/20 hover:border-neon-red",
+    "bg": "bg-neon-red/5",
+    "permission": "wiki_dropsiders",
+    "baseColor": "#ff0000",
+    "columns": 1
   }
 ]
