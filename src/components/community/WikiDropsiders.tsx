@@ -230,12 +230,12 @@ export function WikiDropsiders() {
                             transition={{ type: 'spring', damping: 28, stiffness: 260 }}
                             className="fixed right-0 top-0 h-full w-full max-w-xl bg-[#0a0a0a] border-l border-white/10 z-50 overflow-y-auto">
 
-                            {/* Hero image — full photo + gradient fade bottom */}
+                            {/* Hero image — photo entière visible + fondu stylé en bas */}
                             <div className="relative w-full bg-black">
                                 <img src={selectedDj.image} alt={selectedDj.name}
-                                    className="w-full block" style={{ maxHeight: '70vh', objectFit: 'cover', objectPosition: 'center top', background: 'black' }} />
+                                    className="w-full h-auto block" style={{ background: 'black' }} />
                                 {/* Gradient fade at bottom of image */}
-                                <div className="absolute bottom-0 left-0 right-0 h-52 bg-gradient-to-t from-[#0a0a0a] to-transparent pointer-events-none" />
+                                <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent pointer-events-none" />
                                 {/* Name on gradient */}
                                 <div className="absolute bottom-6 left-6 right-16">
                                     <div className="flex items-center gap-2 mb-1 flex-wrap">
