@@ -84,7 +84,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
     const votes = mode === 'clubs' ? clubVotes : festVotes;
     const setVotes = mode === 'clubs' ? setClubVotes : setFestVotes;
     const voteKey = mode === 'clubs' ? VOTE_KEY_CLUBS : VOTE_KEY_FESTIVALS;
-    const baseData = (mode === 'clubs' ? (CLUBS_RAW as any[]) : (FESTIVALS_RAW as any[]));
+    const baseData = (mode === 'clubs' ? (CLUBS_RAW as any[]) : (FESTIVALS_RAW as any[])).filter(v => v.status !== 'waiting');
     const customData = mode === 'clubs' ? customClubs : customFests;
 
     // Sort alphabetically and merge
