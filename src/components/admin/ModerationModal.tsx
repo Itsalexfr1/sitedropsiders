@@ -4,9 +4,7 @@ import { X, Check, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare
 import { getAuthHeaders } from '../../utils/auth';
 import { PromptModal } from '../ui/PromptModal';
 import { ImageUploadModal } from '../ImageUploadModal';
-import WIKI_DJS from '../../data/wiki_djs.json';
-import WIKI_CLUBS from '../../data/wiki_clubs.json';
-import WIKI_FESTIVALS from '../../data/wiki_festivals.json';
+
 
 interface Submission {
     id: string;
