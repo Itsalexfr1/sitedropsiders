@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen, Upload, Image as ImageIcon, Pencil } from 'lucide-react';
+import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen, Upload, Image as ImageIcon, Pencil, Star } from 'lucide-react';
 import { ImageUploadModal } from '../ImageUploadModal';
 import { useLanguage } from '../../context/LanguageContext';
 import { getAuthHeaders } from '../../utils/auth';
@@ -395,7 +395,16 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                         <span className="text-[9px] font-black text-gray-300 uppercase tracking-widest">{FLAG[selected.country] || '🌍'} {selected.city}</span>
                                         {saveMsg && <span className="px-2 py-0.5 bg-green-500/20 border border-green-500/30 text-green-400 text-[8px] font-black rounded">{saveMsg}</span>}
                                     </div>
-                                    <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter drop-shadow-lg">{selected.name}</h3>
+                                    <div className="flex items-center justify-between gap-4">
+                                        <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter drop-shadow-lg">{selected.name}</h3>
+                                        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl px-3 py-2 shrink-0">
+                                            <Star className="w-4 h-4 text-neon-red fill-current" />
+                                            <div className="flex flex-col">
+                                                <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">{t('fan_rating')}</span>
+                                                <span className="text-sm font-black text-white leading-none tracking-tighter">{(selected as any).rating || '0.0'} <span className="text-gray-500 text-[10px]">/ 5.0</span></span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                                 {/* Close */}
                                 <button onClick={() => setSelected(null)}
