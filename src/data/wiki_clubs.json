@@ -6,11 +6,10 @@
     "country": "GB",
     "djmag_rank": 1,
     "description": "Fabric est une institution légendaire de la nuit londonienne, située dans un ancien entrepôt de Farringdon. Célèbre pour ses trois salles distinctes et son dancefloor bodysonic unique, le club a façonné la culture électronique mondiale. Chaque weekend, il accueille la crème des DJs internationaux pour des sets marathon. C'est un passage obligé pour tout amateur de techno et de house en quête d'une expérience sonore immersive.",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/3/35/Clubfabric.jpg",
+    "image": "/uploads/uploads/8524058855f78a72-fabric_2.jpg",
     "website": "https://fabriclondon.com",
     "instagram": "https://instagram.com/fabriclondon",
     "votes": 0,
-    "status": "waiting",
     "description_en": "Fabric est une institution légendaire de la nuit londonienne, située dans un ancien entrepôt de Farringdon. Célèbre pour ses trois salles distinctes et son dancefloor bodysonic unique, le club a façonné la culture électronique mondiale. Chaque weekend, il accueille la crème des DJs internationaux pour des sets marathon. C'est un passage obligé pour tout amateur de techno et de house en quête d'une expérience sonore immersive."
   },
   {
@@ -713,7 +712,6 @@
     "status": "waiting",
     "description_en": "Ancienne usine de biscuits pour chiens, Sisyphos est un terrain de jeu géant où l'on se perd pendant des jours au son d'une techno solaire."
   },
-
   {
     "id": "c75",
     "name": "Robert Johnson",
