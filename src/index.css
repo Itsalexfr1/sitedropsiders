@@ -14,6 +14,7 @@
   --neon-cyan: #00f0ff;
   --glass-bg: rgba(10, 10, 10, 0.8);
   --glass-border: rgba(255, 255, 255, 0.1);
+  --bg-black-theme: #000000;
 }
 
 html.light-mode {
@@ -30,6 +31,7 @@ html.light-mode {
   --neon-cyan: #0099aa;
   --glass-bg: rgba(255, 255, 255, 0.9);
   --glass-border: rgba(0, 0, 0, 0.05);
+  --bg-black-theme: #ffffff;
 }
 
 @theme {
@@ -56,7 +58,7 @@ html.light-mode {
   --color-gray-950: #09090b;
 
   --color-white: #ffffff;
-  --color-black: #000000;
+  --color-black: var(--bg-black-theme);
 
   --color-pink-50: #fdf2f2;
   --color-pink-100: #fde2e2;
@@ -99,75 +101,42 @@ html.light-mode {
     color: var(--text-secondary) !important;
   }
 
-  html.light-mode .bg-black,
-  html.light-mode .bg-dark-bg,
-  html.light-mode div[class*="bg-black/"],
-  html.light-mode div[class*="bg-dark-bg/"],
-  html.light-mode section[class*="bg-black/"],
-  html.light-mode section[class*="bg-dark-bg/"],
-  html.light-mode nav[class*="bg-black/"],
-  html.light-mode nav[class*="bg-dark-bg/"] {
+  /* Removed problematic redirects that broke image visibility */
+
+  html.light-mode .text-white {
+    color: var(--text-primary) !important;
+  }
+
+  /* Support for transparency in light mode headers/overlays */
+  html.light-mode .bg-black\/60,
+  html.light-mode .bg-dark-bg\/60 {
+    background-color: rgba(255, 255, 255, 0.6) !important;
+  }
+  
+  html.light-mode .bg-black\/40,
+  html.light-mode .bg-dark-bg\/40 {
+    background-color: rgba(255, 255, 255, 0.4) !important;
+  }
+
+  html.light-mode .bg-black\/90,
+  html.light-mode .bg-black\/95,
+  html.light-mode .bg-dark-bg\/90,
+  html.light-mode .bg-dark-bg\/95,
+  html.light-mode .bg-dark-bg\/98 {
     background-color: var(--bg-primary) !important;
   }
 
   html.light-mode .bg-dark-card,
   html.light-mode .bg-white\/5,
-  html.light-mode .bg-white\/10,
-  html.light-mode .bg-white\/20,
-  html.light-mode .bg-white\/30 {
+  html.light-mode .bg-white\/10 {
     background-color: var(--bg-card) !important;
     border-color: var(--border-color) !important;
   }
 
   html.light-mode .bg-dark-card {
     background-color: #ffffff !important;
-    box-shadow: 0 10px 40px -10px rgba(0, 0, 0, 0.05) !important;
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05) !important;
     border: 1px solid var(--border-color) !important;
-  }
-
-  /* Neon Adjustment for Light Mode */
-  html.light-mode .text-neon-red { color: #d9002a !important; }
-  html.light-mode .text-neon-cyan { color: #0099aa !important; }
-  html.light-mode .text-neon-purple { color: #8800cc !important; }
-  html.light-mode .text-neon-pink { color: #cc0066 !important; }
-  html.light-mode .text-neon-green { color: #008800 !important; }
-  html.light-mode .text-neon-blue { color: #0055cc !important; }
-  html.light-mode .text-neon-yellow { color: #b38600 !important; }
-
-  html.light-mode .border-white\/5,
-  html.light-mode .border-white\/10,
-  html.light-mode .border-white\/20 {
-    border-color: var(--border-color) !important;
-  }
-
-  html.light-mode .backdrop-blur-xl,
-  html.light-mode .backdrop-blur-lg,
-  html.light-mode .backdrop-blur-md {
-    background-color: var(--glass-bg) !important;
-    border-color: var(--glass-border) !important;
-  }
-
-  html.light-mode .logo-img {
-    filter: invert(1) brightness(0.2);
-  }
-
-  /* Fix for gradients in light mode */
-  html.light-mode .bg-gradient-to-t {
-    background-image: linear-gradient(to top, var(--bg-primary), rgba(245,246,247,0.4), transparent) !important;
-  }
-
-  html.light-mode .bg-gradient-to-r {
-    background-image: linear-gradient(to right, var(--bg-primary), rgba(245,246,247,0.4), transparent) !important;
-  }
-  
-  html.light-mode .from-dark-bg, 
-  html.light-mode .from-black {
-    --tw-gradient-from: var(--bg-primary) !important;
-  }
-  
-  html.light-mode .via-dark-bg, 
-  html.light-mode .via-black {
-    --tw-gradient-to: var(--bg-primary) !important;
   }
 
   html.light-mode .hover\:bg-white\/5:hover,
@@ -181,6 +150,19 @@ html.light-mode {
     color: var(--text-primary) !important;
     border-color: var(--border-color) !important;
     box-shadow: none !important;
+  }
+
+  /* Neon Adjustment for Light Mode */
+  html.light-mode .text-neon-red { color: #d9002a !important; }
+  html.light-mode .text-neon-cyan { color: #0099aa !important; }
+  html.light-mode .text-neon-purple { color: #8800cc !important; }
+  html.light-mode .text-neon-pink { color: #cc0066 !important; }
+  html.light-mode .text-neon-green { color: #008800 !important; }
+  html.light-mode .text-neon-blue { color: #0055cc !important; }
+  html.light-mode .text-neon-yellow { color: #b38600 !important; }
+
+  html.light-mode .logo-img {
+    filter: invert(1) brightness(0.2);
   }
 
   html.light-mode ::-webkit-scrollbar-track { background: #f1f1f1; }
