@@ -6,8 +6,7 @@ import {
     LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music,
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type,
-    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram, Bell, Zap,
-    Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check
+    Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -955,6 +954,10 @@ export function AdminDashboard() {
         { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
         { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "push_newsletter", baseColor: "green", columns: 1 },
         { title: "Messagerie", description: "Emails & Contact", icon: "Mail", category: "SHOP", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages_contact", baseColor: "orange", columns: 1 },
+        { title: "LIVE / TAKEOVER", description: "Gérer le direct", icon: "Zap", category: "STUDIO", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "superadmin", baseColor: "red", columns: 1 },
+        { title: "Downloader", description: "Outil Médias", icon: "Download", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "all", baseColor: "cyan", columns: 1 },
+        { title: "Notifications", description: "Push News", icon: "Bell", category: "SHOP", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "push_newsletter", baseColor: "yellow", columns: 1 },
+        { title: "Communauté", description: "Commentaires & Membres", icon: "MessageSquare", category: "CONCOURS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "community_mod", baseColor: "pink", columns: 1 },
 
         // SYSTÈME
         { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "ALL", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
@@ -1194,6 +1197,11 @@ export function AdminDashboard() {
             case 'Gamepad2': return <Gamepad2 className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'ShieldAlert': return <ShieldAlert className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             case 'Instagram': return <Instagram className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+            case 'Bell': return <Bell className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+            case 'Zap': return <Zap className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+            case 'Activity': return <Activity className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+            case 'MessageSquare': return <MessageSquare className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
+            case 'Download': return <Download className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
             default: return <FileText className={`w-8 h-8 ${colorClass}`} style={colorStyle} />;
         }
     };

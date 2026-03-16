@@ -36,6 +36,18 @@
     "columns": 1
   },
   {
+    "title": "Vérifier Photos",
+    "description": "WIKI : Photos en attente",
+    "icon": "ShieldAlert",
+    "category": "NEWS",
+    "link": "#",
+    "color": "border-neon-red/20 hover:border-neon-red",
+    "bg": "bg-neon-red/5",
+    "permission": "wiki_dropsiders",
+    "baseColor": "#ff0000",
+    "columns": 1
+  },
+  {
     "title": "Agenda",
     "description": "Gérer les dates",
     "icon": "Calendar",
@@ -152,6 +164,54 @@
     "bg": "bg-neon-purple/5",
     "permission": "musique_releases",
     "baseColor": "#00357a",
+    "columns": 1
+  },
+  {
+    "title": "LIVE / TAKEOVER",
+    "description": "Gérer le direct",
+    "icon": "Zap",
+    "category": "STUDIO",
+    "link": "#",
+    "color": "border-neon-red/20 hover:border-neon-red",
+    "bg": "bg-neon-red/5",
+    "permission": "superadmin",
+    "baseColor": "#ff0000",
+    "columns": 1
+  },
+  {
+    "title": "Downloader",
+    "description": "Outil Médias",
+    "icon": "Download",
+    "category": "STUDIO",
+    "link": "#",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "all",
+    "baseColor": "#00f0ff",
+    "columns": 1
+  },
+  {
+    "title": "Notifications",
+    "description": "Push News",
+    "icon": "Bell",
+    "category": "SHOP",
+    "link": "#",
+    "color": "border-neon-yellow/20 hover:border-neon-yellow",
+    "bg": "bg-neon-yellow/5",
+    "permission": "push_newsletter",
+    "baseColor": "#fbff00",
+    "columns": 1
+  },
+  {
+    "title": "Communauté",
+    "description": "Commentaires & Membres",
+    "icon": "MessageSquare",
+    "category": "CONCOURS",
+    "link": "#",
+    "color": "border-neon-pink/20 hover:border-neon-pink",
+    "bg": "bg-neon-pink/5",
+    "permission": "community_mod",
+    "baseColor": "#ff00d0",
     "columns": 1
   }
 ]
