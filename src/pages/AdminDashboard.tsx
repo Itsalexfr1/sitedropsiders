@@ -1779,7 +1779,7 @@ export function AdminDashboard() {
                                                                         method: 'POST',
                                                                         headers: getAuthHeaders(),
                                                                         body: JSON.stringify({ id: entry.id, type: wikiFilter })
-                                                                    }).then(r => { if (r.ok) fetchWiki(); });
+                                                                    }).then(r => { if (r.ok) { fetchWiki(); fetchPhotosCount(); } });
                                                                 }
                                                             }}
                                                             className="p-3 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-xl transition-all border border-red-500/20"
@@ -6173,18 +6173,25 @@ export function AdminDashboard() {
                                         onClick={async () => {
                                             setIsSavingWiki(true);
                                             try {
+                                                // Si le statut est "en attente" mais qu'une image est présente, on passe en "publié"
+                                                const finalEntry = { ...editingWikiEntry };
+                                                if (finalEntry.status === 'waiting' && finalEntry.image && finalEntry.image.trim() !== '') {
+                                                    finalEntry.status = 'published';
+                                                }
+
                                                 const res = await apiFetch('/api/wiki/update', {
                                                     method: 'POST',
                                                     headers: getAuthHeaders(),
                                                     body: JSON.stringify({ 
                                                         id: editingWikiEntry.id, 
                                                         type: wikiFilter,
-                                                        entry: editingWikiEntry
+                                                        entry: finalEntry
                                                     })
                                                 });
                                                 if (res.ok) {
                                                     setIsEditWikiModalOpen(false);
                                                     fetchWiki();
+                                                    fetchPhotosCount();
                                                 }
                                             } catch (e) {
                                                 console.error(e);
@@ -6246,6 +6253,7 @@ export function AdminDashboard() {
                 <ModerationModal
                     isOpen={isModerationModalOpen}
                     onClose={() => setIsModerationModalOpen(false)}
+                    onSuccess={fetchPhotosCount}
                 />
             </div>
         </div >

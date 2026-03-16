@@ -20,9 +20,10 @@ interface Submission {
 interface ModerationModalProps {
     isOpen: boolean;
     onClose: () => void;
+    onSuccess?: () => void;
 }
 
-export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
+export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalProps) {
     const [tab, setTab] = useState<'photos' | 'wiki'>('photos');
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [wikiWaiting, setWikiWaiting] = useState<any[]>([]);
@@ -107,6 +108,7 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
 
             if (response.ok) {
                 setSubmissions(prev => prev.filter(s => s.id !== id));
+                if (onSuccess) onSuccess();
             } else {
                 const err = await response.json();
                 alert('Erreur lors de la modération : ' + (err.error || 'Erreur inconnue'));
@@ -132,6 +134,7 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
 
             if (response.ok) {
                 setWikiWaiting(prev => prev.filter(item => item.id !== id));
+                if (onSuccess) onSuccess();
             } else {
                 const err = await response.json();
                 alert('Erreur : ' + (err.error || 'Inconnue'));
@@ -170,6 +173,7 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
 
             if (response.ok) {
                 setWikiWaiting(prev => prev.filter(item => item.id !== id));
+                if (onSuccess) onSuccess();
             } else {
                 const err = await response.json();
                 alert('Erreur : ' + (err.error || 'Inconnue'));
@@ -205,6 +209,7 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
                 setIsAddingWiki(false);
                 setNewWikiForm({ name: '', city: '', country: 'Intl', image: '', instagram: '', website: '', spotify: '', bio: '' });
                 fetchPending();
+                if (onSuccess) onSuccess();
             } else {
                 const err = await response.json();
                 alert('Erreur : ' + (err.error || 'Inconnue'));
