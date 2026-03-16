@@ -38,41 +38,7 @@
     "website": "https://dc-10.net",
     "instagram": "https://instagram.com/dc10ibiza",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "Situé au bout des pistes de l'aéroport d'Ibiza, le DC-10 est un club mythique né d'une ferme transformer en bastion de l'underground. Ses soirées Circoloco du lundi sont devenues un phénomène mondial, attirant une foule cosmopolite et passionnée. Sans artifices excessifs, le club mise tout sur la qualité musicale et l'énergie brute de son dancefloor. C'est l'endroit où les DJs aiment jouer leurs sets les plus risqués et innovants."
-  },
-  {
-    "id": "c4",
-    "name": "Tresor",
-    "city": "Berlin",
-    "country": "DE",
-    "djmag_rank": 4,
-    "description": "Le Tresor est le pilier historique de la techno berlinoise, ouvert juste après la chute du mur dans d'anciens coffres-forts. Relocalisé dans une immense centrale électrique, il conserve son esprit brut, sombre et industriel. Le club a joué un rôle crucial dans le lien entre Berlin et Détroit, accueillant les pionniers du genre. Sa piste de danse en sous-sol, saturée de fumée et de stroboscopes, offre une expérience techno radicale.",
-    "image": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/69/Tresor_logo.png/960px-Tresor_logo.png",
-    "website": "https://tresorberlin.com",
-    "instagram": "https://instagram.com/tresorberlin",
-    "votes": 0,
-    "status": "published",
-    "description_en": "Le Tresor est le pilier historique de la techno berlinoise, ouvert juste après la chute du mur dans d'anciens coffres-forts. Relocalisé dans une immense centrale électrique, il conserve son esprit brut, sombre et industriel. Le club a joué un rôle crucial dans le lien entre Berlin et Détroit, accueillant les pionniers du genre. Sa piste de danse en sous-sol, saturée de fumée et de stroboscopes, offre une expérience techno radicale."
-  },
-  {
-    "id": "c5",
-    "name": "Rex Club",
-    "city": "Paris",
-    "country": "FR",
-    "djmag_rank": 5,
-    "description": "Véritable institution de la nuit parisienne située sous le cinéma Grand Rex, le Rex Club célèbre les musiques électroniques depuis la fin des années 80. Avec son acoustique impeccable et son système sonore de pointe, il est le repère des puristes de techno et de house. Sous l'impulsion de DJs comme Laurent Garnier, il est devenu une référence européenne incontournable. Sa programmation exigeante attire chaque semaine les noms les plus respectés du circuit mondial.",
-    "image": "/uploads/uploads/bb756ee99b0091c4-651a5550cea08cbbd6000ae4_rex_c.jpeg",
-    "website": "https://grouperex.fr",
-    "instagram": "https://instagram.com/rexclubparis",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Véritable institution de la nuit parisienne située sous le cinéma Grand Rex, le Rex Club célèbre les musiques électroniques depuis la fin des années 80. Avec son acoustique impeccable et son système sonore de pointe, il est le repère des puristes de techno et de house. Sous l'impulsion de DJs comme Laurent Garnier, il est devenu une référence européenne incontournable. Sa programmation exigeante attire chaque semaine les noms les plus respectés du circuit mondial."
   },
   {
@@ -100,27 +66,7 @@
     "website": "https://clubspace.com",
     "instagram": "https://instagram.com/clubspacemiami",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "Club Space est une institution de Miami Beach, réputé pour ses soirées marathon qui durent jusqu'au lendemain matin sur le toit-terrasse avec vue sur la baie de Biscayne."
-  },
-  {
-    "id": "c8",
-    "name": "CODA",
-    "city": "Toronto",
-    "country": "CA",
-    "djmag_rank": 8,
-    "description": "CODA est le club de référence de Toronto, avec un son incomparable et une programmation pointue. Sa piste de danse est l'une des mieux sonoisées en Amérique du Nord.",
-    "image": "/uploads/uploads/69db7dea77e782e1-lg_image.webp",
-    "website": "https://codatoronto.com",
-    "instagram": "https://instagram.com/codatoronto",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "CODA est le club de référence de Toronto, avec un son incomparable et une programmation pointue. Sa piste de danse est l'une des mieux sonoisées en Amérique du Nord."
   },
   {
@@ -134,27 +80,7 @@
     "website": "https://hiibiza.com",
     "instagram": "https://instagram.com/hi.ibiza",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "Successeur légendaire du Space Ibiza, Hï offre deux salles phénoménales : le Theatre pour les grandes soirées EDM et le Club pour les sets plus intimes et underground."
-  },
-  {
-    "id": "c10",
-    "name": "Pacha Ibiza",
-    "city": "Ibiza",
-    "country": "ES",
-    "djmag_rank": 10,
-    "description": "Reconnaissable entre mille avec ses célèbres cerises, le Pacha Ibiza est le plus ancien et le plus glamour des clubs de l'île. Ouvert en 1973 dans une ancienne finca, il a su conserver un charme unique tout en proposant des soirées à la production luxueuse. C'est ici que sont nées des résidences mondiales comme F*** Me I'm Famous ou Flower Power. Le club incarne l'élégance et l'esprit festif originel d'Ibiza, attirant célébrités et passionnés de house music.",
-    "image": "/uploads/uploads/18a9640b49b205dd-slideshow_1714672222.jpg",
-    "website": "https://pacha.com",
-    "instagram": "https://instagram.com/pachaibiza",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Reconnaissable entre mille avec ses célèbres cerises, le Pacha Ibiza est le plus ancien et le plus glamour des clubs de l'île. Ouvert en 1973 dans une ancienne finca, il a su conserver un charme unique tout en proposant des soirées à la production luxueuse. C'est ici que sont nées des résidences mondiales comme F*** Me I'm Famous ou Flower Power. Le club incarne l'élégance et l'esprit festif originel d'Ibiza, attirant célébrités et passionnés de house music."
   },
   {
@@ -182,27 +108,7 @@
     "website": "https://drumsheds.com",
     "instagram": "https://instagram.com/drumsheds",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "Ancienne usine transformée en méga-club à Tottenham, les Drumsheds accueillent jusqu'à 7000 personnes avec une scénographie industrielle impressionnante et un son de compétition."
-  },
-  {
-    "id": "c13",
-    "name": "The Warehouse Project",
-    "city": "Manchester",
-    "country": "GB",
-    "djmag_rank": 13,
-    "description": "WHP est le festival hivernal mythique de Manchester, se déroulant dans d'anciens entrepôt et abris anti-bombes. Programmation haut de gamme de septembre à décembre.",
-    "image": "/uploads/uploads/bb97f1a5e91a589e-whp_1024x576.png",
-    "website": "https://thewarehouseproject.com",
-    "instagram": "https://instagram.com/warehouseproject",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "WHP est le festival hivernal mythique de Manchester, se déroulant dans d'anciens entrepôt et abris anti-bombes. Programmation haut de gamme de septembre à décembre."
   },
   {
@@ -230,27 +136,7 @@
     "website": "https://water-gate.de",
     "instagram": "https://instagram.com/watergate_berlin",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "Watergate est un club berlinois emblématique au bord de la Spree, doté d'un pont vitré donnant sur l'eau. Ses soirées Deep, tech-house et minimal sont de références."
-  },
-  {
-    "id": "c16",
-    "name": "Zouk",
-    "city": "Singapour",
-    "country": "SG",
-    "djmag_rank": 16,
-    "description": "Zouk Singapore est le club le plus réputé d'Asie du Sud-Est, avec plus de 30 ans d'histoire. Il a révélé de nombreux talents locaux et accueille les plus grands headliners mondiaux.",
-    "image": "/uploads/uploads/9b040b31b5cd278d-singapore.jpg",
-    "website": "https://zoukclub.com",
-    "instagram": "https://instagram.com/zoukclub",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Zouk Singapore est le club le plus réputé d'Asie du Sud-Est, avec plus de 30 ans d'histoire. Il a révélé de nombreux talents locaux et accueille les plus grands headliners mondiaux."
   },
   {
@@ -264,27 +150,7 @@
     "website": "https://womb.co.jp",
     "instagram": "https://instagram.com/wombtokyo",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "Womb Tokyo est la référence de la scène électronique japonaise depuis 1999. Situé à Shibuya, il est réputé pour son énorme boule à facettes vintage et sa programmation underground."
-  },
-  {
-    "id": "c18",
-    "name": "Stereo",
-    "city": "Montréal",
-    "country": "CA",
-    "djmag_rank": 18,
-    "description": "Stereo Montréal est l'un des clubs les plus appréciés d'Amérique du Nord, connu pour ses after qui commencent au petit matin et son système sonore Funktion-One hors du commun.",
-    "image": "/uploads/uploads/62aa8b290a372906-stereo_nightclub.jpg",
-    "website": "https://stereobar.ca",
-    "instagram": "https://instagram.com/stereo_montreal",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Stereo Montréal est l'un des clubs les plus appréciés d'Amérique du Nord, connu pour ses after qui commencent au petit matin et son système sonore Funktion-One hors du commun."
   },
   {
@@ -298,27 +164,7 @@
     "website": "https://clubdervisionaere.com",
     "instagram": "https://instagram.com/clubdervisionaere",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "CDV est un club intimiste en plein air sur les bords du canal Flutgraben à Berlin. Ses soirées en extérieur et son ambiance unique en font un lieu culte de la scène underground."
-  },
-  {
-    "id": "c20",
-    "name": "Radion",
-    "city": "Amsterdam",
-    "country": "NL",
-    "djmag_rank": 20,
-    "description": "Radion est le club phare de la scène underground d'Amsterdam, installé dans une ancienne cantine de ZAM. Connu pour sa curation exemplaire et son engagement dans la culture club.",
-    "image": "/uploads/uploads/24aee72b92832088-Breakfastclub_2013_11_660x440.jpg",
-    "website": "https://radionisamsterdam.com",
-    "instagram": "https://instagram.com/radion_amsterdam",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Radion est le club phare de la scène underground d'Amsterdam, installé dans une ancienne cantine de ZAM. Connu pour sa curation exemplaire et son engagement dans la culture club."
   },
   {
@@ -332,27 +178,7 @@
     "website": "https://shelteramsterdam.nl",
     "instagram": "https://instagram.com/shelter_amsterdam",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "Shelter est un club souterrain mythique d'Amsterdam situé sous le cinéma A'DAM Toren, avec une piste de danse circulaire et un son d'exception pour les nuits techno intenses."
-  },
-  {
-    "id": "c22",
-    "name": "Ministry of Sound",
-    "city": "Londres",
-    "country": "GB",
-    "djmag_rank": 22,
-    "description": "Ministry of Sound est l'un des clubs les plus célèbres au monde, ouvert en 1991 à Elephant & Castle. Il a lancé les carrières de nombreux DJs et est aussi un label musical majeur.",
-    "image": "/uploads/uploads/4b1ef9f4bc290cff-the_view_from_the_dj.jpg",
-    "website": "https://ministryofsound.com",
-    "instagram": "https://instagram.com/ministryofsound",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Ministry of Sound est l'un des clubs les plus célèbres au monde, ouvert en 1991 à Elephant & Castle. Il a lancé les carrières de nombreux DJs et est aussi un label musical majeur."
   },
   {
@@ -366,27 +192,7 @@
     "website": "https://subclub.co.uk",
     "instagram": "https://instagram.com/subclubglasgow",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "Le Sub Club de Glasgow est l'un des clubs les plus anciens et les plus respectés du monde, ouvert en 1987. Son sous-sol intimiste et son Funktion-One sont légendaires."
-  },
-  {
-    "id": "c24",
-    "name": "Concrete",
-    "city": "Paris",
-    "country": "FR",
-    "djmag_rank": 24,
-    "description": "Le Concrete est le navire de la scène techno et house parisienne, amarré sur la Seine. Connu pour ses soirées marathon du vendredi soir au lundi matin, il accueille la crème des DJs européens.",
-    "image": "/uploads/uploads/e78832f9da226356-XVM98843026_9cd7_11e9_bd45_25a.webp",
-    "website": "https://concreteparis.fr",
-    "instagram": "https://instagram.com/concreteparis",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Le Concrete est le navire de la scène techno et house parisienne, amarré sur la Seine. Connu pour ses soirées marathon du vendredi soir au lundi matin, il accueille la crème des DJs européens."
   },
   {
@@ -400,27 +206,7 @@
     "website": "https://egglondon.co.uk",
     "instagram": "https://instagram.com/egglondon",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "Egg London est un club multi-salles de Kings Cross proposant des soirées sur plusieurs niveaux avec terrasse. Réputé pour ses fêtes du vendredi qui s'étendent jusqu'au dimanche."
-  },
-  {
-    "id": "c26",
-    "name": "Razzmatazz",
-    "city": "Barcelone",
-    "country": "ES",
-    "djmag_rank": 26,
-    "description": "Razzmatazz est une ancienne usine devenue le plus grand club de Barcelone avec 5 salles simultanées. Chaque salle a sa propre identité musicale allant de l'indie à la techno.",
-    "image": "/uploads/uploads/7726407508c04d48-Razzmatazz_dir2_Sala1_10.jpg",
-    "website": "https://salarazzmatazz.com",
-    "instagram": "https://instagram.com/salarazzmatazz",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Razzmatazz est une ancienne usine devenue le plus grand club de Barcelone avec 5 salles simultanées. Chaque salle a sa propre identité musicale allant de l'indie à la techno."
   },
   {
@@ -434,27 +220,7 @@
     "website": "https://inputbcn.com",
     "instagram": "https://instagram.com/input.barcelona",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "Input est la nouvelle référence techno de Barcelone, conçu par les créateurs du club A1 pour accueillir les sets les plus intenses. Son système audio Meyer Sound est parmi les meilleurs."
-  },
-  {
-    "id": "c29",
-    "name": "Corsica Studios",
-    "city": "Londres",
-    "country": "GB",
-    "djmag_rank": 29,
-    "description": "Corsica Studios est l'un des clubs les plus intimes et underground de Londres, réputé pour sa programmation avant-gardiste et son atmosphère authentique dans la banlieue sud.",
-    "image": "/uploads/uploads/e5d6706577840b5a-fabric_a.avif",
-    "website": "https://corsicastudios.com",
-    "instagram": "https://instagram.com/corsica_studios",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Corsica Studios est l'un des clubs les plus intimes et underground de Londres, réputé pour sa programmation avant-gardiste et son atmosphère authentique dans la banlieue sud."
   },
   {
@@ -468,27 +234,7 @@
     "website": "https://exchangela.com",
     "instagram": "https://instagram.com/exchangela",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "Exchange LA est le club le plus réputé de Los Angeles, installé dans l'ancienne Bourse de Los Angeles. Son design Art Déco spectaculaire et son son Funktion-One en font un lieu unique."
-  },
-  {
-    "id": "c31",
-    "name": "Tobacco Dock",
-    "city": "Londres",
-    "country": "GB",
-    "djmag_rank": 31,
-    "description": "Tobacco Dock est un entrepôt victorien classé monument historique transformé en espace événementiel à Wapping. Il accueille les plus grands festivals urbains comme Junction 2.",
-    "image": "/uploads/uploads/f578b1d217e31afc-tobacco_dock.png",
-    "website": "https://tobaccodocklondon.com",
-    "instagram": "https://instagram.com/tobaccodocklondon",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Tobacco Dock est un entrepôt victorien classé monument historique transformé en espace événementiel à Wapping. Il accueille les plus grands festivals urbains comme Junction 2."
   },
   {
@@ -502,55 +248,7 @@
     "website": "https://socialclubparis.com",
     "instagram": "https://instagram.com/socialclubparis",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "Le Social Club de Paris est une institution underground au cœur du 2e arrondissement. Ses deux salles accueillent une programmation éclectique mêlant hip-hop, funk et électro."
-  },
-  {
-    "id": "c33",
-    "name": "Footwork",
-    "city": "Melbourne",
-    "country": "AU",
-    "djmag_rank": 33,
-    "description": "Footwork est le club phare de Melbourne, réputé pour sa scène locale vibrante et ses invités internationaux de qualité. Lieu de référence de l'underground australien.",
-    "image": "https://images.unsplash.com/photo-1566737236500-c8ac02b87b0c?w=400&h=400&fit=crop&q=80&sig=33",
-    "website": "https://footworkmelbourne.com.au",
-    "instagram": "https://instagram.com/footworkmelbourne",
-    "votes": 0,
-    "status": "published",
-    "description_en": "Footwork est le club phare de Melbourne, réputé pour sa scène locale vibrante et ses invités internationaux de qualité. Lieu de référence de l'underground australien."
-  },
-  {
-    "id": "c34",
-    "name": "Revolver Upstairs",
-    "city": "Melbourne",
-    "country": "AU",
-    "djmag_rank": 34,
-    "description": "Revolver Upstairs est un club mythique de Melbourne, ouvert sans interruption depuis 1999. Ses soirées marathon de 36h sont devenues légendaires sur la scène australienne.",
-    "image": "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=400&h=400&fit=crop&q=80&sig=34",
-    "website": "https://revolverupstairs.com.au",
-    "instagram": "https://instagram.com/revolverupstairs",
-    "votes": 0,
-    "status": "published",
-    "description_en": "Revolver Upstairs est un club mythique de Melbourne, ouvert sans interruption depuis 1999. Ses soirées marathon de 36h sont devenues légendaires sur la scène australienne."
-  },
-  {
-    "id": "c35",
-    "name": "Hive Club",
-    "city": "Zurich",
-    "country": "CH",
-    "djmag_rank": 35,
-    "description": "Le Hive est le club techno de référence de Zurich, avec un art urbain surprenant en façade et des soirées dont la qualité est reconnue dans toute l'Europe.",
-    "image": "/uploads/uploads/add93ef8d5e21e2e-web_zurich_nightlife_hive_01.jpg",
-    "website": "https://hiveclub.ch",
-    "instagram": "https://instagram.com/hive_club_zurich",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Le Hive est le club techno de référence de Zurich, avec un art urbain surprenant en façade et des soirées dont la qualité est reconnue dans toute l'Europe."
   },
   {
@@ -564,27 +262,7 @@
     "website": "https://studio338.co.uk",
     "instagram": "https://instagram.com/studio338london",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "Studio 338 est un complexe festif unique de Greenwich avec piste extérieure et intérieure. Connu pour ses soirées summer dans son jardin et ses weekend marathons."
-  },
-  {
-    "id": "c37",
-    "name": "Batofar",
-    "city": "Paris",
-    "country": "FR",
-    "djmag_rank": 37,
-    "description": "Le Batofar est une péniche-club amarrée sur la Seine dans le 13e arrondissement. Haut lieu de l'électro alternative parisienne depuis 1999, il propose aussi des concerts et expositions.",
-    "image": "/uploads/uploads/afb2d278e0c8ea0e-fr_batofar_paris.jpg",
-    "website": "https://batofar.org",
-    "instagram": "https://instagram.com/batofar_paris",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Le Batofar est une péniche-club amarrée sur la Seine dans le 13e arrondissement. Haut lieu de l'électro alternative parisienne depuis 1999, il propose aussi des concerts et expositions."
   },
   {
@@ -598,27 +276,7 @@
     "website": "https://sui.li",
     "instagram": "https://instagram.com/suicidecircusberlin",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "Le Suicide Circus est un club outdoor/indoor berlinois apprécié pour ses afterparties sauvages et sa terrasse en plein air. Son ambiance rave authentique attire les vrais clubbers."
-  },
-  {
-    "id": "c39",
-    "name": "Marquee",
-    "city": "New York",
-    "country": "US",
-    "djmag_rank": 39,
-    "description": "Marquee NYC est un club emblématique de Chelsea, New York, réputé pour ses résidences de DJs mondiaux comme Tiësto et Calvin Harris. Un incontournable de la nuit new-yorkaise.",
-    "image": "/uploads/uploads/52c650238a9f9859-5_16.jpg",
-    "website": "https://marqueeny.com",
-    "instagram": "https://instagram.com/marqueeny",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Marquee NYC est un club emblématique de Chelsea, New York, réputé pour ses résidences de DJs mondiaux comme Tiësto et Calvin Harris. Un incontournable de la nuit new-yorkaise."
   },
   {
@@ -632,27 +290,7 @@
     "website": "https://ovalspace.co.uk",
     "instagram": "https://instagram.com/ovalspace",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "L'Oval Space est un entrepôt industriel transformé en lieu de concert et de club à Bethnal Green. Programmation avant-gardiste et architecture spectaculaire avec verrière."
-  },
-  {
-    "id": "c41",
-    "name": "YES Manchester",
-    "city": "Manchester",
-    "country": "GB",
-    "djmag_rank": 41,
-    "description": "YES est un bar-club indépendant de Manchester sur quatre niveaux, avec une programmation éclectique et un toit-terrasse. Bar-club de référence de la scène alternative mancunienne.",
-    "image": "/uploads/uploads/66f0928411c8629c-YESOpening_JodyHartley_Interio.jpg",
-    "website": "https://yesmcr.co.uk",
-    "instagram": "https://instagram.com/yesmcr",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "YES est un bar-club indépendant de Manchester sur quatre niveaux, avec une programmation éclectique et un toit-terrasse. Bar-club de référence de la scène alternative mancunienne."
   },
   {
@@ -666,41 +304,7 @@
     "website": "https://lamachinedumoulinrouge.com",
     "instagram": "https://instagram.com/lamachineparis",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
-    "description_en": "La Machine du Moulin Rouge est un club mythique au pied du Moulin Rouge à Pigalle. Ses soirées électroniques et ses événements multi-genres en font un incontournable parisien."
-  },
-  {
-    "id": "c43",
-    "name": "Corsair",
-    "city": "Miami",
-    "country": "US",
-    "djmag_rank": 43,
-    "description": "Corsair est le nouveau temple de la musique house et tech house à Miami, avec une piste de danse et des terrasses outdoor face à l'eau. Un espace élégant et musical.",
-    "image": "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?w=400&h=400&fit=crop&q=80&sig=43",
-    "website": "https://corsairmiami.com",
-    "instagram": "https://instagram.com/corsairmiami",
-    "votes": 0,
-    "status": "published",
-    "description_en": "Corsair est le nouveau temple de la musique house et tech house à Miami, avec une piste de danse et des terrasses outdoor face à l'eau. Un espace élégant et musical."
-  },
-  {
-    "id": "c44",
-    "name": "Fabric Room One",
-    "city": "Londres",
-    "country": "GB",
-    "djmag_rank": 44,
-    "description": "Le Room One de Fabric est célèbre pour son dancefloor bodysonic unique au monde — le son passe littéralement à travers le sol. Une experience physique incomparable.",
-    "image": "/uploads/uploads/9a7899827a5d3bc1-3675d82ac381309399b2c71bb9cb32.webp",
-    "website": "https://fabriclondon.com",
-    "instagram": "https://instagram.com/fabriclondon",
-    "votes": 0,
-<<<<<<< HEAD
-    "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Le Room One de Fabric est célèbre pour son dancefloor bodysonic unique au monde — le son passe littéralement à travers le sol. Une experience physique incomparable."
   },
   {
@@ -714,10 +318,7 @@
     "website": "https://tacheles.de",
     "instagram": "https://instagram.com/tacheles_official",
     "votes": 0,
-<<<<<<< HEAD
     "status": "published",
-=======
->>>>>>> 1d01eee89c47a483eb5d9d4710b8b02b1a57cfc2
     "description_en": "Ancienne galerie marchande squat devenue haut-lieu culturel berlinois, Tacheles accueille des raves underground légendaires mêlant art, musique techno et contre-culture."
   },
   {
