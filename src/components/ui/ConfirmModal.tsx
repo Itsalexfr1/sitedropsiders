@@ -10,6 +10,7 @@ interface ConfirmModalProps {
     type?: 'danger' | 'warning' | 'info';
     confirmText?: string;
     cancelText?: string;
+    hideCancel?: boolean;
 }
 
 export function ConfirmModal({
@@ -20,7 +21,8 @@ export function ConfirmModal({
     onCancel,
     type = 'danger',
     confirmText = 'Confirmer',
-    cancelText = 'Annuler'
+    cancelText = 'Annuler',
+    hideCancel = false
 }: ConfirmModalProps) {
     if (!isOpen) return null;
 
@@ -78,13 +80,15 @@ export function ConfirmModal({
                             {message}
                         </p>
 
-                        <div className="grid grid-cols-2 gap-4 w-full">
-                            <button
-                                onClick={onCancel}
-                                className="py-4 bg-white/5 border border-white/10 text-white font-black rounded-2xl hover:bg-white/10 transition-all uppercase tracking-widest text-[10px]"
-                            >
-                                {cancelText}
-                            </button>
+                        <div className={`grid ${hideCancel ? 'grid-cols-1' : 'grid-cols-2'} gap-4 w-full`}>
+                            {!hideCancel && (
+                                <button
+                                    onClick={onCancel}
+                                    className="py-4 bg-white/5 border border-white/10 text-white font-black rounded-2xl hover:bg-white/10 transition-all uppercase tracking-widest text-[10px]"
+                                >
+                                    {cancelText}
+                                </button>
+                            )}
                             <button
                                 onClick={() => {
                                     onConfirm();
@@ -96,12 +100,14 @@ export function ConfirmModal({
                         </div>
                     </div>
 
-                    <button
-                        onClick={onCancel}
-                        className="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors"
-                    >
-                        <X className="w-5 h-5" />
-                    </button>
+                    {!hideCancel && (
+                        <button
+                            onClick={onCancel}
+                            className="absolute top-6 right-6 text-gray-500 hover:text-white transition-colors"
+                        >
+                            <X className="w-5 h-5" />
+                        </button>
+                    )}
                     </motion.div>
                 </div>
             </div>

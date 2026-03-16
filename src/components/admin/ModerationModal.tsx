@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare, BookOpen, Upload, Plus } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
 import { PromptModal } from '../ui/PromptModal';
+import { ConfirmModal } from '../ui/ConfirmModal';
 import { ImageUploadModal } from '../ImageUploadModal';
 
 
@@ -53,6 +54,33 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
         bio: ''
     });
     const [isSavingNewWiki, setIsSavingNewWiki] = useState(false);
+
+    const [alertConfig, setAlertConfig] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: 'danger' | 'warning' | 'info';
+        isConfirm: boolean;
+        onConfirm: () => void;
+    }>({
+        isOpen: false,
+        title: '',
+        message: '',
+        type: 'danger',
+        isConfirm: false,
+        onConfirm: () => {}
+    });
+
+    const showAlert = (message: string, title = 'DROPSIDERS.FR INDIQUE', type: 'danger' | 'warning' | 'info' = 'danger') => {
+        setAlertConfig({
+            isOpen: true,
+            title,
+            message,
+            type,
+            isConfirm: false,
+            onConfirm: () => setAlertConfig(prev => ({ ...prev, isOpen: false }))
+        });
+    };
 
     const fetchPending = async () => {
         setIsLoading(true);
@@ -111,38 +139,46 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
                 if (onSuccess) onSuccess();
             } else {
                 const err = await response.json();
-                alert('Erreur lors de la modération : ' + (err.error || 'Erreur inconnue'));
+                showAlert('Erreur lors de la modération : ' + (err.error || 'Erreur inconnue'));
             }
         } catch (error) {
             console.error('Moderation error:', error);
-            alert('Erreur réseau lors de la mise à jour');
+            showAlert('Erreur réseau lors de la mise à jour');
         }
     };
 
     const handleDeleteWiki = async (id: string, type: string, name: string) => {
-        if (!window.confirm(`Supprimer définitivement "${name}" du Wiki ?`)) return;
+        setAlertConfig({
+            isOpen: true,
+            title: 'Confirmation',
+            message: `Supprimer définitivement "${name}" du Wiki ?`,
+            type: 'warning',
+            isConfirm: true,
+            onConfirm: async () => {
+                setAlertConfig(prev => ({ ...prev, isOpen: false }));
+                try {
+                    const response = await fetch('/api/wiki/delete', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...getAuthHeaders()
+                        },
+                        body: JSON.stringify({ id, type })
+                    });
 
-        try {
-            const response = await fetch('/api/wiki/delete', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    ...getAuthHeaders()
-                },
-                body: JSON.stringify({ id, type })
-            });
-
-            if (response.ok) {
-                setWikiWaiting(prev => prev.filter(item => item.id !== id));
-                if (onSuccess) onSuccess();
-            } else {
-                const err = await response.json();
-                alert('Erreur : ' + (err.error || 'Inconnue'));
+                    if (response.ok) {
+                        setWikiWaiting(prev => prev.filter(item => item.id !== id));
+                        if (onSuccess) onSuccess();
+                    } else {
+                        const err = await response.json();
+                        showAlert('Erreur : ' + (err.error || 'Inconnue'));
+                    }
+                } catch (error) {
+                    console.error('Delete error:', error);
+                    showAlert('Erreur réseau lors de la suppression');
+                }
             }
-        } catch (error) {
-            console.error('Delete error:', error);
-            alert('Erreur réseau lors de la suppression');
-        }
+        });
     };
 
     const [activeItem, setActiveItem] = useState<{ id: string, type: string, name: string } | null>(null);
@@ -157,7 +193,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
         const type = overrideType || activeItem?.type || promptState.itemType;
         
         if (!id || !type) {
-            alert('Erreur: ID ou Type manquant');
+            showAlert('Erreur: ID ou Type manquant');
             return;
         }
 
@@ -176,17 +212,17 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
                 if (onSuccess) onSuccess();
             } else {
                 const err = await response.json();
-                alert('Erreur : ' + (err.error || 'Inconnue'));
+                showAlert('Erreur : ' + (err.error || 'Inconnue'));
             }
         } catch (error) {
             console.error('Update error:', error);
-            alert('Erreur de connexion lors de la validation');
+            showAlert('Erreur de connexion lors de la validation');
         }
     };
 
     const handleAddWiki = async () => {
         if (!newWikiForm.name || !newWikiForm.image || !newWikiForm.instagram || (!newWikiForm.website && !newWikiForm.spotify)) {
-            alert('Veuillez remplir les champs obligatoires : Nom, Photo, Instagram et Site/Spotify.');
+            showAlert('Veuillez remplir les champs obligatoires : Nom, Photo, Instagram et Site/Spotify.', 'CHAMPS MANQUANTS', 'warning');
             return;
         }
 
@@ -212,7 +248,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
                 if (onSuccess) onSuccess();
             } else {
                 const err = await response.json();
-                alert('Erreur : ' + (err.error || 'Inconnue'));
+                showAlert('Erreur : ' + (err.error || 'Inconnue'));
             }
         } catch (error) {
             console.error('Add error:', error);
@@ -518,6 +554,17 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
                     </AnimatePresence>
                 </motion.div>
             </div>
+
+            <ConfirmModal
+                isOpen={alertConfig.isOpen}
+                title={alertConfig.title}
+                message={alertConfig.message}
+                type={alertConfig.type}
+                hideCancel={!alertConfig.isConfirm}
+                onConfirm={alertConfig.onConfirm}
+                onCancel={() => setAlertConfig(prev => ({ ...prev, isOpen: false }))}
+                confirmText={alertConfig.isConfirm ? "Confirmer" : "OK"}
+            />
         </div>
     );
 }
