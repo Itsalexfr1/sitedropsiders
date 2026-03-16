@@ -68,12 +68,6 @@ export function ImageUploadModal({ isOpen, onClose, onUploadSuccess, onClear, ac
                 const img = new Image();
                 img.src = reader.result as string;
                 img.onload = () => {
-                    // Check minimum dimensions (e.g. 500px)
-                    if (img.width < 500 || img.height < 500) {
-                        if (!window.confirm(`Attention: Cette image est petite (${img.width}x${img.height}). Pour un rendu optimal sur le Wiki, une image d'au moins 800px est recommandée. Voulez-vous continuer ?`)) {
-                            return;
-                        }
-                    }
                     setSelectedImage(reader.result as string);
                     setSelectedFile(file);
                     setStep('preview');
