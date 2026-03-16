@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Sparkles, Copy, Check, Instagram, Facebook, Twitter, Send, RefreshCw, Pencil, Image as ImageIcon, Upload, Trash2, Layout } from 'lucide-react';
 import { uploadFile } from '../../utils/uploadService';
+import { fixEncoding } from '../../utils/standardizer';
 
 interface PubliGeneratorProps {
     isOpen: boolean;
@@ -28,14 +29,15 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
         
         // Mock generation logic - Simple and effective, no emojis/hashtags as requested
         setTimeout(() => {
-            const text = sourceText.trim();
+            // On nettoie le texte (correction encodage et fautes communes)
+            const cleanText = fixEncoding(sourceText.trim());
+            setSourceText(cleanText); // Mise à jour du champ texte avec la version propre
             
-            // On retire les hashtags et emojis pour un style "propre" et direct
             setResults({
-                instagram: `${text}\n\nPlus d'infos sur dropsiders.fr`,
-                facebook: `${text}\n\nDécouvrez tous les détails sur notre plateforme : https://dropsiders.fr`,
-                twitter: `${text.substring(0, 200)}... En savoir plus : https://dropsiders.fr`,
-                threads: `${text}\n\nRejoignez la discussion sur Dropsiders !`
+                instagram: cleanText,
+                facebook: cleanText,
+                twitter: cleanText.length > 270 ? `${cleanText.substring(0, 270)}...` : cleanText,
+                threads: cleanText
             });
             setIsGenerating(false);
         }, 1200);

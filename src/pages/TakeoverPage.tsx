@@ -170,7 +170,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     // DB Settings
     const [settings, setSettings] = useState<TakeoverSettings>({
-        title: initialSettings?.title || 'LIVE TAKEOVER',
+        title: initialSettings?.title || 'LIVESTREAM',
         youtubeId: initialSettings?.youtubeId || '',
         mainFluxName: initialSettings?.mainFluxName || 'MAIN STAGE',
         currentTrack: initialSettings?.currentTrack || 'ID - UNRELEASED',

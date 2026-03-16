@@ -16,7 +16,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVE TAKEOVER' | 'HIGHLIGHTS';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -144,7 +144,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
         'RECAP': { label: 'RÉCAP', grad: '189, 0, 255', color: '#bd00ff' },
         'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' },
-        'LIVE TAKEOVER': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' }
+        'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' }
     };
 
     useEffect(() => {
@@ -362,7 +362,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillStyle = 'rgba(255,255,255,0.15)';
                 ctx.fillText(`#${5 - currentPreviewIndex}`, canvas.width - 100 + slideX, canvas.height - 120); // Descendu dans le dégradé
 
-            } else if (theme === 'LIVE TAKEOVER') {
+            } else if (theme === 'LIVESTREAM') {
                 const centerX = canvas.width / 2;
                 const centerY = (canvas.height / 2);
 
@@ -413,7 +413,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 ctx.font = '900 italic 140px "Montserrat", sans-serif';
                 ctx.letterSpacing = "20px";
-                ctx.fillText('TAKEOVER', centerX + 10, takeoverY); // offset for letterSpacing centering
+                ctx.fillText('LIVESTREAM', centerX + 10, takeoverY); // offset for letterSpacing centering
                 ctx.restore();
 
                 // 4. INFO SECTION (Minimalist floating typography)
@@ -959,7 +959,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     <button onClick={() => setTheme('HIGHLIGHTS')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'HIGHLIGHTS' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/10 text-gray-400'}`}>HIGHLIGHTS</button>
                     <button onClick={() => setTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
                     <button onClick={() => setTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
-                    <button onClick={() => setTheme('LIVE TAKEOVER')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVE TAKEOVER' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
+                    <button onClick={() => setTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
                 </>
             )}
         </div>

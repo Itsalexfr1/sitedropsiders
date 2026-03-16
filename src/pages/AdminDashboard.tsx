@@ -142,7 +142,7 @@ export function AdminDashboard() {
     const [takeoverState, setTakeoverState] = useState<TakeoverState>({
         enabled: false,
         youtubeId: '',
-        title: 'LIVE TAKEOVER',
+        title: 'LIVESTREAM',
         moderators: '',
         lineup: '',
         customCommands: '',
@@ -605,7 +605,7 @@ export function AdminDashboard() {
                     setTakeoverState({
                         enabled: data.takeover.enabled || false,
                         youtubeId: data.takeover.youtubeId || '',
-                        title: data.takeover.title || 'LIVE TAKEOVER',
+                        title: data.takeover.title || 'LIVESTREAM',
                         moderators: data.takeover.moderators || '',
                         lineup: data.takeover.lineup || '',
                         tickerType: data.takeover.tickerType || 'news',
@@ -4006,7 +4006,7 @@ export function AdminDashboard() {
                                 <div className="flex justify-between items-start mb-6 shrink-0">
                                     <div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-1">
-                                            Live <span className="text-neon-red">Takeover</span>
+                                            LIVE <span className="text-neon-red">STREAM</span>
                                         </h2>
                                         <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">Prendre le contrôle de la page d'accueil</p>
                                     </div>
@@ -4020,7 +4020,7 @@ export function AdminDashboard() {
 
                                 <div className="flex bg-black/50 border border-white/10 rounded-2xl p-1 mb-6 overflow-x-auto z-20 relative no-scrollbar">
                                     <div className="flex min-w-max">
-                                        <button onClick={() => setTakeoverTab('general')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'general' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>LIVE / VIDÀ‰O</button>
+                                        <button onClick={() => setTakeoverTab('general')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'general' ? 'bg-white/10 text-white shadow-lg' : 'text-gray-500 hover:text-white'}`}>LIVESTREAM</button>
                                         <button onClick={() => setTakeoverTab('ticker')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'ticker' ? 'bg-neon-red/10 text-neon-red shadow-lg' : 'text-gray-500 hover:text-white'}`}>BANDEAU</button>
                                         <button onClick={() => setTakeoverTab('moderation')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'moderation' ? 'bg-yellow-500/10 text-yellow-500 shadow-lg' : 'text-gray-500 hover:text-white'}`}>MODÀ‰RATION</button>
                                         <button onClick={() => setTakeoverTab('planning')} className={`px-4 py-2.5 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all ${takeoverTab === 'planning' ? 'bg-neon-purple/10 text-neon-purple shadow-lg' : 'text-gray-500 hover:text-white'}`}>PLANNING</button>
