@@ -132,7 +132,6 @@ export function ModerationModal({ isOpen, onClose }: ModerationModalProps) {
 
             if (response.ok) {
                 setWikiWaiting(prev => prev.filter(item => item.id !== id));
-                alert('✓ Photo validée ! L\'élément est maintenant en cours de publication sur le site (attendre 1-2 min le temps du déploiement).');
             } else {
                 const err = await response.json();
                 alert('Erreur : ' + (err.error || 'Inconnue'));
