@@ -815,33 +815,6 @@
     "description_en": "E1 est un entrepôt à Wapping doté d'un système sonore Funktion-One sur mesure, rendez-vous des amateurs de techno intense."
   },
   {
-    "id": "c89",
-    "name": "Phonox",
-    "city": "Londres",
-    "country": "GB",
-    "djmag_rank": 89,
-    "description": "Phonox à Brixton privilégie l'intimité, avec un seul dancefloor et pour mission de ramener le DJing à ses racines les plus pures.",
-    "image": "/uploads/uploads/0f3c643ce29b39bc-SpaceRiccione_CarlCox__stefano.jpg",
-    "website": "https://www.phonox.com",
-    "instagram": "https://instagram.com/phonox",
-    "votes": 0,
-    "description_en": "Phonox à Brixton privilégie l'intimité, avec un seul dancefloor et pour mission de ramener le DJing à ses racines les plus pures."
-  },
-  {
-    "id": "c89",
-    "name": "Space Riccione",
-    "city": "Riccione",
-    "country": "IT",
-    "djmag_rank": 89,
-    "description": "La renaissance italienne de la marque légendaire Space, un club futuriste sur la côte adriatique.",
-    "image": "https://images.unsplash.com/photo-1545128485-c400e7702796?w=600&h=400&fit=crop&q=80&sig=c89",
-    "website": "https://www.spacericcione.com",
-    "instagram": "https://instagram.com/spacericcione",
-    "votes": 0,
-    "status": "waiting",
-    "description_en": "La renaissance italienne de la marque légendaire Space, un club futuriste sur la côte adriatique."
-  },
-  {
     "id": "c90",
     "name": "Nitsa Club",
     "city": "Barcelone",
@@ -1797,36 +1770,6 @@
     "bio_en": "A major figure on the global scene, Moni Mykonos is a key player in today's electronic culture."
   },
   {
-    "id": "363",
-    "name": "Club Space Miami",
-    "bio": "Incontournable de la scène mondiale, Club Space Miami est une figure majeure de la culture électronique actuelle.",
-    "country": "Intl",
-    "image": "https://static.ra.co/images/clubs/lg/clubspacemiami.jpg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/Club%20Space%20Miami",
-    "instagram": "https://instagram.com/clubspacemiami",
-    "facebook": "https://facebook.com/clubspacemiami",
-    "soundcloud": "https://soundcloud.com/clubspacemiami",
-    "beatport": "https://www.beatport.com/search?q=Club%20Space%20Miami",
-    "bio_en": "A major figure on the global scene, Club Space Miami is a key player in today's electronic culture.",
-    "status": "waiting"
-  },
-  {
-    "id": "364",
-    "name": "E11EVEN Miami",
-    "bio": "Incontournable de la scène mondiale, E11EVEN Miami est une figure majeure de la culture électronique actuelle.",
-    "country": "Intl",
-    "image": "https://static.ra.co/images/clubs/lg/e11evenmiami.jpg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/E11EVEN%20Miami",
-    "instagram": "https://instagram.com/e11evenmiami",
-    "facebook": "https://facebook.com/e11evenmiami",
-    "soundcloud": "https://soundcloud.com/e11evenmiami",
-    "beatport": "https://www.beatport.com/search?q=E11EVEN%20Miami",
-    "bio_en": "A major figure on the global scene, E11EVEN Miami is a key player in today's electronic culture.",
-    "status": "waiting"
-  },
-  {
     "id": "365",
     "name": "Story Miami",
     "bio": "Incontournable de la scène mondiale, Story Miami est une figure majeure de la culture électronique actuelle.",
@@ -1854,21 +1797,6 @@
     "soundcloud": "https://soundcloud.com/floydmiami",
     "beatport": "https://www.beatport.com/search?q=Floyd%20Miami",
     "bio_en": "A major figure on the global scene, Floyd Miami is a key player in today's electronic culture.",
-    "status": "waiting"
-  },
-  {
-    "id": "367",
-    "name": "Do Not Sit On The Furniture",
-    "bio": "Incontournable de la scène mondiale, Do Not Sit On The Furniture est une figure majeure de la culture électronique actuelle.",
-    "country": "Intl",
-    "image": "https://static.ra.co/images/clubs/lg/donotsitonthefurniture.jpg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/Do%20Not%20Sit%20On%20The%20Furniture",
-    "instagram": "https://instagram.com/donotsitonthefurniture",
-    "facebook": "https://facebook.com/donotsitonthefurniture",
-    "soundcloud": "https://soundcloud.com/donotsitonthefurniture",
-    "beatport": "https://www.beatport.com/search?q=Do%20Not%20Sit%20On%20The%20Furniture",
-    "bio_en": "A major figure on the global scene, Do Not Sit On The Furniture is a key player in today's electronic culture.",
     "status": "waiting"
   },
   {
