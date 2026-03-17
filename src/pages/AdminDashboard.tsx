@@ -8,7 +8,8 @@ import {
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type,
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, 
     ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram,
-    Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download
+    Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download,
+    Trophy, Settings, Camera, HardDrive
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -192,11 +193,11 @@ export function AdminDashboard() {
 
     const DASHBOARD_TABS = [
         { id: 'ALL', label: 'Tout' },
-        { id: 'TEAM', label: 'L\'Équipe & Éditeurs' },
-        { id: 'CONCOURS', label: 'Jeux Concours' },
+        { id: 'NEWS', label: 'Actualités' },
+        { id: 'CONCOURS', label: 'Communauté' },
         { id: 'WIKI', label: 'Wiki' },
-        { id: 'NEWS', label: 'News' },
         { id: 'STUDIO', label: 'Studio' },
+        { id: 'TEAM', label: 'Équipe' },
         { id: 'SHOP', label: 'Shop' }
     ];
     const [confirmModal, setConfirmModal] = useState<{
@@ -819,8 +820,10 @@ export function AdminDashboard() {
 
     const fetchPhotosCount = async () => {
         let count = 0;
+        const timestamp = Date.now();
+        
         try {
-            const r = await fetch(`/api/photos/pending?t=${Date.now()}`, { headers: getAuthHeaders() });
+            const r = await fetch(`/api/photos/pending?t=${timestamp}`, { headers: getAuthHeaders() });
             if (r.ok) {
                 const data = await r.json();
                 count += Array.isArray(data) ? data.length : 0;
@@ -829,9 +832,9 @@ export function AdminDashboard() {
 
         try {
             const [djsRes, clubsRes, festsRes] = await Promise.all([
-                fetch(`/api/wiki/list?type=DJS&t=${Date.now()}`),
-                fetch(`/api/wiki/list?type=CLUBS&t=${Date.now()}`),
-                fetch(`/api/wiki/list?type=FESTIVALS&t=${Date.now()}`)
+                fetch(`/api/wiki/list?type=DJS&t=${timestamp}`, { headers: getAuthHeaders() }),
+                fetch(`/api/wiki/list?type=CLUBS&t=${timestamp}`, { headers: getAuthHeaders() }),
+                fetch(`/api/wiki/list?type=FESTIVALS&t=${timestamp}`, { headers: getAuthHeaders() })
             ]);
             
             if (djsRes.ok) {
@@ -847,11 +850,7 @@ export function AdminDashboard() {
                 count += fests.filter((f: any) => f.status === 'waiting').length;
             }
         } catch (e) {
-            // Fallback to local data if API fails
-            const waitingDjs = (WIKI_DJS as any[]).filter(d => d.status === 'waiting').length;
-            const waitingClubs = (WIKI_CLUBS as any[]).filter(c => c.status === 'waiting').length;
-            const waitingFests = (WIKI_FESTIVALS as any[]).filter(f => f.status === 'waiting').length;
-            count += waitingDjs + waitingClubs + waitingFests;
+            console.error("Failed to fetch wiki for count", e);
         }
         
         setPendingPhotosCount(count);
@@ -1390,6 +1389,9 @@ export function AdminDashboard() {
 
         if (dashboardTab === 'STUDIO') return action.category === 'STUDIO';
         if (dashboardTab === 'SHOP') return action.category === 'SHOP';
+        if (dashboardTab === 'CONCOURS') return action.category === 'CONCOURS';
+        if (dashboardTab === 'WIKI') return action.category === 'WIKI' || action.title === 'Wiki';
+        if (dashboardTab === 'TEAM') return action.category === 'TEAM' || action.title.includes('Équipe');
 
         return true;
     });
@@ -1902,13 +1904,25 @@ export function AdminDashboard() {
                                             <Gamepad2 className={`w-8 h-8 ${isContestModeEnabled ? 'text-neon-red' : 'text-gray-500'}`} />
                                         </div>
                                         <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
-                                            Activation du <span className="text-neon-red">Concours</span>
+                                            Gestion <span className="text-neon-red">Communauté</span>
                                         </h2>
                                     </div>
-                                    <p className="text-gray-400 font-medium max-w-xl">
-                                        Le mode concours active la page des jeux et permet aux utilisateurs de participer. 
-                                        Lorsqu'il est actif, le bandeau de navigation met en avant le jeu actuel.
-                                    </p>
+                                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-6 mt-4">
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Inscrits Concours</span>
+                                            <span className="text-2xl font-display font-black text-white italic">{contestResults.length}</span>
+                                        </div>
+                                        <div className="w-px h-8 bg-white/10" />
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Photos Wiki en attente</span>
+                                            <span className="text-2xl font-display font-black text-neon-cyan italic">{pendingPhotosCount}</span>
+                                        </div>
+                                        <div className="w-px h-8 bg-white/10" />
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Participation Instagram</span>
+                                            <span className="text-2xl font-display font-black text-neon-pink italic">{instagramParticipants.length}</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div className="flex items-center gap-6 relative z-10 w-full md:w-auto">
                                     <button 
@@ -1937,168 +1951,176 @@ export function AdminDashboard() {
                                             <Users className="w-5 h-5 text-neon-blue" />
                                             <h3 className="text-xl font-display font-black text-white uppercase italic">Participants <span className="text-neon-blue">Quiz & Blindtest</span></h3>
                                         </div>
-                                        <div className="px-3 py-1 bg-neon-blue/10 border border-neon-blue/20 rounded-full">
-                                            <span className="text-[10px] font-black text-neon-blue uppercase">{contestResults.length} Inscrits</span>
+                                        <div className="flex items-center gap-2">
+                                            <button 
+                                                onClick={() => setIsInstagramContestModalOpen(true)}
+                                                className="px-4 py-2 bg-neon-pink/10 border border-neon-pink/20 rounded-xl text-[9px] font-black uppercase text-neon-pink hover:bg-neon-pink hover:text-white transition-all flex items-center gap-2"
+                                            >
+                                                <Instagram className="w-3 h-3" />
+                                                CONCOURS INSTA
+                                            </button>
+                                            <div className="px-3 py-1 bg-neon-blue/10 border border-neon-blue/20 rounded-full">
+                                                <span className="text-[10px] font-black text-neon-blue uppercase">{contestResults.length} Inscrits</span>
+                                            </div>
                                         </div>
                                     </div>
 
-                                    <div className="bg-black/40 border border-white/5 rounded-[2rem] overflow-hidden">
-                                        <table className="w-full text-left">
-                                            <thead>
-                                                <tr className="border-b border-white/5 bg-white/[0.02]">
-                                                    <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Participant</th>
-                                                    <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Score</th>
-                                                    <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Actions</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody className="divide-y divide-white/5">
-                                                {contestResults.slice(0, 10).map((p, idx) => (
-                                                    <tr key={idx} className="group hover:bg-white/[0.02] transition-colors">
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex items-center gap-3">
-                                                                <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-gray-300">
-                                                                    {idx + 1}
-                                                                </div>
-                                                                <div>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <p className="font-bold text-white text-sm">{p.handle || p.email}</p>
-                                                                        {p.status === 'validated' && <div className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_5px_rgba(34,197,94,0.5)]" />}
+                                    <div className="bg-black/40 border border-white/5 rounded-[2rem] overflow-hidden backdrop-blur-md">
+                                        <div className="overflow-x-auto">
+                                            <table className="w-full text-left">
+                                                <thead>
+                                                    <tr className="border-b border-white/5 bg-white/[0.02]">
+                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Participant</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Score</th>
+                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest text-center">Actions</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody className="divide-y divide-white/5">
+                                                    {contestResults.slice(0, 10).map((p, idx) => (
+                                                        <tr key={idx} className="group hover:bg-white/[0.02] transition-colors">
+                                                            <td className="px-6 py-4">
+                                                                <div className="flex items-center gap-3">
+                                                                    <div className="w-8 h-8 rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-[10px] font-black text-gray-300">
+                                                                        {idx + 1}
                                                                     </div>
-                                                                    <p className="text-[10px] text-gray-500 uppercase tracking-widest">{new Date(p.timestamp).toLocaleDateString()}</p>
+                                                                    <div>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <p className="font-bold text-white text-sm">{p.handle || p.email}</p>
+                                                                            {p.status === 'validated' && <div className="w-1.5 h-1.5 rounded-full bg-neon-green shadow-[0_0_5px_rgba(34,197,94,0.5)]" />}
+                                                                        </div>
+                                                                        <p className="text-[10px] text-gray-500 uppercase tracking-widest">{new Date(p.timestamp).toLocaleDateString()}</p>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4">
-                                                            <div className="flex items-center gap-4">
-                                                                <div className="text-center">
-                                                                    <p className="text-xs font-black text-neon-green">{p.score} pts</p>
-                                                                    <p className="text-[8px] font-bold text-gray-600 uppercase">Correct</p>
+                                                            </td>
+                                                            <td className="px-6 py-4">
+                                                                <div className="flex items-center gap-4">
+                                                                    <div className="text-center">
+                                                                        <p className="text-xs font-black text-neon-green">{p.score} pts</p>
+                                                                        <p className="text-[8px] font-bold text-gray-600 uppercase">Correct</p>
+                                                                    </div>
+                                                                    <div className="w-px h-6 bg-white/5" />
+                                                                    <div className="text-center">
+                                                                        <p className="text-xs font-black text-neon-blue">{p.avgTime?.toFixed(1)}s</p>
+                                                                        <p className="text-[8px] font-bold text-gray-600 uppercase">Vitesse</p>
+                                                                    </div>
                                                                 </div>
-                                                                <div className="w-px h-6 bg-white/5" />
-                                                                <div className="text-center">
-                                                                    <p className="text-xs font-black text-neon-blue">{p.avgTime?.toFixed(1)}s</p>
-                                                                    <p className="text-[8px] font-bold text-gray-600 uppercase">Vitesse</p>
+                                                            </td>
+                                                            <td className="px-6 py-4 text-center">
+                                                                <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
+                                                                    {p.status !== 'validated' ? (
+                                                                        <button 
+                                                                            onClick={() => updateContestResultStatus(p.email, p.timestamp, 'validated')}
+                                                                            className="px-3 py-1.5 bg-neon-green/10 text-neon-green hover:bg-neon-green hover:text-white rounded-lg text-[8px] font-black uppercase transition-all"
+                                                                        >
+                                                                            Valider
+                                                                        </button>
+                                                                    ) : (
+                                                                        <button 
+                                                                            onClick={() => updateContestResultStatus(p.email, p.timestamp, 'pending')}
+                                                                            className="px-3 py-1.5 bg-white/5 text-gray-400 hover:text-white rounded-lg text-[8px] font-black uppercase transition-all"
+                                                                        >
+                                                                            Annuler
+                                                                        </button>
+                                                                    )}
                                                                 </div>
-                                                            </div>
-                                                        </td>
-                                                        <td className="px-6 py-4 text-center">
-                                                            <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                                                                {p.status !== 'validated' ? (
-                                                                    <button 
-                                                                        onClick={() => updateContestResultStatus(p.email, p.timestamp, 'validated')}
-                                                                        className="px-3 py-1.5 bg-neon-green/10 text-neon-green hover:bg-neon-green hover:text-white rounded-lg text-[8px] font-black uppercase transition-all"
-                                                                    >
-                                                                        Valider
-                                                                    </button>
-                                                                ) : (
-                                                                    <button 
-                                                                        onClick={() => updateContestResultStatus(p.email, p.timestamp, 'pending')}
-                                                                        className="px-3 py-1.5 bg-white/5 text-gray-400 hover:text-white rounded-lg text-[8px] font-black uppercase transition-all"
-                                                                    >
-                                                                        Annuler
-                                                                    </button>
-                                                                )}
-                                                                <button className="px-3 py-1.5 bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white rounded-lg text-[8px] font-black uppercase transition-all">Détails</button>
-                                                            </div>
-                                                        </td>
-                                                    </tr>
-                                                ))}
-                                                {contestResults.length === 0 && (
-                                                    <tr>
-                                                        <td colSpan={3} className="px-6 py-20 text-center text-gray-500 italic text-sm">Aucun participant pour le moment...</td>
-                                                    </tr>
-                                                )}
-                                            </tbody>
-                                        </table>
-                                        {contestResults.length > 0 && (
-                                            <div className="p-4 bg-white/[0.01] text-center">
-                                                <button className="text-[10px] font-bold text-gray-500 uppercase tracking-widest hover:text-white transition-colors">Voir tous les participants ({contestResults.length})</button>
-                                            </div>
-                                        )}
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                    {contestResults.length === 0 && (
+                                                        <tr>
+                                                            <td colSpan={3} className="px-6 py-20 text-center text-gray-500 italic text-sm">Aucun participant pour le moment...</td>
+                                                        </tr>
+                                                    )}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
 
-                                {/* SIDEBAR : QUESTIONS & MP3 */}
                                 <div className="lg:col-span-4 space-y-10">
-                                    {/* BLIND TEST QUESTIONS */}
+                                    {/* BLIND TEST TOOL */}
                                     <div className="space-y-6">
-                                        <div className="flex justify-between items-center">
-                                            <h3 className="text-xl font-display font-black text-white uppercase italic">Blind <span className="text-neon-pink">Test</span></h3>
-                                            <button 
-                                                onClick={() => setIsQuizModalOpen(true)}
-                                                className="px-3 py-1.5 bg-neon-pink/10 border border-neon-pink/20 text-neon-pink text-[9px] font-black uppercase tracking-widest rounded-lg hover:bg-neon-pink hover:text-white transition-all"
-                                            >
-                                                Gérer Tout
+                                        <div className="flex justify-between items-center group">
+                                            <h3 className="text-xl font-display font-black text-white uppercase italic flex items-center gap-2">
+                                                <Music className="w-5 h-5 text-neon-pink" />
+                                                Blind <span className="text-neon-pink">Test</span>
+                                            </h3>
+                                            <button onClick={() => setIsQuizModalOpen(true)} className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-all">
+                                                <Settings className="w-4 h-4" />
                                             </button>
                                         </div>
-
-                                        <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
-                                            <div className="space-y-4">
-                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Ajouter un morceau</p>
-                                                <div className="flex gap-2">
-                                                    <input 
-                                                        type="file" 
-                                                        id="blindtest-upload" 
-                                                        className="hidden" 
-                                                        accept="audio/*" 
-                                                        onChange={async (e) => {
-                                                            const file = e.target.files?.[0];
-                                                            if (file) {
-                                                                const url = await uploadFile(file);
-                                                                if (url) {
-                                                                    // Here we would normally create a new quiz question
-                                                                    setQuizToEdit({
-                                                                        type: 'BLIND_TEST',
-                                                                        question: 'Quel est ce morceau ?',
-                                                                        audioUrl: url,
-                                                                        options: ['', '', '', ''],
-                                                                        correctAnswer: '',
-                                                                        category: 'Blind Test',
-                                                                        author: username,
-                                                                        startTime: 0
-                                                                    });
-                                                                    setIsEditQuizModalOpen(true);
-                                                                }
-                                                            }
-                                                        }}
-                                                    />
-                                                    <div 
-                                                        onClick={() => document.getElementById('blindtest-upload')?.click()}
-                                                        className="flex-1 h-12 bg-black/40 border border-white/10 rounded-xl flex items-center px-4 text-gray-500 text-[9px] font-bold uppercase italic cursor-pointer hover:bg-white/5 transition-all"
-                                                    >
-                                                        Cliquez pour ajouter un MP3...
-                                                    </div>
-                                                    <button 
-                                                        onClick={() => document.getElementById('blindtest-upload')?.click()}
-                                                        className="w-12 h-12 bg-neon-pink text-white rounded-xl flex items-center justify-center shadow-lg shadow-neon-pink/20 hover:scale-105 active:scale-95 transition-all"
-                                                    >
-                                                        <Upload className="w-5 h-5" />
-                                                    </button>
-                                                </div>
-                                                <p className="text-[8px] text-gray-600 uppercase tracking-widest italic">*Le titre et l'artiste sont identifiés automatiquement par Shazam.</p>
+                                        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 space-y-6">
+                                            <div className="space-y-3">
+                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-1">Ajouter Morceau</p>
+                                                <button 
+                                                    onClick={() => document.getElementById('blindtest-upload')?.click()}
+                                                    className="w-full h-14 bg-neon-pink/10 hover:bg-neon-pink border border-neon-pink/30 text-neon-pink hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all"
+                                                >
+                                                    <Upload className="w-5 h-5" />
+                                                    Uploader MP3
+                                                </button>
                                             </div>
-
-                                            <div className="pt-6 border-t border-white/5 space-y-4">
-                                                <div className="flex justify-between items-center">
-                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">Questions Actives</p>
-                                                    <span className="text-[10px] font-black text-neon-pink">{allActiveQuizzes.length}</span>
+                                            <div className="pt-4 border-t border-white/5">
+                                                <div className="flex justify-between items-center mb-4">
+                                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Derniers Quiz</span>
+                                                    <Trophy className="w-3 h-3 text-neon-pink" />
                                                 </div>
                                                 <div className="space-y-2">
                                                     {allActiveQuizzes.slice(0, 3).map(q => (
-                                                        <div key={q.id} className="p-3 bg-white/[0.02] border border-white/5 rounded-xl flex items-center justify-between group">
-                                                            <div className="flex items-center gap-3 overflow-hidden">
-                                                                <div className="w-8 h-8 rounded-lg bg-neon-pink/5 flex items-center justify-center text-neon-pink shrink-0">
-                                                                    <Music className="w-4 h-4" />
-                                                                </div>
-                                                                <p className="text-[10px] font-bold text-white uppercase truncate">{q.question}</p>
-                                                            </div>
-                                                            <button className="p-1.5 text-gray-600 hover:text-white transition-colors opacity-0 group-hover:opacity-100 shrink-0">
-                                                                <Pencil className="w-3 h-3" />
-                                                            </button>
+                                                        <div key={q.id} className="p-3 bg-white/[0.03] rounded-xl flex items-center justify-between">
+                                                            <p className="text-[9px] font-bold text-white uppercase truncate">{q.question}</p>
+                                                            <span className="text-[8px] font-black text-neon-pink/50 uppercase">{q.category}</span>
                                                         </div>
                                                     ))}
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
+
+                                    {/* MODERATION PHOTOS WIKI */}
+                                    <div className="space-y-6">
+                                        <h3 className="text-xl font-display font-black text-white uppercase italic flex items-center gap-3 px-2">
+                                            <Camera className="w-5 h-5 text-neon-cyan" />
+                                            Vérifier <span className="text-neon-cyan">Photos</span>
+                                        </h3>
+                                        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 relative overflow-hidden group">
+                                            {pendingPhotosCount > 0 && (
+                                                <div className="absolute -top-4 -right-4 w-24 h-24 bg-neon-cyan/10 blur-2xl group-hover:bg-neon-cyan/20 transition-all" />
+                                            )}
+                                            <div className="relative z-10">
+                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4">Photos Wiki en attente</p>
+                                                <div className="flex items-center justify-between mb-6">
+                                                    <div className="text-4xl font-display font-black text-white italic">{pendingPhotosCount}</div>
+                                                    <div className={`p-4 rounded-2xl ${pendingPhotosCount > 0 ? 'bg-neon-cyan/20 text-neon-cyan' : 'bg-white/5 text-gray-600'}`}>
+                                                        <ImageIcon className="w-8 h-8" />
+                                                    </div>
+                                                </div>
+                                                <button 
+                                                    onClick={() => setIsModerationModalOpen(true)}
+                                                    disabled={pendingPhotosCount === 0}
+                                                    className="w-full py-5 bg-neon-cyan/10 hover:bg-neon-cyan border border-neon-cyan/30 text-neon-cyan hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all disabled:opacity-50 disabled:grayscale"
+                                                >
+                                                    <CheckCircle2 className="w-5 h-5" />
+                                                    Modérer les Photos
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* R2 STORAGE CLEANUP */}
+                                    <div className="space-y-6">
+                                        <h3 className="text-xl font-display font-black text-white uppercase italic flex items-center gap-3 px-2">
+                                            <HardDrive className="w-5 h-5 text-neon-cyan" />
+                                            Nettoyage <span className="text-neon-cyan">Stockage</span>
+                                        </h3>
+                                        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6">
+                                            <button 
+                                                onClick={() => fetchDuplicates()}
+                                                className="w-full py-5 bg-neon-cyan/10 hover:bg-neon-cyan border border-neon-cyan/30 text-neon-cyan hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                                CHECK DOUBLONS R2
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -5225,10 +5247,7 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                <ModerationModal
-                    isOpen={isModerationModalOpen}
-                    onClose={() => setIsModerationModalOpen(false)}
-                />
+
 
                 {/* Modal Downloader */}
                 <AnimatePresence>

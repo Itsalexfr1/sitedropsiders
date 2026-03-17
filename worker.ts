@@ -785,8 +785,7 @@ ${urls.map(u => `  <url>
         // --- AUTH CHECK ---
         // Helper: decode passwords stored as b64:<base64value> in editors.json
         const decodePass = (p: string) => p && p.startsWith('b64:') ? atob(p.slice(4)) : p;
-        const envAdminPass = ((env.ADMIN_PASSWORD || '')).trim();
-        const adminPassword = envAdminPass !== '' ? envAdminPass : atob('MDEwNjE5ODhBei0='); // Obfuscated fallback
+        const adminPassword = (env.ADMIN_PASSWORD || '').trim();
         const requestPassword = (request.headers.get('X-Admin-Password') || '').trim();
         let requestUsername = (request.headers.get('X-Admin-Username') || '').trim();
 
