@@ -264,8 +264,7 @@ export function AdminDashboard() {
         title: '',
         message: '',
         onConfirm: () => { },
-        type: 'danger',
-        confirmText: ''
+        type: 'danger'
     });
 
     const navigate = useNavigate();
@@ -6438,13 +6437,13 @@ export function AdminDashboard() {
                 />
 
                 <ConfirmModal
-
                     isOpen={confirmModal.isOpen}
                     title={confirmModal.title}
                     message={confirmModal.message}
                     onConfirm={confirmModal.onConfirm}
                     onCancel={() => setConfirmModal(prev => ({ ...prev, isOpen: false }))}
                     type={confirmModal.type}
+                    confirmText={confirmModal.confirmText}
                 />
                 <AgendaModal
                     isOpen={isAgendaCreateModalOpen}
