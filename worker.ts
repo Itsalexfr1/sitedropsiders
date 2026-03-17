@@ -3258,15 +3258,20 @@ ${urls.map(u => `  <url>
                 );
 
                 for (let i = 0; i < dataFiles.length; i++) {
-                    const contentStr = dataContents[i];
+                    const fileObj = dataContents[i];
+                    if (!fileObj || !fileObj.content) continue;
+                    
                     const fileName = dataFiles[i].split('/').pop() || dataFiles[i];
+                    const contentString = JSON.stringify(fileObj.content);
                     
                     // For each duplicate key, check if it exists in this file
                     for (const set of duplicateSets) {
-                        for (const obj of set) {
-                            if (contentStr.includes(obj.key)) {
+                        for (const obj of (set as any)) {
+                            if (contentString.includes(obj.key)) {
                                 if (!usageMap[obj.key]) usageMap[obj.key] = [];
-                                usageMap[obj.key].push(fileName);
+                                if (!usageMap[obj.key].includes(fileName)) {
+                                    usageMap[obj.key].push(fileName);
+                                }
                             }
                         }
                     }
