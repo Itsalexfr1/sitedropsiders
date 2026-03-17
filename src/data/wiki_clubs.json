@@ -698,20 +698,6 @@
     "description_en": "Situé près de Francfort, le Robert Johnson est adoré par les puristes pour son minimalisme, son système sonore d'exception et sa vue sur le Main."
   },
   {
-    "id": "c76",
-    "name": "Tulum Jungle",
-    "city": "Tulum",
-    "country": "MX",
-    "djmag_rank": 76,
-    "description": "La scène de Tulum a créé des clubs éphémères et permanents dans la jungle, où la spiritualité rencontre la techno mélodique.",
-    "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&q=80&sig=c76",
-    "website": "https://www.tulumjungle.com",
-    "instagram": "https://instagram.com/tulumjungle",
-    "votes": 0,
-    "status": "waiting",
-    "description_en": "La scène de Tulum a créé des clubs éphémères et permanents dans la jungle, où la spiritualité rencontre la techno mélodique."
-  },
-  {
     "id": "c77",
     "name": "Zouk Las Vegas",
     "city": "Las Vegas",
