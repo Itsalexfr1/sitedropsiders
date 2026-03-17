@@ -80,8 +80,8 @@ export function InvoiceGeneratorMobile() {
     const [clientAddress, setClientAddress] = useState('');
     const [clientCity, setClientCity] = useState('');
     const [clientEmail, setClientEmail] = useState('');
-    const [iban, setIban] = useState(() => localStorage.getItem('inv_iban') || '');
-    const [bic, setBic] = useState(() => localStorage.getItem('inv_bic') || '');
+    const [iban, setIban] = useState(() => localStorage.getItem('inv_iban') || 'BE59 9675 0891 6526');
+    const [bic, setBic] = useState(() => localStorage.getItem('inv_bic') || 'TRWIBEB1XXX');
     const [notes] = useState('');
     const [eventClub, setEventClub] = useState('');
     const [eventDate, setEventDate] = useState('');
