@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { Link, Navigate } from 'react-router-dom';
 import { ArrowLeft, FileText } from 'lucide-react';
 import { InvoiceGenerator } from '../components/InvoiceGenerator';
+import { InvoiceGeneratorMobile } from '../components/InvoiceGeneratorMobile';
 
 export function AdminFactures() {
     const [currentUser, setCurrentUser] = useState(localStorage.getItem('admin_user')?.toLowerCase() || '');
@@ -19,14 +20,8 @@ export function AdminFactures() {
         <>
             {/* ============ MOBILE: fixed full screen overlay ============ */}
             <div className="md:hidden fixed inset-0 z-50 bg-[#0d0f1a] flex flex-col overflow-hidden">
-                <div className="flex items-center gap-3 px-4 py-3 border-b border-white/5 bg-black/60 backdrop-blur-xl shrink-0">
-                    <Link to="/admin" className="p-2 bg-white/5 border border-white/10 rounded-xl">
-                        <ArrowLeft className="w-5 h-5 text-white" />
-                    </Link>
-                    <h1 className="text-sm font-black uppercase tracking-tight text-white">Factures</h1>
-                </div>
                 <div className="flex-1 overflow-hidden">
-                    <InvoiceGenerator />
+                    <InvoiceGeneratorMobile />
                 </div>
             </div>
 

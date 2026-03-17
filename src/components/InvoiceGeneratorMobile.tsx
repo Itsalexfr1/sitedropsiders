@@ -1,0 +1,450 @@
+import { useState, useEffect } from 'react';
+import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, CreditCard, Settings, History, Save } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
+
+interface InvoiceLine { id: string; description: string; quantity: number; unitPrice: number; }
+interface SavedClient { id: string; name: string; address: string; city: string; email: string; }
+interface SavedArticle { id: string; description: string; unitPrice: number; }
+interface Sender { name: string; siret: string; address: string; email: string; phone: string; legal: string; }
+
+const DEFAULT_SENDER: Sender = {
+    name: 'CUENCA ALEXANDRE', siret: '805 131 828 00010',
+    address: '123 Rue de la Musique, 75001 Paris',
+    email: 'contact@dropsiders.fr', phone: '07 62 05 45 89',
+    legal: 'Auto-entrepreneur – TVA non applicable, art. 293 B du CGI',
+};
+
+// ─── Shared styles ───────────────────────────────────────────────────────────
+const ROW = "flex items-center justify-between px-4 py-4 bg-white/[0.04] border-b border-white/[0.06] active:bg-white/10 transition-colors cursor-pointer select-none";
+const ROW_LABEL = "flex items-center gap-3 text-sm font-semibold text-white";
+const ROW_VALUE = "flex items-center gap-2 text-sm text-white/40";
+const SECTION_HEADER = "px-4 pt-6 pb-2 text-[10px] font-black text-white/30 uppercase tracking-[0.2em]";
+const INPUT = "w-full bg-transparent text-white text-base font-medium placeholder:text-white/20 focus:outline-none py-1";
+
+// ─── Sheet overlay ────────────────────────────────────────────────────────────
+function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
+    return (
+        <AnimatePresence>
+            {open && (
+                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[60] bg-black/70 flex flex-col justify-end"
+                    onClick={e => e.target === e.currentTarget && onClose()}>
+                    <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
+                        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+                        className="bg-[#1c1f2e] rounded-t-3xl max-h-[90vh] overflow-y-auto">
+                        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/[0.06]">
+                            <h2 className="text-base font-black text-white uppercase tracking-tight">{title}</h2>
+                            <button onClick={onClose} className="p-2 bg-white/5 rounded-xl">
+                                <X className="w-4 h-4 text-white/60" />
+                            </button>
+                        </div>
+                        <div className="px-5 py-4 space-y-4 pb-10">{children}</div>
+                    </motion.div>
+                </motion.div>
+            )}
+        </AnimatePresence>
+    );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+    return (
+        <div>
+            <div className="text-[9px] font-black text-indigo-400 uppercase tracking-widest mb-1.5">{label}</div>
+            <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">{children}</div>
+        </div>
+    );
+}
+
+// ─── Main component ───────────────────────────────────────────────────────────
+export function InvoiceGeneratorMobile() {
+    const [sender, setSender] = useState<Sender>(() => {
+        try { return JSON.parse(localStorage.getItem('inv_sender') || 'null') || DEFAULT_SENDER; } catch { return DEFAULT_SENDER; }
+    });
+
+    const [invoiceNumber, setInvoiceNumber] = useState<number>(() => { const s = localStorage.getItem('inv_number'); return s ? parseInt(s) : 67; });
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [dueDate, setDueDate] = useState('');
+    const [clientName, setClientName] = useState('');
+    const [clientAddress, setClientAddress] = useState('');
+    const [clientCity, setClientCity] = useState('');
+    const [clientEmail, setClientEmail] = useState('');
+    const [iban, setIban] = useState(() => localStorage.getItem('inv_iban') || '');
+    const [bic, setBic] = useState(() => localStorage.getItem('inv_bic') || '');
+    const [notes, setNotes] = useState('');
+    const [eventClub, setEventClub] = useState('');
+    const [eventDate, setEventDate] = useState('');
+    const [lines, setLines] = useState<InvoiceLine[]>([{ id: '1', description: 'Prestation Light', quantity: 1, unitPrice: 0 }]);
+
+    const [savedClients, setSavedClients] = useState<SavedClient[]>(() => { try { return JSON.parse(localStorage.getItem('inv_clients') || '[]'); } catch { return []; } });
+    const [savedArticles] = useState<SavedArticle[]>(() => {
+        try {
+            const s = JSON.parse(localStorage.getItem('inv_articles') || 'null');
+            if (s && s.length > 0) return s;
+            const d = [{ id: 'default-1', description: 'Prestation Light', unitPrice: 0 }];
+            localStorage.setItem('inv_articles', JSON.stringify(d));
+            return d;
+        } catch { return []; }
+    });
+
+    // Sheet states
+    const [sheet, setSheet] = useState<'none' | 'client' | 'date' | 'event' | 'details' | 'line' | 'settings' | 'history' | 'email' | 'preview'>('none');
+    const [editingLine, setEditingLine] = useState<InvoiceLine | null>(null);
+    const [senderDraft, setSenderDraft] = useState<Sender>(sender);
+    const [settingsSaved, setSettingsSaved] = useState(false);
+
+    const [sendStatus, setSendStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+    const [sendError, setSendError] = useState('');
+    const [emailTo, setEmailTo] = useState('');
+    const [emailSubject, setEmailSubject] = useState('');
+    const [emailMessage, setEmailMessage] = useState('');
+
+    const total = lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
+    const formattedNumber = `INV-${new Date(date).getFullYear()}-${invoiceNumber.toString().padStart(3, '0')}`;
+    const displayNumber = `Facture ${invoiceNumber.toString().padStart(3, '0')}`;
+
+    useEffect(() => { localStorage.setItem('inv_number', invoiceNumber.toString()); }, [invoiceNumber]);
+    useEffect(() => { localStorage.setItem('inv_iban', iban); localStorage.setItem('inv_bic', bic); }, [iban, bic]);
+
+    const addLine = () => { const nl: InvoiceLine = { id: Date.now().toString(), description: 'Prestation Light', quantity: 1, unitPrice: 0 }; setLines(p => [...p, nl]); setEditingLine(nl); setSheet('line'); };
+    const deleteLine = (id: string) => setLines(p => p.filter(l => l.id !== id));
+    const updateEditingLine = (field: keyof InvoiceLine, value: string | number) => {
+        if (!editingLine) return;
+        const updated = { ...editingLine, [field]: value };
+        setEditingLine(updated);
+        setLines(p => p.map(l => l.id === updated.id ? updated : l));
+    };
+
+    const saveClient = () => {
+        if (!clientName.trim()) return;
+        const nc: any = { id: Date.now().toString(), name: clientName, address: clientAddress, city: clientCity, email: clientEmail };
+        const updated = [nc, ...savedClients.filter((c: any) => c.name !== clientName)];
+        setSavedClients(updated); localStorage.setItem('inv_clients', JSON.stringify(updated));
+    };
+    const loadClient = (c: any) => { setClientName(c.name); setClientAddress(c.address); setClientCity(c.city || ''); setClientEmail(c.email); };
+
+    const saveSenderSettings = () => { setSender(senderDraft); localStorage.setItem('inv_sender', JSON.stringify(senderDraft)); setSettingsSaved(true); setTimeout(() => setSettingsSaved(false), 2000); };
+
+    const buildHTML = () => {
+        const rows = lines.map(l => `<tr><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;font-style:italic;color:#1a1a1a">${l.description}</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#1a1a1a;text-align:center">${l.quantity}</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#1a1a1a;text-align:right">${l.unitPrice.toFixed(2)} €</td><td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;color:#1a1a1a;text-align:right">${(l.quantity * l.unitPrice).toFixed(2)} €</td></tr>`).join('');
+        return `<!DOCTYPE html><html lang="fr"><head><meta charset="UTF-8"/><title>Facture ${formattedNumber}</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:'Helvetica Neue',Helvetica,Arial,sans-serif;background:#fff;color:#1a1a1a;-webkit-print-color-adjust:exact;print-color-adjust:exact}.page{width:210mm;min-height:297mm;padding:20mm;background:#fff;margin:0 auto}@media print{body{margin:0}.page{padding:15mm;width:100%}@page{margin:0;size:A4}}</style></head><body><div class="page"><table style="width:100%;margin-bottom:40px"><tr><td style="vertical-align:top"><div style="font-size:22px;font-weight:900;color:#000;letter-spacing:-1px;text-transform:uppercase">${sender.name}</div><div style="font-size:11px;color:#666;margin-top:4px">SIRET : ${sender.siret}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.address}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.email}</div><div style="font-size:11px;color:#666;margin-top:2px">${sender.phone}</div></td><td style="vertical-align:top;text-align:right"><div style="font-size:36px;font-weight:900;color:#000;letter-spacing:-2px;text-transform:uppercase">FACTURE</div><div style="font-size:13px;color:#666;margin-top:6px">N° <strong style="color:#000">${formattedNumber}</strong></div><div style="font-size:13px;color:#666;margin-top:4px">Date : <strong style="color:#000">${new Date(date).toLocaleDateString('fr-FR')}</strong></div>${dueDate ? `<div style="font-size:13px;color:#e00;margin-top:4px">Échéance : <strong>${new Date(dueDate).toLocaleDateString('fr-FR')}</strong></div>` : ''}</td></tr></table><div style="height:2px;background:#000;margin-bottom:32px"></div><table style="width:100%;margin-bottom:40px"><tr><td style="width:50%"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:8px">Facturé à</div><div style="font-size:15px;font-weight:700;color:#000">${clientName || '—'}</div><div style="font-size:12px;color:#666;margin-top:4px">${clientAddress}${clientCity ? `, ${clientCity}` : ''}</div>${clientEmail ? `<div style="font-size:12px;color:#666;margin-top:4px">${clientEmail}</div>` : ''}</td></tr></table><table style="width:100%;border-collapse:collapse;margin-bottom:32px"><thead><tr style="background:#3730a3"><th style="padding:12px 16px;text-align:left;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Description</th><th style="padding:12px 16px;text-align:center;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Qté</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">P.U. HT</th><th style="padding:12px 16px;text-align:right;font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#fff">Total HT</th></tr></thead><tbody>${rows}</tbody></table><table style="width:100%;margin-bottom:48px"><tr><td style="width:60%">${notes ? `<div style="font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:0.1em;color:#999;margin-bottom:6px">Notes</div><div style="font-size:12px;color:#444;line-height:1.6">${notes}</div>` : ''}</td><td style="width:40%;vertical-align:bottom"><table style="width:100%"><tr><td style="padding:8px 0;font-size:12px;color:#666;border-top:1px solid #f0f0f0">Sous-total HT</td><td style="padding:8px 0;font-size:12px;color:#000;font-weight:700;text-align:right;border-top:1px solid #f0f0f0">${total.toFixed(2)} €</td></tr><tr><td style="padding:8px 0;font-size:11px;color:#999">TVA</td><td style="padding:8px 0;font-size:11px;color:#999;text-align:right">Non applicable</td></tr><tr style="background:#3730a3"><td style="padding:14px 16px;font-size:13px;font-weight:900;color:#fff;text-transform:uppercase;letter-spacing:0.05em">TOTAL TTC</td><td style="padding:14px 16px;font-size:18px;font-weight:900;color:#fff;text-align:right">${total.toFixed(2)} €</td></tr></table></td></tr></table>${iban ? `<div style="background:#f9f9f9;border:1px solid #eee;border-radius:12px;padding:20px;margin-bottom:32px"><div style="font-size:9px;font-weight:900;text-transform:uppercase;letter-spacing:0.15em;color:#999;margin-bottom:12px">Coordonnées bancaires</div><table style="width:100%"><tr><td style="font-size:11px;color:#666">IBAN</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${iban}</td><td style="font-size:11px;color:#666;padding-left:32px">BIC</td><td style="font-size:12px;font-weight:700;color:#000;font-family:monospace">${bic}</td></tr></table></div>` : ''}<div style="border-top:1px solid #eee;padding-top:16px"><div style="font-size:10px;color:#aaa;line-height:1.6">${sender.legal}</div></div></div></body></html>`;
+    };
+
+    const handlePrint = () => { const w = window.open('', '_blank'); if (!w) return; w.document.write(buildHTML()); w.document.close(); w.onload = () => { w.focus(); w.print(); }; };
+
+    const openEmail = () => { setEmailTo(clientEmail); setEmailSubject(`Facture ${formattedNumber} – ${sender.name}`); setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver votre facture N° ${formattedNumber} — ${total.toFixed(2)} €.\n\nCordialement,\n${sender.name}`); setSendStatus('idle'); setSendError(''); setSheet('email'); };
+
+    const handleSendEmail = async () => {
+        if (!emailTo) { setSendError('Email requis'); return; }
+        setSendStatus('sending'); setSendError('');
+        try {
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const sessionId = localStorage.getItem('admin_session_id') || '';
+            const res = await fetch('/api/facture/send', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass, 'X-Session-ID': sessionId }, body: JSON.stringify({ to: emailTo, subject: emailSubject, message: emailMessage, invoiceHtml: buildHTML(), filename: `Facture_${formattedNumber}.html`, invoiceData: { number: formattedNumber, client: clientName, total, date } }) });
+            if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Erreur'); }
+            setSendStatus('success');
+            setInvoiceNumber(n => n + 1);
+            setTimeout(() => { setSendStatus('idle'); setSheet('none'); }, 2500);
+        } catch (e: any) { setSendStatus('error'); setSendError(e.message); }
+    };
+
+    const dueDateLabel = dueDate ? new Date(dueDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Aucune';
+    const eventLabel = eventClub || eventDate ? [eventClub, eventDate ? new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : ''].filter(Boolean).join(' – ') : 'Aucun';
+
+    return (
+        <div className="flex flex-col h-full bg-[#0d0f1a] text-white overflow-hidden">
+
+            {/* ── TOP NAV ── */}
+            <div className="shrink-0 flex items-center justify-between px-4 py-3 bg-[#0d0f1a] border-b border-white/[0.06]">
+                <Link to="/admin" className="flex items-center gap-1 text-indigo-400 font-semibold text-sm">
+                    <ChevronRight className="w-4 h-4 rotate-180" /> Admin
+                </Link>
+                <div className="flex gap-4">
+                    <button onClick={handlePrint} className="text-indigo-400 font-semibold text-sm">Aperçu</button>
+                    <button onClick={() => { setInvoiceNumber(n => n); }} className="text-indigo-400 font-semibold text-sm">Sauvegarder</button>
+                </div>
+            </div>
+
+            {/* ── SCROLLABLE BODY ── */}
+            <div className="flex-1 overflow-y-auto pb-28">
+
+                {/* Invoice title */}
+                <div className="px-4 pt-5 pb-3">
+                    <h1 className="text-2xl font-black text-white">{displayNumber}</h1>
+                    <p className="text-xs text-indigo-400 font-mono mt-0.5">{formattedNumber} • {new Date(date).toLocaleDateString('fr-FR')}</p>
+                </div>
+
+                {/* ── SECTION 1: Info ── */}
+                <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mb-1">
+                    {/* Client */}
+                    <button className={ROW} onClick={() => setSheet('client')}>
+                        <span className={ROW_LABEL}><User className="w-4 h-4 text-indigo-400" /> Client :</span>
+                        <span className={ROW_VALUE}>{clientName || 'Ajouter un client'}<ChevronRight className="w-4 h-4" /></span>
+                    </button>
+                    {/* Date échéance */}
+                    <button className={ROW} onClick={() => setSheet('date')}>
+                        <span className={ROW_LABEL}><Calendar className="w-4 h-4 text-indigo-400" /> Date d'échéance</span>
+                        <span className={ROW_VALUE}>{dueDateLabel}<ChevronRight className="w-4 h-4" /></span>
+                    </button>
+                    {/* Événement */}
+                    <button className={ROW} onClick={() => setSheet('event')}>
+                        <span className={ROW_LABEL}><Calendar className="w-4 h-4 text-indigo-400" /> Événement</span>
+                        <span className={ROW_VALUE}><span className="truncate max-w-[120px]">{eventLabel}</span><ChevronRight className="w-4 h-4" /></span>
+                    </button>
+                    {/* Détails */}
+                    <button className={ROW + " border-b-0"} onClick={() => setSheet('details')}>
+                        <span className={ROW_LABEL}><FileText className="w-4 h-4 text-indigo-400" /> Détails</span>
+                        <span className={ROW_VALUE}><ChevronRight className="w-4 h-4" /></span>
+                    </button>
+                </div>
+
+                {/* ── SECTION 2: Articles ── */}
+                <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mt-3 mb-1">
+                    {lines.map((line, i) => (
+                        <button key={line.id} className={ROW + (i === lines.length - 1 ? ' border-b-0' : '')}
+                            onClick={() => { setEditingLine(line); setSheet('line'); }}>
+                            <span className="flex flex-col items-start gap-0.5 flex-1 min-w-0">
+                                <span className="text-sm font-semibold text-white truncate max-w-[200px]">{line.description || 'Article'}</span>
+                                <span className="text-xs text-white/30">Qté {line.quantity}</span>
+                            </span>
+                            <span className={ROW_VALUE}>
+                                {line.unitPrice > 0 ? `${(line.quantity * line.unitPrice).toFixed(2)} €` : '—'}
+                                <ChevronRight className="w-4 h-4" />
+                            </span>
+                        </button>
+                    ))}
+                    <button className={ROW + " border-b-0"} onClick={addLine}>
+                        <span className={ROW_LABEL}><Plus className="w-4 h-4 text-indigo-400" /> Ajouter un article</span>
+                        <ChevronRight className="w-4 h-4 text-white/20" />
+                    </button>
+                </div>
+
+                {/* ── TOTAL ── */}
+                <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mt-3 mb-1">
+                    <div className="flex items-center justify-between px-4 py-4">
+                        <span className="text-base font-black text-white">Total</span>
+                        <span className="text-base font-black text-white">{total.toFixed(2)} €</span>
+                    </div>
+                </div>
+
+                {/* ── SECTION 3: Paiement ── */}
+                <p className={SECTION_HEADER}>Paiement</p>
+                <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mb-1">
+                    <button className={ROW} onClick={() => setSheet('details')}>
+                        <span className={ROW_LABEL}><CreditCard className="w-4 h-4 text-indigo-400" /> Virement bancaire</span>
+                        <span className={ROW_VALUE}>{iban ? iban.slice(-8) : 'Configurer'}<ChevronRight className="w-4 h-4" /></span>
+                    </button>
+                    <div className="px-4 py-4 border-b-0">
+                        <p className="text-[9px] text-white/20 uppercase tracking-widest font-black mb-2">Note</p>
+                        <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Ajouter une note…"
+                            className="w-full bg-transparent text-sm text-white placeholder:text-white/20 focus:outline-none resize-none" rows={3} />
+                    </div>
+                </div>
+
+                {/* ── SECTION 4: Paramètres ── */}
+                <p className={SECTION_HEADER}>Compte</p>
+                <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mb-3">
+                    <button className={ROW} onClick={() => { setSenderDraft(sender); setSheet('settings'); }}>
+                        <span className={ROW_LABEL}><Settings className="w-4 h-4 text-indigo-400" /> Mes informations</span>
+                        <span className={ROW_VALUE}>{sender.name}<ChevronRight className="w-4 h-4" /></span>
+                    </button>
+                    <button className={ROW + " border-b-0"} onClick={() => setSheet('history')}>
+                        <span className={ROW_LABEL}><History className="w-4 h-4 text-indigo-400" /> Historique</span>
+                        <ChevronRight className="w-4 h-4 text-white/20" />
+                    </button>
+                </div>
+            </div>
+
+            {/* ── FIXED BOTTOM: Send button ── */}
+            <div className="fixed bottom-0 left-0 right-0 z-30 p-4 bg-[#0d0f1a]/95 backdrop-blur-xl border-t border-white/[0.06]">
+                <button onClick={openEmail}
+                    className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:bg-indigo-700 transition-colors">
+                    <Send className="w-4 h-4" /> Envoyer la facture
+                </button>
+            </div>
+
+            {/* ═══════════ SHEETS ═══════════ */}
+
+            {/* CLIENT */}
+            <Sheet open={sheet === 'client'} onClose={() => setSheet('none')} title="Client">
+                <Field label="Nom / Société">
+                    <input value={clientName} onChange={e => setClientName(e.target.value)} placeholder="Nom du client" className={INPUT} />
+                </Field>
+                <Field label="Adresse">
+                    <input value={clientAddress} onChange={e => setClientAddress(e.target.value)} placeholder="12 rue des Lilas" className={INPUT} />
+                </Field>
+                <Field label="Ville / Code postal">
+                    <input value={clientCity} onChange={e => setClientCity(e.target.value)} placeholder="Paris, 75001" className={INPUT} />
+                </Field>
+                <Field label="Email">
+                    <input type="email" value={clientEmail} onChange={e => setClientEmail(e.target.value)} placeholder="client@exemple.com" className={INPUT} />
+                </Field>
+                <div className="flex gap-3 pt-2">
+                    <button onClick={saveClient} className="flex-1 py-3.5 bg-white/5 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest text-white/60 flex items-center justify-center gap-2">
+                        <Save className="w-3.5 h-3.5" />  Sauvegarder
+                    </button>
+                </div>
+                {savedClients.length > 0 && (
+                    <>
+                        <p className="text-[9px] font-black text-white/30 uppercase tracking-widest pt-2">Clients sauvegardés</p>
+                        {savedClients.map((c: any) => (
+                            <button key={c.id} onClick={() => { loadClient(c); setSheet('none'); }}
+                                className="w-full flex items-center justify-between p-3.5 bg-white/5 rounded-xl active:bg-white/10">
+                                <div className="text-left">
+                                    <div className="text-sm font-bold text-white">{c.name}</div>
+                                    <div className="text-xs text-white/40">{c.email}</div>
+                                </div>
+                                <ChevronRight className="w-4 h-4 text-white/20" />
+                            </button>
+                        ))}
+                    </>
+                )}
+            </Sheet>
+
+            {/* DATE */}
+            <Sheet open={sheet === 'date'} onClose={() => setSheet('none')} title="Dates">
+                <Field label="Date de la facture">
+                    <input type="date" value={date} onChange={e => setDate(e.target.value)} className={INPUT + " text-white [color-scheme:dark]"} />
+                </Field>
+                <Field label="Date d'échéance (optionnel)">
+                    <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className={INPUT + " text-white [color-scheme:dark]"} />
+                </Field>
+                <Field label="Numéro de facture">
+                    <input type="number" value={invoiceNumber} onChange={e => setInvoiceNumber(parseInt(e.target.value) || 1)} className={INPUT + " font-black text-lg"} />
+                </Field>
+                <div className="bg-indigo-500/10 rounded-xl px-4 py-2">
+                    <p className="text-[10px] text-indigo-300 font-mono">Réf : <span className="font-black">{formattedNumber}</span></p>
+                </div>
+            </Sheet>
+
+            {/* EVENT */}
+            <Sheet open={sheet === 'event'} onClose={() => setSheet('none')} title="Événement (auto-remplissage)">
+                <p className="text-xs text-white/30">Remplis les champs pour générer automatiquement la description de la prestation.</p>
+                <Field label="Nom du Club / Lieu">
+                    <input value={eventClub} onChange={e => setEventClub(e.target.value)} placeholder="Club XYZ, Salle Metropolis…" className={INPUT} />
+                </Field>
+                <Field label="Date de l'événement">
+                    <input type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} className={INPUT + " text-white [color-scheme:dark]"} />
+                </Field>
+                {(eventClub || eventDate) && (
+                    <div className="bg-indigo-500/10 rounded-xl px-4 py-3">
+                        <p className="text-xs text-indigo-300 font-mono italic">
+                            "{[lines[0]?.description?.split(' – ')[0] || 'Prestation Light', eventClub, eventDate ? new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''].filter(Boolean).join(' – ')}"
+                        </p>
+                    </div>
+                )}
+                <button onClick={() => {
+                    if (!eventClub && !eventDate) return;
+                    const dateStr = eventDate ? new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+                    const desc = [lines[0]?.description?.split(' – ')[0] || 'Prestation Light', eventClub, dateStr].filter(Boolean).join(' – ');
+                    setLines(p => p.map((l, i) => i === 0 ? { ...l, description: desc } : l));
+                    setSheet('none');
+                }} className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest">
+                    ✦ Appliquer à la 1ère ligne
+                </button>
+            </Sheet>
+
+            {/* DETAILS (Virement + N° fact) */}
+            <Sheet open={sheet === 'details'} onClose={() => setSheet('none')} title="Coordonnées bancaires">
+                <Field label="IBAN">
+                    <input value={iban} onChange={e => setIban(e.target.value)} placeholder="FR76 0000 0000 0000…" className={INPUT + " font-mono"} />
+                </Field>
+                <Field label="BIC / SWIFT">
+                    <input value={bic} onChange={e => setBic(e.target.value)} placeholder="REVOFR22XXX" className={INPUT + " font-mono"} />
+                </Field>
+            </Sheet>
+
+            {/* LINE EDIT */}
+            <Sheet open={sheet === 'line'} onClose={() => { setEditingLine(null); setSheet('none'); }} title="Article">
+                {editingLine && (
+                    <>
+                        <Field label="Description">
+                            <input value={editingLine.description} onChange={e => updateEditingLine('description', e.target.value)} placeholder="Prestation Light" className={INPUT} />
+                        </Field>
+                        {savedArticles.length > 0 && (
+                            <>
+                                <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">Catalogue rapide</p>
+                                <div className="flex flex-wrap gap-2">
+                                    {savedArticles.map(a => (
+                                        <button key={a.id} onClick={() => { updateEditingLine('description', a.description); updateEditingLine('unitPrice', a.unitPrice); }}
+                                            className="px-3 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs font-bold text-indigo-300">
+                                            {a.description}{a.unitPrice > 0 ? ` • ${a.unitPrice}€` : ''}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+                        <Field label="Quantité">
+                            <input type="number" value={editingLine.quantity} onChange={e => updateEditingLine('quantity', parseFloat(e.target.value) || 1)} className={INPUT + " font-black text-lg"} min="1" />
+                        </Field>
+                        <Field label="Prix unitaire (€)">
+                            <input type="number" value={editingLine.unitPrice} onChange={e => updateEditingLine('unitPrice', parseFloat(e.target.value) || 0)} className={INPUT + " font-black text-lg"} step="0.01" />
+                        </Field>
+                        <div className="flex items-center justify-between p-4 bg-indigo-500/10 rounded-xl">
+                            <span className="text-sm text-indigo-300 font-bold">Total ligne</span>
+                            <span className="text-xl font-black text-white">{(editingLine.quantity * editingLine.unitPrice).toFixed(2)} €</span>
+                        </div>
+                        {lines.length > 1 && (
+                            <button onClick={() => { deleteLine(editingLine.id); setSheet('none'); }}
+                                className="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2">
+                                <Trash2 className="w-4 h-4" /> Supprimer cet article
+                            </button>
+                        )}
+                    </>
+                )}
+            </Sheet>
+
+            {/* SETTINGS */}
+            <Sheet open={sheet === 'settings'} onClose={() => setSheet('none')} title="Mes informations">
+                {(['name', 'siret', 'address', 'email', 'phone', 'legal'] as (keyof Sender)[]).map(k => {
+                    const labels: Record<keyof Sender, string> = { name: 'Nom', siret: 'SIRET', address: 'Adresse', email: 'Email', phone: 'Téléphone', legal: 'Mention TVA' };
+                    return (
+                        <Field key={k} label={labels[k]}>
+                            <input value={senderDraft[k]} onChange={e => setSenderDraft(d => ({ ...d, [k]: e.target.value }))}
+                                className={INPUT} />
+                        </Field>
+                    );
+                })}
+                <button onClick={saveSenderSettings}
+                    className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${settingsSaved ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-indigo-600 text-white'}`}>
+                    {settingsSaved ? <><CheckCircle className="w-4 h-4" /> Enregistré !</> : <><Save className="w-4 h-4" /> Enregistrer</>}
+                </button>
+            </Sheet>
+
+            {/* EMAIL */}
+            <Sheet open={sheet === 'email'} onClose={() => setSheet('none')} title="Envoyer la facture">
+                {sendStatus === 'success' ? (
+                    <div className="flex flex-col items-center py-10 gap-4">
+                        <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center">
+                            <CheckCircle className="w-8 h-8 text-green-400" />
+                        </div>
+                        <p className="text-green-400 font-black text-lg uppercase">Facture envoyée !</p>
+                    </div>
+                ) : (
+                    <>
+                        <Field label="Destinataire">
+                            <input type="email" value={emailTo} onChange={e => setEmailTo(e.target.value)} className={INPUT} />
+                        </Field>
+                        <Field label="Objet">
+                            <input value={emailSubject} onChange={e => setEmailSubject(e.target.value)} className={INPUT} />
+                        </Field>
+                        <Field label="Message">
+                            <textarea value={emailMessage} onChange={e => setEmailMessage(e.target.value)} rows={5} className={INPUT + " resize-none"} />
+                        </Field>
+                        {sendError && <p className="text-red-400 text-xs font-bold bg-red-500/10 px-4 py-3 rounded-xl">{sendError}</p>}
+                        <button onClick={handleSendEmail} disabled={sendStatus === 'sending'}
+                            className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50">
+                            {sendStatus === 'sending' ? <><Loader className="w-4 h-4 animate-spin" /> Envoi…</> : <><Send className="w-4 h-4" /> Envoyer</>}
+                        </button>
+                    </>
+                )}
+            </Sheet>
+
+            {/* HISTORY */}
+            <Sheet open={sheet === 'history'} onClose={() => setSheet('none')} title="Historique">
+                <p className="text-sm text-white/40 text-center py-8">Historique disponible sur la version bureau.</p>
+            </Sheet>
+        </div>
+    );
+}
