@@ -189,16 +189,16 @@ export function AdminDashboard() {
     // GESTION TEAM STATES
     const [teamMembers, setTeamMembers] = useState<any[]>([]);
     const [editors, setEditors] = useState<any[]>([]);
-    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'WIKI' | 'CONTENU' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM' | 'CONCOURS'>('ALL');
+    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'WIKI' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM'>('ALL');
 
     const DASHBOARD_TABS = [
         { id: 'ALL', label: 'Tout' },
         { id: 'NEWS', label: 'Actualités' },
-        { id: 'CONCOURS', label: 'Communauté' },
+        { id: 'COMMUNAUTÉ', label: 'Communauté' },
         { id: 'WIKI', label: 'Wiki' },
         { id: 'STUDIO', label: 'Studio' },
+        { id: 'SHOP', label: 'Boutique' },
         { id: 'TEAM', label: 'Équipe' },
-        { id: 'SHOP', label: 'Shop' }
     ];
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean,
@@ -1108,20 +1108,8 @@ export function AdminDashboard() {
             throw new Error('API unreachable'); // Force fallback if not 401/200
 
         } catch (err: any) {
-            // FALLBACK LOCAL (DEV MODE)
-            console.log("API Login failed, trying local check...", err);
-
-            if ((username === 'contact@dropsiders.fr' || username === 'alex' || username === 'alexflex30@gmail.com') && password === atob('MDEwNjE5ODhBei0=')) {
-                setIsAuthenticated(true);
-                localStorage.setItem('admin_auth', 'true');
-                localStorage.setItem('admin_password', password);
-                localStorage.setItem('admin_user', 'alex');
-                localStorage.setItem('admin_permissions', JSON.stringify(['all']));
-                localStorage.setItem('admin_session_id', 'initial-session-id');
-                setActions(getFallbackActions());
-            } else {
-                setError('Identifiants incorrects (Mode Local)');
-            }
+            console.error("Login attempt failed:", err);
+            setError('Erreur de connexion au serveur. Vérifiez votre mot de passe.');
         }
     };
 
@@ -1389,7 +1377,7 @@ export function AdminDashboard() {
 
         if (dashboardTab === 'STUDIO') return action.category === 'STUDIO';
         if (dashboardTab === 'SHOP') return action.category === 'SHOP';
-        if (dashboardTab === 'CONCOURS') return action.category === 'CONCOURS';
+        if (dashboardTab === 'COMMUNAUTÉ') return action.category === 'CONCOURS' || action.title === 'Communauté' || action.title === 'Quiz & Blind Test';
         if (dashboardTab === 'WIKI') return action.category === 'WIKI' || action.title === 'Wiki';
         if (dashboardTab === 'TEAM') return action.category === 'TEAM' || action.title.includes('Équipe');
 
@@ -1893,7 +1881,7 @@ export function AdminDashboard() {
                                 </div>
                             )}
                         </div>
-                    ) : dashboardTab === 'CONCOURS' ? (
+                        ) : dashboardTab === 'COMMUNAUTÉ' ? (
                         <div className="space-y-12 pb-20">
                             {/* ACTIVATION SECTION */}
                             <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 flex flex-col md:flex-row justify-between items-center gap-10 relative overflow-hidden">
