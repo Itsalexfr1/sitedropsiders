@@ -6612,21 +6612,6 @@
     "status": "waiting"
   },
   {
-    "id": "686",
-    "name": "My Friend",
-    "bio": "Incontournable de la scène mondiale, My Friend est une figure majeure de la culture électronique actuelle.",
-    "country": "Intl",
-    "image": "/uploads/djs_myfriend_1773690432634.jpg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/My%20Friend",
-    "instagram": "https://instagram.com/myfriend",
-    "facebook": "https://facebook.com/myfriend",
-    "soundcloud": "https://soundcloud.com/myfriend",
-    "beatport": "https://www.beatport.com/search?q=My%20Friend",
-    "bio_en": "A major figure on the global scene, My Friend is a key player in today's electronic culture.",
-    "status": "waiting"
-  },
-  {
     "id": "687",
     "name": "Rezident",
     "bio": "Incontournable de la scène mondiale, Rezident est une figure majeure de la culture électronique actuelle.",
