@@ -257,13 +257,15 @@ export function AdminDashboard() {
         title: string,
         message: string,
         onConfirm: () => void,
-        type: 'danger' | 'warning' | 'info'
+        type: 'danger' | 'warning' | 'info',
+        confirmText?: string
     }>({
         isOpen: false,
         title: '',
         message: '',
         onConfirm: () => { },
-        type: 'danger'
+        type: 'danger',
+        confirmText: ''
     });
 
     const navigate = useNavigate();
@@ -6625,8 +6627,8 @@ export function AdminDashboard() {
                                                     title: `Supprimer ${selectedKeys.length} images ?`,
                                                     message: `Voulez-vous vraiment supprimer définitivement ces ${selectedKeys.length} fichiers ? Cette action est irréversible.`,
                                                     type: 'danger',
-                                                    confirmText: `Supprimer (${selectedKeys.length})`,
-                                                    onConfirm: deleteMultipleObjects
+                                                    onConfirm: deleteMultipleObjects,
+                                                    confirmText: `Supprimer (${selectedKeys.length})`
                                                 });
                                             }}
                                             className="px-8 py-4 bg-neon-red text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,0,51,0.3)] shrink-0"
