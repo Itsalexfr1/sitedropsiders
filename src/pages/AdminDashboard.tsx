@@ -793,10 +793,18 @@ export function AdminDashboard() {
         try {
             const res = await apiFetch('/api/r2/duplicates', { headers: getAuthHeaders() });
             const data = await res.json();
-            setDuplicateSets(data);
-            setIsDuplicatesModalOpen(true);
+            
+            if (Array.isArray(data)) {
+                setDuplicateSets(data);
+                setIsDuplicatesModalOpen(true);
+            } else {
+                console.error("Erreur Doublons :", data);
+                // Si ce n'est pas un tableau, c'est probablement une erreur { error: "..." }
+                alert("Erreur lors de la récupération des doublons : " + (data.error || "Réponse invalide"));
+            }
         } catch (e) {
             console.error("Failed to fetch duplicates", e);
+            alert("Erreur réseau ou serveur lors de la recherche de doublons.");
         } finally {
             setIsR2Loading(false);
         }

@@ -275,6 +275,15 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [isPremsAwarded, setIsPremsAwarded] = useState(false);
     const [clashPoll, setClashPoll] = useState<{ active: boolean, teamA: string, teamB: string, votesA: string[], votesB: string[] } | null>(null);
     const [shopItems, setShopItems] = useState<any[]>([]);
+    const groupedShopItems = useMemo(() => {
+        const groups: Record<string, any[]> = {};
+        shopItems.forEach(item => {
+            const cat = item.category || 'Autres';
+            if (!groups[cat]) groups[cat] = [];
+            groups[cat].push(item);
+        });
+        return groups;
+    }, [shopItems]);
     const [showLegendsWall, setShowLegendsWall] = useState(false);
     const [qteActive, setQteActive] = useState(false);
 
@@ -992,7 +1001,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             const res = await fetch('/api/shop');
             if (res.ok) {
                 const data = await res.json();
-                setShopItems(Array.isArray(data) ? data.slice(0, 12) : []);
+                setShopItems(Array.isArray(data) ? data : []);
             }
         } catch (e) { console.error("Error loading shop:", e); }
     };
@@ -3560,23 +3569,34 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Shop Officiel Dropsiders</h3>
                                         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2">Merchandising & Accessoires</p>
                                     </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
-                                        {shopItems.map(item => (
-                                            <div key={item.id} className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col group hover:border-neon-cyan/30 transition-all cursor-pointer shadow-xl relative overflow-hidden">
-                                                <div className="aspect-square rounded-xl bg-black/40 overflow-hidden mb-3 border border-white/10">
-                                                    <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                    <div className="space-y-12">
+                                        {Object.entries(groupedShopItems).map(([category, items]) => (
+                                            <div key={category} className="space-y-6">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+                                                    <h4 className="text-[10px] font-black text-neon-cyan uppercase tracking-[0.4em] italic whitespace-nowrap">{category}</h4>
+                                                    <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                                                 </div>
-                                                <div className="flex-1 flex flex-col justify-between">
-                                                    <div>
-                                                        <p className="text-[9px] lg:text-[10px] font-black text-white uppercase mb-1 leading-tight">{item.name}</p>
-                                                        <p className="text-[11px] font-black text-neon-cyan">{item.price} €</p>
-                                                    </div>
-                                                    <button 
-                                                        onClick={() => item.url ? window.open(item.url, '_blank') : showNotification(`ACHETER : ${item.name}`, 'success')} 
-                                                        className="w-full mt-3 py-1.5 bg-white/5 border border-white/10 text-[8px] font-black uppercase rounded-lg hover:bg-white/10 text-white transition-all"
-                                                    >
-                                                        {item.url ? 'VOIR' : 'BIENTÔT'}
-                                                    </button>
+                                                <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
+                                                    {items.map(item => (
+                                                        <div key={item.id} className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col group hover:border-neon-cyan/30 transition-all cursor-pointer shadow-xl relative overflow-hidden">
+                                                            <div className="aspect-square rounded-xl bg-black/40 overflow-hidden mb-3 border border-white/10">
+                                                                <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                            </div>
+                                                            <div className="flex-1 flex flex-col justify-between">
+                                                                <div>
+                                                                    <p className="text-[9px] lg:text-[10px] font-black text-white uppercase mb-1 leading-tight">{item.name}</p>
+                                                                    <p className="text-[11px] font-black text-neon-cyan">{item.price} €</p>
+                                                                </div>
+                                                                <button 
+                                                                    onClick={() => item.url ? window.open(item.url, '_blank') : showNotification(`ACHETER : ${item.name}`, 'success')} 
+                                                                    className="w-full mt-3 py-1.5 bg-white/5 border border-white/10 text-[8px] font-black uppercase rounded-lg hover:bg-white/10 text-white transition-all"
+                                                                >
+                                                                    {item.url ? 'VOIR/ACHETER' : 'BIENTÔT'}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                    ))}
                                                 </div>
                                             </div>
                                         ))}
