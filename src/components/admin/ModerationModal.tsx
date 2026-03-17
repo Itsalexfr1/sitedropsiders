@@ -182,32 +182,40 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
         const ids = Array.from(selected);
         try {
             if (tab === 'photos') {
-                await Promise.all(ids.map(id =>
-                    fetch('/api/photos/moderate', {
+                for (const id of ids) {
+                    const response = await fetch('/api/photos/moderate', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                         body: JSON.stringify({ id, action })
-                    })
-                ));
+                    });
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.error || `Erreur lors de la modération du fichier ${id}`);
+                    }
+                }
                 setSubmissions(prev => prev.filter(s => !ids.includes(s.id)));
             } else if (tab === 'wiki' && action === 'reject') {
-                // Bulk delete for Wiki items
-                await Promise.all(ids.map(id => {
+                for (const id of ids) {
                     const item = wikiWaiting.find(w => w.id === id);
-                    if (!item) return Promise.resolve();
-                    return fetch('/api/wiki/delete', {
+                    if (!item) continue;
+                    const response = await fetch('/api/wiki/delete', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                         body: JSON.stringify({ id, type: item.type })
                     });
-                }));
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.error || `Erreur lors de la suppression de ${item.name}`);
+                    }
+                }
                 setWikiWaiting(prev => prev.filter(w => !ids.includes(w.id)));
             }
             setSelected(new Set());
             setSelectMode(false);
             if (onSuccess) onSuccess();
-        } catch {
-            showAlert('Erreur lors de la modération en masse');
+        } catch (error: any) {
+            console.error('Bulk action error:', error);
+            showAlert(error.message || 'Erreur lors de la modération en masse');
         } finally {
             setIsBulkProcessing(false);
         }
