@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, CheckSquare, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare, BookOpen, Upload, Plus } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
@@ -131,6 +131,14 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
     useEffect(() => { if (!selectMode) setSelected(new Set()); }, [selectMode]);
     useEffect(() => { setSelectMode(false); setSelected(new Set()); }, [tab]);
 
+    const groupedWiki = useMemo(() => {
+        return {
+            DJS: wikiWaiting.filter(w => w.type === 'DJS'),
+            CLUBS: wikiWaiting.filter(w => w.type === 'CLUBS'),
+            FESTIVALS: wikiWaiting.filter(w => w.type === 'FESTIVALS')
+        };
+    }, [wikiWaiting]);
+
     const toggleSelect = (id: string) => {
         setSelected(prev => {
             const next = new Set(prev);
@@ -173,14 +181,28 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
         setIsBulkProcessing(true);
         const ids = Array.from(selected);
         try {
-            await Promise.all(ids.map(id =>
-                fetch('/api/photos/moderate', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                    body: JSON.stringify({ id, action })
-                })
-            ));
-            setSubmissions(prev => prev.filter(s => !ids.includes(s.id)));
+            if (tab === 'photos') {
+                await Promise.all(ids.map(id =>
+                    fetch('/api/photos/moderate', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                        body: JSON.stringify({ id, action })
+                    })
+                ));
+                setSubmissions(prev => prev.filter(s => !ids.includes(s.id)));
+            } else if (tab === 'wiki' && action === 'reject') {
+                // Bulk delete for Wiki items
+                await Promise.all(ids.map(id => {
+                    const item = wikiWaiting.find(w => w.id === id);
+                    if (!item) return Promise.resolve();
+                    return fetch('/api/wiki/delete', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                        body: JSON.stringify({ id, type: item.type })
+                    });
+                }));
+                setWikiWaiting(prev => prev.filter(w => !ids.includes(w.id)));
+            }
             setSelected(new Set());
             setSelectMode(false);
             if (onSuccess) onSuccess();
@@ -318,7 +340,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
                     initial={{ opacity: 0, scale: 0.9, y: 20 }}
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                    className="relative w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-left my-8"
+                    className="relative w-full max-w-7xl bg-[#0a0a0a] border border-white/10 rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] text-left my-8"
                 >
                     {/* Header */}
                     <div className="p-8 border-b border-white/5 flex items-center justify-between bg-gradient-to-r from-neon-green/10 to-transparent">
@@ -432,7 +454,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
                                     </div>
 
                                     {/* ── Grid ── */}
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                                         <AnimatePresence>
                                             {submissions.map((sub) => {
                                                 const isSelected = selected.has(sub.id);
@@ -532,50 +554,141 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
                                     <span className="text-xl font-black uppercase italic text-white tracking-widest">Tout est à jour</span>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    {wikiWaiting.map((item) => (
-                                        <div key={item.id} className="bg-white/[0.02] border border-white/5 rounded-[32px] overflow-hidden p-6 space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <div>
-                                                    <h3 className="text-lg font-black text-white uppercase italic">{item.name}</h3>
-                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{item.city}, {item.country}</p>
-                                                </div>
-                                                <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase ${
-                                                    item.type === 'CLUBS' ? 'bg-neon-purple/20 text-neon-purple border border-neon-purple/30' : 
-                                                    item.type === 'FESTIVALS' ? 'bg-neon-cyan/20 text-neon-cyan border border-neon-cyan/30' : 
-                                                    'bg-neon-red/20 text-neon-red border border-neon-red/30'}`}>
-                                                    {item.type}
-                                                </span>
-                                                <button 
-                                                    onClick={() => handleDeleteWiki(item.id, item.type, item.name)}
-                                                    className="p-1 px-2.5 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-500/60 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 group/del"
-                                                    title="Supprimer l'entrée"
+                                <div className="space-y-12">
+                                    {/* ── Selection Toolbar (same as Photos) ── */}
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        <button
+                                            onClick={() => setSelectMode(s => !s)}
+                                            className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest border transition-all flex items-center gap-2 ${selectMode ? 'bg-neon-orange/20 border-neon-orange/50 text-neon-orange' : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:border-white/30'}`}
+                                        >
+                                            <CheckSquare className="w-3.5 h-3.5" />
+                                            {selectMode ? 'Quitter sélection' : 'Sélection multiple'}
+                                        </button>
+
+                                        <AnimatePresence>
+                                            {selectMode && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, x: -8 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    exit={{ opacity: 0, x: -8 }}
+                                                    className="flex items-center gap-2 flex-wrap"
                                                 >
-                                                    <Trash2 className="w-3 h-3" />
-                                                    <span className="hidden group-hover/del:inline">Supprimer</span>
-                                                </button>
+                                                    <button 
+                                                        onClick={() => setSelected(new Set(wikiWaiting.map(w => w.id)))}
+                                                        className="px-3 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest bg-white/5 border border-white/10 text-white/60 hover:text-white transition-all"
+                                                    >
+                                                        Tout ({wikiWaiting.length})
+                                                    </button>
+                                                    {selected.size > 0 && (
+                                                        <button onClick={deselectAll} className="px-3 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all">
+                                                            Désélectionner
+                                                        </button>
+                                                    )}
+                                                    {selected.size > 0 && (
+                                                        <button
+                                                            onClick={() => handleBulkAction('reject')}
+                                                            disabled={isBulkProcessing}
+                                                            className="px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest bg-neon-red/20 border border-neon-red/50 text-neon-red hover:bg-neon-red hover:text-white transition-all disabled:opacity-50"
+                                                        >
+                                                            <Trash2 className="w-3.5 h-3.5 inline-block mr-1" />
+                                                            Supprimer ({selected.size})
+                                                        </button>
+                                                    )}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+
+                                        {selected.size > 0 && (
+                                            <span className="ml-1 px-3 py-1 bg-neon-orange/20 text-neon-orange rounded-full text-[10px] font-black">
+                                                {selected.size} sélectionné{selected.size > 1 ? 's' : ''}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {(['DJS', 'CLUBS', 'FESTIVALS'] as const).map(type => {
+                                        const items = groupedWiki[type];
+                                        if (items.length === 0) return null;
+                                        return (
+                                            <div key={type} className="space-y-6">
+                                                <div className="flex items-center gap-4">
+                                                    <div className={`h-px flex-1 ${type === 'DJS' ? 'bg-neon-red/20' : type === 'CLUBS' ? 'bg-neon-purple/20' : 'bg-neon-cyan/20'}`} />
+                                                    <h3 className={`text-sm font-black uppercase italic tracking-[0.3em] ${type === 'DJS' ? 'text-neon-red' : type === 'CLUBS' ? 'text-neon-purple' : 'text-neon-cyan'}`}>
+                                                        {type} ({items.length})
+                                                    </h3>
+                                                    <div className={`h-px flex-1 ${type === 'DJS' ? 'bg-neon-red/20' : type === 'CLUBS' ? 'bg-neon-purple/20' : 'bg-neon-cyan/20'}`} />
+                                                </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                                    {items.map((item) => {
+                                                        const isSelected = selected.has(item.id);
+                                                        return (
+                                                            <div 
+                                                                key={item.id} 
+                                                                className={`group relative bg-white/[0.02] border rounded-[32px] overflow-hidden p-6 space-y-4 transition-all duration-300 ${isSelected ? 'border-neon-orange/60 shadow-[0_0_20px_rgba(255,140,0,0.15)]' : 'border-white/5 hover:border-white/20'}`}
+                                                            >
+                                                                {/* Checkbox overlay */}
+                                                                {selectMode && (
+                                                                    <button
+                                                                        onClick={() => toggleSelect(item.id)}
+                                                                        className="absolute top-4 left-4 z-10"
+                                                                    >
+                                                                        <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all shadow-lg ${isSelected ? 'bg-neon-orange border-neon-orange' : 'bg-black/70 border-white/50 hover:border-white'}`}>
+                                                                            {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                                                                        </div>
+                                                                    </button>
+                                                                )}
+
+                                                                <div className="flex items-center justify-between" onClick={() => selectMode && toggleSelect(item.id)}>
+                                                                    <div className={selectMode ? 'pl-8' : ''}>
+                                                                        <h3 className="text-lg font-black text-white uppercase italic leading-none">{item.name}</h3>
+                                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">{item.city}, {item.country}</p>
+                                                                    </div>
+                                                                    {!selectMode && (
+                                                                        <button 
+                                                                            onClick={() => handleDeleteWiki(item.id, item.type, item.name)}
+                                                                            className="p-1 px-2.5 bg-red-500/10 hover:bg-red-500 hover:text-white text-red-500/60 rounded-lg text-[8px] font-black uppercase transition-all flex items-center gap-1 group/del"
+                                                                            title="Supprimer l'entrée"
+                                                                        >
+                                                                            <Trash2 className="w-3 h-3" />
+                                                                        </button>
+                                                                    )}
+                                                                </div>
+
+                                                                <div 
+                                                                    className={`aspect-[4/5] bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-600 relative overflow-hidden ${selectMode ? 'cursor-pointer' : ''}`}
+                                                                    onClick={() => selectMode && toggleSelect(item.id)}
+                                                                >
+                                                                    <Upload className="w-8 h-8 opacity-20" />
+                                                                    <span className="text-[9px] font-black uppercase tracking-widest text-center px-4">En attente de photo officielle</span>
+                                                                    {isSelected && <div className="absolute inset-0 bg-neon-orange/5" />}
+                                                                </div>
+
+                                                                {!selectMode && (
+                                                                    <>
+                                                                        <button 
+                                                                            onClick={() => handleUpdateWikiPhoto(item.id, item.type, item.name)}
+                                                                            className="group relative w-full h-14 bg-neon-purple text-white font-black rounded-2xl shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 overflow-hidden"
+                                                                        >
+                                                                            <span className="relative z-10 flex items-center gap-2">
+                                                                                <Upload className="w-3.5 h-3.5" /> UPLOADER LA PHOTO
+                                                                            </span>
+                                                                            <div className="absolute bottom-0 right-0 w-0 h-0 border-b-[12px] border-r-[12px] border-b-transparent border-r-white/40" />
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => setPromptState({ isOpen: true, itemId: item.id, itemType: item.type, itemName: item.name })}
+                                                                            className="w-full py-2 text-[8px] font-black uppercase text-gray-600 hover:text-white transition-colors"
+                                                                        >
+                                                                            OU SAISIR UNE URL
+                                                                        </button>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
-                                            <div className="aspect-[4/5] bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-600">
-                                                <Upload className="w-8 h-8 opacity-20" />
-                                                <span className="text-[9px] font-black uppercase tracking-widest">En attente de photo officielle</span>
-                                            </div>
-                                            <button 
-                                                onClick={() => handleUpdateWikiPhoto(item.id, item.type, item.name)}
-                                                className="group relative w-full h-14 bg-neon-purple text-white font-black rounded-2xl shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 overflow-hidden"
-                                            >
-                                                <span className="relative z-10 flex items-center gap-2">
-                                                    <Upload className="w-3.5 h-3.5" /> UPLOADER LA PHOTO
-                                                </span>
-                                                <div className="absolute bottom-0 right-0 w-0 h-0 border-b-[12px] border-r-[12px] border-b-transparent border-r-white/40" />
-                                            </button>
-                                            <button 
-                                                onClick={() => setPromptState({ isOpen: true, itemId: item.id, itemType: item.type, itemName: item.name })}
-                                                className="w-full py-2 text-[8px] font-black uppercase text-gray-600 hover:text-white transition-colors"
-                                            >
-                                                OU SAISIR UNE URL
-                                            </button>
-                                        </div>
-                                    ))}
+                                        );
+                                    })}
                                 </div>
                             )
                         )}
