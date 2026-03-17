@@ -57,7 +57,7 @@ function buildInvoiceHTML(data: {
     const { sender } = data;
     const rows = data.lines.map(l => `
         <tr>
-            <td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#1a1a1a">${l.description}</td>
+            <td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#1a1a1a;font-weight:700;font-style:italic">${l.description}</td>
             <td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#1a1a1a;text-align:center">${l.quantity}</td>
             <td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;color:#1a1a1a;text-align:right">${l.unitPrice.toFixed(2)} €</td>
             <td style="padding:12px 16px;border-bottom:1px solid #f0f0f0;font-size:13px;font-weight:700;color:#1a1a1a;text-align:right">${(l.quantity * l.unitPrice).toFixed(2)} €</td>
@@ -161,9 +161,9 @@ function buildInvoiceHTML(data: {
 }
 
 // Shared input class
-const inputCls = "w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 text-gray-900 text-sm font-medium focus:outline-none focus:border-indigo-400 transition-all placeholder:text-gray-300";
-const labelCls = "text-[9px] font-black text-gray-400 uppercase tracking-widest mb-1 block";
-const cardCls = "bg-white border border-gray-200 rounded-2xl p-6 shadow-sm";
+const inputCls = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-medium focus:outline-none focus:border-indigo-400 transition-all placeholder:text-white/20";
+const labelCls = "text-[9px] font-black text-white/30 uppercase tracking-widest mb-1 block";
+const cardCls = "bg-white/[0.04] border border-white/[0.07] rounded-2xl p-6 shadow-sm";
 
 export function InvoiceGenerator() {
     const [sender, setSender] = useState<Sender>(() => {
@@ -335,29 +335,29 @@ export function InvoiceGenerator() {
     ] as const;
 
     return (
-        <div className="w-full h-full bg-[#eef2ff] text-gray-800 flex flex-col overflow-hidden">
+        <div className="w-full h-full bg-[#0d0f1a] text-white flex flex-col overflow-hidden">
 
             {/* HEADER */}
-            <div className="shrink-0 px-8 py-5 flex items-center justify-between border-b border-indigo-100 bg-white shadow-sm">
+            <div className="shrink-0 px-8 py-5 flex items-center justify-between border-b border-white/5 bg-black/60 backdrop-blur-xl">
                 <div className="flex items-center gap-6">
                     <div>
-                        <h1 className="text-lg font-black uppercase tracking-tight text-gray-900">Générateur de Factures</h1>
+                        <h1 className="text-lg font-black uppercase tracking-tight text-white">Générateur de Factures</h1>
                         <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest">{sender.name} • {sender.siret}</p>
                     </div>
-                    <div className="flex items-center gap-1 p-1 bg-indigo-50 border border-indigo-100 rounded-xl ml-4">
+                    <div className="flex items-center gap-1 p-1 bg-white/5 border border-white/10 rounded-xl ml-4">
                         {TABS.map(t => (
                             <button key={t.key} onClick={() => { setView(t.key); if (t.key === 'archive') fetchHistory(); if (t.key === 'settings') setSenderDraft(sender); }}
-                                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${view === t.key ? 'bg-indigo-700 text-white shadow-sm' : 'text-indigo-300 hover:text-indigo-600'}`}>
+                                className={`px-4 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 ${view === t.key ? 'bg-indigo-600 text-white shadow-sm' : 'text-white/30 hover:text-white/60'}`}>
                                 {t.icon}{t.label}
                             </button>
                         ))}
                     </div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <button onClick={handleDownload} className="px-5 py-3 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-600 flex items-center gap-2 transition-all">
+                    <button onClick={handleDownload} className="px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60 flex items-center gap-2 transition-all">
                         <Download className="w-4 h-4" /> Télécharger HTML
                     </button>
-                    <button onClick={handlePrint} className="px-5 py-3 bg-gray-100 hover:bg-gray-200 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-600 flex items-center gap-2 transition-all">
+                    <button onClick={handlePrint} className="px-5 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-black uppercase tracking-widest text-white/60 flex items-center gap-2 transition-all">
                         <Printer className="w-4 h-4" /> Imprimer / PDF
                     </button>
                     <button onClick={openEmail} className="px-6 py-3 bg-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-indigo-800 transition-all">
@@ -395,8 +395,8 @@ export function InvoiceGenerator() {
                                             <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className={inputCls} />
                                         </div>
                                     </div>
-                                    <div className="bg-indigo-50 rounded-xl px-4 py-2">
-                                        <p className="text-[10px] text-indigo-400 font-mono">Réf : <span className="text-indigo-700 font-black">{formattedNumber}</span></p>
+                                    <div className="bg-indigo-500/10 rounded-xl px-4 py-2">
+                                        <p className="text-[10px] text-indigo-300 font-mono">Réf : <span className="text-indigo-200 font-black">{formattedNumber}</span></p>
                                     </div>
                                 </div>
 
@@ -405,11 +405,11 @@ export function InvoiceGenerator() {
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Client</h3>
                                         <div className="flex gap-2">
-                                            <button onClick={saveClient} className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg text-[9px] font-black uppercase tracking-widest text-indigo-600 flex items-center gap-1 transition-all">
+                                            <button onClick={saveClient} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-1 transition-all">
                                                 <Save className="w-3 h-3" /> Sauvegarder
                                             </button>
                                             {savedClients.length > 0 && (
-                                                <button onClick={() => setShowClientPicker(true)} className="px-3 py-1.5 bg-indigo-50 hover:bg-indigo-100 border border-indigo-100 rounded-lg text-[9px] font-black uppercase tracking-widest text-indigo-600 flex items-center gap-1 transition-all">
+                                                <button onClick={() => setShowClientPicker(true)} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-lg text-[9px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-1 transition-all">
                                                     <User className="w-3 h-3" /> Clients ({savedClients.length})
                                                 </button>
                                             )}
@@ -494,11 +494,11 @@ export function InvoiceGenerator() {
                                                 </div>
                                                 <div className="col-span-2">
                                                     <input type="number" value={line.quantity} onChange={e => updateLine(line.id, 'quantity', parseFloat(e.target.value) || 0)}
-                                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-900 text-sm text-center focus:outline-none focus:border-indigo-400 transition-all" />
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm text-center focus:outline-none focus:border-indigo-400 transition-all" />
                                                 </div>
                                                 <div className="col-span-3">
                                                     <input type="number" value={line.unitPrice} onChange={e => updateLine(line.id, 'unitPrice', parseFloat(e.target.value) || 0)}
-                                                        className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3 py-2.5 text-gray-900 text-sm text-right focus:outline-none focus:border-indigo-400 transition-all" />
+                                                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2.5 text-white text-sm text-right focus:outline-none focus:border-indigo-400 transition-all" />
                                                 </div>
                                                 <div className="col-span-1 text-right text-sm font-bold text-indigo-500">
                                                     {(line.quantity * line.unitPrice).toFixed(0)}€
@@ -518,14 +518,14 @@ export function InvoiceGenerator() {
                                         ))}
                                     </div>
 
-                                    <div className="pt-4 border-t border-gray-100">
+                                    <div className="pt-4 border-t border-white/5">
                                         <div className="flex justify-between items-center mb-2">
-                                            <span className="text-sm text-gray-400">Sous-total HT</span>
-                                            <span className="text-sm font-bold text-gray-600">{total.toFixed(2)} €</span>
+                                            <span className="text-sm text-white/40">Sous-total HT</span>
+                                            <span className="text-sm font-bold text-white/60">{total.toFixed(2)} €</span>
                                         </div>
                                         <div className="flex justify-between items-center mb-4">
-                                            <span className="text-xs text-gray-300">TVA</span>
-                                            <span className="text-xs text-gray-300">Non applicable (art. 293B CGI)</span>
+                                            <span className="text-xs text-white/20">TVA</span>
+                                            <span className="text-xs text-white/20">Non applicable (art. 293B CGI)</span>
                                         </div>
                                         <div className="bg-indigo-700 rounded-2xl px-6 py-4 flex justify-between items-center">
                                             <span className="text-white font-black uppercase tracking-widest text-sm">Total TTC</span>
@@ -537,34 +537,34 @@ export function InvoiceGenerator() {
                                 {/* Mini preview */}
                                 <div className={cardCls}>
                                     <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400 mb-4">Aperçu</h3>
-                                    <div className="bg-white border border-gray-100 rounded-xl p-5 text-black shadow-inner">
+                                    <div className="bg-white/[0.03] border border-white/5 rounded-xl p-5 shadow-inner">
                                         <div className="flex justify-between items-start mb-3">
                                             <div>
-                                                <div className="font-black text-sm uppercase">{sender.name}</div>
-                                                <div className="text-[10px] text-gray-400">SIRET : {sender.siret}</div>
-                                                <div className="text-[10px] text-gray-400">{sender.email}</div>
+                                                <div className="font-black text-sm uppercase text-white">{sender.name}</div>
+                                                <div className="text-[10px] text-indigo-300">{sender.siret}</div>
+                                                <div className="text-[10px] text-indigo-300">{sender.email}</div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="font-black text-base uppercase">FACTURE</div>
-                                                <div className="text-xs text-gray-400">{formattedNumber}</div>
-                                                <div className="text-xs text-gray-400">{new Date(date).toLocaleDateString('fr-FR')}</div>
+                                                <div className="font-black text-base uppercase text-white">FACTURE</div>
+                                                <div className="text-xs text-white/40">{formattedNumber}</div>
+                                                <div className="text-xs text-white/40">{new Date(date).toLocaleDateString('fr-FR')}</div>
                                             </div>
                                         </div>
-                                        <div className="h-px bg-black mb-2" />
-                                        <div className="text-[10px] text-gray-400 mb-0.5">Facturé à</div>
-                                        <div className="font-bold text-sm">{clientName || '—'}</div>
-                                        <div className="text-xs text-gray-400">{clientAddress}</div>
-                                        <div className="h-px bg-gray-100 my-2" />
+                                        <div className="h-px bg-white/10 mb-2" />
+                                        <div className="text-[10px] text-white/30 mb-0.5">Facturé à</div>
+                                        <div className="font-bold text-sm text-white">{clientName || '—'}</div>
+                                        <div className="text-xs text-white/40">{clientAddress}</div>
+                                        <div className="h-px bg-white/10 my-2" />
                                         {lines.filter(l => l.description).map(l => (
-                                            <div key={l.id} className="flex justify-between text-xs py-0.5">
-                                                <span>{l.description}</span>
+                                            <div key={l.id} className="flex justify-between text-xs py-0.5 text-white/70">
+                                                <span className="font-bold italic">{l.description}</span>
                                                 <span className="font-bold">{(l.quantity * l.unitPrice).toFixed(2)} €</span>
                                             </div>
                                         ))}
-                                        <div className="h-px bg-gray-100 my-2" />
-                                        <div className="flex justify-between font-black text-sm">
+                                        <div className="h-px bg-white/10 my-2" />
+                                        <div className="flex justify-between font-black text-sm text-white">
                                             <span>TOTAL TTC</span>
-                                            <span className="text-indigo-700">{total.toFixed(2)} €</span>
+                                            <span className="text-indigo-400">{total.toFixed(2)} €</span>
                                         </div>
                                     </div>
                                 </div>
