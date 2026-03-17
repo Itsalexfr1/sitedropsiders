@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -3578,7 +3578,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     <div className="h-px flex-1 bg-gradient-to-r from-transparent via-white/10 to-transparent" />
                                                 </div>
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
-                                                    {items.map(item => (
+                                                    {(items as any[]).map((item: any) => (
                                                         <div key={item.id} className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col group hover:border-neon-cyan/30 transition-all cursor-pointer shadow-xl relative overflow-hidden">
                                                             <div className="aspect-square rounded-xl bg-black/40 overflow-hidden mb-3 border border-white/10">
                                                                 <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
