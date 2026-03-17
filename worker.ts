@@ -780,6 +780,8 @@ ${urls.map(u => `  <url>
         };
 
         // --- AUTH CHECK ---
+        // Helper: decode passwords stored as b64:<base64value> in editors.json
+        const decodePass = (p: string) => p && p.startsWith('b64:') ? atob(p.slice(4)) : p;
         const envAdminPass = ((env.ADMIN_PASSWORD || '')).trim();
         const adminPassword = envAdminPass !== '' ? envAdminPass : atob('MDEwNjE5ODg='); // Obfuscated fallback
         const requestPassword = (request.headers.get('X-Admin-Password') || '').trim();
@@ -913,7 +915,7 @@ ${urls.map(u => `  <url>
                 const editorsFile = await fetchGitHubFile(EDITORS_PATH, gitConfig);
                 if (editorsFile && editorsFile.content) {
                     const editor = editorsFile.content.find(e => {
-                        const epass = (e.password || '').trim();
+                        const epass = decodePass((e.password || '').trim());
                         return e.username === requestUsername && epass === requestPassword;
                     });
 
@@ -1122,7 +1124,7 @@ ${urls.map(u => `  <url>
 
                 const editorsFile = await fetchGitHubFile(EDITORS_PATH, gitConfig);
                 if (editorsFile && editorsFile.content) {
-                    const editor = editorsFile.content.find(e => e.username === username && e.password === password);
+                    const editor = editorsFile.content.find(e => e.username === username && decodePass(e.password) === password);
                     if (editor) {
                         return new Response(JSON.stringify({
                             success: true,
