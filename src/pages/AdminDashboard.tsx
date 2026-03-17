@@ -2295,11 +2295,11 @@ export function AdminDashboard() {
                                                     setIsInstagramContestModalOpen(true);
                                                 } else if (action.title === 'Vérifier Photos') {
                                                     e.preventDefault();
-                                                    setDashboardTab('CONCOURS');
+                                                    setDashboardTab('COMMUNAUTÉ');
                                                     setIsModerationModalOpen(true);
                                                 } else if (action.title === 'Communauté') {
                                                     e.preventDefault();
-                                                    setDashboardTab('CONCOURS');
+                                                    setDashboardTab('COMMUNAUTÉ');
                                                     if (pendingPhotosCount > 0) {
                                                         setIsModerationModalOpen(true);
                                                     }
