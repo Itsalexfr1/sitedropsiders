@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, CreditCard, Settings, History, Save } from 'lucide-react';
+import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -23,23 +23,34 @@ const SECTION_HEADER = "px-4 pt-6 pb-2 text-[10px] font-black text-white/30 uppe
 const INPUT = "w-full bg-transparent text-white text-base font-medium placeholder:text-white/20 focus:outline-none py-1";
 
 // ─── Sheet overlay ────────────────────────────────────────────────────────────
-function Sheet({ open, onClose, title, children }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode }) {
+function Sheet({ open, onClose, title, children, fullscreen }: { open: boolean; onClose: () => void; title: string; children: React.ReactNode; fullscreen?: boolean }) {
     return (
         <AnimatePresence>
             {open && (
-                <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                    className="fixed inset-0 z-[60] bg-black/70 flex flex-col justify-end"
-                    onClick={e => e.target === e.currentTarget && onClose()}>
-                    <motion.div initial={{ y: '100%' }} animate={{ y: 0 }} exit={{ y: '100%' }}
-                        transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-                        className="bg-[#1c1f2e] rounded-t-3xl max-h-[90vh] overflow-y-auto">
-                        <div className="flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/[0.06]">
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.18 }}
+                    className="fixed inset-0 z-[60] bg-black/80 backdrop-blur-sm flex flex-col justify-end"
+                    onClick={e => e.target === e.currentTarget && onClose()}
+                >
+                    <motion.div
+                        initial={{ y: '100%' }}
+                        animate={{ y: 0 }}
+                        exit={{ y: '100%' }}
+                        transition={{ type: 'spring', damping: 28, stiffness: 280, mass: 0.8 }}
+                        className={`bg-[#12141f] ${fullscreen ? 'h-screen rounded-none' : 'rounded-t-3xl max-h-[92vh]'} overflow-hidden flex flex-col`}
+                    >
+                        <div className="flex-shrink-0 flex items-center justify-between px-5 pt-5 pb-3 border-b border-white/[0.06]">
                             <h2 className="text-base font-black text-white uppercase tracking-tight">{title}</h2>
-                            <button onClick={onClose} className="p-2 bg-white/5 rounded-xl">
+                            <button onClick={onClose} className="p-2 bg-white/5 hover:bg-white/10 rounded-xl transition-colors">
                                 <X className="w-4 h-4 text-white/60" />
                             </button>
                         </div>
-                        <div className="px-5 py-4 space-y-4 pb-10">{children}</div>
+                        <div className={`flex-1 overflow-y-auto ${fullscreen ? '' : 'px-5 py-4 space-y-4 pb-10'}`}>
+                            {children}
+                        </div>
                     </motion.div>
                 </motion.div>
             )}
@@ -71,7 +82,7 @@ export function InvoiceGeneratorMobile() {
     const [clientEmail, setClientEmail] = useState('');
     const [iban, setIban] = useState(() => localStorage.getItem('inv_iban') || '');
     const [bic, setBic] = useState(() => localStorage.getItem('inv_bic') || '');
-    const [notes, setNotes] = useState('');
+    const [notes] = useState('');
     const [eventClub, setEventClub] = useState('');
     const [eventDate, setEventDate] = useState('');
     const [lines, setLines] = useState<InvoiceLine[]>([{ id: '1', description: 'Prestation Light', quantity: 1, unitPrice: 0 }]);
@@ -89,6 +100,7 @@ export function InvoiceGeneratorMobile() {
 
     // Sheet states
     const [sheet, setSheet] = useState<'none' | 'client' | 'date' | 'event' | 'details' | 'line' | 'settings' | 'history' | 'email' | 'preview'>('none');
+    const [previewKey, setPreviewKey] = useState(0);
     const [editingLine, setEditingLine] = useState<InvoiceLine | null>(null);
     const [senderDraft, setSenderDraft] = useState<Sender>(sender);
     const [settingsSaved, setSettingsSaved] = useState(false);
@@ -131,6 +143,7 @@ export function InvoiceGeneratorMobile() {
     };
 
     const handlePrint = () => { const w = window.open('', '_blank'); if (!w) return; w.document.write(buildHTML()); w.document.close(); w.onload = () => { w.focus(); w.print(); }; };
+    const openPreview = () => { setPreviewKey(k => k + 1); setSheet('preview'); };
 
     const openEmail = () => { setEmailTo(clientEmail); setEmailSubject(`Facture ${formattedNumber} – ${sender.name}`); setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver votre facture N° ${formattedNumber} — ${total.toFixed(2)} €.\n\nCordialement,\n${sender.name}`); setSendStatus('idle'); setSendError(''); setSheet('email'); };
 
@@ -161,8 +174,8 @@ export function InvoiceGeneratorMobile() {
                     <ChevronRight className="w-4 h-4 rotate-180" /> Admin
                 </Link>
                 <div className="flex gap-4">
-                    <button onClick={handlePrint} className="text-indigo-400 font-semibold text-sm">Aperçu</button>
-                    <button onClick={() => { setInvoiceNumber(n => n); }} className="text-indigo-400 font-semibold text-sm">Sauvegarder</button>
+                    <button onClick={openPreview} className="text-indigo-400 font-semibold text-sm">Aperçu</button>
+                    <button onClick={handlePrint} className="text-indigo-400 font-semibold text-sm">Imprimer</button>
                 </div>
             </div>
 
@@ -170,10 +183,32 @@ export function InvoiceGeneratorMobile() {
             <div className="flex-1 overflow-y-auto pb-28">
 
                 {/* Invoice title */}
-                <div className="px-4 pt-5 pb-3">
-                    <h1 className="text-2xl font-black text-white">{displayNumber}</h1>
-                    <p className="text-xs text-indigo-400 font-mono mt-0.5">{formattedNumber} • {new Date(date).toLocaleDateString('fr-FR')}</p>
+                <div className="px-4 pt-6 pb-4 border-b border-white/[0.05]">
+                    <p className="text-[9px] font-black text-indigo-400/60 uppercase tracking-[0.25em] mb-1">{formattedNumber}</p>
+                    <h1 className="text-3xl font-black text-white tracking-tight leading-none mb-3">{displayNumber}</h1>
+                    <div className="flex flex-wrap gap-2 mt-2">
+                        <span className="flex items-center gap-1.5 px-3 py-1 bg-white/[0.06] rounded-full text-[11px] font-bold text-white/60">
+                            <User className="w-3 h-3 text-indigo-400" />
+                            {clientName || <span className="text-white/25 italic">Client</span>}
+                        </span>
+                        <span className="flex items-center gap-1.5 px-3 py-1 bg-white/[0.06] rounded-full text-[11px] font-bold text-white/60">
+                            <Calendar className="w-3 h-3 text-indigo-400" />
+                            {new Date(date).toLocaleDateString('fr-FR')}
+                        </span>
+                        {dueDate && (
+                            <span className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 rounded-full text-[11px] font-bold text-amber-400">
+                                <Calendar className="w-3 h-3" />
+                                Éch. {new Date(dueDate).toLocaleDateString('fr-FR')}
+                            </span>
+                        )}
+                        {total > 0 && (
+                            <span className="flex items-center gap-1.5 px-3 py-1 bg-indigo-500/15 rounded-full text-[11px] font-black text-indigo-300">
+                                {total.toFixed(2)} €
+                            </span>
+                        )}
+                    </div>
                 </div>
+
 
                 {/* ── SECTION 1: Info ── */}
                 <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mb-1">
@@ -228,32 +263,38 @@ export function InvoiceGeneratorMobile() {
                     </div>
                 </div>
 
-                {/* ── SECTION 3: Paiement ── */}
-                <p className={SECTION_HEADER}>Paiement</p>
-                <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mb-1">
-                    <button className={ROW} onClick={() => setSheet('details')}>
-                        <span className={ROW_LABEL}><CreditCard className="w-4 h-4 text-indigo-400" /> Virement bancaire</span>
-                        <span className={ROW_VALUE}>{iban ? iban.slice(-8) : 'Configurer'}<ChevronRight className="w-4 h-4" /></span>
-                    </button>
-                    <div className="px-4 py-4 border-b-0">
-                        <p className="text-[9px] text-white/20 uppercase tracking-widest font-black mb-2">Note</p>
-                        <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Ajouter une note…"
-                            className="w-full bg-transparent text-sm text-white placeholder:text-white/20 focus:outline-none resize-none" rows={3} />
-                    </div>
-                </div>
 
-                {/* ── SECTION 4: Paramètres ── */}
+                {/* ── SECTION 3: Paramètres ── */}
                 <p className={SECTION_HEADER}>Compte</p>
                 <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mb-3">
-                    <button className={ROW} onClick={() => { setSenderDraft(sender); setSheet('settings'); }}>
-                        <span className={ROW_LABEL}><Settings className="w-4 h-4 text-indigo-400" /> Mes informations</span>
-                        <span className={ROW_VALUE}>{sender.name}<ChevronRight className="w-4 h-4" /></span>
+                    <button
+                        className="w-full flex items-center justify-between px-4 py-4 bg-white/[0.04] border-b border-white/[0.06] active:bg-white/10 transition-colors cursor-pointer select-none"
+                        onClick={() => { setSenderDraft(sender); setSheet('settings'); }}
+                    >
+                        <span className="flex items-center gap-3">
+                            <Settings className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                            <span className="flex flex-col items-start gap-0.5">
+                                <span className="text-sm font-semibold text-white">Mes informations</span>
+                                <span className="text-xs text-white/30 font-medium">{sender.name}</span>
+                            </span>
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-white/20 flex-shrink-0" />
                     </button>
-                    <button className={ROW + " border-b-0"} onClick={() => setSheet('history')}>
-                        <span className={ROW_LABEL}><History className="w-4 h-4 text-indigo-400" /> Historique</span>
-                        <ChevronRight className="w-4 h-4 text-white/20" />
+                    <button
+                        className="w-full flex items-center justify-between px-4 py-4 active:bg-white/10 transition-colors cursor-pointer select-none"
+                        onClick={() => setSheet('history')}
+                    >
+                        <span className="flex items-center gap-3">
+                            <History className="w-4 h-4 text-indigo-400 flex-shrink-0" />
+                            <span className="flex flex-col items-start gap-0.5">
+                                <span className="text-sm font-semibold text-white">Historique</span>
+                                <span className="text-xs text-white/30 font-medium">Factures précédentes</span>
+                            </span>
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-white/20 flex-shrink-0" />
                     </button>
                 </div>
+
             </div>
 
             {/* ── FIXED BOTTOM: Send button ── */}
@@ -439,6 +480,35 @@ export function InvoiceGeneratorMobile() {
                         </button>
                     </>
                 )}
+            </Sheet>
+
+            {/* PREVIEW */}
+            <Sheet open={sheet === 'preview'} onClose={() => setSheet('none')} title="Aperçu facture" fullscreen>
+                <div className="flex flex-col h-full">
+                    {/* Preview toolbar */}
+                    <div className="flex-shrink-0 flex items-center gap-3 px-4 py-3 bg-[#0d0f1a] border-b border-white/[0.05]">
+                        <div className="flex-1">
+                            <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">{formattedNumber}</p>
+                            <p className="text-sm font-bold text-white">{clientName || 'Client non défini'} · {total.toFixed(2)} €</p>
+                        </div>
+                        <button
+                            onClick={handlePrint}
+                            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest active:bg-indigo-700 transition-colors"
+                        >
+                            <Send className="w-3.5 h-3.5" /> Imprimer / PDF
+                        </button>
+                    </div>
+                    {/* Iframe preview */}
+                    <div className="flex-1 overflow-hidden bg-gray-200">
+                        <iframe
+                            key={previewKey}
+                            srcDoc={buildHTML()}
+                            title="Aperçu facture"
+                            className="w-full h-full border-0"
+                            style={{ minHeight: '100%' }}
+                        />
+                    </div>
+                </div>
             </Sheet>
 
             {/* HISTORY */}
