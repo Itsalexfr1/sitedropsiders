@@ -724,20 +724,6 @@
     "description_en": "Le Marquee de Las Vegas est un complexe monumental avec beach club de jour et méga-club de nuit, symbole de la démesure locale."
   },
   {
-    "id": "c79",
-    "name": "Omini Club",
-    "city": "Chengdu",
-    "country": "CN",
-    "djmag_rank": 79,
-    "description": "Un autre joyau de la scène club chinoise en pleine explosion, avec une production visuelle qui défie l'imagination.",
-    "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&q=80&sig=c79",
-    "website": "https://www.ominiclub.com",
-    "instagram": "https://instagram.com/ominiclub",
-    "votes": 0,
-    "status": "waiting",
-    "description_en": "Un autre joyau de la scène club chinoise en pleine explosion, avec une production visuelle qui défie l'imagination."
-  },
-  {
     "id": "c80",
     "name": "L'Héritage",
     "city": "Paris",
