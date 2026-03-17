@@ -1342,7 +1342,7 @@ export function RecapCreate() {
                                         type="text"
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
-                                        placeholder="Ex: Récap : Tomorrowland 01061988"
+                                        placeholder="Ex: Récap : Tomorrowland 2024"
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-12 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"
                                         required
                                     />

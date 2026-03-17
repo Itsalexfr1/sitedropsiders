@@ -291,7 +291,7 @@ export function NewsletterComposer() {
                     ` : ''}
                     
                     <div class="footer">
-                        &copy; 01061988 DROPSIDERS. Tous droits réservés.<br>
+                        &copy; 2024 DROPSIDERS. Tous droits réservés.<br>
                         <br>
                         Vous recevez cet email car vous êtes inscrit à la newsletter Dropsiders.<br>
                         <a href="https://dropsiders.fr/unsubscribe" style="text-decoration: underline;">Se désinscrire</a>

@@ -194,7 +194,7 @@ export function Footer() {
                                 <img src="/logo_presentation.png" alt="Dropsiders" className="w-full h-full object-contain p-1" />
                             </div>
                             <div className="flex flex-col">
-                                <span className="text-[9px] font-black text-white uppercase tracking-widest">Kit Média 01061988</span>
+                                <span className="text-[9px] font-black text-white uppercase tracking-widest">Kit Média</span>
                                 <span className="text-[6px] font-black text-gray-700 uppercase tracking-widest mt-1">News • Récaps Events • Interviews • Concours</span>
                             </div>
                             <Globe className="w-4 h-4 text-gray-600 group-hover:text-neon-red transition-colors ml-2" />

@@ -780,7 +780,7 @@ ${urls.map(u => `  <url>
         };
 
         // --- AUTH CHECK ---
-        const envAdminPass = (env.ADMIN_PASSWORD || '01061988').trim();
+        const envAdminPass = ((env.ADMIN_PASSWORD || '')).trim();
         const adminPassword = envAdminPass; // Fix for other parts of the code
         const requestPassword = (request.headers.get('X-Admin-Password') || '').trim();
         let requestUsername = (request.headers.get('X-Admin-Username') || '').trim();
@@ -873,7 +873,7 @@ ${urls.map(u => `  <url>
         if (path === '/api/push/test' && request.method === 'POST') {
             const body = await request.json().catch(() => ({}));
             const { password, title, body: pushBody } = body;
-            const validPass = (env.ADMIN_PASSWORD || '01061988').trim();
+            const validPass = ((env.ADMIN_PASSWORD || '')).trim();
             if (password !== validPass) {
                 return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             }
@@ -903,7 +903,7 @@ ${urls.map(u => `  <url>
             const requestSessionId = request.headers.get('X-Session-ID');
 
             // MASTER AUTH BYPASS for Invoice & Critical Routes if password matches
-            const isMasterPass = requestPassword === envAdminPass || requestPassword === '01061988';
+            const isMasterPass = envAdminPass !== '' && requestPassword === envAdminPass;
 
             if (isMasterPass) {
                 // Master password bypasses all session checks
@@ -929,7 +929,7 @@ ${urls.map(u => `  <url>
             }
 
             if (!authenticated) {
-                const details = `User: ${requestUsername || 'anon'}. Pass: ${!!requestPassword}. Match: ${requestPassword === envAdminPass || requestPassword === '01061988'}`;
+                const details = `User: ${requestUsername || 'anon'}. Pass: ${!!requestPassword}. Match: ${envAdminPass !== '' && requestPassword === envAdminPass}`;
                 return new Response(JSON.stringify({
                     error: 'Accès non autorisé',
                     details: details
@@ -3774,7 +3774,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "David Guetta",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_2",
@@ -3789,7 +3789,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Charlotte de Witte",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_3",
@@ -3804,7 +3804,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Alok",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_4",
@@ -3819,7 +3819,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "5ème victoire au Top 100",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_5",
@@ -3834,7 +3834,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Martin Garrix",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_6",
@@ -3849,7 +3849,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Dimitri Vegas & Like Mike",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_7",
@@ -3864,7 +3864,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Armin van Buuren",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_8",
@@ -3879,7 +3879,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Solomun",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_9",
@@ -3894,7 +3894,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "7ème",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_10",
@@ -3909,7 +3909,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Peggy Gou",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_11",
@@ -3924,7 +3924,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Fisher",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_12",
@@ -3939,7 +3939,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Hard Techno / Psytrance",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_13",
@@ -3954,7 +3954,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Marshmello",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_14",
@@ -3969,7 +3969,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "UNVRS (Ibiza)",
                         "category": "Lieux",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_15",
@@ -3984,7 +3984,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "David Guetta",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_16",
@@ -3999,7 +3999,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Fred again..",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_17",
@@ -4014,7 +4014,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Dimitri Vegas & Like Mike",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_18",
@@ -4029,7 +4029,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Martin Garrix",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_19",
@@ -4044,7 +4044,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Techno / House",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_20",
@@ -4059,7 +4059,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Visuels 3D immersifs",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_21",
@@ -4074,7 +4074,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Chris Avantgarde",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_22",
@@ -4089,7 +4089,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Tale Of Us",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_23",
@@ -4104,7 +4104,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Vintage Culture",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_24",
@@ -4119,7 +4119,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Don Diablo",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_25",
@@ -4134,7 +4134,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "David Guetta",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_26",
@@ -4149,7 +4149,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "David Guetta",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_27",
@@ -4164,7 +4164,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Chase & Status",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_28",
@@ -4179,7 +4179,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "House",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_29",
@@ -4194,7 +4194,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Carl Cox",
                         "category": "Légendes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_30",
@@ -4209,7 +4209,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Adam Beyer",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_31",
@@ -4224,7 +4224,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "LIFE",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_32",
@@ -4239,7 +4239,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "France",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_33",
@@ -4254,7 +4254,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Alpe d'Huez",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_34",
@@ -4269,7 +4269,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Ultra Music Festival",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_35",
@@ -4284,7 +4284,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Un circuit automobile",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_36",
@@ -4299,7 +4299,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Electrobeach (EMF)",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_37",
@@ -4314,7 +4314,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Arcadia (Glastonbury/Ultra)",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_38",
@@ -4329,7 +4329,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Roumanie",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_39",
@@ -4344,7 +4344,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Outlook / Dimensions",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_40",
@@ -4359,7 +4359,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Defqon.1",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_41",
@@ -4374,7 +4374,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Awakenings",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_42",
@@ -4389,7 +4389,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Elrow Town",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_43",
@@ -4404,7 +4404,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Californie",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_44",
@@ -4419,7 +4419,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Allemagne",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_45",
@@ -4434,7 +4434,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Tomorrowland Winter",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_46",
@@ -4449,7 +4449,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Serbie",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_47",
@@ -4464,7 +4464,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Rave The Planet",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_48",
@@ -4479,7 +4479,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Glastonbury",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_49",
@@ -4494,7 +4494,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Une croisière festival",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_50",
@@ -4509,7 +4509,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Tomorrowland Brasil",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_51",
@@ -4524,7 +4524,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Ultra Europe",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_52",
@@ -4539,7 +4539,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Black Rock Desert",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_53",
@@ -4554,7 +4554,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Nature One",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_54",
@@ -4569,7 +4569,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Nuits Sonores",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_55",
@@ -4584,7 +4584,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "20 ans",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_56",
@@ -4599,7 +4599,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Las Vegas",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_57",
@@ -4614,7 +4614,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Barcelone",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_58",
@@ -4629,7 +4629,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Sonar",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_59",
@@ -4644,7 +4644,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Creamfields",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_60",
@@ -4659,7 +4659,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Sziget",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_61",
@@ -4674,7 +4674,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Turin",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_62",
@@ -4689,7 +4689,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Peacock Society",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_63",
@@ -4706,7 +4706,7 @@ ${urls.map(u => `  <url>
                         ],
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_64",
@@ -4721,7 +4721,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Inde",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_65",
@@ -4736,7 +4736,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Voltage Festival",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_66",
@@ -4751,7 +4751,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Rampage",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_67",
@@ -4766,7 +4766,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Les Plages Electroniques",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_68",
@@ -4781,7 +4781,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Pays-Bas",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_69",
@@ -4796,7 +4796,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Mysteryland",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_70",
@@ -4811,7 +4811,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Thaïlande",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_71",
@@ -4826,7 +4826,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Marea (We’ve Lost Dancing)",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_72",
@@ -4841,7 +4841,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Martijn Garritsen",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_73",
@@ -4856,7 +4856,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Rumble",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_74",
@@ -4871,7 +4871,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Axwell",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_75",
@@ -4886,7 +4886,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Hyperdrama",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_76",
@@ -4901,7 +4901,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "MORTEN",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_77",
@@ -4916,7 +4916,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Fisher",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_78",
@@ -4931,7 +4931,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Boris Brejcha",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_79",
@@ -4946,7 +4946,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Diynamic",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_80",
@@ -4961,7 +4961,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Eric Prydz",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_81",
@@ -4976,7 +4976,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "HOLO",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_82",
@@ -4991,7 +4991,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Amelie Lens",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_83",
@@ -5006,7 +5006,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Joseph Capriati",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_84",
@@ -5021,7 +5021,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "CamelPhat & Elderbrook",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_85",
@@ -5036,7 +5036,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Swedish House Mafia",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_86",
@@ -5051,7 +5051,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Martin Garrix",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_87",
@@ -5066,7 +5066,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Sébastien Benett (présumé)",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_88",
@@ -5081,7 +5081,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "David Guetta",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_89",
@@ -5096,7 +5096,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Boris Brejcha",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_90",
@@ -5111,7 +5111,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Musical Freedom",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_91",
@@ -5126,7 +5126,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Skrillex",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_92",
@@ -5141,7 +5141,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Armin van Buuren",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_93",
@@ -5156,7 +5156,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "David Guetta",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_94",
@@ -5171,7 +5171,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Meduza",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_95",
@@ -5186,7 +5186,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Malaa",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_96",
@@ -5201,7 +5201,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Møme",
                         "category": "Événements",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_97",
@@ -5216,7 +5216,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Revealed Recordings",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_98",
@@ -5231,7 +5231,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Dave Clarke",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_99",
@@ -5246,7 +5246,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Avicii",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_100",
@@ -5261,7 +5261,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Hexagon",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_101",
@@ -5276,7 +5276,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Charlotte de Witte",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_102",
@@ -5291,7 +5291,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Tchami",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_103",
@@ -5306,7 +5306,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Daft Punk",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_104",
@@ -5321,7 +5321,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Alok",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_105",
@@ -5336,7 +5336,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "ACRAZE",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_106",
@@ -5351,7 +5351,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Martin Garrix",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_107",
@@ -5366,7 +5366,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "K-House / Tech House",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_108",
@@ -5381,7 +5381,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Fred again..",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_109",
@@ -5396,7 +5396,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Anyma",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_110",
@@ -5411,7 +5411,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Tiësto",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_111",
@@ -5426,7 +5426,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Swedish House Mafia",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_112",
@@ -5441,7 +5441,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Salvatore Ganacci",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_113",
@@ -5456,7 +5456,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Tiësto",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_114",
@@ -5471,7 +5471,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Kungs",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_115",
@@ -5486,7 +5486,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Nu-Disco",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_116",
@@ -5501,7 +5501,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "James Hype",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_117",
@@ -5516,7 +5516,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Mau P",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_118",
@@ -5531,7 +5531,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Premiere Classe",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_119",
@@ -5546,7 +5546,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Dj Snake",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_120",
@@ -5561,7 +5561,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Swedish House Mafia",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_121",
@@ -5576,7 +5576,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Laurent Garnier",
                         "category": "Légendes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_122",
@@ -5591,7 +5591,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Partout dans le monde",
                         "category": "Culture",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_123",
@@ -5606,7 +5606,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "David Guetta",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_124",
@@ -5621,7 +5621,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Pardon My French",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_125",
@@ -5636,7 +5636,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Kungs",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_126",
@@ -5651,7 +5651,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Justice",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_127",
@@ -5666,7 +5666,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Bob Sinclar",
                         "category": "Scène Française",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_128",
@@ -5681,7 +5681,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Positiv Festival",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_129",
@@ -5696,7 +5696,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "DJ Snake",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_130",
@@ -5711,7 +5711,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "William Grigahcine",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_131",
@@ -5726,7 +5726,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Bob Sinclar",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_132",
@@ -5741,7 +5741,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Musique électronique / Synthétiseurs",
                         "category": "Légendes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_133",
@@ -5756,7 +5756,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Martin Solveig",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_134",
@@ -5771,7 +5771,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Tchami",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_135",
@@ -5786,7 +5786,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Møme",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_136",
@@ -5801,7 +5801,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Justice",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_137",
@@ -5816,7 +5816,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Martin Solveig",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_138",
@@ -5831,7 +5831,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Showcase (devenu Bridge / Faust)",
                         "category": "Lieux",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_139",
@@ -5846,7 +5846,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Bob Sinclar (parfois)",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_140",
@@ -5861,7 +5861,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Petit Biscuit",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_141",
@@ -5876,7 +5876,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Detroit",
                         "category": "Histoire",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_142",
@@ -5891,7 +5891,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Chicago",
                         "category": "Histoire",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_143",
@@ -5906,7 +5906,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Berghain",
                         "category": "Lieux",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_144",
@@ -5921,7 +5921,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Sven Marquardt",
                         "category": "Légendes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_145",
@@ -5936,7 +5936,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Ushuaïa",
                         "category": "Lieux",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_146",
@@ -5951,7 +5951,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Pacha",
                         "category": "Lieux",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_147",
@@ -5966,7 +5966,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Printworks",
                         "category": "Lieux",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_148",
@@ -5981,7 +5981,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Funktion-One",
                         "category": "Technique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_149",
@@ -5996,7 +5996,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "DJ Snake",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_150",
@@ -6011,7 +6011,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "David Guetta",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_151",
@@ -6026,7 +6026,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "David Guetta & MORTEN",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_152",
@@ -6041,7 +6041,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Armada Music",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_153",
@@ -6056,7 +6056,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Armin van Buuren (5 fois)",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_154",
@@ -6071,7 +6071,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Hugel",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_155",
@@ -6086,7 +6086,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Hugel",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_156",
@@ -6101,7 +6101,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Paul Kalkbrenner",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_157",
@@ -6116,7 +6116,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Paul Kalkbrenner",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_158",
@@ -6131,7 +6131,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Ultra Music Festival",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_159",
@@ -6146,7 +6146,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Le Louvre",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_160",
@@ -6161,7 +6161,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Anyma",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_161",
@@ -6176,7 +6176,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "ARTBAT",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_162",
@@ -6191,7 +6191,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Ukraine",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_163",
@@ -6206,7 +6206,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Zerb",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_164",
@@ -6221,7 +6221,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Afro House",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_165",
@@ -6236,7 +6236,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Black Coffee",
                         "category": "Légendes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_166",
@@ -6251,7 +6251,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Black Coffee",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_167",
@@ -6266,7 +6266,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "15-20 scènes",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_168",
@@ -6281,7 +6281,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Charlotte de Witte",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_169",
@@ -6296,7 +6296,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Anyma",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_170",
@@ -6311,7 +6311,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Guillaume et Jonathan Alric",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_171",
@@ -6326,7 +6326,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Tous ces réponses",
                         "category": "Technique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_172",
@@ -6341,7 +6341,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Rekordbox",
                         "category": "Technique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_173",
@@ -6356,7 +6356,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Sync",
                         "category": "Technique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_174",
@@ -6371,7 +6371,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Le calage (Beatmatching)",
                         "category": "Technique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_175",
@@ -6386,7 +6386,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Bob Sinclar",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_176",
@@ -6401,7 +6401,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "La Défense",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_177",
@@ -6416,7 +6416,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "125-145 BPM",
                         "category": "Technique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_178",
@@ -6431,7 +6431,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "120-128 BPM",
                         "category": "Technique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_179",
@@ -6446,7 +6446,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Melodic Techno",
                         "category": "Genres",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_180",
@@ -6461,7 +6461,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Afterlife",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_181",
@@ -6476,7 +6476,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Aucun",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_182",
@@ -6491,7 +6491,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Johan Cruyff Arena",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_183",
@@ -6506,7 +6506,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "David Guetta",
                         "category": "Classements",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_184",
@@ -6521,7 +6521,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Tiësto",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_185",
@@ -6536,7 +6536,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Just a Little More Love",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_186",
@@ -6551,7 +6551,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Bob Sinclar",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_187",
@@ -6566,7 +6566,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Boom Festival",
                         "category": "Festivals",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_188",
@@ -6581,7 +6581,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Eric Prydz",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_189",
@@ -6596,7 +6596,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Axwell",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_190",
@@ -6611,7 +6611,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "David Guetta",
                         "category": "Bio",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_191",
@@ -6626,7 +6626,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Pays-Bas",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_192",
@@ -6641,7 +6641,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Size Records",
                         "category": "Labels",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_193",
@@ -6656,7 +6656,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Nicky Romero",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_194",
@@ -6671,7 +6671,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Children",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_195",
@@ -6686,7 +6686,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Faithless",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_196",
@@ -6701,7 +6701,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Darude",
                         "category": "Musique",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_197",
@@ -6716,7 +6716,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Aucun",
                         "category": "Événements",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_198",
@@ -6731,7 +6731,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Tale Of Us",
                         "category": "Performance",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_199",
@@ -6746,7 +6746,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Justice",
                         "category": "Artistes",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     },
                     {
                         "id": "edm_200",
@@ -6761,7 +6761,7 @@ ${urls.map(u => `  <url>
                         "correctAnswer": "Electro / Techno / Bass",
                         "category": "General",
                         "author": "Dropsiders",
-                        "timestamp": "01061988-03-09T03:54:51.089Z"
+                        "timestamp": "2024-03-09T03:54:51.089Z"
                     }
                 ];
 
@@ -6880,7 +6880,7 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/quiz/contest/reset' && request.method === 'POST') {
             const adminPass = (request.headers.get('X-Admin-Password') || '').trim();
-            const requiredPass = '01061988';
+            const requiredPass = '2024';
             if (adminPass !== requiredPass) {
                 return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             }
@@ -6960,7 +6960,7 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/musique/charts/update' && request.method === 'POST') {
             const adminPass = (request.headers.get('X-Admin-Password') || '').trim();
-            const requiredPass = '01061988';
+            const requiredPass = '2024';
             if (adminPass !== requiredPass) {
                 return new Response(JSON.stringify({ error: 'Unauthorized', debug: 'Forced match fail' }), { status: 401, headers });
             }
@@ -6981,7 +6981,7 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/musique/charts/rotate' && request.method === 'POST') {
             const adminPass = request.headers.get('X-Admin-Password');
-            const requiredPass = env.ADMIN_PASSWORD || '01061988';
+            const requiredPass = (env.ADMIN_PASSWORD || '');
             if (adminPass !== requiredPass) {
                 return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             }

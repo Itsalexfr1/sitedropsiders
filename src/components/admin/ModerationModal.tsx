@@ -487,7 +487,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
                     {/* Footer */}
                     <div className="p-6 bg-black/40 border-t border-white/5 text-center">
                         <p className="text-[8px] font-black uppercase tracking-[0.4em] text-gray-600">
-                            DROPSIDERS MODERATION SYSTEM V2 • 01061988
+                            DROPSIDERS MODERATION SYSTEM V2
                         </p>
                     </div>
 

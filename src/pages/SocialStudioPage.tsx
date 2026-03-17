@@ -19,7 +19,7 @@ export function SocialStudioPage() {
     const handleLogin = (e: React.FormEvent) => {
         e.preventDefault();
         // Fallback pour accès via code direct
-        if (password === '01061988') {
+        if (password !== '' && password === localStorage.getItem('admin_password')) {
             setIsAuthenticated(true);
             localStorage.setItem('admin_auth', 'true');
         } else {

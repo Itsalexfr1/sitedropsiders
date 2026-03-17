@@ -425,7 +425,7 @@ export function GalerieCreate() {
                                     type="text"
                                     value={title}
                                     onChange={(e) => setTitle(e.target.value)}
-                                    placeholder="Ex: TOMORROWLAND 01061988"
+                                    placeholder="Ex: TOMORROWLAND 2024"
                                     className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-pink focus:ring-1 focus:ring-neon-pink transition-all"
                                     required
                                 />
@@ -791,7 +791,7 @@ export function GalerieCreate() {
                                             type="number"
                                             value={date}
                                             onChange={(e) => setDate(e.target.value)}
-                                            placeholder="01061988"
+                                            placeholder="2024"
                                             className="w-full bg-white/5 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white focus:border-neon-pink outline-none transition-all"
                                         />
                                     </div>

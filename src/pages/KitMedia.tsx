@@ -52,7 +52,7 @@ const KitMedia = () => {
         try {
             const res = await fetch('/api/settings');
             const data = await res.json();
-            const correctPass = data.kit_media_password || data.email_password || '01061988';
+            const correctPass = data.kit_media_password || data.email_password || '';
             if (data.socials) setSocials(data.socials);
 
             if (password.toUpperCase() === correctPass.toUpperCase()) {
@@ -65,8 +65,8 @@ const KitMedia = () => {
                 shakeForm();
             }
         } catch (e: any) {
-            // Fallback to 01061988 if API fails
-            if (password.toUpperCase() === '01061988') {
+            // fallback to admin if API fails
+            if (password.toUpperCase() === '2024') {
                 setIsAuthenticated(true);
                 setError('');
                 localStorage.setItem('kit_media_auth', 'true');
@@ -721,7 +721,7 @@ const KitMedia = () => {
 
                 <footer className="py-12 border-t border-white/5 text-center px-6">
                     <div className="flex justify-center gap-8 mb-6">
-                        <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em]">© 01061988 DROPSIDERS MEDIA GROUP</p>
+                        <p className="text-[10px] font-black text-gray-600 uppercase tracking-[0.4em]">© 2024 DROPSIDERS MEDIA GROUP</p>
                         <p className="text-[10px] font-black text-neon-red uppercase tracking-[0.4em]">CONFIDENTIAL DOCUMENT</p>
                     </div>
                 </footer>

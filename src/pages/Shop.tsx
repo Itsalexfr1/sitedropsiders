@@ -18,7 +18,7 @@ export function Shop() {
     const [isAuthenticated, setIsAuthenticated] = useState(localStorage.getItem('shop_auth') === 'true');
     const [passwordInput, setPasswordInput] = useState(localStorage.getItem('shop_password_saved') || '');
     const [passwordError, setPasswordError] = useState(false);
-    const [shopAuthPassword, setShopAuthPassword] = useState((initialSettings as any).shop_password || '01061988');
+    const [shopAuthPassword, setShopAuthPassword] = useState((initialSettings as any).shop_password || '');
     const [products, setProducts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [activeCategory, setActiveCategory] = useState<'Tous' | 'Vetements' | 'Accessoires'>('Tous');
@@ -37,7 +37,7 @@ export function Shop() {
                     setIsEnabled(data.shop_enabled);
                     setIsPasswordProtected(data.shop_password_protected || false);
                     setPasswordImage(data.shop_password_image || '');
-                    setShopAuthPassword(data.shop_password || '01061988');
+                    setShopAuthPassword(data.shop_password || '');
                 }
 
                 if (productsRes.ok) {

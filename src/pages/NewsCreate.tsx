@@ -1967,7 +1967,7 @@ ${generateSocialsHtml()}
                                         type="number"
                                         value={year}
                                         onChange={(e) => setYear(e.target.value)}
-                                        placeholder="Ex: 01061988"
+                                        placeholder="Ex: 2024"
                                         min="1900"
                                         max="2100"
                                         className="w-full bg-black/20 border border-white/10 rounded-xl py-4 pl-12 pr-4 text-white placeholder-gray-600 focus:outline-none focus:border-neon-cyan focus:ring-1 focus:ring-neon-cyan transition-all"

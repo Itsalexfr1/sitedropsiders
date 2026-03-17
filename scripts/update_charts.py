@@ -8,7 +8,7 @@ import os
 
 # Configuration
 WORKER_URL = os.environ.get("WORKER_URL", "https://dropsiders.fr").strip().rstrip('/')
-ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "01061988").strip()
+ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "2024").strip()
 
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',

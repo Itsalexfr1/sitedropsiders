@@ -1274,7 +1274,7 @@ export function InvoiceGenerator() {
                                             <div className="text-left space-y-3 px-2">
                                                 <p className="text-[10px] font-black text-white/20 uppercase tracking-[0.3em] mb-4 text-center">Diagnostic de Transmission</p>
                                                 <div className="space-y-3 text-[11px] text-white/50 leading-relaxed bg-white/[0.02] p-6 rounded-3xl border border-white/5">
-                                                    <p className="flex gap-3"><span className="text-red-500 font-bold">•</span> Vérifie que ton mot de passe administrateur est <span className="text-white font-bold">01061988</span>.</p>
+                                                    <p className="flex gap-3"><span className="text-red-500 font-bold">•</span> Vérifie que ton mot de passe administrateur est <span className="text-white font-bold">ton mot de passe habituel</span>.</p>
                                                     <p className="flex gap-3"><span className="text-red-500 font-bold">•</span> Assure-toi que ton utilisateur est <span className="text-white font-bold">alex</span>.</p>
                                                     <p className="flex gap-3"><span className="text-red-500 font-bold">•</span> Si tu viens de le changer, rafraîchis la page (F5).</p>
                                                 </div>

@@ -164,7 +164,7 @@ export function AdminDashboard() {
         showInNavbar: true,
         forceHomepage: true,
         isSecret: false,
-        password: '01061988',
+        password: '',
         channels: '',
         autoMessage: '',
         autoMessageInterval: 60,
@@ -649,7 +649,7 @@ export function AdminDashboard() {
                         forceHomepage: data.takeover.forceHomepage !== false,
                         customCommands: data.takeover.customCommands || '',
                         isSecret: data.takeover.isSecret || false,
-                        password: data.takeover.password || '01061988',
+                        password: data.takeover.password || '2024',
                         channels: data.takeover.channels || '',
                         autoMessage: data.takeover.autoMessage || '',
                         autoMessageInterval: data.takeover.autoMessageInterval || 60,
@@ -1061,7 +1061,7 @@ export function AdminDashboard() {
             // FALLBACK LOCAL (DEV MODE)
             console.log("API Login failed, trying local check...", err);
 
-            if ((username === 'contact@dropsiders.fr' || username === 'alex' || username === 'alexflex30@gmail.com') && password === '01061988') {
+            if ((username === 'contact@dropsiders.fr' || username === 'alex' || username === 'alexflex30@gmail.com') && false) {
                 setIsAuthenticated(true);
                 localStorage.setItem('admin_auth', 'true');
                 localStorage.setItem('admin_password', password);
@@ -1089,7 +1089,7 @@ export function AdminDashboard() {
     const rotateCharts = async () => {
         setIsUpdatingCharts(true);
         try {
-            const adminPass = localStorage.getItem('admin_password') || '01061988';
+            const adminPass = localStorage.getItem('admin_password') || '';
             const res = await fetch('/api/musique/charts/rotate', {
                 method: 'POST',
                 headers: { 'X-Admin-Password': adminPass }
@@ -4235,7 +4235,7 @@ export function AdminDashboard() {
                                                     <div className="flex items-center gap-4">
                                                         <div className="flex flex-col">
                                                             <p className="text-[11px] font-black text-neon-purple uppercase tracking-widest flex items-center gap-2">
-                                                                Mode Secret (PWD: 01061988)
+                                                                Mode Secret
                                                                 {takeoverState.isSecret && (
                                                                     <Link
                                                                         to="/live"
@@ -4248,7 +4248,7 @@ export function AdminDashboard() {
                                                                     </Link>
                                                                 )}
                                                             </p>
-                                                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Activation + Protection 01061988</p>
+                                                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-widest mt-0.5">Activation + Protection</p>
                                                         </div>
                                                     </div>
                                                     <button
