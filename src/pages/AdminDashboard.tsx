@@ -98,6 +98,56 @@ export function AdminDashboard() {
     const [quizSearch, setQuizSearch] = useState('');
     const [quizToEdit, setQuizToEdit] = useState<any>(null);
     const [testQuiz, setTestQuiz] = useState<any>(null);
+    const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+
+    const toggleSelection = (key: string) => {
+        setSelectedKeys(prev => 
+            prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
+        );
+    };
+
+    const autoSelectDuplicates = () => {
+        const keysToSelect: string[] = [];
+        duplicateSets.forEach(set => {
+            let bestCandidate = set[0];
+            set.forEach((obj: any) => {
+                if ((obj.usages?.length || 0) > (bestCandidate.usages?.length || 0)) {
+                    bestCandidate = obj;
+                }
+            });
+            set.forEach((obj: any) => {
+                if (obj.key !== bestCandidate.key) {
+                    keysToSelect.push(obj.key);
+                }
+            });
+        });
+        setSelectedKeys(keysToSelect);
+    };
+
+    const deleteMultipleObjects = async () => {
+        if (selectedKeys.length === 0) return;
+        
+        setIsR2Loading(true);
+        try {
+            const res = await apiFetch('/api/r2/delete', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ keys: selectedKeys })
+            });
+            if (res.ok) {
+                const refreshedSets = duplicateSets.map(set => 
+                    set.filter((obj: any) => !selectedKeys.includes(obj.key))
+                ).filter(set => set.length > 1);
+                setDuplicateSets(refreshedSets);
+                setSelectedKeys([]);
+                fetchR2Stats();
+            }
+        } catch (e) {
+            console.error("Failed to delete objects", e);
+        } finally {
+            setIsR2Loading(false);
+        }
+    };
     const [isTestingModalOpen, setIsTestingModalOpen] = useState(false);
     const [isSavingQuiz, setIsSavingQuiz] = useState(false);
     const [instagramParticipants, setInstagramParticipants] = useState<any[]>([]);
@@ -6443,12 +6493,25 @@ export function AdminDashboard() {
                                             {duplicateSets.length} groupes d'images identiques trouvés
                                         </p>
                                     </div>
-                                    <button
-                                        onClick={() => setIsDuplicatesModalOpen(false)}
-                                        className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all group"
-                                    >
-                                        <X className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
-                                    </button>
+                                    <div className="flex items-center gap-4">
+                                        {duplicateSets.length > 0 && (
+                                            <button
+                                                onClick={autoSelectDuplicates}
+                                                className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase text-gray-400 hover:text-white transition-all"
+                                            >
+                                                Auto-Sélection
+                                            </button>
+                                        )}
+                                        <button
+                                            onClick={() => {
+                                                setIsDuplicatesModalOpen(false);
+                                                setSelectedKeys([]);
+                                            }}
+                                            className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all group"
+                                        >
+                                            <X className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
@@ -6468,23 +6531,42 @@ export function AdminDashboard() {
                                                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                                         {set.map((item: any) => (
                                                             <div key={item.key} className="group relative">
-                                                                <div className="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden relative">
+                                                                <div 
+                                                                    className={`aspect-square bg-white/5 rounded-2xl border transition-all overflow-hidden relative cursor-pointer ${
+                                                                        selectedKeys.includes(item.key) ? 'border-neon-red ring-2 ring-neon-red/20 scale-[0.98]' : 'border-white/10'
+                                                                    }`}
+                                                                    onClick={() => toggleSelection(item.key)}
+                                                                >
                                                                     <img 
                                                                         src={`https://dropsiders.fr/uploads/${item.key}`} 
                                                                         alt=""
-                                                                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                                                        className={`w-full h-full object-cover transition-opacity ${selectedKeys.includes(item.key) ? 'opacity-40' : 'opacity-80 group-hover:opacity-100'}`}
                                                                         loading="lazy"
                                                                     />
+                                                                    
+                                                                    {/* Selection Indicator */}
+                                                                    <div className={`absolute top-2 left-2 w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
+                                                                        selectedKeys.includes(item.key) 
+                                                                            ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.5)]' 
+                                                                            : 'bg-black/40 border-white/20'
+                                                                    }`}>
+                                                                        {selectedKeys.includes(item.key) && <Check className="w-3 h-3 text-white" />}
+                                                                    </div>
+
                                                                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
                                                                         <button 
-                                                                            onClick={() => window.open(`https://dropsiders.fr/uploads/${item.key}`, '_blank')}
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
+                                                                                window.open(`https://dropsiders.fr/uploads/${item.key}`, '_blank');
+                                                                            }}
                                                                             className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-all"
                                                                             title="Voir en grand"
                                                                         >
                                                                             <Download className="w-4 h-4" />
                                                                         </button>
                                                                         <button 
-                                                                            onClick={() => {
+                                                                            onClick={(e) => {
+                                                                                e.stopPropagation();
                                                                                 setConfirmModal({
                                                                                     isOpen: true,
                                                                                     title: 'Supprimer ce doublon ?',
@@ -6527,13 +6609,31 @@ export function AdminDashboard() {
                                     )}
                                 </div>
 
-                                <div className="p-8 border-t border-white/5 bg-white/[0.02] shrink-0">
-                                    <div className="flex items-center gap-3 text-neon-yellow">
+                                <div className="p-8 border-t border-white/5 bg-white/[0.02] shrink-0 flex items-center justify-between gap-6">
+                                    <div className="flex items-center gap-3 text-neon-yellow max-w-2xl">
                                         <ShieldAlert className="w-5 h-5 shrink-0" />
                                         <p className="text-[10px] font-bold leading-relaxed uppercase tracking-wide">
                                             Attention : Avant de supprimer une image, assurez-vous qu'elle n'est pas utilisée par un article ou un profil Wiki, sinon l'image deviendra cassée sur le site.
                                         </p>
                                     </div>
+
+                                    {selectedKeys.length > 0 && (
+                                        <button 
+                                            onClick={() => {
+                                                setConfirmModal({
+                                                    isOpen: true,
+                                                    title: `Supprimer ${selectedKeys.length} images ?`,
+                                                    message: `Voulez-vous vraiment supprimer définitivement ces ${selectedKeys.length} fichiers ? Cette action est irréversible.`,
+                                                    type: 'danger',
+                                                    confirmText: `Supprimer (${selectedKeys.length})`,
+                                                    onConfirm: deleteMultipleObjects
+                                                });
+                                            }}
+                                            className="px-8 py-4 bg-neon-red text-white font-black text-[10px] uppercase tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(255,0,51,0.3)] shrink-0"
+                                        >
+                                            Supprimer la sélection ({selectedKeys.length})
+                                        </button>
+                                    )}
                                 </div>
                             </motion.div>
                         </div>

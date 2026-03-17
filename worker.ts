@@ -3296,13 +3296,20 @@ ${urls.map(u => `  <url>
         if (path === '/api/r2/delete' && request.method === 'POST') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
-                const { key } = await request.json();
-                if (!key) return new Response(JSON.stringify({ error: 'Key required' }), { status: 400, headers });
+                const { key, keys } = await request.json();
+                if (!key && (!keys || !Array.isArray(keys))) {
+                    return new Response(JSON.stringify({ error: 'Key or keys array required' }), { status: 400, headers });
+                }
                 
                 if (!env.R2) return new Response(JSON.stringify({ error: 'R2 not configured' }), { status: 500, headers });
                 
-                await env.R2.delete(key);
-                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+                if (keys && Array.isArray(keys)) {
+                    await Promise.all(keys.map(k => env.R2.delete(k)));
+                    return new Response(JSON.stringify({ success: true, count: keys.length }), { status: 200, headers });
+                } else {
+                    await env.R2.delete(key);
+                    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+                }
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
