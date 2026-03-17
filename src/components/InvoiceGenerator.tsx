@@ -161,9 +161,9 @@ function buildInvoiceHTML(data: {
 }
 
 // Shared input class
-const inputCls = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-medium focus:outline-none focus:border-indigo-400 transition-all placeholder:text-white/20";
-const labelCls = "text-[9px] font-black text-white/30 uppercase tracking-widest mb-1 block";
-const cardCls = "bg-white/[0.04] border border-white/[0.07] rounded-2xl p-6 shadow-sm";
+const inputCls = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm font-medium focus:outline-none focus:border-indigo-400 transition-all placeholder:text-white/20";
+const labelCls = "text-[9px] font-black text-white/30 uppercase tracking-widest mb-1.5 block";
+const cardCls = "bg-white/[0.04] border border-white/[0.07] rounded-2xl p-5 md:p-6";
 
 export function InvoiceGenerator() {
     const [sender, setSender] = useState<Sender>(() => {
@@ -350,10 +350,10 @@ export function InvoiceGenerator() {
     ] as const;
 
     return (
-        <div className="w-full h-full bg-[#0d0f1a] text-white flex flex-col overflow-hidden">
+        <div className="w-full bg-[#0d0f1a] text-white flex flex-col" style={{ minHeight: '100dvh' }}>
 
-            {/* HEADER */}
-            <div className="shrink-0 px-8 py-5 flex items-center justify-between border-b border-white/5 bg-black/60 backdrop-blur-xl">
+            {/* HEADER DESKTOP ONLY */}
+            <div className="hidden md:flex shrink-0 px-8 py-5 items-center justify-between border-b border-white/5 bg-black/60 backdrop-blur-xl">
                 <div className="flex items-center gap-6">
                     <div>
                         <h1 className="text-lg font-black uppercase tracking-tight text-white">Générateur de Factures</h1>
@@ -381,13 +381,44 @@ export function InvoiceGenerator() {
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto">
+            {/* MOBILE HEADER: just sender name + ref */}
+            <div className="flex md:hidden shrink-0 px-4 py-3 items-center justify-between border-b border-white/5 bg-black/60">
+                <div>
+                    <p className="text-xs font-black text-white uppercase">{sender.name}</p>
+                    <p className="text-[10px] text-indigo-400 font-mono">{formattedNumber} • {total.toFixed(2)} €</p>
+                </div>
+                <button onClick={openEmail} className="px-4 py-2.5 bg-indigo-600 text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-1.5 hover:bg-indigo-700 transition-all">
+                    <Send className="w-3.5 h-3.5" /> Envoyer
+                </button>
+            </div>
+            {/* MOBILE BOTTOM TAB BAR */}
+            <div className="fixed bottom-0 left-0 right-0 z-20 flex md:hidden border-t border-white/10 bg-[#0d0f1a]/95 backdrop-blur-xl">
+                {TABS.map(t => (
+                    <button key={t.key}
+                        onClick={() => { setView(t.key); if (t.key === 'archive') fetchHistory(); if (t.key === 'settings') setSenderDraft(sender); }}
+                        className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[9px] font-black uppercase tracking-widest transition-all ${view === t.key ? 'text-indigo-400' : 'text-white/30'}`}>
+                        <span className={`p-2 rounded-xl transition-all ${view === t.key ? 'bg-indigo-500/20' : ''}`}>{t.icon}</span>
+                        {t.label}
+                    </button>
+                ))}
+                <button onClick={handleDownload} className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[9px] font-black uppercase tracking-widest text-white/30">
+                    <span className="p-2 rounded-xl"><Download className="w-3 h-3" /></span>
+                    HTML
+                </button>
+                <button onClick={handlePrint} className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[9px] font-black uppercase tracking-widest text-white/30">
+                    <span className="p-2 rounded-xl"><Printer className="w-3 h-3" /></span>
+                    PDF
+                </button>
+            </div>
+
+            {/* SCROLLABLE CONTENT */}
+            <div className="flex-1 overflow-y-auto pb-28 md:pb-8">
                 <AnimatePresence mode="wait">
 
                     {/* ========== EDIT TAB ========== */}
                     {view === 'edit' && (
                         <motion.div key="edit" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                            className="p-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                            className="p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8">
 
                             {/* LEFT */}
                             <div className="lg:col-span-5 space-y-6">
