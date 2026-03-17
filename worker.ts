@@ -830,7 +830,8 @@ ${urls.map(u => `  <url>
             path === '/api/upload' ||
             path.startsWith('/api/instagram-contest') ||
             path.startsWith('/api/quiz/contest') ||
-            path === '/api/wiki/update-photo'
+            path === '/api/wiki/update-photo' ||
+            path === '/api/r2/stats'
         );
 
         // --- API: PUSH NOTIFICATIONS (pre-auth, public endpoints) ---
@@ -3173,6 +3174,38 @@ ${urls.map(u => `  <url>
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
 
+        }
+
+        if (path === '/api/r2/stats' && request.method === 'GET') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                if (!env.R2) return new Response(JSON.stringify({ used: 0, limit: 10737418240 }), { status: 200, headers });
+                
+                let totalSize = 0;
+                let objectCount = 0;
+                let cursor = undefined;
+                
+                // Cloudflare R2 list() - we iterate to get the full bucket size
+                while (true) {
+                    const listResult = await env.R2.list({ cursor });
+                    listResult.objects.forEach(obj => {
+                        totalSize += obj.size;
+                        objectCount++;
+                    });
+                    
+                    if (!listResult.truncated) break;
+                    cursor = listResult.cursor;
+                }
+                
+                return new Response(JSON.stringify({ 
+                    used: totalSize, 
+                    limit: 10737418240, // 10 GB (standard free limit)
+                    objectCount,
+                    remaining: Math.max(0, 10737418240 - totalSize)
+                }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
         }
 
         if (path === '/api/wiki/list' && request.method === 'GET') {

@@ -99,6 +99,9 @@ export default defineConfig({
     })
   ],
   server: {
+    watch: {
+      ignored: ['**/src/data/**']
+    },
     proxy: {
       '/api': {
         target: 'http://localhost:8787',

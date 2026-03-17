@@ -102,6 +102,8 @@ export function AdminDashboard() {
     const [isTracklistLoading, setIsTracklistLoading] = useState(false);
     const [isEditTracklistModalOpen, setIsEditTracklistModalOpen] = useState(false);
     const [isFetchingInstagram, setIsFetchingInstagram] = useState(false);
+    const [r2Stats, setR2Stats] = useState<{ used: number; limit: number; remaining: number; objectCount: number } | null>(null);
+    const [isR2Loading, setIsR2Loading] = useState(false);
 
 
     const quizCounts = useMemo(() => {
@@ -613,6 +615,7 @@ export function AdminDashboard() {
             }
             fetchActions();
             fetchSettings();
+            fetchR2Stats();
         }
     }, []);
 
@@ -762,6 +765,21 @@ export function AdminDashboard() {
             }
         } catch (e) {
             setPendingMessagesCount(0);
+        }
+    };
+
+    const fetchR2Stats = async () => {
+        setIsR2Loading(true);
+        try {
+            const res = await fetch(`/api/r2/stats?t=${Date.now()}`, { headers: getAuthHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                setR2Stats(data);
+            }
+        } catch (e) {
+            console.error("Failed to fetch R2 stats", e);
+        } finally {
+            setIsR2Loading(false);
         }
     };
 
@@ -983,6 +1001,7 @@ export function AdminDashboard() {
         } catch (e: any) {
             setActions(getFallbackActions());
         }
+        fetchR2Stats();
     };
 
     const getFallbackActions = () => [
@@ -1314,7 +1333,7 @@ export function AdminDashboard() {
     };
 
     const isAdminAcc = storedPermissions.includes('all');
-    // isAlex already declared above at line 330
+    const isAlex = localStorage.getItem('admin_user') === 'alex' || localStorage.getItem('admin_user') === 'contact@dropsiders.fr';
 
 
 
@@ -1498,9 +1517,42 @@ export function AdminDashboard() {
                                         <Youtube className="w-4 h-4" />
                                         <span className="hidden md:inline">Live</span>
                                     </Link>
+                                </>
+                            )}
 
-                                    {/* Live Status Controls */}
-                                    <div className="flex bg-black/40 border border-white/10 rounded-xl md:rounded-full p-1 w-full md:w-auto md:ml-2 mt-2 md:mt-0 justify-between md:justify-start">
+                            {/* Storage Indicator */}
+                            {r2Stats && (
+                                <div className="hidden lg:flex items-center gap-4 px-5 py-2 bg-white/5 border border-white/10 rounded-full">
+                                    <div className="flex flex-col">
+                                        <div className="flex items-center justify-between gap-8 mb-1">
+                                            <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Stockage R2</span>
+                                            <span className="text-[8px] font-black text-white uppercase tracking-widest">
+                                                {((r2Stats.limit - r2Stats.used) / 1024 / 1024 / 1024).toFixed(2)} GB Libres
+                                            </span>
+                                        </div>
+                                        <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
+                                            <motion.div 
+                                                initial={{ width: 0 }}
+                                                animate={{ 
+                                                    width: `${r2Stats.limit > 0 ? (r2Stats.used / r2Stats.limit) * 100 : 0}%`,
+                                                    opacity: (r2Stats.used / r2Stats.limit) > 0.9 ? [1, 0.5, 1] : 1
+                                                }}
+                                                transition={(r2Stats.used / r2Stats.limit) > 0.9 ? { repeat: Infinity, duration: 1 } : {}}
+                                                className={`h-full rounded-full ${(r2Stats.used / r2Stats.limit) > 0.8 ? 'bg-neon-red' : (r2Stats.used / r2Stats.limit) > 0.5 ? 'bg-neon-orange' : 'bg-neon-cyan'}`}
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="w-px h-6 bg-white/10" />
+                                    <div className="flex flex-col text-left">
+                                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Objets</span>
+                                        <span className="text-[10px] font-black text-white leading-none">{r2Stats.objectCount}</span>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Live Status Controls */}
+                            {(isAdminAcc || storedPermissions.includes('takeover_modo')) && (
+                                <div className="flex bg-black/40 border border-white/10 rounded-xl md:rounded-full p-1 w-full md:w-auto md:ml-2 mt-2 md:mt-0 justify-between md:justify-start">
                                         <button
                                             onClick={() => updateLiveStatus('off')}
                                             disabled={isUpdatingTakeover}
@@ -1523,8 +1575,7 @@ export function AdminDashboard() {
                                             ON AIR
                                         </button>
                                     </div>
-                                </>
-                            )}
+                                )}
                         </div>
                     </div>
                 </motion.div>
@@ -2014,7 +2065,7 @@ export function AdminDashboard() {
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                         <AnimatePresence>
                             {filteredActions.map((action) => {
-                                const globalIndex = filteredActions.findIndex(a => a.title === action.title);
+                                const globalIndex = actions.findIndex(a => a.title === action.title);
 
                                 return (
                                     <motion.div
