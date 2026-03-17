@@ -103,7 +103,6 @@ export function AdminDashboard() {
     const [isEditTracklistModalOpen, setIsEditTracklistModalOpen] = useState(false);
     const [isFetchingInstagram, setIsFetchingInstagram] = useState(false);
     const [r2Stats, setR2Stats] = useState<{ used: number; limit: number; remaining: number; objectCount: number } | null>(null);
-    const [isR2Loading, setIsR2Loading] = useState(false);
 
 
     const quizCounts = useMemo(() => {
@@ -769,7 +768,6 @@ export function AdminDashboard() {
     };
 
     const fetchR2Stats = async () => {
-        setIsR2Loading(true);
         try {
             const res = await fetch(`/api/r2/stats?t=${Date.now()}`, { headers: getAuthHeaders() });
             if (res.ok) {
@@ -778,8 +776,6 @@ export function AdminDashboard() {
             }
         } catch (e) {
             console.error("Failed to fetch R2 stats", e);
-        } finally {
-            setIsR2Loading(false);
         }
     };
 
@@ -1333,7 +1329,6 @@ export function AdminDashboard() {
     };
 
     const isAdminAcc = storedPermissions.includes('all');
-    const isAlex = localStorage.getItem('admin_user') === 'alex' || localStorage.getItem('admin_user') === 'contact@dropsiders.fr';
 
 
 
