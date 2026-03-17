@@ -848,20 +848,6 @@
     "description_en": "Input est conçu comme un hub sonore à Barcelone, avec un système acoustique Meyer Sound qui est parmi les meilleurs d'Europe."
   },
   {
-    "id": "c87",
-    "name": "Printworks",
-    "city": "Londres",
-    "country": "GB",
-    "djmag_rank": 87,
-    "description": "Ancienne imprimerie devenue le club le plus spectaculaire de Londres avant sa fermeture temporaire, célèbre pour ses jeux de lumières axiaux.",
-    "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&q=80&sig=c87",
-    "website": "https://www.printworks.com",
-    "instagram": "https://instagram.com/printworks",
-    "votes": 0,
-    "status": "waiting",
-    "description_en": "Ancienne imprimerie devenue le club le plus spectaculaire de Londres avant sa fermeture temporaire, célèbre pour ses jeux de lumières axiaux."
-  },
-  {
     "id": "c88",
     "name": "E1 London",
     "city": "Londres",
