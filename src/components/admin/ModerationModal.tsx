@@ -192,6 +192,8 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
                         const err = await response.json();
                         throw new Error(err.error || `Erreur lors de la modération du fichier ${id}`);
                     }
+                    // Wait a bit to avoid GitHub conflicts
+                    await new Promise(r => setTimeout(r, 300));
                 }
                 setSubmissions(prev => prev.filter(s => !ids.includes(s.id)));
             } else if (tab === 'wiki' && action === 'reject') {
@@ -207,6 +209,8 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
                         const err = await response.json();
                         throw new Error(err.error || `Erreur lors de la suppression de ${item.name}`);
                     }
+                    // Wait a bit to avoid GitHub conflicts
+                    await new Promise(r => setTimeout(r, 300));
                 }
                 setWikiWaiting(prev => prev.filter(w => !ids.includes(w.id)));
             }

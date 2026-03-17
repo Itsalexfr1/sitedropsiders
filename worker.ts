@@ -3149,9 +3149,21 @@ ${urls.map(u => `  <url>
                 }
 
                 // Remove from pending (for both approve and reject)
-                const updatedSubs = subFile.content.filter(s => s.id !== id);
-                const savedPending = await saveGitHubFile(PENDING_SUBMISSIONS_PATH, updatedSubs, `${action === 'approve' ? 'Approve' : 'Reject'} photo submission ${id}`, subFile.sha, gitConfig);
-                if (!savedPending.ok) return new Response(JSON.stringify({ error: 'Failed to update pending: ' + savedPending.error }), { status: 500, headers });
+                // Retry loop for robustness against 409 conflicts
+                let savedPending = { ok: false, error: '' };
+                let attempts = 0;
+                while (attempts < 3) {
+                    const currentSubFile = await fetchGitHubFile(PENDING_SUBMISSIONS_PATH, gitConfig);
+                    if (!currentSubFile) break;
+                    const updatedSubs = currentSubFile.content.filter(s => s.id !== id);
+                    savedPending = await saveGitHubFile(PENDING_SUBMISSIONS_PATH, updatedSubs, `${action === 'approve' ? 'Approve' : 'Reject'} photo submission ${id}`, currentSubFile.sha, gitConfig);
+                    if (savedPending.ok) break;
+                    if (savedPending.status !== 409) break;
+                    attempts++;
+                    await new Promise(r => setTimeout(r, 500 * attempts));
+                }
+                
+                if (!savedPending.ok) return new Response(JSON.stringify({ error: 'Failed to update pending: ' + (savedPending.error || 'Conflict') }), { status: 500, headers });
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e) {
@@ -3232,13 +3244,22 @@ ${urls.map(u => `  <url>
                 const index = file.content.findIndex(item => item.id === id);
                 if (index === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
 
-                const name = file.content[index].name;
-                const newContent = file.content.filter(item => item.id !== id);
-
-                const saved = await saveGitHubFile(filePath, newContent, `Delete ${name} from Wiki (${type})`, file.sha, gitConfig);
+                // Retry logic for Wiki deletion
+                let saved = { ok: false, error: '' };
+                let deleteAttempts = 0;
+                while (deleteAttempts < 3) {
+                    const currentFile = await fetchGitHubFile(filePath, gitConfig);
+                    if (!currentFile) break;
+                    const cRows = currentFile.content.filter(item => item.id !== id);
+                    saved = await saveGitHubFile(filePath, cRows, `Delete item from Wiki (${type})`, currentFile.sha, gitConfig);
+                    if (saved.ok) break;
+                    if (saved.status !== 409) break;
+                    deleteAttempts++;
+                    await new Promise(r => setTimeout(r, 500 * deleteAttempts));
+                }
                 
                 if (!saved.ok) {
-                    return new Response(JSON.stringify({ error: saved.error }), { status: 500, headers });
+                    return new Response(JSON.stringify({ error: saved.error || 'Conflict after retries' }), { status: 500, headers });
                 }
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
