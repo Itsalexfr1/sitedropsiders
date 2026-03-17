@@ -1,7 +1,7 @@
 [
   {
     "username": "tanguy",
-    "password": "2026",
+    "password": "b64:MjAyNg==",
     "name": "Tanguy",
     "permissions": [
       "publications",
@@ -29,7 +29,7 @@
   },
   {
     "username": "tiffany",
-    "password": "2026",
+    "password": "b64:MjAyNg==",
     "name": "Tiffany",
     "permissions": [
       "publications",
@@ -54,7 +54,7 @@
   },
   {
     "username": "kevin",
-    "password": "2026",
+    "password": "b64:MjAyNg==",
     "name": "Kevin",
     "permissions": [
       "publications",
@@ -64,7 +64,7 @@
   },
   {
     "username": "guiyoome",
-    "password": "TMLibiza2026!",
+    "password": "b64:VE1MaWJpemEyMDI2IQ==",
     "name": "Guiyoome",
     "permissions": [
       "publications",
@@ -91,7 +91,7 @@
   },
   {
     "username": "julien",
-    "password": "2026",
+    "password": "b64:MjAyNg==",
     "name": "Julien",
     "permissions": [
       "create",

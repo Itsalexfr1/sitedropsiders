@@ -22,10 +22,18 @@ interface ModerationModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess?: () => void;
+    initialTab?: 'photos' | 'wiki';
 }
 
-export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalProps) {
-    const [tab, setTab] = useState<'photos' | 'wiki'>('photos');
+export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'photos' }: ModerationModalProps) {
+    const [tab, setTab] = useState<'photos' | 'wiki'>(initialTab);
+
+    // Update tab when initialTab change while modal is opening
+    useEffect(() => {
+        if (isOpen) {
+            setTab(initialTab);
+        }
+    }, [isOpen, initialTab]);
     const [submissions, setSubmissions] = useState<Submission[]>([]);
     const [wikiWaiting, setWikiWaiting] = useState<any[]>([]);
     const [isLoading, setIsLoading] = useState(true);

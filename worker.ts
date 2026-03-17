@@ -830,7 +830,8 @@ ${urls.map(u => `  <url>
             path.startsWith('/api/instagram-contest') ||
             path.startsWith('/api/quiz/contest') ||
             path === '/api/wiki/update-photo' ||
-            path === '/api/r2/stats'
+            path === '/api/r2/stats' ||
+            path === '/api/r2/duplicates'
         );
 
         // --- API: PUSH NOTIFICATIONS (pre-auth, public endpoints) ---

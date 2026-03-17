@@ -60,6 +60,7 @@ export function AdminDashboard() {
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
     const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
+    const [moderationTab, setModerationTab] = useState<'photos' | 'wiki'>('photos');
     const [isPubliModalOpen, setIsPubliModalOpen] = useState(false);
     const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
     const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
@@ -84,6 +85,7 @@ export function AdminDashboard() {
     });
     const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
     const [pendingPhotosCount, setPendingPhotosCount] = useState(0);
+    const [pendingWikiPhotosCount, setPendingWikiPhotosCount] = useState(0);
     const [pendingQuizzesCount, setPendingQuizzesCount] = useState(0);
     const [pendingMessagesCount, setPendingMessagesCount] = useState(0);
     const [allActiveQuizzes, setAllActiveQuizzes] = useState<any[]>([]);
@@ -819,14 +821,15 @@ export function AdminDashboard() {
     };
 
     const fetchPhotosCount = async () => {
-        let count = 0;
+        let pCount = 0;
+        let wCount = 0;
         const timestamp = Date.now();
         
         try {
             const r = await fetch(`/api/photos/pending?t=${timestamp}`, { headers: getAuthHeaders() });
             if (r.ok) {
                 const data = await r.json();
-                count += Array.isArray(data) ? data.length : 0;
+                pCount = Array.isArray(data) ? data.length : 0;
             }
         } catch (e) { }
 
@@ -839,21 +842,22 @@ export function AdminDashboard() {
             
             if (djsRes.ok) {
                 const djs = await djsRes.json();
-                count += djs.filter((d: any) => d.status === 'waiting').length;
+                wCount += djs.filter((d: any) => d.status === 'waiting').length;
             }
             if (clubsRes.ok) {
                 const clubs = await clubsRes.json();
-                count += clubs.filter((c: any) => c.status === 'waiting').length;
+                wCount += clubs.filter((c: any) => c.status === 'waiting').length;
             }
             if (festsRes.ok) {
                 const fests = await festsRes.json();
-                count += fests.filter((f: any) => f.status === 'waiting').length;
+                wCount += fests.filter((f: any) => f.status === 'waiting').length;
             }
         } catch (e) {
             console.error("Failed to fetch wiki for count", e);
         }
         
-        setPendingPhotosCount(count);
+        setPendingPhotosCount(pCount);
+        setPendingWikiPhotosCount(wCount);
 
         // Also fetch pending quizzes count here
         try {
@@ -4069,6 +4073,55 @@ export function AdminDashboard() {
                                             <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">Galeries Photos</p>
                                         </div>
                                     </button>
+
+                                    <button
+                                        onClick={() => { setModerationTab('photos'); setIsModerationModalOpen(true); setIsCommunauteModalOpen(false); }}
+                                        className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group lg:col-span-1 relative"
+                                    >
+                                        <div className="w-16 h-16 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
+                                            <ShieldAlert className="w-8 h-8 text-neon-red" />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-xl font-bold text-white uppercase italic">Modération</h3>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">Photos Viewers</p>
+                                        </div>
+                                        {pendingPhotosCount > 0 && (
+                                            <div className="absolute top-4 right-4 w-6 h-6 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
+                                                <span className="text-[10px] font-black text-white">{pendingPhotosCount}</span>
+                                            </div>
+                                        )}
+                                    </button>
+
+                                    <button
+                                        onClick={() => { setModerationTab('wiki'); setIsModerationModalOpen(true); setIsCommunauteModalOpen(false); }}
+                                        className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group lg:col-span-1 relative"
+                                    >
+                                        <div className="w-16 h-16 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform">
+                                            <Camera className="w-8 h-8 text-neon-green" />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-xl font-bold text-white uppercase italic">Wiki Photos</h3>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] leading-none mt-2">Vérifier Photos</p>
+                                        </div>
+                                        {pendingWikiPhotosCount > 0 && (
+                                            <div className="absolute top-4 right-4 w-6 h-6 bg-neon-green rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
+                                                <span className="text-[10px] font-black text-black">{pendingWikiPhotosCount}</span>
+                                            </div>
+                                        )}
+                                    </button>
+
+                                    <button
+                                        onClick={() => { fetchDuplicates(); setIsCommunauteModalOpen(false); }}
+                                        className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group lg:col-span-1"
+                                    >
+                                        <div className="w-16 h-16 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                                            <ShieldAlert className="w-8 h-8 text-neon-cyan" />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-xl font-bold text-white uppercase italic">Doublons</h3>
+                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] leading-none mt-2">Check R2</p>
+                                        </div>
+                                    </button>
                                 </div>
                             </motion.div>
                         </div>
@@ -4103,28 +4156,10 @@ export function AdminDashboard() {
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
-                                    <button
-                                        onClick={() => { setIsModerationModalOpen(true); setIsTeamModalOpen(false); }}
-                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group relative"
-                                    >
-                                        <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
-                                            <ShieldAlert className="w-6 h-6 text-neon-red" />
-                                        </div>
-                                        <div className="text-center">
-                                            <h3 className="text-lg font-bold text-white uppercase italic">Moderation</h3>
-                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-widest leading-none mt-1">Photos Viewers</p>
-                                        </div>
-                                        {pendingPhotosCount > 0 && (
-                                            <div className="absolute top-4 right-4 w-6 h-6 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
-                                                <span className="text-[10px] font-black text-white">{pendingPhotosCount}</span>
-                                            </div>
-                                        )}
-                                    </button>
-
                                     <Link
                                         to="/admin/team"
                                         onClick={() => setIsTeamModalOpen(false)}
-                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group"
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-blue/10 hover:border-neon-blue/50 transition-all group lg:col-span-1"
                                     >
                                         <div className="w-12 h-12 bg-neon-blue/20 rounded-2xl flex items-center justify-center border border-neon-blue/30 group-hover:scale-110 transition-transform">
                                             <Users className="w-6 h-6 text-neon-blue" />
@@ -6368,6 +6403,7 @@ export function AdminDashboard() {
                 />
                 <ModerationModal
                     isOpen={isModerationModalOpen}
+                    initialTab={moderationTab}
                     onClose={() => setIsModerationModalOpen(false)}
                     onSuccess={fetchPhotosCount}
                 />
