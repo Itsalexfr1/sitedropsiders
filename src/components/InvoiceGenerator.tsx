@@ -180,6 +180,7 @@ export function InvoiceGenerator() {
     const [dueDate, setDueDate] = useState('');
     const [clientName, setClientName] = useState('');
     const [clientAddress, setClientAddress] = useState('');
+    const [clientCity, setClientCity] = useState('');
     const [clientEmail, setClientEmail] = useState('');
     const [iban, setIban] = useState(() => localStorage.getItem('inv_iban') || '');
     const [bic, setBic] = useState(() => localStorage.getItem('inv_bic') || '');
@@ -187,6 +188,11 @@ export function InvoiceGenerator() {
     const [lines, setLines] = useState<InvoiceLine[]>([
         { id: '1', description: 'Prestation de service', quantity: 1, unitPrice: 0 }
     ]);
+
+    // Event auto-fill (club + dates → line description)
+    const [eventClub, setEventClub] = useState('');
+    const [eventDate, setEventDate] = useState('');
+    const [eventDate2, setEventDate2] = useState(''); // optional end date
 
     const [view, setView] = useState<'edit' | 'archive' | 'settings'>('edit');
     const [history, setHistory] = useState<any[]>([]);
@@ -204,9 +210,18 @@ export function InvoiceGenerator() {
     });
     const [showClientPicker, setShowClientPicker] = useState(false);
 
-    // Saved articles catalog
+    // Saved articles catalog — seed with Prestation Light if empty
     const [savedArticles, setSavedArticles] = useState<SavedArticle[]>(() => {
-        try { return JSON.parse(localStorage.getItem('inv_articles') || '[]'); } catch { return []; }
+        try {
+            const stored = JSON.parse(localStorage.getItem('inv_articles') || 'null');
+            if (stored && stored.length > 0) return stored;
+            // Default catalog
+            const defaults: SavedArticle[] = [
+                { id: 'default-1', description: 'Prestation Light', unitPrice: 0 },
+            ];
+            localStorage.setItem('inv_articles', JSON.stringify(defaults));
+            return defaults;
+        } catch { return []; }
     });
     const [showArticlePicker, setShowArticlePicker] = useState<string | null>(null); // line id
     const [newArticleDesc, setNewArticleDesc] = useState('');
@@ -242,12 +257,12 @@ export function InvoiceGenerator() {
 
     const saveClient = () => {
         if (!clientName.trim()) return;
-        const nc: SavedClient = { id: Date.now().toString(), name: clientName, address: clientAddress, email: clientEmail };
+        const nc: SavedClient = { id: Date.now().toString(), name: clientName, address: clientAddress, email: clientEmail, city: clientCity } as any;
         const updated = [nc, ...savedClients.filter(c => c.name !== clientName)];
         setSavedClients(updated);
         localStorage.setItem('inv_clients', JSON.stringify(updated));
     };
-    const loadClient = (c: SavedClient) => { setClientName(c.name); setClientAddress(c.address); setClientEmail(c.email); setShowClientPicker(false); };
+    const loadClient = (c: any) => { setClientName(c.name); setClientAddress(c.address); setClientEmail(c.email); setClientCity(c.city || ''); setShowClientPicker(false); };
     const deleteClient = (id: string) => { const u = savedClients.filter(c => c.id !== id); setSavedClients(u); localStorage.setItem('inv_clients', JSON.stringify(u)); };
 
     const saveArticle = () => {
@@ -417,7 +432,8 @@ export function InvoiceGenerator() {
                                     </div>
                                     {[
                                         { label: 'Nom / Société', value: clientName, setter: setClientName, placeholder: 'Nom du client' },
-                                        { label: 'Adresse', value: clientAddress, setter: setClientAddress, placeholder: '12 rue des Lilas, 75001 Paris' },
+                                        { label: 'Adresse', value: clientAddress, setter: setClientAddress, placeholder: '12 rue des Lilas' },
+                                        { label: 'Ville', value: clientCity, setter: setClientCity, placeholder: 'Paris, 75001' },
                                         { label: 'Email', value: clientEmail, setter: setClientEmail, placeholder: 'client@exemple.com' },
                                     ].map(f => (
                                         <div key={f.label}>
@@ -425,6 +441,47 @@ export function InvoiceGenerator() {
                                             <input value={f.value} onChange={e => f.setter(e.target.value)} placeholder={f.placeholder} className={inputCls} />
                                         </div>
                                     ))}
+                                </div>
+
+                                {/* Event auto-fill */}
+                                <div className={cardCls + " space-y-4"}>
+                                    <div className="flex items-center justify-between">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Événement (auto-remplissage)</h3>
+                                        <button
+                                            onClick={() => {
+                                                if (!eventClub && !eventDate) return;
+                                                const dateStr = eventDate ? new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+                                                const date2Str = eventDate2 ? ` → ${new Date(eventDate2).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}` : '';
+                                                const desc = [lines[0]?.description?.split(' – ')[0] || 'Prestation Light', eventClub, `${dateStr}${date2Str}`].filter(Boolean).join(' – ');
+                                                updateLine(lines[0]?.id, 'description', desc);
+                                            }}
+                                            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 rounded-lg text-[9px] font-black uppercase tracking-widest text-white flex items-center gap-1 transition-all">
+                                            ✦ Appliquer à la 1ère ligne
+                                        </button>
+                                    </div>
+                                    <p className="text-[10px] text-white/20">Remplis les champs ci-dessous pour générer automatiquement la description de la prestation.</p>
+                                    <div>
+                                        <label className={labelCls}>Nom du Club / Lieu</label>
+                                        <input value={eventClub} onChange={e => setEventClub(e.target.value)}
+                                            placeholder="Club XYZ, Salle Metropolis..." className={inputCls} />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className={labelCls}>Date début</label>
+                                            <input type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} className={inputCls} />
+                                        </div>
+                                        <div>
+                                            <label className={labelCls}>Date fin (optionnel)</label>
+                                            <input type="date" value={eventDate2} onChange={e => setEventDate2(e.target.value)} className={inputCls} />
+                                        </div>
+                                    </div>
+                                    {(eventClub || eventDate) && (
+                                        <div className="bg-indigo-500/10 rounded-xl px-4 py-2">
+                                            <p className="text-[10px] text-indigo-300 font-mono italic">
+                                                "{[lines[0]?.description?.split(' – ')[0] || 'Prestation Light', eventClub, eventDate ? new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''].filter(Boolean).join(' – ')}"
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {/* Bank */}
