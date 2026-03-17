@@ -274,16 +274,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [topTalkers, setTopTalkers] = useState<{ pseudo: string, count: number }[]>([]);
     const [isPremsAwarded, setIsPremsAwarded] = useState(false);
     const [clashPoll, setClashPoll] = useState<{ active: boolean, teamA: string, teamB: string, votesA: string[], votesB: string[] } | null>(null);
-    const [shopItems] = useState([
-        { id: 1, name: 'T-Shirt Classic', price: 29.99, image: '/artifacts/tshirt_dropsiders_mockup_1773023978521.png' },
-        { id: 2, name: 'Hoodie Neon', price: 54.99, image: '/artifacts/hoodie_dropsiders_mockup_1773023992749.png' },
-        { id: 3, name: 'Casquette Drops', price: 19.99, image: '/artifacts/cap_dropsiders_mockup_1773024009139.png' },
-        { id: 4, name: 'Pack Stickers', price: 9.99, image: '/artifacts/stickers_dropsiders_mockup_1773024024798.png' },
-        { id: 5, name: 'Gourde Métal', price: 24.99, image: 'https://placehold.co/100x120?text=GOURDE' },
-        { id: 6, name: 'Sac à Dos', price: 44.99, image: 'https://placehold.co/100x120?text=SAC' },
-        { id: 7, name: 'Beanie', price: 14.99, image: 'https://placehold.co/100x120?text=BEANIE' },
-        { id: 8, name: 'Poster A3', price: 12.99, image: 'https://placehold.co/100x120?text=POSTER' }
-    ]);
+    const [shopItems, setShopItems] = useState<any[]>([]);
     const [showLegendsWall, setShowLegendsWall] = useState(false);
     const [qteActive, setQteActive] = useState(false);
 
@@ -613,6 +604,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     useEffect(() => {
         const init = async () => {
             fetchSettings();
+            fetchShop();
             fetchInitialMessages();
             fetchPredefinedQuizzes();
 
@@ -993,6 +985,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         } catch (e) {
             console.error("Error fetching quizzes:", e);
         }
+    };
+
+    const fetchShop = async () => {
+        try {
+            const res = await fetch('/api/shop');
+            if (res.ok) {
+                const data = await res.json();
+                setShopItems(Array.isArray(data) ? data.slice(0, 12) : []);
+            }
+        } catch (e) { console.error("Error loading shop:", e); }
     };
 
     const fetchSettings = async () => {
@@ -3569,7 +3571,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <p className="text-[9px] lg:text-[10px] font-black text-white uppercase mb-1 leading-tight">{item.name}</p>
                                                         <p className="text-[11px] font-black text-neon-cyan">{item.price} €</p>
                                                     </div>
-                                                    <button onClick={() => showNotification(`ACHETER : ${item.name}`, 'success')} className="w-full mt-3 py-1.5 bg-white/5 border border-white/10 text-[8px] font-black uppercase rounded-lg hover:bg-white/10 text-white transition-all">VOIR</button>
+                                                    <button 
+                                                        onClick={() => item.url ? window.open(item.url, '_blank') : showNotification(`ACHETER : ${item.name}`, 'success')} 
+                                                        className="w-full mt-3 py-1.5 bg-white/5 border border-white/10 text-[8px] font-black uppercase rounded-lg hover:bg-white/10 text-white transition-all"
+                                                    >
+                                                        {item.url ? 'VOIR' : 'BIENTÔT'}
+                                                    </button>
                                                 </div>
                                             </div>
                                         ))}
