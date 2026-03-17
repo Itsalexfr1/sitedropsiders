@@ -205,20 +205,29 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                 }
                 setSubmissions(prev => prev.filter(s => !ids.includes(s.id)));
             } else if (tab === 'wiki' && action === 'reject') {
+                // Grouper par type pour éviter de faire des dizaines de requêtes à la suite
+                const groupedIds: Record<string, string[]> = {};
                 for (const id of ids) {
                     const item = wikiWaiting.find(w => w.id === id);
                     if (!item) continue;
+                    if (!groupedIds[item.type]) groupedIds[item.type] = [];
+                    groupedIds[item.type].push(id);
+                }
+
+                for (const [type, typeIds] of Object.entries(groupedIds)) {
                     const response = await fetch('/api/wiki/delete', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
-                        body: JSON.stringify({ id, type: item.type })
+                        body: JSON.stringify({ ids: typeIds, type })
                     });
                     if (!response.ok) {
                         const err = await response.json();
-                        throw new Error(err.error || `Erreur lors de la suppression de ${item.name}`);
+                        throw new Error(err.error || `Erreur lors de la suppression massive (Type: ${type})`);
                     }
-                    // Wait a bit to avoid GitHub conflicts
-                    await new Promise(r => setTimeout(r, 300));
+                    // Wait a bit to avoid GitHub conflicts between types
+                    if (Object.keys(groupedIds).length > 1) {
+                        await new Promise(r => setTimeout(r, 600));
+                    }
                 }
                 setWikiWaiting(prev => prev.filter(w => !ids.includes(w.id)));
             }

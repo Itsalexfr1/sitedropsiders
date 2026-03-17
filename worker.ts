@@ -3372,8 +3372,10 @@ ${urls.map(u => `  <url>
         if (path === '/api/wiki/delete' && request.method === 'POST') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
-                const { id, type } = await request.json();
-                if (!id || !type) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+                const { id, ids, type } = await request.json();
+                const idsToDelete = Array.isArray(ids) ? ids : (id ? [id] : []);
+
+                if (idsToDelete.length === 0 || !type) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
 
                 let filePath = '';
                 if (type === 'DJS') filePath = WIKI_DJS_PATH;
@@ -3384,8 +3386,9 @@ ${urls.map(u => `  <url>
                 const file = await fetchGitHubFile(filePath, gitConfig);
                 if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
 
-                const index = file.content.findIndex(item => item.id === id);
-                if (index === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
+                // Check if at least one item exists
+                const hasValidItems = file.content.some((item: any) => idsToDelete.includes(item.id));
+                if (!hasValidItems) return new Response(JSON.stringify({ error: 'Items not found' }), { status: 404, headers });
 
                 // Retry logic for Wiki deletion
                 let saved = { ok: false, error: '' };
@@ -3393,8 +3396,13 @@ ${urls.map(u => `  <url>
                 while (deleteAttempts < 3) {
                     const currentFile = await fetchGitHubFile(filePath, gitConfig);
                     if (!currentFile) break;
-                    const cRows = currentFile.content.filter(item => item.id !== id);
-                    saved = await saveGitHubFile(filePath, cRows, `Delete item from Wiki (${type})`, currentFile.sha, gitConfig);
+                    const cRows = currentFile.content.filter((item: any) => !idsToDelete.includes(item.id));
+                    
+                    const commitMessage = idsToDelete.length > 1 
+                        ? `Delete ${idsToDelete.length} items from Wiki (${type})`
+                        : `Delete item from Wiki (${type})`;
+                        
+                    saved = await saveGitHubFile(filePath, cRows, commitMessage, currentFile.sha, gitConfig);
                     if (saved.ok) break;
                     if (saved.status !== 409) break;
                     deleteAttempts++;
