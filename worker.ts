@@ -3208,6 +3208,99 @@ ${urls.map(u => `  <url>
             }
         }
 
+        if (path === '/api/r2/duplicates' && request.method === 'GET') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                if (!env.R2) return new Response(JSON.stringify([]), { status: 200, headers });
+                
+                const allObjects = [];
+                let cursor = undefined;
+                while (true) {
+                    const listResult = await env.R2.list({ cursor });
+                    allObjects.push(...listResult.objects);
+                    if (!listResult.truncated) break;
+                    cursor = listResult.cursor;
+                }
+                
+                const groups = new Map();
+                for (const obj of allObjects) {
+                    // ETag is the content hash (MD5) which is perfect for finding duplicates
+                    const hash = obj.etag;
+                    if (!groups.has(hash)) groups.set(hash, []);
+                    groups.get(hash).push({
+                        key: obj.key,
+                        size: obj.size,
+                        uploaded: obj.uploaded,
+                        etag: obj.etag
+                    });
+                }
+                
+                const duplicateSets = Array.from(groups.values())
+                    .filter((set: any) => set.length > 1)
+                    .sort((a: any, b: any) => b[0].size - a[0].size); // Show biggest files first
+
+                if (duplicateSets.length === 0) {
+                    return new Response(JSON.stringify([]), { status: 200, headers });
+                }
+
+                // --- NEW: USAGE TRACKING ---
+                // Fetch all relevant data files to see where these keys are used
+                const dataFiles = [
+                    WIKI_DJS_PATH, WIKI_CLUBS_PATH, WIKI_FESTIVALS_PATH,
+                    NEWS_PATH, AGENDA_PATH, GALERIE_PATH, RECAPS_PATH, TEAM_PATH
+                ];
+
+                const usageMap: Record<string, string[]> = {};
+                
+                // Prefetch all data content
+                const dataContents = await Promise.all(
+                    dataFiles.map(path => fetchGitHubFile(path, gitConfig).catch(() => "[]"))
+                );
+
+                for (let i = 0; i < dataFiles.length; i++) {
+                    const contentStr = dataContents[i];
+                    const fileName = dataFiles[i].split('/').pop() || dataFiles[i];
+                    
+                    // For each duplicate key, check if it exists in this file
+                    for (const set of duplicateSets) {
+                        for (const obj of set) {
+                            if (contentStr.includes(obj.key)) {
+                                if (!usageMap[obj.key]) usageMap[obj.key] = [];
+                                usageMap[obj.key].push(fileName);
+                            }
+                        }
+                    }
+                }
+
+                // Add usage info to each object
+                const duplicateSetsWithUsage = duplicateSets.map((set: any) => 
+                    set.map((obj: any) => ({
+                        ...obj,
+                        usages: usageMap[obj.key] || []
+                    }))
+                );
+                
+                return new Response(JSON.stringify(duplicateSetsWithUsage), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/r2/delete' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { key } = await request.json();
+                if (!key) return new Response(JSON.stringify({ error: 'Key required' }), { status: 400, headers });
+                
+                if (!env.R2) return new Response(JSON.stringify({ error: 'R2 not configured' }), { status: 500, headers });
+                
+                await env.R2.delete(key);
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/wiki/list' && request.method === 'GET') {
             try {
                 const type = url.searchParams.get('type');

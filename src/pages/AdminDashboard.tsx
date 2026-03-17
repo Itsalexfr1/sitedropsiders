@@ -62,6 +62,9 @@ export function AdminDashboard() {
     const [isPubliModalOpen, setIsPubliModalOpen] = useState(false);
     const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
     const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
+    const [isDuplicatesModalOpen, setIsDuplicatesModalOpen] = useState(false);
+    const [isR2Loading, setIsR2Loading] = useState(false);
+    const [duplicateSets, setDuplicateSets] = useState<any[]>([]);
     const [isDownloaderOpen, setIsDownloaderOpen] = useState(false);
     const [pushSubscribersCount, setPushSubscribersCount] = useState<number | null>(null);
     const [wikiTab, setWikiTab] = useState<'djs' | 'clubs' | 'festivals'>('djs');
@@ -768,6 +771,7 @@ export function AdminDashboard() {
     };
 
     const fetchR2Stats = async () => {
+        setIsR2Loading(true);
         try {
             const res = await fetch(`/api/r2/stats?t=${Date.now()}`, { headers: getAuthHeaders() });
             if (res.ok) {
@@ -776,6 +780,40 @@ export function AdminDashboard() {
             }
         } catch (e) {
             console.error("Failed to fetch R2 stats", e);
+        } finally {
+            setIsR2Loading(false);
+        }
+    };
+
+    const fetchDuplicates = async () => {
+        setIsR2Loading(true);
+        try {
+            const res = await apiFetch('/api/r2/duplicates', { headers: getAuthHeaders() });
+            const data = await res.json();
+            setDuplicateSets(data);
+            setIsDuplicatesModalOpen(true);
+        } catch (e) {
+            console.error("Failed to fetch duplicates", e);
+        } finally {
+            setIsR2Loading(false);
+        }
+    };
+
+    const deleteR2Object = async (key: string) => {
+        try {
+            const res = await apiFetch('/api/r2/delete', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ key })
+            });
+            if (res.ok) {
+                // Refresh list
+                const newSets = duplicateSets.map(set => set.filter((obj: any) => obj.key !== key)).filter(set => set.length > 1);
+                setDuplicateSets(newSets);
+                fetchR2Stats();
+            }
+        } catch (e) {
+            console.error("Failed to delete object", e);
         }
     };
 
@@ -1521,9 +1559,20 @@ export function AdminDashboard() {
                                     <div className="flex flex-col">
                                         <div className="flex items-center justify-between gap-8 mb-1">
                                             <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Stockage R2</span>
-                                            <span className="text-[8px] font-black text-white uppercase tracking-widest">
-                                                {((r2Stats.limit - r2Stats.used) / 1024 / 1024 / 1024).toFixed(2)} GB Libres
-                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                <button 
+                                                    onClick={fetchDuplicates}
+                                                    disabled={isR2Loading}
+                                                    className="text-[8px] font-black text-neon-cyan/50 hover:text-neon-cyan uppercase tracking-widest transition-colors flex items-center gap-1"
+                                                    title="Détecter les images en double"
+                                                >
+                                                    {isR2Loading ? <Loader2 className="w-2 h-2 animate-spin" /> : <ShieldAlert className="w-2 h-2" />}
+                                                    Check Doublons
+                                                </button>
+                                                <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">
+                                                    {((r2Stats.limit - r2Stats.used) / 1024 / 1024 / 1024).toFixed(2)} GB Libres
+                                                </span>
+                                            </div>
                                         </div>
                                         <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
                                             <motion.div 
@@ -6300,6 +6349,130 @@ export function AdminDashboard() {
                     onClose={() => setIsModerationModalOpen(false)}
                     onSuccess={fetchPhotosCount}
                 />
+
+                {/* Duplicates Modal */}
+                <AnimatePresence>
+                    {isDuplicatesModalOpen && (
+                        <div className="fixed inset-0 z-[110] flex items-center justify-center px-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsDuplicatesModalOpen(false)}
+                                className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+                            />
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                                animate={{ scale: 1, opacity: 1, y: 0 }}
+                                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                                className="relative w-full max-w-5xl bg-zinc-950 border border-white/10 rounded-[32px] overflow-hidden flex flex-col max-h-[85vh] shadow-2xl"
+                            >
+                                <div className="p-8 border-b border-white/5 flex items-center justify-between shrink-0">
+                                    <div>
+                                        <h2 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+                                            <ShieldAlert className="text-neon-cyan w-6 h-6" />
+                                            Détecteur de Doublons R2
+                                        </h2>
+                                        <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mt-1">
+                                            {duplicateSets.length} groupes d'images identiques trouvés
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsDuplicatesModalOpen(false)}
+                                        className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all group"
+                                    >
+                                        <X className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                                    {duplicateSets.length === 0 ? (
+                                        <div className="h-64 flex flex-col items-center justify-center text-center">
+                                            <CheckCircle2 className="w-12 h-12 text-neon-green mb-4 opacity-20" />
+                                            <p className="text-gray-500 font-bold uppercase tracking-widest text-xs">Aucun doublon trouvé sur R2 !</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-1 gap-12">
+                                            {duplicateSets.map((set, setIdx) => (
+                                                <div key={setIdx} className="space-y-4">
+                                                    <div className="flex items-center justify-between border-b border-white/5 pb-2">
+                                                        <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">Groupe #{setIdx + 1} • {(set[0].size / 1024).toFixed(1)} KB par image</span>
+                                                        <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">{set.length} copies</span>
+                                                    </div>
+                                                    <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                                                        {set.map((item: any) => (
+                                                            <div key={item.key} className="group relative">
+                                                                <div className="aspect-square bg-white/5 rounded-2xl border border-white/10 overflow-hidden relative">
+                                                                    <img 
+                                                                        src={`https://dropsiders.fr/uploads/${item.key}`} 
+                                                                        alt=""
+                                                                        className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
+                                                                        loading="lazy"
+                                                                    />
+                                                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
+                                                                        <button 
+                                                                            onClick={() => window.open(`https://dropsiders.fr/uploads/${item.key}`, '_blank')}
+                                                                            className="p-2 bg-white/10 hover:bg-white/20 rounded-lg text-white transition-all"
+                                                                            title="Voir en grand"
+                                                                        >
+                                                                            <Download className="w-4 h-4" />
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => {
+                                                                                setConfirmModal({
+                                                                                    isOpen: true,
+                                                                                    title: 'Supprimer ce doublon ?',
+                                                                                    message: `Êtes-vous sûr de vouloir supprimer définitivement ${item.key} ?`,
+                                                                                    type: 'danger',
+                                                                                    onConfirm: () => deleteR2Object(item.key)
+                                                                                });
+                                                                            }}
+                                                                            className="p-2 bg-neon-red/20 hover:bg-neon-red text-neon-red hover:text-white rounded-lg transition-all"
+                                                                            title="Supprimer définitivement"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" />
+                                                                        </button>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="mt-2 px-1 space-y-1">
+                                                                     <p className="text-[8px] font-bold text-gray-500 truncate uppercase tracking-tighter" title={item.key}>
+                                                                         {item.key.split('/').pop()}
+                                                                     </p>
+                                                                     {item.usages && item.usages.length > 0 ? (
+                                                                         <div className="flex flex-wrap gap-1">
+                                                                             {item.usages.map((file: string) => (
+                                                                                 <span key={file} className="text-[7px] font-black bg-neon-cyan/10 text-neon-cyan px-1.5 py-0.5 rounded-full border border-neon-cyan/20">
+                                                                                     {file.replace('.json', '')}
+                                                                                 </span>
+                                                                             ))}
+                                                                         </div>
+                                                                     ) : (
+                                                                         <span className="text-[7px] font-black bg-white/5 text-gray-600 px-1.5 py-0.5 rounded-full border border-white/5 italic">
+                                                                             Aucun usage direct
+                                                                         </span>
+                                                                     )}
+                                                                </div>
+                                                             </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="p-8 border-t border-white/5 bg-white/[0.02] shrink-0">
+                                    <div className="flex items-center gap-3 text-neon-yellow">
+                                        <ShieldAlert className="w-5 h-5 shrink-0" />
+                                        <p className="text-[10px] font-bold leading-relaxed uppercase tracking-wide">
+                                            Attention : Avant de supprimer une image, assurez-vous qu'elle n'est pas utilisée par un article ou un profil Wiki, sinon l'image deviendra cassée sur le site.
+                                        </p>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
             </div>
         </div >
     );
