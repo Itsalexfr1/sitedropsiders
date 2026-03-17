@@ -724,20 +724,6 @@
     "description_en": "Le Marquee de Las Vegas est un complexe monumental avec beach club de jour et méga-club de nuit, symbole de la démesure locale."
   },
   {
-    "id": "c80",
-    "name": "L'Héritage",
-    "city": "Paris",
-    "country": "FR",
-    "djmag_rank": 80,
-    "description": "Un club parisien élégant et feutré qui perpétue l'esprit de la nuit parisienne sélective et musicale.",
-    "image": "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&h=400&fit=crop&q=80&sig=c80",
-    "website": "https://www.l'héritage.com",
-    "instagram": "https://instagram.com/l'héritage",
-    "votes": 0,
-    "status": "waiting",
-    "description_en": "Un club parisien élégant et feutré qui perpétue l'esprit de la nuit parisienne sélective et musicale."
-  },
-  {
     "id": "c81",
     "name": "Badaboum",
     "city": "Paris",
