@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare, BookOpen, Upload, Plus } from 'lucide-react';
+import { X, Check, CheckSquare, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare, BookOpen, Upload, Plus } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
 import { PromptModal } from '../ui/PromptModal';
 import { ConfirmModal } from '../ui/ConfirmModal';
@@ -54,6 +54,11 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
         bio: ''
     });
     const [isSavingNewWiki, setIsSavingNewWiki] = useState(false);
+
+    // ─── Multi-select state ───────────────────────────────────────────────────
+    const [selectMode, setSelectMode] = useState(false);
+    const [selected, setSelected] = useState<Set<string>>(new Set());
+    const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
     const [alertConfig, setAlertConfig] = useState<{
         isOpen: boolean;
@@ -123,6 +128,21 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
         }
     }, [isOpen]);
 
+    useEffect(() => { if (!selectMode) setSelected(new Set()); }, [selectMode]);
+    useEffect(() => { setSelectMode(false); setSelected(new Set()); }, [tab]);
+
+    const toggleSelect = (id: string) => {
+        setSelected(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
+    };
+
+    const selectAll = () => setSelected(new Set(submissions.map(s => s.id)));
+    const deselectAll = () => setSelected(new Set());
+
     const handleAction = async (id: string, action: 'approve' | 'reject') => {
         try {
             const response = await fetch('/api/photos/moderate', {
@@ -136,6 +156,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
 
             if (response.ok) {
                 setSubmissions(prev => prev.filter(s => s.id !== id));
+                setSelected(prev => { const n = new Set(prev); n.delete(id); return n; });
                 if (onSuccess) onSuccess();
             } else {
                 const err = await response.json();
@@ -144,6 +165,29 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
         } catch (error) {
             console.error('Moderation error:', error);
             showAlert('Erreur réseau lors de la mise à jour');
+        }
+    };
+
+    const handleBulkAction = async (action: 'approve' | 'reject') => {
+        if (selected.size === 0) return;
+        setIsBulkProcessing(true);
+        const ids = Array.from(selected);
+        try {
+            await Promise.all(ids.map(id =>
+                fetch('/api/photos/moderate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                    body: JSON.stringify({ id, action })
+                })
+            ));
+            setSubmissions(prev => prev.filter(s => !ids.includes(s.id)));
+            setSelected(new Set());
+            setSelectMode(false);
+            if (onSuccess) onSuccess();
+        } catch {
+            showAlert('Erreur lors de la modération en masse');
+        } finally {
+            setIsBulkProcessing(false);
         }
     };
 
@@ -329,76 +373,155 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
                                     <span className="text-xl font-black uppercase italic text-white tracking-widest">Toutes les photos sont modérées</span>
                                 </div>
                             ) : (
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                    <AnimatePresence>
-                                        {submissions.map((sub) => (
-                                            <motion.div
-                                                key={sub.id}
-                                                layout
-                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                exit={{ opacity: 0, scale: 0.8 }}
-                                                className="group relative bg-white/[0.02] border border-white/5 rounded-[32px] overflow-hidden hover:border-white/20 transition-all duration-500"
-                                            >
-                                                <div className="aspect-video relative overflow-hidden">
-                                                    <img src={sub.imageUrl} alt="Submission" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                </div>
+                                <div className="space-y-4">
+                                    {/* ── Toolbar ── */}
+                                    <div className="flex items-center gap-3 flex-wrap">
+                                        <button
+                                            onClick={() => setSelectMode(s => !s)}
+                                            className={`px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest border transition-all flex items-center gap-2 ${selectMode ? 'bg-neon-orange/20 border-neon-orange/50 text-neon-orange' : 'bg-white/5 border-white/10 text-white/50 hover:text-white hover:border-white/30'}`}
+                                        >
+                                            <CheckSquare className="w-3.5 h-3.5" />
+                                            {selectMode ? 'Quitter sélection' : 'Sélection multiple'}
+                                        </button>
 
-                                                <div className="p-6 space-y-4">
-                                                    <div className="flex items-start justify-between gap-4">
-                                                        <div className="space-y-1">
-                                                            <div className="flex items-center gap-2">
-                                                                <User className="w-3 h-3 text-neon-green" />
-                                                                <span className="text-xs font-black text-white uppercase">{sub.userName}</span>
+                                        <AnimatePresence>
+                                            {selectMode && (
+                                                <motion.div
+                                                    initial={{ opacity: 0, x: -8 }}
+                                                    animate={{ opacity: 1, x: 0 }}
+                                                    exit={{ opacity: 0, x: -8 }}
+                                                    className="flex items-center gap-2 flex-wrap"
+                                                >
+                                                    <button onClick={selectAll} className="px-3 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest bg-white/5 border border-white/10 text-white/60 hover:text-white transition-all">
+                                                        Tout ({submissions.length})
+                                                    </button>
+                                                    {selected.size > 0 && (
+                                                        <button onClick={deselectAll} className="px-3 py-2 rounded-xl font-black text-[9px] uppercase tracking-widest bg-white/5 border border-white/10 text-white/40 hover:text-white transition-all">
+                                                            Désélectionner
+                                                        </button>
+                                                    )}
+                                                    {selected.size > 0 && (
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleBulkAction('approve')}
+                                                                disabled={isBulkProcessing}
+                                                                className="px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest bg-neon-green/20 border border-neon-green/50 text-neon-green hover:bg-neon-green hover:text-black transition-all disabled:opacity-50"
+                                                            >
+                                                                <Check className="w-3.5 h-3.5 inline-block mr-1" />
+                                                                Approuver ({selected.size})
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleBulkAction('reject')}
+                                                                disabled={isBulkProcessing}
+                                                                className="px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest bg-neon-red/20 border border-neon-red/50 text-neon-red hover:bg-neon-red hover:text-white transition-all disabled:opacity-50"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5 inline-block mr-1" />
+                                                                Rejeter ({selected.size})
+                                                            </button>
+                                                        </>
+                                                    )}
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
+
+                                        {selected.size > 0 && (
+                                            <span className="ml-1 px-3 py-1 bg-neon-orange/20 text-neon-orange rounded-full text-[10px] font-black">
+                                                {selected.size} sélectionnée{selected.size > 1 ? 's' : ''}
+                                            </span>
+                                        )}
+                                    </div>
+
+                                    {/* ── Grid ── */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <AnimatePresence>
+                                            {submissions.map((sub) => {
+                                                const isSelected = selected.has(sub.id);
+                                                return (
+                                                    <motion.div
+                                                        key={sub.id}
+                                                        layout
+                                                        initial={{ opacity: 0, scale: 0.8 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        exit={{ opacity: 0, scale: 0.8 }}
+                                                        className={`group relative bg-white/[0.02] border rounded-[32px] overflow-hidden transition-all duration-300 ${isSelected ? 'border-neon-orange/60 shadow-[0_0_20px_rgba(255,140,0,0.15)]' : 'border-white/5 hover:border-white/20'}`}
+                                                    >
+                                                        {/* Checkbox */}
+                                                        {selectMode && (
+                                                            <button
+                                                                onClick={() => toggleSelect(sub.id)}
+                                                                className="absolute top-3 left-3 z-10"
+                                                            >
+                                                                <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all shadow-lg ${isSelected ? 'bg-neon-orange border-neon-orange' : 'bg-black/70 border-white/50 hover:border-white'}`}>
+                                                                    {isSelected && <Check className="w-3.5 h-3.5 text-white" />}
+                                                                </div>
+                                                            </button>
+                                                        )}
+
+                                                        <div
+                                                            className={`aspect-video relative overflow-hidden ${selectMode ? 'cursor-pointer' : ''}`}
+                                                            onClick={() => selectMode && toggleSelect(sub.id)}
+                                                        >
+                                                            <img src={sub.imageUrl} alt="Submission" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                            {isSelected && <div className="absolute inset-0 bg-neon-orange/10" />}
+                                                        </div>
+
+                                                        <div className="p-6 space-y-4">
+                                                            <div className="flex items-start justify-between gap-4">
+                                                                <div className="space-y-1">
+                                                                    <div className="flex items-center gap-2">
+                                                                        <User className="w-3 h-3 text-neon-green" />
+                                                                        <span className="text-xs font-black text-white uppercase">{sub.userName}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-2">
+                                                                        <MapPin className="w-3 h-3 text-gray-500" />
+                                                                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{sub.festivalName}</span>
+                                                                    </div>
+                                                                    {sub.instagram && (
+                                                                        <div className="flex items-center gap-2">
+                                                                            <Instagram className="w-3 h-3 text-pink-500" />
+                                                                            <span className="text-[10px] font-bold text-pink-500 uppercase tracking-tight">{sub.instagram}</span>
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="flex items-center gap-2 text-[8px] font-bold text-gray-600 uppercase">
+                                                                    <Clock className="w-3 h-3" />
+                                                                    {new Date(sub.timestamp).toLocaleDateString()}
+                                                                </div>
                                                             </div>
-                                                            <div className="flex items-center gap-2">
-                                                                <MapPin className="w-3 h-3 text-gray-500" />
-                                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-tight">{sub.festivalName}</span>
-                                                            </div>
-                                                            {sub.instagram && (
-                                                                <div className="flex items-center gap-2">
-                                                                    <Instagram className="w-3 h-3 text-pink-500" />
-                                                                    <span className="text-[10px] font-bold text-pink-500 uppercase tracking-tight">{sub.instagram}</span>
+
+                                                            {sub.anecdote && (
+                                                                <div className="p-3 bg-white/5 border-l-2 border-neon-green rounded-r-xl">
+                                                                    <p className="text-[10px] text-gray-400 font-bold uppercase mb-1 flex items-center gap-2">
+                                                                        <MessageSquare className="w-3 h-3 text-neon-green" />
+                                                                        ANECDOTE :
+                                                                    </p>
+                                                                    <p className="text-[11px] text-white italic leading-relaxed">"{sub.anecdote}"</p>
+                                                                </div>
+                                                            )}
+
+                                                            {!selectMode && (
+                                                                <div className="flex gap-2 pt-2">
+                                                                    <button
+                                                                        onClick={() => handleAction(sub.id, 'approve')}
+                                                                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-neon-green text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all"
+                                                                    >
+                                                                        <Check className="w-4 h-4" /> ACCEPTER
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleAction(sub.id, 'reject')}
+                                                                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-neon-red text-white hover:text-black rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all"
+                                                                    >
+                                                                        <Trash2 className="w-4 h-4" /> REJETER
+                                                                    </button>
                                                                 </div>
                                                             )}
                                                         </div>
-                                                        <div className="flex items-center gap-2 text-[8px] font-bold text-gray-600 uppercase">
-                                                            <Clock className="w-3 h-3" />
-                                                            {new Date(sub.timestamp).toLocaleDateString()}
-                                                        </div>
-                                                    </div>
-
-                                                    {sub.anecdote && (
-                                                        <div className="p-3 bg-white/5 border-l-2 border-neon-green rounded-r-xl">
-                                                            <p className="text-[10px] text-gray-400 font-bold uppercase mb-1 flex items-center gap-2 items-center">
-                                                                <MessageSquare className="w-3 h-3 text-neon-green" />
-                                                                ANECDOTE :
-                                                            </p>
-                                                            <p className="text-[11px] text-white italic leading-relaxed">
-                                                                "{sub.anecdote}"
-                                                            </p>
-                                                        </div>
-                                                    )}
-
-                                                    <div className="flex gap-2 pt-2">
-                                                        <button
-                                                            onClick={() => handleAction(sub.id, 'approve')}
-                                                            className="flex-1 flex items-center justify-center gap-2 py-3 bg-neon-green text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all"
-                                                        >
-                                                            <Check className="w-4 h-4" /> ACCEPTER
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleAction(sub.id, 'reject')}
-                                                            className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-neon-red text-white hover:text-black rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" /> REJETER
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </motion.div>
-                                        ))}
-                                    </AnimatePresence>
+                                                    </motion.div>
+                                                );
+                                            })}
+                                        </AnimatePresence>
+                                    </div>
                                 </div>
                             )
                         ) : (
