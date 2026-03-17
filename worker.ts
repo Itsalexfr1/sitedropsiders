@@ -3235,16 +3235,20 @@ ${urls.map(u => `  <url>
                     });
                 }
                 
-                const duplicateSets = Array.from(groups.values())
+                let duplicateSets = Array.from(groups.values())
                     .filter((set: any) => set.length > 1)
                     .sort((a: any, b: any) => b[0].size - a[0].size); // Show biggest files first
+
+                // LIMIT to first 100 groups for performance (Cloudflare Worker CPU limit)
+                if (duplicateSets.length > 100) {
+                    duplicateSets = duplicateSets.slice(0, 100);
+                }
 
                 if (duplicateSets.length === 0) {
                     return new Response(JSON.stringify([]), { status: 200, headers });
                 }
 
-                // --- NEW: USAGE TRACKING ---
-                // Fetch all relevant data files to see where these keys are used
+                // --- NEW: OPTIMIZED USAGE TRACKING ---
                 const dataFiles = [
                     WIKI_DJS_PATH, WIKI_CLUBS_PATH, WIKI_FESTIVALS_PATH,
                     NEWS_PATH, AGENDA_PATH, GALERIE_PATH, RECAPS_PATH, TEAM_PATH
@@ -3252,32 +3256,30 @@ ${urls.map(u => `  <url>
 
                 const usageMap: Record<string, string[]> = {};
                 
-                // Prefetch all data content
+                // Fetch all data content in parallel
                 const dataContents = await Promise.all(
-                    dataFiles.map(path => fetchGitHubFile(path, gitConfig).catch(() => "[]"))
+                    dataFiles.map(path => fetchGitHubFile(path, gitConfig).catch(() => null))
                 );
 
+                // Build a combined string of all keys we care about
+                const allDuplicateKeys = duplicateSets.flatMap((set: any) => set.map((obj: any) => obj.key));
+                
                 for (let i = 0; i < dataFiles.length; i++) {
                     const fileObj = dataContents[i];
                     if (!fileObj || !fileObj.content) continue;
                     
                     const fileName = dataFiles[i].split('/').pop() || dataFiles[i];
-                    const contentString = JSON.stringify(fileObj.content);
+                    const contentStr = JSON.stringify(fileObj.content);
                     
-                    // For each duplicate key, check if it exists in this file
-                    for (const set of duplicateSets) {
-                        for (const obj of (set as any)) {
-                            if (contentString.includes(obj.key)) {
-                                if (!usageMap[obj.key]) usageMap[obj.key] = [];
-                                if (!usageMap[obj.key].includes(fileName)) {
-                                    usageMap[obj.key].push(fileName);
-                                }
-                            }
+                    // Check search for EACH duplicate key in this file
+                    for (const key of allDuplicateKeys) {
+                        if (contentStr.indexOf(key) !== -1) {
+                            if (!usageMap[key]) usageMap[key] = [];
+                            usageMap[key].push(fileName);
                         }
                     }
                 }
 
-                // Add usage info to each object
                 const duplicateSetsWithUsage = duplicateSets.map((set: any) => 
                     set.map((obj: any) => ({
                         ...obj,
