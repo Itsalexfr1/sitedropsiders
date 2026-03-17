@@ -1048,7 +1048,6 @@ export function AdminDashboard() {
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats_analytics", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
         { title: "Tracklists", description: "Vérifier & Valider", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "musique_releases", baseColor: "purple", columns: 1 },
-        { title: "Vérifier Photos", description: "WIKI : Photos en attente", icon: "ShieldAlert", category: "NEWS", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "wiki_dropsiders", baseColor: "red", columns: 1 },
 
 
         // JEUX CONCOURS
@@ -1064,7 +1063,7 @@ export function AdminDashboard() {
         { title: "Messagerie", description: "Emails & Contact", icon: "Mail", category: "SHOP", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages_contact", baseColor: "orange", columns: 1 },
         { title: "Downloader", description: "Outil Médias", icon: "Download", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "all", baseColor: "cyan", columns: 1 },
         { title: "Notifications", description: "Push News", icon: "Bell", category: "SHOP", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "push_newsletter", baseColor: "yellow", columns: 1 },
-        { title: "Communauté", description: "Commentaires & Membres", icon: "MessageSquare", category: "CONCOURS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "community_mod", baseColor: "pink", columns: 1 },
+        { title: "Communauté", description: "Membres, Photos & Quiz", icon: "MessageSquare", category: "CONCOURS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "community_mod", baseColor: "pink", columns: 2 },
         { title: "Générateur Publi", description: "Outil Alex", icon: "Pencil", category: "STUDIO", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "alex_only", baseColor: "orange", columns: 1 },
 
         // SYSTÈME
@@ -2286,7 +2285,14 @@ export function AdminDashboard() {
                                                     setIsInstagramContestModalOpen(true);
                                                 } else if (action.title === 'Vérifier Photos') {
                                                     e.preventDefault();
+                                                    setDashboardTab('CONCOURS');
                                                     setIsModerationModalOpen(true);
+                                                } else if (action.title === 'Communauté') {
+                                                    e.preventDefault();
+                                                    setDashboardTab('CONCOURS');
+                                                    if (pendingPhotosCount > 0) {
+                                                        setIsModerationModalOpen(true);
+                                                    }
                                                 } else if (action.title === 'Générateur Publi') {
                                                     e.preventDefault();
                                                     setIsPubliModalOpen(true);
@@ -2338,8 +2344,17 @@ export function AdminDashboard() {
                                                         </div>
                                                     )}
                                                     {action.title === 'Communauté' && (pendingPhotosCount > 0 || pendingQuizzesCount > 0 || pendingMessagesCount > 0) && (
-                                                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
-                                                            <span className="text-[9px] font-black text-white">{pendingPhotosCount + pendingMessagesCount + (pendingQuizzesCount > 0 ? 1 : 0)}</span>
+                                                        <div className="absolute -top-1 -right-1 flex gap-1">
+                                                            {pendingPhotosCount > 0 && (
+                                                                <div className="w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
+                                                                    <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
+                                                                </div>
+                                                            )}
+                                                            {(pendingMessagesCount > 0 || pendingQuizzesCount > 0) && (
+                                                                <div className="w-5 h-5 bg-neon-cyan rounded-full flex items-center justify-center border-2 border-[#050505] shadow-lg">
+                                                                    <span className="text-[9px] font-black text-white">{pendingMessagesCount + (pendingQuizzesCount > 0 ? 1 : 0)}</span>
+                                                                </div>
+                                                            )}
                                                         </div>
                                                     )}
                                                 </div>
