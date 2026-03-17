@@ -128,10 +128,13 @@ async function saveGitHubFile(filePath, content, message, sha, config) {
     if (!TOKEN) return { ok: false, error: 'GITHUB_TOKEN is missing' };
     const putUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
     const encodedContent = utf8Encode(JSON.stringify(content, null, 2));
+    const skipTags = " [skip ci] [CF-Pages-Skip]";
+    const finalMessage = message.includes(skipTags) ? message : message + skipTags;
+    
     const response = await fetch(putUrl, {
         method: 'PUT',
         headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Content-Type': 'application/json' },
-        body: JSON.stringify({ message, content: encodedContent, sha })
+        body: JSON.stringify({ message: finalMessage, content: encodedContent, sha })
     });
 
     if (!response.ok) {
