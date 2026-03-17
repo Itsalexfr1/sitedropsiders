@@ -894,20 +894,6 @@
     "description_en": "Un club 24/7 unique en son genre, mêlant spectacle de cabaret, méga-club et hospitalité de luxe."
   },
   {
-    "id": "c94",
-    "name": "Brooklyn Mirage",
-    "city": "Brooklyn",
-    "country": "US",
-    "djmag_rank": 94,
-    "description": "Un sanctuaire en plein air avec un mur LED monumental, offrant l'une des expériences audiovisuelles les plus immersives au monde.",
-    "image": "https://images.unsplash.com/photo-1545128485-c400e7702796?w=600&h=400&fit=crop&q=80&sig=c94",
-    "website": "https://www.brooklynmirage.com",
-    "instagram": "https://instagram.com/brooklynmirage",
-    "votes": 0,
-    "status": "waiting",
-    "description_en": "Un sanctuaire en plein air avec un mur LED monumental, offrant l'une des expériences audiovisuelles les plus immersives au monde."
-  },
-  {
     "id": "c95",
     "name": "De School",
     "city": "Amsterdam",
