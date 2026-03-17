@@ -2820,14 +2820,27 @@ ${urls.map(u => `  <url>
             if (!BREVO_KEY) return new Response(JSON.stringify({ error: 'Brevo API Key missing' }), { status: 500, headers });
             try {
                 const body = await request.json().catch(() => ({}));
-                const { to, subject, message, pdfBase64, filename, invoiceData } = body;
+                const { to, subject, message, pdfBase64, invoiceHtml, filename, invoiceData } = body;
 
-                if (!to || !pdfBase64) {
-                    return new Response(JSON.stringify({ error: 'Destinataire ou PDF manquant' }), { status: 400, headers });
+                if (!to) {
+                    return new Response(JSON.stringify({ error: 'Destinataire manquant' }), { status: 400, headers });
                 }
 
-                // Strip data URI part if present
-                const base64Content = pdfBase64.includes('base64,') ? pdfBase64.split('base64,')[1] : pdfBase64;
+                let attachments: any[] = [];
+
+                if (pdfBase64) {
+                    const base64Content = pdfBase64.includes('base64,') ? pdfBase64.split('base64,')[1] : pdfBase64;
+                    attachments = [{ content: base64Content, name: filename || 'facture.pdf' }];
+                } else if (invoiceHtml) {
+                    const encoder = new TextEncoder();
+                    const htmlBytes = encoder.encode(invoiceHtml);
+                    let binary = '';
+                    htmlBytes.forEach(b => { binary += String.fromCharCode(b); });
+                    const base64Html = btoa(binary);
+                    attachments = [{ content: base64Html, name: filename || 'facture.html' }];
+                }
+
+                const htmlBody = (message || 'Bonjour,\n\nVeuillez trouver en pièce jointe votre facture.\n\nCordialement,\nCUENCA ALEXANDRE').replace(/\n/g, '<br>');
 
                 const payload = {
                     sender: { name: 'CUENCA ALEXANDRE', email: 'alexflex30@gmail.com' },
@@ -2835,13 +2848,8 @@ ${urls.map(u => `  <url>
                     bcc: [{ email: 'alexflex30@gmail.com' }],
                     replyTo: { email: 'alexflex30@gmail.com', name: 'CUENCA ALEXANDRE' },
                     subject: subject || 'Votre Facture',
-                    htmlContent: message || "<p>Bonjour,</p><p>Veuillez trouver ci-joint votre facture.</p><p>Cordialement,<br>CUENCA ALEXANDRE</p>",
-                    attachment: [
-                        {
-                            content: base64Content,
-                            name: filename || 'facture.pdf'
-                        }
-                    ]
+                    htmlContent: `<p style="font-family:Arial,sans-serif;font-size:14px;color:#333;line-height:1.6">${htmlBody}</p>`,
+                    ...(attachments.length > 0 ? { attachment: attachments } : {})
                 };
 
                 const brevoRes = await fetch('https://api.brevo.com/v3/smtp/email', {
