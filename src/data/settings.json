@@ -4,7 +4,7 @@
   "shop_password_protected": false,
   "shop_password_image": "",
   "takeover": {
-    "enabled": true,
+    "enabled": false,
     "youtubeId": "",
     "title": "LIVESTREAM",
     "moderators": "",
@@ -28,7 +28,7 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "edit"
+    "status": "off"
   },
   "socials": {
     "instagram": "dropsiders.eu",
