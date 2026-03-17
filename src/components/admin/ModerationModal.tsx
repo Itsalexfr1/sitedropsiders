@@ -90,7 +90,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
     const fetchPending = async () => {
         setIsLoading(true);
         try {
-            const response = await fetch('/api/photos/pending', {
+            const response = await fetch(`/api/photos/pending?t=${Date.now()}`, {
                 headers: getAuthHeaders()
             });
             if (response.ok) {
@@ -100,9 +100,9 @@ export function ModerationModal({ isOpen, onClose, onSuccess }: ModerationModalP
             
             // Fetch wiki live data for real-time moderation
             const [djsRes, clubsRes, festsRes] = await Promise.all([
-                fetch('/api/wiki/list?type=DJS'),
-                fetch('/api/wiki/list?type=CLUBS'),
-                fetch('/api/wiki/list?type=FESTIVALS')
+                fetch(`/api/wiki/list?type=DJS&t=${Date.now()}`),
+                fetch(`/api/wiki/list?type=CLUBS&t=${Date.now()}`),
+                fetch(`/api/wiki/list?type=FESTIVALS&t=${Date.now()}`)
             ]);
             
             let djs: any[] = [];

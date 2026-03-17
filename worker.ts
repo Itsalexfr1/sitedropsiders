@@ -91,7 +91,7 @@ const WIKI_FESTIVALS_PATH = 'src/data/wiki_festivals.json';
 async function fetchGitHubFile(filePath, config) {
     const { OWNER, REPO, TOKEN } = config;
     if (!TOKEN) return null;
-    const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
+    const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}?t=${Date.now()}`;
     const response = await fetch(getUrl, {
         headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' }
     });
@@ -3124,7 +3124,8 @@ ${urls.map(u => `  <url>
                         }
                     }
 
-                    await saveGitHubFile(GALERIE_PATH, galleries, `Approve photo for ${galleryTitle}`, galFile.sha, gitConfig);
+                    const savedGal = await saveGitHubFile(GALERIE_PATH, galleries, `Approve photo for ${galleryTitle}`, galFile.sha, gitConfig);
+                    if (!savedGal.ok) return new Response(JSON.stringify({ error: 'Failed to update gallery: ' + savedGal.error }), { status: 500, headers });
 
                     // Save anecdote to KV
                     const finalAnecdote = anecdote !== undefined ? anecdote : submission.anecdote;
@@ -3149,7 +3150,8 @@ ${urls.map(u => `  <url>
 
                 // Remove from pending (for both approve and reject)
                 const updatedSubs = subFile.content.filter(s => s.id !== id);
-                await saveGitHubFile(PENDING_SUBMISSIONS_PATH, updatedSubs, `${action === 'approve' ? 'Approve' : 'Reject'} photo submission ${id}`, subFile.sha, gitConfig);
+                const savedPending = await saveGitHubFile(PENDING_SUBMISSIONS_PATH, updatedSubs, `${action === 'approve' ? 'Approve' : 'Reject'} photo submission ${id}`, subFile.sha, gitConfig);
+                if (!savedPending.ok) return new Response(JSON.stringify({ error: 'Failed to update pending: ' + savedPending.error }), { status: 500, headers });
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e) {

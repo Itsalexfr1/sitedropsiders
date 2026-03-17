@@ -768,7 +768,7 @@ export function AdminDashboard() {
     const fetchPhotosCount = async () => {
         let count = 0;
         try {
-            const r = await fetch('/api/photos/pending', { headers: getAuthHeaders() });
+            const r = await fetch(`/api/photos/pending?t=${Date.now()}`, { headers: getAuthHeaders() });
             if (r.ok) {
                 const data = await r.json();
                 count += Array.isArray(data) ? data.length : 0;
@@ -776,11 +776,10 @@ export function AdminDashboard() {
         } catch (e) { }
 
         try {
-            // Fetch live wiki counts to bypass build delays
             const [djsRes, clubsRes, festsRes] = await Promise.all([
-                fetch('/api/wiki/list?type=DJS'),
-                fetch('/api/wiki/list?type=CLUBS'),
-                fetch('/api/wiki/list?type=FESTIVALS')
+                fetch(`/api/wiki/list?type=DJS&t=${Date.now()}`),
+                fetch(`/api/wiki/list?type=CLUBS&t=${Date.now()}`),
+                fetch(`/api/wiki/list?type=FESTIVALS&t=${Date.now()}`)
             ]);
             
             if (djsRes.ok) {
@@ -807,7 +806,7 @@ export function AdminDashboard() {
 
         // Also fetch pending quizzes count here
         try {
-            const res = await fetch('/api/quiz/pending', { headers: getAuthHeaders() });
+            const res = await fetch(`/api/quiz/pending?t=${Date.now()}`, { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
                 setPendingQuizzesCount(Array.isArray(data) ? data.length : 0);
