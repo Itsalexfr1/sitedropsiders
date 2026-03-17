@@ -32,11 +32,11 @@ interface Sender {
 }
 
 const DEFAULT_SENDER: Sender = {
-    name: 'VOTRE NOM',
-    siret: '000 000 000 00000',
-    address: '1 Rue Exemple, 75001 Paris',
-    email: 'contact@exemple.fr',
-    phone: '06 00 00 00 00',
+    name: 'CUENCA ALEXANDRE',
+    siret: '805 131 828 00010',
+    address: '123 Rue de la Musique, 75001 Paris',
+    email: 'contact@dropsiders.fr',
+    phone: '07 62 05 45 89',
     legal: 'Auto-entrepreneur – TVA non applicable, art. 293 B du CGI',
 };
 
@@ -161,9 +161,9 @@ function buildInvoiceHTML(data: {
 }
 
 // Shared input class
-const inputCls = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white text-sm font-medium focus:outline-none focus:border-indigo-400 transition-all placeholder:text-white/20";
-const labelCls = "text-[9px] font-black text-white/30 uppercase tracking-widest mb-1.5 block";
-const cardCls = "bg-white/[0.04] border border-white/[0.07] rounded-2xl p-5 md:p-6";
+const inputCls = "w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3.5 text-white text-base md:text-sm font-medium focus:outline-none focus:border-indigo-400 transition-all placeholder:text-white/20";
+const labelCls = "text-[8px] md:text-[9px] font-black text-white/30 uppercase tracking-widest mb-1.5 block";
+const cardCls = "bg-white/[0.04] border border-white/[0.07] rounded-2xl p-4 md:p-6";
 
 export function InvoiceGenerator() {
     const [sender, setSender] = useState<Sender>(() => {
