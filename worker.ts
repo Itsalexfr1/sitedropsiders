@@ -715,67 +715,39 @@ ${urls.map(u => `  <url>
                 } catch (e) { console.error("IG API Fail:", e); }
             }
 
-            // 4. MULTI-INSTANCE COBALT FALLBACK (Enhanced list)
+            // 4. MULTI-INSTANCE COBALT FALLBACK (Stealth Mode)
             const cobaltInstances = [
-                'https://sh.itjust.works',
-                'https://co.wuk.sh',
-                'https://api.cobalt.tools',
                 'https://nuko-c.meowing.de',
                 'https://cobalt.k69.ch',
                 'https://sunny.imput.net',
-                'https://nachos.imput.net'
+                'https://nachos.imput.net',
+                'https://api.cobalt.tools'
             ];
 
-            // Re-order for YouTube specifically if needed
-            const prioritizedInstances = (targetUrl.includes('youtube') || targetUrl.includes('youtu.be'))
-                ? ['https://sh.itjust.works', ...cobaltInstances.filter(i => i !== 'https://sh.itjust.works')]
-                : cobaltInstances;
-
-            for (const instance of prioritizedInstances) {
+            for (const instance of cobaltInstances) {
                 try {
-                    const res = await fetch(`${instance}/api/json`, { // Try /api/json for Cobalt v10 compatibility
+                    const res = await fetch(instance, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
                             'Origin': 'https://cobalt.tools',
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                         },
                         body: JSON.stringify({
                             url: targetUrl,
                             videoQuality: '720',
                             downloadMode: 'tunnel',
-                            isNoTTWatermark: true,
-                            isAudioOnly: body.downloadMode === 'audio' || body.aFormat === 'mp3'
+                            isNoTTWatermark: true
                         }),
-                        signal: AbortSignal.timeout(6000)
+                        signal: AbortSignal.timeout(5000)
                     });
 
                     if (res.ok) {
                         const data = await res.json() as any;
                         if (data.url || data.picker) return new Response(JSON.stringify(data), { headers });
                     }
-                } catch (e) {
-                    // Fallback to root path if /api/json fails
-                    try {
-                        const res2 = await fetch(instance, {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json',
-                            },
-                            body: JSON.stringify({
-                                url: targetUrl,
-                                videoQuality: '720',
-                                downloadMode: 'tunnel'
-                            }),
-                            signal: AbortSignal.timeout(5000)
-                        });
-                        if (res2.ok) {
-                            const data2 = await res2.json() as any;
-                            if (data2.url) return new Response(JSON.stringify(data2), { headers });
-                        }
-                    } catch (e2) { continue; }
-                }
+                } catch (e) { continue; }
             }
 
             // 5. FINAL TIKWM FALLBACK
