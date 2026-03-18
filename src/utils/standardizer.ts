@@ -47,8 +47,76 @@ export const fixEncoding = (text: string) => {
         'AEDEN': 'ÆDEN', 'Ã†DEN': 'ÆDEN'
     };
 
+    const SPELLING_CORRECTIONS: Record<string, string> = {
+        // Grammaire et expressions communes
+        "y'a n'a": "il y en a",
+        "y'a": "il y a",
+        "si y'a": "s'il y a",
+        "enfaite": "en fait",
+        "dailleur": "d'ailleurs",
+        "en tout cas": "en tout cas", // Déjà correct
+        "quel qu'un": "quelqu'un",
+        "quelqu'un": "quelqu'un",
+        "rendez vous": "rendez-vous",
+        "Rendez vous": "Rendez-vous",
+        "parmis": "parmi",
+        "hormis": "hormis",
+        "malgrès": "malgré",
+        "apart": "à part",
+        "certe": "certes",
+        "acceuil": "accueil",
+        "connection": "connexion",
+        
+        // Accents manquants (Minuscules)
+        "evenement": "événement",
+        "evenements": "événements",
+        "evennement": "événement",
+        "evènement": "événement",
+        "fete": "fête",
+        "fetes": "fêtes",
+        "bientot": "bientôt",
+        "deja": "déjà",
+        "tres": "très",
+        "apres": "après",
+        "plutot": "plutôt",
+        "etant": "étant",
+        "etait": "était",
+        "etant ": "étant ",
+        "etes": "êtes",
+        "etre": "être",
+        "cote": "côté",
+        "diner": "dîner",
+        "cloture": "clôture",
+        "controle": "contrôle",
+        "n'hesitez pas": "n'hésitez pas",
+        
+        // Accents manquants (Majuscules)
+        "Evenement": "Événement",
+        "Apres": "Après",
+        "Deja": "Déjà",
+        "Etre": "Être",
+        "Etes": "Êtes",
+        "N'hesitez pas": "N'hésitez pas",
+        "A bientot": "À bientôt",
+        "A demain": "À demain"
+    };
+
+    // 1. Fix encoding first
     for (const [bad, good] of Object.entries(USER_REPORTED)) {
         s = s.split(bad).join(good);
+    }
+
+    // 2. Fix common spelling mistakes
+    // We use regex for some to ensure word boundaries
+    for (const [bad, good] of Object.entries(SPELLING_CORRECTIONS)) {
+        // Simple replace for common multi-word expressions or those with apostrophes
+        if (bad.includes(' ') || bad.includes("'")) {
+            s = s.split(bad).join(good);
+        } else {
+            // Use word boundary for single words to avoid partial replacement
+            const regex = new RegExp(`\\b${bad}\\b`, 'g');
+            s = s.replace(regex, good);
+        }
     }
 
     // 2. COMMON TRIPLE/DOUBLE PATTERNS

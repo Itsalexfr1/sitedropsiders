@@ -4,8 +4,9 @@ import {
     X, Download, Upload, PlusCircle,
     Video, Layout, Smartphone, Image as ImageIcon,
     Home, Link as LinkIcon, Palette, Type, Film,
-    Check, Layers
+    Check, Layers, Sparkles
 } from 'lucide-react';
+import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
 
 
@@ -1034,8 +1035,16 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 autoCorrect="on"
                 autoComplete="on"
                 autoCapitalize="sentences"
-                className="w-full h-24 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm font-bold italic resize-none focus:border-neon-red outline-none transition-all shadow-inner shadow-black font-sans uppercase break-words"
+                className="w-full h-24 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm font-bold italic resize-none focus:border-cyan-500 outline-none transition-all shadow-inner shadow-black font-sans uppercase break-words"
             />
+            <div className="flex justify-end">
+                <button 
+                    onClick={() => setCustomText(fixEncoding(customText))}
+                    className="flex items-center gap-1.5 px-3 py-1.5 bg-green-500/10 border border-green-500/20 rounded-lg text-green-400 text-[9px] font-black uppercase hover:bg-green-500 hover:text-white transition-all"
+                >
+                    <Sparkles className="w-3 h-3" /> Nettoyer & Corriger
+                </button>
+            </div>
             <p className="text-[9px] text-white/30 italic px-1">Les codes comme [C:...] ou [B:...] seront transformés en style sur l'image finale.</p>
             <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">

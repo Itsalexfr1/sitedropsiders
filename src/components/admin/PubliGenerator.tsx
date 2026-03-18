@@ -306,9 +306,9 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
                         </div>
                         <div>
                             <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter leading-none">
-                                GÉNÉRATEUR <span className="text-neon-orange">PUBLI</span>
+                                GÉNERATEUR <span className="text-neon-orange">PUBLI</span> & <span className="text-green-400">CORRECTEUR</span>
                             </h2>
-                            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest mt-0.5">Social Studio Engine • Alex</p>
+                            <p className="text-[9px] text-gray-600 font-bold uppercase tracking-widest mt-0.5">Social Studio Engine • Alex • Correction Auto ON</p>
                         </div>
                     </div>
                     <button
@@ -389,9 +389,9 @@ export function PubliGenerator({ isOpen, onClose, onOpenSocialStudio }: PubliGen
                                 className="w-full h-12 bg-neon-orange text-white font-black rounded-xl shadow-[0_0_24px_rgba(255,140,0,0.25)] hover:shadow-[0_0_36px_rgba(255,140,0,0.45)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 disabled:opacity-40 disabled:grayscale disabled:scale-100 disabled:cursor-not-allowed"
                             >
                                 {isGenerating ? (
-                                    <><RefreshCw className="w-4 h-4 animate-spin" /> Génération...</>
+                                    <><RefreshCw className="w-4 h-4 animate-spin" /> Analyse & Correction...</>
                                 ) : (
-                                    <><Send className="w-4 h-4" /> Générer les publications</>
+                                    <><Sparkles className="w-4 h-4" /> Corriger & Générer</>
                                 )}
                             </button>
 
