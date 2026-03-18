@@ -858,20 +858,6 @@
     "description_en": "Le festival de référence pour le Nouvel An en Australie, offrant une expérience musicale et camping premium dans un cadre verdoyant."
   },
   {
-    "id": "f84",
-    "name": "Baum Festival",
-    "city": "Bogota",
-    "country": "CO",
-    "djmag_rank": 84,
-    "description": "Baum est le pilier de la scène électronique colombienne, apportant le meilleur de la techno et de la house à Bogota.",
-    "image": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&h=400&fit=crop&q=80&sig=f84",
-    "website": "https://www.baumfestival.com",
-    "instagram": "https://instagram.com/baumfestival",
-    "votes": 0,
-    "status": "waiting",
-    "description_en": "Baum est le pilier de la scène électronique colombienne, apportant le meilleur de la techno et de la house à Bogota."
-  },
-  {
     "id": "f85",
     "name": "Oasis Festival",
     "city": "Marrakech",
