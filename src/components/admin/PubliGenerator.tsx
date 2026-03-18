@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     X, Sparkles, Copy, Check, Instagram, Facebook, Twitter,
-    Send, RefreshCw, Pencil, Image as ImageIcon, Upload, Trash2,
+    RefreshCw, Pencil, Image as ImageIcon, Upload, Trash2,
     Layout, Heart, MessageCircle, Repeat2, Bookmark, Share2,
     ThumbsUp, Globe, ChevronDown, MoreHorizontal
 } from 'lucide-react';

@@ -613,18 +613,14 @@ ${urls.map(u => `  <url>
             // We rotate through these to find one that isn't rate-limited
             const instances = [
                 'https://api.cobalt.tools/',
-                'https://cobalt.pervage.me/',
-                'https://cobalt.k69.ch/',
                 'https://cobalt.v0.sh/',
-                'https://cobalt.qwer.sh/',
-                'https://cobalt.hotis.moe/',
-                'https://cobalt.media/',
-                'https://cobalt.im/',
                 'https://co.wuk.sh/',
+                'https://cobalt.hotis.moe/',
+                'https://cobalt.k69.ch/',
+                'https://cobalt.qwer.sh/',
                 'https://cobalt.onl/',
-                'https://cobalt.sneaky.sh/',
-                'https://cobalt.pablo.pw/',
-                'https://api.cobalt.red/'
+                'https://api.cobalt.red/',
+                'https://cobalt.sneaky.sh/'
             ];
 
             // Try 5 random instances in parallel to speed up the process
@@ -642,9 +638,11 @@ ${urls.map(u => `  <url>
                         body: JSON.stringify({
                             ...body,
                             videoQuality: body.videoQuality || '1080',
-                            downloadMode: body.downloadMode || 'auto'
+                            vQuality: body.vQuality || '1080',
+                            downloadMode: body.downloadMode || 'auto',
+                            isNoTTWatermark: true
                         }),
-                        signal: AbortSignal.timeout(5000) // 5s timeout instead of 10s
+                        signal: AbortSignal.timeout(7000) 
                     });
 
                     if (response.ok) {

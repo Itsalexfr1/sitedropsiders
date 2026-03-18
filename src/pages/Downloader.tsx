@@ -38,10 +38,13 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelec
                 body: JSON.stringify({
                     url: url,
                     videoQuality: '1080',
+                    vQuality: '1080',
                     audioFormat: 'mp3',
+                    aFormat: 'mp3',
                     downloadMode: 'auto',
                     filenameStyle: 'pretty',
-                    youtubeVideoCodec: 'h264'
+                    youtubeVideoCodec: 'h264',
+                    isNoTTWatermark: true
                 })
             });
 
