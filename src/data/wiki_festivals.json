@@ -507,20 +507,6 @@
     "description_en": "Boomtown est un festival narratif immersif, une cité imaginaire construite pour célébrer l'art, la musique et le changement social."
   },
   {
-    "id": "f54",
-    "name": "Dekmantel Festival",
-    "city": "Amsterdam",
-    "country": "NL",
-    "djmag_rank": 54,
-    "description": "Dekmantel est la référence absolue pour les puristes, un festival à taille humaine qui met l'accent sur la qualité musicale et l'exploration sonore.",
-    "image": "https://images.unsplash.com/photo-1470229722913-7c0e2dbbafd3?w=600&h=400&fit=crop&q=80&sig=f54",
-    "website": "https://www.dekmantelfestival.com",
-    "instagram": "https://instagram.com/dekmantelfestival",
-    "votes": 0,
-    "status": "waiting",
-    "description_en": "Dekmantel est la référence absolue pour les puristes, un festival à taille humaine qui met l'accent sur la qualité musicale et l'exploration sonore."
-  },
-  {
     "id": "f55",
     "name": "Lollapalooza",
     "city": "Chicago",
