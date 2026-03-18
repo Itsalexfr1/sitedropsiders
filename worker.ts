@@ -3300,7 +3300,7 @@ ${urls.map(u => `  <url>
                 let allKeys = new Set();
                 let cursor = undefined;
                 do {
-                    const listResult = await env.R2.list({ prefix: 'uploads/', cursor });
+                    const listResult = await env.R2.list({ cursor });
                     listResult.objects.forEach(o => allKeys.add(o.key));
                     cursor = listResult.truncated ? listResult.cursor : undefined;
                 } while (cursor);
