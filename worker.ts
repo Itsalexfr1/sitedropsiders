@@ -601,13 +601,99 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/downloader-proxy' && request.method === 'POST') {
             const body = await request.json();
-            const targetUrl = body.url;
+            let targetUrl = body.url;
             const headers = {
                 'Content-Type': 'application/json',
                 'Access-Control-Allow-Origin': '*'
             };
 
             if (!targetUrl) return new Response(JSON.stringify({ error: 'URL requise' }), { status: 400, headers });
+
+            // URL CLEANER: Stripping extra parameters that break downloader APIs (especially for YouTube playlists/mixes)
+            try {
+                const urlObj = new URL(targetUrl);
+                if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
+                    // Keep 'v' parameter for youtube.com
+                    const videoId = urlObj.searchParams.get('v');
+                    if (videoId) {
+                        targetUrl = `https://www.youtube.com/watch?v=${videoId}`;
+                    } else if (urlObj.hostname.includes('youtu.be')) {
+                        // youtu.be/VIDEO_ID?extra -> youtu.be/VIDEO_ID
+                        targetUrl = `https://youtu.be/${urlObj.pathname.split('/')[1]}`;
+                    }
+                } else if (urlObj.hostname.includes('instagram.com')) {
+                    // Instagram: strip everything after '?'
+                    targetUrl = targetUrl.split('?')[0];
+                }
+            } catch (e) { }
+
+            // --- INSTAGRAM RELIABILITY: FASTDL.APP API ---
+            if (targetUrl.includes('instagram.com')) {
+                try {
+                    // 1. Get server time to calculate offset
+                    const msecRes = await fetch('https://fastdl.app/msec', { 
+                        method: 'GET',
+                        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' }
+                    });
+                    const serverMsec = await msecRes.text();
+                    const now = Date.now();
+                    const offset = now - parseInt(serverMsec);
+                    const ts = now - offset;
+
+                    // 2. Generate signature _s = SHA256(url + ts)
+                    const payload = targetUrl + ts;
+                    const msgUint8 = new TextEncoder().encode(payload);
+                    const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
+                    const hashArray = Array.from(new Uint8Array(hashBuffer));
+                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+                    // 3. Make the API request
+                    const params = new URLSearchParams();
+                    params.append('sf_url', targetUrl);
+                    params.append('ts', ts.toString());
+                    params.append('_ts', now.toString()); // Start session TS
+                    params.append('_tsc', '0');
+                    params.append('_sv', '2');
+                    params.append('_s', hashHex);
+
+                    const fastDlRes = await fetch('https://api-wh.fastdl.app/api/convert', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                            'Origin': 'https://fastdl.app',
+                            'Referer': 'https://fastdl.app/',
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+                        },
+                        body: params.toString()
+                    });
+
+                    const fastDlData = await fastDlRes.json() as any;
+                    if (fastDlData.success && fastDlData.data && fastDlData.data.length > 0) {
+                        // Support carousels by mapping back to data array or single picker
+                        if (fastDlData.data.length === 1) {
+                            return new Response(JSON.stringify({
+                                status: 'success',
+                                url: fastDlData.data[0].url,
+                                filename: fastDlData.data[0].title || 'instagram_video.mp4',
+                                title: fastDlData.data[0].title || 'Instagram Content'
+                            }), { headers });
+                        } else {
+                            // Map all items for picker support
+                            return new Response(JSON.stringify({
+                                status: 'picker',
+                                picker: fastDlData.data.map((item: any) => ({
+                                    url: item.url,
+                                    type: item.type,
+                                    thumb: item.thumbnail
+                                }))
+                            }), { headers });
+                        }
+                    }
+                } catch (e) {
+                    console.error("FastDL Error:", e);
+                    // Fallback to Cobalt if FastDL fails
+                }
+            }
 
             // Extensive list of Cobalt v10+ instances (Community verified)
             // We rotate through these to find one that isn't rate-limited
