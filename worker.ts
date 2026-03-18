@@ -609,66 +609,56 @@ ${urls.map(u => `  <url>
 
             if (!targetUrl) return new Response(JSON.stringify({ error: 'URL requise' }), { status: 400, headers });
 
-            // URL CLEANER: Stripping extra parameters that break downloader APIs (especially for YouTube playlists/mixes)
+            // 1. URL CLEANER & NORMALIZER
             try {
                 const urlObj = new URL(targetUrl);
+                // Handle YouTube variants
                 if (urlObj.hostname.includes('youtube.com') || urlObj.hostname.includes('youtu.be')) {
-                    // Keep 'v' parameter for youtube.com
-                    const videoId = urlObj.searchParams.get('v');
-                    if (videoId) {
-                        targetUrl = `https://www.youtube.com/watch?v=${videoId}`;
-                    } else if (urlObj.hostname.includes('youtu.be')) {
-                        // youtu.be/VIDEO_ID?extra -> youtu.be/VIDEO_ID
-                        targetUrl = `https://youtu.be/${urlObj.pathname.split('/')[1]}`;
+                    if (urlObj.pathname.includes('/shorts/')) {
+                        const shortId = urlObj.pathname.split('/shorts/')[1].split('?')[0];
+                        targetUrl = `https://www.youtube.com/watch?v=${shortId}`;
+                    } else {
+                        const videoId = urlObj.searchParams.get('v');
+                        if (videoId) targetUrl = `https://www.youtube.com/watch?v=${videoId}`;
                     }
-                } else if (urlObj.hostname.includes('instagram.com')) {
-                    // Instagram: strip everything after '?'
+                }
+                // Handle Instagram
+                if (urlObj.hostname.includes('instagram.com')) {
                     targetUrl = targetUrl.split('?')[0];
                 }
             } catch (e) { }
 
-            // --- YOUTUBE RELIABILITY: DLSRV.ONLINE API (YT1S STYLE) ---
+            // 2. YOUTUBE SPECIALIZED API (dlsrv.online / YT1S style)
             if (targetUrl.includes('youtube.com') || targetUrl.includes('youtu.be')) {
                 try {
-                    const urlObj = new URL(targetUrl);
-                    let videoId = '';
-                    if (urlObj.hostname.includes('youtube.com')) {
-                        videoId = urlObj.searchParams.get('v') || '';
-                    } else {
-                        videoId = urlObj.pathname.split('/')[1] || '';
-                    }
-
+                    const videoId = targetUrl.includes('v=') ? targetUrl.split('v=')[1].split('&')[0] : targetUrl.split('/').pop()?.split('?')[0];
                     if (videoId) {
                         const appOrigin = 'ec5876a5-f1a2-43c5-9f88-9958757942a4';
-                        const apiBase = 'https://embed.dlsrv.online/api';
                         const reqHeaders = {
                             'Content-Type': 'application/json',
                             'x-do-app-origin': appOrigin,
                             'Referer': `https://embed.dlsrv.online/v1/full?videoId=${videoId}`,
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
                         };
 
-                        // Step 1: Get Info
-                        const infoRes = await fetch(`${apiBase}/info`, {
+                        const infoRes = await fetch(`https://embed.dlsrv.online/api/info`, {
                             method: 'POST',
                             headers: reqHeaders,
                             body: JSON.stringify({ videoId })
                         });
-                        const infoData = await infoRes.json() as any;
 
-                        if (infoData && (infoData.id || infoData.videoId)) {
-                            // Step 2: Request Download
-                            const isAudio = body.aFormat === 'mp3' || body.downloadMode === 'audio'; // Check from frontend request
+                        if (infoRes.ok) {
+                            const infoData = await infoRes.json() as any;
+                            const isAudio = body.downloadMode === 'audio' || body.aFormat === 'mp3';
                             const format = isAudio ? 'mp3' : 'mp4';
-                            const quality = isAudio ? '320' : '1080';
-
-                            const dlRes = await fetch(`${apiBase}/download/${format}`, {
+                            
+                            const dlRes = await fetch(`https://embed.dlsrv.online/api/download/${format}`, {
                                 method: 'POST',
                                 headers: reqHeaders,
-                                body: JSON.stringify({ videoId, format, quality })
+                                body: JSON.stringify({ videoId, format, quality: isAudio ? '320' : '720' })
                             });
-                            const dlData = await dlRes.json() as any;
 
+                            const dlData = await dlRes.json() as any;
                             if (dlData.url) {
                                 return new Response(JSON.stringify({
                                     status: 'success',
@@ -679,39 +669,23 @@ ${urls.map(u => `  <url>
                             }
                         }
                     }
-                } catch (e) {
-                    console.error("YouTube dlsrv Error:", e);
-                    // Fallback to Cobalt
-                }
+                } catch (e) { console.error("YT API Fail:", e); }
             }
 
-            // --- INSTAGRAM RELIABILITY: FASTDL.APP API ---
+            // 3. INSTAGRAM SPECIALIZED API (FastDL.app)
             if (targetUrl.includes('instagram.com')) {
                 try {
-                    // 1. Get server time to calculate offset
-                    const msecRes = await fetch('https://fastdl.app/msec', { 
-                        method: 'GET',
-                        headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' }
-                    });
-                    const serverMsec = await msecRes.text();
-                    const now = Date.now();
-                    const offset = now - parseInt(serverMsec);
-                    const ts = now - offset;
-
-                    // 2. Generate signature _s = SHA256(url + ts)
+                    const msecRes = await fetch('https://fastdl.app/msec', { headers: { 'User-Agent': 'Mozilla/5.0' } });
+                    const ts = parseInt(await msecRes.text());
                     const payload = targetUrl + ts;
                     const msgUint8 = new TextEncoder().encode(payload);
                     const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-                    const hashArray = Array.from(new Uint8Array(hashBuffer));
-                    const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+                    const hashHex = Array.from(new Uint8Array(hashBuffer)).map(b => b.toString(16).padStart(2, '0')).join('');
 
-                    // 3. Make the API request
                     const params = new URLSearchParams();
                     params.append('sf_url', targetUrl);
                     params.append('ts', ts.toString());
-                    params.append('_ts', now.toString()); // Start session TS
-                    params.append('_tsc', '0');
-                    params.append('_sv', '2');
+                    params.append('_ts', Date.now().toString());
                     params.append('_s', hashHex);
 
                     const fastDlRes = await fetch('https://api-wh.fastdl.app/api/convert', {
@@ -720,118 +694,72 @@ ${urls.map(u => `  <url>
                             'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
                             'Origin': 'https://fastdl.app',
                             'Referer': 'https://fastdl.app/',
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+                            'User-Agent': 'Mozilla/5.0'
                         },
                         body: params.toString()
                     });
 
                     const fastDlData = await fastDlRes.json() as any;
-                    if (fastDlData.success && fastDlData.data && fastDlData.data.length > 0) {
-                        // Support carousels by mapping back to data array or single picker
-                        if (fastDlData.data.length === 1) {
-                            return new Response(JSON.stringify({
-                                status: 'success',
-                                url: fastDlData.data[0].url,
-                                filename: fastDlData.data[0].title || 'instagram_video.mp4',
-                                title: fastDlData.data[0].title || 'Instagram Content'
-                            }), { headers });
-                        } else {
-                            // Map all items for picker support
-                            return new Response(JSON.stringify({
-                                status: 'picker',
-                                picker: fastDlData.data.map((item: any) => ({
-                                    url: item.url,
-                                    type: item.type,
-                                    thumb: item.thumbnail
-                                }))
-                            }), { headers });
-                        }
+                    if (fastDlData.success && fastDlData.data?.length > 0) {
+                        return new Response(JSON.stringify({
+                            status: fastDlData.data.length > 1 ? 'picker' : 'success',
+                            url: fastDlData.data[0].url,
+                            picker: fastDlData.data.length > 1 ? fastDlData.data.map((item: any) => ({
+                                url: item.url,
+                                type: item.type,
+                                thumb: item.thumbnail
+                            })) : undefined,
+                            title: fastDlData.data[0].title || 'Instagram Content'
+                        }), { headers });
                     }
-                } catch (e) {
-                    console.error("FastDL Error:", e);
-                    // Fallback to Cobalt if FastDL fails
-                }
+                } catch (e) { console.error("IG API Fail:", e); }
             }
 
-            // Extensive list of Cobalt v10+ instances (Community verified)
-            // We rotate through these to find one that isn't rate-limited
-            const instances = [
-                'https://api.cobalt.tools/',
-                'https://cobalt.v0.sh/',
-                'https://co.wuk.sh/',
-                'https://cobalt.hotis.moe/',
-                'https://cobalt.k69.ch/',
-                'https://cobalt.qwer.sh/',
-                'https://cobalt.onl/',
-                'https://api.cobalt.red/',
-                'https://cobalt.sneaky.sh/',
-                'https://cobalt.moe/',
-                'https://cobalt.sh/',
-                'https://cobalt.press/',
-                'https://cobalt.io/',
-                'https://cobalt.plus/',
-                'https://cobalt.icu/',
-                'https://cobalt.host/'
+            // 4. MULTI-INSTANCE COBALT FALLBACK (Stealth Mode)
+            const cobaltInstances = [
+                'https://nuko-c.meowing.de',
+                'https://cobalt.k69.ch',
+                'https://sunny.imput.net',
+                'https://nachos.imput.net',
+                'https://api.cobalt.tools'
             ];
 
-            // Try first 8 random instances in parallel to maximize success
-            const selectedInstances = [...instances].sort(() => Math.random() - 0.5).slice(0, 8);
-
-            try {
-                const successResponse = await Promise.any(selectedInstances.map(async (instance) => {
-                    const response = await fetch(instance, {
+            for (const instance of cobaltInstances) {
+                try {
+                    const res = await fetch(instance, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
                             'Origin': 'https://cobalt.tools',
-                            'Referer': 'https://cobalt.tools/',
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
                         },
                         body: JSON.stringify({
                             url: targetUrl,
-                            videoQuality: body.videoQuality || '1080',
-                            vQuality: body.vQuality || '1080',
-                            audioFormat: body.audioFormat || 'mp3',
-                            aFormat: body.aFormat || 'mp3',
-                            downloadMode: 'tunnel', // Forced tunnel mode for better reliability
-                            filenameStyle: 'pretty',
+                            videoQuality: '720',
+                            downloadMode: 'tunnel',
                             isNoTTWatermark: true
                         }),
-                        signal: AbortSignal.timeout(10000) 
+                        signal: AbortSignal.timeout(5000)
                     });
 
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.url || data.picker || data.status === 'stream' || data.status === 'redirect' || data.status === 'picker' || data.text) {
-                            return new Response(JSON.stringify(data), { headers });
-                        }
+                    if (res.ok) {
+                        const data = await res.json() as any;
+                        if (data.url || data.picker) return new Response(JSON.stringify(data), { headers });
                     }
-                    throw new Error("Invalid response from " + instance);
-                }));
-                return successResponse;
-            } catch (e) {
-                // All parallel attempts failed
+                } catch (e) { continue; }
             }
 
-            // TikWM for TikTok as ultra-robust fallback
-            if (targetUrl.includes('tiktok.com')) {
-                try {
-                    const tikResponse = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(targetUrl)}`);
-                    const tikData = await tikResponse.json();
-                    if (tikData.data) {
-                        return new Response(JSON.stringify({
-                            status: 'success',
-                            url: tikData.data.play,
-                            title: tikData.data.title || 'TikTok Media'
-                        }), { headers });
-                    }
-                } catch (e) { }
-            }
+            // 5. FINAL TIKWM FALLBACK
+            try {
+                const tikRes = await fetch(`https://www.tikwm.com/api/?url=${encodeURIComponent(targetUrl)}`);
+                const tikData = await tikRes.json() as any;
+                if (tikData.data) return new Response(JSON.stringify({ status: 'success', url: tikData.data.play, title: tikData.data.title || 'TikTok Content' }), { headers });
+            } catch (e) { }
 
             return new Response(JSON.stringify({
                 status: 'error',
-                text: 'Tous les serveurs sont temporairement occupés ou limités par Instagram. Réessayez dans quelques secondes ou avec un autre lien.'
+                text: 'Désolé, tous les serveurs de secours sont saturés. Réessaie dans quelques secondes.'
             }), { status: 500, headers });
         }
 

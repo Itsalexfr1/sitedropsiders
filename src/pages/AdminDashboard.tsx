@@ -98,6 +98,7 @@ export function AdminDashboard() {
     const [quizSearch, setQuizSearch] = useState('');
     const [quizToEdit, setQuizToEdit] = useState<any>(null);
     const [testQuiz, setTestQuiz] = useState<any>(null);
+    const [globalAlert, setGlobalAlert] = useState<{ title?: string; message: string; type?: 'info' | 'danger' | 'warning' } | null>(null);
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
 
     const toggleSelection = (key: string) => {
@@ -851,11 +852,11 @@ export function AdminDashboard() {
             } else {
                 console.error("Erreur Doublons :", data);
                 // Si ce n'est pas un tableau, c'est probablement une erreur { error: "..." }
-                alert("Erreur lors de la récupération des doublons : " + (data.error || "Réponse invalide"));
+                setGlobalAlert({ message: "Erreur lors de la récupération des doublons : " + (data.error || "Réponse invalide"), type: 'danger' });
             }
         } catch (e) {
             console.error("Failed to fetch duplicates", e);
-            alert("Erreur réseau ou serveur lors de la recherche de doublons.");
+            setGlobalAlert({ message: "Erreur réseau ou serveur lors de la recherche de doublons.", type: 'danger' });
         } finally {
             setIsR2Loading(false);
         }
@@ -1196,13 +1197,13 @@ export function AdminDashboard() {
                 headers: { 'X-Admin-Password': adminPass }
             });
             if (res.ok) {
-                alert("Top 10 mis à jour avec succès ! (Rotation effectuée)");
+                setGlobalAlert({ message: "Top 10 mis à jour avec succès ! (Rotation effectuée)", type: 'info' });
             } else {
                 const data = await res.json();
-                alert("Erreur: " + (data.error || "Inconnue"));
+                setGlobalAlert({ message: "Erreur: " + (data.error || "Inconnue"), type: 'danger' });
             }
         } catch (e) {
-            alert("Erreur réseau.");
+            setGlobalAlert({ message: "Erreur réseau.", type: 'danger' });
         } finally {
             setIsUpdatingCharts(false);
         }
@@ -1789,7 +1790,7 @@ export function AdminDashboard() {
                                     </div>
                                     <button 
                                         onClick={() => {
-                                            alert("Ajout bientôt disponible");
+                                            setGlobalAlert({ message: "L'ajout direct de nouveaux articles via cette interface sera bientôt disponible.", type: 'info' });
                                         }}
                                         className="px-6 py-3 bg-neon-purple text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-neon-purple/80 transition-all shadow-lg shadow-neon-purple/20"
                                     >
@@ -1816,7 +1817,7 @@ export function AdminDashboard() {
                                                 <div className="flex justify-between gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                                     <button 
                                                         onClick={() => {
-                                                            alert("Modification bientôt disponible");
+                                                            setGlobalAlert({ message: "La modification d'articles anciens sera disponible dans une prochaine version.", type: 'info' });
                                                         }}
                                                         className="flex-1 py-2 bg-white/5 hover:bg-white/10 rounded-xl text-[8px] font-black text-white uppercase tracking-widest transition-all"
                                                     >
@@ -2358,10 +2359,12 @@ export function AdminDashboard() {
                                                     setIsInstagramContestModalOpen(true);
                                                 } else if (action.title === 'Vérifier Photos') {
                                                     e.preventDefault();
+                                                    setModerationTab('wiki');
                                                     setDashboardTab('COMMUNAUTÉ');
                                                     setIsModerationModalOpen(true);
                                                 } else if (action.title === 'Communauté') {
                                                     e.preventDefault();
+                                                    setModerationTab('photos');
                                                     setDashboardTab('COMMUNAUTÉ');
                                                     if (pendingPhotosCount > 0) {
                                                         setIsModerationModalOpen(true);
@@ -5435,7 +5438,7 @@ export function AdminDashboard() {
                                                         });
                                                         if (res.ok) {
                                                             const data = await res.json();
-                                                            alert(`? ${data.removed} questions Blind Test supprimées !`);
+                                                            setGlobalAlert({ message: `${data.removed} questions Blind Test ont été supprimées avec succès.`, type: 'info' });
                                                             fetchQuizzes();
                                                         }
                                                     } catch (err) { console.error('Reset BT error:', err); }
@@ -5941,10 +5944,10 @@ export function AdminDashboard() {
                                                                     }
                                                                     fetchQuizzes();
                                                                     if (files.length > 1) {
-                                                                        alert(`${files.length} fichiers traités ! Les morceaux ont été calés au milieu automatiquement.`);
+                                                                        setGlobalAlert({ message: `${files.length} fichiers ont été traités ! Les morceaux ont été calés au milieu automatiquement.`, type: 'info' });
                                                                     }
                                                                 } catch (err) {
-                                                                    alert('Erreur lors du traitement bulk');
+                                                                    setGlobalAlert({ message: "Une erreur est survenue lors du traitement massif des fichiers.", type: 'danger' });
                                                                 } finally {
                                                                     setIsSaving(false);
                                                                 }

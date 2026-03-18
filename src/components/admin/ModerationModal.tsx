@@ -1,10 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, CheckSquare, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare, BookOpen, Upload, Plus } from 'lucide-react';
+import { X, Check, CheckSquare, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare, BookOpen, Upload, Plus, Download, Youtube, Music } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
 import { PromptModal } from '../ui/PromptModal';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { ImageUploadModal } from '../ImageUploadModal';
+import { Downloader } from '../../pages/Downloader';
 
 
 interface Submission {
@@ -68,6 +69,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
     const [selected, setSelected] = useState<Set<string>>(new Set());
     const [isBulkProcessing, setIsBulkProcessing] = useState(false);
 
+    const [isDownloaderOpen, setIsDownloaderOpen] = useState(false);
     const [alertConfig, setAlertConfig] = useState<{
         isOpen: boolean;
         title: string;
@@ -683,18 +685,28 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                                                                     )}
                                                                 </div>
 
-                                                                <div 
-                                                                    className={`aspect-[4/5] bg-white/5 border border-dashed border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-600 relative overflow-hidden ${selectMode ? 'cursor-pointer' : ''}`}
+                                                                <div
+                                                                    className={`aspect-[4/5] bg-[#0a0a0a] border rounded-2xl flex flex-col items-center justify-center gap-2 text-gray-600 relative overflow-hidden ${isSelected ? 'border-neon-orange/40' : 'border-white/5'}`}
                                                                     onClick={() => selectMode && toggleSelect(item.id)}
                                                                 >
-                                                                    <Upload className="w-8 h-8 opacity-20" />
-                                                                    <span className="text-[9px] font-black uppercase tracking-widest text-center px-4">En attente de photo officielle</span>
-                                                                    {isSelected && <div className="absolute inset-0 bg-neon-orange/5" />}
+                                                                    {item.image && item.image !== 'https://via.placeholder.com/400' ? (
+                                                                        <>
+                                                                            <img src={item.image} className="absolute inset-0 w-full h-full object-cover" alt="" />
+                                                                            <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-all" />
+                                                                            {isSelected && <div className="absolute inset-0 bg-neon-orange/20" />}
+                                                                        </>
+                                                                    ) : (
+                                                                        <>
+                                                                            <Upload className="w-8 h-8 opacity-20" />
+                                                                            <span className="text-[9px] font-black uppercase tracking-widest text-center px-4">Sans photo officielle</span>
+                                                                            {isSelected && <div className="absolute inset-0 bg-neon-orange/5" />}
+                                                                        </>
+                                                                    )}
                                                                 </div>
 
                                                                 {!selectMode && (
                                                                     <>
-                                                                        <button 
+                                                                        <button
                                                                             onClick={() => handleUpdateWikiPhoto(item.id, item.type, item.name)}
                                                                             className="group relative w-full h-14 bg-neon-purple text-white font-black rounded-2xl shadow-[0_0_20px_rgba(168,85,247,0.1)] hover:shadow-[0_0_30px_rgba(168,85,247,0.3)] hover:scale-[1.02] active:scale-[0.98] transition-all uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 overflow-hidden"
                                                                         >
@@ -703,12 +715,29 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                                                                             </span>
                                                                             <div className="absolute bottom-0 right-0 w-0 h-0 border-b-[12px] border-r-[12px] border-b-transparent border-r-white/40" />
                                                                         </button>
-                                                                        <button 
+                                                                        <button
                                                                             onClick={() => setPromptState({ isOpen: true, itemId: item.id, itemType: item.type, itemName: item.name })}
                                                                             className="w-full py-2 text-[8px] font-black uppercase text-gray-600 hover:text-white transition-colors"
                                                                         >
                                                                             OU SAISIR UNE URL
                                                                         </button>
+                                                                        <button
+                                                                            onClick={() => {
+                                                                                setActiveItem({ id: item.id, type: item.type, name: item.name });
+                                                                                setIsDownloaderOpen(true);
+                                                                            }}
+                                                                            className="w-full py-2 bg-neon-cyan/10 border border-dashed border-neon-cyan/30 rounded-xl text-[9px] font-black uppercase text-neon-cyan hover:bg-neon-cyan hover:text-black transition-all flex items-center justify-center gap-2"
+                                                                        >
+                                                                            <Download className="w-3 h-3" /> RÉCUPÉRER VIA INSTAGRAM / TIKTOK
+                                                                        </button>
+                                                                        {item.image && item.image !== 'https://via.placeholder.com/400' && (
+                                                                            <button
+                                                                                onClick={() => confirmWikiPhoto(item.image, item.id, item.type)}
+                                                                                className="w-full py-2.5 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:bg-neon-green hover:text-black hover:border-neon-green transition-all flex items-center justify-center gap-2"
+                                                                            >
+                                                                                <Check className="w-3 h-3" /> VALIDER CETTE PHOTO
+                                                                            </button>
+                                                                        )}
                                                                     </>
                                                                 )}
                                                             </div>
@@ -722,6 +751,61 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                             )
                         )}
                     </div>
+
+                    <AnimatePresence>
+                        {isDownloaderOpen && (
+                            <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+                                <motion.div
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
+                                    onClick={() => setIsDownloaderOpen(false)}
+                                    className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+                                />
+                                <motion.div
+                                    initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                                    exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                                    className="relative w-full max-w-4xl bg-[#0a0a0a] border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl h-[80vh] flex flex-col"
+                                >
+                                    <div className="p-8 flex flex-col h-full overflow-y-auto custom-scrollbar">
+                                        <div className="flex items-center justify-between mb-8">
+                                            <div className="flex items-center gap-4">
+                                                <div className="p-4 bg-neon-cyan/20 rounded-2xl">
+                                                    <Download className="w-8 h-8 text-neon-cyan" />
+                                                </div>
+                                                <div>
+                                                    <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
+                                                        PHOTO <span className="text-neon-cyan">DOWNLOADER</span>
+                                                    </h2>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1">IG • TT • YT • X</p>
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => setIsDownloaderOpen(false)}
+                                                className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                            >
+                                                <X className="w-6 h-6" />
+                                            </button>
+                                        </div>
+
+                                        <div className="flex-1">
+                                            <Downloader
+                                                isPopup={true}
+                                                onSelect={(url) => {
+                                                    if (activeItem) {
+                                                        confirmWikiPhoto(url, activeItem.id, activeItem.type);
+                                                    }
+                                                    setIsDownloaderOpen(false);
+                                                    setActiveItem(null);
+                                                }}
+                                            />
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            </div>
+                        )}
+                    </AnimatePresence>
 
                     <PromptModal
                         isOpen={promptState.isOpen}

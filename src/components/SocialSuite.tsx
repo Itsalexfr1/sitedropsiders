@@ -61,6 +61,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [readyVideoUrl, setReadyVideoUrl] = useState<string>('');
     const [recordingProgress, setRecordingProgress] = useState(0);
     const [recordingTimeLeft, setRecordingTimeLeft] = useState(0);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -743,7 +744,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         const canvasStream = (canvas as any).captureStream ? (canvas as any).captureStream(fps) : (canvas as any).mozCaptureStream ? (canvas as any).mozCaptureStream(fps) : null;
 
         if (!canvasStream) {
-            alert("Votre navigateur ne supporte pas la capture vidéo.");
+            setErrorMessage("Votre navigateur ne supporte pas la capture vidéo.");
             setIsVideoRecording(false);
             return;
         }
@@ -785,7 +786,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
         recorder.onstop = async () => {
             if (chunks.length === 0) {
-                alert("Erreur de capture vidéo.");
+                setErrorMessage("Erreur de capture vidéo.");
                 setIsVideoRecording(false);
                 return;
             }
@@ -1553,7 +1554,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                                         const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
                                         if (isIOS || /OPR\/|Opera\/|Edition\sGX/.test(navigator.userAgent)) {
-                                            alert("Si le téléchargement ne démarre pas, maintenez la vidéo qui s'affiche pour l'enregistrer manuellement.");
+                                            setErrorMessage("Maintenez la vidéo qui s'affiche pour l'enregistrer manuellement.");
                                         }
                                     }}
                                     className="w-full py-5 bg-white text-black font-black rounded-2xl uppercase tracking-widest text-[11px] shadow-[0_10px_30px_rgba(255,255,255,0.2)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-3"
@@ -1595,6 +1596,32 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
             {/* Shared downloader modal (visible on both) */}
             {downloaderModal}
+
+            {/* Local Error Banner */}
+            <AnimatePresence>
+                {errorMessage && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 50 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        exit={{ opacity: 0, y: 50 }}
+                        className="fixed bottom-24 left-1/2 -translate-x-1/2 z-[1000] px-8 py-5 bg-black/90 backdrop-blur-3xl border border-neon-red/30 rounded-[2.5rem] flex items-center gap-5 shadow-[0_20px_60px_rgba(0,0,0,0.8)] min-w-[320px]"
+                    >
+                        <div className="p-3 bg-neon-red/20 rounded-2xl">
+                            <X className="w-5 h-5 text-neon-red" />
+                        </div>
+                        <div className="flex-1">
+                            <p className="text-white font-black italic uppercase tracking-tighter text-sm leading-none">{errorMessage}</p>
+                            <p className="text-[8px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-1.5 line-clamp-1">Social Studio Error</p>
+                        </div>
+                        <button 
+                            onClick={() => setErrorMessage(null)}
+                            className="p-2 hover:bg-white/5 rounded-full transition-colors"
+                        >
+                            <X className="w-5 h-5 text-gray-500" />
+                        </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </motion.div>
     );
 }
