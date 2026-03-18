@@ -10,7 +10,8 @@
     "website": "https://www.fabriclondon.com",
     "instagram": "https://www.instagram.com/fabriclondon",
     "votes": 0,
-    "description_en": "Institution légendaire de la nuit londonienne située à Farringdon. Célèbre pour ses trois salles distinctes et son 'dancefloor bodysonic' vibrant, le club a façonné la culture électronique mondiale. Un passage obligé pour tout amateur de techno et de house en quête d'une expérience sonore immersive et sans concessions."
+    "description_en": "Institution légendaire de la nuit londonienne située à Farringdon. Célèbre pour ses trois salles distinctes et son 'dancefloor bodysonic' vibrant, le club a façonné la culture électronique mondiale. Un passage obligé pour tout amateur de techno et de house en quête d'une expérience sonore immersive et sans concessions.",
+    "status": "waiting"
   },
   {
     "id": "c2",
@@ -23,7 +24,7 @@
     "website": "https://www.berghain.berlin",
     "instagram": "https://www.instagram.com/berghain_kantine",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Considéré comme le temple mondial de la techno, le Berghain occupe une ancienne centrale thermique à l'architecture industrielle imposante. Réputé pour son système sonore massif et ses soirées sans fin, le club est aussi célèbre pour sa politique d'entrée sélective et mystérieuse. Il représente l'essence même de la culture underground berlinoise, interdisant les photos pour préserver l'intimité et la liberté totale de ses danseurs."
   },
   {
@@ -37,7 +38,7 @@
     "website": "https://dc-10.net",
     "instagram": "https://www.instagram.com/dc10ibizaofficial",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Niché en bordure des pistes de l'aéroport, le DC-10 est le bastion de l'underground à Ibiza. Ses soirées Circoloco du lundi sont devenues un phénomène planétaire, attirant les passionnés du monde entier dans une ambiance sans fioritures où seule la musique compte. Un lieu mythique où l'énergie brute et la liberté règnent en maîtres."
   },
   {
@@ -51,7 +52,7 @@
     "website": "https://www.amnesia.es",
     "instagram": "https://www.instagram.com/amnesiaibiza",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Symbole de la démesure festive d'Ibiza, l'Amnesia est célèbre pour sa terrasse baignée par la lumière du soleil au petit matin. Entre ses canons à CO2 dévastateurs et ses résidences historiques, le club offre une atmosphère électrique unique. Un passage incontournable pour vivre l'essence même de la nuit sur l'île blanche."
   },
   {
@@ -65,7 +66,7 @@
     "website": "https://www.clubspace.com",
     "instagram": "https://www.instagram.com/spacemiami",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "L'institution ultime de Downtown Miami, célèbre pour ses marathons musicaux et sa terrasse iconique où l'on voit le soleil se lever. Ouvert 24h/24 le weekend, c'est le sanctuaire de la musique house et techno en Floride. Son atmosphère immersive et ses 'sunrise parties' en font l'un des clubs les plus respectés au monde."
   },
   {
@@ -79,7 +80,7 @@
     "website": "https://hiibiza.com",
     "instagram": "https://instagram.com/hi.ibiza",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Le super-club le plus technologiquement avancé d'Ibiza, successeur du légendaire Space. Avec ses salles Theatre et Club aux scénographies époustouflantes, il redéfinit les standards du clubbing moderne. Chaque détail, du système sonore aux visuels immersifs, est pensé pour offrir une expérience sensorielle hors du commun."
   },
   {
@@ -93,7 +94,7 @@
     "website": "https://avantgardner.com",
     "instagram": "https://instagram.com/avant_gardner",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Avant Gardner est le plus grand complexe de clubs de New York, comprenant plusieurs salles dont The Great Hall et le Kings Hall. Hub incontournable de la scène New-Yorkaise."
   },
   {
@@ -107,7 +108,7 @@
     "website": "https://drumsheds.com",
     "instagram": "https://instagram.com/drumsheds",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "WHP est le festival hivernal mythique de Manchester, se déroulant dans d'anciens entrepôt et abris anti-bombes. Programmation haut de gamme de septembre à décembre."
   },
   {
@@ -121,7 +122,7 @@
     "website": "https://xoyo.co.uk",
     "instagram": "https://instagram.com/xoyolondon",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "XOYO est l'un des clubs les plus prisés de Londres, situé à Shoreditch. Il accueille des résidences de longue durée permettant aux DJs de développer leur univers en profondeur."
   },
   {
@@ -135,7 +136,7 @@
     "website": "https://water-gate.de",
     "instagram": "https://instagram.com/watergate_berlin",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Zouk Singapore est le club le plus réputé d'Asie du Sud-Est, avec plus de 30 ans d'histoire. Il a révélé de nombreux talents locaux et accueille les plus grands headliners mondiaux."
   },
   {
@@ -149,7 +150,7 @@
     "website": "https://womb.co.jp",
     "instagram": "https://instagram.com/wombtokyo",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Stereo Montréal est l'un des clubs les plus appréciés d'Amérique du Nord, connu pour ses after qui commencent au petit matin et son système sonore Funktion-One hors du commun."
   },
   {
@@ -163,7 +164,7 @@
     "website": "https://clubdervisionaere.com",
     "instagram": "https://instagram.com/clubdervisionaere",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Radion est le club phare de la scène underground d'Amsterdam, installé dans une ancienne cantine de ZAM. Connu pour sa curation exemplaire et son engagement dans la culture club."
   },
   {
@@ -177,7 +178,7 @@
     "website": "https://shelteramsterdam.nl",
     "instagram": "https://instagram.com/shelter_amsterdam",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Caché dans les profondeurs de la tour A'DAM, le Shelter est le cœur battant de la scène techno et house d'Amsterdam. Ce club souterrain privilégie l'essentiel : un système sonore Funktion-One d'exception et une immersion totale sans distraction. Un sanctuaire de liberté dont la programmation exigeante attire les clubbers les plus avertis."
   },
   {
@@ -191,7 +192,7 @@
     "website": "https://subclub.co.uk",
     "instagram": "https://instagram.com/subclubglasgow",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Figure de proue de la culture club écossaise depuis 1987, le Sub Club est réputé mondialement pour son acoustique exceptionnelle et son engagement envers l'inclusion. Dans son sous-sol intimiste, le club défend une vision authentique de la musique électronique, servant de rampe de lancement pour d'innombrables talents."
   },
   {
@@ -205,7 +206,7 @@
     "website": "https://egglondon.co.uk",
     "instagram": "https://instagram.com/egglondon",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Razzmatazz est une ancienne usine devenue le plus grand club de Barcelone avec 5 salles simultanées. Chaque salle a sa propre identité musicale allant de l'indie à la techno."
   },
   {
@@ -219,7 +220,7 @@
     "website": "https://inputbcn.com",
     "instagram": "https://instagram.com/input.barcelona",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Le chef-d'œuvre sonore de Barcelone situé dans le cadre unique du Poble Espanyol. Conçu initialement comme un laboratoire d'acoustique, il abrite l'un des systèmes Meyer Sound les mieux configurés d'Europe. Un lieu minimaliste où le son pur et l'immersion technologique sont au centre de l'expérience."
   },
   {
@@ -233,7 +234,7 @@
     "website": "https://exchangela.com",
     "instagram": "https://instagram.com/exchangela",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Tobacco Dock est un entrepôt victorien classé monument historique transformé en espace événementiel à Wapping. Il accueille les plus grands festivals urbains comme Junction 2."
   },
   {
@@ -247,7 +248,7 @@
     "website": "https://socialclubparis.com",
     "instagram": "https://instagram.com/socialclubparis",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Le Hive est le club techno de référence de Zurich, avec un art urbain surprenant en façade et des soirées dont la qualité est reconnue dans toute l'Europe."
   },
   {
@@ -261,7 +262,7 @@
     "website": "https://studio338.co.uk",
     "instagram": "https://instagram.com/studio338london",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Le Batofar est une péniche-club amarrée sur la Seine dans le 13e arrondissement. Haut lieu de l'électro alternative parisienne depuis 1999, il propose aussi des concerts et expositions."
   },
   {
@@ -275,7 +276,7 @@
     "website": "https://sui.li",
     "instagram": "https://instagram.com/suicidecircusberlin",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Marquee NYC est un club emblématique de Chelsea, New York, réputé pour ses résidences de DJs mondiaux comme Tiësto et Calvin Harris. Un incontournable de la nuit new-yorkaise."
   },
   {
@@ -289,7 +290,7 @@
     "website": "https://ovalspace.co.uk",
     "instagram": "https://instagram.com/ovalspace",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "YES est un bar-club indépendant de Manchester sur quatre niveaux, avec une programmation éclectique et un toit-terrasse. Bar-club de référence de la scène alternative mancunienne."
   },
   {
@@ -303,7 +304,7 @@
     "website": "https://lamachinedumoulinrouge.com",
     "instagram": "https://instagram.com/lamachineparis",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Le Room One de Fabric est célèbre pour son dancefloor bodysonic unique au monde — le son passe littéralement à travers le sol. Une experience physique incomparable."
   },
   {
@@ -317,7 +318,7 @@
     "website": "https://tacheles.de",
     "instagram": "https://instagram.com/tacheles_official",
     "votes": 0,
-    "status": "published",
+    "status": "waiting",
     "description_en": "Ancienne galerie marchande squat devenue haut-lieu culturel berlinois, Tacheles accueille des raves underground légendaires mêlant art, musique techno et contre-culture."
   },
   {
@@ -331,7 +332,8 @@
     "website": "https://www.greenvalley.com",
     "instagram": "https://instagram.com/greenvalley",
     "votes": 0,
-    "description_en": "Élu plusieurs fois meilleur club au monde, Green Valley est un temple de l'EDM situé dans une jungle luxuriante au Brésil."
+    "description_en": "Élu plusieurs fois meilleur club au monde, Green Valley est un temple de l'EDM situé dans une jungle luxuriante au Brésil.",
+    "status": "waiting"
   },
   {
     "id": "c47",
@@ -344,7 +346,8 @@
     "website": "https://www.echostage.com",
     "instagram": "https://instagram.com/echostage",
     "votes": 0,
-    "description_en": "Echostage est le plus grand club de la côte Est américaine, réputé pour son système sonore massif et ses productions visuelles spectaculaires."
+    "description_en": "Echostage est le plus grand club de la côte Est américaine, réputé pour son système sonore massif et ses productions visuelles spectaculaires.",
+    "status": "waiting"
   },
   {
     "id": "c48",
@@ -357,7 +360,8 @@
     "website": "https://www.theushuaiaexperience.com",
     "instagram": "https://www.instagram.com/ushuaiaibiza",
     "votes": 0,
-    "description_en": "Le club en plein air le plus célèbre au monde, offrant une expérience de fête luxueuse autour de sa piscine iconique. Véritable festival quotidien, l'Ushuaïa accueille les plus grandes stars mondiales sur une scène monumentale. C'est le lieu ultime pour danser sous le soleil et les avions d'Ibiza dans un cadre prestigieux."
+    "description_en": "Le club en plein air le plus célèbre au monde, offrant une expérience de fête luxueuse autour de sa piscine iconique. Véritable festival quotidien, l'Ushuaïa accueille les plus grandes stars mondiales sur une scène monumentale. C'est le lieu ultime pour danser sous le soleil et les avions d'Ibiza dans un cadre prestigieux.",
+    "status": "waiting"
   },
   {
     "id": "c49",
@@ -370,7 +374,8 @@
     "website": "https://www.bootshaus.com",
     "instagram": "https://instagram.com/bootshaus",
     "votes": 0,
-    "description_en": "Élu meilleur club d'Allemagne à maintes reprises, le Bootshaus occupe une ancienne base navale sur les bords du Rhin. Avec ses trois salles et ses productions visuelles massives, il est le bastion de l'EDM, du Hardstyle et de la techno puissante. Son ambiance électrique et son public survolté en font une étape obligatoire en Europe."
+    "description_en": "Élu meilleur club d'Allemagne à maintes reprises, le Bootshaus occupe une ancienne base navale sur les bords du Rhin. Avec ses trois salles et ses productions visuelles massives, il est le bastion de l'EDM, du Hardstyle et de la techno puissante. Son ambiance électrique et son public survolté en font une étape obligatoire en Europe.",
+    "status": "waiting"
   },
   {
     "id": "c50",
@@ -383,7 +388,8 @@
     "website": "https://www.savaya.com",
     "instagram": "https://instagram.com/savaya",
     "votes": 0,
-    "description_en": "Savaya est un club de plage spectaculaire perché sur les falaises d'Uluwatu, offrant une vue imprenable sur l'océan Indien."
+    "description_en": "Savaya est un club de plage spectaculaire perché sur les falaises d'Uluwatu, offrant une vue imprenable sur l'océan Indien.",
+    "status": "waiting"
   },
   {
     "id": "c51",
@@ -396,7 +402,8 @@
     "website": "https://www.larocclub.com",
     "instagram": "https://instagram.com/larocclub",
     "votes": 0,
-    "description_en": "Laroc est le premier 'sunset club' du Brésil, un lieu immense à ciel ouvert qui accueille les plus grandes stars mondiales."
+    "description_en": "Laroc est le premier 'sunset club' du Brésil, un lieu immense à ciel ouvert qui accueille les plus grandes stars mondiales.",
+    "status": "waiting"
   },
   {
     "id": "c52",
@@ -409,7 +416,8 @@
     "website": "https://www.illuzion.com",
     "instagram": "https://instagram.com/illuzion",
     "votes": 0,
-    "description_en": "Illuzion est le leader de la nuit en Thaïlande, un club aux dimensions pharaoniques avec un système visuel de pointe."
+    "description_en": "Illuzion est le leader de la nuit en Thaïlande, un club aux dimensions pharaoniques avec un système visuel de pointe.",
+    "status": "waiting"
   },
   {
     "id": "c53",
@@ -422,7 +430,8 @@
     "website": "https://www.noabeachclub.com",
     "instagram": "https://instagram.com/noabeachclub",
     "votes": 0,
-    "description_en": "Noa est le joyau de l'île de Pag, un club construit sur l'eau avec des terrasses, des piscines et une ambiance estivale survoltée."
+    "description_en": "Noa est le joyau de l'île de Pag, un club construit sur l'eau avec des terrasses, des piscines et une ambiance estivale survoltée.",
+    "status": "waiting"
   },
   {
     "id": "c54",
@@ -435,7 +444,8 @@
     "website": "https://www.papayaclub.com",
     "instagram": "https://instagram.com/papayaclub",
     "votes": 0,
-    "description_en": "Papaya est l'un des plus anciens et des plus respectés clubs de Croatie, symbole de la renaissance de la scène festive de Novalja."
+    "description_en": "Papaya est l'un des plus anciens et des plus respectés clubs de Croatie, symbole de la renaissance de la scène festive de Novalja.",
+    "status": "waiting"
   },
   {
     "id": "c55",
@@ -448,7 +458,8 @@
     "website": "https://www.playhouse.com",
     "instagram": "https://instagram.com/playhouse",
     "votes": 0,
-    "description_en": "PLAY HOUSE est un méga-club chinois qui repousse les limites de la technologie avec des scènes mobiles et des lasers futuristes."
+    "description_en": "PLAY HOUSE est un méga-club chinois qui repousse les limites de la technologie avec des scènes mobiles et des lasers futuristes.",
+    "status": "waiting"
   },
   {
     "id": "c56",
@@ -461,7 +472,8 @@
     "website": "https://www.fabrik.com",
     "instagram": "https://instagram.com/fabrik",
     "votes": 0,
-    "description_en": "FABRIK est le temple de la techno à Madrid, une salle immense capable d'accueillir des milliers de clubbers pour des soirées marathon."
+    "description_en": "FABRIK est le temple de la techno à Madrid, une salle immense capable d'accueillir des milliers de clubbers pour des soirées marathon.",
+    "status": "waiting"
   },
   {
     "id": "c57",
@@ -474,7 +486,8 @@
     "website": "https://www.opiumbarcelone.com",
     "instagram": "https://instagram.com/opiumbarcelone",
     "votes": 0,
-    "description_en": "Situé sur la plage, l'Opium est le club le plus chic de Barcelone, mêlant restaurant haut de gamme et dancefloor glamour."
+    "description_en": "Situé sur la plage, l'Opium est le club le plus chic de Barcelone, mêlant restaurant haut de gamme et dancefloor glamour.",
+    "status": "waiting"
   },
   {
     "id": "c58",
@@ -487,7 +500,8 @@
     "website": "https://www.edenibiza.com",
     "instagram": "https://instagram.com/edenibiza",
     "votes": 0,
-    "description_en": "Eden est le bastion de San Antonio, un club rénové avec un système Void Incubus stupéfiant et une programmation house et techno solide."
+    "description_en": "Eden est le bastion de San Antonio, un club rénové avec un système Void Incubus stupéfiant et une programmation house et techno solide.",
+    "status": "waiting"
   },
   {
     "id": "c59",
@@ -500,7 +514,8 @@
     "website": "https://www.elsewhere.com",
     "instagram": "https://instagram.com/elsewhere",
     "votes": 0,
-    "description_en": "Elsewhere est un espace multi-salles à Brooklyn dédié à la culture club underground, aux concerts et à l'art visuel."
+    "description_en": "Elsewhere est un espace multi-salles à Brooklyn dédié à la culture club underground, aux concerts et à l'art visuel.",
+    "status": "waiting"
   },
   {
     "id": "c60",
@@ -513,7 +528,8 @@
     "website": "https://www.tenaxclub.com",
     "instagram": "https://instagram.com/tenaxclub",
     "votes": 0,
-    "description_en": "Tenax est une légende italienne, pionnier de la scène house et techno à Florence depuis les années 80."
+    "description_en": "Tenax est une légende italienne, pionnier de la scène house et techno à Florence depuis les années 80.",
+    "status": "waiting"
   },
   {
     "id": "c61",
@@ -526,7 +542,8 @@
     "website": "https://www.ilmuretto.com",
     "instagram": "https://instagram.com/ilmuretto",
     "votes": 0,
-    "description_en": "Il Muretto est l'un des plus anciens clubs d'Italie, une institution de l'été vénitien célèbre pour son toit ouvrant."
+    "description_en": "Il Muretto est l'un des plus anciens clubs d'Italie, une institution de l'été vénitien célèbre pour son toit ouvrant.",
+    "status": "waiting"
   },
   {
     "id": "c62",
@@ -539,7 +556,8 @@
     "website": "https://www.yaltaclub.com",
     "instagram": "https://instagram.com/yaltaclub",
     "votes": 0,
-    "description_en": "Yalta est le berceau de la culture club en Bulgarie, ayant accueilli les premiers DJs internationaux après la chute du régime."
+    "description_en": "Yalta est le berceau de la culture club en Bulgarie, ayant accueilli les premiers DJs internationaux après la chute du régime.",
+    "status": "waiting"
   },
   {
     "id": "c63",
@@ -552,7 +570,8 @@
     "website": "https://www.d-edge.com",
     "instagram": "https://instagram.com/d-edge",
     "votes": 0,
-    "description_en": "D-Edge est célèbre pour son design futuriste avec des milliers de LED et son acoustique impeccable, hub de l'underground brésilien."
+    "description_en": "D-Edge est célèbre pour son design futuriste avec des milliers de LED et son acoustique impeccable, hub de l'underground brésilien.",
+    "status": "waiting"
   },
   {
     "id": "c64",
@@ -565,7 +584,8 @@
     "website": "https://www.warungbeachclub.com",
     "instagram": "https://instagram.com/warungbeachclub",
     "votes": 0,
-    "description_en": "Le 'temple' du Brésil, Warung est un club en bois exotique face à la mer, célèbre pour ses levers de soleil magiques."
+    "description_en": "Le 'temple' du Brésil, Warung est un club en bois exotique face à la mer, célèbre pour ses levers de soleil magiques.",
+    "status": "waiting"
   },
   {
     "id": "c65",
@@ -578,7 +598,8 @@
     "website": "https://www.output.com",
     "instagram": "https://instagram.com/output",
     "votes": 0,
-    "description_en": "Bien qu'ayant officiellement fermé, Output reste dans les mémoires comme le club qui a interdit les photos pour privilégier l'expérience musicale pure."
+    "description_en": "Bien qu'ayant officiellement fermé, Output reste dans les mémoires comme le club qui a interdit les photos pour privilégier l'expérience musicale pure.",
+    "status": "waiting"
   },
   {
     "id": "c66",
@@ -591,7 +612,8 @@
     "website": "https://www.cavoparadiso.com",
     "instagram": "https://instagram.com/cavoparadiso",
     "votes": 0,
-    "description_en": "Perché sur les falaises de Paradise Beach, Cavo Paradiso est l'un des plus beaux clubs au monde, face au coucher de soleil sur l'Égée."
+    "description_en": "Perché sur les falaises de Paradise Beach, Cavo Paradiso est l'un des plus beaux clubs au monde, face au coucher de soleil sur l'Égée.",
+    "status": "waiting"
   },
   {
     "id": "c67",
@@ -604,7 +626,8 @@
     "website": "https://www.paradiseclub.com",
     "instagram": "https://instagram.com/paradiseclub",
     "votes": 0,
-    "description_en": "Paradise Club est le cœur battant de Mykonos, un lieu festif mondialement connu pour ses pool parties et ses guests de renom."
+    "description_en": "Paradise Club est le cœur battant de Mykonos, un lieu festif mondialement connu pour ses pool parties et ses guests de renom.",
+    "status": "waiting"
   },
   {
     "id": "c68",
@@ -617,7 +640,8 @@
     "website": "https://www.cultureclub.com",
     "instagram": "https://instagram.com/cultureclub",
     "votes": 0,
-    "description_en": "Culture Club est une référence belge pour la house et l'électronique de qualité, avec une esthétique design et une programmation soignée."
+    "description_en": "Culture Club est une référence belge pour la house et l'électronique de qualité, avec une esthétique design et une programmation soignée.",
+    "status": "waiting"
   },
   {
     "id": "c69",
@@ -630,7 +654,8 @@
     "website": "https://www.fuse.com",
     "instagram": "https://instagram.com/fuse",
     "votes": 0,
-    "description_en": "Fuse est le plus ancien club techno de Belgique, une institution bruxelloise respectée dans le monde entier pour son authenticité."
+    "description_en": "Fuse est le plus ancien club techno de Belgique, une institution bruxelloise respectée dans le monde entier pour son authenticité.",
+    "status": "waiting"
   },
   {
     "id": "c70",
@@ -643,7 +668,8 @@
     "website": "https://www.laterrazza.com",
     "instagram": "https://instagram.com/laterrazza",
     "votes": 0,
-    "description_en": "Situé dans le Poble Espanyol, La Terrazza est un club en plein air magnifique qui célèbre l'été barcelonais depuis des décennies."
+    "description_en": "Situé dans le Poble Espanyol, La Terrazza est un club en plein air magnifique qui célèbre l'été barcelonais depuis des décennies.",
+    "status": "waiting"
   },
   {
     "id": "c71",
@@ -656,7 +682,8 @@
     "website": "https://www.villageunderground.com",
     "instagram": "https://instagram.com/villageunderground",
     "votes": 0,
-    "description_en": "Lieu hybride installé dans d'anciens wagons de métro et entrepôts, c'est l'un des cœurs de la scène créative et club de Shoreditch."
+    "description_en": "Lieu hybride installé dans d'anciens wagons de métro et entrepôts, c'est l'un des cœurs de la scène créative et club de Shoreditch.",
+    "status": "waiting"
   },
   {
     "id": "c72",
@@ -669,7 +696,8 @@
     "website": "https://www.katerblau.com",
     "instagram": "https://instagram.com/katerblau",
     "votes": 0,
-    "description_en": "Héritier de l'esprit du Bar25, Kater Blau est un lieu onirique au bord de la Spree avec une ambiance festival et des sets infinis."
+    "description_en": "Héritier de l'esprit du Bar25, Kater Blau est un lieu onirique au bord de la Spree avec une ambiance festival et des sets infinis.",
+    "status": "waiting"
   },
   {
     "id": "c73",
@@ -682,7 +710,8 @@
     "website": "https://www.sisyphos.com",
     "instagram": "https://instagram.com/sisyphos",
     "votes": 0,
-    "description_en": "Ancienne usine de biscuits pour chiens, Sisyphos est un terrain de jeu géant où l'on se perd pendant des jours au son d'une techno solaire."
+    "description_en": "Ancienne usine de biscuits pour chiens, Sisyphos est un terrain de jeu géant où l'on se perd pendant des jours au son d'une techno solaire.",
+    "status": "waiting"
   },
   {
     "id": "c75",
@@ -695,7 +724,8 @@
     "website": "https://www.robertjohnson.com",
     "instagram": "https://instagram.com/robertjohnson",
     "votes": 0,
-    "description_en": "Situé près de Francfort, le Robert Johnson est adoré par les puristes pour son minimalisme, son système sonore d'exception et sa vue sur le Main."
+    "description_en": "Situé près de Francfort, le Robert Johnson est adoré par les puristes pour son minimalisme, son système sonore d'exception et sa vue sur le Main.",
+    "status": "waiting"
   },
   {
     "id": "c77",
@@ -708,7 +738,8 @@
     "website": "https://www.zouklasvegas.com",
     "instagram": "https://instagram.com/zouklasvegas",
     "votes": 0,
-    "description_en": "Le nouveau titan de Las Vegas, apportant l'expérience Zouk de Singapour dans la cité du jeu avec une technologie de pointe."
+    "description_en": "Le nouveau titan de Las Vegas, apportant l'expérience Zouk de Singapour dans la cité du jeu avec une technologie de pointe.",
+    "status": "waiting"
   },
   {
     "id": "c78",
@@ -721,7 +752,8 @@
     "website": "https://www.marqueelv.com",
     "instagram": "https://instagram.com/marqueelv",
     "votes": 0,
-    "description_en": "Le Marquee de Las Vegas est un complexe monumental avec beach club de jour et méga-club de nuit, symbole de la démesure locale."
+    "description_en": "Le Marquee de Las Vegas est un complexe monumental avec beach club de jour et méga-club de nuit, symbole de la démesure locale.",
+    "status": "waiting"
   },
   {
     "id": "c81",
@@ -734,7 +766,8 @@
     "website": "https://www.badaboum.com",
     "instagram": "https://instagram.com/badaboum",
     "votes": 0,
-    "description_en": "Badaboum est un lieu hybride entre salle de concert, club et bar à cocktails, hub de la scène house et disco à Bastille."
+    "description_en": "Badaboum est un lieu hybride entre salle de concert, club et bar à cocktails, hub de la scène house et disco à Bastille.",
+    "status": "waiting"
   },
   {
     "id": "c82",
@@ -747,7 +780,8 @@
     "website": "https://www.djoon.com",
     "instagram": "https://instagram.com/djoon",
     "votes": 0,
-    "description_en": "Le temple de la soul et de la deep house à Paris, réputé pour son dancefloor en bois et ses soirées aux rythmes afro-house."
+    "description_en": "Le temple de la soul et de la deep house à Paris, réputé pour son dancefloor en bois et ses soirées aux rythmes afro-house.",
+    "status": "waiting"
   },
   {
     "id": "c83",
@@ -760,7 +794,8 @@
     "website": "https://www.zigzag.com",
     "instagram": "https://instagram.com/zigzag",
     "votes": 0,
-    "description_en": "Situé près des Champs-Élysées, Zig Zag était un club spacieux accueillant les grands noms de la tech-house internationale."
+    "description_en": "Situé près des Champs-Élysées, Zig Zag était un club spacieux accueillant les grands noms de la tech-house internationale.",
+    "status": "waiting"
   },
   {
     "id": "c84",
@@ -773,7 +808,8 @@
     "website": "https://www.yoyo.com",
     "instagram": "https://instagram.com/yoyo",
     "votes": 0,
-    "description_en": "Installé sous le Palais de Tokyo, le Yoyo offre un cadre brut et contemporain pour des soirées électroniques et des événements mode."
+    "description_en": "Installé sous le Palais de Tokyo, le Yoyo offre un cadre brut et contemporain pour des soirées électroniques et des événements mode.",
+    "status": "waiting"
   },
   {
     "id": "c85",
@@ -786,7 +822,8 @@
     "website": "https://www.nitsa.com",
     "instagram": "https://instagram.com/nitsa",
     "votes": 0,
-    "description_en": "Le cœur battant de l'électronique alternative à Barcelone, niché dans la mythique salle Apolo. Ce club mythique est réputé pour sa programmation audacieuse et son atmosphère survoltée qui en font une étape obligatoire pour tout amateur de techno et de house en Catalogne."
+    "description_en": "Le cœur battant de l'électronique alternative à Barcelone, niché dans la mythique salle Apolo. Ce club mythique est réputé pour sa programmation audacieuse et son atmosphère survoltée qui en font une étape obligatoire pour tout amateur de techno et de house en Catalogne.",
+    "status": "waiting"
   },
   {
     "id": "c88",
@@ -799,7 +836,8 @@
     "website": "https://www.e1london.com",
     "instagram": "https://instagram.com/e1london",
     "votes": 0,
-    "description_en": "E1 est un entrepôt à Wapping doté d'un système sonore Funktion-One sur mesure, rendez-vous des amateurs de techno intense."
+    "description_en": "E1 est un entrepôt à Wapping doté d'un système sonore Funktion-One sur mesure, rendez-vous des amateurs de techno intense.",
+    "status": "waiting"
   },
   {
     "id": "c89",
@@ -812,7 +850,8 @@
     "website": "https://www.phonox.com",
     "instagram": "https://instagram.com/phonox",
     "votes": 0,
-    "description_en": "Phonox à Brixton privilégie l'intimité, avec un seul dancefloor et pour mission de ramener le DJing à ses racines les plus pures."
+    "description_en": "Phonox à Brixton privilégie l'intimité, avec un seul dancefloor et pour mission de ramener le DJing à ses racines les plus pures.",
+    "status": "waiting"
   },
   {
     "id": "c89b",
@@ -825,7 +864,8 @@
     "website": "https://www.spacericcione.com",
     "instagram": "https://instagram.com/spacericcione",
     "votes": 0,
-    "description_en": "La renaissance italienne de la marque légendaire Space, un club futuriste sur la côte adriatique."
+    "description_en": "La renaissance italienne de la marque légendaire Space, un club futuriste sur la côte adriatique.",
+    "status": "waiting"
   },
   {
     "id": "c92",
@@ -838,7 +878,8 @@
     "website": "https://www.livmiami.com",
     "instagram": "https://instagram.com/livmiami",
     "votes": 0,
-    "description_en": "Le summum du luxe et du glamour à South Beach, un lieu où les performances live et le clubbing haut de gamme se rencontrent."
+    "description_en": "Le summum du luxe et du glamour à South Beach, un lieu où les performances live et le clubbing haut de gamme se rencontrent.",
+    "status": "waiting"
   },
   {
     "id": "c93",
@@ -851,7 +892,8 @@
     "website": "https://www.e11even.com",
     "instagram": "https://instagram.com/e11even",
     "votes": 0,
-    "description_en": "Un club 24/7 unique en son genre, mêlant spectacle de cabaret, méga-club et hospitalité de luxe."
+    "description_en": "Un club 24/7 unique en son genre, mêlant spectacle de cabaret, méga-club et hospitalité de luxe.",
+    "status": "waiting"
   },
   {
     "id": "c95",
@@ -864,7 +906,8 @@
     "website": "https://www.deschool.com",
     "instagram": "https://instagram.com/deschool",
     "votes": 0,
-    "description_en": "Héritier du Trouw, ce club installé dans une ancienne école est devenu une référence mondiale pour sa liberté et son audace musicale."
+    "description_en": "Héritier du Trouw, ce club installé dans une ancienne école est devenu une référence mondiale pour sa liberté et son audace musicale.",
+    "status": "waiting"
   },
   {
     "id": "c96",
@@ -877,7 +920,8 @@
     "website": "https://www.paradiso.com",
     "instagram": "https://instagram.com/paradiso",
     "votes": 0,
-    "description_en": "Ancienne église transformée en salle de concert et club, un lieu chargé d'histoire et doté d'une acoustique magique."
+    "description_en": "Ancienne église transformée en salle de concert et club, un lieu chargé d'histoire et doté d'une acoustique magique.",
+    "status": "waiting"
   },
   {
     "id": "c97",
@@ -890,7 +934,8 @@
     "website": "https://www.melkweg.com",
     "instagram": "https://instagram.com/melkweg",
     "votes": 0,
-    "description_en": "Un centre culturel multidisciplinaire qui accueille des soirées clubbing légendaires comme 'Techno Tuesday'."
+    "description_en": "Un centre culturel multidisciplinaire qui accueille des soirées clubbing légendaires comme 'Techno Tuesday'.",
+    "status": "waiting"
   },
   {
     "id": "c98",
@@ -903,7 +948,8 @@
     "website": "https://www.luxfragil.com",
     "instagram": "https://instagram.com/luxfragil",
     "votes": 0,
-    "description_en": "Le club le plus iconique du Portugal, avec une vue imprenable sur le Tage et une programmation toujours à la pointe."
+    "description_en": "Le club le plus iconique du Portugal, avec une vue imprenable sur le Tage et une programmation toujours à la pointe.",
+    "status": "waiting"
   },
   {
     "id": "c99",
@@ -916,7 +962,8 @@
     "website": "https://www.contacttokyo.com",
     "instagram": "https://instagram.com/contacttokyo",
     "votes": 0,
-    "description_en": "Un club souterrain sophistiqué avec une politique stricte sur les photos pour préserver l'immersion musicale."
+    "description_en": "Un club souterrain sophistiqué avec une politique stricte sur les photos pour préserver l'immersion musicale.",
+    "status": "waiting"
   },
   {
     "id": "c100",
@@ -929,7 +976,8 @@
     "website": "https://www.zouksingapore.com",
     "instagram": "https://instagram.com/zouksingapore",
     "votes": 0,
-    "description_en": "Une légende asiatique qui a défini le clubbing dans la région depuis plus de 30 ans, désormais installé à Clarke Quay."
+    "description_en": "Une légende asiatique qui a défini le clubbing dans la région depuis plus de 30 ans, désormais installé à Clarke Quay.",
+    "status": "waiting"
   },
   {
     "id": "c101",
@@ -942,7 +990,8 @@
     "website": "https://www.surrealpark.com",
     "instagram": "https://instagram.com/surrealpark",
     "votes": 0,
-    "description_en": "Un parc thématique dédié à la musique électronique, mêlant art, nature et techno dans un cadre onirique."
+    "description_en": "Un parc thématique dédié à la musique électronique, mêlant art, nature et techno dans un cadre onirique.",
+    "status": "waiting"
   },
   {
     "id": "301",
@@ -959,7 +1008,8 @@
     "bio_en": "Icône mondiale reconnaissable à ses célèbres cerises, le Pacha incarne le glamour et l'élégance d'Ibiza depuis 1973. Entre son architecture de finca traditionnelle et ses productions luxueuses, le club reste la référence absolue de la house music sélecte. Une expérience chic et intemporelle au cœur de l'histoire du clubbing.",
     "description": "Icône mondiale reconnaissable à ses célèbres cerises, le Pacha incarne le glamour et l'élégance d'Ibiza depuis 1973. Entre son architecture de finca traditionnelle et ses productions luxueuses, le club reste la référence absolue de la house music sélecte. Une expérience chic et intemporelle au cœur de l'histoire du clubbing.",
     "description_en": "Icône mondiale reconnaissable à ses célèbres cerises, le Pacha incarne le glamour et l'élégance d'Ibiza depuis 1973. Entre son architecture de finca traditionnelle et ses productions luxueuses, le club reste la référence absolue de la house music sélecte. Une expérience chic et intemporelle au cœur de l'histoire du clubbing.",
-    "website": "https://pacha.com"
+    "website": "https://pacha.com",
+    "status": "waiting"
   },
   {
     "id": "303",
@@ -973,7 +1023,8 @@
     "facebook": "https://facebook.com/clubchinois",
     "soundcloud": "https://soundcloud.com/clubchinois",
     "beatport": "https://www.beatport.com/search?q=Club%20Chinois",
-    "bio_en": "A major figure on the global scene, Club Chinois is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Club Chinois is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "304",
@@ -987,7 +1038,8 @@
     "facebook": "https://facebook.com/akashaibiza",
     "soundcloud": "https://soundcloud.com/akashaibiza",
     "beatport": "https://www.beatport.com/search?q=Akasha%20Ibiza",
-    "bio_en": "A major figure on the global scene, Akasha Ibiza is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Akasha Ibiza is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "305",
@@ -1001,7 +1053,8 @@
     "facebook": "https://facebook.com/esparadis",
     "soundcloud": "https://soundcloud.com/esparadis",
     "beatport": "https://www.beatport.com/search?q=Es%20Paradis",
-    "bio_en": "A major figure on the global scene, Es Paradis is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Es Paradis is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "306",
@@ -1016,7 +1069,8 @@
     "soundcloud": "https://soundcloud.com/panoramabar",
     "beatport": "https://www.beatport.com/search?q=Panorama%20Bar",
     "bio_en": "A major figure on the global scene, Panorama Bar is a key player in today's electronic culture.",
-    "website": "https://www.berghain.berlin/en/club/panorama-bar/"
+    "website": "https://www.berghain.berlin/en/club/panorama-bar/",
+    "status": "waiting"
   },
   {
     "id": "307",
@@ -1031,7 +1085,8 @@
     "soundcloud": "https://soundcloud.com/tresor",
     "beatport": "https://www.beatport.com/search?q=Tresor",
     "bio_en": "A major figure on the global scene, Tresor is a key player in today's electronic culture.",
-    "website": "https://tresorberlin.com"
+    "website": "https://tresorberlin.com",
+    "status": "waiting"
   },
   {
     "id": "309",
@@ -1045,7 +1100,8 @@
     "facebook": "https://facebook.com/renate",
     "soundcloud": "https://soundcloud.com/renate",
     "beatport": "https://www.beatport.com/search?q=Renate",
-    "bio_en": "A major figure on the global scene, Renate is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Renate is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "310",
@@ -1059,7 +1115,8 @@
     "facebook": "https://facebook.com/kitkatclub",
     "soundcloud": "https://soundcloud.com/kitkatclub",
     "beatport": "https://www.beatport.com/search?q=KitKatClub",
-    "bio_en": "A major figure on the global scene, KitKatClub is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, KitKatClub is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "311",
@@ -1073,7 +1130,8 @@
     "facebook": "https://facebook.com/rsoberlin",
     "soundcloud": "https://soundcloud.com/rsoberlin",
     "beatport": "https://www.beatport.com/search?q=RSO.Berlin",
-    "bio_en": "A major figure on the global scene, RSO.Berlin is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, RSO.Berlin is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "315",
@@ -1089,7 +1147,8 @@
     "soundcloud": "https://soundcloud.com/blitzmunich",
     "beatport": "https://www.beatport.com/search?q=Blitz%20Munich",
     "bio_en": "A major figure on the global scene, Blitz Munich is a key player in today's electronic culture.",
-    "website": "https://www.blitz.club"
+    "website": "https://www.blitz.club",
+    "status": "waiting"
   },
   {
     "id": "316",
@@ -1104,7 +1163,8 @@
     "facebook": "https://facebook.com/whitenoisestuttgart",
     "soundcloud": "https://soundcloud.com/whitenoisestuttgart",
     "beatport": "https://www.beatport.com/search?q=White%20Noise%20Stuttgart",
-    "bio_en": "A major figure on the global scene, White Noise Stuttgart is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, White Noise Stuttgart is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "317",
@@ -1119,7 +1179,8 @@
     "facebook": "https://facebook.com/gewolbecologne",
     "soundcloud": "https://soundcloud.com/gewolbecologne",
     "beatport": "https://www.beatport.com/search?q=Gew%C3%B6lbe%20Cologne",
-    "bio_en": "A major figure on the global scene, Gewölbe Cologne is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Gewölbe Cologne is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "318",
@@ -1134,7 +1195,8 @@
     "facebook": "https://facebook.com/palhamburg",
     "soundcloud": "https://soundcloud.com/palhamburg",
     "beatport": "https://www.beatport.com/search?q=PAL%20Hamburg",
-    "bio_en": "A major figure on the global scene, PAL Hamburg is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, PAL Hamburg is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "320",
@@ -1148,7 +1210,8 @@
     "facebook": "https://facebook.com/ministryofsound",
     "soundcloud": "https://soundcloud.com/ministryofsound",
     "beatport": "https://www.beatport.com/search?q=Ministry%20of%20Sound",
-    "bio_en": "A major figure on the global scene, Ministry of Sound is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Ministry of Sound is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "321",
@@ -1162,7 +1225,8 @@
     "facebook": "https://facebook.com/koko",
     "soundcloud": "https://soundcloud.com/koko",
     "beatport": "https://www.beatport.com/search?q=KOKO",
-    "bio_en": "A major figure on the global scene, KOKO is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, KOKO is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "323",
@@ -1178,7 +1242,8 @@
     "soundcloud": "https://soundcloud.com/motionbristol",
     "beatport": "https://www.beatport.com/search?q=Motion%20Bristol",
     "bio_en": "A major figure on the global scene, Motion Bristol is a key player in today's electronic culture.",
-    "website": "https://motion-bristol.com"
+    "website": "https://motion-bristol.com",
+    "status": "waiting"
   },
   {
     "id": "324",
@@ -1193,7 +1258,8 @@
     "facebook": "https://facebook.com/hopeworkssheffield",
     "soundcloud": "https://soundcloud.com/hopeworkssheffield",
     "beatport": "https://www.beatport.com/search?q=Hope%20Works%20Sheffield",
-    "bio_en": "A major figure on the global scene, Hope Works Sheffield is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Hope Works Sheffield is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "325",
@@ -1208,7 +1274,8 @@
     "facebook": "https://facebook.com/invisiblewindfactoryliverpool",
     "soundcloud": "https://soundcloud.com/invisiblewindfactoryliverpool",
     "beatport": "https://www.beatport.com/search?q=Invisible%20Wind%20Factory%20Liverpool",
-    "bio_en": "A major figure on the global scene, Invisible Wind Factory Liverpool is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Invisible Wind Factory Liverpool is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "326",
@@ -1225,7 +1292,8 @@
     "bio_en": "Situé sous le cinéma Grand Rex, ce temple de la techno parisienne est une institution depuis plus de trente ans. Réputé pour son système sonore multi-diffusion unique, il est le repaire des passionnés en quête d'exigence musicale. Un lieu chargé d'histoire qui continue de faire vibrer le cœur de Paris avec sa programmation underground pointue.",
     "description": "Situé sous le cinéma Grand Rex, ce temple de la techno parisienne est une institution depuis plus de trente ans. Réputé pour son système sonore multi-diffusion unique, il est le repaire des passionnés en quête d'exigence musicale. Un lieu chargé d'histoire qui continue de faire vibrer le cœur de Paris avec sa programmation underground pointue.",
     "description_en": "Situé sous le cinéma Grand Rex, ce temple de la techno parisienne est une institution depuis plus de trente ans. Réputé pour son système sonore multi-diffusion unique, il est le repaire des passionnés en quête d'exigence musicale. Un lieu chargé d'histoire qui continue de faire vibrer le cœur de Paris avec sa programmation underground pointue.",
-    "website": "https://www.rexclub.com"
+    "website": "https://www.rexclub.com",
+    "status": "waiting"
   },
   {
     "id": "327",
@@ -1240,7 +1308,8 @@
     "soundcloud": "https://soundcloud.com/phantomparis",
     "beatport": "https://www.beatport.com/search?q=Phantom%20Paris",
     "bio_en": "A major figure on the global scene, Phantom Paris is a key player in today's electronic culture.",
-    "website": "https://phantom.paris"
+    "website": "https://phantom.paris",
+    "status": "waiting"
   },
   {
     "id": "328",
@@ -1255,7 +1324,8 @@
     "soundcloud": "https://soundcloud.com/virageparis",
     "beatport": "https://www.beatport.com/search?q=Virage%20Paris",
     "bio_en": "A major figure on the global scene, Virage Paris is a key player in today's electronic culture.",
-    "website": "https://virage.paris"
+    "website": "https://virage.paris",
+    "status": "waiting"
   },
   {
     "id": "329",
@@ -1269,7 +1339,8 @@
     "facebook": "https://facebook.com/glazart",
     "soundcloud": "https://soundcloud.com/glazart",
     "beatport": "https://www.beatport.com/search?q=Glazart",
-    "bio_en": "A major figure on the global scene, Glazart is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Glazart is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "330",
@@ -1283,7 +1354,8 @@
     "facebook": "https://facebook.com/petitbain",
     "soundcloud": "https://soundcloud.com/petitbain",
     "beatport": "https://www.beatport.com/search?q=Petit%20Bain",
-    "bio_en": "A major figure on the global scene, Petit Bain is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Petit Bain is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "331",
@@ -1299,7 +1371,8 @@
     "soundcloud": "https://soundcloud.com/nexuspantin",
     "beatport": "https://www.beatport.com/search?q=Nexus%20Pantin",
     "bio_en": "A major figure on the global scene, Nexus Pantin is a key player in today's electronic culture.",
-    "website": "https://nexus.paris"
+    "website": "https://nexus.paris",
+    "status": "waiting"
   },
   {
     "id": "332",
@@ -1314,7 +1387,8 @@
     "soundcloud": "https://soundcloud.com/kilometre25",
     "beatport": "https://www.beatport.com/search?q=Kilom%C3%A8tre25",
     "bio_en": "A major figure on the global scene, Kilomètre25 is a key player in today's electronic culture.",
-    "website": "https://www.kilometre25.fr"
+    "website": "https://www.kilometre25.fr",
+    "status": "waiting"
   },
   {
     "id": "333",
@@ -1330,7 +1404,8 @@
     "soundcloud": "https://soundcloud.com/lesucrelyon",
     "beatport": "https://www.beatport.com/search?q=Le%20Sucre%20Lyon",
     "bio_en": "A major figure on the global scene, Le Sucre Lyon is a key player in today's electronic culture.",
-    "website": "https://www.le-sucre.eu"
+    "website": "https://www.le-sucre.eu",
+    "status": "waiting"
   },
   {
     "id": "334",
@@ -1346,7 +1421,8 @@
     "soundcloud": "https://soundcloud.com/babyclubmarseille",
     "beatport": "https://www.beatport.com/search?q=Baby%20Club%20Marseille",
     "bio_en": "A major figure on the global scene, Baby Club Marseille is a key player in today's electronic culture.",
-    "website": "https://www.baby-club.tv"
+    "website": "https://www.baby-club.tv",
+    "status": "waiting"
   },
   {
     "id": "335",
@@ -1361,7 +1437,8 @@
     "facebook": "https://facebook.com/101clermont",
     "soundcloud": "https://soundcloud.com/101clermont",
     "beatport": "https://www.beatport.com/search?q=101%20Clermont",
-    "bio_en": "A major figure on the global scene, 101 Clermont is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, 101 Clermont is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "336",
@@ -1377,7 +1454,8 @@
     "soundcloud": "https://soundcloud.com/diezemontpellier",
     "beatport": "https://www.beatport.com/search?q=Dieze%20Montpellier",
     "bio_en": "A major figure on the global scene, Dieze Montpellier is a key player in today's electronic culture.",
-    "website": "https://diezevents.com"
+    "website": "https://diezevents.com",
+    "status": "waiting"
   },
   {
     "id": "337",
@@ -1393,7 +1471,8 @@
     "soundcloud": "https://soundcloud.com/warehousenantes",
     "beatport": "https://www.beatport.com/search?q=Warehouse%20Nantes",
     "bio_en": "A major figure on the global scene, Warehouse Nantes is a key player in today's electronic culture.",
-    "website": "https://www.warehouse-nantes.fr"
+    "website": "https://www.warehouse-nantes.fr",
+    "status": "waiting"
   },
   {
     "id": "339",
@@ -1408,7 +1487,8 @@
     "facebook": "https://facebook.com/radionamsterdam",
     "soundcloud": "https://soundcloud.com/radionamsterdam",
     "beatport": "https://www.beatport.com/search?q=Radion%20Amsterdam",
-    "bio_en": "A major figure on the global scene, Radion Amsterdam is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Radion Amsterdam is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "340",
@@ -1422,7 +1502,8 @@
     "facebook": "https://facebook.com/thuishaven",
     "soundcloud": "https://soundcloud.com/thuishaven",
     "beatport": "https://www.beatport.com/search?q=Thuishaven",
-    "bio_en": "A major figure on the global scene, Thuishaven is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Thuishaven is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "341",
@@ -1438,7 +1519,8 @@
     "soundcloud": "https://soundcloud.com/lofiamsterdam",
     "beatport": "https://www.beatport.com/search?q=Lofi%20Amsterdam",
     "bio_en": "A major figure on the global scene, Lofi Amsterdam is a key player in today's electronic culture.",
-    "website": "https://www.lofi.amsterdam"
+    "website": "https://www.lofi.amsterdam",
+    "status": "waiting"
   },
   {
     "id": "342",
@@ -1452,7 +1534,8 @@
     "facebook": "https://facebook.com/garagenoord",
     "soundcloud": "https://soundcloud.com/garagenoord",
     "beatport": "https://www.beatport.com/search?q=Garage%20Noord",
-    "bio_en": "A major figure on the global scene, Garage Noord is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Garage Noord is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "343",
@@ -1467,7 +1550,8 @@
     "facebook": "https://facebook.com/bassianitbilisi",
     "soundcloud": "https://soundcloud.com/bassianitbilisi",
     "beatport": "https://www.beatport.com/search?q=Bassiani%20Tbilisi",
-    "bio_en": "A major figure on the global scene, Bassiani Tbilisi is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Bassiani Tbilisi is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "344",
@@ -1482,7 +1566,8 @@
     "facebook": "https://facebook.com/khiditbilisi",
     "soundcloud": "https://soundcloud.com/khiditbilisi",
     "beatport": "https://www.beatport.com/search?q=Khidi%20Tbilisi",
-    "bio_en": "A major figure on the global scene, Khidi Tbilisi is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Khidi Tbilisi is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "345",
@@ -1497,7 +1582,8 @@
     "facebook": "https://facebook.com/ankaliprague",
     "soundcloud": "https://soundcloud.com/ankaliprague",
     "beatport": "https://www.beatport.com/search?q=Ankali%20Prague",
-    "bio_en": "A major figure on the global scene, Ankali Prague is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Ankali Prague is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "346",
@@ -1512,7 +1598,8 @@
     "facebook": "https://facebook.com/smolnawarsaw",
     "soundcloud": "https://soundcloud.com/smolnawarsaw",
     "beatport": "https://www.beatport.com/search?q=Smolna%20Warsaw",
-    "bio_en": "A major figure on the global scene, Smolna Warsaw is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Smolna Warsaw is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "347",
@@ -1526,7 +1613,8 @@
     "facebook": "https://facebook.com/drugstorebelgrade",
     "soundcloud": "https://soundcloud.com/drugstorebelgrade",
     "beatport": "https://www.beatport.com/search?q=Drugstore%20Belgrade",
-    "bio_en": "A major figure on the global scene, Drugstore Belgrade is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Drugstore Belgrade is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "348",
@@ -1540,7 +1628,8 @@
     "facebook": "https://facebook.com/fabrikmadrid",
     "soundcloud": "https://soundcloud.com/fabrikmadrid",
     "beatport": "https://www.beatport.com/search?q=Fabrik%20Madrid",
-    "bio_en": "A major figure on the global scene, Fabrik Madrid is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Fabrik Madrid is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "349",
@@ -1555,7 +1644,8 @@
     "facebook": "https://facebook.com/razzmatazzbarcelona",
     "soundcloud": "https://soundcloud.com/razzmatazzbarcelona",
     "beatport": "https://www.beatport.com/search?q=Razzmatazz%20Barcelona",
-    "bio_en": "A major figure on the global scene, Razzmatazz Barcelona is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Razzmatazz Barcelona is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "350",
@@ -1570,7 +1660,8 @@
     "facebook": "https://facebook.com/inputbarcelona",
     "soundcloud": "https://soundcloud.com/inputbarcelona",
     "beatport": "https://www.beatport.com/search?q=Input%20Barcelona",
-    "bio_en": "A major figure on the global scene, Input Barcelona is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Input Barcelona is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "351",
@@ -1584,7 +1675,8 @@
     "facebook": "https://facebook.com/salaapolo",
     "soundcloud": "https://soundcloud.com/salaapolo",
     "beatport": "https://www.beatport.com/search?q=Sala%20Apolo",
-    "bio_en": "A major figure on the global scene, Sala Apolo is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Sala Apolo is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "352",
@@ -1598,7 +1690,8 @@
     "facebook": "https://facebook.com/mondodisko",
     "soundcloud": "https://soundcloud.com/mondodisko",
     "beatport": "https://www.beatport.com/search?q=Mondo%20Disko",
-    "bio_en": "A major figure on the global scene, Mondo Disko is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Mondo Disko is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "353",
@@ -1612,7 +1705,8 @@
     "facebook": "https://facebook.com/laterrrazza",
     "soundcloud": "https://soundcloud.com/laterrrazza",
     "beatport": "https://www.beatport.com/search?q=La%20Terrrazza",
-    "bio_en": "A major figure on the global scene, La Terrrazza is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, La Terrrazza is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "354",
@@ -1626,7 +1720,8 @@
     "facebook": "https://facebook.com/industrialcoperagranada",
     "soundcloud": "https://soundcloud.com/industrialcoperagranada",
     "beatport": "https://www.beatport.com/search?q=Industrial%20Copera%20Granada",
-    "bio_en": "A major figure on the global scene, Industrial Copera Granada is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Industrial Copera Granada is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "355",
@@ -1641,7 +1736,8 @@
     "facebook": "https://facebook.com/spazionovecentorome",
     "soundcloud": "https://soundcloud.com/spazionovecentorome",
     "beatport": "https://www.beatport.com/search?q=Spazio%20Novecento%20Rome",
-    "bio_en": "A major figure on the global scene, Spazio Novecento Rome is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Spazio Novecento Rome is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "356",
@@ -1655,7 +1751,8 @@
     "facebook": "https://facebook.com/cocoricoriccione",
     "soundcloud": "https://soundcloud.com/cocoricoriccione",
     "beatport": "https://www.beatport.com/search?q=Cocoric%C3%B2%20Riccione",
-    "bio_en": "A major figure on the global scene, Cocoricò Riccione is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Cocoricò Riccione is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "357",
@@ -1669,7 +1766,8 @@
     "facebook": "https://facebook.com/bolgiabergamo",
     "soundcloud": "https://soundcloud.com/bolgiabergamo",
     "beatport": "https://www.beatport.com/search?q=Bolgia%20Bergamo",
-    "bio_en": "A major figure on the global scene, Bolgia Bergamo is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Bolgia Bergamo is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "358",
@@ -1683,7 +1781,8 @@
     "facebook": "https://facebook.com/duelclubnaples",
     "soundcloud": "https://soundcloud.com/duelclubnaples",
     "beatport": "https://www.beatport.com/search?q=Duel%20Club%20Naples",
-    "bio_en": "A major figure on the global scene, Duel Club Naples is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Duel Club Naples is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "359",
@@ -1698,7 +1797,8 @@
     "facebook": "https://facebook.com/goaclubrome",
     "soundcloud": "https://soundcloud.com/goaclubrome",
     "beatport": "https://www.beatport.com/search?q=Goa%20Club%20Rome",
-    "bio_en": "A major figure on the global scene, Goa Club Rome is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Goa Club Rome is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "360",
@@ -1713,7 +1813,8 @@
     "facebook": "https://facebook.com/cavoparadisomykonos",
     "soundcloud": "https://soundcloud.com/cavoparadisomykonos",
     "beatport": "https://www.beatport.com/search?q=Cavo%20Paradiso%20Mykonos",
-    "bio_en": "A major figure on the global scene, Cavo Paradiso Mykonos is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Cavo Paradiso Mykonos is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "361",
@@ -1728,7 +1829,8 @@
     "facebook": "https://facebook.com/voidmykonos",
     "soundcloud": "https://soundcloud.com/voidmykonos",
     "beatport": "https://www.beatport.com/search?q=Void%20Mykonos",
-    "bio_en": "A major figure on the global scene, Void Mykonos is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Void Mykonos is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "362",
@@ -1743,7 +1845,8 @@
     "facebook": "https://facebook.com/monimykonos",
     "soundcloud": "https://soundcloud.com/monimykonos",
     "beatport": "https://www.beatport.com/search?q=Moni%20Mykonos",
-    "bio_en": "A major figure on the global scene, Moni Mykonos is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Moni Mykonos is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "363",
@@ -1759,7 +1862,8 @@
     "soundcloud": "https://soundcloud.com/clubspacemiami",
     "beatport": "https://www.beatport.com/search?q=Club%20Space%20Miami",
     "bio_en": "A major figure on the global scene, Club Space Miami is a key player in today's electronic culture.",
-    "website": "https://www.clubspace.com"
+    "website": "https://www.clubspace.com",
+    "status": "waiting"
   },
   {
     "id": "368",
@@ -1773,7 +1877,8 @@
     "facebook": "https://facebook.com/nowadaysnyc",
     "soundcloud": "https://soundcloud.com/nowadaysnyc",
     "beatport": "https://www.beatport.com/search?q=Nowadays%20NYC",
-    "bio_en": "A major figure on the global scene, Nowadays NYC is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Nowadays NYC is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "370",
@@ -1787,7 +1892,8 @@
     "facebook": "https://facebook.com/knockdowncenter",
     "soundcloud": "https://soundcloud.com/knockdowncenter",
     "beatport": "https://www.beatport.com/search?q=Knockdown%20Center",
-    "bio_en": "A major figure on the global scene, Knockdown Center is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Knockdown Center is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "371",
@@ -1801,7 +1907,8 @@
     "facebook": "https://facebook.com/publicrecords",
     "soundcloud": "https://soundcloud.com/publicrecords",
     "beatport": "https://www.beatport.com/search?q=Public%20Records",
-    "bio_en": "A major figure on the global scene, Public Records is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Public Records is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "373",
@@ -1815,7 +1922,8 @@
     "facebook": "https://facebook.com/houseofyes",
     "soundcloud": "https://soundcloud.com/houseofyes",
     "beatport": "https://www.beatport.com/search?q=House%20of%20Yes",
-    "bio_en": "A major figure on the global scene, House of Yes is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, House of Yes is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "374",
@@ -1830,7 +1938,8 @@
     "facebook": "https://facebook.com/soundnightclubla",
     "soundcloud": "https://soundcloud.com/soundnightclubla",
     "beatport": "https://www.beatport.com/search?q=Sound%20Nightclub%20LA",
-    "bio_en": "A major figure on the global scene, Sound Nightclub LA is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Sound Nightclub LA is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "375",
@@ -1845,7 +1954,8 @@
     "facebook": "https://facebook.com/academyla",
     "soundcloud": "https://soundcloud.com/academyla",
     "beatport": "https://www.beatport.com/search?q=Academy%20LA",
-    "bio_en": "A major figure on the global scene, Academy LA is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Academy LA is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "376",
@@ -1860,7 +1970,8 @@
     "facebook": "https://facebook.com/themidwaysf",
     "soundcloud": "https://soundcloud.com/themidwaysf",
     "beatport": "https://www.beatport.com/search?q=The%20Midway%20SF",
-    "bio_en": "A major figure on the global scene, The Midway SF is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, The Midway SF is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "377",
@@ -1875,7 +1986,8 @@
     "facebook": "https://facebook.com/publicworkssf",
     "soundcloud": "https://soundcloud.com/publicworkssf",
     "beatport": "https://www.beatport.com/search?q=Public%20Works%20SF",
-    "bio_en": "A major figure on the global scene, Public Works SF is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Public Works SF is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "378",
@@ -1890,7 +2002,8 @@
     "facebook": "https://facebook.com/halcyonsf",
     "soundcloud": "https://soundcloud.com/halcyonsf",
     "beatport": "https://www.beatport.com/search?q=Halcyon%20SF",
-    "bio_en": "A major figure on the global scene, Halcyon SF is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Halcyon SF is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "379",
@@ -1905,7 +2018,8 @@
     "facebook": "https://facebook.com/stereomontreal",
     "soundcloud": "https://soundcloud.com/stereomontreal",
     "beatport": "https://www.beatport.com/search?q=Stereo%20Montreal",
-    "bio_en": "A major figure on the global scene, Stereo Montreal is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Stereo Montreal is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "380",
@@ -1919,7 +2033,8 @@
     "facebook": "https://facebook.com/codatoronto",
     "soundcloud": "https://soundcloud.com/codatoronto",
     "beatport": "https://www.beatport.com/search?q=CODA%20Toronto",
-    "bio_en": "A major figure on the global scene, CODA Toronto is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, CODA Toronto is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "381",
@@ -1934,7 +2049,8 @@
     "facebook": "https://facebook.com/greenvalleycamboriu",
     "soundcloud": "https://soundcloud.com/greenvalleycamboriu",
     "beatport": "https://www.beatport.com/search?q=Green%20Valley%20Cambori%C3%BA",
-    "bio_en": "A major figure on the global scene, Green Valley Camboriú is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Green Valley Camboriú is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "382",
@@ -1949,7 +2065,8 @@
     "facebook": "https://facebook.com/warungbeachclubitajai",
     "soundcloud": "https://soundcloud.com/warungbeachclubitajai",
     "beatport": "https://www.beatport.com/search?q=Warung%20Beach%20Club%20Itaja%C3%AD",
-    "bio_en": "A major figure on the global scene, Warung Beach Club Itajaí is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Warung Beach Club Itajaí is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "383",
@@ -1964,7 +2081,8 @@
     "facebook": "https://facebook.com/dedgesaopaulo",
     "soundcloud": "https://soundcloud.com/dedgesaopaulo",
     "beatport": "https://www.beatport.com/search?q=D-Edge%20S%C3%A3o%20Paulo",
-    "bio_en": "A major figure on the global scene, D-Edge São Paulo is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, D-Edge São Paulo is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "384",
@@ -1979,7 +2097,8 @@
     "facebook": "https://facebook.com/larocclubvalinhos",
     "soundcloud": "https://soundcloud.com/larocclubvalinhos",
     "beatport": "https://www.beatport.com/search?q=Laroc%20Club%20Valinhos",
-    "bio_en": "A major figure on the global scene, Laroc Club Valinhos is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Laroc Club Valinhos is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "385",
@@ -1993,7 +2112,8 @@
     "facebook": "https://facebook.com/ameclub",
     "soundcloud": "https://soundcloud.com/ameclub",
     "beatport": "https://www.beatport.com/search?q=Ame%20Club",
-    "bio_en": "A major figure on the global scene, Ame Club is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Ame Club is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "386",
@@ -2007,7 +2127,8 @@
     "facebook": "https://facebook.com/caoscampinas",
     "soundcloud": "https://soundcloud.com/caoscampinas",
     "beatport": "https://www.beatport.com/search?q=Caos%20Campinas",
-    "bio_en": "A major figure on the global scene, Caos Campinas is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Caos Campinas is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "387",
@@ -2022,7 +2143,8 @@
     "facebook": "https://facebook.com/terrazaflorianopolis",
     "soundcloud": "https://soundcloud.com/terrazaflorianopolis",
     "beatport": "https://www.beatport.com/search?q=Terraza%20Florian%C3%B3polis",
-    "bio_en": "A major figure on the global scene, Terraza Florianópolis is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Terraza Florianópolis is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "388",
@@ -2037,7 +2159,8 @@
     "facebook": "https://facebook.com/funkmexicocity",
     "soundcloud": "https://soundcloud.com/funkmexicocity",
     "beatport": "https://www.beatport.com/search?q=Funk%20Mexico%20City",
-    "bio_en": "A major figure on the global scene, Funk Mexico City is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Funk Mexico City is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "389",
@@ -2051,7 +2174,8 @@
     "facebook": "https://facebook.com/looloomexico",
     "soundcloud": "https://soundcloud.com/looloomexico",
     "beatport": "https://www.beatport.com/search?q=LooLoo%20Mexico",
-    "bio_en": "A major figure on the global scene, LooLoo Mexico is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, LooLoo Mexico is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "390",
@@ -2066,7 +2190,8 @@
     "facebook": "https://facebook.com/thebowbuenosaires",
     "soundcloud": "https://soundcloud.com/thebowbuenosaires",
     "beatport": "https://www.beatport.com/search?q=The%20Bow%20Buenos%20Aires",
-    "bio_en": "A major figure on the global scene, The Bow Buenos Aires is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, The Bow Buenos Aires is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "391",
@@ -2081,7 +2206,8 @@
     "facebook": "https://facebook.com/crobarbuenosaires",
     "soundcloud": "https://soundcloud.com/crobarbuenosaires",
     "beatport": "https://www.beatport.com/search?q=Crobar%20Buenos%20Aires",
-    "bio_en": "A major figure on the global scene, Crobar Buenos Aires is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Crobar Buenos Aires is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "392",
@@ -2096,7 +2222,8 @@
     "facebook": "https://facebook.com/baumbogota",
     "soundcloud": "https://soundcloud.com/baumbogota",
     "beatport": "https://www.beatport.com/search?q=Baum%20Bogota",
-    "bio_en": "A major figure on the global scene, Baum Bogota is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Baum Bogota is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "393",
@@ -2111,7 +2238,8 @@
     "facebook": "https://facebook.com/videoclubbogota",
     "soundcloud": "https://soundcloud.com/videoclubbogota",
     "beatport": "https://www.beatport.com/search?q=Video%20Club%20Bogota",
-    "bio_en": "A major figure on the global scene, Video Club Bogota is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Video Club Bogota is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "395",
@@ -2126,7 +2254,8 @@
     "facebook": "https://facebook.com/venttokyo",
     "soundcloud": "https://soundcloud.com/venttokyo",
     "beatport": "https://www.beatport.com/search?q=Vent%20Tokyo",
-    "bio_en": "A major figure on the global scene, Vent Tokyo is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Vent Tokyo is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "397",
@@ -2141,7 +2270,8 @@
     "facebook": "https://facebook.com/marqueesingapore",
     "soundcloud": "https://soundcloud.com/marqueesingapore",
     "beatport": "https://www.beatport.com/search?q=Marquee%20Singapore",
-    "bio_en": "A major figure on the global scene, Marquee Singapore is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Marquee Singapore is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "398",
@@ -2156,7 +2286,8 @@
     "facebook": "https://facebook.com/potatoheadbali",
     "soundcloud": "https://soundcloud.com/potatoheadbali",
     "beatport": "https://www.beatport.com/search?q=Potato%20Head%20Bali",
-    "bio_en": "A major figure on the global scene, Potato Head Bali is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Potato Head Bali is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "399",
@@ -2171,7 +2302,8 @@
     "facebook": "https://facebook.com/savayabali",
     "soundcloud": "https://soundcloud.com/savayabali",
     "beatport": "https://www.beatport.com/search?q=Savaya%20Bali",
-    "bio_en": "A major figure on the global scene, Savaya Bali is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Savaya Bali is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "400",
@@ -2185,7 +2317,8 @@
     "facebook": "https://facebook.com/finnsbeachclub",
     "soundcloud": "https://soundcloud.com/finnsbeachclub",
     "beatport": "https://www.beatport.com/search?q=Finns%20Beach%20Club",
-    "bio_en": "A major figure on the global scene, Finns Beach Club is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Finns Beach Club is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "401",
@@ -2200,7 +2333,8 @@
     "facebook": "https://facebook.com/lafavelabali",
     "soundcloud": "https://soundcloud.com/lafavelabali",
     "beatport": "https://www.beatport.com/search?q=La%20Favela%20Bali",
-    "bio_en": "A major figure on the global scene, La Favela Bali is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, La Favela Bali is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "402",
@@ -2214,7 +2348,8 @@
     "facebook": "https://facebook.com/kyokl",
     "soundcloud": "https://soundcloud.com/kyokl",
     "beatport": "https://www.beatport.com/search?q=Ky%C5%8D%20KL",
-    "bio_en": "A major figure on the global scene, Kyō KL is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Kyō KL is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "403",
@@ -2229,7 +2364,8 @@
     "facebook": "https://facebook.com/octagonseoul",
     "soundcloud": "https://soundcloud.com/octagonseoul",
     "beatport": "https://www.beatport.com/search?q=Octagon%20Seoul",
-    "bio_en": "A major figure on the global scene, Octagon Seoul is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Octagon Seoul is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "404",
@@ -2244,7 +2380,8 @@
     "facebook": "https://facebook.com/cakeshopseoul",
     "soundcloud": "https://soundcloud.com/cakeshopseoul",
     "beatport": "https://www.beatport.com/search?q=Cakeshop%20Seoul",
-    "bio_en": "A major figure on the global scene, Cakeshop Seoul is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Cakeshop Seoul is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "405",
@@ -2259,7 +2396,8 @@
     "facebook": "https://facebook.com/faustseoul",
     "soundcloud": "https://soundcloud.com/faustseoul",
     "beatport": "https://www.beatport.com/search?q=Faust%20Seoul",
-    "bio_en": "A major figure on the global scene, Faust Seoul is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Faust Seoul is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "406",
@@ -2274,7 +2412,8 @@
     "facebook": "https://facebook.com/1900letheatrehanoi",
     "soundcloud": "https://soundcloud.com/1900letheatrehanoi",
     "beatport": "https://www.beatport.com/search?q=1900%20Le%20Theatre%20Hanoi",
-    "bio_en": "A major figure on the global scene, 1900 Le Theatre Hanoi is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, 1900 Le Theatre Hanoi is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "407",
@@ -2289,7 +2428,8 @@
     "facebook": "https://facebook.com/savagehanoi",
     "soundcloud": "https://soundcloud.com/savagehanoi",
     "beatport": "https://www.beatport.com/search?q=Savage%20Hanoi",
-    "bio_en": "A major figure on the global scene, Savage Hanoi is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Savage Hanoi is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "408",
@@ -2304,7 +2444,8 @@
     "facebook": "https://facebook.com/beambangkok",
     "soundcloud": "https://soundcloud.com/beambangkok",
     "beatport": "https://www.beatport.com/search?q=Beam%20Bangkok",
-    "bio_en": "A major figure on the global scene, Beam Bangkok is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Beam Bangkok is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "409",
@@ -2319,7 +2460,8 @@
     "facebook": "https://facebook.com/singsingtheaterbangkok",
     "soundcloud": "https://soundcloud.com/singsingtheaterbangkok",
     "beatport": "https://www.beatport.com/search?q=Sing%20Sing%20Theater%20Bangkok",
-    "bio_en": "A major figure on the global scene, Sing Sing Theater Bangkok is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Sing Sing Theater Bangkok is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "410",
@@ -2334,7 +2476,8 @@
     "facebook": "https://facebook.com/revolverupstairsmelbourne",
     "soundcloud": "https://soundcloud.com/revolverupstairsmelbourne",
     "beatport": "https://www.beatport.com/search?q=Revolver%20Upstairs%20Melbourne",
-    "bio_en": "A major figure on the global scene, Revolver Upstairs Melbourne is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Revolver Upstairs Melbourne is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "411",
@@ -2349,7 +2492,8 @@
     "facebook": "https://facebook.com/subclubmelbourne",
     "soundcloud": "https://soundcloud.com/subclubmelbourne",
     "beatport": "https://www.beatport.com/search?q=Sub%20Club%20Melbourne",
-    "bio_en": "A major figure on the global scene, Sub Club Melbourne is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Sub Club Melbourne is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "412",
@@ -2363,7 +2507,8 @@
     "facebook": "https://facebook.com/homesydney",
     "soundcloud": "https://soundcloud.com/homesydney",
     "beatport": "https://www.beatport.com/search?q=Home%20Sydney",
-    "bio_en": "A major figure on the global scene, Home Sydney is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, Home Sydney is a key player in today's electronic culture.",
+    "status": "waiting"
   },
   {
     "id": "414",
@@ -2377,6 +2522,7 @@
     "facebook": "https://facebook.com/one22sydney",
     "soundcloud": "https://soundcloud.com/one22sydney",
     "beatport": "https://www.beatport.com/search?q=One22%20Sydney",
-    "bio_en": "A major figure on the global scene, One22 Sydney is a key player in today's electronic culture."
+    "bio_en": "A major figure on the global scene, One22 Sydney is a key player in today's electronic culture.",
+    "status": "waiting"
   }
 ]
