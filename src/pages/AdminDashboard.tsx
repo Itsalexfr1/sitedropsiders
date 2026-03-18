@@ -1678,10 +1678,10 @@ export function AdminDashboard() {
                                                     onClick={fetchBrokenImages}
                                                     disabled={isScanningBroken}
                                                     className="text-[9px] font-black text-neon-red/60 hover:text-neon-red uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-red/10 border border-neon-red/20 rounded-full"
-                                                    title="Détecter les images cassées (404)"
+                                                    title="Détecter les images cassées"
                                                 >
                                                     {isScanningBroken ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <ShieldAlert className="w-2.5 h-2.5" />}
-                                                    Scan 404
+                                                    SCAN SANTÉ
                                                 </button>
                                                 <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
                                                     {((r2Stats.limit - r2Stats.used) / 1024 / 1024 / 1024).toFixed(2)} GB Libres
@@ -6726,7 +6726,7 @@ export function AdminDashboard() {
                                     <div>
                                         <h2 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
                                             <ShieldAlert className="text-neon-red w-6 h-6" />
-                                            Détecteur d'Images Cassées (404)
+                                            Détecteur d'Images Corrompues
                                         </h2>
                                         <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mt-1">
                                             {brokenImages.length} liens pointant vers des fichiers inexistants sur R2
@@ -6750,7 +6750,7 @@ export function AdminDashboard() {
                                                             <div className="p-1.5 bg-neon-red/20 rounded-lg">
                                                                 <ShieldAlert className="w-3.5 h-3.5 text-neon-red" />
                                                             </div>
-                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Image Corrompue / 404</span>
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Fichier Manquant / R2</span>
                                                         </div>
                                                     </div>
                                                     
