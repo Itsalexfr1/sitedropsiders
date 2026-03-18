@@ -1,5 +1,34 @@
 [
   {
+    "username": "alex",
+    "password": "b64:MjAyNg==",
+    "name": "Alex",
+    "permissions": [
+      "publications",
+      "messages",
+      "create",
+      "send_messages",
+      "agenda",
+      "recaps",
+      "interviews",
+      "musique",
+      "news",
+      "live",
+      "community",
+      "social",
+      "news_focus",
+      "musique_releases",
+      "recaps_festivals",
+      "interviews_video",
+      "social_studio",
+      "agenda_events",
+      "community_mod",
+      "messages_contact",
+      "settings"
+    ],
+    "created": "2026-02-24T03:30:00.000Z"
+  },
+  {
     "username": "tanguy",
     "password": "b64:MjAyNg==",
     "name": "Tanguy",

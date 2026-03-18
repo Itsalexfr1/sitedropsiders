@@ -3325,23 +3325,36 @@ ${urls.map(u => `  <url>
                     const fileObj = dataContents[i];
                     if (!fileObj || !fileObj.content) continue;
                     
-                    const contentStr = JSON.stringify(fileObj.content);
                     const fileName = dataFiles[i].split('/').pop() || dataFiles[i];
-                    
-                    let match;
-                    while ((match = urlRegex.exec(contentStr)) !== null) {
-                        const key = match[1];
-                        const fullPathKey = `uploads/${key}`;
+                    const items = Array.isArray(fileObj.content) ? fileObj.content : [fileObj.content];
+
+                    items.forEach((item: any, index: number) => {
+                        const itemStr = JSON.stringify(item);
+                        // Reset regex state for each item
+                        const localRegex = new RegExp(urlRegex.source, urlRegex.flags);
                         
-                        // If it's not in R2, it's broken!
-                        if (!allKeys.has(fullPathKey) && !allKeys.has(key)) {
-                            brokenImages.push({
-                                url: match[0].replace(/['"]/g, ''),
-                                key: key,
-                                location: fileName
-                            });
+                        let match;
+                        while ((match = localRegex.exec(itemStr)) !== null) {
+                            const key = match[1];
+                            const fullPathKey = `uploads/${key}`;
+                            
+                            // If it's not in R2, it's broken!
+                            if (!allKeys.has(fullPathKey) && !allKeys.has(key)) {
+                                brokenImages.push({
+                                    url: match[0].replace(/['"]/g, ''),
+                                    key: key,
+                                    location: fileName,
+                                    entityId: item.id || index,
+                                    entityName: item.name || item.title || item.label || `Item ${index}`,
+                                    directLink: item.link || null,
+                                    type: fileName.toLowerCase().includes('dj') ? 'DJS' : 
+                                          fileName.toLowerCase().includes('club') ? 'CLUBS' :
+                                          fileName.toLowerCase().includes('fest') ? 'FESTIVALS' :
+                                          fileName.toLowerCase().includes('news') ? 'NEWS' : 'OTHER'
+                                });
+                            }
                         }
-                    }
+                    });
                 }
 
                 return new Response(JSON.stringify({ 

@@ -6746,38 +6746,57 @@ export function AdminDashboard() {
                                     {brokenImages.length > 0 ? (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                             {brokenImages.map((img, idx) => (
-                                                <div key={idx} className="group bg-white/5 border border-white/10 p-5 rounded-2xl flex flex-col gap-3 hover:bg-white/[0.07] transition-all">
+                                                <div key={idx} className="group bg-white/5 border border-white/10 p-5 rounded-2xl flex flex-col gap-4 hover:bg-white/[0.07] transition-all">
                                                     <div className="flex items-center justify-between">
                                                         <div className="flex items-center gap-2">
                                                             <div className="p-1.5 bg-neon-red/20 rounded-lg">
                                                                 <ShieldAlert className="w-3.5 h-3.5 text-neon-red" />
                                                             </div>
-                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Fichier Manquant / R2</span>
+                                                            <span className="text-[11px] font-black text-white uppercase tracking-widest truncate max-w-[150px]">
+                                                                {img.entityName || "Objet Inconnu"}
+                                                            </span>
+                                                        </div>
+                                                        <div className="px-2 py-0.5 bg-white/5 rounded-full border border-white/10 text-[8px] font-black text-gray-500 uppercase tracking-tighter">
+                                                            {img.type}
                                                         </div>
                                                     </div>
                                                     
-                                                    <div className="flex flex-col gap-1">
-                                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Clé du fichier (R2):</span>
-                                                        <div className="text-[11px] font-mono text-white/90 break-all bg-black/60 p-3 rounded-xl border border-white/5 group-hover:border-neon-red/30 transition-colors">
-                                                            {img.key}
-                                                        </div>
+                                                    <div className="flex flex-col gap-2">
+                                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Lien de l'article :</span>
+                                                        {img.directLink ? (
+                                                            <a 
+                                                                href={img.directLink} 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer" 
+                                                                className="group/link flex items-center justify-between p-3 bg-neon-cyan/5 border border-neon-cyan/20 rounded-xl hover:bg-neon-cyan/10 transition-all"
+                                                            >
+                                                                <span className="text-[10px] font-black text-neon-cyan uppercase truncate mr-2">Voir sur le site</span>
+                                                                <ExternalLink className="w-3.5 h-3.5 text-neon-cyan group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
+                                                            </a>
+                                                        ) : (
+                                                            <div className="text-[10px] font-mono text-white/50 break-all bg-black/40 p-3 rounded-xl border border-white/5 italic">
+                                                                Pas de lien direct
+                                                            </div>
+                                                        )}
                                                     </div>
 
-                                                    <div className="flex items-center justify-between mt-2 pt-3 border-t border-white/5">
-                                                        <div className="flex items-center gap-1.5">
-                                                            <div className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse" />
-                                                            <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">Référencé dans:</span>
+                                                    <div className="flex flex-col gap-1.5 pt-3 border-t border-white/5">
+                                                        <div className="flex items-center justify-between">
+                                                            <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Fichier Source (GitHub):</span>
+                                                            <a 
+                                                                href={`https://github.com/Itsalexfr1/sitedropsiders/edit/main/src/data/${img.location}`} 
+                                                                target="_blank" 
+                                                                rel="noopener noreferrer"
+                                                                className="text-[10px] font-black text-white/40 hover:text-white uppercase tracking-widest bg-white/5 hover:bg-white/10 px-2 py-1 rounded-md transition-colors flex items-center gap-1.5 border border-white/5"
+                                                                title="Ouvrir le fichier source pour corriger"
+                                                            >
+                                                                {img.location}
+                                                                <ExternalLink className="w-2.5 h-2.5" />
+                                                            </a>
                                                         </div>
-                                                        <a 
-                                                            href={`https://github.com/Itsalexfr1/sitedropsiders/edit/main/src/data/${img.location}`} 
-                                                            target="_blank" 
-                                                            rel="noopener noreferrer"
-                                                            className="text-[11px] font-black text-white/80 hover:text-white uppercase tracking-widest bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-md transition-colors flex items-center gap-1.5 border border-white/5 hover:border-white/20"
-                                                            title="Ouvrir le fichier source pour corriger"
-                                                        >
-                                                            {img.location}
-                                                            <ExternalLink className="w-2.5 h-2.5" />
-                                                        </a>
+                                                        <div className="text-[9px] font-mono text-gray-600 break-all px-1">
+                                                            ID: {img.entityId}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             ))}
