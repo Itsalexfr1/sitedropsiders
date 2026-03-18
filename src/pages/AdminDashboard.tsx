@@ -6768,7 +6768,16 @@ export function AdminDashboard() {
                                                             <div className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse" />
                                                             <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">Référencé dans:</span>
                                                         </div>
-                                                        <span className="text-[11px] font-black text-white/80 uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded-md">{img.location}</span>
+                                                        <a 
+                                                            href={`https://github.com/Itsalexfr1/sitedropsiders/edit/main/src/data/${img.location}`} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer"
+                                                            className="text-[11px] font-black text-white/80 hover:text-white uppercase tracking-widest bg-white/5 hover:bg-white/10 px-2 py-0.5 rounded-md transition-colors flex items-center gap-1.5 border border-white/5 hover:border-white/20"
+                                                            title="Ouvrir le fichier source pour corriger"
+                                                        >
+                                                            {img.location}
+                                                            <ExternalLink className="w-2.5 h-2.5" />
+                                                        </a>
                                                     </div>
                                                 </div>
                                             ))}
