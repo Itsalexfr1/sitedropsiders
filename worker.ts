@@ -620,11 +620,18 @@ ${urls.map(u => `  <url>
                 'https://cobalt.qwer.sh/',
                 'https://cobalt.onl/',
                 'https://api.cobalt.red/',
-                'https://cobalt.sneaky.sh/'
+                'https://cobalt.sneaky.sh/',
+                'https://cobalt.moe/',
+                'https://cobalt.sh/',
+                'https://cobalt.press/',
+                'https://cobalt.io/',
+                'https://cobalt.plus/',
+                'https://cobalt.icu/',
+                'https://cobalt.host/'
             ];
 
-            // Try 5 random instances in parallel to speed up the process
-            const selectedInstances = [...instances].sort(() => Math.random() - 0.5).slice(0, 5);
+            // Try first 8 random instances in parallel to maximize success
+            const selectedInstances = [...instances].sort(() => Math.random() - 0.5).slice(0, 8);
 
             try {
                 const successResponse = await Promise.any(selectedInstances.map(async (instance) => {
@@ -633,25 +640,30 @@ ${urls.map(u => `  <url>
                         headers: {
                             'Content-Type': 'application/json',
                             'Accept': 'application/json',
-                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+                            'Origin': 'https://cobalt.tools',
+                            'Referer': 'https://cobalt.tools/',
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
                         },
                         body: JSON.stringify({
-                            ...body,
+                            url: targetUrl,
                             videoQuality: body.videoQuality || '1080',
                             vQuality: body.vQuality || '1080',
-                            downloadMode: body.downloadMode || 'auto',
+                            audioFormat: body.audioFormat || 'mp3',
+                            aFormat: body.aFormat || 'mp3',
+                            downloadMode: 'tunnel', // Forced tunnel mode for better reliability
+                            filenameStyle: 'pretty',
                             isNoTTWatermark: true
                         }),
-                        signal: AbortSignal.timeout(7000) 
+                        signal: AbortSignal.timeout(10000) 
                     });
 
                     if (response.ok) {
                         const data = await response.json();
-                        if (data.url || data.picker || data.status === 'stream' || data.status === 'redirect' || data.status === 'picker') {
+                        if (data.url || data.picker || data.status === 'stream' || data.status === 'redirect' || data.status === 'picker' || data.text) {
                             return new Response(JSON.stringify(data), { headers });
                         }
                     }
-                    throw new Error("Invalid response");
+                    throw new Error("Invalid response from " + instance);
                 }));
                 return successResponse;
             } catch (e) {

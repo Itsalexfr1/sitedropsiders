@@ -55,8 +55,10 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelec
                 throw new Error(data.text || data.message || 'Le service de téléchargement est temporairement indisponible.');
             }
 
-            if (data.url || data.picker || Array.isArray(data)) {
+            if (data.url || data.picker || data.text || Array.isArray(data)) {
                 // Determine if it's a direct URL or multiple items (carousels)
+                // If it's in data.text, re-map it to data.url for consistency
+                if (data.text && !data.url) data.url = data.text;
                 setResult(data);
             } else {
                 throw new Error('Aucun lien de téléchargement trouvé pour ce lien.');
