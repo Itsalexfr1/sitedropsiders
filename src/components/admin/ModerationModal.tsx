@@ -226,7 +226,30 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                         const err = await response.json();
                         throw new Error(err.error || `Erreur lors de la suppression massive (Type: ${type})`);
                     }
-                    // Wait a bit to avoid GitHub conflicts between types
+                    if (Object.keys(groupedIds).length > 1) {
+                        await new Promise(r => setTimeout(r, 600));
+                    }
+                }
+                setWikiWaiting(prev => prev.filter(w => !ids.includes(w.id)));
+            } else if (tab === 'wiki' && action === 'approve') {
+                const groupedIds: Record<string, string[]> = {};
+                for (const id of ids) {
+                    const item = wikiWaiting.find(w => w.id === id);
+                    if (!item) continue;
+                    if (!groupedIds[item.type]) groupedIds[item.type] = [];
+                    groupedIds[item.type].push(id);
+                }
+
+                for (const [type, typeIds] of Object.entries(groupedIds)) {
+                    const response = await fetch('/api/wiki/approve-bulk', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                        body: JSON.stringify({ ids: typeIds, type })
+                    });
+                    if (!response.ok) {
+                        const err = await response.json();
+                        throw new Error(err.error || `Erreur lors de la validation massive (Type: ${type})`);
+                    }
                     if (Object.keys(groupedIds).length > 1) {
                         await new Promise(r => setTimeout(r, 600));
                     }
@@ -616,14 +639,24 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                                                         </button>
                                                     )}
                                                     {selected.size > 0 && (
-                                                        <button
-                                                            onClick={() => handleBulkAction('reject')}
-                                                            disabled={isBulkProcessing}
-                                                            className="px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest bg-neon-red/20 border border-neon-red/50 text-neon-red hover:bg-neon-red hover:text-white transition-all disabled:opacity-50"
-                                                        >
-                                                            <Trash2 className="w-3.5 h-3.5 inline-block mr-1" />
-                                                            Supprimer ({selected.size})
-                                                        </button>
+                                                        <>
+                                                            <button
+                                                                onClick={() => handleBulkAction('approve')}
+                                                                disabled={isBulkProcessing}
+                                                                className="px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest bg-neon-green/20 border border-neon-green/50 text-neon-green hover:bg-neon-green hover:text-black transition-all disabled:opacity-50"
+                                                            >
+                                                                <Check className="w-3.5 h-3.5 inline-block mr-1" />
+                                                                Valider ({selected.size})
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleBulkAction('reject')}
+                                                                disabled={isBulkProcessing}
+                                                                className="px-4 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest bg-neon-red/20 border border-neon-red/50 text-neon-red hover:bg-neon-red hover:text-white transition-all disabled:opacity-50"
+                                                            >
+                                                                <Trash2 className="w-3.5 h-3.5 inline-block mr-1" />
+                                                                Supprimer ({selected.size})
+                                                            </button>
+                                                        </>
                                                     )}
                                                 </motion.div>
                                             )}

@@ -912,6 +912,7 @@ ${urls.map(u => `  <url>
             path.startsWith('/api/instagram-contest') ||
             path.startsWith('/api/quiz/contest') ||
             path === '/api/wiki/update-photo' ||
+            path === '/api/wiki/approve-bulk' ||
             path === '/api/r2/stats' ||
             path === '/api/r2/duplicates' ||
             path === '/api/admin/broken-images'
@@ -3515,6 +3516,42 @@ ${urls.map(u => `  <url>
                 }
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/wiki/approve-bulk' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { ids, type } = await request.json();
+                if (!ids || !Array.isArray(ids) || !type) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+
+                let filePath = '';
+                if (type === 'DJS') filePath = WIKI_DJS_PATH;
+                else if (type === 'CLUBS') filePath = WIKI_CLUBS_PATH;
+                else if (type === 'FESTIVALS') filePath = WIKI_FESTIVALS_PATH;
+                else return new Response(JSON.stringify({ error: 'Invalid type' }), { status: 400, headers });
+
+                const file = await fetchGitHubFile(filePath, gitConfig);
+                if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+
+                let count = 0;
+                file.content.forEach(item => {
+                    if (ids.includes(item.id)) {
+                        if (item.status === 'waiting') {
+                            delete item.status;
+                            count++;
+                        }
+                    }
+                });
+
+                if (count > 0) {
+                    const saved = await saveGitHubFile(filePath, file.content, `Bulk approve ${count} items in ${type}`, file.sha, gitConfig);
+                    if (!saved.ok) return new Response(JSON.stringify({ error: saved.error }), { status: 500, headers });
+                }
+
+                return new Response(JSON.stringify({ success: true, count }), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
