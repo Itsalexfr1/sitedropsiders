@@ -3286,19 +3286,19 @@ ${urls.map(u => `  <url>
                     remaining: Math.max(0, 10737418240 - totalSize)
                 }), { status: 200, headers });
             } catch (e: any) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...headers, 'Cache-Control': 'no-cache, no-store, must-revalidate' } });
             }
         }
 
         if (path === '/api/r2/duplicates' && request.method === 'GET') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
-                if (!env.R2) return new Response(JSON.stringify([]), { status: 200, headers });
+                if (!env.R2) return new Response(JSON.stringify([]), { status: 200, headers: { ...headers, 'Cache-Control': 'no-cache, no-store, must-revalidate' } });
                 
                 const allObjects = [];
                 let cursor = undefined;
                 while (true) {
-                    const listResult = await env.R2.list({ cursor });
+                    const listResult = await env.R2.list({ cursor, prefix: 'uploads/' });
                     allObjects.push(...listResult.objects);
                     if (!listResult.truncated) break;
                     cursor = listResult.cursor;
@@ -3321,9 +3321,9 @@ ${urls.map(u => `  <url>
                     .filter((set: any) => set.length > 1)
                     .sort((a: any, b: any) => b[0].size - a[0].size); // Show biggest files first
 
-                // LIMIT to first 100 groups for performance (Cloudflare Worker CPU limit)
-                if (duplicateSets.length > 100) {
-                    duplicateSets = duplicateSets.slice(0, 100);
+                // LIMIT to 500 groups for performance (Cloudflare Worker CPU limit)
+                if (duplicateSets.length > 500) {
+                    duplicateSets = duplicateSets.slice(0, 500);
                 }
 
                 if (duplicateSets.length === 0) {
@@ -3369,9 +3369,12 @@ ${urls.map(u => `  <url>
                     }))
                 );
                 
-                return new Response(JSON.stringify(duplicateSetsWithUsage), { status: 200, headers });
+                return new Response(JSON.stringify(duplicateSetsWithUsage), { 
+                    status: 200, 
+                    headers: { ...headers, 'Cache-Control': 'no-cache, no-store, must-revalidate' } 
+                });
             } catch (e: any) {
-                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers: { ...headers, 'Cache-Control': 'no-cache, no-store, must-revalidate' } });
             }
         }
 

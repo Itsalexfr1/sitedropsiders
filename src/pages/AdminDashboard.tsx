@@ -142,6 +142,12 @@ export function AdminDashboard() {
                 setDuplicateSets(refreshedSets);
                 setSelectedKeys([]);
                 fetchR2Stats();
+                fetchDuplicates(); // Force re-scan
+                setGlobalAlert({
+                    type: 'info',
+                    title: 'SUPPRESSION RÉUSSIE',
+                    message: `${selectedKeys.length} fichiers ont été supprimés définitivement de R2.`
+                });
             }
         } catch (e) {
             console.error("Failed to delete objects", e);
@@ -874,6 +880,12 @@ export function AdminDashboard() {
                 const newSets = duplicateSets.map(set => set.filter((obj: any) => obj.key !== key)).filter(set => set.length > 1);
                 setDuplicateSets(newSets);
                 fetchR2Stats();
+                fetchDuplicates(); // Force re-scan
+                setGlobalAlert({
+                    type: 'info',
+                    title: 'IMAGE SUPPRIMÉE',
+                    message: `Le fichier ${key} a été supprimé de R2.`
+                });
             }
         } catch (e) {
             console.error("Failed to delete object", e);
