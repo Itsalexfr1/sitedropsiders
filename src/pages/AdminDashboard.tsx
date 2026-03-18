@@ -6643,8 +6643,65 @@ export function AdminDashboard() {
                         </div>
                     )}
                 </AnimatePresence>
+
+                {/* Premium Global Alert Modal */}
+                <AnimatePresence>
+                    {globalAlert && (
+                        <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setGlobalAlert(null)}
+                                className="absolute inset-0 bg-black/80 backdrop-blur-xl"
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 30 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 30 }}
+                                className="relative w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl"
+                            >
+                                <div className={`h-1.5 w-full bg-gradient-to-r ${
+                                    globalAlert.type === 'danger' ? 'from-neon-red to-red-600' :
+                                    globalAlert.type === 'warning' ? 'from-neon-orange to-orange-500' :
+                                    'from-neon-cyan to-blue-500'
+                                }`} />
+                                
+                                <div className="p-8 text-center sm:p-10">
+                                    <div className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-6 ${
+                                        globalAlert.type === 'danger' ? 'bg-neon-red/10' :
+                                        globalAlert.type === 'warning' ? 'bg-neon-orange/10' :
+                                        'bg-neon-cyan/10'
+                                    }`}>
+                                        {globalAlert.type === 'danger' ? <ShieldAlert className="w-8 h-8 text-neon-red" /> :
+                                         globalAlert.type === 'warning' ? <ShieldAlert className="w-8 h-8 text-neon-orange" /> :
+                                         <CheckCircle2 className="w-8 h-8 text-neon-cyan" />}
+                                    </div>
+
+                                    <h3 className="text-xl font-black text-white italic uppercase tracking-tighter mb-2">
+                                        {globalAlert.title || 'SYSTEM NOTIFICATION'}
+                                    </h3>
+                                    <p className="text-gray-400 font-medium text-sm leading-relaxed mb-8">
+                                        {globalAlert.message}
+                                    </p>
+
+                                    <button
+                                        onClick={() => setGlobalAlert(null)}
+                                        className={`w-full py-4 rounded-2xl font-black uppercase italic tracking-widest text-[11px] transition-all ${
+                                            globalAlert.type === 'danger' ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,0,0,0.3)]' :
+                                            globalAlert.type === 'warning' ? 'bg-neon-orange text-black' :
+                                            'bg-neon-cyan text-black shadow-[0_0_20px_rgba(34,211,238,0.3)]'
+                                        }`}
+                                    >
+                                        COMPRIS
+                                    </button>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
             </div>
-        </div >
+        </div>
     );
 }
 

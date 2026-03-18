@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Check, CheckSquare, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare, BookOpen, Upload, Plus, Download, Youtube, Music } from 'lucide-react';
+import { X, Check, CheckSquare, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare, BookOpen, Upload, Plus, Download } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
 import { PromptModal } from '../ui/PromptModal';
 import { ConfirmModal } from '../ui/ConfirmModal';
