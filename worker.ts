@@ -627,6 +627,64 @@ ${urls.map(u => `  <url>
                 }
             } catch (e) { }
 
+            // --- YOUTUBE RELIABILITY: DLSRV.ONLINE API (YT1S STYLE) ---
+            if (targetUrl.includes('youtube.com') || targetUrl.includes('youtu.be')) {
+                try {
+                    const urlObj = new URL(targetUrl);
+                    let videoId = '';
+                    if (urlObj.hostname.includes('youtube.com')) {
+                        videoId = urlObj.searchParams.get('v') || '';
+                    } else {
+                        videoId = urlObj.pathname.split('/')[1] || '';
+                    }
+
+                    if (videoId) {
+                        const appOrigin = 'ec5876a5-f1a2-43c5-9f88-9958757942a4';
+                        const apiBase = 'https://embed.dlsrv.online/api';
+                        const reqHeaders = {
+                            'Content-Type': 'application/json',
+                            'x-do-app-origin': appOrigin,
+                            'Referer': `https://embed.dlsrv.online/v1/full?videoId=${videoId}`,
+                            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36'
+                        };
+
+                        // Step 1: Get Info
+                        const infoRes = await fetch(`${apiBase}/info`, {
+                            method: 'POST',
+                            headers: reqHeaders,
+                            body: JSON.stringify({ videoId })
+                        });
+                        const infoData = await infoRes.json() as any;
+
+                        if (infoData && (infoData.id || infoData.videoId)) {
+                            // Step 2: Request Download
+                            const isAudio = body.aFormat === 'mp3' || body.downloadMode === 'audio'; // Check from frontend request
+                            const format = isAudio ? 'mp3' : 'mp4';
+                            const quality = isAudio ? '320' : '1080';
+
+                            const dlRes = await fetch(`${apiBase}/download/${format}`, {
+                                method: 'POST',
+                                headers: reqHeaders,
+                                body: JSON.stringify({ videoId, format, quality })
+                            });
+                            const dlData = await dlRes.json() as any;
+
+                            if (dlData.url) {
+                                return new Response(JSON.stringify({
+                                    status: 'success',
+                                    url: dlData.url,
+                                    filename: dlData.filename || `${videoId}.${format}`,
+                                    title: infoData.title || 'YouTube Media'
+                                }), { headers });
+                            }
+                        }
+                    }
+                } catch (e) {
+                    console.error("YouTube dlsrv Error:", e);
+                    // Fallback to Cobalt
+                }
+            }
+
             // --- INSTAGRAM RELIABILITY: FASTDL.APP API ---
             if (targetUrl.includes('instagram.com')) {
                 try {
