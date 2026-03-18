@@ -880,7 +880,9 @@ export function AdminDashboard() {
     const fetchBrokenImages = async () => {
         setIsScanningBroken(true);
         try {
-            const res = await apiFetch('/api/admin/broken-images');
+            const res = await apiFetch('/api/admin/broken-images', {
+                headers: getAuthHeaders()
+            });
             const data = await res.json();
             if (data.success) {
                 setBrokenImages(data.broken);
