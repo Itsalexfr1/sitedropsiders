@@ -1681,7 +1681,7 @@ export function AdminDashboard() {
                                                     title="Détecter les images cassées"
                                                 >
                                                     {isScanningBroken ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <ShieldAlert className="w-2.5 h-2.5" />}
-                                                    SCAN SANTÉ
+                                                    SCAN PHOTOS
                                                 </button>
                                                 <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
                                                     {((r2Stats.limit - r2Stats.used) / 1024 / 1024 / 1024).toFixed(2)} GB Libres
@@ -6726,7 +6726,7 @@ export function AdminDashboard() {
                                     <div>
                                         <h2 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
                                             <ShieldAlert className="text-neon-red w-6 h-6" />
-                                            Détecteur d'Images Corrompues
+                                            Vérificateur de Photos
                                         </h2>
                                         <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mt-1">
                                             {brokenImages.length} liens pointant vers des fichiers inexistants sur R2
