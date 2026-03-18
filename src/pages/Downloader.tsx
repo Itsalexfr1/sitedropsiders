@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, Instagram, Music, Twitter, Youtube, Link, AlertCircle, CheckCircle, Loader2, X } from 'lucide-react';
+import { Download, Instagram, Music, Twitter, Youtube, Link, AlertCircle, CheckCircle, Loader2, X, Video } from 'lucide-react';
 
 interface DownloaderProps {
     isPopup?: boolean;
@@ -13,6 +13,7 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelec
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState<any>(null);
     const [error, setError] = useState<string | null>(null);
+    const [downloadFormat, setDownloadFormat] = useState<'video' | 'audio'>('video');
 
     const handleClear = () => {
         setUrl('');
@@ -41,10 +42,11 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelec
                     vQuality: '1080',
                     audioFormat: 'mp3',
                     aFormat: 'mp3',
-                    downloadMode: 'auto',
+                    downloadMode: 'tunnel',
                     filenameStyle: 'pretty',
                     youtubeVideoCodec: 'h264',
-                    isNoTTWatermark: true
+                    isNoTTWatermark: true,
+                    isAudioOnly: downloadFormat === 'audio'
                 })
             });
 
@@ -98,6 +100,24 @@ export const Downloader: React.FC<DownloaderProps> = ({ isPopup = false, onSelec
                         </p>
                     </motion.div>
                 )}
+
+                {/* Format Selector */}
+                <div className="max-w-xs mx-auto mb-6 flex p-1 bg-white/5 border border-white/10 rounded-2xl relative z-20">
+                    <button
+                        type="button"
+                        onClick={() => setDownloadFormat('video')}
+                        className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${downloadFormat === 'video' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                    >
+                        <Video className="w-3.5 h-3.5" /> VIDÉO MP4
+                    </button>
+                    <button
+                        type="button"
+                        onClick={() => setDownloadFormat('audio')}
+                        className={`flex-1 py-3 px-4 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${downloadFormat === 'audio' ? 'bg-white text-black shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                    >
+                        <Music className="w-3.5 h-3.5" /> AUDIO MP3
+                    </button>
+                </div>
 
                 {/* Main Input Card */}
                 <motion.div
