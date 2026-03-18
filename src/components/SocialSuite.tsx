@@ -668,7 +668,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.save();
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'bottom';
-                ctx.font = '900 italic 45px "Inter", sans-serif';
+                ctx.font = '900 italic 45px "Montserrat", sans-serif';
                 ctx.fillStyle = '#fff';
                 ctx.shadowColor = 'rgba(0,0,0,0.8)';
                 ctx.shadowBlur = 10;
@@ -680,7 +680,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.save();
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'bottom';
-                ctx.font = '900 italic 24px "Inter", sans-serif'; // Réduit de 40% (40px -> 24px)
+                ctx.font = '900 italic 24px "Montserrat", sans-serif'; // Réduit de 40% (40px -> 24px)
                 ctx.fillStyle = '#fff';
                 ctx.shadowColor = 'rgba(0,0,0,0.8)';
                 ctx.shadowBlur = 10;
