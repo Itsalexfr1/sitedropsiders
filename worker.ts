@@ -3330,10 +3330,14 @@ ${urls.map(u => `  <url>
                     return new Response(JSON.stringify([]), { status: 200, headers });
                 }
 
-                // --- NEW: OPTIMIZED USAGE TRACKING ---
+                // --- NEW: COMPREHENSIVE USAGE TRACKING ---
+                // We scan EVERY file that might contain a reference to an image
                 const dataFiles = [
                     WIKI_DJS_PATH, WIKI_CLUBS_PATH, WIKI_FESTIVALS_PATH,
-                    NEWS_PATH, AGENDA_PATH, GALERIE_PATH, RECAPS_PATH, TEAM_PATH
+                    NEWS_PATH, ...NEWS_CONTENT_FILES,
+                    AGENDA_PATH, GALERIE_PATH, 
+                    RECAPS_PATH, ...RECAPS_CONTENT_FILES,
+                    TEAM_PATH, SHOP_PATH, CLIPS_PATH, TRACKLISTS_PATH
                 ];
 
                 const usageMap: Record<string, string[]> = {};
