@@ -200,7 +200,7 @@ function ReorderableItem({ item, updateItem, getColorValue, socials, updateSocia
                                                     value={socials?.instagram || ''}
                                                     onChange={(e) => updateSocials('instagram', e.target.value)}
                                                     className="bg-transparent border-none text-[11px] font-bold text-white outline-none w-full"
-                                                    placeholder="dropsiders.eu"
+                                                    placeholder="dropsiders.fr"
                                                 />
                                             </div>
                                         </div>
@@ -215,7 +215,7 @@ function ReorderableItem({ item, updateItem, getColorValue, socials, updateSocia
                                                     value={socials?.tiktok || ''}
                                                     onChange={(e) => updateSocials('tiktok', e.target.value)}
                                                     className="bg-transparent border-none text-[11px] font-bold text-white outline-none w-full"
-                                                    placeholder="@dropsiders.eu"
+                                                    placeholder="@dropsiders.fr"
                                                 />
                                             </div>
                                         </div>

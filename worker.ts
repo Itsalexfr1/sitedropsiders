@@ -2072,7 +2072,7 @@ ${urls.map(u => `  <url>
                     isFeatured: isFeatured || false,
                     isFocus: isFocus || false,
                     year: year || undefined,
-                    link: `https://dropsiders.eu/news/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+                    link: `https://dropsiders.fr/news/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
                     author: author || requestUsername || 'Alex'
                 };
 
@@ -2143,7 +2143,7 @@ ${urls.map(u => `  <url>
                     isFeatured: isFeatured || false,
                     showVideo: showVideo !== false,
                     year: year || undefined,
-                    link: `https://dropsiders.eu/recaps/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+                    link: `https://dropsiders.fr/recaps/${newId}_${title.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
                     images: extractedImages,
                     author: author || requestUsername || 'Alex'
                 };

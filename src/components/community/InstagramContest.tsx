@@ -20,7 +20,7 @@ export function InstagramContest({ onPlayClick }: { onPlayClick?: () => void }) 
     }, []);
 
     const handleShare = () => {
-        window.open('https://www.instagram.com/dropsiders.eu/', '_blank');
+        window.open('https://www.instagram.com/dropsiders.fr/', '_blank');
     };
 
     if (status === 'success') {
@@ -75,7 +75,7 @@ export function InstagramContest({ onPlayClick }: { onPlayClick?: () => void }) 
                     </h1>
 
                     <p className="text-sm md:text-lg font-medium opacity-80 max-w-2xl leading-relaxed">
-                        Partagez votre score du Quiz en story, taguez <span className="font-black">@dropsiders.eu</span> ainsi que <span className="font-black text-white">{festivalHandle}</span> pour valider votre participation.
+                        Partagez votre score du Quiz en story, taguez <span className="font-black">@dropsiders.fr</span> ainsi que <span className="font-black text-white">{festivalHandle}</span> pour valider votre participation.
                     </p>
 
                     <div className="flex flex-col sm:flex-row gap-4 pt-4">
@@ -95,9 +95,9 @@ export function InstagramContest({ onPlayClick }: { onPlayClick?: () => void }) 
                 {/* Steps */}
                 <div className="md:col-span-5 space-y-4">
                     {[
-                        { num: '01', title: 'ABONNEZ-VOUS', desc: 'Suivez @dropsiders.eu sur Instagram.' },
+                        { num: '01', title: 'ABONNEZ-VOUS', desc: 'Suivez @dropsiders.fr sur Instagram.' },
                         { num: '02', title: 'PARTAGEZ', desc: 'Republiez le dernier post ou l\'affiche du festival en story.' },
-                        { num: '03', title: 'TAGUEZ', desc: `Identifiez @dropsiders.eu et ${festivalHandle} sur votre story (votre compte doit être PUBLIC).` },
+                        { num: '03', title: 'TAGUEZ', desc: `Identifiez @dropsiders.fr et ${festivalHandle} sur votre story (votre compte doit être PUBLIC).` },
                         { num: '04', title: 'VALIDEZ', desc: 'Jouez au Quiz et validez votre score à la fin.' }
                     ].map((step, i) => (
                         <motion.div 

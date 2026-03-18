@@ -253,7 +253,7 @@ Pourquoi collaborer avec nous ? Nous activons un dispositif digital global et ca
 
 1. Visibilité Multi-Plateforme (Agenda & Communauté) : Votre festival bénéficie déjà d'une mise en avant sur notre Agenda (https://dropsiders.fr/agenda). De plus, nous avons intégré **${festivalUpper}** dans notre nouvel espace "Communauté" : nos utilisateurs peuvent désormais voter, partager leurs photos et laisser des avis détaillés, créant ainsi une base de données sociale précieuse pour votre promotion.
 
-2. Le Concours Blind Test (Levier de Viralité) : Pour booster l'engagement, nos lecteurs participent à un quiz dédié à votre programmation et partagent obligatoirement leur score en Story Instagram en identifiant **votre compte officiel** et @Dropsiders.eu. Cela génère un flux massif de mentions organiques authentiques.
+2. Le Concours Blind Test (Levier de Viralité) : Pour booster l'engagement, nos lecteurs participent à un quiz dédié à votre programmation et partagent obligatoirement leur score en Story Instagram en identifiant **votre compte officiel** et @dropsiders.fr. Cela génère un flux massif de mentions organiques authentiques.
 
 3. Proposition de Partenariat & Échange : En échange de 1 ou 2 pass presse, nous vous proposons un pack de couverture complet :
    - Organisation du jeu concours pour faire gagner des invitations à notre communauté.
@@ -277,7 +277,7 @@ Why collaborate with us? We activate a comprehensive and professional digital pa
 
 1. Multi-Platform Visibility (Agenda & Community): Your festival is already featured on our Agenda (https://dropsiders.fr/agenda). Additionally, we have integrated **${festivalUpper}** into our new "Community" hub: our users can now vote, share their photos, and leave detailed reviews, creating a valuable social proof database for your promotion.
 
-2. Blind Test Contest (Virality Lever): To boost engagement, our readers complete a quiz dedicated to your lineup and must share their score on Instagram Story, tagging your official account and @Dropsiders.eu. This generates a massive flow of authentic organic mentions.
+2. Blind Test Contest (Virality Lever): To boost engagement, our readers complete a quiz dedicated to your lineup and must share their score on Instagram Story, tagging your official account and @dropsiders.fr. This generates a massive flow of authentic organic mentions.
 
 3. Partnership & Exchange Proposal: In exchange for 1 or 2 press passes, we offer a full coverage pack:
    - Hosting a giveaway contest for our community.

@@ -186,7 +186,7 @@ export function ContestValidationModal({ isOpen, onClose, score, total, pseudo }
                                                 <div className="p-4 bg-neon-pink/10 border border-neon-pink/20 rounded-2xl space-y-2">
                                                     <span className="text-neon-pink font-black italic text-lg">02.</span>
                                                     <p className="text-[9px] font-black text-white uppercase leading-relaxed">
-                                                        Publie en Story Instagram en identifiant <span className="text-neon-pink">@Dropsiders.eu</span> et <span className="text-neon-cyan">{festivalHandle}</span> (Compte <b>Public</b> requis).
+                                                        Publie en Story Instagram en identifiant <span className="text-neon-pink">@dropsiders.fr</span> et <span className="text-neon-cyan">{festivalHandle}</span> (Compte <b>Public</b> requis).
                                                     </p>
                                                 </div>
                                             </div>

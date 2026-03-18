@@ -505,7 +505,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [pollQuestion, setPollQuestion] = useState('');
     const [pollOptions, setPollOptions] = useState(['', '']);
     const [botCommands, setBotCommands] = useState<{ command: string, response: string }[]>(settings.botCommands || [
-        { command: "!insta", response: "Suivez-nous sur @dropsiders.eu !" },
+        { command: "!insta", response: "Suivez-nous sur @dropsiders.fr !" },
         { command: "!lineup", response: "La lineup est disponible dans l'onglet PLANNING." }
     ]);
 

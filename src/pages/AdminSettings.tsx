@@ -423,8 +423,8 @@ export function AdminSettings() {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pb-12 border-b border-white/5">
                             {[
-                                { id: 'instagram', label: 'Instagram', color: 'text-pink-500', icon: Instagram, placeholder: 'dropsiders.eu' },
-                                { id: 'tiktok', label: 'TikTok', color: 'text-white', icon: Share2, placeholder: 'dropsiders.eu' },
+                                { id: 'instagram', label: 'Instagram', color: 'text-pink-500', icon: Instagram, placeholder: 'dropsiders.fr' },
+                                { id: 'tiktok', label: 'TikTok', color: 'text-white', icon: Share2, placeholder: 'dropsiders.fr' },
                                 { id: 'youtube', label: 'YouTube', color: 'text-red-500', icon: Youtube, placeholder: 'dropsiders' },
                                 { id: 'twitter', label: 'X (Twitter)', color: 'text-blue-400', icon: Globe, placeholder: 'dropsidersfr' },
                                 { id: 'facebook', label: 'Facebook', color: 'text-blue-600', icon: Facebook, placeholder: 'dropsidersfr' },
@@ -475,7 +475,7 @@ export function AdminSettings() {
                                     />
                                 </div>
                                 <p className="text-[10px] text-gray-500 mt-4 leading-relaxed italic uppercase">
-                                    C'est le compte que l'utilisateur devra identifier dans sa story en plus de @Dropsiders.eu.
+                                    C'est le compte que l'utilisateur devra identifier dans sa story en plus de @dropsiders.fr.
                                 </p>
                             </div>
 

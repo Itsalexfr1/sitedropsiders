@@ -154,7 +154,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     const shareLinks = {
         facebook: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
         x: `https://x.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(shareText)}`,
-        instagram: `https://www.instagram.com/${(siteSocials.instagram || 'dropsiders.eu').replace('@', '')}/`
+        instagram: `https://www.instagram.com/${(siteSocials.instagram || 'dropsiders.fr').replace('@', '')}/`
     };
 
     const handleShare = async () => {

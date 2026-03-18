@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { useHoverSound } from '../../hooks/useHoverSound';
 
 export function InstagramWidget({ accentColor = 'pink', resolvedColor, username }: { accentColor?: string, resolvedColor?: string, username?: string }) {
-    const account = username || 'dropsiders.eu';
+    const account = username || 'dropsiders.fr';
     const instagramUrl = `https://www.instagram.com/${account.replace('@', '')}/`;
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const playHoverSound = useHoverSound();
