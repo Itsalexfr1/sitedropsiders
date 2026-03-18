@@ -1262,30 +1262,28 @@
     "name": "Glazart",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Glazart est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/glazart.jpg",
+    "image": "/uploads/uploads/e5661492936313b5-651439be7c6e98f87f11c427_virag.jpeg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Glazart",
     "instagram": "https://instagram.com/glazart",
     "facebook": "https://facebook.com/glazart",
     "soundcloud": "https://soundcloud.com/glazart",
     "beatport": "https://www.beatport.com/search?q=Glazart",
-    "bio_en": "A major figure on the global scene, Glazart is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Glazart is a key player in today's electronic culture."
   },
   {
     "id": "330",
     "name": "Petit Bain",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Petit Bain est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/petitbain.jpg",
+    "image": "/uploads/uploads/aa62091f448bea7c-QDJYOINBWBGZ5DUMPOFSZJMTEM.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Petit%20Bain",
     "instagram": "https://instagram.com/petitbain",
     "facebook": "https://facebook.com/petitbain",
     "soundcloud": "https://soundcloud.com/petitbain",
     "beatport": "https://www.beatport.com/search?q=Petit%20Bain",
-    "bio_en": "A major figure on the global scene, Petit Bain is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Petit Bain is a key player in today's electronic culture."
   },
   {
     "id": "331",
@@ -1293,7 +1291,7 @@
     "city": "Pantin",
     "country": "France",
     "bio": "Incontournable de la scène mondiale, Nexus Pantin est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/nexuspantin.jpg",
+    "image": "/uploads/uploads/68bd7f5deb7ec3fa-petit_bain_2022_titouan_masse_.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Nexus%20Pantin",
     "instagram": "https://www.instagram.com/nexus_pantin",
@@ -1301,7 +1299,6 @@
     "soundcloud": "https://soundcloud.com/nexuspantin",
     "beatport": "https://www.beatport.com/search?q=Nexus%20Pantin",
     "bio_en": "A major figure on the global scene, Nexus Pantin is a key player in today's electronic culture.",
-    "status": "waiting",
     "website": "https://nexus.paris"
   },
   {
@@ -1309,7 +1306,7 @@
     "name": "Kilomètre25",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Kilomètre25 est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/kilometre25.jpg",
+    "image": "/uploads/uploads/a99c65dc3d3b6cfa-3519cbc1_3164_40e1_a9ef_c137c7.avif",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Kilom%C3%A8tre25",
     "instagram": "https://www.instagram.com/kilometre25_paris",
@@ -1317,7 +1314,6 @@
     "soundcloud": "https://soundcloud.com/kilometre25",
     "beatport": "https://www.beatport.com/search?q=Kilom%C3%A8tre25",
     "bio_en": "A major figure on the global scene, Kilomètre25 is a key player in today's electronic culture.",
-    "status": "waiting",
     "website": "https://www.kilometre25.fr"
   },
   {
@@ -1326,7 +1322,7 @@
     "city": "Lyon",
     "country": "France",
     "bio": "Incontournable de la scène mondiale, Le Sucre Lyon est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/lesucrelyon.jpg",
+    "image": "/uploads/uploads/df97871f8d139b43-image00027_hsfxg5.avif",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Le%20Sucre%20Lyon",
     "instagram": "https://www.instagram.com/lesucrelyon",
@@ -1334,7 +1330,6 @@
     "soundcloud": "https://soundcloud.com/lesucrelyon",
     "beatport": "https://www.beatport.com/search?q=Le%20Sucre%20Lyon",
     "bio_en": "A major figure on the global scene, Le Sucre Lyon is a key player in today's electronic culture.",
-    "status": "waiting",
     "website": "https://www.le-sucre.eu"
   },
   {
@@ -1343,7 +1338,7 @@
     "city": "Marseille",
     "country": "France",
     "bio": "Incontournable de la scène mondiale, Baby Club Marseille est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/babyclubmarseille.jpg",
+    "image": "/uploads/uploads/2ba8b1f3e8b22659-7e6f4bb05446b6935b7583c8132db6.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Baby%20Club%20Marseille",
     "instagram": "https://www.instagram.com/babyclubmarseille",
@@ -1351,7 +1346,6 @@
     "soundcloud": "https://soundcloud.com/babyclubmarseille",
     "beatport": "https://www.beatport.com/search?q=Baby%20Club%20Marseille",
     "bio_en": "A major figure on the global scene, Baby Club Marseille is a key player in today's electronic culture.",
-    "status": "waiting",
     "website": "https://www.baby-club.tv"
   },
   {
@@ -1360,15 +1354,14 @@
     "city": "Clermont",
     "country": "France",
     "bio": "Incontournable de la scène mondiale, 101 Clermont est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/101clermont.jpg",
+    "image": "/uploads/uploads/f1c27cc1521e57c6-cropped_1773780510598.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/101%20Clermont",
     "instagram": "https://instagram.com/101clermont",
     "facebook": "https://facebook.com/101clermont",
     "soundcloud": "https://soundcloud.com/101clermont",
     "beatport": "https://www.beatport.com/search?q=101%20Clermont",
-    "bio_en": "A major figure on the global scene, 101 Clermont is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, 101 Clermont is a key player in today's electronic culture."
   },
   {
     "id": "336",
@@ -1393,7 +1386,7 @@
     "city": "Nantes",
     "country": "France",
     "bio": "Incontournable de la scène mondiale, Warehouse Nantes est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/warehousenantes.jpg",
+    "image": "/uploads/uploads/e2cd32ffe352b026-DSC07111_vxczrl.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Warehouse%20Nantes",
     "instagram": "https://www.instagram.com/warehousenantes",
@@ -1401,7 +1394,6 @@
     "soundcloud": "https://soundcloud.com/warehousenantes",
     "beatport": "https://www.beatport.com/search?q=Warehouse%20Nantes",
     "bio_en": "A major figure on the global scene, Warehouse Nantes is a key player in today's electronic culture.",
-    "status": "waiting",
     "website": "https://www.warehouse-nantes.fr"
   },
   {
@@ -1410,30 +1402,28 @@
     "city": "Amsterdam",
     "country": "Pays-Bas",
     "bio": "Incontournable de la scène mondiale, Radion Amsterdam est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/radionamsterdam.jpg",
+    "image": "/uploads/uploads/38758de059057de2-shelter_a_dam_tower_amsterdam.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Radion%20Amsterdam",
     "instagram": "https://instagram.com/radionamsterdam",
     "facebook": "https://facebook.com/radionamsterdam",
     "soundcloud": "https://soundcloud.com/radionamsterdam",
     "beatport": "https://www.beatport.com/search?q=Radion%20Amsterdam",
-    "bio_en": "A major figure on the global scene, Radion Amsterdam is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Radion Amsterdam is a key player in today's electronic culture."
   },
   {
     "id": "340",
     "name": "Thuishaven",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Thuishaven est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/thuishaven.jpg",
+    "image": "/uploads/uploads/51d57df75fe5918c-5ea9bc89df9d73.avif",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Thuishaven",
     "instagram": "https://instagram.com/thuishaven",
     "facebook": "https://facebook.com/thuishaven",
     "soundcloud": "https://soundcloud.com/thuishaven",
     "beatport": "https://www.beatport.com/search?q=Thuishaven",
-    "bio_en": "A major figure on the global scene, Thuishaven is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Thuishaven is a key player in today's electronic culture."
   },
   {
     "id": "341",
@@ -1441,7 +1431,7 @@
     "city": "Amsterdam",
     "country": "Pays-Bas",
     "bio": "Incontournable de la scène mondiale, Lofi Amsterdam est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/lofiamsterdam.jpg",
+    "image": "/uploads/uploads/fb8aed3a2851629f-thzomeropeningdayii_184of197_.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Lofi%20Amsterdam",
     "instagram": "https://www.instagram.com/lofi_amsterdam",
@@ -1449,7 +1439,6 @@
     "soundcloud": "https://soundcloud.com/lofiamsterdam",
     "beatport": "https://www.beatport.com/search?q=Lofi%20Amsterdam",
     "bio_en": "A major figure on the global scene, Lofi Amsterdam is a key player in today's electronic culture.",
-    "status": "waiting",
     "website": "https://www.lofi.amsterdam"
   },
   {
@@ -1457,15 +1446,14 @@
     "name": "Garage Noord",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Garage Noord est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/garagenoord.jpg",
+    "image": "/uploads/uploads/83132cf668a7903f-66_AGRIO_14JUNI000726_SANDERVA.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Garage%20Noord",
     "instagram": "https://instagram.com/garagenoord",
     "facebook": "https://facebook.com/garagenoord",
     "soundcloud": "https://soundcloud.com/garagenoord",
     "beatport": "https://www.beatport.com/search?q=Garage%20Noord",
-    "bio_en": "A major figure on the global scene, Garage Noord is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Garage Noord is a key player in today's electronic culture."
   },
   {
     "id": "343",
@@ -1473,15 +1461,14 @@
     "city": "Tbilisi",
     "country": "Géorgie",
     "bio": "Incontournable de la scène mondiale, Bassiani Tbilisi est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/bassianitbilisi.jpg",
+    "image": "/uploads/uploads/f6b05346a2e22b63-Garage_Noord.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Bassiani%20Tbilisi",
     "instagram": "https://instagram.com/bassianitbilisi",
     "facebook": "https://facebook.com/bassianitbilisi",
     "soundcloud": "https://soundcloud.com/bassianitbilisi",
     "beatport": "https://www.beatport.com/search?q=Bassiani%20Tbilisi",
-    "bio_en": "A major figure on the global scene, Bassiani Tbilisi is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Bassiani Tbilisi is a key player in today's electronic culture."
   },
   {
     "id": "344",
@@ -1489,15 +1476,14 @@
     "city": "Tbilisi",
     "country": "Géorgie",
     "bio": "Incontournable de la scène mondiale, Khidi Tbilisi est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/khiditbilisi.jpg",
+    "image": "/uploads/uploads/856219e0ae0b966e-CjcpGmCC2HUXjque7bdZU3_smedium.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Khidi%20Tbilisi",
     "instagram": "https://instagram.com/khiditbilisi",
     "facebook": "https://facebook.com/khiditbilisi",
     "soundcloud": "https://soundcloud.com/khiditbilisi",
     "beatport": "https://www.beatport.com/search?q=Khidi%20Tbilisi",
-    "bio_en": "A major figure on the global scene, Khidi Tbilisi is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Khidi Tbilisi is a key player in today's electronic culture."
   },
   {
     "id": "345",
@@ -1505,15 +1491,14 @@
     "city": "Prague",
     "country": "République Tchèque",
     "bio": "Incontournable de la scène mondiale, Ankali Prague est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/ankaliprague.jpg",
+    "image": "/uploads/uploads/34c267e7d9f12a59-khidi_m.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Ankali%20Prague",
     "instagram": "https://instagram.com/ankaliprague",
     "facebook": "https://facebook.com/ankaliprague",
     "soundcloud": "https://soundcloud.com/ankaliprague",
     "beatport": "https://www.beatport.com/search?q=Ankali%20Prague",
-    "bio_en": "A major figure on the global scene, Ankali Prague is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Ankali Prague is a key player in today's electronic culture."
   },
   {
     "id": "346",
@@ -1521,45 +1506,42 @@
     "city": "Warsaw",
     "country": "Pologne",
     "bio": "Incontournable de la scène mondiale, Smolna Warsaw est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/smolnawarsaw.jpg",
+    "image": "/uploads/uploads/6b3e718ba7c709e8-db0itfex4ae2axz.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Smolna%20Warsaw",
     "instagram": "https://instagram.com/smolnawarsaw",
     "facebook": "https://facebook.com/smolnawarsaw",
     "soundcloud": "https://soundcloud.com/smolnawarsaw",
     "beatport": "https://www.beatport.com/search?q=Smolna%20Warsaw",
-    "bio_en": "A major figure on the global scene, Smolna Warsaw is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Smolna Warsaw is a key player in today's electronic culture."
   },
   {
     "id": "347",
     "name": "Drugstore Belgrade",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Drugstore Belgrade est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/drugstorebelgrade.jpg",
+    "image": "/uploads/uploads/72cfe1f73ee5645a-QEgxAcTS58qeoomRdh0rPBpI.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Drugstore%20Belgrade",
     "instagram": "https://instagram.com/drugstorebelgrade",
     "facebook": "https://facebook.com/drugstorebelgrade",
     "soundcloud": "https://soundcloud.com/drugstorebelgrade",
     "beatport": "https://www.beatport.com/search?q=Drugstore%20Belgrade",
-    "bio_en": "A major figure on the global scene, Drugstore Belgrade is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Drugstore Belgrade is a key player in today's electronic culture."
   },
   {
     "id": "348",
     "name": "Fabrik Madrid",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Fabrik Madrid est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/fabrikmadrid.jpg",
+    "image": "/uploads/uploads/974e26e727e3b949-5bad867ed6a3d49e7db69a77048744.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Fabrik%20Madrid",
     "instagram": "https://instagram.com/fabrikmadrid",
     "facebook": "https://facebook.com/fabrikmadrid",
     "soundcloud": "https://soundcloud.com/fabrikmadrid",
     "beatport": "https://www.beatport.com/search?q=Fabrik%20Madrid",
-    "bio_en": "A major figure on the global scene, Fabrik Madrid is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Fabrik Madrid is a key player in today's electronic culture."
   },
   {
     "id": "349",
@@ -1567,15 +1549,14 @@
     "city": "Barcelona",
     "country": "Espagne",
     "bio": "Incontournable de la scène mondiale, Razzmatazz Barcelona est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/razzmatazzbarcelona.jpg",
+    "image": "/uploads/uploads/31a1149a1f686237-cropped_1773781009288.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Razzmatazz%20Barcelona",
     "instagram": "https://instagram.com/razzmatazzbarcelona",
     "facebook": "https://facebook.com/razzmatazzbarcelona",
     "soundcloud": "https://soundcloud.com/razzmatazzbarcelona",
     "beatport": "https://www.beatport.com/search?q=Razzmatazz%20Barcelona",
-    "bio_en": "A major figure on the global scene, Razzmatazz Barcelona is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Razzmatazz Barcelona is a key player in today's electronic culture."
   },
   {
     "id": "350",
@@ -1583,75 +1564,70 @@
     "city": "Barcelona",
     "country": "Espagne",
     "bio": "Incontournable de la scène mondiale, Input Barcelona est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/inputbarcelona.jpg",
+    "image": "/uploads/uploads/f010584f4246fcba-_barcelo261_34d30c522bd3b1c4da.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Input%20Barcelona",
     "instagram": "https://instagram.com/inputbarcelona",
     "facebook": "https://facebook.com/inputbarcelona",
     "soundcloud": "https://soundcloud.com/inputbarcelona",
     "beatport": "https://www.beatport.com/search?q=Input%20Barcelona",
-    "bio_en": "A major figure on the global scene, Input Barcelona is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Input Barcelona is a key player in today's electronic culture."
   },
   {
     "id": "351",
     "name": "Sala Apolo",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Sala Apolo est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/salaapolo.jpg",
+    "image": "/uploads/uploads/b90a294cc9e62ad1-input_high_fidelity_dance_club.png",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Sala%20Apolo",
     "instagram": "https://instagram.com/salaapolo",
     "facebook": "https://facebook.com/salaapolo",
     "soundcloud": "https://soundcloud.com/salaapolo",
     "beatport": "https://www.beatport.com/search?q=Sala%20Apolo",
-    "bio_en": "A major figure on the global scene, Sala Apolo is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Sala Apolo is a key player in today's electronic culture."
   },
   {
     "id": "352",
     "name": "Mondo Disko",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Mondo Disko est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/mondodisko.jpg",
+    "image": "/uploads/uploads/c98aa06e099c8bf8-sala_apolo.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Mondo%20Disko",
     "instagram": "https://instagram.com/mondodisko",
     "facebook": "https://facebook.com/mondodisko",
     "soundcloud": "https://soundcloud.com/mondodisko",
     "beatport": "https://www.beatport.com/search?q=Mondo%20Disko",
-    "bio_en": "A major figure on the global scene, Mondo Disko is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Mondo Disko is a key player in today's electronic culture."
   },
   {
     "id": "353",
     "name": "La Terrrazza",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, La Terrrazza est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/laterrrazza.jpg",
+    "image": "/uploads/uploads/3182d0379a418292-mondo_disko_pista_2025.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/La%20Terrrazza",
     "instagram": "https://instagram.com/laterrrazza",
     "facebook": "https://facebook.com/laterrrazza",
     "soundcloud": "https://soundcloud.com/laterrrazza",
     "beatport": "https://www.beatport.com/search?q=La%20Terrrazza",
-    "bio_en": "A major figure on the global scene, La Terrrazza is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, La Terrrazza is a key player in today's electronic culture."
   },
   {
     "id": "354",
     "name": "Industrial Copera Granada",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Industrial Copera Granada est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/industrialcoperagranada.jpg",
+    "image": "/uploads/uploads/4fe504fe192544e4-CGN_BCN_TERRAZZZA_1.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Industrial%20Copera%20Granada",
     "instagram": "https://instagram.com/industrialcoperagranada",
     "facebook": "https://facebook.com/industrialcoperagranada",
     "soundcloud": "https://soundcloud.com/industrialcoperagranada",
     "beatport": "https://www.beatport.com/search?q=Industrial%20Copera%20Granada",
-    "bio_en": "A major figure on the global scene, Industrial Copera Granada is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Industrial Copera Granada is a key player in today's electronic culture."
   },
   {
     "id": "355",
@@ -1659,60 +1635,56 @@
     "city": "Rome",
     "country": "Italie",
     "bio": "Incontournable de la scène mondiale, Spazio Novecento Rome est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/spazionovecentorome.jpg",
+    "image": "/uploads/uploads/31ac3a2b40250960-industrial_copera_1514395712.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Spazio%20Novecento%20Rome",
     "instagram": "https://instagram.com/spazionovecentorome",
     "facebook": "https://facebook.com/spazionovecentorome",
     "soundcloud": "https://soundcloud.com/spazionovecentorome",
     "beatport": "https://www.beatport.com/search?q=Spazio%20Novecento%20Rome",
-    "bio_en": "A major figure on the global scene, Spazio Novecento Rome is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Spazio Novecento Rome is a key player in today's electronic culture."
   },
   {
     "id": "356",
     "name": "Cocoricò Riccione",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Cocoricò Riccione est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/cocoricoriccione.jpg",
+    "image": "/uploads/uploads/311d37172b484d20-spazio_900_roma_4.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Cocoric%C3%B2%20Riccione",
     "instagram": "https://instagram.com/cocoricoriccione",
     "facebook": "https://facebook.com/cocoricoriccione",
     "soundcloud": "https://soundcloud.com/cocoricoriccione",
     "beatport": "https://www.beatport.com/search?q=Cocoric%C3%B2%20Riccione",
-    "bio_en": "A major figure on the global scene, Cocoricò Riccione is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Cocoricò Riccione is a key player in today's electronic culture."
   },
   {
     "id": "357",
     "name": "Bolgia Bergamo",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Bolgia Bergamo est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/bolgiabergamo.jpg",
+    "image": "/uploads/uploads/f4af0ba031ed725f-cocorico_interior_04_scaled.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Bolgia%20Bergamo",
     "instagram": "https://instagram.com/bolgiabergamo",
     "facebook": "https://facebook.com/bolgiabergamo",
     "soundcloud": "https://soundcloud.com/bolgiabergamo",
     "beatport": "https://www.beatport.com/search?q=Bolgia%20Bergamo",
-    "bio_en": "A major figure on the global scene, Bolgia Bergamo is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Bolgia Bergamo is a key player in today's electronic culture."
   },
   {
     "id": "358",
     "name": "Duel Club Naples",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Duel Club Naples est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/duelclubnaples.jpg",
+    "image": "/uploads/uploads/6f1e7d5272502e49-HTX2vEQs_1568x1045.jpeg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Duel%20Club%20Naples",
     "instagram": "https://instagram.com/duelclubnaples",
     "facebook": "https://facebook.com/duelclubnaples",
     "soundcloud": "https://soundcloud.com/duelclubnaples",
     "beatport": "https://www.beatport.com/search?q=Duel%20Club%20Naples",
-    "bio_en": "A major figure on the global scene, Duel Club Naples is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Duel Club Naples is a key player in today's electronic culture."
   },
   {
     "id": "359",
@@ -1720,15 +1692,14 @@
     "city": "Rome",
     "country": "Italie",
     "bio": "Incontournable de la scène mondiale, Goa Club Rome est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/goaclubrome.jpg",
+    "image": "/uploads/uploads/22ec41f345f7b2b1-duel_2018_ra.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Goa%20Club%20Rome",
     "instagram": "https://instagram.com/goaclubrome",
     "facebook": "https://facebook.com/goaclubrome",
     "soundcloud": "https://soundcloud.com/goaclubrome",
     "beatport": "https://www.beatport.com/search?q=Goa%20Club%20Rome",
-    "bio_en": "A major figure on the global scene, Goa Club Rome is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Goa Club Rome is a key player in today's electronic culture."
   },
   {
     "id": "360",
@@ -1736,15 +1707,14 @@
     "city": "Mykonos",
     "country": "Grèce",
     "bio": "Incontournable de la scène mondiale, Cavo Paradiso Mykonos est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/cavoparadisomykonos.jpg",
+    "image": "/uploads/uploads/f32182907486f4a4-goa_club.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Cavo%20Paradiso%20Mykonos",
     "instagram": "https://instagram.com/cavoparadisomykonos",
     "facebook": "https://facebook.com/cavoparadisomykonos",
     "soundcloud": "https://soundcloud.com/cavoparadisomykonos",
     "beatport": "https://www.beatport.com/search?q=Cavo%20Paradiso%20Mykonos",
-    "bio_en": "A major figure on the global scene, Cavo Paradiso Mykonos is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Cavo Paradiso Mykonos is a key player in today's electronic culture."
   },
   {
     "id": "361",
@@ -1752,15 +1722,14 @@
     "city": "Mykonos",
     "country": "Grèce",
     "bio": "Incontournable de la scène mondiale, Void Mykonos est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/voidmykonos.jpg",
+    "image": "/uploads/uploads/eb587a5b88201ac8-cropped_1773781320359.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Void%20Mykonos",
     "instagram": "https://instagram.com/voidmykonos",
     "facebook": "https://facebook.com/voidmykonos",
     "soundcloud": "https://soundcloud.com/voidmykonos",
     "beatport": "https://www.beatport.com/search?q=Void%20Mykonos",
-    "bio_en": "A major figure on the global scene, Void Mykonos is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Void Mykonos is a key player in today's electronic culture."
   },
   {
     "id": "362",
@@ -1768,15 +1737,14 @@
     "city": "Mykonos",
     "country": "Grèce",
     "bio": "Incontournable de la scène mondiale, Moni Mykonos est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/monimykonos.jpg",
+    "image": "/uploads/uploads/8830cae3bcc97067-void_mykonos_club.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Moni%20Mykonos",
     "instagram": "https://instagram.com/monimykonos",
     "facebook": "https://facebook.com/monimykonos",
     "soundcloud": "https://soundcloud.com/monimykonos",
     "beatport": "https://www.beatport.com/search?q=Moni%20Mykonos",
-    "bio_en": "A major figure on the global scene, Moni Mykonos is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Moni Mykonos is a key player in today's electronic culture."
   },
   {
     "id": "363",
@@ -1784,7 +1752,7 @@
     "city": "Miami",
     "country": "États-Unis",
     "bio": "Incontournable de la scène mondiale, Club Space Miami est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/clubspacemiami.jpg",
+    "image": "/uploads/uploads/7642053305a2a096-MONI___Mykonos_Greece_1.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Club%20Space%20Miami",
     "instagram": "https://www.instagram.com/spacemiami",
@@ -1792,7 +1760,6 @@
     "soundcloud": "https://soundcloud.com/clubspacemiami",
     "beatport": "https://www.beatport.com/search?q=Club%20Space%20Miami",
     "bio_en": "A major figure on the global scene, Club Space Miami is a key player in today's electronic culture.",
-    "status": "waiting",
     "website": "https://www.clubspace.com"
   },
   {
@@ -1863,15 +1830,14 @@
     "name": "Nowadays NYC",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Nowadays NYC est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/nowadaysnyc.jpg",
+    "image": "/uploads/uploads/bfaf2a76f8f23e9e-61083031_2589115784634852_2752.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Nowadays%20NYC",
     "instagram": "https://instagram.com/nowadaysnyc",
     "facebook": "https://facebook.com/nowadaysnyc",
     "soundcloud": "https://soundcloud.com/nowadaysnyc",
     "beatport": "https://www.beatport.com/search?q=Nowadays%20NYC",
-    "bio_en": "A major figure on the global scene, Nowadays NYC is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Nowadays NYC is a key player in today's electronic culture."
   },
   {
     "id": "369",
@@ -1893,30 +1859,28 @@
     "name": "Knockdown Center",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Knockdown Center est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/knockdowncenter.jpg",
+    "image": "/uploads/uploads/000c4211fe2741c4-1553022639.png",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Knockdown%20Center",
     "instagram": "https://instagram.com/knockdowncenter",
     "facebook": "https://facebook.com/knockdowncenter",
     "soundcloud": "https://soundcloud.com/knockdowncenter",
     "beatport": "https://www.beatport.com/search?q=Knockdown%20Center",
-    "bio_en": "A major figure on the global scene, Knockdown Center is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Knockdown Center is a key player in today's electronic culture."
   },
   {
     "id": "371",
     "name": "Public Records",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Public Records est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/publicrecords.jpg",
+    "image": "/uploads/uploads/d785ce32d04db7b2-00c21675278d947cc93268f647c8b6.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Public%20Records",
     "instagram": "https://instagram.com/publicrecords",
     "facebook": "https://facebook.com/publicrecords",
     "soundcloud": "https://soundcloud.com/publicrecords",
     "beatport": "https://www.beatport.com/search?q=Public%20Records",
-    "bio_en": "A major figure on the global scene, Public Records is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Public Records is a key player in today's electronic culture."
   },
   {
     "id": "372",
@@ -1938,15 +1902,14 @@
     "name": "House of Yes",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, House of Yes est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/houseofyes.jpg",
+    "image": "/uploads/uploads/3ee6e85a9da224ee-image_123650291_1.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/House%20of%20Yes",
     "instagram": "https://instagram.com/houseofyes",
     "facebook": "https://facebook.com/houseofyes",
     "soundcloud": "https://soundcloud.com/houseofyes",
     "beatport": "https://www.beatport.com/search?q=House%20of%20Yes",
-    "bio_en": "A major figure on the global scene, House of Yes is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, House of Yes is a key player in today's electronic culture."
   },
   {
     "id": "374",
@@ -1954,15 +1917,14 @@
     "city": "LA",
     "country": "États-Unis",
     "bio": "Incontournable de la scène mondiale, Sound Nightclub LA est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/soundnightclubla.jpg",
+    "image": "/uploads/uploads/f26c831de01ffe2d-house_of_yes_buswick_brooklyn_.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Sound%20Nightclub%20LA",
     "instagram": "https://instagram.com/soundnightclubla",
     "facebook": "https://facebook.com/soundnightclubla",
     "soundcloud": "https://soundcloud.com/soundnightclubla",
     "beatport": "https://www.beatport.com/search?q=Sound%20Nightclub%20LA",
-    "bio_en": "A major figure on the global scene, Sound Nightclub LA is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Sound Nightclub LA is a key player in today's electronic culture."
   },
   {
     "id": "375",
@@ -1970,15 +1932,14 @@
     "city": "LA",
     "country": "États-Unis",
     "bio": "Incontournable de la scène mondiale, Academy LA est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/academyla.jpg",
+    "image": "/uploads/uploads/14c0e79bdf14f01f-99.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Academy%20LA",
     "instagram": "https://instagram.com/academyla",
     "facebook": "https://facebook.com/academyla",
     "soundcloud": "https://soundcloud.com/academyla",
     "beatport": "https://www.beatport.com/search?q=Academy%20LA",
-    "bio_en": "A major figure on the global scene, Academy LA is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Academy LA is a key player in today's electronic culture."
   },
   {
     "id": "376",
@@ -1986,15 +1947,14 @@
     "city": "SF",
     "country": "États-Unis",
     "bio": "Incontournable de la scène mondiale, The Midway SF est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/themidwaysf.jpg",
+    "image": "/uploads/uploads/b01ebaba0bfd9ece-Things_to_Do_in_Hollywood_Nigh.jpeg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/The%20Midway%20SF",
     "instagram": "https://instagram.com/themidwaysf",
     "facebook": "https://facebook.com/themidwaysf",
     "soundcloud": "https://soundcloud.com/themidwaysf",
     "beatport": "https://www.beatport.com/search?q=The%20Midway%20SF",
-    "bio_en": "A major figure on the global scene, The Midway SF is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, The Midway SF is a key player in today's electronic culture."
   },
   {
     "id": "377",
@@ -2002,15 +1962,14 @@
     "city": "SF",
     "country": "États-Unis",
     "bio": "Incontournable de la scène mondiale, Public Works SF est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/publicworkssf.jpg",
+    "image": "/uploads/uploads/c6f3f4c83095c2ea-641201254_18564303127055874_75.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Public%20Works%20SF",
     "instagram": "https://instagram.com/publicworkssf",
     "facebook": "https://facebook.com/publicworkssf",
     "soundcloud": "https://soundcloud.com/publicworkssf",
     "beatport": "https://www.beatport.com/search?q=Public%20Works%20SF",
-    "bio_en": "A major figure on the global scene, Public Works SF is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Public Works SF is a key player in today's electronic culture."
   },
   {
     "id": "378",
@@ -2018,15 +1977,14 @@
     "city": "SF",
     "country": "États-Unis",
     "bio": "Incontournable de la scène mondiale, Halcyon SF est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/halcyonsf.jpg",
+    "image": "/uploads/uploads/05cf19add1193e4a-Miss_Monique_Public_Works_1103.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Halcyon%20SF",
     "instagram": "https://instagram.com/halcyonsf",
     "facebook": "https://facebook.com/halcyonsf",
     "soundcloud": "https://soundcloud.com/halcyonsf",
     "beatport": "https://www.beatport.com/search?q=Halcyon%20SF",
-    "bio_en": "A major figure on the global scene, Halcyon SF is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Halcyon SF is a key player in today's electronic culture."
   },
   {
     "id": "379",
@@ -2034,30 +1992,28 @@
     "city": "Montreal",
     "country": "Canada",
     "bio": "Incontournable de la scène mondiale, Stereo Montreal est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/stereomontreal.jpg",
+    "image": "/uploads/uploads/b9ab7160b0f3e773-Untitled_42.jpeg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Stereo%20Montreal",
     "instagram": "https://instagram.com/stereomontreal",
     "facebook": "https://facebook.com/stereomontreal",
     "soundcloud": "https://soundcloud.com/stereomontreal",
     "beatport": "https://www.beatport.com/search?q=Stereo%20Montreal",
-    "bio_en": "A major figure on the global scene, Stereo Montreal is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Stereo Montreal is a key player in today's electronic culture."
   },
   {
     "id": "380",
     "name": "CODA Toronto",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, CODA Toronto est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/codatoronto.jpg",
+    "image": "/uploads/uploads/c11e44e515899e87-Stereo_Nightclub.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/CODA%20Toronto",
     "instagram": "https://instagram.com/codatoronto",
     "facebook": "https://facebook.com/codatoronto",
     "soundcloud": "https://soundcloud.com/codatoronto",
     "beatport": "https://www.beatport.com/search?q=CODA%20Toronto",
-    "bio_en": "A major figure on the global scene, CODA Toronto is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, CODA Toronto is a key player in today's electronic culture."
   },
   {
     "id": "381",
@@ -2065,15 +2021,14 @@
     "city": "Camboriú",
     "country": "Brésil",
     "bio": "Incontournable de la scène mondiale, Green Valley Camboriú est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/greenvalleycamboriu.jpg",
+    "image": "/uploads/uploads/69fe6f5498640139-coda_toronto_2.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Green%20Valley%20Cambori%C3%BA",
     "instagram": "https://instagram.com/greenvalleycamboriu",
     "facebook": "https://facebook.com/greenvalleycamboriu",
     "soundcloud": "https://soundcloud.com/greenvalleycamboriu",
     "beatport": "https://www.beatport.com/search?q=Green%20Valley%20Cambori%C3%BA",
-    "bio_en": "A major figure on the global scene, Green Valley Camboriú is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Green Valley Camboriú is a key player in today's electronic culture."
   },
   {
     "id": "382",
@@ -2081,15 +2036,14 @@
     "city": "Itajaí",
     "country": "Brésil",
     "bio": "Incontournable de la scène mondiale, Warung Beach Club Itajaí est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/warungbeachclubitajai.jpg",
+    "image": "/uploads/uploads/b290425a048a101f-_diegofotografias_scaled.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Warung%20Beach%20Club%20Itaja%C3%AD",
     "instagram": "https://instagram.com/warungbeachclubitajai",
     "facebook": "https://facebook.com/warungbeachclubitajai",
     "soundcloud": "https://soundcloud.com/warungbeachclubitajai",
     "beatport": "https://www.beatport.com/search?q=Warung%20Beach%20Club%20Itaja%C3%AD",
-    "bio_en": "A major figure on the global scene, Warung Beach Club Itajaí is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Warung Beach Club Itajaí is a key player in today's electronic culture."
   },
   {
     "id": "383",
@@ -2097,15 +2051,14 @@
     "city": "São Paulo",
     "country": "Brésil",
     "bio": "Incontournable de la scène mondiale, D-Edge São Paulo est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/dedgesaopaulo.jpg",
+    "image": "/uploads/uploads/61e4289c9c9f58b1-12593922_10153696554948152_324.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/D-Edge%20S%C3%A3o%20Paulo",
     "instagram": "https://instagram.com/dedgesaopaulo",
     "facebook": "https://facebook.com/dedgesaopaulo",
     "soundcloud": "https://soundcloud.com/dedgesaopaulo",
     "beatport": "https://www.beatport.com/search?q=D-Edge%20S%C3%A3o%20Paulo",
-    "bio_en": "A major figure on the global scene, D-Edge São Paulo is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, D-Edge São Paulo is a key player in today's electronic culture."
   },
   {
     "id": "384",
@@ -2113,45 +2066,42 @@
     "city": "Valinhos",
     "country": "Brésil",
     "bio": "Incontournable de la scène mondiale, Laroc Club Valinhos est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/larocclubvalinhos.jpg",
+    "image": "/uploads/uploads/62b26c2e3eca6f49-51.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Laroc%20Club%20Valinhos",
     "instagram": "https://instagram.com/larocclubvalinhos",
     "facebook": "https://facebook.com/larocclubvalinhos",
     "soundcloud": "https://soundcloud.com/larocclubvalinhos",
     "beatport": "https://www.beatport.com/search?q=Laroc%20Club%20Valinhos",
-    "bio_en": "A major figure on the global scene, Laroc Club Valinhos is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Laroc Club Valinhos is a key player in today's electronic culture."
   },
   {
     "id": "385",
     "name": "Ame Club",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Ame Club est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/ameclub.jpg",
+    "image": "/uploads/uploads/03748f3626385ad6-alisson_demetrio_dji_0368_apri.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Ame%20Club",
     "instagram": "https://instagram.com/ameclub",
     "facebook": "https://facebook.com/ameclub",
     "soundcloud": "https://soundcloud.com/ameclub",
     "beatport": "https://www.beatport.com/search?q=Ame%20Club",
-    "bio_en": "A major figure on the global scene, Ame Club is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Ame Club is a key player in today's electronic culture."
   },
   {
     "id": "386",
     "name": "Caos Campinas",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Caos Campinas est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/caoscampinas.jpg",
+    "image": "/uploads/uploads/4e451f7ebb2c829f-full_1698433995.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Caos%20Campinas",
     "instagram": "https://instagram.com/caoscampinas",
     "facebook": "https://facebook.com/caoscampinas",
     "soundcloud": "https://soundcloud.com/caoscampinas",
     "beatport": "https://www.beatport.com/search?q=Caos%20Campinas",
-    "bio_en": "A major figure on the global scene, Caos Campinas is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Caos Campinas is a key player in today's electronic culture."
   },
   {
     "id": "387",
@@ -2159,15 +2109,14 @@
     "city": "Florianópolis",
     "country": "Brésil",
     "bio": "Incontournable de la scène mondiale, Terraza Florianópolis est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/terrazaflorianopolis.jpg",
+    "image": "/uploads/uploads/7b012786a6b55751-caos_campinas_1745502475.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Terraza%20Florian%C3%B3polis",
     "instagram": "https://instagram.com/terrazaflorianopolis",
     "facebook": "https://facebook.com/terrazaflorianopolis",
     "soundcloud": "https://soundcloud.com/terrazaflorianopolis",
     "beatport": "https://www.beatport.com/search?q=Terraza%20Florian%C3%B3polis",
-    "bio_en": "A major figure on the global scene, Terraza Florianópolis is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Terraza Florianópolis is a key player in today's electronic culture."
   },
   {
     "id": "388",
@@ -2175,30 +2124,28 @@
     "city": "Mexico City",
     "country": "Mexique",
     "bio": "Incontournable de la scène mondiale, Funk Mexico City est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/funkmexicocity.jpg",
+    "image": "/uploads/uploads/e763908c84964577-terrazamusicpark_236200203_995.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Funk%20Mexico%20City",
     "instagram": "https://instagram.com/funkmexicocity",
     "facebook": "https://facebook.com/funkmexicocity",
     "soundcloud": "https://soundcloud.com/funkmexicocity",
     "beatport": "https://www.beatport.com/search?q=Funk%20Mexico%20City",
-    "bio_en": "A major figure on the global scene, Funk Mexico City is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Funk Mexico City is a key player in today's electronic culture."
   },
   {
     "id": "389",
     "name": "LooLoo Mexico",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, LooLoo Mexico est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/looloomexico.jpg",
+    "image": "/uploads/uploads/db5ef7baf01a1f5a-ae21c0f7a2928f5c39a0724feae7e5.avif",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/LooLoo%20Mexico",
     "instagram": "https://instagram.com/looloomexico",
     "facebook": "https://facebook.com/looloomexico",
     "soundcloud": "https://soundcloud.com/looloomexico",
     "beatport": "https://www.beatport.com/search?q=LooLoo%20Mexico",
-    "bio_en": "A major figure on the global scene, LooLoo Mexico is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, LooLoo Mexico is a key player in today's electronic culture."
   },
   {
     "id": "390",
@@ -2206,15 +2153,14 @@
     "city": "Buenos Aires",
     "country": "Argentine",
     "bio": "Incontournable de la scène mondiale, The Bow Buenos Aires est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/thebowbuenosaires.jpg",
+    "image": "/uploads/uploads/ac9222b2e7eb4dae-video_hero_poster.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/The%20Bow%20Buenos%20Aires",
     "instagram": "https://instagram.com/thebowbuenosaires",
     "facebook": "https://facebook.com/thebowbuenosaires",
     "soundcloud": "https://soundcloud.com/thebowbuenosaires",
     "beatport": "https://www.beatport.com/search?q=The%20Bow%20Buenos%20Aires",
-    "bio_en": "A major figure on the global scene, The Bow Buenos Aires is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, The Bow Buenos Aires is a key player in today's electronic culture."
   },
   {
     "id": "391",
@@ -2222,15 +2168,14 @@
     "city": "Buenos Aires",
     "country": "Argentine",
     "bio": "Incontournable de la scène mondiale, Crobar Buenos Aires est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/crobarbuenosaires.jpg",
+    "image": "/uploads/uploads/e8f7b6557889154e-j.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Crobar%20Buenos%20Aires",
     "instagram": "https://instagram.com/crobarbuenosaires",
     "facebook": "https://facebook.com/crobarbuenosaires",
     "soundcloud": "https://soundcloud.com/crobarbuenosaires",
     "beatport": "https://www.beatport.com/search?q=Crobar%20Buenos%20Aires",
-    "bio_en": "A major figure on the global scene, Crobar Buenos Aires is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Crobar Buenos Aires is a key player in today's electronic culture."
   },
   {
     "id": "392",
@@ -2238,15 +2183,14 @@
     "city": "Bogota",
     "country": "Colombie",
     "bio": "Incontournable de la scène mondiale, Baum Bogota est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/baumbogota.jpg",
+    "image": "/uploads/uploads/d10fba32cd978435-crobar.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Baum%20Bogota",
     "instagram": "https://instagram.com/baumbogota",
     "facebook": "https://facebook.com/baumbogota",
     "soundcloud": "https://soundcloud.com/baumbogota",
     "beatport": "https://www.beatport.com/search?q=Baum%20Bogota",
-    "bio_en": "A major figure on the global scene, Baum Bogota is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Baum Bogota is a key player in today's electronic culture."
   },
   {
     "id": "393",
@@ -2254,15 +2198,14 @@
     "city": "Bogota",
     "country": "Colombie",
     "bio": "Incontournable de la scène mondiale, Video Club Bogota est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/videoclubbogota.jpg",
+    "image": "/uploads/uploads/b20e926a6fd51138-baum_nightclub_bogota.avif",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Video%20Club%20Bogota",
     "instagram": "https://instagram.com/videoclubbogota",
     "facebook": "https://facebook.com/videoclubbogota",
     "soundcloud": "https://soundcloud.com/videoclubbogota",
     "beatport": "https://www.beatport.com/search?q=Video%20Club%20Bogota",
-    "bio_en": "A major figure on the global scene, Video Club Bogota is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Video Club Bogota is a key player in today's electronic culture."
   },
   {
     "id": "394",
@@ -2286,15 +2229,14 @@
     "city": "Tokyo",
     "country": "Japon",
     "bio": "Incontournable de la scène mondiale, Vent Tokyo est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/venttokyo.jpg",
+    "image": "/uploads/uploads/17690cfbcc2fe6a3-2f_main_floor.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Vent%20Tokyo",
     "instagram": "https://instagram.com/venttokyo",
     "facebook": "https://facebook.com/venttokyo",
     "soundcloud": "https://soundcloud.com/venttokyo",
     "beatport": "https://www.beatport.com/search?q=Vent%20Tokyo",
-    "bio_en": "A major figure on the global scene, Vent Tokyo is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Vent Tokyo is a key player in today's electronic culture."
   },
   {
     "id": "397",
@@ -2318,15 +2260,14 @@
     "city": "Bali",
     "country": "Indonésie",
     "bio": "Incontournable de la scène mondiale, Potato Head Bali est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/potatoheadbali.jpg",
+    "image": "/uploads/uploads/132974de6c375b50-marquee_dance_floor.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Potato%20Head%20Bali",
     "instagram": "https://instagram.com/potatoheadbali",
     "facebook": "https://facebook.com/potatoheadbali",
     "soundcloud": "https://soundcloud.com/potatoheadbali",
     "beatport": "https://www.beatport.com/search?q=Potato%20Head%20Bali",
-    "bio_en": "A major figure on the global scene, Potato Head Bali is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Potato Head Bali is a key player in today's electronic culture."
   },
   {
     "id": "399",
@@ -2334,30 +2275,28 @@
     "city": "Bali",
     "country": "Indonésie",
     "bio": "Incontournable de la scène mondiale, Savaya Bali est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/savayabali.jpg",
+    "image": "/uploads/uploads/cbcdcf8618637535-music_2_cb2a754681.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Savaya%20Bali",
     "instagram": "https://instagram.com/savayabali",
     "facebook": "https://facebook.com/savayabali",
     "soundcloud": "https://soundcloud.com/savayabali",
     "beatport": "https://www.beatport.com/search?q=Savaya%20Bali",
-    "bio_en": "A major figure on the global scene, Savaya Bali is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Savaya Bali is a key player in today's electronic culture."
   },
   {
     "id": "400",
     "name": "Finns Beach Club",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Finns Beach Club est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/finnsbeachclub.jpg",
+    "image": "/uploads/uploads/6886de6060b1ac22-6710ddbda4e8a0fedf266f1e_AD_4n.jpeg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Finns%20Beach%20Club",
     "instagram": "https://instagram.com/finnsbeachclub",
     "facebook": "https://facebook.com/finnsbeachclub",
     "soundcloud": "https://soundcloud.com/finnsbeachclub",
     "beatport": "https://www.beatport.com/search?q=Finns%20Beach%20Club",
-    "bio_en": "A major figure on the global scene, Finns Beach Club is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Finns Beach Club is a key player in today's electronic culture."
   },
   {
     "id": "401",
@@ -2365,30 +2304,28 @@
     "city": "Bali",
     "country": "Indonésie",
     "bio": "Incontournable de la scène mondiale, La Favela Bali est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/lafavelabali.jpg",
+    "image": "/uploads/uploads/5631a231c452c4b0-6784f679b41bf5d158c66094_FINNS.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/La%20Favela%20Bali",
     "instagram": "https://instagram.com/lafavelabali",
     "facebook": "https://facebook.com/lafavelabali",
     "soundcloud": "https://soundcloud.com/lafavelabali",
     "beatport": "https://www.beatport.com/search?q=La%20Favela%20Bali",
-    "bio_en": "A major figure on the global scene, La Favela Bali is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, La Favela Bali is a key player in today's electronic culture."
   },
   {
     "id": "402",
     "name": "Kyō KL",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Kyō KL est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/kyokl.jpg",
+    "image": "/uploads/uploads/2f7266461e9e3a1e-la_favela_bali.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Ky%C5%8D%20KL",
     "instagram": "https://instagram.com/kyokl",
     "facebook": "https://facebook.com/kyokl",
     "soundcloud": "https://soundcloud.com/kyokl",
     "beatport": "https://www.beatport.com/search?q=Ky%C5%8D%20KL",
-    "bio_en": "A major figure on the global scene, Kyō KL is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Kyō KL is a key player in today's electronic culture."
   },
   {
     "id": "403",
@@ -2396,15 +2333,14 @@
     "city": "Seoul",
     "country": "Corée du Sud",
     "bio": "Incontournable de la scène mondiale, Octagon Seoul est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/octagonseoul.jpg",
+    "image": "/uploads/uploads/8231ca8b28c397d3-nightly_djs_non_stop.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Octagon%20Seoul",
     "instagram": "https://instagram.com/octagonseoul",
     "facebook": "https://facebook.com/octagonseoul",
     "soundcloud": "https://soundcloud.com/octagonseoul",
     "beatport": "https://www.beatport.com/search?q=Octagon%20Seoul",
-    "bio_en": "A major figure on the global scene, Octagon Seoul is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Octagon Seoul is a key player in today's electronic culture."
   },
   {
     "id": "404",
@@ -2412,15 +2348,14 @@
     "city": "Seoul",
     "country": "Corée du Sud",
     "bio": "Incontournable de la scène mondiale, Cakeshop Seoul est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/cakeshopseoul.jpg",
+    "image": "/uploads/uploads/11b846531b3bebc1-edm_mainstage.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Cakeshop%20Seoul",
     "instagram": "https://instagram.com/cakeshopseoul",
     "facebook": "https://facebook.com/cakeshopseoul",
     "soundcloud": "https://soundcloud.com/cakeshopseoul",
     "beatport": "https://www.beatport.com/search?q=Cakeshop%20Seoul",
-    "bio_en": "A major figure on the global scene, Cakeshop Seoul is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Cakeshop Seoul is a key player in today's electronic culture."
   },
   {
     "id": "405",
@@ -2428,15 +2363,14 @@
     "city": "Seoul",
     "country": "Corée du Sud",
     "bio": "Incontournable de la scène mondiale, Faust Seoul est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/faustseoul.jpg",
+    "image": "/uploads/uploads/d0bb8f8b2c0c1bf6-cakeshop_seoul.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Faust%20Seoul",
     "instagram": "https://instagram.com/faustseoul",
     "facebook": "https://facebook.com/faustseoul",
     "soundcloud": "https://soundcloud.com/faustseoul",
     "beatport": "https://www.beatport.com/search?q=Faust%20Seoul",
-    "bio_en": "A major figure on the global scene, Faust Seoul is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Faust Seoul is a key player in today's electronic culture."
   },
   {
     "id": "406",
@@ -2444,15 +2378,14 @@
     "city": "Hanoi",
     "country": "Vietnam",
     "bio": "Incontournable de la scène mondiale, 1900 Le Theatre Hanoi est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/1900letheatrehanoi.jpg",
+    "image": "/uploads/uploads/08992c81315b2a0c-image__1_.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/1900%20Le%20Theatre%20Hanoi",
     "instagram": "https://instagram.com/1900letheatrehanoi",
     "facebook": "https://facebook.com/1900letheatrehanoi",
     "soundcloud": "https://soundcloud.com/1900letheatrehanoi",
     "beatport": "https://www.beatport.com/search?q=1900%20Le%20Theatre%20Hanoi",
-    "bio_en": "A major figure on the global scene, 1900 Le Theatre Hanoi is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, 1900 Le Theatre Hanoi is a key player in today's electronic culture."
   },
   {
     "id": "407",
@@ -2460,15 +2393,14 @@
     "city": "Hanoi",
     "country": "Vietnam",
     "bio": "Incontournable de la scène mondiale, Savage Hanoi est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/savagehanoi.jpg",
+    "image": "/uploads/uploads/b041a0222c998f1a-1900_le_theatre_the_best.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Savage%20Hanoi",
     "instagram": "https://instagram.com/savagehanoi",
     "facebook": "https://facebook.com/savagehanoi",
     "soundcloud": "https://soundcloud.com/savagehanoi",
     "beatport": "https://www.beatport.com/search?q=Savage%20Hanoi",
-    "bio_en": "A major figure on the global scene, Savage Hanoi is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Savage Hanoi is a key player in today's electronic culture."
   },
   {
     "id": "408",
@@ -2476,15 +2408,14 @@
     "city": "Bangkok",
     "country": "Thaïlande",
     "bio": "Incontournable de la scène mondiale, Beam Bangkok est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/beambangkok.jpg",
+    "image": "/uploads/uploads/9b0288279e7e32de-there_are_big_up_coming.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Beam%20Bangkok",
     "instagram": "https://instagram.com/beambangkok",
     "facebook": "https://facebook.com/beambangkok",
     "soundcloud": "https://soundcloud.com/beambangkok",
     "beatport": "https://www.beatport.com/search?q=Beam%20Bangkok",
-    "bio_en": "A major figure on the global scene, Beam Bangkok is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Beam Bangkok is a key player in today's electronic culture."
   },
   {
     "id": "409",
@@ -2492,15 +2423,14 @@
     "city": "Bangkok",
     "country": "Thaïlande",
     "bio": "Incontournable de la scène mondiale, Sing Sing Theater Bangkok est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/singsingtheaterbangkok.jpg",
+    "image": "/uploads/uploads/e7f747ac45704d5e-IMG_9590_1500x1000.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Sing%20Sing%20Theater%20Bangkok",
     "instagram": "https://instagram.com/singsingtheaterbangkok",
     "facebook": "https://facebook.com/singsingtheaterbangkok",
     "soundcloud": "https://soundcloud.com/singsingtheaterbangkok",
     "beatport": "https://www.beatport.com/search?q=Sing%20Sing%20Theater%20Bangkok",
-    "bio_en": "A major figure on the global scene, Sing Sing Theater Bangkok is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Sing Sing Theater Bangkok is a key player in today's electronic culture."
   },
   {
     "id": "410",
@@ -2508,15 +2438,14 @@
     "city": "Melbourne",
     "country": "Australie",
     "bio": "Incontournable de la scène mondiale, Revolver Upstairs Melbourne est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/revolverupstairsmelbourne.jpg",
+    "image": "/uploads/uploads/97ed3670acf5a0fc-the_place.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Revolver%20Upstairs%20Melbourne",
     "instagram": "https://instagram.com/revolverupstairsmelbourne",
     "facebook": "https://facebook.com/revolverupstairsmelbourne",
     "soundcloud": "https://soundcloud.com/revolverupstairsmelbourne",
     "beatport": "https://www.beatport.com/search?q=Revolver%20Upstairs%20Melbourne",
-    "bio_en": "A major figure on the global scene, Revolver Upstairs Melbourne is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Revolver Upstairs Melbourne is a key player in today's electronic culture."
   },
   {
     "id": "411",
@@ -2524,30 +2453,28 @@
     "city": "Melbourne",
     "country": "Australie",
     "bio": "Incontournable de la scène mondiale, Sub Club Melbourne est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/subclubmelbourne.jpg",
+    "image": "/uploads/uploads/a80770e33a0fdacf-backroom_red.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Sub%20Club%20Melbourne",
     "instagram": "https://instagram.com/subclubmelbourne",
     "facebook": "https://facebook.com/subclubmelbourne",
     "soundcloud": "https://soundcloud.com/subclubmelbourne",
     "beatport": "https://www.beatport.com/search?q=Sub%20Club%20Melbourne",
-    "bio_en": "A major figure on the global scene, Sub Club Melbourne is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Sub Club Melbourne is a key player in today's electronic culture."
   },
   {
     "id": "412",
     "name": "Home Sydney",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, Home Sydney est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/homesydney.jpg",
+    "image": "/uploads/uploads/5bbc3f5a7f92621c-SubClub_Promo_30.webp",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/Home%20Sydney",
     "instagram": "https://instagram.com/homesydney",
     "facebook": "https://facebook.com/homesydney",
     "soundcloud": "https://soundcloud.com/homesydney",
     "beatport": "https://www.beatport.com/search?q=Home%20Sydney",
-    "bio_en": "A major figure on the global scene, Home Sydney is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, Home Sydney is a key player in today's electronic culture."
   },
   {
     "id": "413",
@@ -2569,15 +2496,14 @@
     "name": "One22 Sydney",
     "country": "Intl",
     "bio": "Incontournable de la scène mondiale, One22 Sydney est une figure majeure de la culture électronique actuelle.",
-    "image": "https://static.ra.co/images/clubs/lg/one22sydney.jpg",
+    "image": "/uploads/uploads/d1061c7258317307-chinese_laundry.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/One22%20Sydney",
     "instagram": "https://instagram.com/one22sydney",
     "facebook": "https://facebook.com/one22sydney",
     "soundcloud": "https://soundcloud.com/one22sydney",
     "beatport": "https://www.beatport.com/search?q=One22%20Sydney",
-    "bio_en": "A major figure on the global scene, One22 Sydney is a key player in today's electronic culture.",
-    "status": "waiting"
+    "bio_en": "A major figure on the global scene, One22 Sydney is a key player in today's electronic culture."
   },
   {
     "id": "415",
