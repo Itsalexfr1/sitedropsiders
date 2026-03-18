@@ -1620,41 +1620,50 @@ export function AdminDashboard() {
 
                             {/* Storage Indicator */}
                             {r2Stats && (
-                                <div className="hidden lg:flex items-center gap-4 px-5 py-2 bg-white/5 border border-white/10 rounded-full">
-                                    <div className="flex flex-col">
-                                        <div className="flex items-center justify-between gap-8 mb-1">
-                                            <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Stockage R2</span>
+                                <div className="hidden lg:flex items-center gap-6 px-6 py-3 bg-white/5 border border-white/10 rounded-3xl shadow-xl backdrop-blur-md">
+                                    <div className="flex flex-col gap-2">
+                                        <div className="flex items-center justify-between gap-12">
                                             <div className="flex items-center gap-2">
+                                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Stockage R2</span>
+                                                <button 
+                                                    onClick={fetchR2Stats}
+                                                    className="p-1 hover:bg-white/10 rounded-md transition-colors group"
+                                                    title="Actualiser les statistiques"
+                                                >
+                                                    <RefreshCw className={`w-3 h-3 text-gray-500 group-hover:text-neon-cyan ${isR2Loading ? 'animate-spin' : ''}`} />
+                                                </button>
+                                            </div>
+                                            <div className="flex items-center gap-3">
                                                 <button 
                                                     onClick={fetchDuplicates}
                                                     disabled={isR2Loading}
-                                                    className="text-[8px] font-black text-neon-cyan/50 hover:text-neon-cyan uppercase tracking-widest transition-colors flex items-center gap-1"
+                                                    className="text-[9px] font-black text-neon-cyan/60 hover:text-neon-cyan uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full"
                                                     title="Détecter les images en double"
                                                 >
-                                                    {isR2Loading ? <Loader2 className="w-2 h-2 animate-spin" /> : <ShieldAlert className="w-2 h-2" />}
+                                                    {isR2Loading ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <ShieldAlert className="w-2.5 h-2.5" />}
                                                     Check Doublons
                                                 </button>
-                                                <span className="text-[8px] font-black text-white/40 uppercase tracking-widest">
+                                                <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
                                                     {((r2Stats.limit - r2Stats.used) / 1024 / 1024 / 1024).toFixed(2)} GB Libres
                                                 </span>
                                             </div>
                                         </div>
-                                        <div className="w-24 h-1 bg-white/5 rounded-full overflow-hidden">
+                                        <div className="w-56 h-2 bg-white/10 rounded-full overflow-hidden border border-white/5">
                                             <motion.div 
                                                 initial={{ width: 0 }}
                                                 animate={{ 
                                                     width: `${r2Stats.limit > 0 ? (r2Stats.used / r2Stats.limit) * 100 : 0}%`,
                                                     opacity: (r2Stats.used / r2Stats.limit) > 0.9 ? [1, 0.5, 1] : 1
                                                 }}
-                                                transition={(r2Stats.used / r2Stats.limit) > 0.9 ? { repeat: Infinity, duration: 1 } : {}}
-                                                className={`h-full rounded-full ${(r2Stats.used / r2Stats.limit) > 0.8 ? 'bg-neon-red' : (r2Stats.used / r2Stats.limit) > 0.5 ? 'bg-neon-orange' : 'bg-neon-cyan'}`}
+                                                transition={(r2Stats.used / r2Stats.limit) > 0.9 ? { repeat: Infinity, duration: 1 } : { duration: 1, ease: "easeOut" }}
+                                                className={`h-full rounded-full transition-colors duration-500 ${(r2Stats.used / r2Stats.limit) > 0.8 ? 'bg-gradient-to-r from-neon-red to-red-600' : (r2Stats.used / r2Stats.limit) > 0.5 ? 'bg-gradient-to-r from-neon-orange to-orange-500' : 'bg-gradient-to-r from-neon-cyan to-blue-500'}`}
                                             />
                                         </div>
                                     </div>
-                                    <div className="w-px h-6 bg-white/10" />
+                                    <div className="w-px h-8 bg-white/10 mx-1" />
                                     <div className="flex flex-col text-left">
-                                        <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">Objets</span>
-                                        <span className="text-[10px] font-black text-white leading-none">{r2Stats.objectCount}</span>
+                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1.5">Objets</span>
+                                        <span className="text-sm font-black text-white tracking-tighter leading-none">{r2Stats.objectCount.toLocaleString()}</span>
                                     </div>
                                 </div>
                             )}
