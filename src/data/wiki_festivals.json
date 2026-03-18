@@ -1125,20 +1125,6 @@
     "description_en": "La version automnale du célèbre festival écossais, transformant Halloween en une messe techno monumentale."
   },
   {
-    "id": "f103",
-    "name": "Movement",
-    "city": "Detroit",
-    "country": "US",
-    "djmag_rank": 103,
-    "description": "Le pèlerinage aux origines de la Techno, célébrant l'héritage de Detroit dans le cadre urbain du Hart Plaza.",
-    "image": "https://images.unsplash.com/photo-1459749411177-042180ce673c?w=600&h=400&fit=crop&q=80&sig=f103",
-    "website": "https://www.movement.com",
-    "instagram": "https://instagram.com/movement",
-    "votes": 0,
-    "status": "waiting",
-    "description_en": "Le pèlerinage aux origines de la Techno, célébrant l'héritage de Detroit dans le cadre urbain du Hart Plaza."
-  },
-  {
     "id": "f104",
     "name": "CRSSD Festival",
     "city": "San Diego",
