@@ -110,14 +110,20 @@ export function AdminDashboard() {
     const autoSelectDuplicates = () => {
         const keysToSelect: string[] = [];
         duplicateSets.forEach(set => {
+            // Find the best candidate to KEEP (the one with the most usages to avoid breaking links)
             let bestCandidate = set[0];
             set.forEach((obj: any) => {
-                if ((obj.usages?.length || 0) > (bestCandidate.usages?.length || 0)) {
+                const objUsages = obj.usages?.length || 0;
+                const bestUsages = bestCandidate.usages?.length || 0;
+                if (objUsages > bestUsages) {
                     bestCandidate = obj;
                 }
             });
+
+            // ONLY auto-select variants that have ZERO usages.
+            // If multiple variants have usages, we let the user manually decide how to merge them.
             set.forEach((obj: any) => {
-                if (obj.key !== bestCandidate.key) {
+                if (obj.key !== bestCandidate.key && (!obj.usages || obj.usages.length === 0)) {
                     keysToSelect.push(obj.key);
                 }
             });
