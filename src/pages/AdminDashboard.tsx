@@ -100,6 +100,9 @@ export function AdminDashboard() {
     const [testQuiz, setTestQuiz] = useState<any>(null);
     const [globalAlert, setGlobalAlert] = useState<{ title?: string; message: string; type?: 'info' | 'danger' | 'warning' } | null>(null);
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
+    const [isScanningBroken, setIsScanningBroken] = useState(false);
+    const [brokenImages, setBrokenImages] = useState<any[]>([]);
+    const [isBrokenImagesModalOpen, setIsBrokenImagesModalOpen] = useState(false);
 
     const toggleSelection = (key: string) => {
         setSelectedKeys(prev => 
@@ -871,6 +874,28 @@ export function AdminDashboard() {
             setGlobalAlert({ message: "Erreur réseau ou serveur lors de la recherche de doublons.", type: 'danger' });
         } finally {
             setIsR2Loading(false);
+        }
+    };
+
+    const fetchBrokenImages = async () => {
+        setIsScanningBroken(true);
+        try {
+            const res = await apiFetch('/api/admin/broken-images');
+            const data = await res.json();
+            if (data.success) {
+                setBrokenImages(data.broken);
+                setIsBrokenImagesModalOpen(true);
+                if (data.broken.length === 0) {
+                    setGlobalAlert({ message: 'Félicitations ! Aucune image cassée détectée.', type: 'info' });
+                } else {
+                    setGlobalAlert({ message: `${data.broken.length} images cassées trouvées.`, type: 'info' });
+                }
+            }
+        } catch (e) {
+            console.error(e);
+            setGlobalAlert({ message: "Erreur lors du scan des images cassées.", type: 'danger' });
+        } finally {
+            setIsScanningBroken(false);
         }
     };
 
@@ -1648,6 +1673,15 @@ export function AdminDashboard() {
                                                 >
                                                     {isR2Loading ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <ShieldAlert className="w-2.5 h-2.5" />}
                                                     Check Doublons
+                                                </button>
+                                                <button 
+                                                    onClick={fetchBrokenImages}
+                                                    disabled={isScanningBroken}
+                                                    className="text-[9px] font-black text-neon-red/60 hover:text-neon-red uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-red/10 border border-neon-red/20 rounded-full"
+                                                    title="Détecter les images cassées (404)"
+                                                >
+                                                    {isScanningBroken ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <ShieldAlert className="w-2.5 h-2.5" />}
+                                                    Scan 404
                                                 </button>
                                                 <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
                                                     {((r2Stats.limit - r2Stats.used) / 1024 / 1024 / 1024).toFixed(2)} GB Libres
@@ -6665,6 +6699,96 @@ export function AdminDashboard() {
                                             Supprimer la sélection ({selectedKeys.length})
                                         </button>
                                     )}
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                {/* Broken Images Modal */}
+                <AnimatePresence>
+                    {isBrokenImagesModalOpen && (
+                        <div className="fixed inset-0 z-[110] flex items-center justify-center px-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsBrokenImagesModalOpen(false)}
+                                className="absolute inset-0 bg-black/90 backdrop-blur-xl"
+                            />
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                                animate={{ scale: 1, opacity: 1, y: 0 }}
+                                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                                className="relative w-full max-w-5xl bg-zinc-950 border border-white/10 rounded-[32px] overflow-hidden flex flex-col max-h-[85vh] shadow-2xl"
+                            >
+                                <div className="p-8 border-b border-white/5 flex items-center justify-between shrink-0 bg-gradient-to-r from-neon-red/10 to-transparent">
+                                    <div>
+                                        <h2 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
+                                            <ShieldAlert className="text-neon-red w-6 h-6" />
+                                            Détecteur d'Images Cassées (404)
+                                        </h2>
+                                        <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mt-1">
+                                            {brokenImages.length} liens pointant vers des fichiers inexistants sur R2
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsBrokenImagesModalOpen(false)}
+                                        className="p-2 hover:bg-white/10 rounded-full transition-colors text-gray-500 hover:text-white"
+                                    >
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                </div>
+
+                                <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
+                                    {brokenImages.length > 0 ? (
+                                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                            {brokenImages.map((img, idx) => (
+                                                <div key={idx} className="group bg-white/5 border border-white/10 p-5 rounded-2xl flex flex-col gap-3 hover:bg-white/[0.07] transition-all">
+                                                    <div className="flex items-center justify-between">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className="p-1.5 bg-neon-red/20 rounded-lg">
+                                                                <ShieldAlert className="w-3.5 h-3.5 text-neon-red" />
+                                                            </div>
+                                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Image Corrompue / 404</span>
+                                                        </div>
+                                                    </div>
+                                                    
+                                                    <div className="flex flex-col gap-1">
+                                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Clé du fichier (R2):</span>
+                                                        <div className="text-[11px] font-mono text-white/90 break-all bg-black/60 p-3 rounded-xl border border-white/5 group-hover:border-neon-red/30 transition-colors">
+                                                            {img.key}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="flex items-center justify-between mt-2 pt-3 border-t border-white/5">
+                                                        <div className="flex items-center gap-1.5">
+                                                            <div className="w-1.5 h-1.5 rounded-full bg-neon-cyan animate-pulse" />
+                                                            <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">Référencé dans:</span>
+                                                        </div>
+                                                        <span className="text-[11px] font-black text-white/80 uppercase tracking-widest bg-white/5 px-2 py-0.5 rounded-md">{img.location}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center py-24 text-center">
+                                            <div className="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mb-6">
+                                                <CheckCircle2 className="w-12 h-12 text-neon-green" />
+                                            </div>
+                                            <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-2">Tout est propre !</h3>
+                                            <p className="text-gray-500 text-sm max-w-md mx-auto italic font-medium">
+                                                Félicitations, aucune image cassée n'a été trouvée dans votre base de données. Tous les liens dirigent vers des fichiers valides sur Cloudflare R2.
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="p-6 bg-black/40 border-t border-white/5 flex items-center justify-center gap-3">
+                                    <ShieldAlert className="w-4 h-4 text-gray-600" />
+                                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
+                                        Conseil : Pour réparer, uploadez à nouveau le fichier avec le même nom ou corrigez le lien dans le fichier JSON.
+                                    </p>
                                 </div>
                             </motion.div>
                         </div>

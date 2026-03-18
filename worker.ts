@@ -3290,6 +3290,67 @@ ${urls.map(u => `  <url>
             }
         }
 
+        // --- NEW: BROKEN IMAGES DETECTOR ---
+        if (path === '/api/admin/broken-images' && request.method === 'GET') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                // 1. Get ALL keys currently in R2
+                let allKeys = new Set();
+                let cursor = undefined;
+                do {
+                    const listResult = await env.R2.list({ prefix: 'uploads/', cursor });
+                    listResult.objects.forEach(o => allKeys.add(o.key));
+                    cursor = listResult.truncated ? listResult.cursor : undefined;
+                } while (cursor);
+
+                // 2. All data files to scan
+                const dataFiles = [
+                    WIKI_DJS_PATH, WIKI_CLUBS_PATH, WIKI_FESTIVALS_PATH,
+                    NEWS_PATH, ...NEWS_CONTENT_FILES,
+                    AGENDA_PATH, GALERIE_PATH, 
+                    RECAPS_PATH, ...RECAPS_CONTENT_FILES,
+                    TEAM_PATH, SHOP_PATH, CLIPS_PATH, TRACKLISTS_PATH
+                ];
+
+                const brokenImages = [];
+                const dataContents = await Promise.all(
+                    dataFiles.map(path => fetchGitHubFile(path, gitConfig).catch(() => null))
+                );
+
+                const urlRegex = /(?:(?:"|')(?:\/uploads\/|https:\/\/dropsiders\.fr\/uploads\/)([^"']+\.[a-z0-9]{2,5})(?:"|'))/gi;
+
+                for (let i = 0; i < dataFiles.length; i++) {
+                    const fileObj = dataContents[i];
+                    if (!fileObj || !fileObj.content) continue;
+                    
+                    const contentStr = JSON.stringify(fileObj.content);
+                    const fileName = dataFiles[i].split('/').pop() || dataFiles[i];
+                    
+                    let match;
+                    while ((match = urlRegex.exec(contentStr)) !== null) {
+                        const key = match[1];
+                        const fullPathKey = `uploads/${key}`;
+                        
+                        // If it's not in R2, it's broken!
+                        if (!allKeys.has(fullPathKey) && !allKeys.has(key)) {
+                            brokenImages.push({
+                                url: match[0].replace(/['"]/g, ''),
+                                key: key,
+                                location: fileName
+                            });
+                        }
+                    }
+                }
+
+                return new Response(JSON.stringify({ 
+                    success: true, 
+                    broken: brokenImages.filter((v, i, a) => a.findIndex(t => t.url === v.url && t.location === v.location) === i)
+                }), { status: 200, headers: { ...headers, 'Cache-Control': 'no-cache' } });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/r2/duplicates' && request.method === 'GET') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
