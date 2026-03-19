@@ -504,8 +504,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 // Title "LINE-UP" or custom
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#fff';
-                ctx.font = '900 italic 80px "Montserrat", sans-serif';
-                ctx.letterSpacing = "15px";
+                ctx.font = '700 80px "Montserrat", sans-serif';
+                ctx.letterSpacing = "8px";
                 ctx.fillText(customText || 'LINE-UP', centerX, topY);
 
                 // Elegant divider
@@ -514,30 +514,24 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillRect(centerX - lineW, topY + 40, lineW * 2, 2);
 
                 // List items
-                const startY = topY + 140;
-                const spacing = activeTab === 'PUBLICATION' ? 100 : 130;
+                const startY = topY + (activeTab === 'PUBLICATION' ? 320 : 450);
+                const spacing = activeTab === 'PUBLICATION' ? 55 : 75;
 
                 planningItems.forEach((item, i) => {
                     const y = startY + (i * spacing);
-                    if (y > canvas.height - 100) return;
+                    if (y > canvas.height - 120) return;
 
                     ctx.textAlign = 'right';
                     ctx.fillStyle = `rgb(${activeData.grad})`;
-                    ctx.font = '900 italic 35px "Montserrat", sans-serif';
-                    ctx.letterSpacing = "2px";
-                    ctx.fillText(item.time, centerX - 40, y);
+                    ctx.font = '700 35px "Montserrat", sans-serif';
+                    ctx.letterSpacing = "1px";
+                    ctx.fillText(item.time, centerX - 15, y);
 
                     ctx.textAlign = 'left';
                     ctx.fillStyle = '#fff';
-                    ctx.font = '800 italic 35px "Montserrat", sans-serif';
-                    ctx.letterSpacing = "4px";
-                    ctx.fillText(item.artist.toUpperCase(), centerX + 40, y);
-
-                    // Tiny dot between them
-                    ctx.beginPath();
-                    ctx.arc(centerX, y - 10, 4, 0, Math.PI * 2);
-                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-                    ctx.fill();
+                    ctx.font = '500 35px "Montserrat", sans-serif';
+                    ctx.letterSpacing = "2px";
+                    ctx.fillText(item.artist.toUpperCase(), centerX + 15, y);
                 });
 
             } else {
