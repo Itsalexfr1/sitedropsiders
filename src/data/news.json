@@ -577,8 +577,7 @@
     "isFeatured": false,
     "isFocus": false,
     "link": "https://dropsiders.fr/news/222_fast-quizz-mc-stretch",
-    "author": "alex",
-    "photo_verified": true
+    "author": "alex"
   },
   {
     "id": 221,
@@ -653,7 +652,8 @@
     "isFeatured": false,
     "isFocus": false,
     "link": "https://dropsiders.fr/news/217_la-playlist-de-mc-stretch-",
-    "author": "alex"
+    "author": "alex",
+    "photo_verified": true
   },
   {
     "id": 216,
