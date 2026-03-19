@@ -4,7 +4,7 @@ import {
     X, Download, Upload, PlusCircle, Plus, Eraser,
     Video, Layout, Smartphone, Image as ImageIcon,
     Home, Link as LinkIcon, Palette, Type, Film,
-    Check, Layers, Sparkles
+    Check, Layers, Sparkles, Wand2, RotateCcw
 } from 'lucide-react';
 import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
@@ -65,6 +65,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [showText, setShowText] = useState(true);
     const [planningItems, setPlanningItems] = useState<{ time: string; artist: string }[]>(Array.from({ length: 8 }, () => ({ time: '00:00', artist: 'ARTISTE' })));
     const [planningDate, setPlanningDate] = useState('21 MARS - 28 MARS');
+    const [isRetouchMode, setIsRetouchMode] = useState(false);
+    const [retouchPath, setRetouchPath] = useState<{ x: number, y: number }[]>([]);
+    const [isDrawing, setIsDrawing] = useState(false);
+    const [brushSize, setBrushSize] = useState(35);
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -500,80 +504,82 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.restore();
             } else if (theme === 'PLANNING') {
                 const centerX = canvas.width / 2;
-                const topY = activeTab === 'PUBLICATION' ? 520 : 900;
-                
-                // Title "LINE-UP" or custom
-                ctx.textAlign = 'center';
-                ctx.fillStyle = '#fff';
-                ctx.font = '700 85px "Montserrat", sans-serif';
-                ctx.letterSpacing = "8px";
-                ctx.fillText(customText || 'LINE-UP', centerX, topY);
+                const topY = activeTab === 'PUBLICATION' ? 280 : 550;
 
-                // Date below title (tightened gap)
-                ctx.font = '600 25px "Montserrat", sans-serif';
-                ctx.letterSpacing = "4px";
-                ctx.fillStyle = 'rgba(255,255,255,0.8)';
-                ctx.fillText(planningDate, centerX, topY + 35);
+                ctx.save();
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 20;
+                
+                // Title "LINE-UP"
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 80px "Antonio", sans-serif';
+                ctx.letterSpacing = "10px";
+                ctx.fillText(customText || 'LINE-UP', centerX, topY + 40);
+
+                // Date below title
+                ctx.fillStyle = `rgb(${activeData.grad})`;
+                ctx.font = '900 30px "Outfit", sans-serif';
+                ctx.letterSpacing = "6px";
+                ctx.fillText(planningDate.toUpperCase(), centerX, topY + 95);
 
                 // Elegant divider
                 const lineW = 200;
                 ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                ctx.fillRect(centerX - lineW, topY + 60, lineW * 2, 2);
+                ctx.fillRect(centerX - lineW, topY + 120, lineW * 2, 2);
+                ctx.restore();
 
                 // List items (compact block)
-                const startY = topY + (activeTab === 'PUBLICATION' ? 120 : 160);
-                const spacing = activeTab === 'PUBLICATION' ? 45 : 65;
-
+                const startY = topY + (activeTab === 'PUBLICATION' ? 190 : 230);
+                const spacing = activeTab === 'PUBLICATION' ? 48 : 68;
                 planningItems.forEach((item, i) => {
                     const y = startY + (i * spacing);
                     if (y > canvas.height - 120) return;
 
                     ctx.save();
                     ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.shadowBlur = 12;
-                    ctx.shadowOffsetX = 3;
-                    ctx.shadowOffsetY = 3;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowOffsetX = 2;
+                    ctx.shadowOffsetY = 2;
 
-                    // Hour (Very Bold) - Auto format 2210 -> 22H10
+                    // Hour (Premium Condensed) - Alignée sur la limite gauche de la ligne
                     ctx.textAlign = 'right';
                     ctx.fillStyle = `rgb(${activeData.grad})`;
-                    ctx.font = '900 35px "Montserrat", sans-serif';
-                    ctx.letterSpacing = "1px";
+                    ctx.font = '900 45px "Antonio", sans-serif';
+                    ctx.letterSpacing = "0px";
                     let timeText = item.time.toUpperCase().trim();
                     if (timeText.length === 4 && /^\d+$/.test(timeText)) {
                         timeText = timeText.slice(0, 2) + 'H' + timeText.slice(2);
                     } else if (timeText.includes(':')) {
                         timeText = timeText.replace(':', 'H');
                     }
-                    ctx.fillText(timeText, centerX - 25, y);
+                    ctx.fillText(timeText, centerX - 200, y);
 
-                    // Artist (Premium Bold)
+                    // Artist (Premium Modern) - Décalé à gauche pour gagner de la place
                     ctx.textAlign = 'left';
                     ctx.fillStyle = '#fff';
                     const artistText = item.artist.toUpperCase();
-                    ctx.font = '900 35px "Montserrat", sans-serif';
-                    ctx.letterSpacing = "0px";
+                    ctx.font = '900 42px "Outfit", sans-serif';
+                    ctx.letterSpacing = "-1px";
                     
-                    const maxW = (canvas.width / 2) - 80;
+                    const maxW = (canvas.width / 2) + 120; // Gain de place massif
                     if (ctx.measureText(artistText).width > maxW) {
-                        // Splitting B2B sets onto two lines for better readability
                         if (artistText.includes(' B2B ')) {
                             const parts = artistText.split(' B2B ');
-                            ctx.fillText(parts[0], centerX + 25, y - 18);
-                            ctx.font = '800 24px "Montserrat", sans-serif';
-                            ctx.fillStyle = 'rgba(255,255,255,0.8)';
-                            ctx.fillText('B2B ' + parts[1], centerX + 25, y + 15);
+                            ctx.font = '900 42px "Outfit", sans-serif';
+                            ctx.fillText(parts[0], centerX - 150, y - 22);
+                            ctx.font = '900 30px "Outfit", sans-serif';
+                            ctx.fillText('B2B ' + parts[1], centerX - 150, y + 18);
                         } else {
-                            // Fallback shrink only for non-B2B long names
-                            let fs = 35;
+                            let fs = 42;
                             while (ctx.measureText(artistText).width > maxW && fs > 18) {
                                 fs--;
-                                ctx.font = `900 ${fs}px "Montserrat", sans-serif`;
+                                ctx.font = `900 ${fs}px "Outfit", sans-serif`;
                             }
-                            ctx.fillText(artistText, centerX + 25, y);
+                            ctx.fillText(artistText, centerX - 150, y);
                         }
                     } else {
-                        ctx.fillText(artistText, centerX + 25, y);
+                        ctx.fillText(artistText, centerX - 150, y);
                     }
                     ctx.restore();
                 });
@@ -778,6 +784,67 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         } catch (e) { console.error(e); }
     };
 
+    // --- MAGIC ERASER ENGINE (IN-STUDIO CLEANUP) ---
+    const applyMagicErase = () => {
+        if (!canvasRef.current || retouchPath.length === 0) return;
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        if (!ctx) return;
+
+        // 1. Create a mask of the painted area
+        const maskCanvas = document.createElement('canvas');
+        maskCanvas.width = canvas.width;
+        maskCanvas.height = canvas.height;
+        const mctx = maskCanvas.getContext('2d');
+        if (!mctx) return;
+
+        mctx.lineJoin = 'round'; mctx.lineCap = 'round';
+        mctx.strokeStyle = '#fff';
+        mctx.lineWidth = brushSize * (canvas.width / 450); // Scale to canvas
+        mctx.beginPath();
+        retouchPath.forEach((p, i) => {
+            if (i === 0) mctx.moveTo(p.x, p.y);
+            else mctx.lineTo(p.x, p.y);
+        });
+        mctx.stroke();
+
+        // 2. Perform localized patching (Mimics Magic Eraser)
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const maskData = mctx.getImageData(0, 0, canvas.width, canvas.height);
+        const data = imageData.data;
+        const mask = maskData.data;
+
+        for (let y = 0; y < canvas.height; y++) {
+            for (let x = 0; x < canvas.width; x++) {
+                const i = (y * canvas.width + x) * 4;
+                if (mask[i] > 128) { // Masked pixel
+                    let found = false;
+                    // Search in a larger radius for valid background pixels to copy
+                    for (let r = 2; r < 40; r += 3) {
+                        for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 4) {
+                            const sx = Math.round(x + Math.cos(angle) * r);
+                            const sy = Math.round(y + Math.sin(angle) * r);
+                            if (sx >= 0 && sx < canvas.width && sy >= 0 && sy < canvas.height) {
+                                const si = (sy * canvas.width + sx) * 4;
+                                if (mask[si] === 0) {
+                                    data[i] = data[si]; data[i+1] = data[si+1]; data[i+2] = data[si+2];
+                                    found = true; break;
+                                }
+                            }
+                        }
+                        if (found) break;
+                    }
+                }
+            }
+        }
+        ctx.putImageData(imageData, 0, 0);
+
+        // Update photo state with cleaned version
+        setBgImage(canvas.toDataURL('image/jpeg', 0.9));
+        setRetouchPath([]);
+        setIsRetouchMode(false);
+    };
+
     useEffect(() => {
         let anim: number;
         if (bgVideo || isVideoRecording) {
@@ -785,7 +852,16 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath]);
+
+    // --- FONT LOADER ---
+    useEffect(() => {
+        const link = document.createElement('link');
+        link.href = 'https://fonts.googleapis.com/css2?family=Antonio:wght@700;900&family=Outfit:wght@700;900&display=swap';
+        link.rel = 'stylesheet';
+        document.head.appendChild(link);
+        return () => { document.head.removeChild(link); };
+    }, []);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -1291,9 +1367,22 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                 <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
                                 Télécharger Vidéo/Photo (URL)
                             </button>
-                            <button onClick={() => window.open('https://cleanup.pictures/', '_blank')} className="w-full py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-xl flex items-center justify-center gap-2 text-neon-cyan text-[9px] font-black uppercase hover:bg-neon-cyan/20 transition-all group">
-                                <Sparkles className="w-3.5 h-3.5" /> Nettoyage Photo (Outil IA)
+                            <button onClick={() => setIsRetouchMode(!isRetouchMode)} className={`w-full py-2 bg-neon-cyan/10 border rounded-xl flex items-center justify-center gap-2 text-neon-cyan text-[9px] font-black uppercase hover:bg-neon-cyan/20 transition-all group ${isRetouchMode ? 'border-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.2)]' : 'border-neon-cyan/20'}`}>
+                                <Wand2 className="w-3.5 h-3.5" /> Nettoyage Photo (Outil IA Local)
                             </button>
+                            {isRetouchMode && (
+                                <div className="bg-white/5 border border-white/10 rounded-xl p-3 space-y-2">
+                                    <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500">
+                                        <span>Taille pinceau</span>
+                                        <span className="text-neon-cyan">{brushSize}px</span>
+                                    </div>
+                                    <input type="range" min="10" max="100" value={brushSize} onChange={e => setBrushSize(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
+                                    <div className="flex gap-2 pt-1">
+                                        <button onClick={() => setRetouchPath([])} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center justify-center gap-1"><RotateCcw className="w-3 h-3" /> Reset</button>
+                                        <button onClick={applyMagicErase} className="flex-[2] py-2 bg-neon-cyan text-black rounded-lg text-[9px] font-black uppercase shadow-[0_0_15px_rgba(0,255,255,0.4)] hover:scale-[1.02] transition-all flex items-center justify-center gap-1"><Sparkles className="w-3 h-3" /> Appliquer (IA)</button>
+                                    </div>
+                                </div>
+                            )}
                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                             {bgVideo && (
                                 <button
@@ -1372,7 +1461,44 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     <div className="flex-1 bg-[#020202] flex flex-col items-center justify-center relative overflow-hidden h-full border-l border-white/10">
                         <div className="aspect-auto w-full max-w-[450px] relative">
                             <div className="w-full h-full bg-[#111] rounded-[30px] overflow-hidden border border-white/10 shadow-2xl relative">
-                                <canvas ref={canvasRef} className="w-full h-full object-contain" />
+                                <canvas 
+                                    ref={canvasRef} 
+                                    className={`w-full h-full object-contain ${isRetouchMode ? 'cursor-crosshair' : 'cursor-default'}`} 
+                                    onMouseDown={(e) => {
+                                        if (!isRetouchMode) return;
+                                        setIsDrawing(true);
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const x = (e.clientX - rect.left) * (e.currentTarget.width / rect.width);
+                                        const y = (e.clientY - rect.top) * (e.currentTarget.height / rect.height);
+                                        setRetouchPath([{ x, y }]);
+                                    }}
+                                    onMouseMove={(e) => {
+                                        if (!isDrawing || !isRetouchMode) return;
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const x = (e.clientX - rect.left) * (e.currentTarget.width / rect.width);
+                                        const y = (e.clientY - rect.top) * (e.currentTarget.height / rect.height);
+                                        setRetouchPath(prev => [...prev, { x, y }]);
+                                    }}
+                                    onMouseUp={() => setIsDrawing(false)}
+                                    onTouchStart={(e) => {
+                                        if (!isRetouchMode) return;
+                                        setIsDrawing(true);
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const touch = e.touches[0];
+                                        const x = (touch.clientX - rect.left) * (e.currentTarget.width / rect.width);
+                                        const y = (touch.clientY - rect.top) * (e.currentTarget.height / rect.height);
+                                        setRetouchPath([{ x, y }]);
+                                    }}
+                                    onTouchMove={(e) => {
+                                        if (!isDrawing || !isRetouchMode) return;
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const touch = e.touches[0];
+                                        const x = (touch.clientX - rect.left) * (e.currentTarget.width / rect.width);
+                                        const y = (touch.clientY - rect.top) * (e.currentTarget.height / rect.height);
+                                        setRetouchPath(prev => [...prev, { x, y }]);
+                                    }}
+                                    onTouchEnd={() => setIsDrawing(false)}
+                                />
 
                                 <AnimatePresence>
                                     {isVideoRecording && (
@@ -1470,7 +1596,44 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         className="absolute inset-0 flex items-center justify-center bg-black"
                         onClick={() => { if (activePanel) setActivePanel(null); }}
                     >
-                        <canvas ref={canvasRef} className="w-full h-full object-contain" />
+                        <canvas 
+                            ref={canvasRef} 
+                            className={`w-full h-full object-contain ${isRetouchMode ? 'cursor-crosshair' : 'cursor-default'}`} 
+                            onTouchStart={(e) => {
+                                if (!isRetouchMode) return;
+                                setIsDrawing(true);
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const touch = e.touches[0];
+                                const x = (touch.clientX - rect.left) * (e.currentTarget.width / rect.width);
+                                const y = (touch.clientY - rect.top) * (e.currentTarget.height / rect.height);
+                                setRetouchPath([{ x, y }]);
+                            }}
+                            onTouchMove={(e) => {
+                                if (!isDrawing || !isRetouchMode) return;
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const touch = e.touches[0];
+                                const x = (touch.clientX - rect.left) * (e.currentTarget.width / rect.width);
+                                const y = (touch.clientY - rect.top) * (e.currentTarget.height / rect.height);
+                                setRetouchPath(prev => [...prev, { x, y }]);
+                            }}
+                            onTouchEnd={() => setIsDrawing(false)}
+                            onMouseDown={(e) => {
+                                if (!isRetouchMode) return;
+                                setIsDrawing(true);
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const x = (e.clientX - rect.left) * (e.currentTarget.width / rect.width);
+                                const y = (e.clientY - rect.top) * (e.currentTarget.height / rect.height);
+                                setRetouchPath([{ x, y }]);
+                            }}
+                            onMouseMove={(e) => {
+                                if (!isDrawing || !isRetouchMode) return;
+                                const rect = e.currentTarget.getBoundingClientRect();
+                                const x = (e.clientX - rect.left) * (e.currentTarget.width / rect.width);
+                                const y = (e.clientY - rect.top) * (e.currentTarget.height / rect.height);
+                                setRetouchPath(prev => [...prev, { x, y }]);
+                            }}
+                            onMouseUp={() => setIsDrawing(false)}
+                        />
 
                         <AnimatePresence>
                             {isVideoRecording && (
@@ -1581,9 +1744,22 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                             <button onClick={() => setShowText(!showText)} className={`w-full py-4 border rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${!showText ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}>
                                                 <Eraser className="w-4 h-4" /> Gomme (Masquer le texte) : {!showText ? 'ACTIVE' : 'OFF'}
                                             </button>
-                                            <button onClick={() => window.open('https://cleanup.pictures/', '_blank')} className="w-full py-4 bg-neon-cyan/10 border border-neon-cyan/20 rounded-2xl flex items-center justify-center gap-2 text-neon-cyan text-[10px] font-black uppercase hover:bg-neon-cyan/20 transition-all group">
-                                                <Sparkles className="w-4 h-4" /> Nettoyage Photo (Outil IA)
+                                            <button onClick={() => setIsRetouchMode(!isRetouchMode)} className={`w-full py-4 border rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${isRetouchMode ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.2)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}>
+                                                <Wand2 className="w-4 h-4" /> Nettoyer Photo (Direct Studio)
                                             </button>
+                                            {isRetouchMode && (
+                                                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 space-y-3">
+                                                    <div className="flex justify-between items-center text-[9px] uppercase font-black text-gray-500">
+                                                        <span>Taille pinceau</span>
+                                                        <span className="text-neon-cyan">{brushSize}px</span>
+                                                    </div>
+                                                    <input type="range" min="10" max="100" value={brushSize} onChange={e => setBrushSize(parseInt(e.target.value))} className="w-full h-1 bg-white/10 rounded-lg appearance-none cursor-pointer accent-neon-cyan" />
+                                                    <div className="flex gap-2 pt-2">
+                                                        <button onClick={() => setRetouchPath([])} className="flex-1 py-3 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center justify-center gap-1.5"><RotateCcw className="w-3.5 h-3.5" /> Réinitialiser</button>
+                                                        <button onClick={applyMagicErase} className="flex-[2] py-3 bg-neon-cyan text-black rounded-xl text-[9px] font-black uppercase shadow-[0_0_15px_rgba(0,255,255,0.4)] hover:scale-[1.02] transition-all flex items-center justify-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Appliquer</button>
+                                                    </div>
+                                                </div>
+                                            )}
                                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                         </div>
                                     </div>
