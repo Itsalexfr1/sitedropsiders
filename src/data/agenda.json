@@ -162,15 +162,17 @@
     "endDate": "2026-07-19",
     "location": "Boom",
     "type": "Festival",
-    "image": "https://dropsiders.fr/uploads/migrated/dropsiders/images/bodsg4aofdxmsebzgexg.png",
+    "image": "/uploads/uploads/06557d749fb6dfda-section_header_theme.jpg",
     "description": "Premier week-end du plus grand festival EDM au monde.",
     "url": "https://www.tomorrowland.com",
     "genre": "Multi Styles",
-    "country": "Belgique",
+    "country": "BELGIQUE",
     "month": "JUILLET",
     "isWeekly": false,
     "isLiveDropsiders": true,
-    "photo_verified": true
+    "photo_verified": true,
+    "venue": "",
+    "additionalDates": []
   },
   {
     "id": 10,
