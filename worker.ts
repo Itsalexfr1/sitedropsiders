@@ -2574,6 +2574,57 @@ ${urls.map(u => `  <url>
             } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
 
+        // --- API: BULK UPDATE YEAR ---
+        if (path === '/api/admin/bulk-update-year' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            try {
+                const body = await request.json();
+                const { type, oldYear, newYear } = body;
+                if (!type || !oldYear || !newYear) return new Response(JSON.stringify({ error: 'Missing params' }), { status: 400, headers });
+
+                const FILE_PATH = type === 'agenda' ? 'src/data/agenda.json' : 'src/data/news.json';
+                const file = await fetchGitHubFile(FILE_PATH, gitConfig);
+                if (!file) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
+
+                const currentData = file.content;
+                let updatedCount = 0;
+                const newData = currentData.map(item => {
+                    let hasChanged = false;
+                    const res = { ...item };
+
+                    if (type === 'agenda') {
+                        ['date', 'startDate', 'endDate'].forEach(field => {
+                            if (res[field] && res[field].startsWith(`${oldYear}-`)) {
+                                res[field] = res[field].replace(`${oldYear}-`, `${newYear}-`);
+                                hasChanged = true;
+                            }
+                        });
+                    } else if (type === 'news') {
+                        if (String(res.year) === String(oldYear)) {
+                            res.year = String(newYear);
+                            hasChanged = true;
+                        }
+                        if (res.date && res.date.startsWith(`${oldYear}-`)) {
+                            res.date = res.date.replace(`${oldYear}-`, `${newYear}-`);
+                            hasChanged = true;
+                        }
+                    }
+
+                    if (hasChanged) updatedCount++;
+                    return res;
+                });
+
+                if (updatedCount === 0) return new Response(JSON.stringify({ error: `Aucun élément trouvé pour l'année ${oldYear}` }), { status: 404, headers });
+
+                const saved = await saveGitHubFile(FILE_PATH, newData, `Bulk update year ${oldYear} -> ${newYear} (${updatedCount} items)`, file.sha, gitConfig);
+                if (saved.ok) {
+                    return new Response(JSON.stringify({ success: true, count: updatedCount }), { status: 200, headers });
+                } else {
+                    return new Response(JSON.stringify({ error: 'Error saving: ' + saved.error }), { status: 500, headers });
+                }
+            } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
+        }
+
         // --- API: CREATE GALERIE ---
         if (path === '/api/galerie/create' && request.method === 'POST') {
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });

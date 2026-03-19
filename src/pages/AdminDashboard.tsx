@@ -114,6 +114,9 @@ export function AdminDashboard() {
     const [updatingResidenceId, setUpdatingResidenceId] = useState<string | null>(null);
     const [showResidenceUpload, setShowResidenceUpload] = useState(false);
     const [editingResidence, setEditingResidence] = useState<any>(null);
+    const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
+    const [maintenanceLoading, setMaintenanceLoading] = useState(false);
+    const [bulkYearShift, setBulkYearShift] = useState({ oldYear: '2025', newYear: '2026', type: 'agenda' });
 
     const toggleSelection = (key: string) => {
         setSelectedKeys(prev =>
@@ -236,6 +239,52 @@ export function AdminDashboard() {
             console.error(e);
         } finally {
             setIsResidencesLoading(false);
+        }
+    };
+
+    const handleBulkYearUpdate = async () => {
+        setMaintenanceLoading(true);
+        try {
+            const res = await apiFetch('/api/admin/bulk-update-year', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    type: bulkYearShift.type,
+                    oldYear: bulkYearShift.oldYear,
+                    newYear: bulkYearShift.newYear
+                })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setGlobalAlert({ message: `Migration réussie : ${data.count} éléments mis à jour !`, type: 'info' });
+            } else {
+                const err = await res.json();
+                setGlobalAlert({ message: err.error || "Une erreur est survenue", type: 'danger' });
+            }
+        } catch (e) {
+            console.error(e);
+            setGlobalAlert({ message: "Échec de la migration des dates", type: 'danger' });
+        } finally {
+            setMaintenanceLoading(false);
+        }
+    };
+
+    const handleCleanEncoding = async () => {
+        setMaintenanceLoading(true);
+        try {
+            const res = await apiFetch('/api/admin/clean-encoding', {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setGlobalAlert({ message: `Nettoyage fini : ${data.fixedFiles} fichiers corrigés !`, type: 'info' });
+            }
+        } catch (e) {
+            console.error(e);
+            setGlobalAlert({ message: "Échec du nettoyage", type: 'danger' });
+        } finally {
+            setMaintenanceLoading(false);
         }
     };
 
@@ -1848,13 +1897,30 @@ export function AdminDashboard() {
                                                     SCAN PHOTOS
                                                 </button>
                                                 <button
+                                                    onClick={handleCleanEncoding}
+                                                    disabled={maintenanceLoading}
+                                                    className="text-[9px] font-black text-neon-cyan/60 hover:text-neon-cyan uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full"
+                                                    title="Corriger les erreurs d'accentuation (coquilles)"
+                                                >
+                                                    {maintenanceLoading ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <RefreshCw className="w-2.5 h-2.5" />}
+                                                    SCAN TEXTE
+                                                </button>
+                                                <button
+                                                    onClick={() => setIsMaintenanceModalOpen(true)}
+                                                    className="text-[9px] font-black text-neon-yellow/60 hover:text-neon-yellow uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-yellow/10 border border-neon-yellow/20 rounded-full"
+                                                    title="Outils de maintenance groupée"
+                                                >
+                                                    <Settings className="w-2.5 h-2.5" />
+                                                    MAINTENANCE
+                                                </button>
+                                                <button
                                                     onClick={fetchUnusedImages}
                                                     disabled={isScanningUnused}
-                                                    className="text-[9px] font-black text-neon-yellow/60 hover:text-neon-yellow uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-yellow/10 border border-neon-yellow/20 rounded-full"
+                                                    className="text-[9px] font-black text-neon-red/60 hover:text-neon-red uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-red/10 border border-neon-red/20 rounded-full"
                                                     title="Nettoyer les images inutilisées"
                                                 >
                                                     {isScanningUnused ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <HardDrive className="w-2.5 h-2.5" />}
-                                                    NETTOYAGE R2
+                                                    SCAN R2
                                                 </button>
                                                 <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
                                                     {((r2Stats.limit - r2Stats.used) / 1024 / 1024 / 1024).toFixed(2)} GB Libres
@@ -7151,6 +7217,99 @@ export function AdminDashboard() {
                     }}
                     onUploadSuccess={handleUpdateResidencePhoto}
                 />
+
+                {/* Maintenance Modal */}
+                <AnimatePresence>
+                    {isMaintenanceModalOpen && (
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-yellow via-neon-orange to-neon-yellow" />
+                                
+                                <div className="flex justify-between items-start mb-10">
+                                    <div>
+                                        <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
+                                            Outils de <span className="text-neon-yellow">Maintenance</span>
+                                        </h2>
+                                        <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">Actions groupées sur la base de données</p>
+                                    </div>
+                                    <button onClick={() => setIsMaintenanceModalOpen(false)} className="p-3 bg-white/5 border border-white/10 rounded-2xl text-gray-400 hover:text-white">
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-8">
+                                    {/* Section Shift Anniversary */}
+                                    <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8">
+                                        <div className="flex items-center gap-4 mb-6">
+                                            <div className="w-10 h-10 bg-neon-yellow/20 rounded-xl flex items-center justify-center border border-neon-yellow/30">
+                                                <Calendar className="w-5 h-5 text-neon-yellow" />
+                                            </div>
+                                            <div>
+                                                <h3 className="text-lg font-bold text-white uppercase italic">Migration d'Année</h3>
+                                                <p className="text-[9px] text-gray-500 uppercase font-black tracking-widest">Décale toutes les dates d'un coup</p>
+                                            </div>
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-6">
+                                            <div>
+                                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2 px-1">Source</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={bulkYearShift.oldYear}
+                                                    onChange={e => setBulkYearShift({...bulkYearShift, oldYear: e.target.value})}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white font-bold focus:border-neon-yellow transition-all"
+                                                    placeholder="2025"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2 px-1">Cible</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={bulkYearShift.newYear}
+                                                    onChange={e => setBulkYearShift({...bulkYearShift, newYear: e.target.value})}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white font-bold focus:border-neon-yellow transition-all"
+                                                    placeholder="2026"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[9px] font-black text-gray-400 uppercase tracking-widest block mb-2 px-1">Type</label>
+                                                <select 
+                                                    value={bulkYearShift.type}
+                                                    onChange={e => setBulkYearShift({...bulkYearShift, type: e.target.value})}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-[11px] font-bold text-white focus:border-neon-yellow appearance-none"
+                                                >
+                                                    <option value="agenda">Agenda</option>
+                                                    <option value="news">News</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <button 
+                                            onClick={handleBulkYearUpdate}
+                                            disabled={maintenanceLoading}
+                                            className="w-full mt-8 py-4 bg-neon-yellow text-black font-black uppercase italic tracking-[0.2em] text-[11px] rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_30_rgba(255,255,0,0.2)] flex items-center justify-center gap-3"
+                                        >
+                                            {maintenanceLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <RefreshCw className="w-5 h-5" />}
+                                            EXÉCUTER LA MIGRATION
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="mt-8 p-4 bg-neon-red/5 border border-neon-red/10 rounded-2xl flex items-center gap-3">
+                                    <ShieldAlert className="w-5 h-5 text-neon-red" />
+                                    <p className="text-[9px] font-bold text-gray-500 uppercase leading-relaxed tracking-wider">
+                                        Attention : Cette action est irréversible et modifie directement les fichiers JSON. Veuillez vérifier les années source et cible.
+                                    </p>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
 
                 {/* Broken Images Modal */}
                 <AnimatePresence>
