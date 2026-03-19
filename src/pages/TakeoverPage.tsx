@@ -934,9 +934,58 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }
     }, [activeQuiz]);
 
-    // 🗓️ Auto-Cleanup Planning (Désactivé suite aux retours)
+    // 🗓️ Auto-Cleanup Planning (Basé sur la date réelle et l'heure/minute)
     useEffect(() => {
-        // Le code de nettoyage automatique a été retiré pour laisser le contrôle total à l'admin
+        const interval = setInterval(() => {
+            const now = new Date();
+            
+            setLineupItems(prev => {
+                let shouldUpdate = false;
+                const filtered = prev.filter(item => {
+                    if (!item.endTime || !item.day) return true;
+                    
+                    try {
+                        // Normalisation (accepter "23h10" ou "23:10")
+                        const normalizedEnd = item.endTime.toLowerCase().replace('h', ':').replace(' ', '');
+                        const endParts = normalizedEnd.split(':');
+                        const endH = parseInt(endParts[0] || "0", 10);
+                        const endM = parseInt(endParts[1] || "0", 10);
+                        
+                        let startH = 12; // Valeur par défaut pour repérer la nuit
+                        if (item.startTime) {
+                            const startStr = item.startTime.toLowerCase().replace('h', ':').replace(' ', '');
+                            startH = parseInt(startStr.split(':')[0] || "12", 10);
+                        }
+
+                        // Construction propre de la date annoncée (YYYY-MM-DD)
+                        const dateParts = item.day.split('-');
+                        const year = parseInt(dateParts[0], 10);
+                        const month = parseInt(dateParts[1], 10) - 1; // 0-indexed
+                        const day = parseInt(dateParts[2], 10);
+                        
+                        const endDateTime = new Date(year, month, day, endH, endM, 0);
+
+                        // Si on note un set 23:00 -> 01:00, 01 est physiquement le lendemain !
+                        // Si endH est plus petit que startH, on ajoute 1 jour
+                        if (!isNaN(startH) && endH < startH) {
+                            endDateTime.setDate(endDateTime.getDate() + 1);
+                        }
+                        
+                        // Si la date EXACTE de fin est passée par rapport à l'heure du monde réel
+                        const isFuture = endDateTime > now;
+                        if (!isFuture) shouldUpdate = true;
+                        
+                        return isFuture;
+                    } catch (e) {
+                        // En cas de malformation grave du texte par l'admin, on garde en sécurité
+                        return true;
+                    }
+                });
+                
+                return shouldUpdate ? filtered : prev;
+            });
+        }, 60000); // Exécuté toutes les minutes
+        return () => clearInterval(interval);
     }, []);
 
     // 🏆 Top Talkers Tracking
