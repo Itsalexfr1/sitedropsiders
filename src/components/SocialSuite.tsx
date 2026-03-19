@@ -542,18 +542,30 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.shadowOffsetX = 2;
                     ctx.shadowOffsetY = 2;
 
-                    // Hour (Premium Bold) - Montserrat pour harmoniser avec l'artiste
+                    // Hour (Premium Bold) - Montserrat avec alignement tabulaire manuel
                     ctx.textAlign = 'right';
                     ctx.fillStyle = `rgb(${activeData.grad})`;
                     ctx.font = '900 42px "Montserrat", sans-serif';
                     ctx.letterSpacing = "0px";
+                    
                     let timeText = item.time.toUpperCase().trim();
                     if (timeText.length === 4 && /^\d+$/.test(timeText)) {
                         timeText = timeText.slice(0, 2) + 'H' + timeText.slice(2);
                     } else if (timeText.includes(':')) {
                         timeText = timeText.replace(':', 'H');
                     }
-                    ctx.fillText(timeText, centerX - 200, y);
+
+                    // Dessin caractère par caractère pour forcer la même dimension horizontale
+                    const charWidth = 28; 
+                    const totalWidth = timeText.length * charWidth;
+                    const startX = centerX - 200; // La limite gauche que tu as fixée
+
+                    ctx.textAlign = 'center';
+                    for (let charIdx = 0; charIdx < timeText.length; charIdx++) {
+                        const char = timeText[timeText.length - 1 - charIdx];
+                        // On part de la droite (startX) et on recule
+                        ctx.fillText(char, startX - (charIdx * charWidth) - (charWidth/2), y);
+                    }
 
                     // Artist (Premium Modern) - Utilisation de Montserrat
                     ctx.textAlign = 'left';
