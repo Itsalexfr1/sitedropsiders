@@ -3081,10 +3081,10 @@ ${urls.map(u => `  <url>
                 const htmlBody = (message || 'Bonjour,\n\nVeuillez trouver en pièce jointe votre facture.\n\nCordialement,\nCUENCA ALEXANDRE').replace(/\n/g, '<br>');
 
                 const payload = {
-                    sender: { name: 'CUENCA ALEXANDRE', email: 'contact@dropsiders.fr' },
+                    sender: { name: 'CUENCA ALEXANDRE', email: 'alex@dropsiders.fr' },
                     to: [{ email: to }],
                     bcc: [{ email: 'alexlight3034@icloud.com' }],
-                    replyTo: { email: 'alexlight3034@icloud.com', name: 'CUENCA ALEXANDRE' },
+                    replyTo: { email: 'alex@dropsiders.fr', name: 'CUENCA ALEXANDRE' },
                     subject: subject || 'Votre Facture',
                     htmlContent: `<p style="font-family:Arial,sans-serif;font-size:14px;color:#333;line-height:1.6">${htmlBody}</p>`,
                     ...(attachments.length > 0 ? { attachment: attachments } : {})
