@@ -101,6 +101,8 @@ export function AdminDashboard() {
     const [globalAlert, setGlobalAlert] = useState<{ title?: string; message: string; type?: 'info' | 'danger' | 'warning' } | null>(null);
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
     const [isScanningBroken, setIsScanningBroken] = useState(false);
+    const [brokenImages, setBrokenImages] = useState<any[]>([]);
+    const [selectedBrokenImages, setSelectedBrokenImages] = useState<any[]>([]);
     const [isBrokenImagesModalOpen, setIsBrokenImagesModalOpen] = useState(false);
     const [isUnusedImagesModalOpen, setIsUnusedImagesModalOpen] = useState(false);
     const [unusedImages, setUnusedImages] = useState<any[]>([]);
@@ -898,7 +900,7 @@ export function AdminDashboard() {
             const res = await apiFetch('/api/admin/broken-images', {
                 headers: getAuthHeaders()
             });
-            const data = await res.json();
+            const data: any = await res.json();
             if (data.success) {
                 setBrokenImages(data.broken);
                 setIsBrokenImagesModalOpen(true);
@@ -927,11 +929,11 @@ export function AdminDashboard() {
                 })
             });
             if (res.ok) {
-                setBrokenImages(prev => prev.filter(i => !(i.location === img.location && i.entityId === img.entityId)));
-                setSelectedBrokenImages(prev => prev.filter(i => !(i.location === img.location && i.entityId === img.entityId)));
+                setBrokenImages((prev: any[]) => prev.filter(i => !(i.location === img.location && i.entityId === img.entityId)));
+                setSelectedBrokenImages((prev: any[]) => prev.filter(i => !(i.location === img.location && i.entityId === img.entityId)));
                 setGlobalAlert({ message: "La photo a été validée manuellement. Elle ne sera plus affichée comme cassée.", type: 'info' });
             } else {
-                const data = await res.json();
+                const data: any = await res.json();
                 setGlobalAlert({ message: "Erreur lors de la validation : " + (data.error || "Inconnue"), type: 'danger' });
             }
         } catch (e) {
@@ -956,12 +958,12 @@ export function AdminDashboard() {
             });
             
             if (res.ok) {
-                const validatedIds = selectedBrokenImages.map(img => `${img.location}-${img.entityId}`);
-                setBrokenImages(prev => prev.filter(img => !validatedIds.includes(`${img.location}-${img.entityId}`)));
+                const validatedIds = selectedBrokenImages.map((img: any) => `${img.location}-${img.entityId}`);
+                setBrokenImages((prev: any[]) => prev.filter((img: any) => !validatedIds.includes(`${img.location}-${img.entityId}`)));
                 setSelectedBrokenImages([]);
                 setGlobalAlert({ message: `${validatedIds.length} photos ont été validées manuellement.`, type: 'info' });
             } else {
-                const data = await res.json();
+                const data: any = await res.json();
                 setGlobalAlert({ message: "Erreur lors de la validation groupée : " + (data.error || "Inconnue"), type: 'danger' });
             }
         } catch (e) {
@@ -7013,16 +7015,16 @@ export function AdminDashboard() {
                                 <div className="p-8 overflow-y-auto flex-1 custom-scrollbar">
                                     {brokenImages.length > 0 ? (
                                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                            {brokenImages.map((img, idx) => {
-                                                const isSelected = selectedBrokenImages.some(i => i.location === img.location && i.entityId === img.entityId);
+                                            {brokenImages.map((img: any, idx: number) => {
+                                                const isSelected = selectedBrokenImages.some((i: any) => i.location === img.location && i.entityId === img.entityId);
                                                 return (
                                                     <div key={idx} className={`group border p-5 rounded-2xl flex flex-col gap-4 transition-all relative ${isSelected ? 'bg-neon-red/5 border-neon-red/30 shadow-[0_0_20px_rgba(255,18,65,0.05)]' : 'bg-white/5 border-white/10 hover:bg-white/[0.07]'}`}>
                                                         <div className="flex items-center justify-between">
                                                             <div className="flex items-center gap-3">
                                                                 <button 
                                                                     onClick={() => {
-                                                                        if (isSelected) setSelectedBrokenImages(prev => prev.filter(i => !(i.location === img.location && i.entityId === img.entityId)));
-                                                                        else setSelectedBrokenImages(prev => [...prev, img]);
+                                                                        if (isSelected) setSelectedBrokenImages((prev: any[]) => prev.filter((i: any) => !(i.location === img.location && i.entityId === img.entityId)));
+                                                                        else setSelectedBrokenImages((prev: any[]) => [...prev, img]);
                                                                     }}
                                                                     className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${isSelected ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,18,65,0.3)]' : 'border-white/20 bg-black/40 hover:border-white/40'}`}
                                                                 >
