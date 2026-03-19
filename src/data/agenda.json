@@ -322,20 +322,6 @@
     "country": "Espagne"
   },
   {
-    "id": 52,
-    "title": "ANTS (Opening Party)",
-    "date": "2026-05-02",
-    "location": "Ushuaia Ibiza",
-    "type": "Residence",
-    "image": "https://dropsiders.fr/uploads/migrated/dropsiders/Ushuaia%20Ants.webp",
-    "description": "La colonie de fourmis envahit Ushuaia pour une nouvelle saison.",
-    "url": "https://www.unitedants.com/",
-    "genre": "Tech House",
-    "isWeekly": true,
-    "country": "Espagne",
-    "photo_verified": true
-  },
-  {
     "id": 53,
     "title": "ANTS",
     "date": "2026-05-09",
