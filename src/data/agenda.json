@@ -2491,24 +2491,6 @@
     "country": "Espagne"
   },
   {
-    "id": 229,
-    "title": "Paradise: Starship Eden (Closing)",
-    "date": "2026-10-07",
-    "location": "UNVRS IBIZA",
-    "type": "Residence",
-    "image": "https://dropsiders.fr/uploads/migrated/dropsiders/Jamie%20Jones%20Paradise.webp",
-    "description": "Paradise Closing.",
-    "url": "https://unvrs.com/",
-    "genre": "House",
-    "startDate": "2026-10-07",
-    "endDate": "2026-10-07",
-    "month": "OCTOBRE",
-    "isWeekly": false,
-    "isSoldOut": false,
-    "country": "ESPAGNE",
-    "isLiveDropsiders": false
-  },
-  {
     "id": 230,
     "title": "Defqon One",
     "date": "2026-06-25",
