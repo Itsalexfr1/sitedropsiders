@@ -542,10 +542,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.shadowOffsetX = 2;
                     ctx.shadowOffsetY = 2;
 
-                    // Hour (Premium Condensed)
+                    // Hour (Premium Bold) - Montserrat pour harmoniser avec l'artiste
                     ctx.textAlign = 'right';
                     ctx.fillStyle = `rgb(${activeData.grad})`;
-                    ctx.font = '900 45px "Antonio", sans-serif';
+                    ctx.font = '900 42px "Montserrat", sans-serif';
                     ctx.letterSpacing = "0px";
                     let timeText = item.time.toUpperCase().trim();
                     if (timeText.length === 4 && /^\d+$/.test(timeText)) {
