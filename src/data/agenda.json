@@ -637,19 +637,6 @@
     "photo_verified": true
   },
   {
-    "id": 85,
-    "title": "Calvin Harris",
-    "date": "2026-07-21",
-    "location": "Ushuaia Ibiza",
-    "type": "Residence",
-    "image": "https://dropsiders.fr/uploads/migrated/dropsiders/Calvin%20mardi%20Ushuaia.webp",
-    "description": "Calvin Harris prend le controle du mardi (Dates Exclusives).",
-    "url": "https://www.theushuaiaexpérience.com/",
-    "genre": "Big Room",
-    "isWeekly": true,
-    "country": "Espagne"
-  },
-  {
     "id": 92,
     "title": "Calvin Harris",
     "date": "2026-08-14",
