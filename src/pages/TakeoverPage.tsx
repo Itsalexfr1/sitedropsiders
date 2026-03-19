@@ -1807,10 +1807,29 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     };
 
     // Planning derived state (computed before render, avoids IIFE in JSX)
-    const planDays = Array.from(new Set(lineupItems.map(i => i.day).filter(Boolean))) as string[];
+    const normalizedLineup = lineupItems.map(item => {
+        let logicalDay = item.day;
+        try {
+            if (item.startTime && item.day) {
+                const startH = parseInt(item.startTime.toLowerCase().replace('h', ':').split(':')[0] || "12", 10);
+                // Si le set est entre 00h00 et 05h59, on l'affiche sur l'onglet de la veille "Logiquement"
+                if (startH >= 0 && startH < 6) {
+                    const parts = item.day.split('-');
+                    if (parts.length === 3) {
+                        const ld = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1, parseInt(parts[2], 10));
+                        ld.setDate(ld.getDate() - 1);
+                        logicalDay = `${ld.getFullYear()}-${String(ld.getMonth() + 1).padStart(2, '0')}-${String(ld.getDate()).padStart(2, '0')}`;
+                    }
+                }
+            }
+        } catch (e) {}
+        return { ...item, logicalDay };
+    });
+
+    const planDays = Array.from(new Set(normalizedLineup.map(i => i.logicalDay).filter(Boolean))) as string[];
     const planMulti = planDays.length > 1;
     const planActive = planningActiveDay || planDays[0] || '';
-    const planItems = planMulti ? lineupItems.filter(i => i.day === planActive) : lineupItems;
+    const planItems = planMulti ? normalizedLineup.filter(i => i.logicalDay === planActive) : normalizedLineup;
     const fmtPlanDay = (d: string) => {
         const s = d.match(/^(\d{1,2})[\/-](\d{1,2})/);
         if (s) return `${s[1].padStart(2,'0')}/${s[2].padStart(2,'0')}`;
