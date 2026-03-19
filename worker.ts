@@ -3636,6 +3636,7 @@ ${urls.map(u => `  <url>
             try {
                 const { ids, type } = await request.json();
                 if (!ids || !Array.isArray(ids) || !type) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+                const idsArray = ids.map(String);
 
                 let filePath = '';
                 if (type === 'DJS') filePath = WIKI_DJS_PATH;
@@ -3643,18 +3644,20 @@ ${urls.map(u => `  <url>
                 else if (type === 'FESTIVALS') filePath = WIKI_FESTIVALS_PATH;
                 else return new Response(JSON.stringify({ error: 'Invalid type' }), { status: 400, headers });
 
+                const gitConfig = { OWNER, REPO, TOKEN };
+                
                 let saved = { ok: false, error: '' };
                 let count = 0;
                 let approveAttempts = 0;
                 
                 while (approveAttempts < 3) {
                     const file = await fetchGitHubFile(filePath, gitConfig);
-                    if (!file) break;
+                    if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
 
                     count = 0;
                     file.content.forEach(item => {
                         const itemId = String(item.id);
-                        if (ids.includes(itemId)) {
+                        if (idsArray.includes(itemId)) {
                             if (item.status === 'waiting') {
                                 item.status = 'verified';
                                 count++;
@@ -3687,7 +3690,7 @@ ${urls.map(u => `  <url>
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
                 const { id, ids, type } = await request.json();
-                const idsToDelete = Array.isArray(ids) ? ids : (id ? [id] : []);
+                const idsToDelete = (Array.isArray(ids) ? ids : (id ? [id] : [])).map(String);
 
                 if (idsToDelete.length === 0 || !type) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
 
