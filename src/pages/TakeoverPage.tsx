@@ -433,6 +433,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     };
 
     // ⏱️ Hourly Slot Machine (Jackpot) Timer
+    // Désactivé à la demande du client pour éviter l'apparition aléatoire. 
+    // Peut toujours être déclenché via !jackpot par les modérateurs.
+    /*
     useEffect(() => {
         const interval = setInterval(() => {
             const now = new Date();
@@ -445,6 +448,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
         return () => clearInterval(interval);
     }, [activeSlots]);
+    */
 
     useEffect(() => {
         if (activeSlots && activeSlots.timeLeft > 0) {
@@ -1126,7 +1130,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const handleConnect = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!loginPseudo.trim() || !loginEmail.trim()) {
+        if (!loginPseudo.trim() || !loginEmail.trim() || !loginCountry.trim() || !captchaInput.trim()) {
             showNotification('Veuillez remplir tous les champs', 'error');
             return;
         }
@@ -3809,25 +3813,23 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                             </motion.div>
                                                                         ))
                                                                     )}
-                                                                    {isCurrent && (
-                                                                        <div className="pt-4 border-t border-white/5">
-                                                                            <div className="flex gap-2">
-                                                                                <input 
-                                                                                    type="text" 
-                                                                                    placeholder="ID DU MORCEAU ?" 
-                                                                                    value={trackSuggestion}
-                                                                                    onChange={e => setTrackSuggestion(e.target.value)}
-                                                                                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-[10px] text-white font-bold outline-none focus:border-neon-cyan/50"
-                                                                                />
-                                                                                <button 
-                                                                                    onClick={() => handleSuggestTrack(set.id)}
-                                                                                    className="px-4 py-2 bg-neon-cyan text-black font-black uppercase text-[10px] rounded-xl hover:scale-105 transition-all"
-                                                                                >
-                                                                                    ENVOYER
-                                                                                </button>
-                                                                            </div>
+                                                                    <div className="pt-4 border-t border-white/5">
+                                                                        <div className="flex gap-2">
+                                                                            <input 
+                                                                                type="text" 
+                                                                                placeholder="ID DU MORCEAU ?" 
+                                                                                value={trackSuggestion}
+                                                                                onChange={e => setTrackSuggestion(e.target.value)}
+                                                                                className="flex-1 bg-white/5 border border-white/10 rounded-xl px-4 py-2 text-[10px] text-white font-bold outline-none focus:border-neon-cyan/50"
+                                                                            />
+                                                                            <button 
+                                                                                onClick={() => handleSuggestTrack(set.id)}
+                                                                                className="px-4 py-2 bg-neon-cyan text-black font-black uppercase text-[10px] rounded-xl hover:scale-105 transition-all"
+                                                                            >
+                                                                                ENVOYER
+                                                                            </button>
                                                                         </div>
-                                                                    )}
+                                                                    </div>
                                                                 </motion.div>
                                                             )}
                                                         </AnimatePresence>
