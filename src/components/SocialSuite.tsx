@@ -532,13 +532,24 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.fillStyle = `rgb(${activeData.grad})`;
                     ctx.font = '700 35px "Montserrat", sans-serif';
                     ctx.letterSpacing = "1px";
-                    ctx.fillText(item.time, centerX - 10, y);
+                    // Enforce uppercase for H (e.g. 20H30)
+                    ctx.fillText(item.time.toUpperCase(), centerX - 10, y);
 
                     ctx.textAlign = 'left';
                     ctx.fillStyle = '#fff';
-                    ctx.font = '500 35px "Montserrat", sans-serif';
+                    const artistText = item.artist.toUpperCase();
+                    let artistFs = 35;
+                    ctx.font = `500 ${artistFs}px "Montserrat", sans-serif`;
                     ctx.letterSpacing = "2px";
-                    ctx.fillText(item.artist.toUpperCase(), centerX + 10, y);
+                    
+                    // Auto-shrink for long names
+                    const maxArtistW = (canvas.width / 2) - 100;
+                    while (ctx.measureText(artistText).width > maxArtistW && artistFs > 18) {
+                        artistFs--;
+                        ctx.font = `500 ${artistFs}px "Montserrat", sans-serif`;
+                    }
+                    
+                    ctx.fillText(artistText, centerX + 10, y);
                 });
 
             } else {
