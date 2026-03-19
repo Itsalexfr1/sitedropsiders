@@ -372,7 +372,8 @@
     "url": "https://www.theushuaiaexpérience.com/",
     "genre": "Big Room",
     "isWeekly": true,
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 32,
@@ -659,7 +660,8 @@
     "url": "https://www.unitedants.com/",
     "genre": "Tech House",
     "isWeekly": true,
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 54,
@@ -959,7 +961,8 @@
     "url": "https://www.theushuaiaexpérience.com/",
     "genre": "Big Room",
     "isWeekly": true,
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 77,
@@ -1051,7 +1054,8 @@
     "url": "https://www.theushuaiaexpérience.com/",
     "genre": "Big Room",
     "isWeekly": true,
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 84,
@@ -1310,7 +1314,8 @@
     "description": "La fête la plus celebre d'Ibiza avec David Guetta.",
     "url": "https://www.theushuaiaexpérience.com/",
     "genre": "Big Room",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 104,
@@ -1683,7 +1688,8 @@
     "description": "Martin Garrix takes over the poolside stage.",
     "url": "https://www.theushuaiaexpérience.com/",
     "genre": "Progressive House",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 135,
@@ -1840,7 +1846,8 @@
     "description": "Galactic Circus.",
     "url": "https://unvrs.com/",
     "genre": "Big Room",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 149,
@@ -2033,7 +2040,8 @@
     "description": "Carl Cox.",
     "url": "https://unvrs.com/",
     "genre": "Techno",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 165,
@@ -2226,7 +2234,8 @@
     "description": "elrow.",
     "url": "https://unvrs.com/",
     "genre": "Tech House",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 181,
@@ -2443,7 +2452,8 @@
     "description": "FISHER.",
     "url": "https://unvrs.com/",
     "genre": "Tech House",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 199,
@@ -2624,7 +2634,8 @@
     "description": "Paradise.",
     "url": "https://unvrs.com/",
     "genre": "House",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 214,
