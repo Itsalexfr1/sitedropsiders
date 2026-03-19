@@ -194,7 +194,7 @@ export function InvoiceGenerator() {
     const [eventDate, setEventDate] = useState('');
     const [eventDate2, setEventDate2] = useState(''); // optional end date
 
-    const [view, setView] = useState<'edit' | 'archive' | 'settings'>('edit');
+    const [view, setView] = useState<'edit' | 'archive' | 'clients' | 'settings'>('edit');
     const [history, setHistory] = useState<any[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
@@ -227,6 +227,19 @@ export function InvoiceGenerator() {
     const [newArticleDesc, setNewArticleDesc] = useState('');
     const [newArticlePrice, setNewArticlePrice] = useState<number>(0);
     const [settingsSaved, setSettingsSaved] = useState(false);
+    const [ncName, setNcName] = useState('');
+    const [ncAddress, setNcAddress] = useState('');
+    const [ncCity, setNcCity] = useState('');
+    const [ncEmail, setNcEmail] = useState('');
+
+    const addNewClient = () => {
+        if (!ncName.trim()) return;
+        const nc = { id: Date.now().toString(), name: ncName, address: ncAddress, city: ncCity, email: ncEmail };
+        const updated = [nc, ...savedClients];
+        setSavedClients(updated);
+        localStorage.setItem('inv_clients', JSON.stringify(updated));
+        setNcName(''); setNcAddress(''); setNcCity(''); setNcEmail('');
+    };
 
     const total = lines.reduce((s, l) => s + l.quantity * l.unitPrice, 0);
     const formattedNumber = `INV-${new Date(date).getFullYear()}-${invoiceNumber.toString().padStart(3, '0')}`;
@@ -346,6 +359,7 @@ export function InvoiceGenerator() {
     const TABS = [
         { key: 'edit', icon: <Plus className="w-3 h-3" />, label: 'Nouvelle' },
         { key: 'archive', icon: <History className="w-3 h-3" />, label: 'Archive' },
+        { key: 'clients', icon: <User className="w-3 h-3" />, label: 'Clients' },
         { key: 'settings', icon: <Settings className="w-3 h-3" />, label: 'Paramètres' },
     ] as const;
 
@@ -693,6 +707,87 @@ export function InvoiceGenerator() {
                                     ))}
                                 </div>
                             )}
+                        </motion.div>
+                    )}
+
+                    {/* ========== CLIENTS TAB ========== */}
+                    {view === 'clients' && (
+                        <motion.div key="clients" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+                            className="p-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
+                            {/* Add New Client */}
+                            <div className={cardCls + " space-y-4"}>
+                                <div className="flex items-center gap-3 mb-2">
+                                    <div className="p-2 bg-indigo-500/10 rounded-lg">
+                                        <Plus className="w-4 h-4 text-indigo-400" />
+                                    </div>
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Nouveau Client</h3>
+                                </div>
+                                <div className="space-y-4 pt-2">
+                                    <div>
+                                        <label className={labelCls}>Nom / Société</label>
+                                        <input value={ncName} onChange={e => setNcName(e.target.value)} placeholder="Dropsiders" className={inputCls} />
+                                    </div>
+                                    <div>
+                                        <label className={labelCls}>Adresse</label>
+                                        <input value={ncAddress} onChange={e => setNcAddress(e.target.value)} placeholder="1 rue du Festival" className={inputCls} />
+                                    </div>
+                                    <div className="grid grid-cols-2 gap-3">
+                                        <div>
+                                            <label className={labelCls}>Code Postal / Ville</label>
+                                            <input value={ncCity} onChange={e => setNcCity(e.target.value)} placeholder="75001 Paris" className={inputCls} />
+                                        </div>
+                                        <div>
+                                            <label className={labelCls}>Email</label>
+                                            <input value={ncEmail} onChange={e => setNcEmail(e.target.value)} placeholder="contact@client.com" className={inputCls} />
+                                        </div>
+                                    </div>
+                                    <button onClick={addNewClient} className="w-full py-4 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all mt-4 border border-indigo-500/30">
+                                        <Save className="w-4 h-4" /> Enregistrer le client
+                                    </button>
+                                </div>
+                            </div>
+
+                            {/* Clients List */}
+                            <div className={cardCls + " space-y-4"}>
+                                <div className="flex items-center justify-between mb-2">
+                                    <div className="flex items-center gap-3">
+                                        <div className="p-2 bg-indigo-500/10 rounded-lg">
+                                            <User className="w-4 h-4 text-indigo-400" />
+                                        </div>
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-white">Carnet d'Adresses ({savedClients.length})</h3>
+                                    </div>
+                                </div>
+                                
+                                {savedClients.length === 0 ? (
+                                    <div className="flex flex-col items-center py-16 text-white/10 border border-dashed border-white/5 rounded-2xl">
+                                        <User className="w-12 h-12 mb-4 opacity-5" />
+                                        <p className="text-xs font-bold uppercase tracking-tight">Aucun client enregistré</p>
+                                    </div>
+                                ) : (
+                                    <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
+                                        {savedClients.map(c => (
+                                            <div key={c.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex items-center justify-between group hover:border-indigo-500/30 transition-all">
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="font-bold text-sm text-white truncate">{c.name}</div>
+                                                    <div className="text-[10px] text-white/30 flex items-center gap-2 mt-0.5">
+                                                        <span className="truncate">{c.city}</span>
+                                                        {c.email && <span>• {c.email}</span>}
+                                                    </div>
+                                                </div>
+                                                <div className="flex items-center gap-2 ml-4">
+                                                    <button onClick={() => { loadClient(c); setView('edit'); }} 
+                                                        className="px-3 py-1.5 bg-indigo-500/10 hover:bg-indigo-500 text-white rounded-lg text-[9px] font-black uppercase tracking-widest transition-all">
+                                                        Utiliser
+                                                    </button>
+                                                    <button onClick={() => deleteClient(c.id)} className="p-2 text-white/10 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all">
+                                                        <Trash2 className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
                         </motion.div>
                     )}
 

@@ -15,6 +15,13 @@ const DEFAULT_SENDER: Sender = {
     legal: 'Auto-entrepreneur – TVA non applicable, art. 293 B du CGI',
 };
 
+const TABS = [
+    { key: 'edit', label: 'Nouvelle', icon: Plus },
+    { key: 'history', label: 'Archive', icon: History },
+    { key: 'clients_list', label: 'Clients', icon: User },
+    { key: 'settings', label: 'Compte', icon: Settings },
+];
+
 // ─── Shared styles ───────────────────────────────────────────────────────────
 const ROW = "flex items-center justify-between px-4 py-4 bg-white/[0.04] border-b border-white/[0.06] active:bg-white/10 transition-colors cursor-pointer select-none";
 const ROW_LABEL = "flex items-center gap-3 text-sm font-semibold text-white";
@@ -99,11 +106,25 @@ export function InvoiceGeneratorMobile() {
     });
 
     // Sheet states
-    const [sheet, setSheet] = useState<'none' | 'client' | 'date' | 'event' | 'details' | 'line' | 'settings' | 'history' | 'email' | 'preview'>('none');
+    const [sheet, setSheet] = useState<'none' | 'client' | 'date' | 'event' | 'details' | 'line' | 'settings' | 'history' | 'email' | 'preview' | 'clients_list'>('none');
     const [previewKey, setPreviewKey] = useState(0);
     const [editingLine, setEditingLine] = useState<InvoiceLine | null>(null);
     const [senderDraft, setSenderDraft] = useState<Sender>(sender);
     const [settingsSaved, setSettingsSaved] = useState(false);
+    const [ncName, setNcName] = useState('');
+    const [ncAddress, setNcAddress] = useState('');
+    const [ncCity, setNcCity] = useState('');
+    const [ncEmail, setNcEmail] = useState('');
+
+    const addNewClient = () => {
+        if (!ncName.trim()) return;
+        const nc = { id: Date.now().toString(), name: ncName, address: ncAddress, city: ncCity, email: ncEmail };
+        const updated = [nc, ...savedClients];
+        setSavedClients(updated);
+        localStorage.setItem('inv_clients', JSON.stringify(updated));
+        setNcName(''); setNcAddress(''); setNcCity(''); setNcEmail('');
+        setSheet('none');
+    };
 
     const [sendStatus, setSendStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
     const [sendError, setSendError] = useState('');
@@ -514,6 +535,63 @@ export function InvoiceGeneratorMobile() {
             {/* HISTORY */}
             <Sheet open={sheet === 'history'} onClose={() => setSheet('none')} title="Historique">
                 <p className="text-sm text-white/40 text-center py-8">Historique disponible sur la version bureau.</p>
+            </Sheet>
+
+            {/* CLIENTS LIST SHEET */}
+            <Sheet open={sheet === 'clients_list'} onClose={() => setSheet('none')} title="Gestion Clients" fullscreen>
+                <div className="flex flex-col h-full bg-[#0d0f1a] p-6 space-y-8 overflow-y-auto">
+                    {/* Form */}
+                    <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 space-y-4">
+                        <div className="flex items-center gap-2">
+                             <Plus className="w-3 h-3 text-indigo-400" />
+                             <h3 className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Nouveau Client</h3>
+                        </div>
+                        <div className="space-y-4">
+                            <input value={ncName} onChange={e => setNcName(e.target.value)} placeholder="Nom du client" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                            <input value={ncAddress} onChange={e => setNcAddress(e.target.value)} placeholder="Adresse" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                            <input value={ncCity} onChange={e => setNcCity(e.target.value)} placeholder="Code Postal / Ville" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                            <input value={ncEmail} onChange={e => setNcEmail(e.target.value)} placeholder="Email" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                            <button onClick={addNewClient} className="w-full py-4 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest">
+                                Ajouter au carnet
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* List */}
+                    <div className="space-y-4 pb-20">
+                        <div className="flex items-center gap-2">
+                             <User className="w-3 h-3 text-white/40" />
+                             <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40">Carnet ({savedClients.length})</h3>
+                        </div>
+                        <div className="space-y-3">
+                            {savedClients.length === 0 ? (
+                                <div className="text-center py-10 border border-dashed border-white/5 rounded-2xl">
+                                    <User className="w-10 h-10 text-white/5 mx-auto mb-2" />
+                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Aucun client</p>
+                                </div>
+                            ) : savedClients.map(c => (
+                                <div key={c.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                                    <div className="min-w-0 flex-1 mr-4">
+                                        <div className="font-bold text-sm text-white truncate">{c.name}</div>
+                                        <div className="text-[10px] text-white/30 truncate">{c.city}</div>
+                                    </div>
+                                    <div className="flex gap-2">
+                                        <button onClick={() => { 
+                                            setClientName(c.name); 
+                                            setClientAddress(c.address); 
+                                            setClientEmail(c.email); 
+                                            setClientCity(c.city); 
+                                            setSheet('none'); 
+                                        }} className="px-3 py-1.5 bg-indigo-500/20 text-indigo-400 rounded-lg text-[10px] font-black uppercase">
+                                            Utiliser
+                                        </button>
+                                        <button onClick={() => deleteClient(c.id)} className="p-2 text-white/10"><Trash2 className="w-4 h-4" /></button>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                </div>
             </Sheet>
         </div>
     );
