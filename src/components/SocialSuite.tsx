@@ -509,7 +509,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.letterSpacing = "8px";
                 ctx.fillText(customText || 'LINE-UP', centerX, topY);
 
-                // Date below title (very tight gap)
+                // Date below title (tightened gap)
                 ctx.font = '600 25px "Montserrat", sans-serif';
                 ctx.letterSpacing = "4px";
                 ctx.fillStyle = 'rgba(255,255,255,0.8)';
@@ -521,7 +521,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillRect(centerX - lineW, topY + 60, lineW * 2, 2);
 
                 // List items (compact block)
-                const startY = topY + (activeTab === 'PUBLICATION' ? 100 : 130);
+                const startY = topY + (activeTab === 'PUBLICATION' ? 140 : 180);
                 const spacing = activeTab === 'PUBLICATION' ? 45 : 65;
 
                 planningItems.forEach((item, i) => {
@@ -533,7 +533,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.font = '700 35px "Montserrat", sans-serif';
                     ctx.letterSpacing = "1px";
                     // Enforce uppercase for H (e.g. 20H30)
-                    ctx.fillText(item.time.toUpperCase(), centerX - 10, y);
+                    ctx.fillText(item.time.toUpperCase(), centerX - 25, y);
 
                     ctx.textAlign = 'left';
                     ctx.fillStyle = '#fff';
@@ -549,7 +549,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         ctx.font = `500 ${artistFs}px "Montserrat", sans-serif`;
                     }
                     
-                    ctx.fillText(artistText, centerX + 10, y);
+                    ctx.fillText(artistText, centerX + 25, y);
                 });
 
             } else {
