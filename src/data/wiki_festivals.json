@@ -1500,21 +1500,6 @@
     "status": "verified"
   },
   {
-    "id": "330",
-    "name": "I Love Techno Europe",
-    "bio": "Incontournable de la scène mondiale, I Love Techno Europe est une figure majeure de la culture électronique actuelle.",
-    "country": "Intl",
-    "image": "https://static.ra.co/images/events/lg/ilovetechnoeurope.jpg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/I%20Love%20Techno%20Europe",
-    "instagram": "https://instagram.com/ilovetechnoeurope",
-    "facebook": "https://facebook.com/ilovetechnoeurope",
-    "soundcloud": "https://soundcloud.com/ilovetechnoeurope",
-    "beatport": "https://www.beatport.com/search?q=I%20Love%20Techno%20Europe",
-    "bio_en": "A major figure on the global scene, I Love Techno Europe is a key player in today's electronic culture.",
-    "status": "waiting"
-  },
-  {
     "id": "331",
     "name": "Positiv Festival",
     "bio": "Incontournable de la scène mondiale, Positiv Festival est une figure majeure de la culture électronique actuelle.",
