@@ -2346,20 +2346,5 @@
     "beatport": "https://www.beatport.com/search?q=Sub%20Club%20Melbourne",
     "bio_en": "A major figure on the global scene, Sub Club Melbourne is a key player in today's electronic culture.",
     "status": "verified"
-  },
-  {
-    "id": "414",
-    "name": "One22 Sydney",
-    "country": "Intl",
-    "bio": "Incontournable de la scène mondiale, One22 Sydney est une figure majeure de la culture électronique actuelle.",
-    "image": "/uploads/uploads/d1061c7258317307-chinese_laundry.jpg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/One22%20Sydney",
-    "instagram": "https://instagram.com/one22sydney",
-    "facebook": "https://facebook.com/one22sydney",
-    "soundcloud": "https://soundcloud.com/one22sydney",
-    "beatport": "https://www.beatport.com/search?q=One22%20Sydney",
-    "bio_en": "A major figure on the global scene, One22 Sydney is a key player in today's electronic culture.",
-    "status": "waiting"
   }
 ]
