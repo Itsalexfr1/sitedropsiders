@@ -657,13 +657,17 @@
     "endDate": "2026-05-23",
     "location": "Bourg-en-Bresse",
     "type": "Festival",
-    "image": "https://dropsiders.fr/uploads/migrated/dropsiders/Electra%20Festival%202026.png",
+    "image": "/uploads/uploads/15f6af01ffa6f97f-650395221_122200836200459056_2.jpg",
     "url": "https://www.electra-festival.com/",
     "genre": "Big Room",
     "month": "MAI",
     "isWeekly": false,
-    "country": "France",
-    "photo_verified": true
+    "country": "FRANCE",
+    "photo_verified": true,
+    "venue": "",
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   },
   {
     "id": 240,
