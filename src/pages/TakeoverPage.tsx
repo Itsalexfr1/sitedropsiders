@@ -23,6 +23,8 @@ interface LineupItem {
     artist: string;
     stage: string;
     instagram: string;
+    instagram2?: string;
+    instagram3?: string;
     image?: string;
 }
 
@@ -635,7 +637,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     }, [isConnected, settings.dropsInterval, settings.dropsAmount]);
 
     const [newLineupItem, setNewLineupItem] = useState<LineupItem>({
-        id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', image: ''
+        id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', instagram2: '', instagram3: '', image: ''
     });
     const [planningActiveDay, setPlanningActiveDay] = useState<string>('');
 
@@ -2537,7 +2539,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     <input type="text" placeholder="DEBUT" value={newLineupItem.startTime} onChange={e => setNewLineupItem({ ...newLineupItem, startTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                     <input type="text" placeholder="FIN" value={newLineupItem.endTime} onChange={e => setNewLineupItem({ ...newLineupItem, endTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                     <input type="text" placeholder="SCÈNE" value={newLineupItem.stage} onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                    <input type="text" placeholder="INSTAGRAM" value={newLineupItem.instagram} onChange={e => setNewLineupItem({ ...newLineupItem, instagram: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                    <div className="col-span-2 md:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-6">
+                                                        <input type="text" placeholder="INSTAGRAM 1" value={newLineupItem.instagram} onChange={e => setNewLineupItem({ ...newLineupItem, instagram: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
+                                                        <input type="text" placeholder="INSTAGRAM 2 (Optionnel B2B)" value={newLineupItem.instagram2 || ''} onChange={e => setNewLineupItem({ ...newLineupItem, instagram2: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
+                                                        <input type="text" placeholder="INSTAGRAM 3 (Optionnel B3B)" value={newLineupItem.instagram3 || ''} onChange={e => setNewLineupItem({ ...newLineupItem, instagram3: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
+                                                    </div>
                                                 </div>
                                                 {/* Image Upload */}
                                                 <div className="flex flex-col gap-1.5">
@@ -2586,7 +2592,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 setLineupItems([...lineupItems, { ...newLineupItem, id: Date.now().toString() }]);
                                                                 showNotification("Session ajoutée", "success");
                                                             }
-                                                            setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', image: '' }); 
+                                                            setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', instagram2: '', instagram3: '', image: '' }); 
                                                         }} 
                                                         className={`flex-1 py-4 ${editingLineupId ? 'bg-amber-500' : 'bg-neon-cyan'} text-black font-black uppercase rounded-2xl hover:bg-opacity-80 transition-all`}
                                                     >
@@ -2596,7 +2602,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <button 
                                                             onClick={() => {
                                                                 setEditingLineupId(null);
-                                                                setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', image: '' });
+                                                                setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', instagram2: '', instagram3: '', image: '' });
                                                             }}
                                                             className="px-6 py-4 bg-white/10 text-white font-black uppercase rounded-2xl hover:bg-white/20 transition-all"
                                                         >
@@ -3823,7 +3829,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <div className="space-y-2 relative z-10">
                                                             <div className="flex items-center justify-between gap-2">
                                                                 <p className="text-lg font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-2">{isNow && <span className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse" />}{item.artist}</p>
-                                                                {item.instagram && (<a href={item.instagram.startsWith('http') ? item.instagram : `https://instagram.com/${item.instagram.replace('@','')}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-1 px-2 py-1 bg-gradient-to-br from-purple-600/20 to-pink-500/20 border border-pink-500/30 rounded-lg hover:border-pink-500/60 hover:scale-105 transition-all shrink-0"><Instagram className="w-3 h-3 text-pink-400" /><span className="text-[9px] font-black text-pink-300 uppercase hidden sm:block">{item.instagram.replace('@','').replace('https://instagram.com/','').replace('https://www.instagram.com/','')}</span></a>)}
+                                                                <div className="flex flex-wrap gap-2">
+                                                                    {[item.instagram, item.instagram2, item.instagram3].map((insta, idx) => insta ? (
+                                                                        <a key={idx} href={insta.startsWith('http') ? insta : `https://instagram.com/${insta.replace('@','')}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-1 px-2 py-1 bg-gradient-to-br from-purple-600/20 to-pink-500/20 border border-pink-500/30 rounded-lg hover:border-pink-500/60 hover:scale-105 transition-all shrink-0"><Instagram className="w-3 h-3 text-pink-400" /><span className="text-[9px] font-black text-pink-300 uppercase hidden sm:block">{insta.replace('@','').replace('https://instagram.com/','').replace('https://www.instagram.com/','')}</span></a>
+                                                                    ) : null)}
+                                                                </div>
                                                             </div>
                                                             {isNow && (<div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mt-2"><div className="h-full bg-neon-cyan shadow-[0_0_10px_#00ffff] transition-all duration-1000" style={{ width: `${progress}%` }} /></div>)}
                                                         </div>
