@@ -1,5 +1,14 @@
 [
   {
+    "number": "INV-2026-068",
+    "client": "Alex",
+    "total": 0,
+    "date": "2026-03-19",
+    "id": 1773948234992,
+    "sentDate": "2026-03-19T19:23:54.992Z",
+    "paid": false
+  },
+  {
     "number": "INV-2026-067",
     "client": "Alex",
     "total": 0,
