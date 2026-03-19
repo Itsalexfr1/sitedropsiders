@@ -413,9 +413,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.shadowColor = `rgba(${activeData.grad}, 0.6)`;
                 ctx.shadowBlur = 30;
 
-                ctx.font = '900 italic 140px "Montserrat", sans-serif';
-                ctx.letterSpacing = "20px";
-                ctx.fillText('LIVESTREAM', centerX + 10, takeoverY); // offset for letterSpacing centering
+                ctx.font = '900 italic 95px "Montserrat", sans-serif';
+                ctx.letterSpacing = "10px";
+                ctx.fillText('LIVESTREAM', centerX + 5, takeoverY); // offset for letterSpacing centering
                 ctx.restore();
 
                 // 4. INFO SECTION (Minimalist floating typography)
