@@ -3634,7 +3634,7 @@ export function AdminDashboard() {
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className="p-3 bg-neon-cyan/20 rounded-xl border border-neon-cyan/30">
-                                                {isResidencesLoading ? <Loader2 className="w-5 h-5 text-neon-cyan animate-spin" /> : <Paintbrush className="w-5 h-5 text-neon-cyan" />}
+                                                {isResidencesLoading ? <Loader2 className="w-5 h-5 text-neon-cyan animate-spin" /> : <Sparkles className="w-5 h-5 text-neon-cyan" />}
                                             </div>
                                             <div className="text-left">
                                                 <h3 className="font-bold text-white uppercase italic tracking-tight">Photos Résidences</h3>
