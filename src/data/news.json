@@ -711,8 +711,7 @@
     "isFeatured": false,
     "isFocus": false,
     "link": "https://dropsiders.fr/news/205_interview-en-confinement-adam-k-",
-    "author": "alex",
-    "photo_verified": true
+    "author": "alex"
   },
   {
     "id": 204,
@@ -1072,7 +1071,8 @@
     "link": "https://www.dropsiders.fr/news/3001752_edc-las-vegas-2026-insomniac-frappe-fort-avec-les-30-ans-du-festival",
     "category": "News",
     "isFeatured": false,
-    "author": "Alex"
+    "author": "Alex",
+    "photo_verified": true
   },
   {
     "id": 1,
