@@ -562,8 +562,7 @@
     "isFeatured": false,
     "isFocus": false,
     "link": "https://dropsiders.fr/news/224_fast-quiz-adam-k",
-    "author": "alex",
-    "photo_verified": true
+    "author": "alex"
   },
   {
     "id": 222,
@@ -578,7 +577,8 @@
     "isFeatured": false,
     "isFocus": false,
     "link": "https://dropsiders.fr/news/222_fast-quizz-mc-stretch",
-    "author": "alex"
+    "author": "alex",
+    "photo_verified": true
   },
   {
     "id": 221,
