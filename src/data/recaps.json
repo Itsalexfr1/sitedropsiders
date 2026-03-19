@@ -234,7 +234,8 @@
     "isFeatured": false,
     "country": "Espagne",
     "showVideo": false,
-    "year": "2025"
+    "year": "2025",
+    "photo_verified": true
   },
   {
     "id": 10,
@@ -437,7 +438,8 @@
     "isFeatured": false,
     "country": "USA",
     "showVideo": true,
-    "year": "2025"
+    "year": "2025",
+    "photo_verified": true
   },
   {
     "id": 17,
@@ -463,7 +465,8 @@
     "author": "Alex",
     "country": "USA",
     "showVideo": true,
-    "year": "2025"
+    "year": "2025",
+    "photo_verified": true
   },
   {
     "id": 19,
@@ -529,7 +532,8 @@
     "isFeatured": false,
     "country": "USA",
     "showVideo": true,
-    "year": "2025"
+    "year": "2025",
+    "photo_verified": true
   },
   {
     "id": 22,
@@ -556,7 +560,8 @@
     "isFeatured": false,
     "country": "USA",
     "showVideo": true,
-    "year": "2024"
+    "year": "2024",
+    "photo_verified": true
   },
   {
     "id": 25,
@@ -581,7 +586,8 @@
     "isFeatured": false,
     "country": "Croatie",
     "showVideo": true,
-    "year": "2024"
+    "year": "2024",
+    "photo_verified": true
   },
   {
     "id": 27,
@@ -624,7 +630,8 @@
     "isFeatured": false,
     "country": "Belgique",
     "showVideo": true,
-    "year": "2024"
+    "year": "2024",
+    "photo_verified": true
   },
   {
     "id": 28,
@@ -725,7 +732,8 @@
     "isFeatured": false,
     "showVideo": true,
     "year": "2024",
-    "country": "Pays-Bas"
+    "country": "Pays-Bas",
+    "photo_verified": true
   },
   {
     "id": 31,
@@ -1378,7 +1386,8 @@
     "country": "Royaume-Uni",
     "showVideo": true,
     "isFeatured": false,
-    "year": "2022"
+    "year": "2022",
+    "photo_verified": true
   },
   {
     "id": 61,
@@ -2034,7 +2043,8 @@
     "country": "FRANCE",
     "showVideo": true,
     "isFeatured": false,
-    "year": "2021"
+    "year": "2021",
+    "photo_verified": true
   },
   {
     "id": 93,
@@ -2118,7 +2128,8 @@
     "country": "Pays-Bas",
     "showVideo": true,
     "isFeatured": false,
-    "year": "2019"
+    "year": "2019",
+    "photo_verified": true
   },
   {
     "id": 97,
