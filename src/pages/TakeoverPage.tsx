@@ -14,6 +14,7 @@ import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { ModerationModal } from '../components/admin/ModerationModal';
+import { ImageCropper } from '../components/ImageCropper';
 
 interface LineupItem {
     id: string;
@@ -640,6 +641,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', instagram2: '', instagram3: '', image: ''
     });
     const [planningActiveDay, setPlanningActiveDay] = useState<string>('');
+    const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
 
     const extractYoutubeId = (url: string) => {
         if (!url) return '';
@@ -2584,7 +2586,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     const file = e.target.files?.[0];
                                                                     if (file) {
                                                                         const reader = new FileReader();
-                                                                        reader.onload = (ev) => setNewLineupItem({ ...newLineupItem, image: ev.target?.result as string });
+                                                                        reader.onload = (ev) => {
+                                                                            setCropImageSrc(ev.target?.result as string);
+                                                                        }
                                                                         reader.readAsDataURL(file);
                                                                     }
                                                                 }}
@@ -2630,6 +2634,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     )}
                                                 </div>
                                             </div>
+
+                                            {cropImageSrc && (
+                                                <ImageCropper
+                                                    image={cropImageSrc}
+                                                    aspect={21 / 9}
+                                                    onCropComplete={(croppedImage) => {
+                                                        setNewLineupItem({ ...newLineupItem, image: croppedImage });
+                                                        setCropImageSrc(null);
+                                                    }}
+                                                    onCancel={() => setCropImageSrc(null)}
+                                                />
+                                            )}
 
                                             <div className="space-y-4">
                                                 {lineupItems.map((item, i) => (
