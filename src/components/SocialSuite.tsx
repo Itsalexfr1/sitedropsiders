@@ -534,12 +534,18 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.shadowOffsetX = 3;
                     ctx.shadowOffsetY = 3;
 
-                    // Hour (Very Bold)
+                    // Hour (Very Bold) - Auto format 2210 -> 22H10
                     ctx.textAlign = 'right';
                     ctx.fillStyle = `rgb(${activeData.grad})`;
                     ctx.font = '900 35px "Montserrat", sans-serif';
                     ctx.letterSpacing = "1px";
-                    ctx.fillText(item.time.toUpperCase(), centerX - 25, y);
+                    let timeText = item.time.toUpperCase().trim();
+                    if (timeText.length === 4 && /^\d+$/.test(timeText)) {
+                        timeText = timeText.slice(0, 2) + 'H' + timeText.slice(2);
+                    } else if (timeText.includes(':')) {
+                        timeText = timeText.replace(':', 'H');
+                    }
+                    ctx.fillText(timeText, centerX - 25, y);
 
                     // Artist (Premium Bold)
                     ctx.textAlign = 'left';
