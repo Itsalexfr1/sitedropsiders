@@ -149,7 +149,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         'RECAP': { label: 'RÉCAP', grad: '189, 0, 255', color: '#bd00ff' },
         'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' },
         'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' },
-        'PLANNING': { label: 'PLANNING', grad: '255, 255, 255', color: '#ffffff' }
+        'PLANNING': { label: 'PLANNING', grad: '255, 18, 65', color: '#ff1241' }
     };
 
     useEffect(() => {
@@ -1525,6 +1525,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                             <button onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                                 <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />Télécharger Vidéo/Photo (URL)
                                             </button>
+                                            <button onClick={() => setShowText(!showText)} className={`w-full py-4 border rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${!showText ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}>
+                                                <Eraser className="w-4 h-4" /> Gomme (Masquer le texte) : {!showText ? 'ACTIVE' : 'OFF'}
+                                            </button>
                                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                         </div>
                                     </div>
@@ -1562,10 +1565,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             <button onClick={() => setShowArticleLink(!showArticleLink)}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border backdrop-blur-md ${showArticleLink ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}>
                                 <LinkIcon className="w-3 h-3" /> Lien {showArticleLink ? 'ON' : 'OFF'}
-                            </button>
-                            <button onClick={() => setShowText(!showText)}
-                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border backdrop-blur-md ${!showText ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-500' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}>
-                                <Eraser className="w-3 h-3" /> Gomme {!showText ? 'ACTIVE' : 'OFF'}
                             </button>
                         </div>
 
