@@ -89,7 +89,8 @@
     "month": "AVRIL",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": true
+    "isLiveDropsiders": true,
+    "photo_verified": true
   },
   {
     "id": 6,
@@ -121,7 +122,8 @@
     "country": "USA",
     "month": "MAI",
     "isWeekly": false,
-    "isLiveDropsiders": true
+    "isLiveDropsiders": true,
+    "photo_verified": true
   },
   {
     "id": 8,
@@ -167,7 +169,8 @@
     "country": "Belgique",
     "month": "JUILLET",
     "isWeekly": false,
-    "isLiveDropsiders": true
+    "isLiveDropsiders": true,
+    "photo_verified": true
   },
   {
     "id": 10,
@@ -328,7 +331,8 @@
     "description": "The grand opening of world's first hyperclub, UNVRS Ibiza.",
     "url": "https://unvrs.com/",
     "genre": "Tech House",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 29,
@@ -340,7 +344,8 @@
     "description": "L'ouverture tant attendue d'Ushuaia Ibiza pour la saison 2026.",
     "url": "https://www.theushuaiaexpérience.com/",
     "genre": "Tech House",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 30,
@@ -353,7 +358,8 @@
     "url": "https://www.theushuaiaexpérience.com/",
     "genre": "Big Room",
     "isWeekly": true,
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 31,
@@ -639,7 +645,8 @@
     "url": "https://www.unitedants.com/",
     "genre": "Tech House",
     "isWeekly": true,
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 53,
@@ -938,7 +945,8 @@
     "url": "https://www.theushuaiaexpérience.com/",
     "genre": "Big Room",
     "isWeekly": true,
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 76,
@@ -1016,7 +1024,8 @@
     "url": "https://www.theushuaiaexpérience.com/",
     "genre": "Big Room",
     "isWeekly": true,
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 82,
@@ -1288,7 +1297,8 @@
     "description": "David Guetta lance sa Residence mythique du lundi.",
     "url": "https://www.theushuaiaexpérience.com/",
     "genre": "Big Room",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 103,
@@ -1660,7 +1670,8 @@
     "description": "The return of the world's #1 DJ to Ushuaia every Thursday.",
     "url": "https://www.theushuaiaexpérience.com/",
     "genre": "Progressive House",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 134,
@@ -1816,7 +1827,8 @@
     "description": "Opening Galactic Circus.",
     "url": "https://unvrs.com/",
     "genre": "Big Room",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 148,
@@ -2008,7 +2020,8 @@
     "description": "Carl Cox Opening.",
     "url": "https://unvrs.com/",
     "genre": "Techno",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 164,
@@ -2200,7 +2213,8 @@
     "description": "elrow Opening.",
     "url": "https://unvrs.com/",
     "genre": "Tech House",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 180,
@@ -2416,7 +2430,8 @@
     "description": "FISHER Opening.",
     "url": "https://unvrs.com/",
     "genre": "Tech House",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 198,
@@ -2596,7 +2611,8 @@
     "description": "Paradise Opening.",
     "url": "https://unvrs.com/",
     "genre": "House",
-    "country": "Espagne"
+    "country": "Espagne",
+    "photo_verified": true
   },
   {
     "id": 213,
@@ -2940,7 +2956,8 @@
     "genre": "Big Room",
     "month": "MAI",
     "isWeekly": false,
-    "country": "France"
+    "country": "France",
+    "photo_verified": true
   },
   {
     "id": 240,
