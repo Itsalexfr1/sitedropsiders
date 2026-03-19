@@ -1686,7 +1686,7 @@
     "name": "AVA Festival",
     "bio": "Incontournable de la scène mondiale, AVA Festival est une figure majeure de la culture électronique actuelle.",
     "country": "Intl",
-    "image": "https://static.ra.co/images/events/lg/avafestival.jpg",
+    "image": "/uploads/uploads/0e37ae5796d87245-ava_320.jpg",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/AVA%20Festival",
     "instagram": "https://instagram.com/avafestival",
@@ -1694,7 +1694,7 @@
     "soundcloud": "https://soundcloud.com/avafestival",
     "beatport": "https://www.beatport.com/search?q=AVA%20Festival",
     "bio_en": "A major figure on the global scene, AVA Festival is a key player in today's electronic culture.",
-    "status": "waiting"
+    "status": "verified"
   },
   {
     "id": "346",
