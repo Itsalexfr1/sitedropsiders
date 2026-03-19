@@ -64,6 +64,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [showText, setShowText] = useState(true);
     const [planningItems, setPlanningItems] = useState<{ time: string; artist: string }[]>(Array.from({ length: 8 }, () => ({ time: '00:00', artist: 'ARTISTE' })));
+    const [planningDate, setPlanningDate] = useState('21 MARS - 28 MARS');
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -499,23 +500,29 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.restore();
             } else if (theme === 'PLANNING') {
                 const centerX = canvas.width / 2;
-                const topY = activeTab === 'PUBLICATION' ? 150 : 300;
+                const topY = activeTab === 'PUBLICATION' ? 350 : 600;
                 
                 // Title "LINE-UP" or custom
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#fff';
-                ctx.font = '700 80px "Montserrat", sans-serif';
+                ctx.font = '700 85px "Montserrat", sans-serif';
                 ctx.letterSpacing = "8px";
                 ctx.fillText(customText || 'LINE-UP', centerX, topY);
+
+                // Date below title
+                ctx.font = '600 25px "Montserrat", sans-serif';
+                ctx.letterSpacing = "4px";
+                ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                ctx.fillText(planningDate, centerX, topY + 45);
 
                 // Elegant divider
                 const lineW = 200;
                 ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                ctx.fillRect(centerX - lineW, topY + 40, lineW * 2, 2);
+                ctx.fillRect(centerX - lineW, topY + 80, lineW * 2, 2);
 
                 // List items
-                const startY = topY + (activeTab === 'PUBLICATION' ? 320 : 450);
-                const spacing = activeTab === 'PUBLICATION' ? 55 : 75;
+                const startY = topY + (activeTab === 'PUBLICATION' ? 180 : 250);
+                const spacing = activeTab === 'PUBLICATION' ? 60 : 80;
 
                 planningItems.forEach((item, i) => {
                     const y = startY + (i * spacing);
@@ -741,7 +748,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -1074,6 +1081,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 onChange={e => setCustomText(e.target.value)} 
                 placeholder="TITRE (ex: LINE-UP)" 
                 className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs mb-2" 
+            />
+            <input 
+                value={planningDate} 
+                onChange={e => setPlanningDate(e.target.value)} 
+                placeholder="DATE (ex: 21 MARS - 28 MARS)" 
+                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase text-[10px] mb-4" 
             />
             <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                 {planningItems.map((item, i) => (
