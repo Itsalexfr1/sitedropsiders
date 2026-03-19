@@ -101,9 +101,10 @@ export function AdminDashboard() {
     const [globalAlert, setGlobalAlert] = useState<{ title?: string; message: string; type?: 'info' | 'danger' | 'warning' } | null>(null);
     const [selectedKeys, setSelectedKeys] = useState<string[]>([]);
     const [isScanningBroken, setIsScanningBroken] = useState(false);
-    const [brokenImages, setBrokenImages] = useState<any[]>([]);
-    const [selectedBrokenImages, setSelectedBrokenImages] = useState<any[]>([]);
     const [isBrokenImagesModalOpen, setIsBrokenImagesModalOpen] = useState(false);
+    const [isUnusedImagesModalOpen, setIsUnusedImagesModalOpen] = useState(false);
+    const [unusedImages, setUnusedImages] = useState<any[]>([]);
+    const [isScanningUnused, setIsScanningUnused] = useState(false);
 
     const toggleSelection = (key: string) => {
         setSelectedKeys(prev =>
@@ -146,13 +147,17 @@ export function AdminDashboard() {
                 body: JSON.stringify({ keys: selectedKeys })
             });
             if (res.ok) {
+                // If we were in duplicates modal
                 const refreshedSets = duplicateSets.map(set =>
                     set.filter((obj: any) => !selectedKeys.includes(obj.key))
                 ).filter(set => set.length > 1);
                 setDuplicateSets(refreshedSets);
+
+                // If we were in unused modal
+                setUnusedImages(prev => prev.filter(img => !selectedKeys.includes(img.key)));
+
                 setSelectedKeys([]);
                 fetchR2Stats();
-                fetchDuplicates(); // Force re-scan
                 setGlobalAlert({
                     type: 'info',
                     title: 'SUPPRESSION RÉUSSIE',
@@ -163,6 +168,22 @@ export function AdminDashboard() {
             console.error("Failed to delete objects", e);
         } finally {
             setIsR2Loading(false);
+        }
+    };
+
+    const fetchUnusedImages = async () => {
+        setIsScanningUnused(true);
+        try {
+            const res = await apiFetch('/api/admin/unused-r2-images', { headers: getAuthHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                setUnusedImages(data.unused || []);
+                setIsUnusedImagesModalOpen(true);
+            }
+        } catch (e) {
+            console.error("Failed to fetch unused images", e);
+        } finally {
+            setIsScanningUnused(false);
         }
     };
     const [isTestingModalOpen, setIsTestingModalOpen] = useState(false);
@@ -1757,6 +1778,15 @@ export function AdminDashboard() {
                                                 >
                                                     {isScanningBroken ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <ShieldAlert className="w-2.5 h-2.5" />}
                                                     SCAN PHOTOS
+                                                </button>
+                                                <button
+                                                    onClick={fetchUnusedImages}
+                                                    disabled={isScanningUnused}
+                                                    className="text-[9px] font-black text-neon-yellow/60 hover:text-neon-yellow uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-yellow/10 border border-neon-yellow/20 rounded-full"
+                                                    title="Nettoyer les images inutilisées"
+                                                >
+                                                    {isScanningUnused ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <HardDrive className="w-2.5 h-2.5" />}
+                                                    NETTOYAGE R2
                                                 </button>
                                                 <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
                                                     {((r2Stats.limit - r2Stats.used) / 1024 / 1024 / 1024).toFixed(2)} GB Libres
@@ -6798,6 +6828,127 @@ export function AdminDashboard() {
                                         >
                                             Supprimer la sélection ({selectedKeys.length})
                                         </button>
+                                    )}
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                {/* Unused Images Modal */}
+                <AnimatePresence>
+                    {isUnusedImagesModalOpen && (
+                        <div className="fixed inset-0 z-[110] flex items-center justify-center px-4">
+                            <motion.div
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setIsUnusedImagesModalOpen(false)}
+                                className="absolute inset-0 bg-black/95 backdrop-blur-xl"
+                            />
+                            <motion.div
+                                initial={{ scale: 0.9, opacity: 0, y: 20 }}
+                                animate={{ scale: 1, opacity: 1, y: 0 }}
+                                exit={{ scale: 0.9, opacity: 0, y: 20 }}
+                                className="relative w-full max-w-6xl bg-zinc-950 border border-white/10 rounded-[32px] overflow-hidden flex flex-col max-h-[90vh] shadow-2xl"
+                            >
+                                <div className="p-8 border-b border-white/5 flex items-center justify-between shrink-0 bg-black/40">
+                                    <div>
+                                        <h2 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-3 italic">
+                                            <HardDrive className="text-neon-yellow w-6 h-6" />
+                                            Ménage <span className="text-neon-yellow">R2</span> : Photos Orphelines
+                                        </h2>
+                                        <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mt-1">
+                                            {unusedImages.length} fichiers trouvés qui ne sont cités dans aucun fichier JSON
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center gap-4">
+                                        <button
+                                            onClick={() => {
+                                                if (selectedKeys.length === unusedImages.length) setSelectedKeys([]);
+                                                else setSelectedKeys(unusedImages.map(i => i.key));
+                                            }}
+                                            className="px-4 py-2 bg-white/5 border border-white/10 hover:bg-white/10 rounded-xl text-[10px] font-black uppercase text-gray-400 hover:text-white transition-all"
+                                        >
+                                            {selectedKeys.length === unusedImages.length ? 'Tout désélectionner' : 'Tout sélectionner'}
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setIsUnusedImagesModalOpen(false);
+                                                setSelectedKeys([]);
+                                            }}
+                                            className="p-4 bg-white/5 hover:bg-white/10 rounded-2xl transition-all group"
+                                        >
+                                            <X className="w-5 h-5 text-gray-400 group-hover:text-white transition-colors" />
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
+                                    {unusedImages.length === 0 ? (
+                                        <div className="h-64 flex flex-col items-center justify-center text-center">
+                                            <CheckCircle2 className="w-12 h-12 text-neon-green mb-4 opacity-20" />
+                                            <p className="text-gray-500 font-bold uppercase tracking-widest text-xs italic">Ton stockage est impeccable, aucune photo orpheline !</p>
+                                        </div>
+                                    ) : (
+                                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
+                                            {unusedImages.map((item: any) => (
+                                                <div 
+                                                    key={item.key} 
+                                                    className="group relative"
+                                                    onClick={() => toggleSelection(item.key)}
+                                                >
+                                                    <div className={`aspect-square bg-white/5 rounded-2xl border transition-all overflow-hidden relative cursor-pointer ${selectedKeys.includes(item.key) ? 'border-neon-red ring-2 ring-neon-red/20 scale-[0.98]' : 'border-white/10 hover:border-white/30'}`}>
+                                                        <img
+                                                            src={`https://dropsiders.fr/uploads/${item.key.replace('uploads/', '')}`}
+                                                            alt=""
+                                                            className={`w-full h-full object-cover transition-opacity ${selectedKeys.includes(item.key) ? 'opacity-30' : 'opacity-80 group-hover:opacity-100'}`}
+                                                            loading="lazy"
+                                                        />
+                                                        
+                                                        {/* Info Overlay */}
+                                                        <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/80 backdrop-blur-sm transform translate-y-full group-hover:translate-y-0 transition-transform">
+                                                            <p className="text-[7px] font-black text-white/50 uppercase truncate">{item.key.split('/').pop()}</p>
+                                                            <p className="text-[7px] font-black text-neon-cyan uppercase">{(item.size / 1024 / 1024).toFixed(2)} MB</p>
+                                                        </div>
+
+                                                        {/* Selection Overlay */}
+                                                        <div className={`absolute top-3 left-3 w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${selectedKeys.includes(item.key) ? 'bg-neon-red border-neon-red shadow-[0_0_15px_rgba(255,0,51,0.5)]' : 'bg-black/40 border-white/20 opacity-0 group-hover:opacity-100'}`}>
+                                                            {selectedKeys.includes(item.key) && <Check className="w-3.5 h-3.5 text-white" />}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="p-8 border-t border-white/5 bg-white/[0.02] shrink-0 flex items-center justify-between gap-6">
+                                    <div className="flex items-center gap-3 text-neon-red max-w-2xl bg-neon-red/5 border border-neon-red/10 p-4 rounded-2xl">
+                                        <ShieldAlert className="w-5 h-5 shrink-0" />
+                                        <p className="text-[9px] font-black leading-relaxed uppercase tracking-widest italic">
+                                            VÉRIFICATION TERMINE : Ces photos n'ont été trouvées dans aucune base de données (Agenda, News, Wiki, Galerie, Recaps, etc.). La suppression les effacera définitivement de Cloudflare R2.
+                                        </p>
+                                    </div>
+
+                                    {selectedKeys.length > 0 ? (
+                                        <button
+                                            onClick={() => {
+                                                setConfirmModal({
+                                                    isOpen: true,
+                                                    title: `Détruire ${selectedKeys.length} fichiers ?`,
+                                                    message: `T'es sur que tu veux virer ces ${selectedKeys.length} photos ? Elles sont plus utilisées nulle part sur le site.`,
+                                                    type: 'danger',
+                                                    onConfirm: deleteMultipleObjects,
+                                                    confirmText: `CONFIRMER LA DESTRUCTION`
+                                                });
+                                            }}
+                                            className="px-8 py-5 bg-neon-red text-white font-black text-[11px] uppercase tracking-[0.2em] rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_10px_30px_rgba(255,0,51,0.4)] shrink-0 italic"
+                                        >
+                                            SUPPRIMER DÉFINITIVEMENT ({selectedKeys.length})
+                                        </button>
+                                    ) : (
+                                        <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Sélectionne des photos pour libérer de l'espace</div>
                                     )}
                                 </div>
                             </motion.div>

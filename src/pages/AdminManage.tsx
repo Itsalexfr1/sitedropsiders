@@ -201,37 +201,33 @@ export function AdminManage() {
         setDeleteStatus('loading');
         setMessage(`Suppression de ${selectedIds.length} éléments...`);
 
-        let successCount = 0;
-        let failCount = 0;
+        try {
+            const endpoint = activeTab === 'Interviews' ? '/api/news/delete' :
+                activeTab === 'Communauté' ? '/api/galerie/delete' :
+                    `/api/${activeTab.toLowerCase()}/delete`;
+            
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ ids: selectedIds })
+            });
 
-        for (const id of selectedIds) {
-            try {
-                const endpoint = activeTab === 'Interviews' ? '/api/news/delete' :
-                    activeTab === 'Communauté' ? '/api/galerie/delete' :
-                        `/api/${activeTab.toLowerCase()}/delete`;
-                const response = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify({ id })
-                });
-                if (response.ok) successCount++;
-                else failCount++;
-            } catch (e: any) {
-                failCount++;
+            if (response.ok) {
+                setDeleteStatus('success');
+                setMessage(`${selectedIds.length} éléments supprimés avec succès !`);
+                setSelectedIds([]);
+                setTimeout(async () => {
+                    await fetchData();
+                    setDeleteStatus('idle');
+                }, 2000);
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                setDeleteStatus('error');
+                setMessage(errorData.error || 'Échec de la suppression groupée.');
             }
-        }
-
-        if (successCount > 0) {
-            setDeleteStatus('success');
-            setMessage(`${successCount} éléments supprimés avec succès` + (failCount > 0 ? `, ${failCount} échecs.` : '!'));
-            setSelectedIds([]);
-            setTimeout(async () => {
-                await fetchData();
-                setDeleteStatus('idle');
-            }, 2000);
-        } else {
+        } catch (e: any) {
             setDeleteStatus('error');
-            setMessage('Échec de la suppression groupée.');
+            setMessage('Erreur lors de la suppression groupée.');
         }
     };
 

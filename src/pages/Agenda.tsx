@@ -608,14 +608,14 @@ export function Agenda() {
 
                                                             <div className="flex-shrink-0 text-center bg-dark-bg border border-white/10 rounded-md md:rounded-xl p-1.5 md:p-4 w-12 md:w-24 min-h-0 md:min-h-[6.5rem] flex flex-col justify-center relative z-20">
                                                                 <span className={`block text-[8px] md:text-[11px] ${styles.text} font-black uppercase mb-0.5 md:mb-1.5 tracking-tight`}>
-                                                                    {event.startDate && event.endDate && event.startDate !== event.endDate ? (
+                                                                    {event.startDate && event.endDate && event.startDate !== event.endDate && event.type !== 'Résidence' ? (
                                                                         <>{new Date(event.startDate).toLocaleString(locale, { weekday: 'short' }).replace('.', '')} - {new Date(event.endDate).toLocaleString(locale, { weekday: 'short' }).replace('.', '')}</>
                                                                     ) : (
                                                                         new Date(event.startDate || event.date).toLocaleString(locale, { weekday: 'short' }).replace('.', '')
                                                                     )}
                                                                 </span>
                                                                 <span className="block text-lg md:text-3xl font-black text-white italic leading-none mb-0.5 md:mb-1.5">
-                                                                    {event.startDate && event.endDate && event.startDate !== event.endDate ? (
+                                                                    {event.startDate && event.endDate && event.startDate !== event.endDate && event.type !== 'Résidence' ? (
                                                                         <span className="text-xs md:text-xl">{new Date(event.startDate).getDate()}-{new Date(event.endDate).getDate()}</span>
                                                                     ) : (
                                                                         new Date(event.startDate || event.date).getDate()

@@ -27,25 +27,25 @@ export function NewsletterAdmin() {
         setBulkDeleteConfirm(false);
         setIsDeleting(true);
 
-        let successCount = 0;
-        for (const email of selectedEmails) {
-            try {
-                const response = await fetch('/api/unsubscribe', {
-                    method: 'POST',
-                    headers: getAuthHeaders(),
-                    body: JSON.stringify({ email })
-                });
-                if (response.ok) successCount++;
-            } catch (e: any) {
-                console.error('Error deleting', email, e);
-            }
-        }
+        try {
+            const response = await fetch('/api/unsubscribe', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ emails: selectedEmails })
+            });
 
-        if (successCount > 0) {
-            const updated = subscribers.filter(sub => !selectedEmails.includes(sub.email));
-            setSubscribers(updated);
-            setSelectedEmails([]);
-            alert(`${successCount} abonnés supprimés`);
+            if (response.ok) {
+                const updated = subscribers.filter(sub => !selectedEmails.includes(sub.email));
+                setSubscribers(updated);
+                setSelectedEmails([]);
+                alert(`${selectedEmails.length} abonnés supprimés`);
+            } else {
+                const errorData = await response.json().catch(() => ({}));
+                alert(errorData.error || 'Erreur lors de la suppression groupée');
+            }
+        } catch (e: any) {
+            console.error('Error during bulk delete', e);
+            alert('Erreur réseau lors de la suppression groupée');
         }
         setIsDeleting(false);
     };

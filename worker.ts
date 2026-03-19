@@ -803,7 +803,8 @@ ${urls.map(u => `  <url>
 
         // --- SERVE UPLOADS FROM R2 ---
         if (path.startsWith('/uploads/') && request.method === 'GET') {
-            const key = path.replace('/uploads/', '');
+            const rawKey = path.replace('/uploads/', '');
+            const key = decodeURIComponent(rawKey);
             const object = await env.R2.get(key);
             if (!object) return new Response('Not Found', { status: 404 });
 
@@ -918,6 +919,7 @@ ${urls.map(u => `  <url>
             path === '/api/admin/broken-images' ||
             path === '/api/admin/validate-photo' ||
             path === '/api/admin/validate-photo-bulk' ||
+            path === '/api/admin/unused-r2-images' ||
             path === '/api/r2/delete'
         );
 
@@ -2019,16 +2021,30 @@ ${urls.map(u => `  <url>
         if (path === '/api/unsubscribe' && request.method === 'POST') {
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
             try {
-                const { email } = await request.json();
+                const { email, emails } = await request.json();
+                const emailsToDelete = (Array.isArray(emails) ? emails : (email ? [email] : [])).map(String);
+                
+                if (emailsToDelete.length === 0) {
+                    return new Response(JSON.stringify({ error: 'Missing email' }), { status: 400, headers });
+                }
+
                 const file = await fetchGitHubFile(PATH, gitConfig);
                 if (!file) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
 
-                const updatedData = file.content.filter(sub => sub.email !== email);
-                if (updatedData.length === file.content.length) return new Response(JSON.stringify({ error: 'Email not found' }), { status: 404, headers });
+                const initialCount = file.content.length;
+                const updatedData = file.content.filter(sub => !emailsToDelete.includes(String(sub.email)));
+                
+                if (updatedData.length === initialCount) {
+                    return new Response(JSON.stringify({ error: 'Email(s) not found' }), { status: 404, headers });
+                }
 
-                const saved = await saveGitHubFile(PATH, updatedData, `Désinscription : ${email}`, file.sha, gitConfig);
+                const commitMsg = emailsToDelete.length > 1 
+                    ? `Désinscription groupée : ${emailsToDelete.length} abonnés` 
+                    : `Désinscription : ${emailsToDelete[0]}`;
+
+                const saved = await saveGitHubFile(PATH, updatedData, commitMsg, file.sha, gitConfig);
                 if (saved.ok) {
-                    return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+                    return new Response(JSON.stringify({ success: true, count: emailsToDelete.length }), { status: 200, headers });
                 } else {
                     return new Response(JSON.stringify({ error: 'Error updating: ' + saved.error }), { status: 500, headers });
                 }
@@ -2375,8 +2391,8 @@ ${urls.map(u => `  <url>
                             id: maxId,
                             title: title || existing.title,
                             date: currentDate.toISOString().split('T')[0],
-                            startDate: startDate,
-                            endDate: endDate,
+                            startDate: currentDate.toISOString().split('T')[0],
+                            endDate: currentDate.toISOString().split('T')[0],
                             venue: venue || existing.venue || '',
                             location: location || existing.location,
                             country: country || existing.country || '',
@@ -2463,8 +2479,8 @@ ${urls.map(u => `  <url>
                             id: maxId,
                             title,
                             date: currentDate.toISOString().split('T')[0],
-                            startDate: startDate,
-                            endDate: endDate,
+                            startDate: currentDate.toISOString().split('T')[0],
+                            endDate: currentDate.toISOString().split('T')[0],
                             venue: venue || '',
                             location,
                             country: country || '',
@@ -3005,8 +3021,12 @@ ${urls.map(u => `  <url>
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
 
             try {
-                const { id } = await request.json();
-                if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
+                const { id, ids } = await request.json();
+                const idsToDelete = (Array.isArray(ids) ? ids : (id ? [id] : [])).map(String);
+                
+                if (idsToDelete.length === 0) {
+                    return new Response(JSON.stringify({ error: 'Missing ID(s)' }), { status: 400, headers });
+                }
 
                 let FILE_PATH = '';
                 let CONTENT_FILES = [];
@@ -3029,27 +3049,33 @@ ${urls.map(u => `  <url>
                 const file = await fetchGitHubFile(FILE_PATH, gitConfig);
                 if (!file) return new Response(JSON.stringify({ error: 'Error fetching metadata file' }), { status: 502, headers });
 
-                const updatedData = file.content.filter(item => String(item.id) !== String(id));
-                if (updatedData.length === file.content.length) {
-                    return new Response(JSON.stringify({ error: 'Item not found in metadata' }), { status: 404, headers });
+                const initialCount = file.content.length;
+                const updatedData = file.content.filter(item => !idsToDelete.includes(String(item.id)));
+                
+                if (updatedData.length === initialCount) {
+                    return new Response(JSON.stringify({ error: 'No items found in metadata for specified IDs' }), { status: 404, headers });
                 }
 
-                await saveGitHubFile(FILE_PATH, updatedData, `Delete content: ${id}`, file.sha, gitConfig);
+                const commitMsg = idsToDelete.length > 1 
+                    ? `Delete ${idsToDelete.length} items from ${FILE_PATH}`
+                    : `Delete content: ${idsToDelete[0]}`;
+
+                await saveGitHubFile(FILE_PATH, updatedData, commitMsg, file.sha, gitConfig);
 
                 // 2. Delete Content (News/Recaps)
                 if (CONTENT_FILES.length > 0) {
                     for (const cp of CONTENT_FILES) {
                         const cf = await fetchGitHubFile(cp, gitConfig);
                         if (cf) {
-                            const newCfContent = cf.content.filter(item => String(item.id) !== String(id));
+                            const newCfContent = cf.content.filter(item => !idsToDelete.includes(String(item.id)));
                             if (newCfContent.length !== cf.content.length) {
-                                await saveGitHubFile(cp, newCfContent, `Delete content body: ${id}`, cf.sha, gitConfig);
+                                await saveGitHubFile(cp, newCfContent, `Cleanup bodies from ${cp} for ${idsToDelete.length} items`, cf.sha, gitConfig);
                             }
                         }
                     }
                 }
 
-                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+                return new Response(JSON.stringify({ success: true, count: idsToDelete.length }), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
@@ -3405,6 +3431,85 @@ ${urls.map(u => `  <url>
                 return new Response(JSON.stringify({ 
                     success: true, 
                     broken: brokenImages.filter((v, i, a) => a.findIndex(t => t.url === v.url && t.location === v.location) === i)
+                }), { status: 200, headers: { ...headers, 'Cache-Control': 'no-cache' } });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+ 
+        // --- NEW: UNUSED R2 IMAGES DETECTOR ---
+        if (path === '/api/admin/unused-r2-images' && request.method === 'GET') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                // 1. Get ALL keys from R2
+                let allR2Keys = [];
+                let cursor = undefined;
+                do {
+                    const listResult = await env.R2.list({ cursor });
+                    listResult.objects.forEach(o => {
+                        allR2Keys.push({ 
+                            key: o.key, 
+                            size: o.size, 
+                            uploaded: o.uploaded
+                        });
+                    });
+                    cursor = listResult.truncated ? listResult.cursor : undefined;
+                } while (cursor);
+
+                // 2. All data files to scan
+                const WIKI_DJS_PATH = 'src/data/wiki_djs.json';
+                const WIKI_CLUBS_PATH = 'src/data/wiki_clubs.json';
+                const WIKI_FESTIVALS_PATH = 'src/data/wiki_festivals.json';
+                const NEWS_PATH = 'src/data/news.json';
+                const AGENDA_PATH = 'src/data/agenda.json';
+                const GALERIE_PATH = 'src/data/galerie.json';
+                const RECAPS_PATH = 'src/data/recaps.json';
+                const TEAM_PATH = 'src/data/team.json';
+                const SHOP_PATH = 'src/data/shop.json';
+                const CLIPS_PATH = 'src/data/clips.json';
+                const TRACKLISTS_PATH = 'src/data/tracklists.json';
+                const SETTINGS_PATH = 'src/data/settings.json';
+
+                const dataFiles = [
+                    WIKI_DJS_PATH, WIKI_CLUBS_PATH, WIKI_FESTIVALS_PATH,
+                    NEWS_PATH, 
+                    AGENDA_PATH, GALERIE_PATH, 
+                    RECAPS_PATH,
+                    TEAM_PATH, SHOP_PATH, CLIPS_PATH, TRACKLISTS_PATH,
+                    SETTINGS_PATH, 'src/data/home_layout.json', 'src/data/spotify.json',
+                    'src/data/contact_messages.json', 'src/data/newsletter_subscribers.json'
+                ];
+
+                const dataContents = await Promise.all(
+                    dataFiles.map(filePath => fetchGitHubFile(filePath, gitConfig).catch(() => null))
+                );
+
+                const usedKeys = new Set();
+                const urlRegex = /(?:(?:"|'|src=)(?:\/uploads\/|https:\/\/dropsiders\.fr\/uploads\/)([^"'\s>]+)(?:"|'|\s|>))/gi;
+
+                for (const fileObj of dataContents) {
+                    if (!fileObj || !fileObj.content) continue;
+                    const itemStr = JSON.stringify(fileObj.content);
+                    const localRegex = new RegExp(urlRegex.source, urlRegex.flags);
+                    let match;
+                    while ((match = localRegex.exec(itemStr)) !== null) {
+                        const key = match[1];
+                        usedKeys.add(key);
+                        usedKeys.add(`uploads/${key}`);
+                    }
+                }
+
+                // 3. Find Unused
+                const unused = allR2Keys.filter(obj => {
+                   if (!obj.key.startsWith('uploads/') && !obj.key.startsWith('migrated/')) return false;
+                   return !usedKeys.has(obj.key) && !usedKeys.has(obj.key.replace('uploads/', ''));
+                }).sort((a,b) => b.uploaded.getTime() - a.uploaded.getTime());
+
+                return new Response(JSON.stringify({ 
+                    success: true, 
+                    unused: unused,
+                    totalCount: allR2Keys.length,
+                    unusedCount: unused.length
                 }), { status: 200, headers: { ...headers, 'Cache-Control': 'no-cache' } });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
