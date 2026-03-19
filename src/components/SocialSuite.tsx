@@ -504,7 +504,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.restore();
             } else if (theme === 'PLANNING') {
                 const centerX = canvas.width / 2;
-                const topY = activeTab === 'PUBLICATION' ? 280 : 550;
+                const topY = activeTab === 'PUBLICATION' ? 340 : 660;
 
                 ctx.save();
                 ctx.shadowColor = 'rgba(0,0,0,0.8)';
