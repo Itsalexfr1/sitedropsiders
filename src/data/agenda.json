@@ -5282,5 +5282,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 494,
+    "title": "Hugel présent Make The Girl Dance Day & Night",
+    "date": "2026-06-25",
+    "startDate": "2026-06-25",
+    "endDate": "2026-06-25",
+    "venue": "Ushuaïa & Hï ",
+    "location": "IBIZA",
+    "country": "ESPAGNE",
+    "type": "Events",
+    "image": "/uploads/uploads/dca540563cda5637-a6fe7664a22856bba34d27c4f677d6.webp",
+    "url": "https://www.theushuaiaexperience.com/en/club/events/hugel-on-2026-06-25",
+    "genre": "Tech House",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
