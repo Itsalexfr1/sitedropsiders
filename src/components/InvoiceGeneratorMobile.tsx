@@ -15,12 +15,6 @@ const DEFAULT_SENDER: Sender = {
     legal: 'Auto-entrepreneur – TVA non applicable, art. 293 B du CGI',
 };
 
-const TABS = [
-    { key: 'edit', label: 'Nouvelle', icon: Plus },
-    { key: 'history', label: 'Archive', icon: History },
-    { key: 'clients_list', label: 'Clients', icon: User },
-    { key: 'settings', label: 'Compte', icon: Settings },
-];
 
 // ─── Shared styles ───────────────────────────────────────────────────────────
 const ROW = "flex items-center justify-between px-4 py-4 bg-white/[0.04] border-b border-white/[0.06] active:bg-white/10 transition-colors cursor-pointer select-none";
@@ -141,6 +135,7 @@ export function InvoiceGeneratorMobile() {
 
     const addLine = () => { const nl: InvoiceLine = { id: Date.now().toString(), description: 'Prestation Light', quantity: 1, unitPrice: 0 }; setLines(p => [...p, nl]); setEditingLine(nl); setSheet('line'); };
     const deleteLine = (id: string) => setLines(p => p.filter(l => l.id !== id));
+    const deleteClient = (id: string) => { const u = savedClients.filter(c => c.id !== id); setSavedClients(u); localStorage.setItem('inv_clients', JSON.stringify(u)); };
     const updateEditingLine = (field: keyof InvoiceLine, value: string | number) => {
         if (!editingLine) return;
         const updated = { ...editingLine, [field]: value };
