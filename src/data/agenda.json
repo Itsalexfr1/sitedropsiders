@@ -115,15 +115,17 @@
     "endDate": "2026-05-17",
     "location": "Las Vegas",
     "type": "Festival",
-    "image": "https://dropsiders.fr/uploads/migrated/dropsiders/EDC%202026%20LINE%20UP.png",
+    "image": "/uploads/uploads/3ffe19974bebc674-edclv_2026_mk_lu_full_soc_1080.png",
     "description": "Celebration des 30 ans sous le ciel électrique du Speedway.",
     "url": "https://lasvegas.electricdaisycarnival.com/",
     "genre": "Multi Styles",
-    "country": "USA",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
     "month": "MAI",
     "isWeekly": false,
     "isLiveDropsiders": true,
-    "photo_verified": true
+    "photo_verified": true,
+    "venue": "",
+    "additionalDates": []
   },
   {
     "id": 8,
