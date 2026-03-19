@@ -263,19 +263,22 @@ export function InvoiceGeneratorMobile() {
                         <span className={ROW_LABEL}><Calendar className="w-4 h-4 text-indigo-400" /> Date d'échéance</span>
                         <span className={ROW_VALUE}>{dueDateLabel}<ChevronRight className="w-4 h-4" /></span>
                     </button>
-                    {/* Événement */}
-                    <button className={ROW} onClick={() => setSheet('event')}>
-                        <span className={ROW_LABEL}><Calendar className="w-4 h-4 text-indigo-400" /> Événement</span>
-                        <span className={ROW_VALUE}><span className="truncate max-w-[120px]">{eventLabel}</span><ChevronRight className="w-4 h-4" /></span>
-                    </button>
-                    {/* Détails */}
                     <button className={ROW + " border-b-0"} onClick={() => setSheet('details')}>
                         <span className={ROW_LABEL}><FileText className="w-4 h-4 text-indigo-400" /> Détails</span>
                         <span className={ROW_VALUE}><ChevronRight className="w-4 h-4" /></span>
                     </button>
                 </div>
 
-                {/* ── SECTION 2: Articles ── */}
+                {/* ── SECTION 2: Événement ── */}
+                <p className={SECTION_HEADER}>Auto-remplissage</p>
+                <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mb-1">
+                    <button className={ROW + " border-b-0"} onClick={() => setSheet('event')}>
+                        <span className={ROW_LABEL}><Calendar className="w-4 h-4 text-indigo-400" /> Événement</span>
+                        <span className={ROW_VALUE}><span className="truncate max-w-[120px]">{eventLabel}</span><ChevronRight className="w-4 h-4" /></span>
+                    </button>
+                </div>
+
+                {/* ── SECTION 3: Articles ── */}
                 <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mt-3 mb-1">
                     {lines.map((line, i) => (
                         <button key={line.id} className={ROW + (i === lines.length - 1 ? ' border-b-0' : '')}

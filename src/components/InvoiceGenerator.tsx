@@ -489,6 +489,29 @@ export function InvoiceGenerator() {
                                     ))}
                                 </div>
 
+                                {/* Bank */}
+                                <div className={cardCls + " space-y-4"}>
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Coordonnées Bancaires</h3>
+                                    <div>
+                                        <label className={labelCls}>IBAN</label>
+                                        <input value={iban} onChange={e => setIban(e.target.value)} placeholder="FR76 0000 0000 0000..." className={inputCls + " font-mono"} />
+                                    </div>
+                                    <div>
+                                        <label className={labelCls}>BIC / SWIFT</label>
+                                        <input value={bic} onChange={e => setBic(e.target.value)} placeholder="REVOFR22XXX" className={inputCls + " font-mono"} />
+                                    </div>
+                                </div>
+
+                                {/* Notes */}
+                                <div className={cardCls + " space-y-4"}>
+                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Notes (optionnel)</h3>
+                                    <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Conditions de paiement, remarques..."
+                                        className={inputCls + " resize-none h-24"} />
+                                </div>
+                            </div>
+
+                            {/* RIGHT */}
+                            <div className="lg:col-span-7 space-y-6">
                                 {/* Event auto-fill */}
                                 <div className={cardCls + " space-y-4"}>
                                     <div className="flex items-center justify-between">
@@ -529,30 +552,6 @@ export function InvoiceGenerator() {
                                         </div>
                                     )}
                                 </div>
-
-                                {/* Bank */}
-                                <div className={cardCls + " space-y-4"}>
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Coordonnées Bancaires</h3>
-                                    <div>
-                                        <label className={labelCls}>IBAN</label>
-                                        <input value={iban} onChange={e => setIban(e.target.value)} placeholder="FR76 0000 0000 0000..." className={inputCls + " font-mono"} />
-                                    </div>
-                                    <div>
-                                        <label className={labelCls}>BIC / SWIFT</label>
-                                        <input value={bic} onChange={e => setBic(e.target.value)} placeholder="REVOFR22XXX" className={inputCls + " font-mono"} />
-                                    </div>
-                                </div>
-
-                                {/* Notes */}
-                                <div className={cardCls + " space-y-4"}>
-                                    <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Notes (optionnel)</h3>
-                                    <textarea value={notes} onChange={e => setNotes(e.target.value)} placeholder="Conditions de paiement, remarques..."
-                                        className={inputCls + " resize-none h-24"} />
-                                </div>
-                            </div>
-
-                            {/* RIGHT */}
-                            <div className="lg:col-span-7 space-y-6">
                                 <div className={cardCls + " space-y-4"}>
                                     <div className="flex items-center justify-between">
                                         <h3 className="text-[10px] font-black uppercase tracking-[0.3em] text-indigo-400">Lignes de Facturation</h3>
