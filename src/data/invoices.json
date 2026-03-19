@@ -1,5 +1,14 @@
 [
   {
+    "number": "INV-2026-067",
+    "client": "test",
+    "total": 0,
+    "date": "2026-03-19",
+    "id": 1773945541752,
+    "sentDate": "2026-03-19T18:39:01.752Z",
+    "paid": false
+  },
+  {
     "number": "INV-2026-066",
     "client": "Quai St Lazare - le Bokaos",
     "total": 800,
