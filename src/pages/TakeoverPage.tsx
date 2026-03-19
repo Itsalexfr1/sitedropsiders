@@ -2638,7 +2638,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             {cropImageSrc && (
                                                 <ImageCropper
                                                     image={cropImageSrc}
-                                                    aspect={21 / 9}
+                                                    aspect={8 / 1}
                                                     onCropComplete={(croppedImage) => {
                                                         setNewLineupItem({ ...newLineupItem, image: croppedImage });
                                                         setCropImageSrc(null);
