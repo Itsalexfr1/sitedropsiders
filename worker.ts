@@ -3081,7 +3081,7 @@ ${urls.map(u => `  <url>
                 const htmlBody = (message || 'Bonjour,\n\nVeuillez trouver en pièce jointe votre facture.\n\nCordialement,\nCUENCA ALEXANDRE').replace(/\n/g, '<br>');
 
                 const payload = {
-                    sender: { name: 'CUENCA ALEXANDRE', email: 'alexlight3034@icloud.com' },
+                    sender: { name: 'CUENCA ALEXANDRE', email: 'contact@dropsiders.fr' },
                     to: [{ email: to }],
                     bcc: [{ email: 'alexlight3034@icloud.com' }],
                     replyTo: { email: 'alexlight3034@icloud.com', name: 'CUENCA ALEXANDRE' },
