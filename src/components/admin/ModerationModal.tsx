@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Check, CheckSquare, Trash2, Camera, User, Instagram, Clock, MapPin, MessageSquare, BookOpen, Upload, Plus, Download } from 'lucide-react';
-import { getAuthHeaders } from '../../utils/auth';
+import { getAuthHeaders, apiFetch } from '../../utils/auth';
 import { PromptModal } from '../ui/PromptModal';
 import { ConfirmModal } from '../ui/ConfirmModal';
 import { ImageUploadModal } from '../ImageUploadModal';
@@ -119,9 +119,9 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
             let clubs: any[] = [];
             let fests: any[] = [];
             
-            if (djsRes.ok) djs = (await djsRes.json()).filter((d: any) => d.status === 'waiting' || d.status === 'verified').map((d: any) => ({ ...d, type: 'DJS' }));
-            if (clubsRes.ok) clubs = (await clubsRes.json()).filter((c: any) => c.status === 'waiting' || c.status === 'verified').map((c: any) => ({ ...c, type: 'CLUBS' }));
-            if (festsRes.ok) fests = (await festsRes.json()).filter((f: any) => f.status === 'waiting' || f.status === 'verified').map((f: any) => ({ ...f, type: 'FESTIVALS' }));
+            if (djsRes.ok) djs = (await djsRes.json()).filter((d: any) => d.status === 'waiting').map((d: any) => ({ ...d, id: String(d.id), type: 'DJS' }));
+            if (clubsRes.ok) clubs = (await clubsRes.json()).filter((c: any) => c.status === 'waiting').map((c: any) => ({ ...c, id: String(c.id), type: 'CLUBS' }));
+            if (festsRes.ok) fests = (await festsRes.json()).filter((f: any) => f.status === 'waiting').map((f: any) => ({ ...f, id: String(f.id), type: 'FESTIVALS' }));
             
             setWikiWaiting([...djs, ...clubs, ...fests]);
 
@@ -163,7 +163,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
 
     const handleAction = async (id: string, action: 'approve' | 'reject') => {
         try {
-            const response = await fetch('/api/photos/moderate', {
+            const response = await apiFetch('/api/photos/moderate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -173,7 +173,8 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
             });
 
             if (response.ok) {
-                setSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: action === 'approve' ? 'approved' : 'rejected' } : s));
+                // Remove from local list as it's processed
+                setSubmissions(prev => prev.filter(s => s.id !== id));
                 setSelected(prev => { const n = new Set(prev); n.delete(id); return n; });
                 if (onSuccess) onSuccess();
             } else {
@@ -193,7 +194,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
         try {
             if (tab === 'photos') {
                 for (const id of ids) {
-                    const response = await fetch('/api/photos/moderate', {
+                    const response = await apiFetch('/api/photos/moderate', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                         body: JSON.stringify({ id, action })
@@ -217,7 +218,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                 }
 
                 for (const [type, typeIds] of Object.entries(groupedIds)) {
-                    const response = await fetch('/api/wiki/delete', {
+                    const response = await apiFetch('/api/wiki/delete', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                         body: JSON.stringify({ ids: typeIds, type })
@@ -241,7 +242,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                 }
 
                 for (const [type, typeIds] of Object.entries(groupedIds)) {
-                    const response = await fetch('/api/wiki/approve-bulk', {
+                    const response = await apiFetch('/api/wiki/approve-bulk', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                         body: JSON.stringify({ ids: typeIds, type })
@@ -318,7 +319,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
         }
 
         try {
-            const response = await fetch('/api/wiki/update-photo', {
+            const response = await apiFetch('/api/wiki/update-photo', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -328,7 +329,8 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
             });
 
             if (response.ok) {
-                setWikiWaiting(prev => prev.map(item => item.id === id ? { ...item, status: 'verified', image: imageUrl } : item));
+                // Remove from waiting list since it's now verified
+                setWikiWaiting(prev => prev.filter(item => String(item.id) !== String(id)));
                 if (onSuccess) onSuccess();
             } else {
                 const err = await response.json();

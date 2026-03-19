@@ -3643,22 +3643,38 @@ ${urls.map(u => `  <url>
                 else if (type === 'FESTIVALS') filePath = WIKI_FESTIVALS_PATH;
                 else return new Response(JSON.stringify({ error: 'Invalid type' }), { status: 400, headers });
 
-                const file = await fetchGitHubFile(filePath, gitConfig);
-                if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
-
+                let saved = { ok: false, error: '' };
                 let count = 0;
-                file.content.forEach(item => {
-                    if (ids.includes(item.id)) {
-                        if (item.status === 'waiting') {
-                            item.status = 'verified';
-                            count++;
-                        }
-                    }
-                });
+                let approveAttempts = 0;
+                
+                while (approveAttempts < 3) {
+                    const file = await fetchGitHubFile(filePath, gitConfig);
+                    if (!file) break;
 
-                if (count > 0) {
-                    const saved = await saveGitHubFile(filePath, file.content, `Bulk approve ${count} items in ${type}`, file.sha, gitConfig);
-                    if (!saved.ok) return new Response(JSON.stringify({ error: saved.error }), { status: 500, headers });
+                    count = 0;
+                    file.content.forEach(item => {
+                        const itemId = String(item.id);
+                        if (ids.includes(itemId)) {
+                            if (item.status === 'waiting') {
+                                item.status = 'verified';
+                                count++;
+                            }
+                        }
+                    });
+
+                    if (count === 0) {
+                        return new Response(JSON.stringify({ success: true, count: 0 }), { status: 200, headers });
+                    }
+
+                    saved = await saveGitHubFile(filePath, file.content, `Bulk approve ${count} items in ${type}`, file.sha, gitConfig);
+                    if (saved.ok) break;
+                    if (saved.status !== 409) break;
+                    approveAttempts++;
+                    await new Promise(r => setTimeout(r, 600 * approveAttempts));
+                }
+
+                if (!saved.ok) {
+                    return new Response(JSON.stringify({ error: saved.error || 'Conflict after retries' }), { status: 500, headers });
                 }
 
                 return new Response(JSON.stringify({ success: true, count }), { status: 200, headers });

@@ -35,6 +35,7 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
     const response = await fetch(url, options);
 
     if (response.status === 401) {
+        console.error(`[AUTH] 401 Unauthorized detected for URL: ${url}. Logging out.`);
         // Clear local storage and force reload/redirect
         localStorage.removeItem('admin_auth');
         localStorage.removeItem('admin_password');
