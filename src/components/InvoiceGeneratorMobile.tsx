@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save } from 'lucide-react';
+import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -109,6 +109,30 @@ export function InvoiceGeneratorMobile() {
     const [ncAddress, setNcAddress] = useState('');
     const [ncCity, setNcCity] = useState('');
     const [ncEmail, setNcEmail] = useState('');
+    const [history, setHistory] = useState<any[]>([]);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+    const fetchHistory = async () => {
+        setIsLoadingHistory(true);
+        try {
+            const res = await fetch('/api/invoices');
+            if (res.ok) setHistory(await res.json());
+        } catch { } finally { setIsLoadingHistory(false); }
+    };
+
+    const togglePaid = async (id: number, paid: boolean) => {
+        try {
+            const adminPass = localStorage.getItem('admin_password') || '';
+            await fetch('/api/invoices/update', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json', 'X-Admin-Password': adminPass }, 
+                body: JSON.stringify({ id, paid: !paid }) 
+            });
+            setHistory(prev => prev.map(inv => inv.id === id ? { ...inv, paid: !paid } : inv));
+        } catch { }
+    };
+
+    useEffect(() => { fetchHistory(); }, []);
 
     const addNewClient = () => {
         if (!ncName.trim()) return;
@@ -173,6 +197,7 @@ export function InvoiceGeneratorMobile() {
             const res = await fetch('/api/facture/send', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass, 'X-Session-ID': sessionId }, body: JSON.stringify({ to: emailTo, subject: emailSubject, message: emailMessage, invoiceHtml: buildHTML(), filename: `Facture_${formattedNumber}.html`, invoiceData: { number: formattedNumber, client: clientName, total, date } }) });
             if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Erreur'); }
             setSendStatus('success');
+            fetchHistory();
             setInvoiceNumber(n => n + 1);
             setTimeout(() => { setSendStatus('idle'); setSheet('none'); }, 2500);
         } catch (e: any) { setSendStatus('error'); setSendError(e.message); }
@@ -528,8 +553,36 @@ export function InvoiceGeneratorMobile() {
             </Sheet>
 
             {/* HISTORY */}
-            <Sheet open={sheet === 'history'} onClose={() => setSheet('none')} title="Historique">
-                <p className="text-sm text-white/40 text-center py-8">Historique disponible sur la version bureau.</p>
+            <Sheet open={sheet === 'history'} onClose={() => setSheet('none')} title="Historique" fullscreen>
+                <div className="p-6 space-y-4 pb-20 overflow-y-auto h-full bg-[#0d0f1a]">
+                    {isLoadingHistory ? (
+                        <div className="flex items-center justify-center py-20"><Loader className="w-8 h-8 animate-spin text-indigo-400" /></div>
+                    ) : history.length === 0 ? (
+                        <div className="text-center py-20 border border-dashed border-white/5 rounded-3xl">
+                             <History className="w-12 h-12 text-white/5 mx-auto mb-4" />
+                             <p className="text-sm font-black text-white/20 uppercase tracking-widest">Aucune facture</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-3">
+                            {history.map((inv: any) => (
+                                <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                                    <div className="flex-1 min-w-0 mr-4">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="text-[10px] font-black text-indigo-400">#{inv.id}</span>
+                                            <span className="text-xs font-bold text-white truncate">{inv.client || 'Client inconnu'}</span>
+                                        </div>
+                                        <div className="text-[10px] text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
+                                        <div className="font-black text-sm text-white mt-1">{parseFloat(inv.total || 0).toFixed(2)} €</div>
+                                    </div>
+                                    <button onClick={() => togglePaid(inv.id, inv.paid)}
+                                        className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30'}`}>
+                                        {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> Attente</>}
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </Sheet>
 
             {/* CLIENTS LIST SHEET */}
