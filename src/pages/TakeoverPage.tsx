@@ -3129,8 +3129,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 </div>
                                 <div className="flex gap-1 p-1 bg-white/5 rounded-xl border border-white/10 my-1">
                                     {(['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6'] as const).map((s, idx) => {
-                                        // Only show stages that actually have a matching stream or at least stage1/stage2
-                                        if (idx >= 2 && (!settings.streams || !settings.streams[idx])) return null;
+                                        // Garder le STAGE 1 visible par défaut. Cacher les autres (Stage 2+) s'il n'y a pas de config youtube.
+                                        if (idx >= 1 && (!settings.streams || !settings.streams[idx]?.youtubeId)) return null;
                                         return (
                                             <button
                                                 key={s}
