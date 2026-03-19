@@ -45,7 +45,7 @@
     "dropsInterval": 5,
     "sponsorText": "LIVE RENDU POSSIBLE GRÂCE À NOS PARTENAIRES 🤝",
     "sponsorLink": "https://dropsiders.fr",
-    "showSponsorBanner": true,
+    "showSponsorBanner": false,
     "instagramLink": "",
     "tiktokLink": "",
     "youtubeLink": "",
