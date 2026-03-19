@@ -2541,6 +2541,39 @@ ${urls.map(u => `  <url>
             } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
 
+        // --- API: UPDATE RESIDENCE PHOTOS ---
+        if (path === '/api/agenda/update-residence-photos' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            const FILE_PATH = 'src/data/agenda.json';
+            try {
+                const body = await request.json();
+                const { title, location, image } = body;
+                if (!title || !location || !image) return new Response(JSON.stringify({ error: 'Missing title/location/image' }), { status: 400, headers });
+
+                const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig);
+                if (!agendaFile) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
+
+                const currentData = agendaFile.content;
+                let updatedCount = 0;
+                const newData = currentData.map(item => {
+                    if (item.title === title && item.location === location && item.isWeekly) {
+                        updatedCount++;
+                        return { ...item, image };
+                    }
+                    return item;
+                });
+
+                if (updatedCount === 0) return new Response(JSON.stringify({ error: 'No residence found' }), { status: 404, headers });
+
+                const saved = await saveGitHubFile(FILE_PATH, newData, `Update residence photos: ${title} @ ${location} (${updatedCount} items)`, agendaFile.sha, gitConfig);
+                if (saved.ok) {
+                    return new Response(JSON.stringify({ success: true, count: updatedCount }), { status: 200, headers });
+                } else {
+                    return new Response(JSON.stringify({ error: 'Error saving: ' + saved.error }), { status: 500, headers });
+                }
+            } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
+        }
+
         // --- API: CREATE GALERIE ---
         if (path === '/api/galerie/create' && request.method === 'POST') {
             if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });

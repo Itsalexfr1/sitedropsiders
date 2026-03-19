@@ -9,7 +9,7 @@ import {
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil,
     ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram,
     Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download,
-    Trophy, Settings, Camera, HardDrive
+    Trophy, Settings, Camera, HardDrive, MapPin, Sparkles
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -18,6 +18,7 @@ import { translateText } from '../utils/translate';
 import { SocialSuite } from '../components/SocialSuite';
 import { ModerationModal } from '../components/admin/ModerationModal';
 import { PubliGenerator } from '../components/admin/PubliGenerator';
+import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { AgendaModal } from '../components/AgendaModal';
 import { Downloader } from './Downloader';
@@ -107,6 +108,12 @@ export function AdminDashboard() {
     const [isUnusedImagesModalOpen, setIsUnusedImagesModalOpen] = useState(false);
     const [unusedImages, setUnusedImages] = useState<any[]>([]);
     const [isScanningUnused, setIsScanningUnused] = useState(false);
+    const [isResidencesModalOpen, setIsResidencesModalOpen] = useState(false);
+    const [residencesList, setResidencesList] = useState<any[]>([]);
+    const [isResidencesLoading, setIsResidencesLoading] = useState(false);
+    const [updatingResidenceId, setUpdatingResidenceId] = useState<string | null>(null);
+    const [showResidenceUpload, setShowResidenceUpload] = useState(false);
+    const [editingResidence, setEditingResidence] = useState<any>(null);
 
     const toggleSelection = (key: string) => {
         setSelectedKeys(prev =>
@@ -170,6 +177,65 @@ export function AdminDashboard() {
             console.error("Failed to delete objects", e);
         } finally {
             setIsR2Loading(false);
+        }
+    };
+
+    const handleUpdateResidencePhoto = async (newUrl: string) => {
+        if (!editingResidence) return;
+        setUpdatingResidenceId(`${editingResidence.title}|${editingResidence.location}`);
+        try {
+            const res = await apiFetch('/api/agenda/update-residence-photos', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    title: editingResidence.title,
+                    location: editingResidence.location,
+                    image: newUrl
+                })
+            });
+            if (res.ok) {
+                setGlobalAlert({ message: "Les photos de la résidence ont été mises à jour pour toutes les dates !", type: 'info' });
+                // Update local list
+                setResidencesList(prev => prev.map(r => 
+                    (r.title === editingResidence.title && r.location === editingResidence.location) 
+                    ? { ...r, image: newUrl } 
+                    : r
+                ));
+                setEditingResidence(null);
+            }
+        } catch (e) {
+            console.error(e);
+            setGlobalAlert({ message: "Erreur lors de la mise à jour des photos.", type: 'danger' });
+        } finally {
+            setUpdatingResidenceId(null);
+            setShowResidenceUpload(false);
+        }
+    };
+
+    const fetchResidences = async () => {
+        setIsResidencesLoading(true);
+        try {
+            const res = await fetch('/api/agenda');
+            if (res.ok) {
+                const data = await res.json();
+                const groups = new Map();
+                data.forEach((item: any) => {
+                    if (item.isWeekly) {
+                        const key = `${item.title}|${item.location}`;
+                        if (!groups.has(key)) {
+                            groups.set(key, { ...item, count: 1 });
+                        } else {
+                            groups.get(key).count++;
+                        }
+                    }
+                });
+                setResidencesList(Array.from(groups.values()));
+                setIsResidencesModalOpen(true);
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setIsResidencesLoading(false);
         }
     };
 
@@ -3557,6 +3623,26 @@ export function AdminDashboard() {
                                         </div>
                                         <ArrowRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
                                     </Link>
+
+                                    <button
+                                        onClick={() => {
+                                            setIsAgendaModalOpen(false);
+                                            fetchResidences();
+                                        }}
+                                        disabled={isResidencesLoading}
+                                        className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between hover:bg-neon-cyan/10 hover:border-neon-cyan/40 transition-all group"
+                                    >
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-neon-cyan/20 rounded-xl border border-neon-cyan/30">
+                                                {isResidencesLoading ? <Loader2 className="w-5 h-5 text-neon-cyan animate-spin" /> : <Paintbrush className="w-5 h-5 text-neon-cyan" />}
+                                            </div>
+                                            <div className="text-left">
+                                                <h3 className="font-bold text-white uppercase italic tracking-tight">Photos Résidences</h3>
+                                                <p className="text-[10px] text-gray-500 uppercase font-black tracking-widest">Modifier les flyers des séries</p>
+                                            </div>
+                                        </div>
+                                        <ArrowRight className="w-5 h-5 text-gray-500 group-hover:translate-x-1 transition-transform" />
+                                    </button>
                                 </div>
                             </motion.div>
                         </div>
@@ -6957,6 +7043,114 @@ export function AdminDashboard() {
                         </div>
                     )}
                 </AnimatePresence>
+
+                {/* Residences photos management modal */}
+                <AnimatePresence>
+                    {isResidencesModalOpen && (
+                        <div className="fixed inset-0 z-[150] flex items-center justify-center p-6 bg-black/95 backdrop-blur-xl">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="bg-dark-bg border border-white/10 rounded-[32px] p-8 max-w-4xl w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[85vh]"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-white to-neon-cyan" />
+                                
+                                <div className="flex justify-between items-start mb-8 shrink-0">
+                                    <div>
+                                        <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
+                                            Flyers <span className="text-neon-cyan">Résidences</span>
+                                        </h2>
+                                        <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">
+                                            {residencesList.length} résidences actives trouvées dans l'agenda
+                                        </p>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsResidencesModalOpen(false)}
+                                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                    >
+                                        <X className="w-5 h-5" />
+                                    </button>
+                                </div>
+
+                                <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar space-y-4 pb-4">
+                                    {residencesList.map((res: any) => {
+                                        const isThisUpdating = updatingResidenceId === `${res.title}|${res.location}`;
+                                        return (
+                                            <div 
+                                                key={`${res.title}-${res.location}`}
+                                                className="bg-white/5 border border-white/10 rounded-[2rem] p-6 flex flex-col md:flex-row items-center gap-6 group hover:bg-white/[0.08] transition-all"
+                                            >
+                                                <div className="w-32 h-32 md:w-40 md:h-40 relative rounded-2xl overflow-hidden border border-white/10 flex-shrink-0 bg-black/40">
+                                                    {res.image ? (
+                                                        <img src={res.image} alt={res.title} className="w-full h-full object-cover" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center">
+                                                            <ImageIcon className="w-8 h-8 text-white/10" />
+                                                        </div>
+                                                    )}
+                                                    {isThisUpdating && (
+                                                        <div className="absolute inset-0 bg-black/60 flex items-center justify-center">
+                                                            <Loader2 className="w-8 h-8 text-neon-cyan animate-spin" />
+                                                        </div>
+                                                    )}
+                                                </div>
+
+                                                <div className="flex-1 text-center md:text-left">
+                                                    <div className="mb-2">
+                                                        <span className="text-[9px] font-black bg-neon-cyan/20 text-neon-cyan px-2 py-0.5 rounded-full border border-neon-cyan/30 uppercase tracking-widest">RÉSIDENCE HEBDO</span>
+                                                    </div>
+                                                    <h3 className="text-xl font-black text-white uppercase italic tracking-tight mb-1">{res.title}</h3>
+                                                    <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 text-gray-400 text-[10px] font-bold uppercase tracking-widest">
+                                                        <span className="flex items-center gap-1.5"><MapPin className="w-3.5 h-3.5" /> {res.location}</span>
+                                                        <span className="flex items-center gap-1.5 text-neon-yellow"><Calendar className="w-3.5 h-3.5" /> {res.count} dates programmées</span>
+                                                    </div>
+
+                                                    <div className="mt-6 flex flex-wrap gap-3 justify-center md:justify-start">
+                                                        <button 
+                                                            onClick={() => {
+                                                                setEditingResidence(res);
+                                                                setShowResidenceUpload(true);
+                                                            }}
+                                                            disabled={!!updatingResidenceId}
+                                                            className="px-6 py-2.5 bg-neon-cyan text-black font-black text-[10px] uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-neon-cyan/20 flex items-center gap-2"
+                                                        >
+                                                            <ImageIcon className="w-3.5 h-3.5" />
+                                                            Modifier le flyer
+                                                        </button>
+                                                        <button 
+                                                            onClick={() => window.open(`https://dropsiders.fr/agenda?location=${encodeURIComponent(res.location)}`, '_blank')}
+                                                            className="px-6 py-2.5 bg-white/5 border border-white/10 text-white font-black text-[10px] uppercase tracking-widest rounded-xl hover:bg-white/10 transition-all flex items-center gap-2"
+                                                        >
+                                                            <ExternalLink className="w-3.5 h-3.5" />
+                                                            Voir sur le site
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+
+                                    {residencesList.length === 0 && (
+                                        <div className="py-20 text-center flex flex-col items-center">
+                                            <Calendar className="w-12 h-12 text-gray-700 mb-4" />
+                                            <p className="text-gray-500 font-black uppercase tracking-widest text-sm">Aucune résidence active trouvée</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                <ImageUploadModal 
+                    isOpen={showResidenceUpload}
+                    onClose={() => {
+                        setShowResidenceUpload(false);
+                        setEditingResidence(null);
+                    }}
+                    onUploadSuccess={handleUpdateResidencePhoto}
+                />
 
                 {/* Broken Images Modal */}
                 <AnimatePresence>
