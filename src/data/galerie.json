@@ -86,7 +86,8 @@
       "https://dropsiders.fr/uploads/migrated/dropsiders/assets/galeries/top-100-djs-mag-unvrs-ibiza-2025-espagne/img-79.jpg",
       "https://dropsiders.fr/uploads/migrated/dropsiders/assets/galeries/top-100-djs-mag-unvrs-ibiza-2025-espagne/img-80.jpg"
     ],
-    "date": "2025"
+    "date": "2025",
+    "photo_verified": true
   },
   {
     "id": "john-summit-ushuaia-ibiza-2025-espagne",
@@ -2405,7 +2406,8 @@
       "https://dropsiders.fr/uploads/migrated/dropsiders/assets/galeries/tomorrowland-winter-2022-france/img-79.jpg",
       "https://dropsiders.fr/uploads/migrated/dropsiders/assets/galeries/tomorrowland-winter-2022-france/img-80.jpg"
     ],
-    "date": "2022"
+    "date": "2022",
+    "photo_verified": true
   },
   {
     "id": "eric-prydz-the-warehouse-project-2021-angleterre",
