@@ -119,9 +119,9 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
             let clubs: any[] = [];
             let fests: any[] = [];
             
-            if (djsRes.ok) djs = (await djsRes.json()).filter((d: any) => d.status === 'waiting').map((d: any) => ({ ...d, id: String(d.id), type: 'DJS' }));
-            if (clubsRes.ok) clubs = (await clubsRes.json()).filter((c: any) => c.status === 'waiting').map((c: any) => ({ ...c, id: String(c.id), type: 'CLUBS' }));
-            if (festsRes.ok) fests = (await festsRes.json()).filter((f: any) => f.status === 'waiting').map((f: any) => ({ ...f, id: String(f.id), type: 'FESTIVALS' }));
+            if (djsRes.ok) djs = (await djsRes.json()).filter((d: any) => d.status === 'waiting').map((d: any) => ({ ...d, id: `DJS:${d.id}`, type: 'DJS' }));
+            if (clubsRes.ok) clubs = (await clubsRes.json()).filter((c: any) => c.status === 'waiting').map((c: any) => ({ ...c, id: `CLUBS:${c.id}`, type: 'CLUBS' }));
+            if (festsRes.ok) fests = (await festsRes.json()).filter((f: any) => f.status === 'waiting').map((f: any) => ({ ...f, id: `FESTIVALS:${f.id}`, type: 'FESTIVALS' }));
             
             setWikiWaiting([...djs, ...clubs, ...fests]);
 
@@ -208,13 +208,13 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                 }
                 setSubmissions(prev => prev.map(s => ids.includes(s.id) ? { ...s, status: action === 'approve' ? 'approved' : 'rejected' } : s));
             } else if (tab === 'wiki' && action === 'reject') {
-                // Grouper par type pour éviter de faire des dizaines de requêtes à la suite
                 const groupedIds: Record<string, string[]> = {};
-                for (const id of ids) {
-                    const item = wikiWaiting.find(w => w.id === id);
+                for (const fullId of ids) {
+                    const item = wikiWaiting.find(w => w.id === fullId);
                     if (!item) continue;
+                    const realId = fullId.includes(':') ? fullId.split(':')[1] : fullId;
                     if (!groupedIds[item.type]) groupedIds[item.type] = [];
-                    groupedIds[item.type].push(id);
+                    groupedIds[item.type].push(realId);
                 }
 
                 for (const [type, typeIds] of Object.entries(groupedIds)) {
@@ -234,11 +234,12 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                 setWikiWaiting(prev => prev.filter(w => !ids.includes(w.id)));
             } else if (tab === 'wiki' && action === 'approve') {
                 const groupedIds: Record<string, string[]> = {};
-                for (const id of ids) {
-                    const item = wikiWaiting.find(w => w.id === id);
+                for (const fullId of ids) {
+                    const item = wikiWaiting.find(w => w.id === fullId);
                     if (!item) continue;
+                    const realId = fullId.includes(':') ? fullId.split(':')[1] : fullId;
                     if (!groupedIds[item.type]) groupedIds[item.type] = [];
-                    groupedIds[item.type].push(id);
+                    groupedIds[item.type].push(realId);
                 }
 
                 for (const [type, typeIds] of Object.entries(groupedIds)) {
@@ -319,13 +320,14 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
         }
 
         try {
+            const realId = id.includes(':') ? id.split(':')[1] : id;
             const response = await apiFetch('/api/wiki/update-photo', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                     ...getAuthHeaders()
                 },
-                body: JSON.stringify({ id, type, imageUrl })
+                body: JSON.stringify({ id: realId, type, imageUrl })
             });
 
             if (response.ok) {
