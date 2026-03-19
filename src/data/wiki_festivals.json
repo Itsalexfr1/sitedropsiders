@@ -1196,21 +1196,6 @@
     "website": "https://www.coachella.com"
   },
   {
-    "id": "307",
-    "name": "Lollapalooza (Sziget Stage)",
-    "bio": "Incontournable de la scène mondiale, Lollapalooza (Sziget Stage) est une figure majeure de la culture électronique actuelle.",
-    "country": "Intl",
-    "image": "https://static.ra.co/images/events/lg/lollapaloozaszigetstage.jpg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/Lollapalooza%20(Sziget%20Stage)",
-    "instagram": "https://instagram.com/lollapaloozaszigetstage",
-    "facebook": "https://facebook.com/lollapaloozaszigetstage",
-    "soundcloud": "https://soundcloud.com/lollapaloozaszigetstage",
-    "beatport": "https://www.beatport.com/search?q=Lollapalooza%20(Sziget%20Stage)",
-    "bio_en": "A major figure on the global scene, Lollapalooza (Sziget Stage) is a key player in today's electronic culture.",
-    "status": "waiting"
-  },
-  {
     "id": "308",
     "name": "Sziget",
     "bio": "Incontournable de la scène mondiale, Sziget est une figure majeure de la culture électronique actuelle.",
