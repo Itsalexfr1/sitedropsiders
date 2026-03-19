@@ -1843,24 +1843,5 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
-  },
-  {
-    "id": 315,
-    "title": "ANTS",
-    "date": "2026-05-16",
-    "startDate": "2026-05-02",
-    "endDate": "2026-05-30",
-    "venue": "UNVRS",
-    "location": "IBIZA",
-    "country": "ESPAGNE",
-    "type": "Résidence",
-    "image": "/uploads/uploads/f91f7d3efd9ca7fa-7a3ccb8c_0008_4eb5_b8f7_a612db.webp",
-    "url": "https://www.unvrs.com/events/2026/ants-unvrs/02-05-2026",
-    "genre": "House",
-    "month": "MAI",
-    "isWeekly": true,
-    "dayOfWeek": 6,
-    "isSoldOut": false,
-    "isLiveDropsiders": false
   }
 ]
