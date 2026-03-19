@@ -934,22 +934,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }
     }, [activeQuiz]);
 
-    // 🗓️ Auto-Cleanup Planning
+    // 🗓️ Auto-Cleanup Planning (Désactivé suite aux retours)
     useEffect(() => {
-        const interval = setInterval(() => {
-            const now = new Date();
-            const currentTimeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
-
-            setLineupItems(prev => {
-                const filtered = prev.filter(item => {
-                    // Expecting format HH:MM
-                    if (!item.endTime) return true;
-                    return item.endTime > currentTimeStr;
-                });
-                return filtered;
-            });
-        }, 60000);
-        return () => clearInterval(interval);
+        // Le code de nettoyage automatique a été retiré pour laisser le contrôle total à l'admin
     }, []);
 
     // 🏆 Top Talkers Tracking
