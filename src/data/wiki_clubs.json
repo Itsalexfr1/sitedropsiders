@@ -2126,22 +2126,6 @@
     "status": "verified"
   },
   {
-    "id": "395",
-    "name": "Vent",
-    "city": "Tokyo",
-    "country": "Japon",
-    "bio": "Incontournable de la scène mondiale, Vent Tokyo est une figure majeure de la culture électronique actuelle.",
-    "image": "/uploads/uploads/17690cfbcc2fe6a3-2f_main_floor.jpg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/Vent%20Tokyo",
-    "instagram": "https://instagram.com/venttokyo",
-    "facebook": "https://facebook.com/venttokyo",
-    "soundcloud": "https://soundcloud.com/venttokyo",
-    "beatport": "https://www.beatport.com/search?q=Vent%20Tokyo",
-    "bio_en": "A major figure on the global scene, Vent Tokyo is a key player in today's electronic culture.",
-    "status": "waiting"
-  },
-  {
     "id": "397",
     "name": "Marquee",
     "city": "Singapore",
