@@ -50,6 +50,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
         itemName: ''
     });
     const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
+    const [photoUploadTarget, setPhotoUploadTarget] = useState<string | null>(null); // submission id to replace photo
     const [isAddingWiki, setIsAddingWiki] = useState(false);
     const [newWikiType, setNewWikiType] = useState<'DJS' | 'CLUBS' | 'FESTIVALS'>('DJS');
     const [newWikiForm, setNewWikiForm] = useState({
@@ -160,6 +161,26 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
 
     const selectAll = () => setSelected(new Set(submissions.map(s => s.id)));
     const deselectAll = () => setSelected(new Set());
+
+    const handleReplacePhoto = async (submissionId: string, newImageUrl: string) => {
+        try {
+            const response = await apiFetch('/api/photos/update-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+                body: JSON.stringify({ id: submissionId, imageUrl: newImageUrl })
+            });
+            if (response.ok) {
+                setSubmissions(prev => prev.map(s => s.id === submissionId ? { ...s, imageUrl: newImageUrl } : s));
+            } else {
+                const err = await response.json();
+                showAlert('Erreur remplacement photo : ' + (err.error || 'Inconnue'));
+            }
+        } catch (e) {
+            showAlert('Erreur réseau lors du remplacement de la photo');
+        } finally {
+            setPhotoUploadTarget(null);
+        }
+    };
 
     const handleAction = async (id: string, action: 'approve' | 'reject') => {
         try {
@@ -582,18 +603,26 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                                                             )}
 
                                                             {!selectMode && (
-                                                                <div className="flex gap-2 pt-2">
+                                                                <div className="flex flex-col gap-2 pt-2">
+                                                                    <div className="flex gap-2">
+                                                                        <button
+                                                                            onClick={() => handleAction(sub.id, 'approve')}
+                                                                            className="flex-1 flex items-center justify-center gap-2 py-3 bg-neon-green text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all"
+                                                                        >
+                                                                            <Check className="w-4 h-4" /> ACCEPTER
+                                                                        </button>
+                                                                        <button
+                                                                            onClick={() => handleAction(sub.id, 'reject')}
+                                                                            className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-neon-red text-white hover:text-black rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all"
+                                                                        >
+                                                                            <Trash2 className="w-4 h-4" /> REJETER
+                                                                        </button>
+                                                                    </div>
                                                                     <button
-                                                                        onClick={() => handleAction(sub.id, 'approve')}
-                                                                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-neon-green text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:shadow-[0_0_20px_rgba(57,255,20,0.4)] transition-all"
+                                                                        onClick={() => setPhotoUploadTarget(sub.id)}
+                                                                        className="w-full flex items-center justify-center gap-2 py-2.5 bg-neon-purple/10 border border-dashed border-neon-purple/40 rounded-xl text-[9px] font-black uppercase text-neon-purple hover:bg-neon-purple hover:text-white transition-all"
                                                                     >
-                                                                        <Check className="w-4 h-4" /> ACCEPTER
-                                                                    </button>
-                                                                    <button
-                                                                        onClick={() => handleAction(sub.id, 'reject')}
-                                                                        className="flex-1 flex items-center justify-center gap-2 py-3 bg-white/5 hover:bg-neon-red text-white hover:text-black rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all"
-                                                                    >
-                                                                        <Trash2 className="w-4 h-4" /> REJETER
+                                                                        <Upload className="w-3 h-3" /> CHANGER LA PHOTO
                                                                     </button>
                                                                 </div>
                                                             )}
@@ -869,6 +898,19 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                         }}
                         accentColor="neon-purple"
                         aspect={4/5}
+                    />
+
+                    {/* Photo Replacement Upload Modal */}
+                    <ImageUploadModal
+                        isOpen={photoUploadTarget !== null}
+                        onClose={() => setPhotoUploadTarget(null)}
+                        onUploadSuccess={(url) => {
+                            if (photoUploadTarget) {
+                                handleReplacePhoto(photoUploadTarget, url);
+                            }
+                        }}
+                        accentColor="neon-cyan"
+                        aspect={16/9}
                     />
 
                     {/* Footer */}

@@ -3269,6 +3269,38 @@ ${urls.map(u => `  <url>
 
         }
 
+        if (path === '/api/photos/update-url' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { id, imageUrl } = await request.json();
+                if (!id || !imageUrl) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+
+                let saved = { ok: false, error: '' };
+                let attempts = 0;
+                while (attempts < 3) {
+                    const file = await fetchGitHubFile(PENDING_SUBMISSIONS_PATH, gitConfig);
+                    if (!file) break;
+
+                    const submissions = file.content;
+                    const index = submissions.findIndex((s: any) => s.id === id);
+                    if (index === -1) return new Response(JSON.stringify({ error: 'Submission not found' }), { status: 404, headers });
+
+                    submissions[index].imageUrl = imageUrl;
+
+                    saved = await saveGitHubFile(PENDING_SUBMISSIONS_PATH, submissions, `Update photo for submission ${id}`, file.sha, gitConfig);
+                    if (saved.ok) break;
+                    if (saved.status !== 409) break;
+                    attempts++;
+                    await new Promise(r => setTimeout(r, 500 * attempts));
+                }
+
+                if (!saved.ok) return new Response(JSON.stringify({ error: 'Failed to update: ' + (saved.error || 'Conflict') }), { status: 500, headers });
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/r2/stats' && request.method === 'GET') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
