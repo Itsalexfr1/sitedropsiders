@@ -1874,21 +1874,7 @@ ${generateSocialsHtml()}
                                     </button>
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Année (Opt)</label>
-                                <div className="relative group">
-                                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 group-focus-within:text-neon-cyan transition-colors" />
-                                    <input
-                                        type="number"
-                                        value={year}
-                                        onChange={(e) => setYear(e.target.value)}
-                                        placeholder="Ex: 2025"
-                                        min="2000"
-                                        max="2100"
-                                        className="w-full bg-black/20 border border-white/10 rounded-lg p-3 pl-10 text-white focus:border-neon-cyan outline-none"
-                                    />
-                                </div>
-                            </div>
+
                         </div>
 
 

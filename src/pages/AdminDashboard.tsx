@@ -288,6 +288,26 @@ export function AdminDashboard() {
         }
     };
 
+    const handleCleanupPastAgenda = async () => {
+        if (!confirm("Voulez-vous vraiment supprimer tous les événements passés de l'agenda ?")) return;
+        setMaintenanceLoading(true);
+        try {
+            const res = await apiFetch('/api/admin/cleanup-past-agenda', {
+                method: 'POST',
+                headers: getAuthHeaders()
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setGlobalAlert({ message: `Nettoyage fini : ${data.count} événements passés supprimés !`, type: 'info' });
+            }
+        } catch (e) {
+            console.error(e);
+            setGlobalAlert({ message: "Échec du nettoyage de l'agenda", type: 'danger' });
+        } finally {
+            setMaintenanceLoading(false);
+        }
+    };
+
     const fetchUnusedImages = async () => {
         setIsScanningUnused(true);
         try {
@@ -3122,7 +3142,7 @@ export function AdminDashboard() {
                                             </label>
                                             <div className="grid grid-cols-2 lg:grid-cols-3 gap-2">
                                                 {[
-                                                    { label: 'Aucun (ésactivé)', val: '' },
+                                                    { label: 'Aucun (désactivé)', val: '' },
                                                     { label: 'Accueil', val: '/' },
                                                     { label: 'News', val: '/news' },
                                                     { label: 'Agenda', val: '/agenda' },
@@ -3295,7 +3315,7 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-purple/30 group-hover:scale-110 transition-transform">
                                             <FileText className="w-6 h-6 text-neon-purple" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">À‰crite</h3>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Écrite</h3>
                                         <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouveau format texte</p>
                                     </Link>
 
@@ -3306,8 +3326,8 @@ export function AdminDashboard() {
                                         <div className="w-12 h-12 bg-neon-red/20 rounded-2xl flex items-center justify-center mb-6 border border-neon-red/30 group-hover:scale-110 transition-transform">
                                             <Youtube className="w-6 h-6 text-neon-red" />
                                         </div>
-                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Viéo</h3>
-                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouveau format viéo</p>
+                                        <h3 className="text-xl font-bold text-white uppercase italic mb-1">Vidéo</h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Nouveau format vidéo</p>
                                     </Link>
                                 </div>
 
@@ -7290,9 +7310,18 @@ export function AdminDashboard() {
                                         </div>
 
                                         <button 
+                                            onClick={handleCleanupPastAgenda}
+                                            disabled={maintenanceLoading}
+                                            className="w-full mb-4 py-4 bg-neon-red/20 border border-neon-red/30 text-neon-red font-black uppercase italic tracking-[0.2em] text-[11px] rounded-2xl hover:bg-neon-red/30 transition-all flex items-center justify-center gap-3"
+                                        >
+                                            {maintenanceLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Trash2 className="w-5 h-5" />}
+                                            NETTOYER LES ÉVÉNEMENTS PASSÉS
+                                        </button>
+
+                                        <button 
                                             onClick={handleBulkYearUpdate}
                                             disabled={maintenanceLoading}
-                                            className="w-full mt-8 py-4 bg-neon-yellow text-black font-black uppercase italic tracking-[0.2em] text-[11px] rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_30_rgba(255,255,0,0.2)] flex items-center justify-center gap-3"
+                                            className="w-full py-4 bg-neon-yellow text-black font-black uppercase italic tracking-[0.2em] text-[11px] rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all shadow-[0_10px_30_rgba(255,255,0,0.2)] flex items-center justify-center gap-3"
                                         >
                                             {maintenanceLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <RefreshCw className="w-5 h-5" />}
                                             EXÉCUTER LA MIGRATION

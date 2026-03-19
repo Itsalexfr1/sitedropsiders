@@ -911,7 +911,7 @@ export function AdminManage() {
                                                     )}
                                                 </td>
                                                 <td className="px-6 py-4">
-                                                    <span className="text-xs font-bold text-gray-400">{item.year || '-'}</span>
+                                                    <span className="text-xs font-bold text-gray-400">{item.year || (item.startDate || item.date || '').split('-')[0] || '-'}</span>
                                                 </td>
                                                 <td className="px-6 py-4 text-sm text-gray-400">{item.date}</td>
                                                 <td className="px-6 py-4 text-right flex items-center justify-end gap-1">

@@ -33,6 +33,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
     const [isLiveDropsiders, setIsLiveDropsiders] = useState(false);
     const [isContest, setIsContest] = useState(false);
     const [additionalDates, setAdditionalDates] = useState<string[]>([]);
+    const [year, setYear] = useState(new Date().getFullYear().toString());
     const [showUploadModal, setShowUploadModal] = useState(false);
 
     // Autocomplete State
@@ -106,6 +107,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
             setIsLiveDropsiders(editingItem.isLiveDropsiders || false);
             setIsContest(editingItem.isContest || false);
             setAdditionalDates(editingItem.additionalDates || []);
+            setYear(editingItem.year || (editingItem.startDate || editingItem.date || '').split('-')[0] || new Date().getFullYear().toString());
         }
     }, [isEditing, editingItem]);
 
@@ -170,6 +172,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                 isSoldOut,
                 isLiveDropsiders,
                 isContest,
+                year: year || startDate.split('-')[0],
                 additionalDates: additionalDates.filter(d => d),
                 month: new Date(startDate).toLocaleString('fr-FR', { month: 'long' }).toUpperCase()
             };
@@ -238,9 +241,23 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                             <input
                                 type="date"
                                 value={startDate}
-                                onChange={(e) => setStartDate(e.target.value)}
+                                onChange={(e) => {
+                                    setStartDate(e.target.value);
+                                    if (!year) setYear(e.target.value.split('-')[0]);
+                                }}
                                 className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:border-neon-yellow outline-none transition-all"
                                 required
+                            />
+                        </div>
+
+                        <div className="space-y-2">
+                            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Année</label>
+                            <input
+                                type="text"
+                                value={year}
+                                onChange={(e) => setYear(e.target.value)}
+                                placeholder="2026"
+                                className="w-full bg-black/40 border border-white/10 rounded-xl py-3 px-4 text-white focus:border-neon-yellow outline-none transition-all"
                             />
                         </div>
 

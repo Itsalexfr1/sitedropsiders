@@ -2599,6 +2599,19 @@ ${urls.map(u => `  <url>
                                 hasChanged = true;
                             }
                         });
+                        // Update title if it contains the year
+                        if (res.title && res.title.includes(String(oldYear))) {
+                            res.title = res.title.replace(new RegExp(String(oldYear), 'g'), String(newYear));
+                            hasChanged = true;
+                        }
+                        // Update year field
+                        if (res.startDate && res.startDate.startsWith(`${newYear}-`)) {
+                             res.year = String(newYear);
+                             const d = new Date(res.startDate);
+                             const months = ['JANVIER', 'FÉVRIER', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUILLET', 'AOÛT', 'SEPTEMBRE', 'OCTOBRE', 'NOVEMBRE', 'DÉCEMBRE'];
+                             res.month = months[d.getMonth()];
+                             hasChanged = true;
+                        }
                     } else if (type === 'news') {
                         if (String(res.year) === String(oldYear)) {
                             res.year = String(newYear);
@@ -2606,6 +2619,10 @@ ${urls.map(u => `  <url>
                         }
                         if (res.date && res.date.startsWith(`${oldYear}-`)) {
                             res.date = res.date.replace(`${oldYear}-`, `${newYear}-`);
+                            hasChanged = true;
+                        }
+                        if (res.title && res.title.includes(String(oldYear))) {
+                            res.title = res.title.replace(new RegExp(String(oldYear), 'g'), String(newYear));
                             hasChanged = true;
                         }
                     }
@@ -2623,6 +2640,36 @@ ${urls.map(u => `  <url>
                     return new Response(JSON.stringify({ error: 'Error saving: ' + saved.error }), { status: 500, headers });
                 }
             } catch (e) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
+        }
+
+        // --- API: CLEANUP PAST AGENDA ---
+        if (path === '/api/admin/cleanup-past-agenda' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            const FILE_PATH = 'src/data/agenda.json';
+            try {
+                const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig);
+                if (!agendaFile) return new Response(JSON.stringify({ error: 'Error fetching' }), { status: 502, headers });
+                
+                const now = new Date();
+                const todayStr = now.toISOString().split('T')[0];
+                const originalData = agendaFile.content;
+                
+                const newData = originalData.filter((item: any) => {
+                    // Consider an event passed if its endDate or startDate is before today
+                    const eventDate = item.endDate || item.date || item.startDate;
+                    return eventDate >= todayStr;
+                });
+                
+                const removedCount = originalData.length - newData.length;
+                if (removedCount === 0) return new Response(JSON.stringify({ success: true, count: 0, message: "Aucun événement passé trouvé." }), { status: 200, headers });
+                
+                const saved = await saveGitHubFile(FILE_PATH, newData, `Cleanup ${removedCount} past events from agenda`, agendaFile.sha, gitConfig);
+                if (saved.ok) {
+                    return new Response(JSON.stringify({ success: true, count: removedCount }), { status: 200, headers });
+                } else {
+                    return new Response(JSON.stringify({ error: 'Error saving: ' + saved.error }), { status: 500, headers });
+                }
+            } catch (e: any) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
 
         // --- API: CREATE GALERIE ---
