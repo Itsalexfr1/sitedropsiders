@@ -1361,21 +1361,6 @@
     "status": "verified"
   },
   {
-    "id": "320",
-    "name": "Voltage",
-    "bio": "Incontournable de la scène mondiale, Voltage est une figure majeure de la culture électronique actuelle.",
-    "country": "Intl",
-    "image": "https://static.ra.co/images/events/lg/voltage.jpg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/Voltage",
-    "instagram": "https://instagram.com/voltage",
-    "facebook": "https://facebook.com/voltage",
-    "soundcloud": "https://soundcloud.com/voltage",
-    "beatport": "https://www.beatport.com/search?q=Voltage",
-    "bio_en": "A major figure on the global scene, Voltage is a key player in today's electronic culture.",
-    "status": "waiting"
-  },
-  {
     "id": "321",
     "name": "Fuse on the Beach",
     "bio": "Incontournable de la scène mondiale, Fuse on the Beach est une figure majeure de la culture électronique actuelle.",
