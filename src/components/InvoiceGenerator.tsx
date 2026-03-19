@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import html2pdf from 'html2pdf.js';
 import { Plus, Trash2, Send, Loader, X, Mail, Save, History, CheckCircle, Clock, Download, Printer, ChevronRight, Building2, User, Settings, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -297,9 +298,19 @@ export function InvoiceGenerator() {
     const saveLineAsArticle = (line: InvoiceLine) => {
         if (!line.description.trim()) return;
         const na: SavedArticle = { id: Date.now().toString(), description: line.description, unitPrice: line.unitPrice };
-        const updated = [na, ...savedArticles.filter(a => a.description !== line.description)];
+        const updated = [na, ...savedArticles.filter(a => a.description !== na.description)];
         setSavedArticles(updated);
         localStorage.setItem('inv_articles', JSON.stringify(updated));
+    };
+
+    const saveArticleFromLine = (line: InvoiceLine) => {
+        if (!line.description.trim()) return;
+        const na = { id: Date.now().toString(), description: line.description, unitPrice: line.unitPrice };
+        const updated = [na, ...savedArticles.filter(a => a.description !== na.description)];
+        setSavedArticles(updated);
+        localStorage.setItem('inv_articles', JSON.stringify(updated));
+        setSettingsSaved(true);
+        setTimeout(() => setSettingsSaved(false), 2000);
     };
 
     const getInvoiceData = () => ({ invoiceNumber: formattedNumber, date, dueDate, clientName, clientAddress, clientEmail, lines, iban, bic, total, notes, sender });
@@ -333,13 +344,27 @@ export function InvoiceGenerator() {
         setSendStatus('sending'); setSendError('');
         try {
             const html = buildInvoiceHTML(getInvoiceData());
+            
+            // Generate PDF on frontend
+            const element = document.createElement('div');
+            element.innerHTML = html;
+            const opt = { margin: 0, filename: `Facture_${formattedNumber}.pdf`, image: { type: 'jpeg' as const, quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } };
+            const pdfDataUri = await html2pdf().from(element).set(opt).outputPdf('datauristring');
+
             const adminUser = localStorage.getItem('admin_user') || '';
             const adminPass = localStorage.getItem('admin_password') || '';
             const sessionId = localStorage.getItem('admin_session_id') || '';
             const res = await fetch('/api/facture/send', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass, 'X-Session-ID': sessionId },
-                body: JSON.stringify({ to: emailTo, subject: emailSubject, message: emailMessage, invoiceHtml: html, filename: `Facture_${formattedNumber}.html`, invoiceData: { number: formattedNumber, client: clientName, total, date } })
+                body: JSON.stringify({ 
+                    to: emailTo, 
+                    subject: emailSubject, 
+                    message: emailMessage, 
+                    pdfBase64: pdfDataUri, 
+                    filename: `Facture_${formattedNumber}.pdf`, 
+                    invoiceData: { number: formattedNumber, client: clientName, total, date } 
+                })
             });
             if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Erreur serveur'); }
             setSendStatus('success');
@@ -436,7 +461,7 @@ export function InvoiceGenerator() {
                             className="p-4 md:p-8 grid grid-cols-1 lg:grid-cols-12 gap-5 md:gap-8">
 
                             {/* LEFT */}
-                            <div className="lg:col-span-5 space-y-6">
+                            <div className="lg:col-span-7 space-y-6">
 
                                 {/* Invoice meta */}
                                 <div className={cardCls + " space-y-4"}>
@@ -667,6 +692,25 @@ export function InvoiceGenerator() {
                                         <div className="flex justify-between font-black text-sm text-white">
                                             <span>TOTAL TTC</span>
                                             <span className="text-indigo-400">{total.toFixed(2)} €</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+ 
+                            {/* RIGHT COLUMN: PREVIEW (Sticky) */}
+                            <div className="hidden lg:block lg:col-span-5 sticky top-8">
+                                <div className="bg-white/5 border border-white/10 rounded-3xl shadow-2xl overflow-hidden min-h-[850px] flex flex-col backdrop-blur-sm">
+                                    <div className="px-6 py-4 border-b border-white/5 flex items-center justify-between bg-white/5">
+                                        <h3 className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-400">Aperçu interactif (A4)</h3>
+                                        <div className="flex gap-1.5">
+                                            <div className="w-2.5 h-2.5 rounded-full bg-red-500/20"></div>
+                                            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/20"></div>
+                                            <div className="w-2.5 h-2.5 rounded-full bg-green-500/20"></div>
+                                        </div>
+                                    </div>
+                                    <div className="flex-1 overflow-auto bg-black/40 p-8 scrollbar-hide">
+                                        <div className="bg-white shadow-2xl mx-auto origin-top" style={{ width: '210mm', minHeight: '297mm', transform: 'scale(0.5)' }}>
+                                            <iframe srcDoc={buildInvoiceHTML(getInvoiceData())} title="Preview" className="w-full h-full border-0" style={{ minHeight: '1122px' }} />
                                         </div>
                                     </div>
                                 </div>

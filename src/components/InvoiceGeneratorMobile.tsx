@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
-import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock } from 'lucide-react';
+import html2pdf from 'html2pdf.js';
+import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock, Mail, Download, Printer, Eye } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -89,7 +90,7 @@ export function InvoiceGeneratorMobile() {
     const [lines, setLines] = useState<InvoiceLine[]>([{ id: '1', description: 'Prestation Light', quantity: 1, unitPrice: 0 }]);
 
     const [savedClients, setSavedClients] = useState<SavedClient[]>(() => { try { return JSON.parse(localStorage.getItem('inv_clients') || '[]'); } catch { return []; } });
-    const [savedArticles] = useState<SavedArticle[]>(() => {
+    const [savedArticles, setSavedArticles] = useState<SavedArticle[]>(() => {
         try {
             const s = JSON.parse(localStorage.getItem('inv_articles') || 'null');
             if (s && s.length > 0) return s;
@@ -167,6 +168,14 @@ export function InvoiceGeneratorMobile() {
         setLines(p => p.map(l => l.id === updated.id ? updated : l));
     };
 
+    const saveCurrentArticle = () => {
+        if (!editingLine || !editingLine.description.trim()) return;
+        const na = { id: Date.now().toString(), description: editingLine.description, unitPrice: editingLine.unitPrice };
+        const updated = [na, ...savedArticles.filter(a => a.description !== na.description)];
+        setSavedArticles(updated);
+        localStorage.setItem('inv_articles', JSON.stringify(updated));
+    };
+
     const saveClient = () => {
         if (!clientName.trim()) return;
         const nc: any = { id: Date.now().toString(), name: clientName, address: clientAddress, city: clientCity, email: clientEmail };
@@ -194,7 +203,25 @@ export function InvoiceGeneratorMobile() {
             const adminUser = localStorage.getItem('admin_user') || '';
             const adminPass = localStorage.getItem('admin_password') || '';
             const sessionId = localStorage.getItem('admin_session_id') || '';
-            const res = await fetch('/api/facture/send', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass, 'X-Session-ID': sessionId }, body: JSON.stringify({ to: emailTo, subject: emailSubject, message: emailMessage, invoiceHtml: buildHTML(), filename: `Facture_${formattedNumber}.html`, invoiceData: { number: formattedNumber, client: clientName, total, date } }) });
+            
+            // Generate PDF on frontend
+            const element = document.createElement('div');
+            element.innerHTML = buildHTML();
+            const opt = { margin: 0, filename: `Facture_${formattedNumber}.pdf`, image: { type: 'jpeg' as const, quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } };
+            const pdfDataUri = await html2pdf().from(element).set(opt).outputPdf('datauristring');
+
+            const res = await fetch('/api/facture/send', { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass, 'X-Session-ID': sessionId }, 
+                body: JSON.stringify({ 
+                    to: emailTo, 
+                    subject: emailSubject, 
+                    message: emailMessage, 
+                    pdfBase64: pdfDataUri,
+                    filename: `Facture_${formattedNumber}.pdf`, 
+                    invoiceData: { number: formattedNumber, client: clientName, total, date } 
+                }) 
+            });
             if (!res.ok) { const d = await res.json().catch(() => ({})); throw new Error(d.error || 'Erreur'); }
             setSendStatus('success');
             fetchHistory();
@@ -470,6 +497,10 @@ export function InvoiceGeneratorMobile() {
                             <span className="text-sm text-indigo-300 font-bold">Total ligne</span>
                             <span className="text-xl font-black text-white">{(editingLine.quantity * editingLine.unitPrice).toFixed(2)} €</span>
                         </div>
+                        <button onClick={saveCurrentArticle}
+                            className="w-full py-3.5 bg-white/5 border border-white/10 text-white/40 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
+                             <Save className="w-3.5 h-3.5 text-indigo-400" /> Sauvegarder dans le catalogue
+                        </button>
                         {lines.length > 1 && (
                             <button onClick={() => { deleteLine(editingLine.id); setSheet('none'); }}
                                 className="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2">
@@ -543,14 +574,16 @@ export function InvoiceGeneratorMobile() {
                         </button>
                     </div>
                     {/* Iframe preview */}
-                    <div className="flex-1 overflow-hidden bg-gray-200">
-                        <iframe
-                            key={previewKey}
-                            srcDoc={buildHTML()}
-                            title="Aperçu facture"
-                            className="w-full h-full border-0"
-                            style={{ minHeight: '100%' }}
-                        />
+                    <div className="flex-1 overflow-auto bg-gray-50 p-4">
+                        <div className="bg-white shadow-2xl mx-auto origin-top" style={{ width: '210mm', minHeight: '297mm', transform: 'scale(0.40)' }}>
+                            <iframe
+                                key={previewKey}
+                                srcDoc={buildHTML()}
+                                title="Aperçu facture"
+                                className="w-full h-full border-0"
+                                style={{ minHeight: '1122px' }}
+                            />
+                        </div>
                     </div>
                 </div>
             </Sheet>
