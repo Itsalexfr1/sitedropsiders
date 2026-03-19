@@ -1824,5 +1824,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 312,
+    "title": "Opening Party",
+    "date": "2026-04-26",
+    "startDate": "2026-04-26",
+    "endDate": "2026-04-26",
+    "venue": "UNVRS",
+    "location": "IBIZA",
+    "country": "ESPAGNE",
+    "type": "Opening",
+    "image": "/uploads/uploads/c4dfe413d4b104f9-19dda8f4_bc51_4060_841d_6e5936.webp",
+    "url": "https://www.clubtickets.com/clubbing/unvrs-ibiza/unvrs-opening-party/2026-04-26?aff=CT009#section-tickets",
+    "genre": "House",
+    "month": "AVRIL",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
