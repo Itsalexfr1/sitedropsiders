@@ -510,16 +510,16 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.shadowColor = 'rgba(0,0,0,0.8)';
                 ctx.shadowBlur = 20;
                 
-                // Title "LINE-UP"
+                // Title "LINE-UP" - Utilisation d'Orbitron (Police du site)
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '900 80px "Antonio", sans-serif';
-                ctx.letterSpacing = "10px";
+                ctx.font = '900 75px "Orbitron", sans-serif';
+                ctx.letterSpacing = "12px";
                 ctx.fillText(customText || 'LINE-UP', centerX, topY + 40);
 
-                // Date below title
+                // Date below title - Utilisation de Montserrat (Police du site)
                 ctx.fillStyle = `rgb(${activeData.grad})`;
-                ctx.font = '900 30px "Outfit", sans-serif';
+                ctx.font = '900 30px "Montserrat", sans-serif';
                 ctx.letterSpacing = "6px";
                 ctx.fillText(planningDate.toUpperCase(), centerX, topY + 95);
 
@@ -542,7 +542,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.shadowOffsetX = 2;
                     ctx.shadowOffsetY = 2;
 
-                    // Hour (Premium Condensed) - Alignée sur la limite gauche de la ligne
+                    // Hour (Premium Condensed)
                     ctx.textAlign = 'right';
                     ctx.fillStyle = `rgb(${activeData.grad})`;
                     ctx.font = '900 45px "Antonio", sans-serif';
@@ -555,26 +555,26 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     }
                     ctx.fillText(timeText, centerX - 200, y);
 
-                    // Artist (Premium Modern) - Décalé à gauche pour gagner de la place
+                    // Artist (Premium Modern) - Utilisation de Montserrat
                     ctx.textAlign = 'left';
                     ctx.fillStyle = '#fff';
                     const artistText = item.artist.toUpperCase();
-                    ctx.font = '900 42px "Outfit", sans-serif';
+                    ctx.font = '900 42px "Montserrat", sans-serif';
                     ctx.letterSpacing = "-1px";
                     
-                    const maxW = (canvas.width / 2) + 120; // Gain de place massif
+                    const maxW = (canvas.width / 2) + 120; 
                     if (ctx.measureText(artistText).width > maxW) {
                         if (artistText.includes(' B2B ')) {
                             const parts = artistText.split(' B2B ');
-                            ctx.font = '900 42px "Outfit", sans-serif';
+                            ctx.font = '900 42px "Montserrat", sans-serif';
                             ctx.fillText(parts[0], centerX - 150, y - 22);
-                            ctx.font = '900 30px "Outfit", sans-serif';
+                            ctx.font = '900 30px "Montserrat", sans-serif';
                             ctx.fillText('B2B ' + parts[1], centerX - 150, y + 18);
                         } else {
                             let fs = 42;
                             while (ctx.measureText(artistText).width > maxW && fs > 18) {
                                 fs--;
-                                ctx.font = `900 ${fs}px "Outfit", sans-serif`;
+                                ctx.font = `900 ${fs}px "Montserrat", sans-serif`;
                             }
                             ctx.fillText(artistText, centerX - 150, y);
                         }
@@ -857,7 +857,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     // --- FONT LOADER ---
     useEffect(() => {
         const link = document.createElement('link');
-        link.href = 'https://fonts.googleapis.com/css2?family=Antonio:wght@700;900&family=Outfit:wght@700;900&display=swap';
+        link.href = 'https://fonts.googleapis.com/css2?family=Antonio:wght@700;900&family=Montserrat:wght@700;900&family=Orbitron:wght@700;900&display=swap';
         link.rel = 'stylesheet';
         document.head.appendChild(link);
         return () => { document.head.removeChild(link); };
