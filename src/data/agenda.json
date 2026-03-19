@@ -5498,5 +5498,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 509,
+    "title": "Mosimann ",
+    "date": "2026-04-09",
+    "startDate": "2026-04-09",
+    "endDate": "2026-04-09",
+    "venue": "Paloma",
+    "location": "NIMES",
+    "country": "FRANCE",
+    "type": "Concert",
+    "image": "/uploads/uploads/e28458cd9a902d98-IMG_4110.jpeg",
+    "url": "https://quentinmosimann.com/",
+    "genre": "House",
+    "month": "AVRIL",
+    "isWeekly": false,
+    "isSoldOut": true,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
