@@ -2110,22 +2110,6 @@
     "status": "verified"
   },
   {
-    "id": "392",
-    "name": "Baum",
-    "city": "Bogota",
-    "country": "Colombie",
-    "bio": "Incontournable de la scène mondiale, Baum Bogota est une figure majeure de la culture électronique actuelle.",
-    "image": "/uploads/uploads/d10fba32cd978435-crobar.jpg",
-    "rating": "0",
-    "spotify": "https://open.spotify.com/search/Baum%20Bogota",
-    "instagram": "https://instagram.com/baumbogota",
-    "facebook": "https://facebook.com/baumbogota",
-    "soundcloud": "https://soundcloud.com/baumbogota",
-    "beatport": "https://www.beatport.com/search?q=Baum%20Bogota",
-    "bio_en": "A major figure on the global scene, Baum Bogota is a key player in today's electronic culture.",
-    "status": "waiting"
-  },
-  {
     "id": "393",
     "name": "Video Club",
     "city": "Bogota",
