@@ -43,7 +43,7 @@ export default defineConfig({
         ]
       },
       injectManifest: {
-        maximumFileSizeToCacheInBytes: 5000000,
+        maximumFileSizeToCacheInBytes: 8000000,
       },
       devOptions: {
         enabled: true,
@@ -121,6 +121,7 @@ export default defineConfig({
           'framer': ['framer-motion'],
           'ui-icons': ['lucide-react'],
           'md-editor': ['@uiw/react-md-editor'],
+          'confetti.module': ['canvas-confetti'],
         }
       }
     },
