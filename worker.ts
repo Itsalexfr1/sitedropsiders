@@ -915,7 +915,9 @@ ${urls.map(u => `  <url>
             path === '/api/wiki/approve-bulk' ||
             path === '/api/r2/stats' ||
             path === '/api/r2/duplicates' ||
-            path === '/api/admin/broken-images'
+            path === '/api/admin/broken-images' ||
+            path === '/api/admin/validate-photo' ||
+            path === '/api/r2/delete'
         );
 
         // --- API: PUSH NOTIFICATIONS (pre-auth, public endpoints) ---
