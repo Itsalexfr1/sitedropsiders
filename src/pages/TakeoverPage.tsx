@@ -3741,14 +3741,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <div className="p-6 bg-white/5 border border-white/10 rounded-[2.5rem] text-center space-y-2">
                                         <Music className="w-8 h-8 text-neon-cyan mx-auto mb-2" />
                                         <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Tracklist Live</h3>
-                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Identifiez les pÃƒÆ’Ã‚Â©pites en temps rÃƒÆ’Ã‚Â©el</p>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Identifiez les pépites en temps réel</p>
                                     </div>
 
                                     <div className="space-y-4">
                                         {tracklist.length === 0 ? (
                                             <div className="py-20 text-center space-y-4 bg-white/5 border border-white/5 rounded-[2.5rem] border-dashed">
                                                 <Search className="w-12 h-12 text-gray-800 mx-auto" />
-                                                <p className="text-gray-600 font-black uppercase text-[10px] tracking-widest italic">Aucun morceau rÃƒÆ’Ã‚Â©pertoriÃƒÆ’Ã‚Â©</p>
+                                                <p className="text-gray-600 font-black uppercase text-[10px] tracking-widest italic">Aucun morceau répertorié</p>
                                             </div>
                                         ) : (
                                             tracklist.map((set, i) => {
