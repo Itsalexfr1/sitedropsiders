@@ -500,7 +500,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.restore();
             } else if (theme === 'PLANNING') {
                 const centerX = canvas.width / 2;
-                const topY = activeTab === 'PUBLICATION' ? 350 : 600;
+                const topY = activeTab === 'PUBLICATION' ? 480 : 850;
                 
                 // Title "LINE-UP" or custom
                 ctx.textAlign = 'center';
@@ -509,20 +509,20 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.letterSpacing = "8px";
                 ctx.fillText(customText || 'LINE-UP', centerX, topY);
 
-                // Date below title
+                // Date below title (very tight gap)
                 ctx.font = '600 25px "Montserrat", sans-serif';
                 ctx.letterSpacing = "4px";
                 ctx.fillStyle = 'rgba(255,255,255,0.8)';
-                ctx.fillText(planningDate, centerX, topY + 45);
+                ctx.fillText(planningDate, centerX, topY + 35);
 
                 // Elegant divider
                 const lineW = 200;
                 ctx.fillStyle = 'rgba(255,255,255,0.3)';
-                ctx.fillRect(centerX - lineW, topY + 80, lineW * 2, 2);
+                ctx.fillRect(centerX - lineW, topY + 60, lineW * 2, 2);
 
-                // List items
-                const startY = topY + (activeTab === 'PUBLICATION' ? 180 : 250);
-                const spacing = activeTab === 'PUBLICATION' ? 60 : 80;
+                // List items (compact block)
+                const startY = topY + (activeTab === 'PUBLICATION' ? 110 : 150);
+                const spacing = activeTab === 'PUBLICATION' ? 45 : 65;
 
                 planningItems.forEach((item, i) => {
                     const y = startY + (i * spacing);
@@ -532,13 +532,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.fillStyle = `rgb(${activeData.grad})`;
                     ctx.font = '700 35px "Montserrat", sans-serif';
                     ctx.letterSpacing = "1px";
-                    ctx.fillText(item.time, centerX - 15, y);
+                    ctx.fillText(item.time, centerX - 10, y);
 
                     ctx.textAlign = 'left';
                     ctx.fillStyle = '#fff';
                     ctx.font = '500 35px "Montserrat", sans-serif';
                     ctx.letterSpacing = "2px";
-                    ctx.fillText(item.artist.toUpperCase(), centerX + 15, y);
+                    ctx.fillText(item.artist.toUpperCase(), centerX + 10, y);
                 });
 
             } else {
@@ -1254,6 +1254,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                 <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
                                 Télécharger Vidéo/Photo (URL)
                             </button>
+                            <button onClick={() => window.open('https://cleanup.pictures/', '_blank')} className="w-full py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-xl flex items-center justify-center gap-2 text-neon-cyan text-[9px] font-black uppercase hover:bg-neon-cyan/20 transition-all group">
+                                <Sparkles className="w-3.5 h-3.5" /> Nettoyage Photo (Outil IA)
+                            </button>
                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                             {bgVideo && (
                                 <button
@@ -1540,6 +1543,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                             </button>
                                             <button onClick={() => setShowText(!showText)} className={`w-full py-4 border rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${!showText ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}>
                                                 <Eraser className="w-4 h-4" /> Gomme (Masquer le texte) : {!showText ? 'ACTIVE' : 'OFF'}
+                                            </button>
+                                            <button onClick={() => window.open('https://cleanup.pictures/', '_blank')} className="w-full py-4 bg-neon-cyan/10 border border-neon-cyan/20 rounded-2xl flex items-center justify-center gap-2 text-neon-cyan text-[10px] font-black uppercase hover:bg-neon-cyan/20 transition-all group">
+                                                <Sparkles className="w-4 h-4" /> Nettoyage Photo (Outil IA)
                                             </button>
                                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                         </div>
