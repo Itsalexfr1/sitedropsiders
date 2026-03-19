@@ -110,9 +110,9 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
             
             // Fetch wiki live data for real-time moderation
             const [djsRes, clubsRes, festsRes] = await Promise.all([
-                fetch(`/api/wiki/list?type=DJS&t=${Date.now()}`),
-                fetch(`/api/wiki/list?type=CLUBS&t=${Date.now()}`),
-                fetch(`/api/wiki/list?type=FESTIVALS&t=${Date.now()}`)
+                apiFetch(`/api/wiki/list?type=DJS&t=${Date.now()}`, { headers: getAuthHeaders() }),
+                apiFetch(`/api/wiki/list?type=CLUBS&t=${Date.now()}`, { headers: getAuthHeaders() }),
+                apiFetch(`/api/wiki/list?type=FESTIVALS&t=${Date.now()}`, { headers: getAuthHeaders() })
             ]);
             
             let djs: any[] = [];
@@ -279,13 +279,14 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
             onConfirm: async () => {
                 setAlertConfig(prev => ({ ...prev, isOpen: false }));
                 try {
-                    const response = await fetch('/api/wiki/delete', {
+                    const realId = id.includes(':') ? id.split(':')[1] : id;
+                    const response = await apiFetch('/api/wiki/delete', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json',
                             ...getAuthHeaders()
                         },
-                        body: JSON.stringify({ id, type })
+                        body: JSON.stringify({ id: realId, type })
                     });
 
                     if (response.ok) {
@@ -359,7 +360,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                 description_en: newWikiForm.bio
             };
 
-            const response = await fetch('/api/wiki/add', {
+            const response = await apiFetch('/api/wiki/add', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
                 body: JSON.stringify({ type: newWikiType, entry })
