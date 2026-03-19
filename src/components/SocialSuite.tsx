@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import {
-    X, Download, Upload, PlusCircle,
+    X, Download, Upload, PlusCircle, Plus, Eraser,
     Video, Layout, Smartphone, Image as ImageIcon,
     Home, Link as LinkIcon, Palette, Type, Film,
     Check, Layers, Sparkles
@@ -17,7 +17,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -62,6 +62,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [recordingProgress, setRecordingProgress] = useState(0);
     const [recordingTimeLeft, setRecordingTimeLeft] = useState(0);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
+    const [showText, setShowText] = useState(true);
+    const [planningItems, setPlanningItems] = useState<{ time: string; artist: string }[]>(Array.from({ length: 8 }, () => ({ time: '00:00', artist: 'ARTISTE' })));
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -146,7 +148,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         'MUSIQUE': { label: 'MUSIQUE', grad: '57, 255, 20', color: '#39ff14' },
         'RECAP': { label: 'RÉCAP', grad: '189, 0, 255', color: '#bd00ff' },
         'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' },
-        'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' }
+        'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' },
+        'PLANNING': { label: 'PLANNING', grad: '255, 255, 255', color: '#ffffff' }
     };
 
     useEffect(() => {
@@ -207,6 +210,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillStyle = '#111';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
+
+            if (!showText) return; 
 
             const activeData = activeColor;
             // Shrunk gradient for Top 5 (Request 6), restored for others
@@ -492,6 +497,49 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillRect(startX + w1, footerY + 15, w2, 2);
 
                 ctx.restore();
+            } else if (theme === 'PLANNING') {
+                const centerX = canvas.width / 2;
+                const topY = activeTab === 'PUBLICATION' ? 150 : 300;
+                
+                // Title "LINE-UP" or custom
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#fff';
+                ctx.font = '900 italic 80px "Montserrat", sans-serif';
+                ctx.letterSpacing = "15px";
+                ctx.fillText(customText || 'LINE-UP', centerX, topY);
+
+                // Elegant divider
+                const lineW = 200;
+                ctx.fillStyle = 'rgba(255,255,255,0.3)';
+                ctx.fillRect(centerX - lineW, topY + 40, lineW * 2, 2);
+
+                // List items
+                const startY = topY + 140;
+                const spacing = activeTab === 'PUBLICATION' ? 100 : 130;
+
+                planningItems.forEach((item, i) => {
+                    const y = startY + (i * spacing);
+                    if (y > canvas.height - 100) return;
+
+                    ctx.textAlign = 'right';
+                    ctx.fillStyle = `rgb(${activeData.grad})`;
+                    ctx.font = '900 italic 35px "Montserrat", sans-serif';
+                    ctx.letterSpacing = "2px";
+                    ctx.fillText(item.time, centerX - 40, y);
+
+                    ctx.textAlign = 'left';
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '800 italic 35px "Montserrat", sans-serif';
+                    ctx.letterSpacing = "4px";
+                    ctx.fillText(item.artist.toUpperCase(), centerX + 40, y);
+
+                    // Tiny dot between them
+                    ctx.beginPath();
+                    ctx.arc(centerX, y - 10, 4, 0, Math.PI * 2);
+                    ctx.fillStyle = 'rgba(255,255,255,0.2)';
+                    ctx.fill();
+                });
+
             } else {
                 const fontSize = activeTab === 'PUBLICATION' ? 55 : 78; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
@@ -962,6 +1010,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     <button onClick={() => setTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
                     <button onClick={() => setTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
                     <button onClick={() => setTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
+                    <button onClick={() => setTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400'}`}>PLANNING</button>
                 </>
             )}
         </div>
@@ -1021,6 +1070,39 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     </div>
                 </div>
             ))}
+        </div>
+    );
+
+    const planningEditor = (
+        <div className="space-y-3">
+            <input 
+                value={customText} 
+                onChange={e => setCustomText(e.target.value)} 
+                placeholder="TITRE (ex: LINE-UP)" 
+                className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs mb-2" 
+            />
+            <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
+                {planningItems.map((item, i) => (
+                    <div key={i} className="flex gap-2 items-center">
+                        <input 
+                            value={item.time} 
+                            onChange={e => { const n = [...planningItems]; n[i].time = e.target.value; setPlanningItems(n); }} 
+                            placeholder="00:00" 
+                            className="w-20 bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-neon-cyan font-bold text-center" 
+                        />
+                        <input 
+                            value={item.artist} 
+                            onChange={e => { const n = [...planningItems]; n[i].artist = e.target.value; setPlanningItems(n); }} 
+                            placeholder="ARTISTE" 
+                            className="flex-1 bg-white/5 border border-white/10 rounded-lg p-2 text-[10px] text-white font-bold" 
+                        />
+                        <button onClick={() => setPlanningItems(planningItems.filter((_, idx) => idx !== i))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg"><X className="w-3 h-3" /></button>
+                    </div>
+                ))}
+            </div>
+            <button onClick={() => setPlanningItems([...planningItems, { time: '00:00', artist: 'NOUVEL ARTISTE' }])} className="w-full py-3 bg-white/5 border border-dashed border-white/20 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white hover:border-white/40 transition-all flex items-center justify-center gap-2">
+                <Plus className="w-3.5 h-3.5" /> Ajouter un créneau
+            </button>
         </div>
     );
 
@@ -1178,7 +1260,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                         {/* Content editor */}
                         <div className="space-y-4">
-                            {theme.startsWith('TOP 5') ? (
+                            {theme === 'PLANNING' ? (
+                                <><span className="text-[10px] font-black text-gray-500 uppercase">Horaires Planning</span>{planningEditor}</>
+                            ) : theme.startsWith('TOP 5') ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>{top5Editor}</>
                             ) : (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
@@ -1224,6 +1308,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                     <div className="flex items-center gap-2"><Layout className="w-3.5 h-3.5 text-gray-500" /><span className="text-[9px] font-black text-white uppercase">Swipe</span></div>
                                     <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showSwipe ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,18,65,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
                                         {showSwipe && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
+                                    </div>
+                                </div>
+                                <div className="flex-1 p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowText(!showText)}>
+                                    <div className="flex items-center gap-2"><Eraser className="w-3.5 h-3.5 text-gray-500" /><span className="text-[9px] font-black text-white uppercase whitespace-nowrap">Gomme (Masquer)</span></div>
+                                    <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${!showText ? 'bg-yellow-500 border-yellow-500 shadow-[0_0_100px_rgba(234,179,8,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
+                                        {!showText && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
                                     </div>
                                 </div>
                             </div>
@@ -1427,7 +1517,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                 {activePanel === 'texte' && (
                                     <div className="px-6 pb-8">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
-                                        {theme.startsWith('TOP 5') ? top5Editor : textEditor}
+                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : textEditor}
                                     </div>
                                 )}
 
@@ -1478,6 +1568,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             <button onClick={() => setShowArticleLink(!showArticleLink)}
                                 className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border backdrop-blur-md ${showArticleLink ? 'bg-neon-cyan/20 border-neon-cyan/50 text-neon-cyan' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}>
                                 <LinkIcon className="w-3 h-3" /> Lien {showArticleLink ? 'ON' : 'OFF'}
+                            </button>
+                            <button onClick={() => setShowText(!showText)}
+                                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase transition-all border backdrop-blur-md ${!showText ? 'bg-yellow-500/20 border-yellow-500/50 text-yellow-500' : 'bg-black/40 border-white/10 text-gray-400 hover:text-white'}`}>
+                                <Eraser className="w-3 h-3" /> Gomme {!showText ? 'ACTIVE' : 'OFF'}
                             </button>
                         </div>
 
