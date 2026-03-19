@@ -4,7 +4,7 @@
   "shop_password_protected": false,
   "shop_password_image": "",
   "takeover": {
-    "enabled": true,
+    "enabled": false,
     "youtubeId": "JvNotPTImGY",
     "title": "tomorrowland winter",
     "moderators": "",
@@ -28,40 +28,7 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "edit",
-    "mainFluxName": "TOMORROWLAND WINTER",
-    "currentTrack": "ID - UNRELEASED",
-    "streams": [
-      {
-        "id": "mld58im80",
-        "name": "TOMORROWLAND WINTER",
-        "youtubeId": "JvNotPTImGY"
-      }
-    ],
-    "activeStreamId": "mld58im80",
-    "highlightPrice": 100,
-    "lots": [],
-    "dropsAmount": 10,
-    "dropsInterval": 5,
-    "sponsorText": "LIVE RENDU POSSIBLE GRÂCE À NOS PARTENAIRES 🤝",
-    "sponsorLink": "https://dropsiders.fr",
-    "showSponsorBanner": false,
-    "instagramLink": "",
-    "tiktokLink": "",
-    "youtubeLink": "",
-    "twitterLink": "",
-    "botCommands": [
-      {
-        "command": "!insta",
-        "response": "Suivez-nous sur @dropsiders.fr !"
-      },
-      {
-        "command": "!lineup",
-        "response": "La lineup est disponible dans l'onglet PLANNING."
-      }
-    ],
-    "tracklist": "[]",
-    "auddToken": "0707d622c51645acc2e4fa26ed64538d"
+    "status": "off"
   },
   "socials": {
     "instagram": "dropsiders.fr",
