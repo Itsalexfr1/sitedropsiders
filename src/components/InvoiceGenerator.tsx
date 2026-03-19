@@ -35,7 +35,7 @@ const DEFAULT_SENDER: Sender = {
     name: 'CUENCA ALEXANDRE',
     siret: '805 131 828 00010',
     address: '123 Rue de la Musique, 75001 Paris',
-    email: 'contact@dropsiders.fr',
+    email: 'alexlight3034@icloud.com',
     phone: '07 62 05 45 89',
     legal: 'Auto-entrepreneur – TVA non applicable, art. 293 B du CGI',
 };
@@ -714,7 +714,7 @@ export function InvoiceGenerator() {
                                     { label: 'Nom / Raison sociale', key: 'name', placeholder: 'CUENCA ALEXANDRE' },
                                     { label: 'SIRET', key: 'siret', placeholder: '805 131 828 00010' },
                                     { label: 'Adresse complète', key: 'address', placeholder: '1 Rue de la Musique, 75001 Paris' },
-                                    { label: 'Email professionnel', key: 'email', placeholder: 'contact@dropsiders.fr' },
+                                    { label: 'Email professionnel', key: 'email', placeholder: 'alexlight3034@icloud.com' },
                                     { label: 'Téléphone', key: 'phone', placeholder: '07 62 05 45 89' },
                                     { label: 'Mention légale TVA', key: 'legal', placeholder: 'Auto-entrepreneur – TVA non applicable, art. 293 B du CGI' },
                                 ].map(f => (

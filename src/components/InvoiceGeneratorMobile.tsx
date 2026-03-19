@@ -11,7 +11,7 @@ interface Sender { name: string; siret: string; address: string; email: string; 
 const DEFAULT_SENDER: Sender = {
     name: 'CUENCA ALEXANDRE', siret: '805 131 828 00010',
     address: '123 Rue de la Musique, 75001 Paris',
-    email: 'contact@dropsiders.fr', phone: '07 62 05 45 89',
+    email: 'alexlight3034@icloud.com', phone: '07 62 05 45 89',
     legal: 'Auto-entrepreneur – TVA non applicable, art. 293 B du CGI',
 };
 
