@@ -917,6 +917,7 @@ ${urls.map(u => `  <url>
             path === '/api/r2/duplicates' ||
             path === '/api/admin/broken-images' ||
             path === '/api/admin/validate-photo' ||
+            path === '/api/admin/validate-photo-bulk' ||
             path === '/api/r2/delete'
         );
 
@@ -3319,7 +3320,8 @@ ${urls.map(u => `  <url>
                     NEWS_PATH, ...NEWS_CONTENT_FILES,
                     AGENDA_PATH, GALERIE_PATH, 
                     RECAPS_PATH, ...RECAPS_CONTENT_FILES,
-                    TEAM_PATH, SHOP_PATH, CLIPS_PATH, TRACKLISTS_PATH
+                    TEAM_PATH, SHOP_PATH, CLIPS_PATH, TRACKLISTS_PATH,
+                    SETTINGS_PATH, 'src/data/home_layout.json', 'src/data/spotify.json'
                 ];
 
                 const brokenImages = [];
@@ -3408,6 +3410,52 @@ ${urls.map(u => `  <url>
 
                 const saved = await saveGitHubFile(filePath, file.content, `Manually validate photo for ${location} ID ${entityId}`, file.sha, gitConfig);
                 if (!saved.ok) return new Response(JSON.stringify({ error: saved.error }), { status: 500, headers });
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/admin/validate-photo-bulk' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { items: itemsToValidate } = await request.json(); // Array of { location, entityId }
+                if (!itemsToValidate || !Array.isArray(itemsToValidate)) return new Response(JSON.stringify({ error: 'Missing items array' }), { status: 400, headers });
+
+                // Group by location to minimize GitHub fetches
+                const grouped = itemsToValidate.reduce((acc: any, curr: any) => {
+                    if (!acc[curr.location]) acc[curr.location] = [];
+                    acc[curr.location].push(curr.entityId);
+                    return acc;
+                }, {});
+
+                for (const [location, entityIds] of Object.entries(grouped)) {
+                    const filePath = `src/data/${location}`;
+                    const file = await fetchGitHubFile(filePath, gitConfig);
+                    if (!file) continue;
+
+                    const items = Array.isArray(file.content) ? file.content : [file.content];
+                    let modified = false;
+
+                    (entityIds as any[]).forEach(eid => {
+                        const index = items.findIndex((item: any, idx: number) => (item.id !== undefined ? String(item.id) === String(eid) : idx === eid));
+                        if (index !== -1) {
+                            if (Array.isArray(file.content)) {
+                                file.content[index].photo_verified = true;
+                                if (location.includes('wiki_')) file.content[index].status = 'verified';
+                            } else {
+                                file.content.photo_verified = true;
+                                if (location.includes('wiki_')) file.content.status = 'verified';
+                            }
+                            modified = true;
+                        }
+                    });
+
+                    if (modified) {
+                        await saveGitHubFile(filePath, file.content, `Bulk validate ${entityIds.length} photos in ${location}`, file.sha, gitConfig);
+                    }
+                }
 
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e: any) {
