@@ -2596,7 +2596,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             <ImageIcon className="w-4 h-4 text-neon-cyan" />
                                                         </label>
                                                         {newLineupItem.image && (
-                                                            <img src={newLineupItem.image} alt="preview" className="w-10 h-10 rounded-lg object-cover border border-white/10" />
+                                                            <button
+                                                                className="relative rounded-lg overflow-hidden group/crop border-white/10 border transition-all cursor-pointer flex-shrink-0"
+                                                                onClick={() => setCropImageSrc(newLineupItem.image!)}
+                                                                title="Recadrer l'image"
+                                                            >
+                                                                <img src={newLineupItem.image} alt="preview" className="w-10 h-10 object-cover group-hover/crop:opacity-50 transition-opacity" />
+                                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/crop:opacity-100 transition-opacity bg-black/40">
+                                                                    <Edit2 className="w-4 h-4 text-white" />
+                                                                </div>
+                                                            </button>
                                                         )}
                                                     </div>
                                                 </div>
