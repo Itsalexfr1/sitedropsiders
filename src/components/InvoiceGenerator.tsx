@@ -303,16 +303,6 @@ export function InvoiceGenerator() {
         localStorage.setItem('inv_articles', JSON.stringify(updated));
     };
 
-    const saveArticleFromLine = (line: InvoiceLine) => {
-        if (!line.description.trim()) return;
-        const na = { id: Date.now().toString(), description: line.description, unitPrice: line.unitPrice };
-        const updated = [na, ...savedArticles.filter(a => a.description !== na.description)];
-        setSavedArticles(updated);
-        localStorage.setItem('inv_articles', JSON.stringify(updated));
-        setSettingsSaved(true);
-        setTimeout(() => setSettingsSaved(false), 2000);
-    };
-
     const getInvoiceData = () => ({ invoiceNumber: formattedNumber, date, dueDate, clientName, clientAddress, clientEmail, lines, iban, bic, total, notes, sender });
 
     const handlePrint = () => {
