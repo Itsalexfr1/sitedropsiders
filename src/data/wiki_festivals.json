@@ -1139,7 +1139,7 @@
     "name": "Sónar Barcelona",
     "bio": "Incontournable de la scène mondiale, Sónar Barcelona est une figure majeure de la culture électronique actuelle.",
     "country": "Intl",
-    "image": "https://static.ra.co/images/events/lg/sonarbarcelona.jpg",
+    "image": "/uploads/uploads/c8fa38b8f9482d33-sonar1.png",
     "rating": "0",
     "spotify": "https://open.spotify.com/search/S%C3%B3nar%20Barcelona",
     "instagram": "https://instagram.com/sonarbarcelona",
@@ -1147,7 +1147,7 @@
     "soundcloud": "https://soundcloud.com/sonarbarcelona",
     "beatport": "https://www.beatport.com/search?q=S%C3%B3nar%20Barcelona",
     "bio_en": "A major figure on the global scene, Sónar Barcelona is a key player in today's electronic culture.",
-    "status": "waiting"
+    "status": "verified"
   },
   {
     "id": "304",
