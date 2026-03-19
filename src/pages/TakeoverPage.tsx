@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -604,6 +604,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [newLineupItem, setNewLineupItem] = useState<LineupItem>({
         id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', image: ''
     });
+    const [planningActiveDay, setPlanningActiveDay] = useState<string>('');
 
     const extractYoutubeId = (url: string) => {
         if (!url) return '';
@@ -1732,6 +1733,19 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         } catch (e) {
             console.error(e);
         }
+    };
+
+    // Planning derived state (computed before render, avoids IIFE in JSX)
+    const planDays = Array.from(new Set(lineupItems.map(i => i.day).filter(Boolean))) as string[];
+    const planMulti = planDays.length > 1;
+    const planActive = planningActiveDay || planDays[0] || '';
+    const planItems = planMulti ? lineupItems.filter(i => i.day === planActive) : lineupItems;
+    const fmtPlanDay = (d: string) => {
+        const s = d.match(/^(\d{1,2})[\/-](\d{1,2})/);
+        if (s) return `${s[1].padStart(2,'0')}/${s[2].padStart(2,'0')}`;
+        const iso = d.match(/^(\d{4})-(\d{2})-(\d{2})/);
+        if (iso) return `${iso[3]}/${iso[2]}`;
+        return d.toUpperCase().slice(0, 8);
     };
 
     return (
@@ -3638,60 +3652,52 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         )}
                                     </div>
                                 </motion.div>
-                            ) : activeChatTab === 'planning' ? (() => {
-                                const _days = Array.from(new Set(lineupItems.map((i: any) => i.day).filter(Boolean))) as string[];
-                                const _multi = _days.length > 1;
-                                const _active = ((window as any).__planDay__ as string) || _days[0];
-                                const _items = _multi ? lineupItems.filter((i: any) => i.day === _active) : lineupItems;
-                                const _fmt = (d: string) => { const s = d.match(/^(\d{1,2})[\/\-](\d{1,2})/); if (s) return `${s[1].padStart(2,'0')}/${s[2].padStart(2,'0')}`; const iso = d.match(/^(\d{4})-(\d{2})-(\d{2})/); if (iso) return `${iso[3]}/${iso[2]}`; return d.toUpperCase().slice(0,8); };
-                                return (
-                                    <motion.div key="planning-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
-                                        {lineupItems.length === 0 ? (
-                                            <div className="flex flex-col items-center justify-center py-20 bg-white/5 border border-white/5 rounded-[2.5rem] border-dashed">
-                                                <Calendar className="w-12 h-12 text-gray-700 mb-4" />
-                                                <p className="text-gray-500 font-black uppercase text-[10px] tracking-widest italic">Aucun planning programm&#233;</p>
-                                            </div>
-                                        ) : (
-                                            <>
-                                                {_multi && (
-                                                    <div className="flex gap-1.5 flex-wrap pb-1">
-                                                        {_days.map((day: string) => (
-                                                            <button key={day} onClick={() => { (window as any).__planDay__ = day; setActiveChatTab('_r_'); setTimeout(() => setActiveChatTab('planning'), 0); }} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${day === _active ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}>
-                                                                <Calendar className="w-2.5 h-2.5 inline mr-1 -mt-px" />{_fmt(day)}
-                                                            </button>
-                                                        ))}
-                                                    </div>
-                                                )}
-                                                {_items.map((item: any) => {
-                                                    const now = new Date();
-                                                    const [h, m] = (item.startTime || '00:00').split(':').map(Number);
-                                                    const [eh, em] = (item.endTime || '00:00').split(':').map(Number);
-                                                    const start = new Date(); start.setHours(h, m, 0);
-                                                    const end = new Date(); end.setHours(eh, em, 0);
-                                                    const isNow = now >= start && now <= end;
-                                                    const progress = isNow ? Math.min(100, Math.max(0, ((now.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100)) : 0;
-                                                    return (
-                                                        <div key={item.id} className={`p-4 border rounded-2xl space-y-3 transition-all relative overflow-hidden group ${isNow ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,255,255,0.05)]' : 'bg-white/5 border-white/10'}`}>
-                                                            {item.image && (<><img src={item.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-35 group-hover:scale-105 transition-all duration-700 pointer-events-none" /><div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent pointer-events-none" /></>)}
-                                                            <div className="flex items-center justify-between relative z-10">
-                                                                <div className="flex items-center gap-2"><Calendar className="w-3 h-3 text-gray-500" /><span className={`text-[10px] font-black uppercase ${isNow ? 'text-neon-cyan' : 'text-gray-500'}`}>{item.stage}</span></div>
-                                                                <div className="flex flex-col items-end">{!_multi && <span className="text-[10px] font-mono text-white/80">{item.day}</span>}<span className="text-[10px] font-mono text-gray-500">{item.startTime} - {item.endTime}</span></div>
-                                                            </div>
-                                                            <div className="space-y-2 relative z-10">
-                                                                <div className="flex items-center justify-between gap-2">
-                                                                    <p className="text-lg font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-2">{isNow && <span className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse" />}{item.artist}</p>
-                                                                    {item.instagram && (<a href={item.instagram.startsWith('http') ? item.instagram : `https://instagram.com/${item.instagram.replace('@','')}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-1 px-2 py-1 bg-gradient-to-br from-purple-600/20 to-pink-500/20 border border-pink-500/30 rounded-lg hover:border-pink-500/60 hover:scale-105 transition-all shrink-0"><Instagram className="w-3 h-3 text-pink-400" /><span className="text-[9px] font-black text-pink-300 uppercase hidden sm:block">{item.instagram.replace('@','').replace('https://instagram.com/','').replace('https://www.instagram.com/','')}</span></a>)}
-                                                                </div>
-                                                                {isNow && (<div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mt-2"><div className="h-full bg-neon-cyan shadow-[0_0_10px_#00ffff] transition-all duration-1000" style={{ width: `${progress}%` }} /></div>)}
-                                                            </div>
+                            ) : activeChatTab === 'planning' ? (
+                                <motion.div key="planning-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-4">
+                                    {lineupItems.length === 0 ? (
+                                        <div className="flex flex-col items-center justify-center py-20 bg-white/5 border border-white/5 rounded-[2.5rem] border-dashed">
+                                            <Calendar className="w-12 h-12 text-gray-700 mb-4" />
+                                            <p className="text-gray-500 font-black uppercase text-[10px] tracking-widest italic">Aucun planning programm&#233;</p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            {planMulti && (
+                                                <div className="flex gap-1.5 flex-wrap pb-1">
+                                                    {planDays.map(day => (
+                                                        <button key={day} onClick={() => setPlanningActiveDay(day)} className={`px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all border ${day === planActive ? 'bg-neon-cyan/15 border-neon-cyan/40 text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}>
+                                                            <Calendar className="w-2.5 h-2.5 inline mr-1 -mt-px" />{fmtPlanDay(day)}
+                                                        </button>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            {planItems.map(item => {
+                                                const now = new Date();
+                                                const [h, m] = (item.startTime || '00:00').split(':').map(Number);
+                                                const [eh, em] = (item.endTime || '00:00').split(':').map(Number);
+                                                const start = new Date(); start.setHours(h, m, 0);
+                                                const end = new Date(); end.setHours(eh, em, 0);
+                                                const isNow = now >= start && now <= end;
+                                                const progress = isNow ? Math.min(100, Math.max(0, ((now.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100)) : 0;
+                                                return (
+                                                    <div key={item.id} className={`p-4 border rounded-2xl space-y-3 transition-all relative overflow-hidden group ${isNow ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,255,255,0.05)]' : 'bg-white/5 border-white/10'}`}>
+                                                        {item.image && (<><img src={item.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-35 group-hover:scale-105 transition-all duration-700 pointer-events-none" /><div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent pointer-events-none" /></>)}
+                                                        <div className="flex items-center justify-between relative z-10">
+                                                            <div className="flex items-center gap-2"><Calendar className="w-3 h-3 text-gray-500" /><span className={`text-[10px] font-black uppercase ${isNow ? 'text-neon-cyan' : 'text-gray-500'}`}>{item.stage}</span></div>
+                                                            <div className="flex flex-col items-end">{!planMulti && <span className="text-[10px] font-mono text-white/80">{item.day}</span>}<span className="text-[10px] font-mono text-gray-500">{item.startTime} - {item.endTime}</span></div>
                                                         </div>
-                                                    );
-                                                })}
-                                            </>
-                                        )}
-                                    </motion.div>
-                                );
-                            })()
+                                                        <div className="space-y-2 relative z-10">
+                                                            <div className="flex items-center justify-between gap-2">
+                                                                <p className="text-lg font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-2">{isNow && <span className="w-1.5 h-1.5 bg-neon-cyan rounded-full animate-pulse" />}{item.artist}</p>
+                                                                {item.instagram && (<a href={item.instagram.startsWith('http') ? item.instagram : `https://instagram.com/${item.instagram.replace('@','')}`} target="_blank" rel="noopener noreferrer" onClick={e => e.stopPropagation()} className="flex items-center gap-1 px-2 py-1 bg-gradient-to-br from-purple-600/20 to-pink-500/20 border border-pink-500/30 rounded-lg hover:border-pink-500/60 hover:scale-105 transition-all shrink-0"><Instagram className="w-3 h-3 text-pink-400" /><span className="text-[9px] font-black text-pink-300 uppercase hidden sm:block">{item.instagram.replace('@','').replace('https://instagram.com/','').replace('https://www.instagram.com/','')}</span></a>)}
+                                                            </div>
+                                                            {isNow && (<div className="h-1 w-full bg-white/5 rounded-full overflow-hidden mt-2"><div className="h-full bg-neon-cyan shadow-[0_0_10px_#00ffff] transition-all duration-1000" style={{ width: `${progress}%` }} /></div>)}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })}
+                                        </>
+                                    )}
+                                </motion.div>
                             ) : activeChatTab === 'shop' ? (
                                 <motion.div key="shop-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 overflow-y-auto space-y-6 py-6 px-4 custom-scrollbar">
                                     <div className="text-center mb-8">
