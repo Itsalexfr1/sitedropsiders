@@ -531,7 +531,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 // List items (compact block)
                 const startY = topY + (activeTab === 'PUBLICATION' ? 190 : 230);
-                const spacing = activeTab === 'PUBLICATION' ? 48 : 68;
+                const spacing = activeTab === 'PUBLICATION' ? 58 : 78;
                 planningItems.forEach((item, i) => {
                     const y = startY + (i * spacing);
                     if (y > canvas.height - 120) return;
