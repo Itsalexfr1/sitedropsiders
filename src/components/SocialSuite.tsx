@@ -557,7 +557,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                     // Dessin caractère par caractère pour forcer la même dimension horizontale
                     const charWidth = 28; 
-                    const totalWidth = timeText.length * charWidth;
                     const startX = centerX - 200; // La limite gauche que tu as fixée
 
                     ctx.textAlign = 'center';
