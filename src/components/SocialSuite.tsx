@@ -528,28 +528,48 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     const y = startY + (i * spacing);
                     if (y > canvas.height - 120) return;
 
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 12;
+                    ctx.shadowOffsetX = 3;
+                    ctx.shadowOffsetY = 3;
+
+                    // Hour (Very Bold)
                     ctx.textAlign = 'right';
                     ctx.fillStyle = `rgb(${activeData.grad})`;
-                    ctx.font = '700 35px "Montserrat", sans-serif';
+                    ctx.font = '900 35px "Montserrat", sans-serif';
                     ctx.letterSpacing = "1px";
-                    // Enforce uppercase for H (e.g. 20H30)
                     ctx.fillText(item.time.toUpperCase(), centerX - 25, y);
 
+                    // Artist (Premium Bold)
                     ctx.textAlign = 'left';
                     ctx.fillStyle = '#fff';
                     const artistText = item.artist.toUpperCase();
-                    let artistFs = 35;
-                    ctx.font = `500 ${artistFs}px "Montserrat", sans-serif`;
-                    ctx.letterSpacing = "2px";
+                    ctx.font = '900 35px "Montserrat", sans-serif';
+                    ctx.letterSpacing = "0px";
                     
-                    // Auto-shrink for long names
-                    const maxArtistW = (canvas.width / 2) - 100;
-                    while (ctx.measureText(artistText).width > maxArtistW && artistFs > 18) {
-                        artistFs--;
-                        ctx.font = `500 ${artistFs}px "Montserrat", sans-serif`;
+                    const maxW = (canvas.width / 2) - 80;
+                    if (ctx.measureText(artistText).width > maxW) {
+                        // Splitting B2B sets onto two lines for better readability
+                        if (artistText.includes(' B2B ')) {
+                            const parts = artistText.split(' B2B ');
+                            ctx.fillText(parts[0], centerX + 25, y - 18);
+                            ctx.font = '800 24px "Montserrat", sans-serif';
+                            ctx.fillStyle = 'rgba(255,255,255,0.8)';
+                            ctx.fillText('B2B ' + parts[1], centerX + 25, y + 15);
+                        } else {
+                            // Fallback shrink only for non-B2B long names
+                            let fs = 35;
+                            while (ctx.measureText(artistText).width > maxW && fs > 18) {
+                                fs--;
+                                ctx.font = `900 ${fs}px "Montserrat", sans-serif`;
+                            }
+                            ctx.fillText(artistText, centerX + 25, y);
+                        }
+                    } else {
+                        ctx.fillText(artistText, centerX + 25, y);
                     }
-                    
-                    ctx.fillText(artistText, centerX + 25, y);
+                    ctx.restore();
                 });
 
             } else {
