@@ -894,6 +894,29 @@ export function AdminDashboard() {
         }
     };
 
+    const handleValidatePhoto = async (img: any) => {
+        try {
+            const res = await apiFetch('/api/admin/validate-photo', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    location: img.location,
+                    entityId: img.entityId
+                })
+            });
+            if (res.ok) {
+                setBrokenImages(prev => prev.filter(i => !(i.location === img.location && i.entityId === img.entityId)));
+                setGlobalAlert({ message: "La photo a été validée manuellement. Elle ne sera plus affichée comme cassée.", type: 'info' });
+            } else {
+                const data = await res.json();
+                setGlobalAlert({ message: "Erreur lors de la validation : " + (data.error || "Inconnue"), type: 'danger' });
+            }
+        } catch (e) {
+            console.error(e);
+            setGlobalAlert({ message: "Erreur réseau lors de la validation.", type: 'danger' });
+        }
+    };
+
     const deleteR2Object = async (key: string) => {
         try {
             const res = await apiFetch('/api/r2/delete', {
@@ -6841,6 +6864,14 @@ export function AdminDashboard() {
                                                             ID: {img.entityId}
                                                         </div>
                                                     </div>
+
+                                                    <button
+                                                        onClick={() => handleValidatePhoto(img)}
+                                                        className="w-full py-2.5 bg-neon-green/10 border border-neon-green/20 text-neon-green rounded-xl hover:bg-neon-green/20 transition-all flex items-center justify-center gap-2 group/val"
+                                                    >
+                                                        <CheckCircle2 className="w-3.5 h-3.5 group-hover/val:scale-110 transition-transform" />
+                                                        <span className="text-[10px] font-black uppercase tracking-widest">Valider la photo</span>
+                                                    </button>
                                                 </div>
                                             ))}
                                         </div>

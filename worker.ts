@@ -3335,6 +3335,9 @@ ${urls.map(u => `  <url>
                     const items = Array.isArray(fileObj.content) ? fileObj.content : [fileObj.content];
 
                     items.forEach((item: any, index: number) => {
+                        // OPTION: Skip if already verified
+                        if (item.status === 'verified' || item.photo_verified === true) return;
+
                         const itemStr = JSON.stringify(item);
                         // Reset regex state for each item
                         const localRegex = new RegExp(urlRegex.source, urlRegex.flags);
@@ -3367,6 +3370,44 @@ ${urls.map(u => `  <url>
                     success: true, 
                     broken: brokenImages.filter((v, i, a) => a.findIndex(t => t.url === v.url && t.location === v.location) === i)
                 }), { status: 200, headers: { ...headers, 'Cache-Control': 'no-cache' } });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/admin/validate-photo' && request.method === 'POST') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                const { location, entityId } = await request.json();
+                if (!location || entityId === undefined) return new Response(JSON.stringify({ error: 'Missing fields' }), { status: 400, headers });
+
+                const filePath = `src/data/${location}`;
+                const file = await fetchGitHubFile(filePath, gitConfig);
+                if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+
+                const items = Array.isArray(file.content) ? file.content : [file.content];
+                const index = items.findIndex((item: any, idx: number) => (item.id !== undefined ? String(item.id) === String(entityId) : idx === entityId));
+
+                if (index === -1) return new Response(JSON.stringify({ error: 'Item not found' }), { status: 404, headers });
+
+                // Mark as verified
+                if (Array.isArray(file.content)) {
+                    file.content[index].photo_verified = true;
+                    // If it's a wiki entry, also set status to verified
+                    if (location.includes('wiki_')) {
+                        file.content[index].status = 'verified';
+                    }
+                } else {
+                    file.content.photo_verified = true;
+                    if (location.includes('wiki_')) {
+                        file.content.status = 'verified';
+                    }
+                }
+
+                const saved = await saveGitHubFile(filePath, file.content, `Manually validate photo for ${location} ID ${entityId}`, file.sha, gitConfig);
+                if (!saved.ok) return new Response(JSON.stringify({ error: saved.error }), { status: 500, headers });
+
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
             }
