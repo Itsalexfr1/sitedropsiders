@@ -6813,7 +6813,10 @@ export function AdminDashboard() {
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
-                                onClick={() => setIsBrokenImagesModalOpen(false)}
+                                onClick={() => {
+                                    setIsBrokenImagesModalOpen(false);
+                                    setSelectedBrokenImages([]);
+                                }}
                                 className="absolute inset-0 bg-black/90 backdrop-blur-xl"
                             />
                             <motion.div
@@ -6839,7 +6842,7 @@ export function AdminDashboard() {
                                                     if (selectedBrokenImages.length === brokenImages.length) setSelectedBrokenImages([]);
                                                     else setSelectedBrokenImages([...brokenImages]);
                                                 }}
-                                                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:bg-white/10 transition-all"
+                                                className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[10px] font-black text-gray-400 uppercase tracking-widest hover:bg-white/10 transition-all font-outfit"
                                             >
                                                 {selectedBrokenImages.length === brokenImages.length ? "Tout désélectionner" : "Tout sélectionner"}
                                             </button>
@@ -6870,12 +6873,12 @@ export function AdminDashboard() {
                                                                         if (isSelected) setSelectedBrokenImages(prev => prev.filter(i => !(i.location === img.location && i.entityId === img.entityId)));
                                                                         else setSelectedBrokenImages(prev => [...prev, img]);
                                                                     }}
-                                                                    className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${isSelected ? 'bg-neon-red border-neon-red' : 'border-white/20 bg-black/40 hover:border-white/40'}`}
+                                                                    className={`w-5 h-5 rounded-md border flex items-center justify-center transition-all ${isSelected ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,18,65,0.3)]' : 'border-white/20 bg-black/40 hover:border-white/40'}`}
                                                                 >
                                                                     {isSelected && <CheckCircle2 className="w-3.5 h-3.5 text-white" />}
                                                                 </button>
                                                                 <div className="flex items-center gap-2">
-                                                                    <div className={`p-1.5 rounded-lg ${isSelected ? 'bg-neon-red/20' : 'bg-neon-red/20'}`}>
+                                                                    <div className="p-1.5 bg-neon-red/20 rounded-lg">
                                                                         <ShieldAlert className="w-3.5 h-3.5 text-neon-red" />
                                                                     </div>
                                                                     <span className="text-[11px] font-black text-white uppercase tracking-widest truncate max-w-[120px]">
@@ -6884,56 +6887,56 @@ export function AdminDashboard() {
                                                                 </div>
                                                             </div>
                                                             <div className="px-2 py-0.5 bg-white/5 rounded-full border border-white/10 text-[8px] font-black text-gray-500 uppercase tracking-tighter">
-                                                                {img.type}
+                                                                {(img.location || '').split('_').pop()?.replace('.json', '') || img.type}
                                                             </div>
                                                         </div>
 
-                                                    <div className="flex flex-col gap-2">
-                                                        <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Lien de l'article :</span>
-                                                        {img.directLink ? (
-                                                            <a
-                                                                href={img.directLink}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="group/link flex items-center justify-between p-3 bg-neon-cyan/5 border border-neon-cyan/20 rounded-xl hover:bg-neon-cyan/10 transition-all"
-                                                            >
-                                                                <span className="text-[10px] font-black text-neon-cyan uppercase truncate mr-2">Voir sur le site</span>
-                                                                <ExternalLink className="w-3.5 h-3.5 text-neon-cyan group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
-                                                            </a>
-                                                        ) : (
-                                                            <div className="text-[10px] font-mono text-white/50 break-all bg-black/40 p-3 rounded-xl border border-white/5 italic">
-                                                                Pas de lien direct
+                                                        <div className="flex flex-col gap-2">
+                                                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Lien de l'article :</span>
+                                                            {img.directLink ? (
+                                                                <a
+                                                                    href={img.directLink}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="group/link flex items-center justify-between p-3 bg-neon-cyan/5 border border-neon-cyan/20 rounded-xl hover:bg-neon-cyan/10 transition-all"
+                                                                >
+                                                                    <span className="text-[10px] font-black text-neon-cyan uppercase truncate mr-2">Voir sur le site</span>
+                                                                    <ExternalLink className="w-3.5 h-3.5 text-neon-cyan group-hover/link:translate-x-0.5 group-hover/link:-translate-y-0.5 transition-transform" />
+                                                                </a>
+                                                            ) : (
+                                                                <div className="text-[10px] font-mono text-white/50 break-all bg-black/40 p-3 rounded-xl border border-white/5 italic">
+                                                                    Pas de lien direct
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="flex flex-col gap-1.5 pt-3 border-t border-white/5">
+                                                            <div className="flex items-center justify-between">
+                                                                <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Fichier Source (GitHub):</span>
+                                                                <a
+                                                                    href={`https://github.com/Itsalexfr1/sitedropsiders/edit/main/src/data/${img.location}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-[10px] font-black text-white/40 hover:text-white uppercase tracking-widest bg-white/5 hover:bg-white/10 px-2 py-1 rounded-md transition-colors flex items-center gap-1.5 border border-white/5"
+                                                                    title="Ouvrir le fichier source pour corriger"
+                                                                >
+                                                                    {img.location}
+                                                                    <ExternalLink className="w-2.5 h-2.5" />
+                                                                </a>
                                                             </div>
-                                                        )}
-                                                    </div>
-
-                                                    <div className="flex flex-col gap-1.5 pt-3 border-t border-white/5">
-                                                        <div className="flex items-center justify-between">
-                                                            <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Fichier Source (GitHub):</span>
-                                                            <a
-                                                                href={`https://github.com/Itsalexfr1/sitedropsiders/edit/main/src/data/${img.location}`}
-                                                                target="_blank"
-                                                                rel="noopener noreferrer"
-                                                                className="text-[10px] font-black text-white/40 hover:text-white uppercase tracking-widest bg-white/5 hover:bg-white/10 px-2 py-1 rounded-md transition-colors flex items-center gap-1.5 border border-white/5"
-                                                                title="Ouvrir le fichier source pour corriger"
-                                                            >
-                                                                {img.location}
-                                                                <ExternalLink className="w-2.5 h-2.5" />
-                                                            </a>
+                                                            <div className="text-[9px] font-mono text-gray-600 break-all px-1">
+                                                                ID: {img.entityId}
+                                                            </div>
                                                         </div>
-                                                        <div className="text-[9px] font-mono text-gray-600 break-all px-1">
-                                                            ID: {img.entityId}
-                                                        </div>
-                                                    </div>
 
-                                                    <button
-                                                        onClick={() => handleValidatePhoto(img)}
-                                                        className="w-full py-2.5 bg-neon-green/10 border border-neon-green/20 text-neon-green rounded-xl hover:bg-neon-green/20 transition-all flex items-center justify-center gap-2 group/val"
-                                                    >
-                                                        <CheckCircle2 className="w-3.5 h-3.5 group-hover/val:scale-110 transition-transform" />
-                                                        <span className="text-[10px] font-black uppercase tracking-widest">Valider la photo</span>
-                                                    </button>
-                                                </div>
+                                                        <button
+                                                            onClick={() => handleValidatePhoto(img)}
+                                                            className="w-full py-2.5 bg-neon-green/10 border border-neon-green/20 text-neon-green rounded-xl hover:bg-neon-green/30 transition-all flex items-center justify-center gap-2 group/val"
+                                                        >
+                                                            <CheckCircle2 className="w-3.5 h-3.5 group-hover/val:scale-110 transition-transform" />
+                                                            <span className="text-[10px] font-black uppercase tracking-widest">Valider la photo</span>
+                                                        </button>
+                                                    </div>
                                                 );
                                             })}
                                         </div>
@@ -6942,7 +6945,7 @@ export function AdminDashboard() {
                                             <div className="w-24 h-24 bg-green-500/10 rounded-full flex items-center justify-center mb-6">
                                                 <CheckCircle2 className="w-12 h-12 text-neon-green" />
                                             </div>
-                                            <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-2">Tout est propre !</h3>
+                                            <h3 className="text-xl font-black text-white uppercase tracking-tighter mb-2 font-outfit">Tout est propre !</h3>
                                             <p className="text-gray-500 text-sm max-w-md mx-auto italic font-medium">
                                                 Félicitations, aucune image cassée n'a été trouvée dans votre base de données. Tous les liens dirigent vers des fichiers valides sur Cloudflare R2.
                                             </p>
@@ -6961,7 +6964,7 @@ export function AdminDashboard() {
                                     {selectedBrokenImages.length > 0 && (
                                         <button
                                             onClick={handleBulkValidatePhotos}
-                                            className="px-8 py-3 bg-neon-green text-black font-black text-[11px] uppercase tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(0,255,102,0.3)] flex items-center gap-2 shrink-0 animate-in fade-in slide-in-from-bottom-2"
+                                            className="px-8 py-3 bg-neon-green text-black font-black text-[11px] uppercase tracking-widest rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-[0_0_20px_rgba(0,255,102,0.3)] flex items-center gap-2 shrink-0 animate-in fade-in slide-in-from-bottom-2 font-outfit"
                                         >
                                             <CheckCircle2 className="w-4 h-4" />
                                             Valider la sélection ({selectedBrokenImages.length})
