@@ -6,7 +6,7 @@ import {
     LayoutDashboard, Lock, ArrowRight, User, Search, X, BarChart3, Music,
     ShoppingBag, Save, Paintbrush, Settings2, ChevronUp, ChevronDown,
     ChevronLeft, ChevronRight, Palette, Megaphone, RefreshCw, Type,
-    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil, 
+    Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil,
     ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram,
     Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download,
     Trophy, Settings, Camera, HardDrive
@@ -105,7 +105,7 @@ export function AdminDashboard() {
     const [isBrokenImagesModalOpen, setIsBrokenImagesModalOpen] = useState(false);
 
     const toggleSelection = (key: string) => {
-        setSelectedKeys(prev => 
+        setSelectedKeys(prev =>
             prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
         );
     };
@@ -136,7 +136,7 @@ export function AdminDashboard() {
 
     const deleteMultipleObjects = async () => {
         if (selectedKeys.length === 0) return;
-        
+
         setIsR2Loading(true);
         try {
             const res = await apiFetch('/api/r2/delete', {
@@ -145,7 +145,7 @@ export function AdminDashboard() {
                 body: JSON.stringify({ keys: selectedKeys })
             });
             if (res.ok) {
-                const refreshedSets = duplicateSets.map(set => 
+                const refreshedSets = duplicateSets.map(set =>
                     set.filter((obj: any) => !selectedKeys.includes(obj.key))
                 ).filter(set => set.length > 1);
                 setDuplicateSets(refreshedSets);
@@ -760,7 +760,7 @@ export function AdminDashboard() {
 
     const handleResetContest = async () => {
         if (!window.confirm("Voulez-vous vraiment réinitialiser le concours actuel ?\nCela effacera tous les résultats et permettra à tout le monde de rejouer.")) return;
-        
+
         try {
             const res = await apiFetch('/api/quiz/contest/reset', {
                 method: 'POST',
@@ -860,7 +860,7 @@ export function AdminDashboard() {
         try {
             const res = await apiFetch('/api/r2/duplicates', { headers: getAuthHeaders() });
             const data = await res.json();
-            
+
             if (Array.isArray(data)) {
                 setDuplicateSets(data);
                 setIsDuplicatesModalOpen(true);
@@ -929,7 +929,7 @@ export function AdminDashboard() {
         let pCount = 0;
         let wCount = 0;
         const timestamp = Date.now();
-        
+
         try {
             const r = await fetch(`/api/photos/pending?t=${timestamp}`, { headers: getAuthHeaders() });
             if (r.ok) {
@@ -944,7 +944,7 @@ export function AdminDashboard() {
                 fetch(`/api/wiki/list?type=CLUBS&t=${timestamp}`, { headers: getAuthHeaders() }),
                 fetch(`/api/wiki/list?type=FESTIVALS&t=${timestamp}`, { headers: getAuthHeaders() })
             ]);
-            
+
             if (djsRes.ok) {
                 const djs = await djsRes.json();
                 wCount += djs.filter((d: any) => d.status === 'waiting').length;
@@ -960,7 +960,7 @@ export function AdminDashboard() {
         } catch (e) {
             console.error("Failed to fetch wiki for count", e);
         }
-        
+
         setPendingPhotosCount(pCount);
         setPendingWikiPhotosCount(wCount);
 
@@ -1658,7 +1658,7 @@ export function AdminDashboard() {
                                         <div className="flex items-center justify-between gap-12">
                                             <div className="flex items-center gap-2">
                                                 <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Stockage R2</span>
-                                                <button 
+                                                <button
                                                     onClick={fetchR2Stats}
                                                     className="p-1 hover:bg-white/10 rounded-md transition-colors group"
                                                     title="Actualiser les statistiques"
@@ -1667,7 +1667,7 @@ export function AdminDashboard() {
                                                 </button>
                                             </div>
                                             <div className="flex items-center gap-3">
-                                                <button 
+                                                <button
                                                     onClick={fetchDuplicates}
                                                     disabled={isR2Loading}
                                                     className="text-[9px] font-black text-neon-cyan/60 hover:text-neon-cyan uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full"
@@ -1676,7 +1676,7 @@ export function AdminDashboard() {
                                                     {isR2Loading ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <ShieldAlert className="w-2.5 h-2.5" />}
                                                     Check Doublons
                                                 </button>
-                                                <button 
+                                                <button
                                                     onClick={fetchBrokenImages}
                                                     disabled={isScanningBroken}
                                                     className="text-[9px] font-black text-neon-red/60 hover:text-neon-red uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-red/10 border border-neon-red/20 rounded-full"
@@ -1691,9 +1691,9 @@ export function AdminDashboard() {
                                             </div>
                                         </div>
                                         <div className="w-56 h-2 bg-white/10 rounded-full overflow-hidden border border-white/5">
-                                            <motion.div 
+                                            <motion.div
                                                 initial={{ width: 0 }}
-                                                animate={{ 
+                                                animate={{
                                                     width: `${r2Stats.limit > 0 ? (r2Stats.used / r2Stats.limit) * 100 : 0}%`,
                                                     opacity: (r2Stats.used / r2Stats.limit) > 0.9 ? [1, 0.5, 1] : 1
                                                 }}
@@ -1713,29 +1713,29 @@ export function AdminDashboard() {
                             {/* Live Status Controls */}
                             {(isAdminAcc || storedPermissions.includes('takeover_modo')) && (
                                 <div className="flex bg-black/40 border border-white/10 rounded-xl md:rounded-full p-1 w-full md:w-auto md:ml-2 mt-2 md:mt-0 justify-between md:justify-start">
-                                        <button
-                                            onClick={() => updateLiveStatus('off')}
-                                            disabled={isUpdatingTakeover}
-                                            className={`flex-1 md:flex-none px-4 py-2 md:py-1.5 rounded-lg md:rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'off' || !takeoverState.enabled ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-gray-500 hover:text-white'}`}
-                                        >
-                                            OFF
-                                        </button>
-                                        <button
-                                            onClick={() => updateLiveStatus('edit')}
-                                            disabled={isUpdatingTakeover}
-                                            className={`flex-1 md:flex-none px-4 py-2 md:py-1.5 rounded-lg md:rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'edit' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-white'}`}
-                                        >
-                                            ÉDIT
-                                        </button>
-                                        <button
-                                            onClick={() => updateLiveStatus('live')}
-                                            disabled={isUpdatingTakeover}
-                                            className={`flex-1 md:flex-none px-4 py-2 md:py-1.5 rounded-lg md:rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'live' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20 animate-pulse' : 'text-gray-500 hover:text-white'}`}
-                                        >
-                                            ON AIR
-                                        </button>
-                                    </div>
-                                )}
+                                    <button
+                                        onClick={() => updateLiveStatus('off')}
+                                        disabled={isUpdatingTakeover}
+                                        className={`flex-1 md:flex-none px-4 py-2 md:py-1.5 rounded-lg md:rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'off' || !takeoverState.enabled ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        OFF
+                                    </button>
+                                    <button
+                                        onClick={() => updateLiveStatus('edit')}
+                                        disabled={isUpdatingTakeover}
+                                        className={`flex-1 md:flex-none px-4 py-2 md:py-1.5 rounded-lg md:rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'edit' ? 'bg-orange-500 text-white shadow-lg shadow-orange-500/20' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        ÉDIT
+                                    </button>
+                                    <button
+                                        onClick={() => updateLiveStatus('live')}
+                                        disabled={isUpdatingTakeover}
+                                        className={`flex-1 md:flex-none px-4 py-2 md:py-1.5 rounded-lg md:rounded-full text-[10px] font-black uppercase tracking-wider transition-all ${takeoverState.status === 'live' ? 'bg-green-600 text-white shadow-lg shadow-green-600/20 animate-pulse' : 'text-gray-500 hover:text-white'}`}
+                                    >
+                                        ON AIR
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </motion.div>
@@ -1776,7 +1776,7 @@ export function AdminDashboard() {
                                             <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">Accès back-office & permissions</p>
                                         </div>
                                     </div>
-                                    <button 
+                                    <button
                                         onClick={() => {
                                             navigate('/admin/editors');
                                         }}
@@ -1810,7 +1810,7 @@ export function AdminDashboard() {
                                                     ))}
                                                 </div>
                                                 <div className="mt-6 pt-4 border-t border-white/5 flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                                                    <button 
+                                                    <button
                                                         onClick={() => {
                                                             navigate('/admin/editors');
                                                         }}
@@ -1818,7 +1818,7 @@ export function AdminDashboard() {
                                                     >
                                                         <Pencil className="w-4 h-4" />
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         onClick={() => {
                                                             if (confirm('Supprimer cet éditeur ?')) {
                                                                 apiFetch('/api/editors/delete', {
@@ -1851,7 +1851,7 @@ export function AdminDashboard() {
                                             <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">Équipe affichée sur la page Team</p>
                                         </div>
                                     </div>
-                                    <button 
+                                    <button
                                         onClick={() => {
                                             setGlobalAlert({ message: "L'ajout direct de nouveaux articles via cette interface sera bientôt disponible.", type: 'info' });
                                         }}
@@ -1878,7 +1878,7 @@ export function AdminDashboard() {
                                                     </div>
                                                 </div>
                                                 <div className="flex justify-between gap-2 opacity-0 group-hover:opacity-100 transition-all">
-                                                    <button 
+                                                    <button
                                                         onClick={() => {
                                                             setGlobalAlert({ message: "La modification d'articles anciens sera disponible dans une prochaine version.", type: 'info' });
                                                         }}
@@ -1886,7 +1886,7 @@ export function AdminDashboard() {
                                                     >
                                                         Modifier
                                                     </button>
-                                                    <button 
+                                                    <button
                                                         onClick={() => {
                                                             if (confirm('Supprimer ce membre ?')) {
                                                                 const newTeam = teamMembers.filter(m => m.id !== member.id);
@@ -1973,7 +1973,7 @@ export function AdminDashboard() {
                                                         </div>
                                                     </div>
                                                     <div className="flex gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-all">
-                                                        <button 
+                                                        <button
                                                             onClick={() => {
                                                                 setEditingWikiEntry(entry);
                                                                 setIsEditWikiModalOpen(true);
@@ -1982,7 +1982,7 @@ export function AdminDashboard() {
                                                         >
                                                             Modifier
                                                         </button>
-                                                        <button 
+                                                        <button
                                                             onClick={() => {
                                                                 if (confirm(`Supprimer ${entry.name} du Wiki ?`)) {
                                                                     apiFetch('/api/wiki/delete', {
@@ -2008,7 +2008,7 @@ export function AdminDashboard() {
                                 </div>
                             )}
                         </div>
-                        ) : dashboardTab === 'COMMUNAUTÉ' ? (
+                    ) : dashboardTab === 'COMMUNAUTÉ' ? (
                         <div className="space-y-12 pb-20">
                             {/* ACTIVATION SECTION */}
                             <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 flex flex-col md:flex-row justify-between items-center gap-10 relative overflow-hidden">
@@ -2040,15 +2040,15 @@ export function AdminDashboard() {
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-6 relative z-10 w-full md:w-auto">
-                                    <button 
+                                    <button
                                         onClick={toggleContestMode}
-                                        className={`flex-1 md:flex-none px-10 py-5 rounded-2xl font-black uppercase tracking-[0.2em] transition-all transform hover:scale-105 active:scale-95 ${isContestModeEnabled 
-                                            ? 'bg-neon-red text-white shadow-2xl shadow-neon-red/40 border border-neon-red/50' 
+                                        className={`flex-1 md:flex-none px-10 py-5 rounded-2xl font-black uppercase tracking-[0.2em] transition-all transform hover:scale-105 active:scale-95 ${isContestModeEnabled
+                                            ? 'bg-neon-red text-white shadow-2xl shadow-neon-red/40 border border-neon-red/50'
                                             : 'bg-white/5 border border-white/10 text-gray-500 hover:text-white hover:bg-white/10'}`}
                                     >
                                         {isContestModeEnabled ? 'CONCOURS ACTIF' : 'ACTIVER CONCOURS'}
                                     </button>
-                                    <button 
+                                    <button
                                         onClick={handleResetContest}
                                         title="Réinitialiser les scores"
                                         className="p-5 bg-white/5 border border-white/10 text-gray-500 hover:text-white rounded-2xl transition-all hover:bg-white/10 hover:border-white/20"
@@ -2067,7 +2067,7 @@ export function AdminDashboard() {
                                             <h3 className="text-xl font-display font-black text-white uppercase italic">Participants <span className="text-neon-blue">Quiz & Blindtest</span></h3>
                                         </div>
                                         <div className="flex items-center gap-2">
-                                            <button 
+                                            <button
                                                 onClick={() => setIsInstagramContestModalOpen(true)}
                                                 className="px-4 py-2 bg-neon-pink/10 border border-neon-pink/20 rounded-xl text-[9px] font-black uppercase text-neon-pink hover:bg-neon-pink hover:text-white transition-all flex items-center gap-2"
                                             >
@@ -2123,14 +2123,14 @@ export function AdminDashboard() {
                                                             <td className="px-6 py-4 text-center">
                                                                 <div className="flex justify-center gap-2 opacity-0 group-hover:opacity-100 transition-all">
                                                                     {p.status !== 'validated' ? (
-                                                                        <button 
+                                                                        <button
                                                                             onClick={() => updateContestResultStatus(p.email, p.timestamp, 'validated')}
                                                                             className="px-3 py-1.5 bg-neon-green/10 text-neon-green hover:bg-neon-green hover:text-white rounded-lg text-[8px] font-black uppercase transition-all"
                                                                         >
                                                                             Valider
                                                                         </button>
                                                                     ) : (
-                                                                        <button 
+                                                                        <button
                                                                             onClick={() => updateContestResultStatus(p.email, p.timestamp, 'pending')}
                                                                             className="px-3 py-1.5 bg-white/5 text-gray-400 hover:text-white rounded-lg text-[8px] font-black uppercase transition-all"
                                                                         >
@@ -2167,7 +2167,7 @@ export function AdminDashboard() {
                                         <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 space-y-6">
                                             <div className="space-y-3">
                                                 <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-1">Ajouter Morceau</p>
-                                                <button 
+                                                <button
                                                     onClick={() => document.getElementById('blindtest-upload')?.click()}
                                                     className="w-full h-14 bg-neon-pink/10 hover:bg-neon-pink border border-neon-pink/30 text-neon-pink hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all"
                                                 >
@@ -2210,7 +2210,7 @@ export function AdminDashboard() {
                                                         <ImageIcon className="w-8 h-8" />
                                                     </div>
                                                 </div>
-                                                <button 
+                                                <button
                                                     onClick={() => setIsModerationModalOpen(true)}
                                                     disabled={pendingPhotosCount === 0}
                                                     className="w-full py-5 bg-neon-cyan/10 hover:bg-neon-cyan border border-neon-cyan/30 text-neon-cyan hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all disabled:opacity-50 disabled:grayscale"
@@ -2229,7 +2229,7 @@ export function AdminDashboard() {
                                             Nettoyage <span className="text-neon-cyan">Stockage</span>
                                         </h3>
                                         <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6">
-                                            <button 
+                                            <button
                                                 onClick={() => fetchDuplicates()}
                                                 className="w-full py-5 bg-neon-cyan/10 hover:bg-neon-cyan border border-neon-cyan/30 text-neon-cyan hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all"
                                             >
@@ -2243,438 +2243,438 @@ export function AdminDashboard() {
                         </div>
                     ) : (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                        <AnimatePresence>
-                            {filteredActions.map((action) => {
-                                const globalIndex = actions.findIndex(a => a.title === action.title);
+                            <AnimatePresence>
+                                {filteredActions.map((action) => {
+                                    const globalIndex = actions.findIndex(a => a.title === action.title);
 
-                                return (
-                                    <motion.div
-                                        key={action.title}
-                                        layout
-                                        initial={{ opacity: 0, scale: 0.9 }}
-                                        animate={{ opacity: 1, scale: 1 }}
-                                        exit={{ opacity: 0, scale: 0.9 }}
-                                        transition={{ type: "spring", stiffness: 400, damping: 40 }}
-                                        className={`relative group ${editMode ? (openMenu === action.title ? 'z-50' : 'z-20') : 'z-10'} ${action.columns === 2 ? 'md:col-span-2' :
-                                            action.columns === 3 ? 'md:col-span-2 lg:col-span-3' :
-                                                action.columns === 4 ? 'md:col-span-2 lg:col-span-4' : 'col-span-1'
-                                            }`}
-                                    >
-                                        {editMode && (
-                                            <>
-                                                {/* D-Pad Controls */}
-                                                <div className="absolute top-4 left-4 z-[60] grid grid-cols-3 gap-1 p-1 bg-black/80 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
-                                                    <div />
-                                                    <button
-                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(globalIndex, 'up'); }}
-                                                        disabled={globalIndex === 0}
-                                                        className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
-                                                    >
-                                                        <ChevronUp className="w-4 h-4" />
-                                                    </button>
-                                                    <div />
-
-                                                    <button
-                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'left'); }}
-                                                        className="p-1 text-gray-400 hover:text-neon-red transition-colors"
-                                                    >
-                                                        <ChevronLeft className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(globalIndex, 'down'); }}
-                                                        disabled={globalIndex === filteredActions.length - 1}
-                                                        className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
-                                                    >
-                                                        <ChevronDown className="w-4 h-4" />
-                                                    </button>
-                                                    <button
-                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'right'); }}
-                                                        className="p-1 text-gray-400 hover:text-neon-red transition-colors"
-                                                    >
-                                                        <ChevronRight className="w-4 h-4" />
-                                                    </button>
-                                                </div>
-
-                                                <div className="absolute top-4 right-4 z-[60]">
-                                                    <button
-                                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpenMenu(openMenu === action.title ? null : action.title); }}
-                                                        className={`p-2 rounded-full border border-white/10 transition-all ${openMenu === action.title ? 'bg-neon-red text-white border-neon-red' : 'bg-black/60 text-gray-400 hover:text-white shadow-xl'}`}
-                                                    >
-                                                        <Settings2 className="w-5 h-5" />
-                                                    </button>
-
-                                                    {openMenu === action.title && (
-                                                        <motion.div
-                                                            initial={{ opacity: 0, scale: 0.9, y: 10 }}
-                                                            animate={{ opacity: 1, scale: 1, y: 0 }}
-                                                            className="absolute top-full right-0 mt-3 w-56 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl z-[70] space-y-4"
-                                                        >
-                                                            <div className="space-y-2">
-                                                                <label className="text-[9px] font-black uppercase text-gray-400">Largeur du bloc</label>
-                                                                <div className="flex gap-1">
-                                                                    {[1, 2, 3, 4].map(n => (
-                                                                        <button
-                                                                            key={n}
-                                                                            onClick={(e) => {
-                                                                                e.preventDefault(); e.stopPropagation();
-                                                                                updateActionProp(action.title, { columns: n });
-                                                                            }}
-                                                                            className={`flex-1 py-1.5 text-[10px] font-black rounded-lg border transition-all ${action.columns === n ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
-                                                                        >
-                                                                            x{n}
-                                                                        </button>
-                                                                    ))}
-                                                                </div>
-                                                            </div>
-
-                                                            <div className="space-y-2">
-                                                                <label className="text-[9px] font-black uppercase text-gray-400">Couleur de l'onglet</label>
-                                                                <div className="flex flex-wrap gap-2">
-                                                                    {['red', 'blue', 'purple', 'cyan', 'green', 'yellow', 'orange', 'pink', 'white'].map(color => (
-                                                                        <button
-                                                                            key={color}
-                                                                            onClick={(e) => {
-                                                                                e.preventDefault(); e.stopPropagation();
-                                                                                updateActionProp(action.title, { baseColor: color });
-                                                                            }}
-                                                                            className={`w-6 h-6 rounded-full border-2 transition-all ${action.baseColor === color ? 'border-white scale-110 shadow-lg' : 'border-white/10 hover:border-white/30'}`}
-                                                                            style={{
-                                                                                backgroundColor: color === 'white' ? '#fff' :
-                                                                                    color.startsWith('#') ? color : `var(--color-neon-${color})`
-                                                                            }}
-                                                                        />
-                                                                    ))}
-                                                                    <div className="relative group/picker">
-                                                                        <input
-                                                                            type="color"
-                                                                            value={action.baseColor?.startsWith('#') ? action.baseColor : '#ff0000'}
-                                                                            onChange={(e) => {
-                                                                                e.preventDefault(); e.stopPropagation();
-                                                                                updateActionProp(action.title, { baseColor: e.target.value });
-                                                                            }}
-                                                                            className="w-6 h-6 rounded-full overflow-hidden border-2 border-white/10 cursor-pointer"
-                                                                        />
-                                                                        <Paintbrush className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-white pointer-events-none mix-blend-difference" />
-                                                                    </div>
-                                                                </div>
-                                                            </div>
-                                                        </motion.div>
-                                                    )}
-                                                </div>
-                                            </>
-                                        )}
-                                        <Link
-                                            to={editMode ? "#" : action.link}
-                                            onClick={(e) => {
-                                                if (editMode) {
-                                                    e.preventDefault();
-                                                } else if (action.title === 'Bandeau') {
-                                                    e.preventDefault();
-                                                    setIsBannerModalOpen(true);
-                                                } else if (action.title === 'Agenda') {
-                                                    e.preventDefault();
-                                                    setIsAgendaModalOpen(true);
-                                                } else if (action.title === 'Communauté') {
-                                                    e.preventDefault();
-                                                    setIsCommunauteModalOpen(true);
-                                                } else if (action.title === 'Shop') {
-                                                } else if (action.title === 'Contenu') {
-                                                    e.preventDefault();
-                                                    setIsContenuModalOpen(true);
-                                                } else if (action.title === 'Newsletter' || action.title === 'Abonnés') {
-                                                    e.preventDefault();
-                                                    setIsNewsletterModalOpen(true);
-
-                                                } else if (action.link === 'social-studio' || action.title === 'Social Studio') {
-                                                    e.preventDefault();
-                                                    setIsSocialModalOpen(true);
-                                                } else if (action.link === 'downloader' || action.title === 'Downloader') {
-                                                    e.preventDefault();
-                                                    setIsDownloaderOpen(true);
-                                                } else if (action.link === 'push-notifications' || action.title === 'Notifications') {
-                                                    e.preventDefault();
-                                                    setIsNotificationModalOpen(true);
-                                                } else if (action.title === 'Accueil') {
-                                                    e.preventDefault();
-                                                    setIsAccueilModalOpen(true);
-                                                } else if (action.title === 'Statistiques') {
-                                                    e.preventDefault();
-                                                    setIsStatsModalOpen(true);
-                                                } else if (action.title === 'Spotify') {
-                                                    e.preventDefault();
-                                                    setIsSpotifyModalOpen(true);
-                                                } else if (action.title === 'Tracklists') {
-                                                    e.preventDefault();
-                                                    setIsTracklistModalOpen(true);
-                                                } else if (action.title === 'Messagerie') {
-
-                                                    e.preventDefault();
-                                                    setIsMessagesModalOpen(true);
-                                                } else if (action.title === 'Quiz & Blind Test') {
-                                                    e.preventDefault();
-                                                    setIsQuizModalOpen(true);
-                                                } else if (action.title === 'L\'Équipe & Éditeurs') {
-                                                    e.preventDefault();
-                                                    setDashboardTab('TEAM');
-                                                } else if (action.title === 'Concours Insta') {
-                                                    e.preventDefault();
-                                                    fetchInstagramParticipants();
-                                                    setIsInstagramContestModalOpen(true);
-                                                } else if (action.title === 'Vérifier Photos') {
-                                                    e.preventDefault();
-                                                    setModerationTab('wiki');
-                                                    setDashboardTab('COMMUNAUTÉ');
-                                                    setIsModerationModalOpen(true);
-                                                } else if (action.title === 'Communauté') {
-                                                    e.preventDefault();
-                                                    setModerationTab('photos');
-                                                    setDashboardTab('COMMUNAUTÉ');
-                                                    if (pendingPhotosCount > 0) {
-                                                        setIsModerationModalOpen(true);
-                                                    }
-                                                } else if (action.title === 'Générateur Publi') {
-                                                    e.preventDefault();
-                                                    setIsPubliModalOpen(true);
-                                                }
-                                            }}
-                                            className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
-                                            style={{
-                                                borderColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
-                                                    action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
-                                                        `var(--color-neon-${action.baseColor}33)`,
-                                                backgroundColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.05)' :
-                                                    action.baseColor?.startsWith('#') ? `${action.baseColor}0D` :
-                                                        `var(--color-neon-${action.baseColor}0D)`,
-                                            }}
-                                            onMouseEnter={(e) => {
-                                                if (!editMode) {
-                                                    e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.4)' :
-                                                        action.baseColor?.startsWith('#') ? action.baseColor :
-                                                            `var(--color-neon-${action.baseColor})`;
-                                                }
-                                            }}
-                                            onMouseLeave={(e) => {
-                                                e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
-                                                    action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
-                                                        `var(--color-neon-${action.baseColor}33)`;
-                                            }}
+                                    return (
+                                        <motion.div
+                                            key={action.title}
+                                            layout
+                                            initial={{ opacity: 0, scale: 0.9 }}
+                                            animate={{ opacity: 1, scale: 1 }}
+                                            exit={{ opacity: 0, scale: 0.9 }}
+                                            transition={{ type: "spring", stiffness: 400, damping: 40 }}
+                                            className={`relative group ${editMode ? (openMenu === action.title ? 'z-50' : 'z-20') : 'z-10'} ${action.columns === 2 ? 'md:col-span-2' :
+                                                action.columns === 3 ? 'md:col-span-2 lg:col-span-3' :
+                                                    action.columns === 4 ? 'md:col-span-2 lg:col-span-4' : 'col-span-1'
+                                                }`}
                                         >
-                                            <div className="flex justify-between items-start mb-4">
-                                                <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors relative">
-                                                    {getIcon(action.icon, action.baseColor)}
-                                                    {action.title === 'Vérifier Photos' && pendingPhotosCount > 0 && (
-                                                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
-                                                            <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
-                                                        </div>
-                                                    )}
-                                                    {action.title === 'Modération' && pendingPhotosCount > 0 && (
-                                                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
-                                                            <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
-                                                        </div>
-                                                    )}
-                                                    {(action.title === 'Quiz & Blind Test' || action.title === 'Contenu') && pendingQuizzesCount > 0 && (
-                                                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
-                                                            <span className="text-[9px] font-black text-white">{pendingQuizzesCount}</span>
-                                                        </div>
-                                                    )}
-                                                    {action.title === 'Messagerie' && pendingMessagesCount > 0 && (
-                                                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
-                                                            <span className="text-[9px] font-black text-white">{pendingMessagesCount}</span>
-                                                        </div>
-                                                    )}
-                                                    {action.title === 'Communauté' && (pendingPhotosCount > 0 || pendingQuizzesCount > 0 || pendingMessagesCount > 0) && (
-                                                        <div className="absolute -top-1 -right-1 flex gap-1">
-                                                            {pendingPhotosCount > 0 && (
-                                                                <div className="w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
-                                                                    <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
-                                                                </div>
-                                                            )}
-                                                            {(pendingMessagesCount > 0 || pendingQuizzesCount > 0) && (
-                                                                <div className="w-5 h-5 bg-neon-cyan rounded-full flex items-center justify-center border-2 border-[#050505] shadow-lg">
-                                                                    <span className="text-[9px] font-black text-white">{pendingMessagesCount + (pendingQuizzesCount > 0 ? 1 : 0)}</span>
-                                                                </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="p-2 border border-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
-                                                    <Plus className="w-4 h-4 text-white" />
-                                                </div>
-                                            </div>
-                                            <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">
-                                                {action.title}
-                                            </h3>
-                                            <p className="hidden md:block text-gray-400 font-medium">
-                                                {action.description}
-                                            </p>
-                                        </Link>
-                                    </motion.div>
-                                );
-                            })}
-                       </AnimatePresence>
+                                            {editMode && (
+                                                <>
+                                                    {/* D-Pad Controls */}
+                                                    <div className="absolute top-4 left-4 z-[60] grid grid-cols-3 gap-1 p-1 bg-black/80 backdrop-blur-xl rounded-2xl border border-white/10 shadow-2xl">
+                                                        <div />
+                                                        <button
+                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(globalIndex, 'up'); }}
+                                                            disabled={globalIndex === 0}
+                                                            className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
+                                                        >
+                                                            <ChevronUp className="w-4 h-4" />
+                                                        </button>
+                                                        <div />
 
-                {/* Modal Concours Instagram */}
-                <AnimatePresence>
-                    {isInstagramContestModalOpen && (
-                        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => setIsInstagramContestModalOpen(false)}
-                                className="absolute inset-0 bg-black/90 backdrop-blur-md"
-                            />
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative w-full max-w-5xl bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl h-[85vh] flex flex-col"
-                            >
-                                <div className="p-8 md:p-10 flex flex-col h-full">
-                                    <div className="flex items-center justify-between mb-8 shrink-0">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-3 bg-neon-pink/10 rounded-2xl border border-neon-pink/20">
-                                                <Instagram className="w-6 h-6 text-neon-pink" />
-                                            </div>
-                                            <div>
-                                                <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
-                                                    Participants <span className="text-neon-pink">Instagram</span>
-                                                </h2>
-                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Concours de partage réseaux</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-4">
-                                            {/* Quick Toggle for Contest Mode in Insta Modal */}
-                                            <button 
-                                                onClick={toggleContestMode}
-                                                className={`px-4 py-2 rounded-xl font-black uppercase text-[10px] transition-all border ${isContestModeEnabled ? 'bg-neon-red/20 border-neon-red/40 text-neon-red' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
-                                            >
-                                                {isContestModeEnabled ? 'CONCOURS ACTIF' : 'ACTIVER CONCOURS'}
-                                            </button>
-                                            <button
-                                                onClick={fetchInstagramParticipants}
-                                                className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all shadow-xl"
-                                                title="Actualiser"
-                                            >
-                                                <RefreshCw className={`w-5 h-5 ${isFetchingInstagram ? 'animate-spin' : ''}`} />
-                                            </button>
-                                            <button
-                                                onClick={() => setIsInstagramContestModalOpen(false)}
-                                                className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all shadow-xl"
-                                            >
-                                                <X className="w-6 h-6" />
-                                            </button>
-                                        </div>
-                                    </div>
+                                                        <button
+                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'left'); }}
+                                                            className="p-1 text-gray-400 hover:text-neon-red transition-colors"
+                                                        >
+                                                            <ChevronLeft className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); moveAction(globalIndex, 'down'); }}
+                                                            disabled={globalIndex === filteredActions.length - 1}
+                                                            className="p-1 text-gray-400 hover:text-neon-red transition-colors disabled:opacity-10"
+                                                        >
+                                                            <ChevronDown className="w-4 h-4" />
+                                                        </button>
+                                                        <button
+                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); cycleColumns(action.title, 'right'); }}
+                                                            className="p-1 text-gray-400 hover:text-neon-red transition-colors"
+                                                        >
+                                                            <ChevronRight className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
 
-                                    <div className="flex-1 overflow-y-auto custom-scrollbar">
-                                        <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-                                            <table className="w-full text-left">
-                                                <thead>
-                                                    <tr className="border-b border-white/10 bg-white/[0.02]">
-                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Date</th>
-                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Handle Instagram</th>
-                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Utilisateur</th>
-                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Email</th>
-                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Score</th>
-                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Statut</th>
-                                                        <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">IP</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody className="divide-y divide-white/5">
-                                                    {instagramParticipants.length === 0 ? (
-                                                        <tr>
-                                                            <td colSpan={7} className="px-6 py-12 text-center text-gray-500 uppercase font-black text-xs italic">
-                                                                {isFetchingInstagram ? 'Chargement...' : 'Aucun participant pour le moment'}
-                                                            </td>
-                                                        </tr>
-                                                    ) : (
-                                                        [...instagramParticipants]
-                                                            .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
-                                                            .map((res: any, i: number) => (
-                                                            <tr key={res.id || i} className="hover:bg-white/[0.02] transition-colors">
-                                                                <td className="px-6 py-4 text-[10px] text-gray-400">
-                                                                    {new Date(res.timestamp).toLocaleString('fr-FR')}
-                                                                </td>
-                                                                <td className="px-6 py-4">
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className="text-neon-pink font-black uppercase text-xs">@{res.handle}</span>
-                                                                        <a 
-                                                                            href={`https://instagram.com/${res.handle.replace('@', '')}`}
-                                                                            target="_blank"
-                                                                            rel="noopener noreferrer"
-                                                                            className="p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-white transition-all"
-                                                                        >
-                                                                            <ExternalLink className="w-3 h-3" />
-                                                                        </a>
+                                                    <div className="absolute top-4 right-4 z-[60]">
+                                                        <button
+                                                            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setOpenMenu(openMenu === action.title ? null : action.title); }}
+                                                            className={`p-2 rounded-full border border-white/10 transition-all ${openMenu === action.title ? 'bg-neon-red text-white border-neon-red' : 'bg-black/60 text-gray-400 hover:text-white shadow-xl'}`}
+                                                        >
+                                                            <Settings2 className="w-5 h-5" />
+                                                        </button>
+
+                                                        {openMenu === action.title && (
+                                                            <motion.div
+                                                                initial={{ opacity: 0, scale: 0.9, y: 10 }}
+                                                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                                                className="absolute top-full right-0 mt-3 w-56 bg-black/90 backdrop-blur-2xl border border-white/10 rounded-2xl p-4 shadow-2xl z-[70] space-y-4"
+                                                            >
+                                                                <div className="space-y-2">
+                                                                    <label className="text-[9px] font-black uppercase text-gray-400">Largeur du bloc</label>
+                                                                    <div className="flex gap-1">
+                                                                        {[1, 2, 3, 4].map(n => (
+                                                                            <button
+                                                                                key={n}
+                                                                                onClick={(e) => {
+                                                                                    e.preventDefault(); e.stopPropagation();
+                                                                                    updateActionProp(action.title, { columns: n });
+                                                                                }}
+                                                                                className={`flex-1 py-1.5 text-[10px] font-black rounded-lg border transition-all ${action.columns === n ? 'bg-neon-red border-neon-red text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                                                            >
+                                                                                x{n}
+                                                                            </button>
+                                                                        ))}
                                                                     </div>
-                                                                </td>
-                                                                <td className="px-6 py-4">
-                                                                    <div className="font-black text-white uppercase text-xs">{res.username}</div>
-                                                                    <div className="text-[8px] text-gray-500 uppercase">UID: {res.userId}</div>
-                                                                </td>
-                                                                <td className="px-6 py-4 text-xs text-gray-400 lowercase">
-                                                                    {res.email}
-                                                                </td>
-                                                                <td className="px-6 py-4">
-                                                                    {res.score !== undefined ? (
-                                                                        <div className="flex flex-col">
-                                                                            <span className="text-white font-black text-xs">{res.score}/{res.total || res.totalQuestions || '?'}</span>
-                                                                            <span className="text-[8px] text-neon-cyan uppercase font-black mt-0.5">Quiz Done</span>
+                                                                </div>
+
+                                                                <div className="space-y-2">
+                                                                    <label className="text-[9px] font-black uppercase text-gray-400">Couleur de l'onglet</label>
+                                                                    <div className="flex flex-wrap gap-2">
+                                                                        {['red', 'blue', 'purple', 'cyan', 'green', 'yellow', 'orange', 'pink', 'white'].map(color => (
+                                                                            <button
+                                                                                key={color}
+                                                                                onClick={(e) => {
+                                                                                    e.preventDefault(); e.stopPropagation();
+                                                                                    updateActionProp(action.title, { baseColor: color });
+                                                                                }}
+                                                                                className={`w-6 h-6 rounded-full border-2 transition-all ${action.baseColor === color ? 'border-white scale-110 shadow-lg' : 'border-white/10 hover:border-white/30'}`}
+                                                                                style={{
+                                                                                    backgroundColor: color === 'white' ? '#fff' :
+                                                                                        color.startsWith('#') ? color : `var(--color-neon-${color})`
+                                                                                }}
+                                                                            />
+                                                                        ))}
+                                                                        <div className="relative group/picker">
+                                                                            <input
+                                                                                type="color"
+                                                                                value={action.baseColor?.startsWith('#') ? action.baseColor : '#ff0000'}
+                                                                                onChange={(e) => {
+                                                                                    e.preventDefault(); e.stopPropagation();
+                                                                                    updateActionProp(action.title, { baseColor: e.target.value });
+                                                                                }}
+                                                                                className="w-6 h-6 rounded-full overflow-hidden border-2 border-white/10 cursor-pointer"
+                                                                            />
+                                                                            <Paintbrush className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-3 h-3 text-white pointer-events-none mix-blend-difference" />
                                                                         </div>
-                                                                    ) : (
-                                                                        <span className="text-gray-600 text-[10px] uppercase font-bold italic">N/A</span>
-                                                                    )}
-                                                                </td>
-                                                                <td className="px-6 py-4">
-                                                                    <div className="flex items-center gap-2">
-                                                                        {res.status === 'validated' ? (
-                                                                            <div className="px-3 py-1 bg-neon-green/10 border border-neon-green/20 rounded-full flex items-center gap-1.5">
-                                                                                <Check className="w-3 h-3 text-neon-green" />
-                                                                                <span className="text-[8px] font-black text-neon-green uppercase tracking-widest">Validé</span>
-                                                                            </div>
-                                                                        ) : res.status === 'rejected' ? (
-                                                                            <div className="px-3 py-1 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center gap-1.5">
-                                                                                <X className="w-3 h-3 text-neon-red" />
-                                                                                <span className="text-[8px] font-black text-neon-red uppercase tracking-widest">Rejeté</span>
-                                                                            </div>
-                                                                        ) : (
-                                                                            <div className="flex items-center gap-2">
-                                                                                <button 
-                                                                                    onClick={() => updateParticipantStatus(res.handle, res.timestamp, 'validated')}
-                                                                                    className="p-1.5 bg-neon-green/10 hover:bg-neon-green/20 border border-neon-green/20 rounded-lg text-neon-green transition-all"
-                                                                                    title="Valider"
-                                                                                >
-                                                                                    <Check className="w-3.5 h-3.5" />
-                                                                                </button>
-                                                                                <button 
-                                                                                    onClick={() => updateParticipantStatus(res.handle, res.timestamp, 'rejected')}
-                                                                                    className="p-1.5 bg-neon-red/10 hover:bg-neon-red/20 border border-neon-red/20 rounded-lg text-neon-red transition-all"
-                                                                                    title="Rejeter"
-                                                                                >
-                                                                                    <X className="w-3.5 h-3.5" />
-                                                                                </button>
-                                                                            </div>
-                                                                        )}
                                                                     </div>
-                                                                </td>
-                                                                <td className="px-6 py-4 text-[10px] font-mono text-gray-600">
-                                                                    {res.ip}
-                                                                </td>
-                                                            </tr>
-                                                        ))
-                                                    )}
-                                                </tbody>
-                                            </table>
-                                        </div>
+                                                                </div>
+                                                            </motion.div>
+                                                        )}
+                                                    </div>
+                                                </>
+                                            )}
+                                            <Link
+                                                to={editMode ? "#" : action.link}
+                                                onClick={(e) => {
+                                                    if (editMode) {
+                                                        e.preventDefault();
+                                                    } else if (action.title === 'Bandeau') {
+                                                        e.preventDefault();
+                                                        setIsBannerModalOpen(true);
+                                                    } else if (action.title === 'Agenda') {
+                                                        e.preventDefault();
+                                                        setIsAgendaModalOpen(true);
+                                                    } else if (action.title === 'Communauté') {
+                                                        e.preventDefault();
+                                                        setIsCommunauteModalOpen(true);
+                                                    } else if (action.title === 'Shop') {
+                                                    } else if (action.title === 'Contenu') {
+                                                        e.preventDefault();
+                                                        setIsContenuModalOpen(true);
+                                                    } else if (action.title === 'Newsletter' || action.title === 'Abonnés') {
+                                                        e.preventDefault();
+                                                        setIsNewsletterModalOpen(true);
+
+                                                    } else if (action.link === 'social-studio' || action.title === 'Social Studio') {
+                                                        e.preventDefault();
+                                                        setIsSocialModalOpen(true);
+                                                    } else if (action.link === 'downloader' || action.title === 'Downloader') {
+                                                        e.preventDefault();
+                                                        setIsDownloaderOpen(true);
+                                                    } else if (action.link === 'push-notifications' || action.title === 'Notifications') {
+                                                        e.preventDefault();
+                                                        setIsNotificationModalOpen(true);
+                                                    } else if (action.title === 'Accueil') {
+                                                        e.preventDefault();
+                                                        setIsAccueilModalOpen(true);
+                                                    } else if (action.title === 'Statistiques') {
+                                                        e.preventDefault();
+                                                        setIsStatsModalOpen(true);
+                                                    } else if (action.title === 'Spotify') {
+                                                        e.preventDefault();
+                                                        setIsSpotifyModalOpen(true);
+                                                    } else if (action.title === 'Tracklists') {
+                                                        e.preventDefault();
+                                                        setIsTracklistModalOpen(true);
+                                                    } else if (action.title === 'Messagerie') {
+
+                                                        e.preventDefault();
+                                                        setIsMessagesModalOpen(true);
+                                                    } else if (action.title === 'Quiz & Blind Test') {
+                                                        e.preventDefault();
+                                                        setIsQuizModalOpen(true);
+                                                    } else if (action.title === 'L\'Équipe & Éditeurs') {
+                                                        e.preventDefault();
+                                                        setDashboardTab('TEAM');
+                                                    } else if (action.title === 'Concours Insta') {
+                                                        e.preventDefault();
+                                                        fetchInstagramParticipants();
+                                                        setIsInstagramContestModalOpen(true);
+                                                    } else if (action.title === 'Vérifier Photos') {
+                                                        e.preventDefault();
+                                                        setModerationTab('wiki');
+                                                        setDashboardTab('COMMUNAUTÉ');
+                                                        setIsModerationModalOpen(true);
+                                                    } else if (action.title === 'Communauté') {
+                                                        e.preventDefault();
+                                                        setModerationTab('photos');
+                                                        setDashboardTab('COMMUNAUTÉ');
+                                                        if (pendingPhotosCount > 0) {
+                                                            setIsModerationModalOpen(true);
+                                                        }
+                                                    } else if (action.title === 'Générateur Publi') {
+                                                        e.preventDefault();
+                                                        setIsPubliModalOpen(true);
+                                                    }
+                                                }}
+                                                className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
+                                                style={{
+                                                    borderColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
+                                                        action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
+                                                            `var(--color-neon-${action.baseColor}33)`,
+                                                    backgroundColor: action.baseColor === 'white' ? 'rgba(255,255,255,0.05)' :
+                                                        action.baseColor?.startsWith('#') ? `${action.baseColor}0D` :
+                                                            `var(--color-neon-${action.baseColor}0D)`,
+                                                }}
+                                                onMouseEnter={(e) => {
+                                                    if (!editMode) {
+                                                        e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.4)' :
+                                                            action.baseColor?.startsWith('#') ? action.baseColor :
+                                                                `var(--color-neon-${action.baseColor})`;
+                                                    }
+                                                }}
+                                                onMouseLeave={(e) => {
+                                                    e.currentTarget.style.borderColor = action.baseColor === 'white' ? 'rgba(255,255,255,0.1)' :
+                                                        action.baseColor?.startsWith('#') ? `${action.baseColor}33` :
+                                                            `var(--color-neon-${action.baseColor}33)`;
+                                                }}
+                                            >
+                                                <div className="flex justify-between items-start mb-4">
+                                                    <div className="p-4 rounded-2xl bg-black/20 group-hover:bg-black/40 transition-colors relative">
+                                                        {getIcon(action.icon, action.baseColor)}
+                                                        {action.title === 'Vérifier Photos' && pendingPhotosCount > 0 && (
+                                                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
+                                                                <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
+                                                            </div>
+                                                        )}
+                                                        {action.title === 'Modération' && pendingPhotosCount > 0 && (
+                                                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
+                                                                <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
+                                                            </div>
+                                                        )}
+                                                        {(action.title === 'Quiz & Blind Test' || action.title === 'Contenu') && pendingQuizzesCount > 0 && (
+                                                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
+                                                                <span className="text-[9px] font-black text-white">{pendingQuizzesCount}</span>
+                                                            </div>
+                                                        )}
+                                                        {action.title === 'Messagerie' && pendingMessagesCount > 0 && (
+                                                            <div className="absolute -top-1 -right-1 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
+                                                                <span className="text-[9px] font-black text-white">{pendingMessagesCount}</span>
+                                                            </div>
+                                                        )}
+                                                        {action.title === 'Communauté' && (pendingPhotosCount > 0 || pendingQuizzesCount > 0 || pendingMessagesCount > 0) && (
+                                                            <div className="absolute -top-1 -right-1 flex gap-1">
+                                                                {pendingPhotosCount > 0 && (
+                                                                    <div className="w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)]">
+                                                                        <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
+                                                                    </div>
+                                                                )}
+                                                                {(pendingMessagesCount > 0 || pendingQuizzesCount > 0) && (
+                                                                    <div className="w-5 h-5 bg-neon-cyan rounded-full flex items-center justify-center border-2 border-[#050505] shadow-lg">
+                                                                        <span className="text-[9px] font-black text-white">{pendingMessagesCount + (pendingQuizzesCount > 0 ? 1 : 0)}</span>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    <div className="p-2 border border-white/10 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                                                        <Plus className="w-4 h-4 text-white" />
+                                                    </div>
+                                                </div>
+                                                <h3 className="text-2xl font-display font-black text-white uppercase italic mb-2">
+                                                    {action.title}
+                                                </h3>
+                                                <p className="hidden md:block text-gray-400 font-medium">
+                                                    {action.description}
+                                                </p>
+                                            </Link>
+                                        </motion.div>
+                                    );
+                                })}
+                            </AnimatePresence>
+
+                            {/* Modal Concours Instagram */}
+                            <AnimatePresence>
+                                {isInstagramContestModalOpen && (
+                                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            onClick={() => setIsInstagramContestModalOpen(false)}
+                                            className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                                        />
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                            className="relative w-full max-w-5xl bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl h-[85vh] flex flex-col"
+                                        >
+                                            <div className="p-8 md:p-10 flex flex-col h-full">
+                                                <div className="flex items-center justify-between mb-8 shrink-0">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-3 bg-neon-pink/10 rounded-2xl border border-neon-pink/20">
+                                                            <Instagram className="w-6 h-6 text-neon-pink" />
+                                                        </div>
+                                                        <div>
+                                                            <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
+                                                                Participants <span className="text-neon-pink">Instagram</span>
+                                                            </h2>
+                                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Concours de partage réseaux</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="flex items-center gap-4">
+                                                        {/* Quick Toggle for Contest Mode in Insta Modal */}
+                                                        <button
+                                                            onClick={toggleContestMode}
+                                                            className={`px-4 py-2 rounded-xl font-black uppercase text-[10px] transition-all border ${isContestModeEnabled ? 'bg-neon-red/20 border-neon-red/40 text-neon-red' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                                        >
+                                                            {isContestModeEnabled ? 'CONCOURS ACTIF' : 'ACTIVER CONCOURS'}
+                                                        </button>
+                                                        <button
+                                                            onClick={fetchInstagramParticipants}
+                                                            className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all shadow-xl"
+                                                            title="Actualiser"
+                                                        >
+                                                            <RefreshCw className={`w-5 h-5 ${isFetchingInstagram ? 'animate-spin' : ''}`} />
+                                                        </button>
+                                                        <button
+                                                            onClick={() => setIsInstagramContestModalOpen(false)}
+                                                            className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all shadow-xl"
+                                                        >
+                                                            <X className="w-6 h-6" />
+                                                        </button>
+                                                    </div>
+                                                </div>
+
+                                                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                                                    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
+                                                        <table className="w-full text-left">
+                                                            <thead>
+                                                                <tr className="border-b border-white/10 bg-white/[0.02]">
+                                                                    <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Date</th>
+                                                                    <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Handle Instagram</th>
+                                                                    <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Utilisateur</th>
+                                                                    <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Email</th>
+                                                                    <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Score</th>
+                                                                    <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">Statut</th>
+                                                                    <th className="px-6 py-4 text-[10px] font-black text-gray-500 uppercase tracking-widest">IP</th>
+                                                                </tr>
+                                                            </thead>
+                                                            <tbody className="divide-y divide-white/5">
+                                                                {instagramParticipants.length === 0 ? (
+                                                                    <tr>
+                                                                        <td colSpan={7} className="px-6 py-12 text-center text-gray-500 uppercase font-black text-xs italic">
+                                                                            {isFetchingInstagram ? 'Chargement...' : 'Aucun participant pour le moment'}
+                                                                        </td>
+                                                                    </tr>
+                                                                ) : (
+                                                                    [...instagramParticipants]
+                                                                        .sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime())
+                                                                        .map((res: any, i: number) => (
+                                                                            <tr key={res.id || i} className="hover:bg-white/[0.02] transition-colors">
+                                                                                <td className="px-6 py-4 text-[10px] text-gray-400">
+                                                                                    {new Date(res.timestamp).toLocaleString('fr-FR')}
+                                                                                </td>
+                                                                                <td className="px-6 py-4">
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        <span className="text-neon-pink font-black uppercase text-xs">@{res.handle}</span>
+                                                                                        <a
+                                                                                            href={`https://instagram.com/${res.handle.replace('@', '')}`}
+                                                                                            target="_blank"
+                                                                                            rel="noopener noreferrer"
+                                                                                            className="p-1 hover:bg-white/10 rounded-md text-gray-500 hover:text-white transition-all"
+                                                                                        >
+                                                                                            <ExternalLink className="w-3 h-3" />
+                                                                                        </a>
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td className="px-6 py-4">
+                                                                                    <div className="font-black text-white uppercase text-xs">{res.username}</div>
+                                                                                    <div className="text-[8px] text-gray-500 uppercase">UID: {res.userId}</div>
+                                                                                </td>
+                                                                                <td className="px-6 py-4 text-xs text-gray-400 lowercase">
+                                                                                    {res.email}
+                                                                                </td>
+                                                                                <td className="px-6 py-4">
+                                                                                    {res.score !== undefined ? (
+                                                                                        <div className="flex flex-col">
+                                                                                            <span className="text-white font-black text-xs">{res.score}/{res.total || res.totalQuestions || '?'}</span>
+                                                                                            <span className="text-[8px] text-neon-cyan uppercase font-black mt-0.5">Quiz Done</span>
+                                                                                        </div>
+                                                                                    ) : (
+                                                                                        <span className="text-gray-600 text-[10px] uppercase font-bold italic">N/A</span>
+                                                                                    )}
+                                                                                </td>
+                                                                                <td className="px-6 py-4">
+                                                                                    <div className="flex items-center gap-2">
+                                                                                        {res.status === 'validated' ? (
+                                                                                            <div className="px-3 py-1 bg-neon-green/10 border border-neon-green/20 rounded-full flex items-center gap-1.5">
+                                                                                                <Check className="w-3 h-3 text-neon-green" />
+                                                                                                <span className="text-[8px] font-black text-neon-green uppercase tracking-widest">Validé</span>
+                                                                                            </div>
+                                                                                        ) : res.status === 'rejected' ? (
+                                                                                            <div className="px-3 py-1 bg-neon-red/10 border border-neon-red/20 rounded-full flex items-center gap-1.5">
+                                                                                                <X className="w-3 h-3 text-neon-red" />
+                                                                                                <span className="text-[8px] font-black text-neon-red uppercase tracking-widest">Rejeté</span>
+                                                                                            </div>
+                                                                                        ) : (
+                                                                                            <div className="flex items-center gap-2">
+                                                                                                <button
+                                                                                                    onClick={() => updateParticipantStatus(res.handle, res.timestamp, 'validated')}
+                                                                                                    className="p-1.5 bg-neon-green/10 hover:bg-neon-green/20 border border-neon-green/20 rounded-lg text-neon-green transition-all"
+                                                                                                    title="Valider"
+                                                                                                >
+                                                                                                    <Check className="w-3.5 h-3.5" />
+                                                                                                </button>
+                                                                                                <button
+                                                                                                    onClick={() => updateParticipantStatus(res.handle, res.timestamp, 'rejected')}
+                                                                                                    className="p-1.5 bg-neon-red/10 hover:bg-neon-red/20 border border-neon-red/20 rounded-lg text-neon-red transition-all"
+                                                                                                    title="Rejeter"
+                                                                                                >
+                                                                                                    <X className="w-3.5 h-3.5" />
+                                                                                                </button>
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td className="px-6 py-4 text-[10px] font-mono text-gray-600">
+                                                                                    {res.ip}
+                                                                                </td>
+                                                                            </tr>
+                                                                        ))
+                                                                )}
+                                                            </tbody>
+                                                        </table>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </motion.div>
                                     </div>
-                                </div>
-                            </motion.div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     )}
-                </AnimatePresence>
-                    </div>
-                )}
                 </div>
 
                 {/* ─── CLASSEMENT WIKI VOTES ─── */}
@@ -2784,11 +2784,10 @@ export function AdminDashboard() {
                                             </div>
                                             <div className="flex items-center gap-2 shrink-0">
                                                 {u.provider && (
-                                                    <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
-                                                        u.provider === 'google' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
-                                                        u.provider === 'discord' ? 'bg-[#5865F2]/10 text-[#5865F2] border border-[#5865F2]/20' :
-                                                        'bg-white/5 text-gray-400 border border-white/10'
-                                                    }`}>{u.provider}</span>
+                                                    <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${u.provider === 'google' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
+                                                            u.provider === 'discord' ? 'bg-[#5865F2]/10 text-[#5865F2] border border-[#5865F2]/20' :
+                                                                'bg-white/5 text-gray-400 border border-white/10'
+                                                        }`}>{u.provider}</span>
                                                 )}
                                                 <span className="text-[9px] text-gray-600 font-bold">{u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : '—'}</span>
                                             </div>
@@ -4217,23 +4216,7 @@ export function AdminDashboard() {
                                         )}
                                     </button>
 
-                                    <button
-                                        onClick={() => { setModerationTab('wiki'); setIsModerationModalOpen(true); setIsCommunauteModalOpen(false); }}
-                                        className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group lg:col-span-1 relative"
-                                    >
-                                        <div className="w-16 h-16 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform">
-                                            <Camera className="w-8 h-8 text-neon-green" />
-                                        </div>
-                                        <div className="text-center">
-                                            <h3 className="text-xl font-bold text-white uppercase italic">Wiki Photos</h3>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] leading-none mt-2">Vérifier Photos</p>
-                                        </div>
-                                        {pendingWikiPhotosCount > 0 && (
-                                            <div className="absolute top-4 right-4 w-6 h-6 bg-neon-green rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
-                                                <span className="text-[10px] font-black text-black">{pendingWikiPhotosCount}</span>
-                                            </div>
-                                        )}
-                                    </button>
+                                    {/* Wiki Photos removed as requested (now in Live Dashboard) */}
 
                                     <button
                                         onClick={() => { fetchDuplicates(); setIsCommunauteModalOpen(false); }}
@@ -5641,49 +5624,49 @@ export function AdminDashboard() {
                                                                 [...contestResults]
                                                                     .sort((a, b) => (b.score - a.score) || (a.time - b.time))
                                                                     .map((res: any, i: number) => (
-                                                                    <tr key={res.id || i} className="hover:bg-white/[0.02] transition-colors">
-                                                                        <td className="px-6 py-4">
-                                                                            <span className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-[10px] ${i === 0 ? 'bg-yellow-500 text-black' : i === 1 ? 'bg-gray-300 text-black' : i === 2 ? 'bg-orange-400 text-black' : 'bg-white/10 text-white'}`}>
-                                                                                {i + 1}
-                                                                            </span>
-                                                                        </td>
-                                                                        <td className="px-6 py-4">
-                                                                            <div className="font-black text-white uppercase text-xs">
-                                                                                {res.pseudo}
-                                                                            </div>
-                                                                            {res.userEmail && (
-                                                                                <div className="text-[10px] text-neon-cyan lowercase opacity-70 truncate max-w-[150px]">
-                                                                                    {res.userEmail}
+                                                                        <tr key={res.id || i} className="hover:bg-white/[0.02] transition-colors">
+                                                                            <td className="px-6 py-4">
+                                                                                <span className={`w-6 h-6 rounded-lg flex items-center justify-center font-black text-[10px] ${i === 0 ? 'bg-yellow-500 text-black' : i === 1 ? 'bg-gray-300 text-black' : i === 2 ? 'bg-orange-400 text-black' : 'bg-white/10 text-white'}`}>
+                                                                                    {i + 1}
+                                                                                </span>
+                                                                            </td>
+                                                                            <td className="px-6 py-4">
+                                                                                <div className="font-black text-white uppercase text-xs">
+                                                                                    {res.pseudo}
                                                                                 </div>
-                                                                            )}
-                                                                            {res.userId && <div className="text-[8px] text-gray-500 uppercase">UID: {res.userId}</div>}
-                                                                        </td>
-                                                                        <td className="px-6 py-4">
-                                                                            <span className="text-neon-cyan font-black italic">{res.score}/{res.total}</span>
-                                                                        </td>
-                                                                        <td className="px-6 py-4 text-xs font-mono text-gray-400">
-                                                                            {res.time?.toFixed(1)}s
-                                                                        </td>
-                                                                        <td className="px-6 py-4">
-                                                                            <div className="text-[10px] text-gray-400">
-                                                                                {new Date(res.timestamp || Date.now()).toLocaleString('fr-FR')}
-                                                                            </div>
-                                                                            <div className="text-[8px] text-gray-600 font-mono italic">{res.ip}</div>
-                                                                        </td>
-                                                                        <td className="px-6 py-4">
-                                                                            {i < 3 && res.userEmail && (
-                                                                                <a
-                                                                                    href={`mailto:${res.userEmail}?subject=Félicitations - Concours Dropsiders&body=Bonjour ${res.pseudo}, félicitations pour votre top 3 au concours Dropsiders ! Vous terminez à la ${i + 1}ème place avec un score de ${res.score}/${res.total} en ${res.time?.toFixed(1)}s. À très vite !`}
-                                                                                    className="p-2 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 rounded-lg text-neon-cyan transition-all flex items-center gap-1.5 w-fit group/mail"
-                                                                                    title="Envoyer un email au gagnant"
-                                                                                >
-                                                                                    <Mail className="w-3.5 h-3.5" />
-                                                                                    <span className="text-[8px] font-black uppercase">Contacter</span>
-                                                                                </a>
-                                                                            )}
-                                                                        </td>
-                                                                    </tr>
-                                                                ))
+                                                                                {res.userEmail && (
+                                                                                    <div className="text-[10px] text-neon-cyan lowercase opacity-70 truncate max-w-[150px]">
+                                                                                        {res.userEmail}
+                                                                                    </div>
+                                                                                )}
+                                                                                {res.userId && <div className="text-[8px] text-gray-500 uppercase">UID: {res.userId}</div>}
+                                                                            </td>
+                                                                            <td className="px-6 py-4">
+                                                                                <span className="text-neon-cyan font-black italic">{res.score}/{res.total}</span>
+                                                                            </td>
+                                                                            <td className="px-6 py-4 text-xs font-mono text-gray-400">
+                                                                                {res.time?.toFixed(1)}s
+                                                                            </td>
+                                                                            <td className="px-6 py-4">
+                                                                                <div className="text-[10px] text-gray-400">
+                                                                                    {new Date(res.timestamp || Date.now()).toLocaleString('fr-FR')}
+                                                                                </div>
+                                                                                <div className="text-[8px] text-gray-600 font-mono italic">{res.ip}</div>
+                                                                            </td>
+                                                                            <td className="px-6 py-4">
+                                                                                {i < 3 && res.userEmail && (
+                                                                                    <a
+                                                                                        href={`mailto:${res.userEmail}?subject=Félicitations - Concours Dropsiders&body=Bonjour ${res.pseudo}, félicitations pour votre top 3 au concours Dropsiders ! Vous terminez à la ${i + 1}ème place avec un score de ${res.score}/${res.total} en ${res.time?.toFixed(1)}s. À très vite !`}
+                                                                                        className="p-2 bg-neon-cyan/10 hover:bg-neon-cyan/20 border border-neon-cyan/30 rounded-lg text-neon-cyan transition-all flex items-center gap-1.5 w-fit group/mail"
+                                                                                        title="Envoyer un email au gagnant"
+                                                                                    >
+                                                                                        <Mail className="w-3.5 h-3.5" />
+                                                                                        <span className="text-[8px] font-black uppercase">Contacter</span>
+                                                                                    </a>
+                                                                                )}
+                                                                            </td>
+                                                                        </tr>
+                                                                    ))
                                                             )}
                                                         </tbody>
                                                     </table>
@@ -5694,7 +5677,7 @@ export function AdminDashboard() {
                                                 {(quizTab === 'active' ? allActiveQuizzes : allPendingQuizzes)
                                                     .filter(q => {
                                                         const matchType = quizFilter === 'ALL' || q.type === quizFilter || (quizFilter === 'CONCOURS' && q.category === 'CONCOURS');
-                                                        const matchSearch = !quizSearch || 
+                                                        const matchSearch = !quizSearch ||
                                                             q.question?.toUpperCase().includes(quizSearch.toUpperCase()) ||
                                                             q.author?.toUpperCase().includes(quizSearch.toUpperCase());
                                                         return matchType && matchSearch;
@@ -6299,7 +6282,7 @@ export function AdminDashboard() {
                                 className="bg-[#0A0A0A] border border-white/10 rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl relative overflow-hidden flex flex-col max-h-[90vh]"
                             >
                                 <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-cyan via-white to-neon-cyan" />
-                                
+
                                 <div className="flex justify-between items-start mb-8 shrink-0">
                                     <div>
                                         <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
@@ -6458,8 +6441,8 @@ export function AdminDashboard() {
                                                 const res = await apiFetch('/api/wiki/update', {
                                                     method: 'POST',
                                                     headers: getAuthHeaders(),
-                                                    body: JSON.stringify({ 
-                                                        id: editingWikiEntry.id, 
+                                                    body: JSON.stringify({
+                                                        id: editingWikiEntry.id,
                                                         type: wikiFilter,
                                                         entry: finalEntry
                                                     })
@@ -6518,7 +6501,7 @@ export function AdminDashboard() {
                         setIsAgendaCreateModalOpen(false);
                     }}
                 />
-                <PubliGenerator 
+                <PubliGenerator
                     isOpen={isPubliModalOpen}
                     onClose={() => setIsPubliModalOpen(false)}
                     onOpenSocialStudio={(text, img) => {
@@ -6598,30 +6581,28 @@ export function AdminDashboard() {
                                                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                                                         {set.map((item: any) => (
                                                             <div key={item.key} className="group relative">
-                                                                <div 
-                                                                    className={`aspect-square bg-white/5 rounded-2xl border transition-all overflow-hidden relative cursor-pointer ${
-                                                                        selectedKeys.includes(item.key) ? 'border-neon-red ring-2 ring-neon-red/20 scale-[0.98]' : 'border-white/10'
-                                                                    }`}
+                                                                <div
+                                                                    className={`aspect-square bg-white/5 rounded-2xl border transition-all overflow-hidden relative cursor-pointer ${selectedKeys.includes(item.key) ? 'border-neon-red ring-2 ring-neon-red/20 scale-[0.98]' : 'border-white/10'
+                                                                        }`}
                                                                     onClick={() => toggleSelection(item.key)}
                                                                 >
-                                                                    <img 
-                                                                        src={`https://dropsiders.fr/uploads/${item.key}`} 
+                                                                    <img
+                                                                        src={`https://dropsiders.fr/uploads/${item.key}`}
                                                                         alt=""
                                                                         className={`w-full h-full object-cover transition-opacity ${selectedKeys.includes(item.key) ? 'opacity-40' : 'opacity-80 group-hover:opacity-100'}`}
                                                                         loading="lazy"
                                                                     />
-                                                                    
+
                                                                     {/* Selection Indicator */}
-                                                                    <div className={`absolute top-2 left-2 w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${
-                                                                        selectedKeys.includes(item.key) 
-                                                                            ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.5)]' 
+                                                                    <div className={`absolute top-2 left-2 w-5 h-5 rounded-lg border flex items-center justify-center transition-all ${selectedKeys.includes(item.key)
+                                                                            ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,0,51,0.5)]'
                                                                             : 'bg-black/40 border-white/20'
-                                                                    }`}>
+                                                                        }`}>
                                                                         {selectedKeys.includes(item.key) && <Check className="w-3 h-3 text-white" />}
                                                                     </div>
 
                                                                     <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 p-2">
-                                                                        <button 
+                                                                        <button
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
                                                                                 window.open(`https://dropsiders.fr/uploads/${item.key}`, '_blank');
@@ -6631,7 +6612,7 @@ export function AdminDashboard() {
                                                                         >
                                                                             <Download className="w-4 h-4" />
                                                                         </button>
-                                                                        <button 
+                                                                        <button
                                                                             onClick={(e) => {
                                                                                 e.stopPropagation();
                                                                                 setConfirmModal({
@@ -6650,24 +6631,24 @@ export function AdminDashboard() {
                                                                     </div>
                                                                 </div>
                                                                 <div className="mt-2 px-1 space-y-1">
-                                                                     <p className="text-[8px] font-bold text-gray-500 truncate uppercase tracking-tighter" title={item.key}>
-                                                                         {item.key.split('/').pop()}
-                                                                     </p>
-                                                                     {item.usages && item.usages.length > 0 ? (
-                                                                         <div className="flex flex-wrap gap-1">
-                                                                             {item.usages.map((file: string) => (
-                                                                                 <span key={file} className="text-[7px] font-black bg-neon-cyan/10 text-neon-cyan px-1.5 py-0.5 rounded-full border border-neon-cyan/20">
-                                                                                     {file.replace('.json', '')}
-                                                                                 </span>
-                                                                             ))}
-                                                                         </div>
-                                                                     ) : (
-                                                                         <span className="text-[7px] font-black bg-white/5 text-gray-600 px-1.5 py-0.5 rounded-full border border-white/5 italic">
-                                                                             Aucun usage direct
-                                                                         </span>
-                                                                     )}
+                                                                    <p className="text-[8px] font-bold text-gray-500 truncate uppercase tracking-tighter" title={item.key}>
+                                                                        {item.key.split('/').pop()}
+                                                                    </p>
+                                                                    {item.usages && item.usages.length > 0 ? (
+                                                                        <div className="flex flex-wrap gap-1">
+                                                                            {item.usages.map((file: string) => (
+                                                                                <span key={file} className="text-[7px] font-black bg-neon-cyan/10 text-neon-cyan px-1.5 py-0.5 rounded-full border border-neon-cyan/20">
+                                                                                    {file.replace('.json', '')}
+                                                                                </span>
+                                                                            ))}
+                                                                        </div>
+                                                                    ) : (
+                                                                        <span className="text-[7px] font-black bg-white/5 text-gray-600 px-1.5 py-0.5 rounded-full border border-white/5 italic">
+                                                                            Aucun usage direct
+                                                                        </span>
+                                                                    )}
                                                                 </div>
-                                                             </div>
+                                                            </div>
                                                         ))}
                                                     </div>
                                                 </div>
@@ -6685,7 +6666,7 @@ export function AdminDashboard() {
                                     </div>
 
                                     {selectedKeys.length > 0 && (
-                                        <button 
+                                        <button
                                             onClick={() => {
                                                 setConfirmModal({
                                                     isOpen: true,
@@ -6729,7 +6710,40 @@ export function AdminDashboard() {
                                         <h2 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
                                             <ShieldAlert className="text-neon-red w-6 h-6" />
                                             Vérificateur de Photos
-                                        </h2>
+                                            2026-03-19T00:45:33.077Z	Initializing build environment...
+                                            2026-03-19T00:45:35.913Z	Success: Finished initializing build environment
+                                            2026-03-19T00:45:36.425Z	Cloning repository...
+                                            2026-03-19T00:46:25.751Z	Detected the following tools from environment: npm@10.9.2, nodejs@22.16.0
+                                            2026-03-19T00:46:25.753Z	Restoring from dependencies cache
+                                            2026-03-19T00:46:25.754Z	Restoring from build output cache
+                                            2026-03-19T00:46:27.218Z	Success: Dependencies restored from build cache.
+                                            2026-03-19T00:46:27.220Z	Installing project dependencies: npm clean-install --progress=false
+                                            2026-03-19T00:46:33.047Z	npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
+                                            2026-03-19T00:46:33.342Z	npm warn deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
+                                            2026-03-19T00:46:33.737Z	npm warn deprecated source-map@0.8.0-beta.0: The work that was done in this beta branch won't be included in future versions
+                                            2026-03-19T00:46:34.285Z	npm warn deprecated glob@11.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
+                                            2026-03-19T00:46:40.884Z
+                                            2026-03-19T00:46:40.885Z	added 873 packages, and audited 874 packages in 13s
+                                            2026-03-19T00:46:40.885Z
+                                            2026-03-19T00:46:40.885Z	312 packages are looking for funding
+                                            2026-03-19T00:46:40.885Z	  run `npm fund` for details
+                                            2026-03-19T00:46:40.948Z
+                                            2026-03-19T00:46:40.949Z	17 vulnerabilities (16 high, 1 critical)
+                                            2026-03-19T00:46:40.949Z
+                                            2026-03-19T00:46:40.949Z	To address issues that do not require attention, run:
+                                            2026-03-19T00:46:40.949Z	  npm audit fix
+                                            2026-03-19T00:46:40.949Z
+                                            2026-03-19T00:46:40.949Z	To address all issues (including breaking changes), run:
+                                            2026-03-19T00:46:40.949Z	  npm audit fix --force
+                                            2026-03-19T00:46:40.949Z
+                                            2026-03-19T00:46:40.949Z	Run `npm audit` for details.
+                                            2026-03-19T00:46:41.208Z	Executing user build command: npm run build
+                                            2026-03-19T00:46:41.475Z	
+2026-03-19T00:46:41.475Z	> site-dropsiders-v2@0.0.0 build
+2026-03-19T00:46:41.475Z	> tsc -b && vite build
+                                            2026-03-19T00:46:41.475Z
+                                            2026-03-19T00:46:44.622Z	src/pages/TakeoverPage.tsx(3701,33): error TS1005: ')' expected.
+                                            2026-03-19T00:46:45.319Z	Failed: error occurred while running build command                                        </h2>
                                         <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mt-1">
                                             {brokenImages.length} liens pointant vers des fichiers inexistants sur R2
                                         </p>
@@ -6760,14 +6774,14 @@ export function AdminDashboard() {
                                                             {img.type}
                                                         </div>
                                                     </div>
-                                                    
+
                                                     <div className="flex flex-col gap-2">
                                                         <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest px-1">Lien de l'article :</span>
                                                         {img.directLink ? (
-                                                            <a 
-                                                                href={img.directLink} 
-                                                                target="_blank" 
-                                                                rel="noopener noreferrer" 
+                                                            <a
+                                                                href={img.directLink}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
                                                                 className="group/link flex items-center justify-between p-3 bg-neon-cyan/5 border border-neon-cyan/20 rounded-xl hover:bg-neon-cyan/10 transition-all"
                                                             >
                                                                 <span className="text-[10px] font-black text-neon-cyan uppercase truncate mr-2">Voir sur le site</span>
@@ -6783,9 +6797,9 @@ export function AdminDashboard() {
                                                     <div className="flex flex-col gap-1.5 pt-3 border-t border-white/5">
                                                         <div className="flex items-center justify-between">
                                                             <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Fichier Source (GitHub):</span>
-                                                            <a 
-                                                                href={`https://github.com/Itsalexfr1/sitedropsiders/edit/main/src/data/${img.location}`} 
-                                                                target="_blank" 
+                                                            <a
+                                                                href={`https://github.com/Itsalexfr1/sitedropsiders/edit/main/src/data/${img.location}`}
+                                                                target="_blank"
                                                                 rel="noopener noreferrer"
                                                                 className="text-[10px] font-black text-white/40 hover:text-white uppercase tracking-widest bg-white/5 hover:bg-white/10 px-2 py-1 rounded-md transition-colors flex items-center gap-1.5 border border-white/5"
                                                                 title="Ouvrir le fichier source pour corriger"
@@ -6813,7 +6827,7 @@ export function AdminDashboard() {
                                         </div>
                                     )}
                                 </div>
-                                
+
                                 <div className="p-6 bg-black/40 border-t border-white/5 flex items-center justify-center gap-3">
                                     <ShieldAlert className="w-4 h-4 text-gray-600" />
                                     <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest">
@@ -6842,21 +6856,19 @@ export function AdminDashboard() {
                                 exit={{ opacity: 0, scale: 0.9, y: 30 }}
                                 className="relative w-full max-w-md bg-[#0a0a0a] border border-white/10 rounded-[3rem] overflow-hidden shadow-2xl"
                             >
-                                <div className={`h-1.5 w-full bg-gradient-to-r ${
-                                    globalAlert.type === 'danger' ? 'from-neon-red to-red-600' :
-                                    globalAlert.type === 'warning' ? 'from-neon-orange to-orange-500' :
-                                    'from-neon-cyan to-blue-500'
-                                }`} />
-                                
+                                <div className={`h-1.5 w-full bg-gradient-to-r ${globalAlert.type === 'danger' ? 'from-neon-red to-red-600' :
+                                        globalAlert.type === 'warning' ? 'from-neon-orange to-orange-500' :
+                                            'from-neon-cyan to-blue-500'
+                                    }`} />
+
                                 <div className="p-8 text-center sm:p-10">
-                                    <div className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-6 ${
-                                        globalAlert.type === 'danger' ? 'bg-neon-red/10' :
-                                        globalAlert.type === 'warning' ? 'bg-neon-orange/10' :
-                                        'bg-neon-cyan/10'
-                                    }`}>
+                                    <div className={`mx-auto w-16 h-16 rounded-2xl flex items-center justify-center mb-6 ${globalAlert.type === 'danger' ? 'bg-neon-red/10' :
+                                            globalAlert.type === 'warning' ? 'bg-neon-orange/10' :
+                                                'bg-neon-cyan/10'
+                                        }`}>
                                         {globalAlert.type === 'danger' ? <ShieldAlert className="w-8 h-8 text-neon-red" /> :
-                                         globalAlert.type === 'warning' ? <ShieldAlert className="w-8 h-8 text-neon-orange" /> :
-                                         <CheckCircle2 className="w-8 h-8 text-neon-cyan" />}
+                                            globalAlert.type === 'warning' ? <ShieldAlert className="w-8 h-8 text-neon-orange" /> :
+                                                <CheckCircle2 className="w-8 h-8 text-neon-cyan" />}
                                     </div>
 
                                     <h3 className="text-xl font-black text-white italic uppercase tracking-tighter mb-2">
@@ -6868,11 +6880,10 @@ export function AdminDashboard() {
 
                                     <button
                                         onClick={() => setGlobalAlert(null)}
-                                        className={`w-full py-4 rounded-2xl font-black uppercase italic tracking-widest text-[11px] transition-all ${
-                                            globalAlert.type === 'danger' ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,0,0,0.3)]' :
-                                            globalAlert.type === 'warning' ? 'bg-neon-orange text-black' :
-                                            'bg-neon-cyan text-black shadow-[0_0_20px_rgba(34,211,238,0.3)]'
-                                        }`}
+                                        className={`w-full py-4 rounded-2xl font-black uppercase italic tracking-widest text-[11px] transition-all ${globalAlert.type === 'danger' ? 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,0,0,0.3)]' :
+                                                globalAlert.type === 'warning' ? 'bg-neon-orange text-black' :
+                                                    'bg-neon-cyan text-black shadow-[0_0_20px_rgba(34,211,238,0.3)]'
+                                            }`}
                                     >
                                         COMPRIS
                                     </button>

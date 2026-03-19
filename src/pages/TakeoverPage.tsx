@@ -6,13 +6,14 @@ import {
     Save, AlertCircle, Music, Trash2, Plus,
     Pin, Star, ShieldCheck, Ban, Megaphone, User,
     BarChart3, Clock, Sword, Crown, Maximize2, Minimize2,
-    Trophy, Stars, Heart, Volume2, Timer, ShieldAlert, Calendar,
+    Trophy, Stars, Heart, Volume2, Timer, ShieldAlert, Calendar, Edit2, Edit3, Image as ImageIcon,
     Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
-    Search, ChevronUp, ChevronDown
+    Search, ChevronUp, ChevronDown, Camera, ShieldCheck as ShieldIcon
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
 import { FlagIcon } from '../components/ui/FlagIcon';
+import { ModerationModal } from '../components/admin/ModerationModal';
 
 interface LineupItem {
     id: string;
@@ -134,7 +135,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         { code: 'GB', name: 'UK' },
         { code: 'US', name: 'USA' },
         { code: 'MA', name: 'Maroc' },
-        { code: 'DZ', name: 'AlgÃƒÆ’Ã‚Â©rie' },
+        { code: 'DZ', name: 'Algérie' },
         { code: 'TN', name: 'Tunisie' }
     ];
 
@@ -182,11 +183,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         lineup: initialSettings?.lineup || '',
         status: 'live',
         enabled: initialSettings?.enabled !== undefined ? initialSettings.enabled : true,
-        streams: initialSettings?.streams || [],
-        activeStreamId: initialSettings?.activeStreamId || '',
+        streams: initialSettings?.streams || [], activeStreamId: initialSettings?.activeStreamId || '',
         highlightPrice: initialSettings?.highlightPrice || 100,
         lots: initialSettings?.lots || [],
-        sponsorText: initialSettings?.sponsorText || 'LIVE RENDU POSSIBLE GRÃƒÆ’Ã¢â‚¬Å¡CE ÃƒÆ’Ã¢â€šÂ¬ NOS PARTENAIRES ÃƒÂ°Ã…Â¸Ã‚Â¤Ã‚Â',
+        sponsorText: initialSettings?.sponsorText || 'LIVE RENDU POSSIBLE GRÂCE À NOS PARTENAIRES !',
         sponsorLink: initialSettings?.sponsorLink || 'https://dropsiders.fr',
         showSponsorBanner: initialSettings?.showSponsorBanner !== undefined ? initialSettings.showSponsorBanner : true
     });
@@ -211,6 +211,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     });
     const [marqueeItems, setMarqueeItems] = useState<{ text: string, link: string }[]>([]);
     const [editMarqueeItems, setEditMarqueeItems] = useState<{ text: string, link: string }[]>([]);
+    const [editingLineupId, setEditingLineupId] = useState<string | null>(null);
 
     // Fetch real site news to populate the marquee
     useEffect(() => {
@@ -249,7 +250,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [activeBoss, setActiveBoss] = useState<{ hp: number, maxHp: number, name: string } | null>(null);
     const [captchaChallenge, setCaptchaChallenge] = useState<{ q: string, a: number } | null>(null);
     const [captchaInput, setCaptchaInput] = useState('');
-    const [userCity, setUserCity] = useState('ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â PARIS');
+    const [userCity, setUserCity] = useState('📍 PARIS');
     const [hypeTrain, setHypeTrain] = useState({ active: false, level: 0, progress: 0 });
     const [isMuted, setIsMuted] = useState(false);
     const [muteTimeLeft, setMuteTimeLeft] = useState(0);
@@ -287,8 +288,42 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     }, [shopItems]);
     const [showLegendsWall, setShowLegendsWall] = useState(false);
     const [qteActive, setQteActive] = useState(false);
+    const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
+    const [moderationTab, setModerationTab] = useState<'photos' | 'wiki'>('photos');
+    const [pendingPhotosCount, setPendingPhotosCount] = useState(0);
+    const [pendingWikiPhotosCount, setPendingWikiPhotosCount] = useState(0);
 
-    // ÃƒÂ°Ã…Â¸Ã¢â‚¬Â Ã¢â‚¬Â¢ New State Features
+    const fetchPhotosCount = async () => {
+        try {
+            const [photosRes, wikiRes] = await Promise.all([
+                fetch('/api/photos/pending'),
+                fetch('/api/wiki/list')
+            ]);
+            
+            const photos = await photosRes.json();
+            const wikis = await wikiRes.json();
+            
+            setPendingPhotosCount(Array.isArray(photos) ? photos.length : 0);
+            
+            const wikiWaiting = wikis.filter((w: any) => 
+                (w.entity_type === 'DJS' || w.entity_type === 'CLUBS' || w.entity_type === 'FESTIVALS') && 
+                w.status === 'waiting'
+            );
+            setPendingWikiPhotosCount(wikiWaiting.length);
+        } catch (e) {
+            console.error("Error fetching photos count:", e);
+        }
+    };
+
+    useEffect(() => {
+        if (isAdmin) {
+            fetchPhotosCount();
+            const interval = setInterval(fetchPhotosCount, 30000);
+            return () => clearInterval(interval);
+        }
+    }, [isAdmin]);
+
+    // ✨ New State Features
     const [userInstagram, setUserInstagram] = useState(localStorage.getItem('user_instagram') || '');
     const [timeOnSite, setTimeOnSite] = useState(() => parseInt(localStorage.getItem('time_on_site') || '0'));
     const [showAchievementPopup, setShowAchievementPopup] = useState<string | null>(null);
@@ -297,7 +332,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [loginPseudoColor, setLoginPseudoColor] = useState('#ffffff');
     const [loginCountrySearch, setLoginCountrySearch] = useState('');
 
-    // ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â RECOMPENSE QUOTIDIENNE (Paliers)
+    // 🎁 RECOMPENSE QUOTIDIENNE (Paliers)
     useEffect(() => {
         const lastLogin = localStorage.getItem('last_daily_reward');
         const today = new Date().toLocaleDateString();
@@ -322,11 +357,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 return next;
             });
             localStorage.setItem('last_daily_reward', today);
-            showNotification(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â CADEAU SUR LE LIVE (PALIER ${streak}) : +${totalReward} DROPS !`, 'success');
+            showNotification(`🎁 CADEAU SUR LE LIVE (PALIER ${streak}) : +${totalReward} DROPS !`, 'success');
         }
     }, [isConnected]);
 
-    // ÃƒÂ¢Ã‚ÂÃ‚Â²ÃƒÂ¯Ã‚Â¸Ã‚Â HEIST & BOSS TIMERS
+    // ⏱️ HEIST & BOSS TIMERS
     useEffect(() => {
         if (activeHeist && activeHeist.timeLeft > 0) {
             const timer = setTimeout(() => {
@@ -347,13 +382,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 if (myParticipation) {
                     const myShare = Math.floor((myParticipation.bet / totalBet) * totalPrize);
                     setUserDrops(prev => prev + myShare);
-                    showNotification(`ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â° BRAQUAGE RÃƒÆ’Ã¢â‚¬Â°USSI ! Tu gagnes ${myShare} DROPS !`, 'success');
+                    showNotification(`💰 BRAQUAGE RÉUSSI ! Tu gagnes ${myShare} DROPS !`, 'success');
                 }
 
                 if (isMod) {
                     databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                         pseudo: "BOT_SYSTEM",
-                        message: `ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â° BRAQUAGE RÃƒÆ’Ã¢â‚¬Â°USSI ! Le gang se partage ${totalPrize} DROPS ! ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â°`,
+                        message: `💰 BRAQUAGE RÉUSSI ! Le gang se partage ${totalPrize} DROPS ! 💰`,
                         color: "text-amber-500",
                         time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                         country: "FR"
@@ -361,12 +396,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 }
             } else {
                 if (activeHeist.participants.some(p => p?.pseudo === myPseudo)) {
-                    showNotification(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‚Â® ALERTE POLICE : Le braquage a ÃƒÆ’Ã‚Â©chouÃƒÆ’Ã‚Â© !`, 'error');
+                    showNotification(`👮 ALERTE POLICE : Le braquage a échoué !`, 'error');
                 }
                 if (isMod) {
                     databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                         pseudo: "BOT_SYSTEM",
-                        message: `ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‚Â® ÃƒÆ’Ã¢â‚¬Â°CHEC DU BRAQUAGE : Tout le monde a ÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â© arrÃƒÆ’Ã‚ÂªtÃƒÆ’Ã‚Â© !`,
+                        message: `👮 ÉCHEC DU BRAQUAGE : Tout le monde a été arrêté !`,
                         color: "text-red-500",
                         time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                         country: "FR"
@@ -380,7 +415,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     useEffect(() => {
         if (activeBoss && activeBoss.hp === 0) {
-            showNotification(`ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Â  BOSS VAINCU ! +500 DROPS POUR TOUS !`, 'success');
+            showNotification(`🎉 BOSS VAINCU ! +500 DROPS POUR TOUS !`, 'success');
             setUserDrops(prev => prev + 500);
             setActiveBoss(null);
         }
@@ -396,14 +431,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         setTimeout(() => setIsMatrixActive(false), 8000);
     };
 
-    // ÃƒÂ¢Ã‚ÂÃ‚Â²ÃƒÂ¯Ã‚Â¸Ã‚Â Hourly Slot Machine (Jackpot) Timer
+    // ⏱️ Hourly Slot Machine (Jackpot) Timer
     useEffect(() => {
         const interval = setInterval(() => {
             const now = new Date();
             // Trigger every hour at :00
             if (now.getMinutes() === 0 && !activeSlots) {
                 setActiveSlots({ id: Math.random().toString(), participants: [], timeLeft: 60 });
-                showNotification("ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â° JACKPOT TICKET : UN MINI-JEU APPARAÃƒÆ’Ã…Â½T !", 'success');
+                showNotification("🎰 JACKPOT TICKET : UN MINI-JEU APPARAÎT !", 'success');
             }
         }, 60000);
 
@@ -423,11 +458,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 const prize = activeSlots.participants.length * 50 * 2; // Double the pool
                 if (winner === localStorage.getItem('chat_pseudo')) {
                     setUserDrops(prev => prev + prize);
-                    showNotification(`ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â° TU AS GAGNÃƒÆ’Ã¢â‚¬Â° LE JACKPOT : +${prize} DROPS !`, 'success');
+                    showNotification(`🎰 TU AS GAGNÉ LE JACKPOT : +${prize} DROPS !`, 'success');
                 }
                 databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                     pseudo: "BOT_SYSTEM",
-                    message: `ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â° JACKPOT : @${winner} a gagnÃƒÆ’Ã‚Â© le gros lot de ${prize} DROPS ! ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â°`,
+                    message: `🎰 JACKPOT : @${winner} a gagné le gros lot de ${prize} DROPS ! 🥳`,
                     color: "text-amber-500",
                     time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                     country: "FR"
@@ -437,7 +472,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }
     }, [activeSlots]);
 
-    // ÃƒÂ¢Ã‚ÂÃ‚Â²ÃƒÂ¯Ã‚Â¸Ã‚Â Clock & Time on Site
+    // ⏱️ Clock & Time on Site
     useEffect(() => {
         const timer = setInterval(() => {
             setCurrentTime(new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }));
@@ -459,7 +494,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             localStorage.setItem('user_achievements', JSON.stringify(next));
             setShowAchievementPopup(name);
             setTimeout(() => setShowAchievementPopup(null), 5000);
-            showNotification(`ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Â  SUCCÃƒÆ’Ã‹â€ S : ${name}`, 'success');
+            showNotification(`🎉 SUCCÈS : ${name}`, 'success');
         }
     };
 
@@ -476,7 +511,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 return next;
             });
             localStorage.setItem('last_jackpot', today);
-            showNotification(`JACKPOT QUOTIDIEN : +${bonus} DROPS ! ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â`, 'success');
+            showNotification(`JACKPOT QUOTIDIEN : +${bonus} DROPS ! 🎁`, 'success');
         }
     }, [isConnected]);
 
@@ -493,7 +528,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editDropsAmount, setEditDropsAmount] = useState(settings.dropsAmount || 10);
     const [editDropsInterval, setEditDropsInterval] = useState(settings.dropsInterval || 5);
     const [adminActiveTab, setAdminActiveTab] = useState('general');
-    // ÃƒÂ°Ã…Â¸Ã…Â½Ã…Â¸ÃƒÂ¯Ã‚Â¸Ã‚Â Lottery (Tirage au sort)
+    // 🎰 Lottery (Tirage au sort)
     const [lotteryParticipants, setLotteryParticipants] = useState<string[]>([]);
     const [lotteryActive, setLotteryActive] = useState(false);
     const [lotteryWinner, setLotteryWinner] = useState<string | null>(null);
@@ -528,7 +563,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         return saved ? Number(saved) : 0;
     });
 
-    // ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â° Special Effects Logic
+    // 🎆 Special Effects Logic
     const triggerConfetti = () => {
         confetti({
             particleCount: 150,
@@ -699,11 +734,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     // Update Hype Train
                     setHypeTrain(prev => {
                         let boost = 2; // Default per message
-                        if (msgText.includes('donnÃƒÆ’Ã‚Â©') && msgText.includes('DROPS')) boost = 25; // Donation boost
+                        if (msgText.includes('donné') && msgText.includes('DROPS')) boost = 25; // Donation boost
 
                         const newProgress = prev.progress + boost;
                         if (newProgress >= 100) {
-                            showNotification(`ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥ TRAIN DE LA HYPE NIVEAU ${prev.level + 1} ! ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â°`, 'success');
+                            showNotification(`🔥 TRAIN DE LA HYPE NIVEAU ${prev.level + 1} ! 🥳`, 'success');
                             triggerFireworks();
                             return { active: true, level: prev.level + 1, progress: 0 };
                         }
@@ -732,7 +767,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 if (!prev) return prev;
                                 const next = JSON.parse(JSON.stringify(prev)); // Deep clone
                                 if (next.options[voteIdx]) {
-                                    next.options[voteIdx].votes = (next.options[voteIdx].votes || 0) + 1;
+                                    next.options[voteIdx].votes = (next.options[voteIdx] || 0) + 1;
                                 }
                                 return next;
                             });
@@ -775,7 +810,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         } else if (cmd.startsWith('BOSS_SPAWN')) {
                             setActiveBoss({ hp: 1000, maxHp: 1000, name: 'MEGABOT 3000' });
                             setTimeout(() => setActiveBoss(prev => {
-                                if (prev && prev.hp > 0) showNotification("LE BOSS S'EST ÃƒÆ’Ã¢â‚¬Â°CHAPPÃƒÆ’Ã¢â‚¬Â° ! ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¨", 'error');
+                                if (prev && prev.hp > 0) showNotification("LE BOSS S'EST ÉCHAPPÉ ! 🚨", 'error');
                                 return null;
                             }), 60000);
                         } else if (cmd.startsWith('BOSS_HIT:')) {
@@ -784,7 +819,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 if (!prev) return null;
                                 const nextHp = Math.max(0, prev.hp - dmg);
                                 if (nextHp === 0 && prev.hp > 0) {
-                                    showNotification("VICTOIRE ! PLUIE DE DROPS (+500) ! ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã…Â½", 'success');
+                                    showNotification("VICTOIRE ! PLUIE DE DROPS (+500) ! 🏆", 'success');
                                     triggerFireworks();
                                     setUserDrops(d => d + 500);
                                 }
@@ -799,7 +834,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             if (target === myPs && !isMod && !vipsList.includes(myPs)) {
                                 setIsMuted(true);
                                 setMuteTimeLeft(60);
-                                showNotification("ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ¢â‚¬Â¡ TU AS ÃƒÆ’Ã¢â‚¬Â°TÃƒÆ’Ã¢â‚¬Â° MUTE PENDANT 60S !", 'error');
+                                showNotification("🚫 TU AS ÉTÉ MUTE PENDANT 60S !", 'error');
                             }
                         } else if (cmd.startsWith('HEIST_START')) {
                             setActiveHeist({ participants: [], timeLeft: 30 });
@@ -891,7 +926,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         return () => unsubscribe();
     }, []);
 
-    // ÃƒÂ¢Ã‚ÂÃ‚Â²ÃƒÂ¯Ã‚Â¸Ã‚Â Quiz Auto-Timer (30s)
+    // ⏱️ Quiz Auto-Timer (30s)
     useEffect(() => {
         if (activeQuiz && activeQuiz.question) {
             const timer = setTimeout(() => {
@@ -901,7 +936,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }
     }, [activeQuiz]);
 
-    // ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¦ Auto-Cleanup Planning
+    // 🗓️ Auto-Cleanup Planning
     useEffect(() => {
         const interval = setInterval(() => {
             const now = new Date();
@@ -919,7 +954,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         return () => clearInterval(interval);
     }, []);
 
-    // ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Â  Top Talkers Tracking
+    // 🏆 Top Talkers Tracking
     useEffect(() => {
         const counts: { [pseudo: string]: number } = {};
         chatMessages.forEach(m => {
@@ -945,7 +980,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             const res = await fetch('https://ipapi.co/json/');
             const data = await res.json();
             if (data.country_code) setUserCountry(data.country_code);
-            if (data.city) setUserCity(`ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â ${data.city.toUpperCase()}`);
+            if (data.city) setUserCity(`📍 ${data.city.toUpperCase()}`);
         } catch (e) { console.error("Could not fetch country", e); }
     };
 
@@ -1065,7 +1100,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         localStorage.setItem('user_pseudo_color', loginPseudoColor);
 
         if (parseInt(captchaInput) !== captchaChallenge?.a) {
-            showNotification('CAPTCHA INCORRECT ! ÃƒÂ°Ã…Â¸Ã‚Â¤Ã¢â‚¬â€œ', 'error');
+            showNotification('CAPTCHA INCORRECT ! 🤖', 'error');
             generateCaptcha();
             return;
         }
@@ -1085,7 +1120,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             } catch (e) { console.error("Newsletter sub failed", e); }
         }
 
-        showNotification('Connexion rÃƒÆ’Ã‚Â©ussie !', 'success');
+        showNotification('Connexion réussie !', 'success');
     };
 
     const handleAddSet = async () => {
@@ -1124,7 +1159,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
             country: "FR"
         });
-        showNotification("Nouveau set ajoutÃƒÆ’Ã‚Â© !", "success");
+        showNotification("Nouveau set ajouté !", "success");
     };
 
     const handleSuggestTrack = async (setId: string) => {
@@ -1149,7 +1184,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
             country: "FR"
         });
-        showNotification("Titre suggÃƒÆ’Ã‚Â©rÃƒÆ’Ã‚Â© !", "success");
+        showNotification("Titre suggéré !", "success");
     };
 
 
@@ -1194,7 +1229,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             });
             if (saveRes.ok) {
                 setSettings(updatedTakeover);
-                showNotification('ParamÃƒÆ’Ã‚Â¨tres mis ÃƒÆ’Ã‚Â  jour !', 'success');
+                showNotification('Paramètres mis à jour !', 'success');
             } else {
                 showNotification('Erreur lors de la sauvegarde', 'error');
             }
@@ -1213,7 +1248,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 await databases.deleteDocument(DATABASE_ID, COLLECTION_CHAT, doc.$id);
             }
             setChatMessages([]);
-            showNotification('Chat vidÃƒÆ’Ã‚Â© avec succÃƒÆ’Ã‚Â¨s !', 'success');
+            showNotification('Chat vidé avec succès !', 'success');
         } catch (e) {
             console.error("Clear chat error:", e);
             showNotification('Erreur lors du nettoyage', 'error');
@@ -1254,7 +1289,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const handleSendMessage = async (customText?: string) => {
         const messageToSend = customText || newMessage;
         if (!messageToSend.trim() || isBanned || isMuted || isRouletteTimeout) {
-            if (isRouletteTimeout) showNotification("TIMEOUT (ROULETTE) ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¥", 'error');
+            if (isRouletteTimeout) showNotification("TIMEOUT (ROULETTE) 🚫", 'error');
             else if (isMuted) showNotification(`MUTE : Encore ${muteTimeLeft}s`, 'error');
             return;
         }
@@ -1268,29 +1303,29 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         const pseudo = localStorage.getItem('chat_pseudo') || (isMod ? "ALEX_FR1" : "VISITEUR");
         let messageText = messageToSend.trim();
 
-        // ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂºÃ‚Â¡ÃƒÂ¯Ã‚Â¸Ã‚Â Auto-Mod Intelligence
+        // 🚨 Auto-Mod Intelligence
         if (!isMod) {
-            const badWords = ['pd', 'fdp', 'salope', 'connard', 'pute', 'enculÃƒÆ’Ã‚Â©', 'merde', 'tg', 'ta gueule', 'hitler', 'nazi'];
+            const badWords = ['pd', 'fdp', 'salope', 'connard', 'pute', 'enculé', 'merde', 'tg', 'ta gueule', 'hitler', 'nazi'];
             if (badWords.some(w => messageText.toLowerCase().includes(w))) {
                 const warnings = (userWarnings[pseudo] || 0) + 1;
                 setUserWarnings(prev => ({ ...prev, [pseudo]: warnings }));
 
                 if (warnings >= 3) {
                     handleBanUser(pseudo);
-                    showNotification("VOUS AVEZ ÃƒÆ’Ã¢â‚¬Â°TÃƒÆ’Ã¢â‚¬Â° BANNI : 3 AVERTISSEMENTS (LANGAGE)", 'error');
+                    showNotification("VOUS AVEZ ÉTÉ BANNI : 3 AVERTISSEMENTS (LANGAGE)", 'error');
                     return;
                 }
 
-                showNotification(`ALERTE : Langage inappropriÃƒÆ’Ã‚Â© (${warnings}/3) ÃƒÂ¢Ã…Â¡Ã‚Â ÃƒÂ¯Ã‚Â¸Ã‚Â`, 'error');
+                showNotification(`ALERTE : Langage inapproprié (${warnings}/3) ⚠️`, 'error');
                 return;
             }
             if (/(https?:\/\/[^\s]+|www\.[^\s]+|[a-z0-9-]+\.[a-z]{2,10}(\/|$))/gi.test(messageText)) {
-                showNotification("MESSAGE BLOQUÃƒÆ’Ã¢â‚¬Â° : Liens interdits", 'error');
+                showNotification("MESSAGE BLOQUÉ : Liens interdits", 'error');
                 return;
             }
             const capsCount = (messageText.match(/[A-Z]/g) || []).length;
             if (messageText.length > 10 && capsCount > messageText.length * 0.7) {
-                showNotification("MESSAGE BLOQUÃƒÆ’Ã¢â‚¬Â° : Trop de MAJUSCULES", 'error');
+                showNotification("MESSAGE BLOQUÉ : Trop de MAJUSCULES", 'error');
                 return;
             }
 
@@ -1299,7 +1334,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             if (slowModeEnabled) {
                 const diff = (now - lastMessageTime) / 1000;
                 if (diff < 10) {
-                    showNotification(`MODE LENT : Attendez ${Math.ceil(10 - diff)}s ÃƒÂ¢Ã…â€™Ã¢â‚¬Âº`, 'error');
+                    showNotification(`MODE LENT : Attendez ${Math.ceil(10 - diff)}s ➡️`, 'error');
                     return;
                 }
             }
@@ -1314,12 +1349,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             if (mainCmd === '!roulette') {
                 const dead = Math.floor(Math.random() * 6) === 0;
                 if (dead) {
-                    messageText = `ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â¥ ROULETTE RUSSE : @${pseudo} a perdu ! MUTE 60s !`;
+                    messageText = `🚫 ROULETTE RUSSE : @${pseudo} a perdu ! MUTE 60s !`;
                     setIsRouletteTimeout(true);
                     setIsMuted(true);
                     setMuteTimeLeft(60);
                 } else {
-                    messageText = `ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â« ROULETTE RUSSE : @${pseudo} a survÃƒÆ’Ã‚Â©cu... pour l'instant.`;
+                    messageText = `🔫 ROULETTE RUSSE : @${pseudo} a survécu... pour l'instant.`;
                 }
             } else if (mainCmd === '!clash' && isMod) {
                 const [teamA, teamB] = messageText.replace('!clash ', '').split(' vs ');
@@ -1327,18 +1362,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 else { showNotification("Usage: !clash TeamA vs TeamB", 'error'); return; }
             } else if (mainCmd === '!top') {
                 const tText = topTalkers.slice(0, 3).map((t, i) => `${i + 1}. ${t.pseudo}`).join(' | ');
-                messageText = `ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Ëœ TOP TALKERS : ${tText || 'Aucun message.'}`;
+                messageText = `👑 TOP TALKERS : ${tText || 'Aucun message.'}`;
             } else if (mainCmd === '!legends' && isMod) {
                 messageText = `[SYSTEM]:LEGENDS_WALL`;
-            } else if (mainCmd === '!dÃƒÆ’Ã‚Â©') {
+            } else if (mainCmd === '!dé') {
                 const res = Math.floor(Math.random() * 20) + 1;
                 if (res === 20) {
                     setUserDrops(prev => prev + 1000);
-                    messageText = `ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â² DÃƒÆ’Ã¢â‚¬Â° DE LA DESTINÃƒÆ’Ã¢â‚¬Â°E : CRITIQUE ! @${pseudo} gagne 1000 DROPS !`;
+                    messageText = `🎲 DÉ DE LA DESTINÉE : CRITIQUE ! @${pseudo} gagne 1000 DROPS !`;
                 } else if (res === 1) {
-                    messageText = `ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â² DÃƒÆ’Ã¢â‚¬Â° DE LA DESTINÃƒÆ’Ã¢â‚¬Â°E : ÃƒÆ’Ã¢â‚¬Â°CHEC CRITIQUE ! @${pseudo} est banni... (nan je rigole)`;
+                    messageText = `🎲 DÉ DE LA DESTINÉE : ÉCHEC CRITIQUE ! @${pseudo} est banni... (nan je rigole)`;
                 } else {
-                    messageText = `ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â² DÃƒÆ’Ã¢â‚¬Â° DE LA DESTINÃƒÆ’Ã¢â‚¬Â°E : RÃƒÆ’Ã‚Â©sultat ${res}.`;
+                    messageText = `🎲 DÉ DE LA DESTINÉE : Résultat ${res}.`;
                 }
             } else if (mainCmd === '!lineup') {
                 const artistQuery = cmdParts.slice(1).join(' ').toLowerCase();
@@ -1347,21 +1382,21 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     const streamMatch = settings.streams?.find((s: any) => s.name.toLowerCase().includes(artistQuery));
 
                     if (match) {
-                        messageText = `ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¦ LINEUP : @${pseudo}, ${match.artist} passera sur ${match.stage} ÃƒÆ’Ã‚Â  ${match.startTime} (${match.day}).`;
+                        messageText = `🗓️ LINEUP : @${pseudo}, ${match.artist} passera sur ${match.stage} à ${match.startTime} (${match.day}).`;
                     } else if (streamMatch) {
-                        messageText = `ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¦ LIVE : @${pseudo}, ${streamMatch.name} est disponible dans la liste des flux !`;
+                        messageText = `🗓️ LIVE : @${pseudo}, ${streamMatch.name} est disponible dans la liste des flux !`;
                     } else {
-                        showNotification(`Artiste "${artistQuery}" non trouvÃƒÆ’Ã‚Â© dans la lineup.`, 'error');
+                        showNotification(`Artiste "${artistQuery}" non trouvé dans la lineup.`, 'error');
                         return;
                     }
                 } else {
-                    messageText = `ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¦ LINEUP : @${pseudo}, consulte l'onglet PLANNING pour voir toute la programmation !`;
+                    messageText = `🗓️ LINEUP : @${pseudo}, consulte l'onglet PLANNING pour voir toute la programmation !`;
                 }
             } else if (mainCmd === '!insta') {
                 const query = cmdParts.slice(1).join(' ');
                 messageText = query
-                    ? `ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¸ INSTAGRAM : @${pseudo}, voici le profil de ${query} -> https://instagram.com/${query.replace('@', '')}`
-                    : `ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â¸ INSTAGRAM : @${pseudo}, suis-nous sur @dropsiders.fr -> https://instagram.com/dropsiders.fr`;
+                    ? `📸 INSTAGRAM : @${pseudo}, voici le profil de ${query} -> https://instagram.com/${query.replace('@', '')}`
+                    : `📸 INSTAGRAM : @${pseudo}, suis-nous sur @dropsiders.fr -> https://instagram.com/dropsiders.fr`;
             } else if (mainCmd === '!holo') {
                 if (userDrops < 3000) {
                     showNotification("Pas assez de Drops ! (3000 requis)", 'error');
@@ -1369,8 +1404,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 }
                 setUserDrops(prev => prev - 3000);
                 localStorage.setItem('user_holo_pseudo', 'true');
-                showNotification("PSEUDO HOLOGRAPHIQUE ACTIVÃƒÆ’Ã¢â‚¬Â° ! ÃƒÂ¢Ã…â€œÃ‚Â¨", 'success');
-                messageText = `ÃƒÂ¢Ã…â€œÃ‚Â¨ @${pseudo} vient de dÃƒÆ’Ã‚Â©bloquer le PSEUDO HOLOGRAPHIQUE !`;
+                showNotification("PSEUDO HOLOGRAPHIQUE ACTIVÉ ! ✨", 'success');
+                messageText = `✨ @${pseudo} vient de débloquer le PSEUDO HOLOGRAPHIQUE !`;
             } else if (mainCmd === '!purge' && isMod) {
                 const target = cmdParts[1]?.replace('@', '') || '';
                 if (target) {
@@ -1401,7 +1436,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 const userVIP = cmdParts[1]?.replace('@', '').trim();
                 if (userVIP) {
                     setVipsList(prev => [...prev.filter(u => u !== userVIP), userVIP]);
-                    showNotification(`${userVIP} a ÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â© promu VIP !`, 'success');
+                    showNotification(`${userVIP} a été promu VIP !`, 'success');
                 }
                 setNewMessage('');
                 return;
@@ -1427,17 +1462,17 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 const amount = Math.floor(Math.random() * 200) + 50;
                 if (success) {
                     setUserDrops(prev => prev + amount);
-                    messageText = `ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã‚Â° @${pseudo} a volÃƒÆ’Ã‚Â© ${amount} DROPS ÃƒÆ’Ã‚Â  @${target} !`;
+                    messageText = `💸 @${pseudo} a volé ${amount} DROPS à @${target} !`;
                 } else {
                     setUserDrops(prev => Math.max(0, prev - amount));
-                    messageText = `ÃƒÂ¢Ã‚ÂÃ…â€™ @${pseudo} a ÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â© attrapÃƒÆ’Ã‚Â© ! Retrait de ${amount} DROPS.`;
+                    messageText = `❌ @${pseudo} a été attrapé ! Retrait de ${amount} DROPS.`;
                 }
             } else if (mainCmd === '!dons') {
                 const target = cmdParts[1]?.replace('@', '');
                 const amount = parseInt(cmdParts[2]);
                 if (target && !isNaN(amount) && amount > 0 && userDrops >= amount) {
                     setUserDrops(prev => prev - amount);
-                    messageText = `ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â @${pseudo} a donnÃƒÆ’Ã‚Â© ${amount} DROPS ÃƒÆ’Ã‚Â  @${target} !`;
+                    messageText = `🎁 @${pseudo} a donné ${amount} DROPS à @${target} !`;
                 } else {
                     showNotification("Don invalide ou fonds insuffisants", "error");
                     return;
@@ -1449,9 +1484,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     const botChoice = choices[Math.floor(Math.random() * 3)];
                     const win = (userChoice === 'pierre' && botChoice === 'ciseau') || (userChoice === 'papier' && botChoice === 'pierre') || (userChoice === 'ciseau' && botChoice === 'papier');
                     const draw = userChoice === botChoice;
-                    const result = draw ? 'ÃƒÆ’Ã¢â‚¬Â°GALITÃƒÆ’Ã¢â‚¬Â°' : win ? 'GAGNÃƒÆ’Ã¢â‚¬Â° (+50 DROPS)' : 'PERDU';
+                    const result = draw ? 'ÉGALITÉ' : win ? 'GAGNÉ (+50 DROPS)' : 'PERDU';
                     if (win) setUserDrops(prev => prev + 50);
-                    messageText = `ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â® @${pseudo} joue ${userChoice} vs BOT ${botChoice} -> ${result}`;
+                    messageText = `✊ @${pseudo} joue ${userChoice} vs BOT ${botChoice} -> ${result}`;
                 } else {
                     showNotification("Usage: !rps [pierre|papier|ciseau]", "error");
                     return;
@@ -1475,7 +1510,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     quizMsg = args;
                 } else {
                     if (predefinedQuizzes.length === 0) {
-                        showNotification("Aucun QCM chargÃƒÆ’Ã‚Â© !", "error");
+                        showNotification("Aucun QCM chargé !", "error");
                         return;
                     }
                     const randomQ = predefinedQuizzes[Math.floor(Math.random() * predefinedQuizzes.length)];
@@ -1491,7 +1526,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 if (target && userDrops >= cost) {
                     setUserDrops(prev => prev - cost);
                     messageText = `[SYSTEM]:MUTE_USER:${target}`;
-                    showNotification(`MUTE ACHETÃƒÆ’Ã¢â‚¬Â° pour @${target} ! (-5000 Drops)`, 'success');
+                    showNotification(`MUTE ACHETÉ pour @${target} ! (-5000 Drops)`, 'success');
                 } else {
                     showNotification("Besoin de 5000 DROPS pour mute !", 'error');
                     return;
@@ -1505,11 +1540,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     const text = voice === 'normal' ? cmdParts.slice(1).join(' ') : cmdParts.slice(2).join(' ');
                     messageText = `[SYSTEM]:TTS:${voice}:${text}`;
                 } else {
-                    showNotification(`TTS nÃƒÆ’Ã‚Â©cessite ${cost} Drops !`, 'error');
+                    showNotification(`TTS nécessite ${cost} Drops !`, 'error');
                     return;
                 }
             } else if (mainCmd === '!pacman') {
-                messageText = `ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Â¢ WAKA WAKA ! [PACMAN INCOMING]`;
+                messageText = `👾 WAKA WAKA ! [PACMAN INCOMING]`;
                 triggerPACMAN();
             } else if (mainCmd === '!jackpot' && isMod) {
                 messageText = `[SYSTEM]:JACKPOT_SPAWN`;
@@ -1520,16 +1555,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 }
                 setUserDrops(prev => prev - 50);
                 messageText = `[SYSTEM]:JACKPOT_JOIN:${pseudo}`;
-                showNotification("Ticket de Jackpot achetÃƒÆ’Ã‚Â© ! ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â°", 'success');
-            } else if (mainCmd === '!dÃƒÆ’Ã‚Â©') {
+                showNotification("Ticket de Jackpot acheté ! 🎰", 'success');
+            } else if (mainCmd === '!dé') {
                 const roll = Math.floor(Math.random() * 6) + 1;
                 const outcomes = [
-                    { msg: `ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â² @${pseudo} lance le DÃƒÆ’Ã‚Â© de la DestinÃƒÆ’Ã‚Â©e... et gagne 100 DROPS !`, action: () => setUserDrops(prev => prev + 100) },
-                    { msg: `ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â² @${pseudo} lance le DÃƒÆ’Ã‚Â© de la DestinÃƒÆ’Ã‚Â©e... et perd 50 DROPS ! ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â°`, action: () => setUserDrops(prev => Math.max(0, prev - 50)) },
-                    { msg: `ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â² @${pseudo} lance le DÃƒÆ’Ã‚Â© de la DestinÃƒÆ’Ã‚Â©e... et se fait MUTE 10s pour l'audace ! ÃƒÂ°Ã…Â¸Ã‚Â¤Ã‚Â`, action: () => { setIsMuted(true); setMuteTimeLeft(10); } },
-                    { msg: `ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â² @${pseudo} lance le DÃƒÆ’Ã‚Â© de la DestinÃƒÆ’Ã‚Â©e... et obtient un bonus d'XP ! ÃƒÂ¢Ã…â€œÃ‚Â¨`, action: () => setUserXP(prev => prev + 50) },
-                    { msg: `ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â² @${pseudo} lance le DÃƒÆ’Ã‚Â© de la DestinÃƒÆ’Ã‚Â©e... et ne gagne absolument rien. Dommage !`, action: () => { } },
-                    { msg: `ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â² @${pseudo} lance le DÃƒÆ’Ã‚Â© de la DestinÃƒÆ’Ã‚Â©e... et dÃƒÆ’Ã‚Â©clenche des CONFETTIS ! ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â°`, action: () => triggerConfetti() }
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et gagne 100 DROPS !`, action: () => setUserDrops(prev => prev + 100) },
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et perd 50 DROPS ! 📉`, action: () => setUserDrops(prev => Math.max(0, prev - 50)) },
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et se fait MUTE 10s pour l'audace ! 👮`, action: () => { setIsMuted(true); setMuteTimeLeft(10); } },
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et obtient un bonus d'XP ! 📈`, action: () => setUserXP(prev => prev + 50) },
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et ne gagne absolument rien. Dommage !`, action: () => { } },
+                    { msg: `🎲 @${pseudo} lance le Dé de la Destinée... et déclenche des CONFETTIS ! 🥳`, action: () => triggerConfetti() }
                 ];
                 const finalOutcome = outcomes[roll - 1];
                 finalOutcome.action();
@@ -1539,15 +1574,15 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             } else if (mainCmd === '!ticket') {
                 // Participate in lottery
                 if (!lotteryActive) {
-                    showNotification('ÃƒÂ¢Ã‚ÂÃ…â€™ Aucun tirage au sort actif en ce moment !', 'error');
+                    showNotification('❌ Aucun tirage au sort actif en ce moment !', 'error');
                     return;
                 }
                 if (lotteryParticipants.includes(pseudo)) {
-                    showNotification('ÃƒÂ¢Ã…â€œÃ¢â‚¬Â¦ Tu es dÃƒÆ’Ã‚Â©jÃƒÆ’Ã‚Â  inscrit au tirage au sort !', 'success');
+                    showNotification('✅ Tu es déjà inscrit au tirage au sort !', 'success');
                     return;
                 }
                 setLotteryParticipants(prev => [...prev, pseudo]);
-                messageText = `ÃƒÂ°Ã…Â¸Ã…Â½Ã…Â¸ÃƒÂ¯Ã‚Â¸Ã‚Â @${pseudo} vient de prendre son ticket pour le tirage au sort ! (${lotteryParticipants.length + 1} participants)`;
+                messageText = `🎰 @${pseudo} vient de prendre son ticket pour le tirage au sort ! (${lotteryParticipants.length + 1} participants)`;
             }
 
             // Dynamic Bot Commands
@@ -1557,19 +1592,19 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             }
         }
 
-        // ÃƒÂ°Ã…Â¸Ã‚Â¤Ã¢â‚¬â€œ ChatGPT Dropsiders Bot-4 Logic
+        // 🤖 ChatGPT Dropsiders Bot-4 Logic
         if (messageText.toLowerCase().includes('@botdrops') || messageText.toLowerCase().includes('@bot')) {
             const lowMsg = messageText.toLowerCase();
             setTimeout(async () => {
                 let botReply = '';
                 if (lowMsg.includes('blague') || lowMsg.includes('joke')) {
-                    botReply = "Pourquoi les plongeurs plongent-ils toujours en arriÃƒÆ’Ã‚Â¨re et jamais en avant ? Parce que sinon ils tombent dans le bateau ! ÃƒÂ°Ã…Â¸Ã‚Â¤Ã‚Â£";
+                    botReply = "Pourquoi les plongeurs plongent-ils toujours en arrière et jamais en avant ? Parce que sinon ils tombent dans le bateau ! 😂";
                 } else if (lowMsg.includes('festival') || lowMsg.includes('ambiance')) {
-                    botReply = "L'ambiance est au max ici ! On est les Dropsiders ou on l'est pas ? ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥";
+                    botReply = "L'ambiance est au max ici ! On est les Dropsiders ou on l'est pas ? 🔥";
                 } else if (lowMsg.includes('qui es-tu')) {
-                    botReply = "Je suis BotDrops-4, ton IA prÃƒÆ’Ã‚Â©fÃƒÆ’Ã‚Â©rÃƒÆ’Ã‚Â©e, plus rapide qu'un mix d'AlexFR ! ÃƒÂ°Ã…Â¸Ã‚Â¤Ã¢â‚¬â€œ";
+                    botReply = "Je suis BotDrops-4, ton IA préférée, plus rapide qu'un mix d'AlexFR ! 🤖";
                 } else {
-                    botReply = "Bip Boup... Je t'ÃƒÆ’Ã‚Â©coute ! Dis-moi tout. ÃƒÂ°Ã…Â¸Ã‹Å“Ã…Â½";
+                    botReply = "Bip Boup... Je t'écoute ! Dis-moi tout. 💬";
                 }
 
                 await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
@@ -1583,12 +1618,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             }, 1000);
         }
 
-        // ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂºÃ‚Â¡ÃƒÂ¯Ã‚Â¸Ã‚Â Intelligent FAQ Assistant
+        // 💡 Intelligent FAQ Assistant
         const faqTriggers = ['quand', 'heure', 'artist', 'dj', 'lineup', 'programme'];
         if (faqTriggers.some(t => messageText.toLowerCase().includes(t)) && !messageText.startsWith('!')) {
             setTimeout(async () => {
-                const nextArtist = lineupItems[0]?.artist || "BientÃƒÆ’Ã‚Â´t annoncÃƒÆ’Ã‚Â©";
-                const botReply = `ÃƒÂ°Ã…Â¸Ã‚Â¤Ã¢â‚¬â€œ [FAQ]: @${pseudo}, consulte l'onglet PLANNING pour voir toute la programmation. Prochainement : ${nextArtist} !`;
+                const nextArtist = lineupItems[0]?.artist || "Bientôt annoncé";
+                const botReply = `🤖 [FAQ]: @${pseudo}, consulte l'onglet PLANNING pour voir toute la programmation. Prochainement : ${nextArtist} !`;
                 await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                     pseudo: "BOT_FAQ",
                     message: botReply,
@@ -1600,7 +1635,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             }, 2000);
         }
 
-        // ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Â¢ Pixel Art PACMAN trigger
+        // 👾 Pixel Art PACMAN trigger
         if (messageText.toLowerCase().includes('pacman')) {
             triggerPACMAN();
         }
@@ -1627,7 +1662,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 });
                 showNotification(`BRAVO ! +${reward} DROPS !`, 'success');
             } else {
-                showNotification(`MAUVAISE RÃƒÆ’Ã¢â‚¬Â°PONSE ! C'ÃƒÆ’Ã‚Â©tait le nÃƒâ€šÃ‚Â°${activeQuiz.correct}`, 'error');
+                showNotification(`MAUVAISE RÉPONSE ! C'était le n°${activeQuiz.correct}`, 'error');
             }
         }
 
@@ -1663,12 +1698,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 if (nextLevel > userLevel) {
                     setUserLevel(nextLevel);
                     localStorage.setItem('user_level', nextLevel.toString());
-                    showNotification(`ÃƒÂ°Ã…Â¸Ã…â€™Ã…Â¸ NIVEAU SUPÃƒÆ’Ã¢â‚¬Â°RIEUR ! Niveau ${nextLevel} !`, 'success');
+                    showNotification(`🌟 NIVEAU SUPÉRIEUR ! Niveau ${nextLevel} !`, 'success');
                     unlockAchievement(`Niveau ${nextLevel}`);
                 }
             }
 
-            // ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã‚Â£ TTS Broadcast
+            // 🔊 TTS Broadcast
             if (isTTSActive && !messageText.startsWith('[SYSTEM]') && !messageText.startsWith('!')) {
                 await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                     pseudo: "BOT_TTS",
@@ -1686,7 +1721,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
         } catch (e: any) {
             console.error("Appwrite send error details:", e);
-            showNotification(`Erreur d'envoi: ${e.message || 'ProblÃƒÆ’Ã‚Â¨me serveur'}`, 'error');
+            showNotification(`Erreur d'envoi: ${e.message || 'Problème serveur'}`, 'error');
         }
     };
 
@@ -1729,7 +1764,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                 country: "FR"
             });
-            showNotification(`Chat nettoyÃƒÆ’Ã‚Â© pour @${target}`, 'success');
+            showNotification(`Chat nettoyé pour @${target}`, 'success');
         } catch (e) {
             console.error(e);
         }
@@ -1834,10 +1869,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 }}
                                 className={`flex items-center gap-2 lg:gap-4 px-2 lg:px-4 py-1.5 lg:py-2 bg-white/5 border border-white/10 rounded-xl transition-all ${isMod ? 'hover:bg-white/10 cursor-pointer' : ''}`}
                             >
-                                <div className="flex items-center gap-1.5 lg:gap-2">
-                                    <Users className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-neon-cyan" />
-                                    <span className="text-[11px] lg:text-xs font-black text-white">{settings.status === 'off' ? 0 : Array.from(new Set(chatMessages.filter(m => m.pseudo && m.pseudo !== 'BOT_SYSTEM').map(m => m.pseudo))).length}</span>
-                                </div>
+                                <Users className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-neon-cyan" />
+                                <span className="text-[11px] lg:text-xs font-black text-white">{settings.status === 'off' ? 0 : Array.from(new Set(chatMessages.filter(m => m.pseudo && m.pseudo !== 'BOT_SYSTEM').map(m => m.pseudo))).length}</span>
                             </button>
                             <div className="hidden lg:flex gap-1 p-1 bg-white/5 border border-white/10 rounded-xl mr-2">
                                 <button
@@ -1876,7 +1909,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             <button
                                 onClick={() => setIsCinemaMode(!isCinemaMode)}
                                 className={`p-2 lg:p-3 rounded-xl transition-all border ${isCinemaMode ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_15px_rgba(0,255,255,0.4)] text-black' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
-                                title="Mode CinÃƒÆ’Ã‚Â©ma"
+                                title="Mode Cinéma"
                             >
                                 {isCinemaMode ? <Minimize2 className="w-4 h-4 lg:w-5 lg:h-5" /> : <Maximize2 className="w-4 h-4 lg:w-5 lg:h-5" />}
                             </button>
@@ -1885,7 +1918,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <Settings className="w-4 h-4 lg:w-5 lg:h-5" />
                                 </button>
                             )}
-                            <button onClick={() => navigate('/')} className="p-2 hover:bg-white/5 rounded-full transition-all">
+                            <button onClick={() => navigate('/')} className="p-2 hover:bg-white/5 rounded-full">
                                 <X className="w-5 h-5 text-gray-500" />
                             </button>
                         </div>
@@ -1915,7 +1948,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 rel={isExternal ? "noopener noreferrer" : ""}
                                                 className="text-[10px] lg:text-xs font-black text-white/90 uppercase italic tracking-widest flex items-center gap-2 hover:text-neon-red transition-colors drop-shadow-md cursor-pointer group/newsitem"
                                             >
-                                                <Stars className="w-3 h-3 text-neon-red group-hover/newsitem:text-white transition-colors" />
+                                                <Sparkles className="w-3 h-3 text-neon-red group-hover/newsitem:text-white transition-colors" />
                                                 <span className="group-hover/newsitem:text-neon-red transition-colors">{item.text}</span>
                                             </a>
                                         );
@@ -1956,7 +1989,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             {isMod && (
                                                 <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-all">
                                                     <button
-                                                        onClick={() => showNotification(`Logs de ${viewer} consultÃƒÆ’Ã‚Â©s`, 'success')}
+                                                        onClick={() => showNotification(`Logs de ${viewer} consultés`, 'success')}
                                                         className="p-1.5 hover:bg-white/10 rounded-lg transition-all"
                                                         title="Logs Chat"
                                                     >
@@ -1981,7 +2014,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         </div>
                                     ))}
                                     {chatMessages.filter(m => m.pseudo && !m.pseudo.startsWith('BOT_')).length === 0 && (
-                                        <div className="text-center p-8 text-gray-500 text-xs italic uppercase">Aucun viewer dÃƒÆ’Ã‚Â©tectÃƒÆ’Ã‚Â©</div>
+                                        <div className="text-center p-8 text-gray-500 text-xs italic uppercase">Aucun viewer détecté</div>
                                     )}
                                 </div>
                             </motion.div>
@@ -2049,7 +2082,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 <div className="flex items-center justify-between border-b border-white/10 pb-6">
                                     <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Configuration du <span className="text-neon-purple">Studio</span></h2>
                                     <div className="flex gap-2">
-                                        {['GÃƒÆ’Ã¢â‚¬Â°NÃƒÆ’Ã¢â‚¬Â°RAL', 'PLANNING', 'TRACKLIST', 'SONDAGES / QUIZ', 'DROPS', 'BOT', 'TIRAGE AU SORT', 'MODÃƒÆ’Ã¢â‚¬Â°RATION'].map(t => {
+                                        {['GÉNÉRAL', 'PLANNING', 'TRACKLIST', 'SONDAGES / QUIZ', 'DROPS', 'BOT', 'TIRAGE AU SORT', 'MODÉRATION'].map(t => {
                                             const tabId = t.split(' ')[0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
                                             return (
                                                 <button
@@ -2078,7 +2111,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
                                                         <div className="flex items-center gap-2 mb-2">
                                                             <Instagram className="w-4 h-4 text-neon-pink" />
-                                                            <h3 className="text-[10px] font-black text-white uppercase tracking-widest">RÃƒÆ’Ã‚Â©seaux Sociaux</h3>
+                                                            <h3 className="text-[10px] font-black text-white uppercase tracking-widest">Réseaux Sociaux</h3>
                                                         </div>
                                                         <div className="grid grid-cols-2 gap-4">
                                                             <div className="space-y-1">
@@ -2126,7 +2159,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     </div>
                                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                                         <div className="space-y-2">
-                                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-2">Nom de la scÃƒÆ’Ã‚Â¨ne</label>
+                                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-2">Nom de la scène</label>
                                                                             <input type="text" value={stream.name} onChange={e => {
                                                                                 const ns = [...editStreams];
                                                                                 ns[idx].name = e.target.value.toUpperCase();
@@ -2166,7 +2199,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                         : 'text-gray-500 hover:text-white hover:bg-white/5'
                                                                         }`}
                                                                 >
-                                                                    {s === 'live' ? 'EN DIRECT' : s === 'edit' ? 'PRÃƒÆ’Ã¢â‚¬Â°PARAT.' : 'OFFLINE'}
+                                                                    {s === 'live' ? 'EN DIRECT' : s === 'edit' ? 'PRÉPARAT.' : 'OFFLINE'}
                                                                 </button>
                                                             ))}
                                                         </div>
@@ -2182,7 +2215,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 }}
                                                                 className={`px-3 py-1 rounded-full text-[8px] font-black uppercase transition-all ${editShowSponsorBanner ? 'bg-neon-purple text-white' : 'bg-gray-700 text-gray-400'}`}
                                                             >
-                                                                {editShowSponsorBanner ? 'ACTIVÃƒÆ’Ã¢â‚¬Â°' : 'DÃƒÆ’Ã¢â‚¬Â°SACTIVÃƒÆ’Ã¢â‚¬Â°'}
+                                                                {editShowSponsorBanner ? 'ACTIVÉ' : 'DÉSACTIVÉ'}
                                                             </button>
                                                         </div>
                                                         <div className="space-y-4">
@@ -2233,7 +2266,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     }}
                                                                     className="px-6 py-3 bg-red-600 text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
                                                                 >
-                                                                    ArrÃƒÆ’Ã‚Âªter le sondage
+                                                                    Arrêter le sondage
                                                                 </button>
                                                             </div>
                                                             <div className="space-y-3">
@@ -2266,12 +2299,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     type="text"
                                                                     value={pollQuestion}
                                                                     onChange={e => setPollQuestion(e.target.value)}
-                                                                    placeholder="EX: QU'AVEZ-VOUS PENSÃƒÆ’Ã¢â‚¬Â° DE CE SET ?"
+                                                                    placeholder="EX: QU'AVEZ-VOUS PENSÉ DE CE SET ?"
                                                                     className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-sm font-bold text-white outline-none focus:border-neon-cyan transition-all uppercase"
                                                                 />
                                                             </div>
                                                             <div className="space-y-4">
-                                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Options de rÃƒÆ’Ã‚Â©ponse</label>
+                                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Options de réponse</label>
                                                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                                     {pollOptions.map((opt, idx) => (
                                                                         <div key={idx} className="relative group">
@@ -2329,7 +2362,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 }}
                                                                 className="w-full py-5 bg-neon-cyan text-black font-black uppercase rounded-2xl shadow-[0_10px_30px_rgba(0,255,255,0.2)] hover:scale-[1.02] active:scale-95 transition-all"
                                                             >
-                                                                LANCER LE SONDAGE ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥
+                                                                LANCER LE SONDAGE 🔥
                                                             </button>
                                                         </div>
                                                     )}
@@ -2342,7 +2375,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     </div>
                                                     <div>
                                                         <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion des Quiz</h3>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Lancez des questions avec rÃƒÆ’Ã‚Â©compense (+100 DROPS)</p>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Lancez des questions avec récompense (+100 DROPS)</p>
                                                     </div>
                                                 </div>
 
@@ -2365,7 +2398,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 }}
                                                                 className="px-6 py-3 bg-red-600 text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
                                                             >
-                                                                ArrÃƒÆ’Ã‚Âªter le quiz
+                                                                Arrêter le quiz
                                                             </button>
                                                         </div>
                                                     ) : (
@@ -2387,13 +2420,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                         }}
                                                                         className="p-6 bg-white/5 border border-white/10 rounded-2xl text-left hover:border-neon-purple/50 hover:bg-white/10 transition-all group"
                                                                     >
-                                                                        <p className="text-[10px] font-black text-neon-purple uppercase mb-1 tracking-widest">QUIZ PRÃƒÆ’Ã¢â‚¬Â°DÃƒÆ’Ã¢â‚¬Â°FINI #{idx + 1}</p>
+                                                                        <p className="text-[10px] font-black text-neon-purple uppercase mb-1 tracking-widest">QUIZ PRÉDÉFINI #{idx + 1}</p>
                                                                         <p className="text-sm font-bold text-white uppercase line-clamp-2">{q.question}</p>
                                                                     </button>
                                                                 ))
                                                             ) : (
                                                                 <div className="col-span-2 text-center py-10 border border-dashed border-white/10 rounded-3xl">
-                                                                    <p className="text-xs font-bold text-gray-500 uppercase">Aucun quiz prÃƒÆ’Ã‚Â©dÃƒÆ’Ã‚Â©fini dispo.</p>
+                                                                    <p className="text-xs font-bold text-gray-500 uppercase">Aucun quiz prédéfini dispo.</p>
                                                                 </div>
                                                             )}
                                                         </div>
@@ -2410,7 +2443,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     </div>
                                                     <div>
                                                         <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion Tracklist</h3>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Ajoutez des sets et gÃƒÆ’Ã‚Â©rez les tracks</p>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Ajoutez des sets et gérez les tracks</p>
                                                     </div>
                                                 </div>
 
@@ -2420,7 +2453,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <input type="text" value={newSetArtist} onChange={e => setNewSetArtist(e.target.value)} placeholder="NOM DE L'ARTISTE" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">DÃƒÆ’Ã‚Â©but (Optionnel)</label>
+                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Début (Optionnel)</label>
                                                         <input type="text" value={newSetTime} onChange={e => setNewSetTime(e.target.value)} placeholder="00:00" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
                                                     </div>
                                                 </div>
@@ -2433,7 +2466,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <div className="flex items-center justify-between">
                                                             <div>
                                                                 <h4 className="text-white font-black uppercase text-sm">{set.artist}</h4>
-                                                                <p className="text-[10px] text-gray-500 font-mono">DÃƒÆ’Ã‚Â©but : {set.startTime}</p>
+                                                                <p className="text-[10px] text-gray-500 font-mono">Début : {set.startTime}</p>
                                                             </div>
                                                             <button onClick={() => setTracklist(prev => prev.filter(s => s.id !== set.id))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
                                                         </div>
@@ -2454,10 +2487,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         </div>
                                     ) : adminActiveTab === 'planning' ? (
                                         <div className="space-y-10">
-                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6" id="planning-form">
                                                 <div className="flex items-center gap-3 mb-2">
-                                                    <Plus className="w-6 h-6 text-neon-cyan" />
-                                                    <h3 className="text-sm font-black text-white uppercase tracking-widest">Ajouter une session</h3>
+                                                    {editingLineupId ? <Edit3 className="w-6 h-6 text-amber-500" /> : <Plus className="w-6 h-6 text-neon-cyan" />}
+                                                    <h3 className="text-sm font-black text-white uppercase tracking-widest">
+                                                        {editingLineupId ? 'Modifier la session' : 'Ajouter une session'}
+                                                    </h3>
                                                 </div>
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                                                     <div className="flex flex-col gap-1.5">
@@ -2467,7 +2502,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     <input type="text" placeholder="ARTISTE" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, artist: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                     <input type="text" placeholder="DEBUT" value={newLineupItem.startTime} onChange={e => setNewLineupItem({ ...newLineupItem, startTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                     <input type="text" placeholder="FIN" value={newLineupItem.endTime} onChange={e => setNewLineupItem({ ...newLineupItem, endTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                    <input type="text" placeholder="SCÃƒÆ’Ã‹â€ NE" value={newLineupItem.stage} onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                    <input type="text" placeholder="SCÈNE" value={newLineupItem.stage} onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                     <input type="text" placeholder="INSTAGRAM" value={newLineupItem.instagram} onChange={e => setNewLineupItem({ ...newLineupItem, instagram: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                 </div>
                                                 {/* Image Upload */}
@@ -2495,19 +2530,51 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     }
                                                                 }}
                                                             />
-                                                            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 text-neon-cyan" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                                            <ImageIcon className="w-4 h-4 text-neon-cyan" />
                                                         </label>
                                                         {newLineupItem.image && (
                                                             <img src={newLineupItem.image} alt="preview" className="w-10 h-10 rounded-lg object-cover border border-white/10" />
                                                         )}
                                                     </div>
                                                 </div>
-                                                <button onClick={() => { if (newLineupItem.artist) { setLineupItems([...lineupItems, { ...newLineupItem, id: Date.now().toString() }]); setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', image: '' }); } }} className="w-full py-4 bg-neon-cyan text-black font-black uppercase rounded-2xl hover:bg-neon-cyan/80 transition-all">Ajouter</button>
+                                                <div className="flex gap-3">
+                                                    <button 
+                                                        onClick={() => { 
+                                                            if (!newLineupItem.artist || !newLineupItem.image) {
+                                                                showNotification("L'artiste et l'image sont obligatoires", "error");
+                                                                return;
+                                                            }
+                                                            if (editingLineupId) {
+                                                                setLineupItems(prev => prev.map(item => item.id === editingLineupId ? { ...newLineupItem, id: editingLineupId } : item));
+                                                                setEditingLineupId(null);
+                                                                showNotification("Session mise à jour", "success");
+                                                            } else {
+                                                                setLineupItems([...lineupItems, { ...newLineupItem, id: Date.now().toString() }]);
+                                                                showNotification("Session ajoutée", "success");
+                                                            }
+                                                            setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', image: '' }); 
+                                                        }} 
+                                                        className={`flex-1 py-4 ${editingLineupId ? 'bg-amber-500' : 'bg-neon-cyan'} text-black font-black uppercase rounded-2xl hover:bg-opacity-80 transition-all`}
+                                                    >
+                                                        {editingLineupId ? 'Mettre à jour' : 'Ajouter'}
+                                                    </button>
+                                                    {editingLineupId && (
+                                                        <button 
+                                                            onClick={() => {
+                                                                setEditingLineupId(null);
+                                                                setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', image: '' });
+                                                            }}
+                                                            className="px-6 py-4 bg-white/10 text-white font-black uppercase rounded-2xl hover:bg-white/20 transition-all"
+                                                        >
+                                                            Annuler
+                                                        </button>
+                                                    )}
+                                                </div>
                                             </div>
 
                                             <div className="space-y-4">
                                                 {lineupItems.map((item, i) => (
-                                                    <div key={item.id} className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between relative overflow-hidden">
+                                                    <div key={item.id || i} className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between relative overflow-hidden group">
                                                         {item.image && (
                                                             <>
                                                                 <img src={item.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 pointer-events-none" />
@@ -2522,7 +2589,21 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 <p className="text-[10px] text-neon-cyan font-bold uppercase">{item.stage}</p>
                                                             </div>
                                                         </div>
-                                                        <button onClick={() => setLineupItems(lineupItems.filter((_, idx) => idx !== i))} className="text-red-500 p-2 hover:bg-red-500/10 rounded-lg relative z-10"><Trash2 className="w-4 h-4" /></button>
+                                                        <div className="flex items-center gap-2 relative z-10">
+                                                            <button 
+                                                                onClick={() => {
+                                                                    setEditingLineupId(item.id);
+                                                                    setNewLineupItem({ ...item });
+                                                                    document.getElementById('planning-form')?.scrollIntoView({ behavior: 'smooth' });
+                                                                }} 
+                                                                className="p-2.5 bg-white/5 text-gray-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-xl transition-all"
+                                                            >
+                                                                <Edit2 className="w-4 h-4" />
+                                                            </button>
+                                                            <button onClick={() => setLineupItems(lineupItems.filter((_, idx) => idx !== i))} className="p-2.5 bg-white/5 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 ))}
                                             </div>
@@ -2554,7 +2635,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <input type="text" placeholder="NOM DU LOT" value={newLot.name} onChange={e => setNewLot({ ...newLot, name: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white outline-none" />
                                                         <input type="number" placeholder="PRIX" value={newLot.price} onChange={e => setNewLot({ ...newLot, price: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white outline-none" />
                                                     </div>
-                                                    <button onClick={() => { if (newLot.name) { setDropsLots([...dropsLots, { id: Date.now(), name: newLot.name, price: Number(newLot.price), stock: 10 }]); setNewLot({ name: '', price: '', stock: '' }); showNotification('Lot ajoutÃƒÆ’Ã‚Â© !', 'success'); } }} className="w-full py-3 bg-neon-cyan text-black font-black text-[10px] rounded-xl hover:scale-[1.02] transition-all uppercase tracking-widest">Ajouter un article</button>
+                                                    <button onClick={() => { if (newLot.name) { setDropsLots([...dropsLots, { id: Date.now(), name: newLot.name, price: Number(newLot.price), stock: 10 }]); setNewLot({ name: '', price: '', stock: '' }); showNotification('Lot ajouté !', 'success'); } }} className="w-full py-3 bg-neon-cyan text-black font-black text-[10px] rounded-xl hover:scale-[1.02] transition-all uppercase tracking-widest">Ajouter un article</button>
                                                 </div>
 
                                                 <div className="space-y-2 mt-4 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
@@ -2582,7 +2663,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     ) : adminActiveTab === 'bot' ? (
                                         <div className="space-y-8">
                                             <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
-                                                <h4 className="text-xs font-black text-neon-cyan uppercase tracking-widest">ÃƒÂ¢Ã…Â¾Ã¢â‚¬Â¢ Nouvelle Commande</h4>
+                                                <h4 className="text-xs font-black text-neon-cyan uppercase tracking-widest">➜ Nouvelle Commande</h4>
                                                 <input type="text" placeholder="!COMMANDE" value={newCmd.command} onChange={e => setNewCmd({ ...newCmd, command: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
                                                 <textarea placeholder="REPONSE" value={newCmd.response} onChange={e => setNewCmd({ ...newCmd, response: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white min-h-[80px]" />
                                                 <button onClick={async () => { 
@@ -2597,17 +2678,17 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             headers: { 'Content-Type': 'application/json' },
                                                             body: JSON.stringify(updated)
                                                         });
-                                                        showNotification('Commande enregistrÃƒÆ’Ã‚Â©e !', 'success');
+                                                        showNotification('Commande enregistrée !', 'success');
                                                     } 
                                                 }} className="w-full py-3 bg-neon-cyan text-black font-black rounded-xl hover:scale-[1.02] transition-all uppercase tracking-widest text-[10px]">AJOUTER LA COMMANDE</button>
                                             </div>
 
                                             {/* List of existing commands */}
                                             <div className="space-y-3">
-                                                <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ Commandes Actives ({botCommands.length})</h4>
+                                                <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">📋 Commandes Actives ({botCommands.length})</h4>
                                                 {botCommands.length === 0 ? (
                                                     <div className="text-center py-8 bg-white/5 border border-white/5 rounded-2xl">
-                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande configurÃƒÆ’Ã‚Â©e</p>
+                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande configurée</p>
                                                     </div>
                                                 ) : (
                                                     botCommands.map((cmd, idx) => (
@@ -2625,7 +2706,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                         headers: { 'Content-Type': 'application/json' },
                                                                         body: JSON.stringify(updated)
                                                                     });
-                                                                    showNotification('Commande supprimÃƒÆ’Ã‚Â©e', 'success');
+                                                                    showNotification('Commande supprimée', 'success');
                                                                 }}
                                                                 className="opacity-0 group-hover:opacity-100 p-2 text-gray-600 hover:text-neon-red transition-all rounded-lg hover:bg-red-500/10"
                                                             >
@@ -2640,9 +2721,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                             {/* Lottery Status Banner */}
                                             <div className={`p-6 rounded-[2rem] border text-center space-y-3 ${lotteryActive ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_30px_rgba(0,255,255,0.05)]' : 'bg-white/5 border-white/10'}`}>
-                                                <Trophy className={`w-10 h-10 mx-auto ${lotteryActive ? 'text-neon-cyan' : 'text-gray-600'}`} />
+                                                <Crown className={`w-10 h-10 mx-auto ${lotteryActive ? 'text-neon-cyan' : 'text-gray-600'}`} />
                                                 <h4 className="text-white font-black uppercase text-lg">
-                                                    {lotteryActive ? 'ÃƒÂ°Ã…Â¸Ã…Â½Ã…Â¸ÃƒÂ¯Ã‚Â¸Ã‚Â Tirage au sort ACTIF' : 'ÃƒÂ°Ã…Â¸Ã…Â½Ã…Â¸ÃƒÂ¯Ã‚Â¸Ã‚Â Tirage au sort inactif'}
+                                                    {lotteryActive ? '🎰 Tirage au sort ACTIF' : '🎰 Tirage au sort inactif'}
                                                 </h4>
                                                 {lotteryActive && (
                                                     <p className="text-neon-cyan font-black text-2xl">{lotteryParticipants.length} participant{lotteryParticipants.length > 1 ? 's' : ''}</p>
@@ -2650,9 +2731,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 <div className="flex gap-3 justify-center flex-wrap pt-2">
                                                     {!lotteryActive ? (
                                                         <button
-                                                            onClick={() => { setLotteryActive(true); setLotteryParticipants([]); setLotteryWinner(null); showNotification('ÃƒÂ°Ã…Â¸Ã…Â½Ã…Â¸ÃƒÂ¯Ã‚Â¸Ã‚Â Tirage au sort lancÃƒÆ’Ã‚Â© ! Les utilisateurs peuvent taper !ticket', 'success'); }}
+                                                            onClick={() => { setLotteryActive(true); setLotteryParticipants([]); setLotteryWinner(null); showNotification('🎰 Tirage au sort lancé ! Les utilisateurs peuvent taper !ticket', 'success'); }}
                                                             className="px-8 py-3 bg-neon-cyan text-black font-black uppercase rounded-2xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(0,255,255,0.2)] text-sm"
-                                                        >DÃƒÆ’Ã‚Â©marrer le tirage</button>
+                                                        >Démarrer le tirage</button>
                                                     ) : (
                                                         <>
                                                             <button
@@ -2662,19 +2743,19 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     setLotteryWinner(winner);
                                                                     setLotteryActive(false);
                                                                     triggerConfetti();
-                                                                    showNotification(`ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Â  GAGNANT : ${winner} !`, 'success');
+                                                                    showNotification(`🎉 GAGNANT : ${winner} !`, 'success');
                                                                     databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
                                                                         pseudo: 'BOT_SYSTEM',
-                                                                        message: `ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Â  TIRAGE AU SORT : Le gagnant est @${winner} ! FÃƒÆ’Ã‚Â©licitations ! ÃƒÂ°Ã…Â¸Ã…Â½Ã¢â‚¬Â°`,
+                                                                        message: `🎉 TIRAGE AU SORT : Le gagnant est @${winner} ! Félicitations ! 🥳`,
                                                                         color: 'text-amber-500',
                                                                         time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                                                                         country: 'FR'
                                                                     });
                                                                 }}
                                                                 className="px-8 py-3 bg-amber-500 text-black font-black uppercase rounded-2xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] text-sm"
-                                                            >ÃƒÂ°Ã…Â¸Ã…Â½Ã‚Â² Tirer au sort</button>
+                                                            >🎲 Tirer au sort</button>
                                                             <button
-                                                                onClick={() => { setLotteryActive(false); setLotteryParticipants([]); setLotteryWinner(null); showNotification('Tirage annulÃƒÆ’Ã‚Â©.', 'success'); }}
+                                                                onClick={() => { setLotteryActive(false); setLotteryParticipants([]); setLotteryWinner(null); showNotification('Tirage annulé.', 'success'); }}
                                                                 className="px-8 py-3 bg-red-500/20 border border-red-500/40 text-red-400 font-black uppercase rounded-2xl hover:scale-105 transition-all text-sm"
                                                             >Annuler</button>
                                                         </>
@@ -2694,7 +2775,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             {/* Participants List */}
                                             {lotteryParticipants.length > 0 && (
                                                 <div className="p-6 bg-white/5 border border-white/10 rounded-[2rem] space-y-4">
-                                                    <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest">ÃƒÂ°Ã…Â¸Ã¢â‚¬Å“Ã¢â‚¬Â¹ Participants ({lotteryParticipants.length})</h4>
+                                                        <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest">📋 Participants ({lotteryParticipants.length})</h4>
                                                     <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto custom-scrollbar">
                                                         {lotteryParticipants.map((p, i) => (
                                                             <span key={i} className="px-3 py-1 bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan font-black text-[10px] uppercase rounded-full">{p}</span>
@@ -2703,7 +2784,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     <button
                                                         onClick={() => setLotteryParticipants([])}
                                                         className="text-[10px] text-red-400 font-black uppercase hover:text-red-300 transition-all"
-                                                    >RÃƒÆ’Ã‚Â©initialiser les participants</button>
+                                                    >Réinitialiser les participants</button>
                                                 </div>
                                             )}
 
@@ -2737,14 +2818,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         }}
                                                         className={`w-full py-4 ${slowModeEnabled ? 'bg-amber-600' : 'bg-gray-600'} text-white rounded-2xl font-black uppercase transition-all`}
                                                     >
-                                                        {slowModeEnabled ? 'DÃƒÆ’Ã¢â‚¬Â°SACTIVER MODE LENT' : 'ACTIVER MODE LENT'}
+                                                        {slowModeEnabled ? 'DÉSACTIVER MODE LENT' : 'ACTIVER MODE LENT'}
                                                     </button>
                                                 </div>
                                             </div>
 
                                             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                                                 <div className="p-8 bg-neon-purple/5 border border-neon-purple/20 rounded-[2.5rem] text-center space-y-4">
-                                                    <Stars className="w-8 h-8 text-neon-purple mx-auto" />
+                                                    <Sparkles className="w-8 h-8 text-neon-purple mx-auto" />
                                                     <h4 className="text-white font-black uppercase">Effets Fixes</h4>
                                                     <div className="flex gap-4 flex-wrap justify-center">
                                                         <button onClick={() => triggerConfetti()} className="flex-1 min-w-[120px] py-4 bg-neon-purple text-white rounded-2xl font-black uppercase">Confettis</button>
@@ -2763,7 +2844,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         }}
                                                         className={`w-full py-4 ${showBadgesAdmin ? 'bg-blue-600' : 'bg-gray-600'} text-white rounded-2xl font-black uppercase transition-all`}
                                                     >
-                                                        {showBadgesAdmin ? 'BADGES ACTIVÃƒÆ’Ã¢â‚¬Â°S' : 'BADGES DÃƒÆ’Ã¢â‚¬Â°SACTIVÃƒÆ’Ã¢â‚¬Â°S'}
+                                                        {showBadgesAdmin ? 'BADGES ACTIVÉS' : 'BADGES DÉSACTIVÉS'}
                                                     </button>
                                                     <div className="mt-4 pt-4 border-t border-white/10 text-left">
                                                         <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Utiliser les commandes chat :</div>
@@ -2773,9 +2854,20 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 </div>
                                                 <div className="p-8 bg-neon-cyan/5 border border-neon-cyan/20 rounded-[2.5rem] text-center space-y-4">
                                                     <Volume2 className="w-8 h-8 text-neon-cyan mx-auto" />
-                                                    <h4 className="text-white font-black uppercase">SynthÃƒÆ’Ã‚Â¨se Vocale (TTS)</h4>
+                                                    <h4 className="text-white font-black uppercase">Synthèse Vocale (TTS)</h4>
                                                     <button onClick={() => setIsTTSActive(!isTTSActive)} className={`w-full py-4 ${isTTSActive ? 'bg-neon-cyan text-black' : 'bg-gray-600 text-white'} rounded-2xl font-black uppercase transition-all`}>
-                                                        {isTTSActive ? 'DÃƒÆ’Ã¢â‚¬Â°SACTIVER TTS' : 'ACTIVER TTS'}
+                                                        {isTTSActive ? 'DÉSACTIVER TTS' : 'ACTIVER TTS'}
+                                                    </button>
+                                                </div>
+
+                                                <div className="p-8 bg-neon-green/5 border border-neon-green/20 rounded-[2.5rem] text-center space-y-4">
+                                                    <Camera className="w-8 h-8 text-neon-green mx-auto" />
+                                                    <h4 className="text-white font-black uppercase">Wiki & Photos</h4>
+                                                    <button 
+                                                        onClick={() => { setModerationTab('wiki'); setIsModerationModalOpen(true); }}
+                                                        className="w-full py-4 bg-neon-green text-black rounded-2xl font-black uppercase hover:bg-neon-green/80 transition-all flex items-center justify-center gap-2"
+                                                    >
+                                                        VÉRIFIER PHOTOS {(pendingWikiPhotosCount > 0) && <span className="px-2 py-0.5 bg-black text-white rounded-full text-[10px]">{pendingWikiPhotosCount}</span>}
                                                     </button>
                                                 </div>
                                             </div>
@@ -2784,7 +2876,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             <div className="col-span-1 md:col-span-2 p-8 bg-neon-red/5 border border-neon-red/20 rounded-[2.5rem] space-y-6">
                                                 <div className="flex items-center gap-4 justify-center mb-6">
                                                     <Megaphone className="w-8 h-8 text-neon-red" />
-                                                    <h4 className="text-white font-black uppercase text-xl">Bandeau News (DÃƒÆ’Ã‚Â©filant)</h4>
+                                                    <h4 className="text-white font-black uppercase text-xl">Bandeau News (Défilant)</h4>
                                                 </div>
                                                 <div className="space-y-4">
                                                     {editMarqueeItems.map((item, idx) => (
@@ -2835,6 +2927,15 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER'}
                                     </button>
                                 </div>
+                                
+                                <ModerationModal 
+                                    isOpen={isModerationModalOpen} 
+                                    onClose={() => setIsModerationModalOpen(false)} 
+                                    initialTab={moderationTab}
+                                    onSuccess={() => {
+                                        // Update counts if needed
+                                    }}
+                                />
                             </div>
                         </motion.div>
                     )}
@@ -4184,7 +4285,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     </div>
 
                                     <div className="flex gap-2 justify-center py-4">
-                                        {['ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬â„¢', 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã…Â½', '7ÃƒÂ¯Ã‚Â¸Ã‚ÂÃƒÂ¢Ã†â€™Ã‚Â£'].map((emoji, i) => (
+                                        {['🎰', '🍒', '7️⃣'].map((emoji, i) => (
                                             <motion.div
                                                 key={i}
                                                 animate={{ y: [0, -10, 0] }}
@@ -4227,7 +4328,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1000] bg-black/95 flex flex-col items-center justify-center overflow-hidden">
                                 <div className="absolute top-10 flex flex-col items-center">
                                     <Crown className="w-16 h-16 text-amber-500 mb-4 animate-bounce" />
-                                    <h2 className="text-4xl font-black text-white uppercase italic tracking-[0.5em] mb-2">Mur des LÃƒÆ’Ã‚Â©gendes</h2>
+                                    <h2 className="text-4xl font-black text-white uppercase italic tracking-[0.5em] mb-2">Mur des Légendes</h2>
                                     <p className="text-amber-500/50 text-[10px] font-black uppercase tracking-[0.5em]">Dropsiders Hall of Fame</p>
                                 </div>
                                 <div className="flex-1 w-full max-w-4xl relative">
@@ -4239,12 +4340,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 <div className="flex items-center gap-2 text-white/30 text-[10px] font-black uppercase tracking-widest mt-1">
                                                     <span>{user.drops || user.count || 5000}+ DROPS</span>
                                                     <div className="w-1 h-1 rounded-full bg-white/20" />
-                                                    <span>LÃƒÆ’Ã¢â‚¬Â°GENDE ACTIVE</span>
+                                                    <span>LÉGENDE ACTIVE</span>
                                                 </div>
                                             </div>
                                         ))}
                                         <div className="h-64" />
-                                        <p className="text-white/20 text-xs font-black uppercase tracking-[1em] italic">Merci d'avoir fait partie de l'expÃƒÆ’Ã‚Â©rience Dropsiders</p>
+                                        <p className="text-white/20 text-xs font-black uppercase tracking-[1em] italic">Merci d'avoir fait partie de l'expérience Dropsiders</p>
                                     </motion.div>
                                 </div>
                                 <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black pointer-events-none" />
