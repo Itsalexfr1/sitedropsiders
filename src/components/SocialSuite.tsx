@@ -500,7 +500,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.restore();
             } else if (theme === 'PLANNING') {
                 const centerX = canvas.width / 2;
-                const topY = activeTab === 'PUBLICATION' ? 480 : 850;
+                const topY = activeTab === 'PUBLICATION' ? 650 : 1100;
                 
                 // Title "LINE-UP" or custom
                 ctx.textAlign = 'center';
@@ -521,7 +521,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillRect(centerX - lineW, topY + 60, lineW * 2, 2);
 
                 // List items (compact block)
-                const startY = topY + (activeTab === 'PUBLICATION' ? 110 : 150);
+                const startY = topY + (activeTab === 'PUBLICATION' ? 100 : 130);
                 const spacing = activeTab === 'PUBLICATION' ? 45 : 65;
 
                 planningItems.forEach((item, i) => {
