@@ -1994,7 +1994,8 @@
     "soundcloud": "https://soundcloud.com/mutek",
     "beatport": "https://www.beatport.com/search?q=Mutek",
     "bio_en": "A major figure on the global scene, Mutek is a key player in today's electronic culture.",
-    "status": "waiting"
+    "status": "verified",
+    "photo_verified": true
   },
   {
     "id": "361",
