@@ -3701,7 +3701,7 @@ ${urls.map(u => `  <url>
                 if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
 
                 // Check if at least one item exists
-                const hasValidItems = file.content.some((item: any) => idsToDelete.includes(item.id));
+                const hasValidItems = file.content.some((item: any) => idsToDelete.includes(String(item.id)));
                 if (!hasValidItems) return new Response(JSON.stringify({ error: 'Items not found' }), { status: 404, headers });
 
                 // Retry logic for Wiki deletion
@@ -3710,7 +3710,7 @@ ${urls.map(u => `  <url>
                 while (deleteAttempts < 3) {
                     const currentFile = await fetchGitHubFile(filePath, gitConfig);
                     if (!currentFile) break;
-                    const cRows = currentFile.content.filter((item: any) => !idsToDelete.includes(item.id));
+                    const cRows = currentFile.content.filter((item: any) => !idsToDelete.includes(String(item.id)));
                     
                     const commitMessage = idsToDelete.length > 1 
                         ? `Delete ${idsToDelete.length} items from Wiki (${type})`
