@@ -119,9 +119,9 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
             let clubs: any[] = [];
             let fests: any[] = [];
             
-            if (djsRes.ok) djs = (await djsRes.json()).filter((d: any) => d.status === 'waiting').map((d: any) => ({ ...d, type: 'DJS' }));
-            if (clubsRes.ok) clubs = (await clubsRes.json()).filter((c: any) => c.status === 'waiting').map((c: any) => ({ ...c, type: 'CLUBS' }));
-            if (festsRes.ok) fests = (await festsRes.json()).filter((f: any) => f.status === 'waiting').map((f: any) => ({ ...f, type: 'FESTIVALS' }));
+            if (djsRes.ok) djs = (await djsRes.json()).filter((d: any) => d.status === 'waiting' || d.status === 'verified').map((d: any) => ({ ...d, type: 'DJS' }));
+            if (clubsRes.ok) clubs = (await clubsRes.json()).filter((c: any) => c.status === 'waiting' || c.status === 'verified').map((c: any) => ({ ...c, type: 'CLUBS' }));
+            if (festsRes.ok) fests = (await festsRes.json()).filter((f: any) => f.status === 'waiting' || f.status === 'verified').map((f: any) => ({ ...f, type: 'FESTIVALS' }));
             
             setWikiWaiting([...djs, ...clubs, ...fests]);
 
@@ -173,7 +173,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
             });
 
             if (response.ok) {
-                setSubmissions(prev => prev.filter(s => s.id !== id));
+                setSubmissions(prev => prev.map(s => s.id === id ? { ...s, status: action === 'approve' ? 'approved' : 'rejected' } : s));
                 setSelected(prev => { const n = new Set(prev); n.delete(id); return n; });
                 if (onSuccess) onSuccess();
             } else {
@@ -205,7 +205,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                     // Wait a bit to avoid GitHub conflicts
                     await new Promise(r => setTimeout(r, 300));
                 }
-                setSubmissions(prev => prev.filter(s => !ids.includes(s.id)));
+                setSubmissions(prev => prev.map(s => ids.includes(s.id) ? { ...s, status: action === 'approve' ? 'approved' : 'rejected' } : s));
             } else if (tab === 'wiki' && action === 'reject') {
                 // Grouper par type pour éviter de faire des dizaines de requêtes à la suite
                 const groupedIds: Record<string, string[]> = {};
@@ -328,7 +328,7 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
             });
 
             if (response.ok) {
-                setWikiWaiting(prev => prev.filter(item => item.id !== id));
+                setWikiWaiting(prev => prev.map(item => item.id === id ? { ...item, status: 'verified', image: imageUrl } : item));
                 if (onSuccess) onSuccess();
             } else {
                 const err = await response.json();

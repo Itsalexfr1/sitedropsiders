@@ -8,7 +8,7 @@ import {
     BarChart3, Clock, Sword, Crown, Maximize2, Minimize2,
     Trophy, Stars, Heart, Volume2, Timer, ShieldAlert, Calendar, Edit2, Edit3, Image as ImageIcon,
     Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
-    Search, ChevronUp, ChevronDown, Camera, ShieldCheck as ShieldIcon
+    Search, ChevronUp, ChevronDown, Camera
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
@@ -290,7 +290,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [qteActive, setQteActive] = useState(false);
     const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
     const [moderationTab, setModerationTab] = useState<'photos' | 'wiki'>('photos');
-    const [pendingPhotosCount, setPendingPhotosCount] = useState(0);
     const [pendingWikiPhotosCount, setPendingWikiPhotosCount] = useState(0);
 
     const fetchPhotosCount = async () => {
@@ -300,16 +299,15 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 fetch('/api/wiki/list')
             ]);
             
-            const photos = await photosRes.json();
+            await photosRes.json();
             const wikis = await wikiRes.json();
             
-            setPendingPhotosCount(Array.isArray(photos) ? photos.length : 0);
-            
-            const wikiWaiting = wikis.filter((w: any) => 
-                (w.entity_type === 'DJS' || w.entity_type === 'CLUBS' || w.entity_type === 'FESTIVALS') && 
-                w.status === 'waiting'
+            setPendingWikiPhotosCount(
+                wikis.filter((w: any) => 
+                    (w.entity_type === 'DJS' || w.entity_type === 'CLUBS' || w.entity_type === 'FESTIVALS') && 
+                    w.status === 'waiting'
+                ).length
             );
-            setPendingWikiPhotosCount(wikiWaiting.length);
         } catch (e) {
             console.error("Error fetching photos count:", e);
         }

@@ -85,7 +85,7 @@ export function AdminDashboard() {
     });
     const [isUpdatingBanner, setIsUpdatingBanner] = useState(false);
     const [pendingPhotosCount, setPendingPhotosCount] = useState(0);
-    const [pendingWikiPhotosCount, setPendingWikiPhotosCount] = useState(0);
+    // const [pendingWikiPhotosCount, setPendingWikiPhotosCount] = useState(0);
     const [pendingQuizzesCount, setPendingQuizzesCount] = useState(0);
     const [pendingMessagesCount, setPendingMessagesCount] = useState(0);
     const [allActiveQuizzes, setAllActiveQuizzes] = useState<any[]>([]);
@@ -742,20 +742,13 @@ export function AdminDashboard() {
         } catch (e: any) { }
     };
 
-    const toggleContestMode = async () => {
-        const newValue = !isContestModeEnabled;
-        setIsContestModeEnabled(newValue);
-        try {
-            const res = await apiFetch('/api/settings', { headers: getAuthHeaders() });
-            const data = res.ok ? await res.json() : {};
-            await apiFetch('/api/settings/update', {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ ...data, contest_mode: newValue })
-            });
-        } catch (e) {
-            console.error("Failed to toggle contest mode:", e);
-        }
+    /* Contest mode toggled via Live Dashboard only */
+    const toggleContestMode = () => {
+        setGlobalAlert({
+            type: 'info',
+            title: 'Action Déplacée',
+            message: "L'activation du mode concours se fait désormais exclusivement depuis le Live Dashboard afin d'éviter les erreurs."
+        });
     };
 
     const handleResetContest = async () => {
@@ -962,7 +955,7 @@ export function AdminDashboard() {
         }
 
         setPendingPhotosCount(pCount);
-        setPendingWikiPhotosCount(wCount);
+        // setPendingWikiPhotosCount(wCount);
 
         // Also fetch pending quizzes count here
         try {
@@ -977,6 +970,23 @@ export function AdminDashboard() {
     };
 
     const saveTakeoverSettings = async () => {
+        // Validation: Chaque ligne du planning doit avoir une image associée
+        const rows = (takeoverState.lineup || '').split('\n').filter(l => l.trim().length > 0);
+        const hasMissingImages = rows.some(line => {
+            const rest = line.replace(/\[.*?\]/, '');
+            const parts = rest.includes('|') ? rest.split('|').map(p => p.trim()) : rest.split('-').map(p => p.trim());
+            return !parts[3] || parts[3].trim() === ''; // parts[3] sera l'image
+        });
+
+        if (hasMissingImages) {
+            setGlobalAlert({
+                type: 'danger',
+                title: 'IMAGE MANQUANTE',
+                message: 'Chaque passage du planning doit obligatoirement comporter une image d\'artiste.'
+            });
+            return;
+        }
+
         setIsUpdatingTakeover(true);
         try {
             const res = await apiFetch('/api/settings', { headers: getAuthHeaders() });
@@ -996,10 +1006,19 @@ export function AdminDashboard() {
             });
 
             if (saveRes.ok) {
-                // saved
+                setGlobalAlert({
+                    type: 'info',
+                    title: 'CONFIG SAUVEGARDÉE',
+                    message: 'Les paramètres du takeover ont été mis à jour avec succès.'
+                });
             }
         } catch (e: any) {
             console.error('Failed to save takeover settings', e);
+            setGlobalAlert({
+                type: 'danger',
+                title: 'ERREUR DE SAUVEGARDE',
+                message: 'Une erreur est survenue lors de la sauvegarde des paramètres.'
+            });
         } finally {
             setIsUpdatingTakeover(false);
         }
@@ -1618,16 +1637,15 @@ export function AdminDashboard() {
                                 <span className="hidden md:inline">Actualiser</span>
                             </button>
 
-                            {/* Contest Mode Global Toggle */}
+                            {/* Contest Mode Global Status */}
                             {(isAdminAcc || storedPermissions.includes('messages')) && (
-                                <button
-                                    onClick={toggleContestMode}
-                                    title={isContestModeEnabled ? "Désactiver le concours" : "Activer le concours"}
-                                    className={`w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center rounded-xl md:rounded-full text-xs font-black uppercase tracking-widest transition-all gap-2 border ${isContestModeEnabled ? 'bg-neon-red/20 border-neon-red/40 text-neon-red animate-pulse' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                <div
+                                    title={isContestModeEnabled ? "Activé" : "Désactivé"}
+                                    className="px-6 py-3 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase italic tracking-widest text-[10px] flex items-center gap-2 cursor-default opacity-50"
                                 >
                                     <Gamepad2 className="w-4 h-4" />
                                     <span className="hidden md:inline">{isContestModeEnabled ? 'CONCOURS ON' : 'CONCOURS OFF'}</span>
-                                </button>
+                                </div>
                             )}
                             {/* Boutons Admin : Bandeau et Takeover */}
                             {(isAdminAcc || storedPermissions.includes('takeover_modo')) && (
@@ -4788,7 +4806,7 @@ export function AdminDashboard() {
                                     {takeoverTab === 'planning' && (
                                         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-300">
                                             <div className="flex items-center justify-between mb-2">
-                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">À‰diteur de <span className="text-neon-red">Planning</span></h3>
+                                                <h3 className="text-sm font-black text-white uppercase italic tracking-tighter">Éditeur de <span className="text-neon-red">Planning</span></h3>
                                                 <button
                                                     onClick={() => {
                                                         const currentLines = (takeoverState.lineup || '').split('\n');
@@ -4803,12 +4821,13 @@ export function AdminDashboard() {
                                                                 endTime: endTime,
                                                                 artist: parts[0] || '',
                                                                 stage: parts[1] || '',
-                                                                instagram: parts[2] || ''
+                                                                instagram: parts[2] || '',
+                                                                image: parts[3] || ''
                                                             };
                                                         });
-                                                        const newRow = { time: '', endTime: '', artist: 'NOUVEL ARTISTE', stage: '', instagram: '' };
+                                                        const newRow = { time: '', endTime: '', artist: 'NOUVEL ARTISTE', stage: '', instagram: '', image: '' };
                                                         const newRows = [...rows, newRow];
-                                                        const newText = newRows.map(r => `[${r.time || '00:00'}${r.endTime ? ` - ${r.endTime}` : ''}] ${r.artist}${r.stage ? ` - ${r.stage}` : ''}${r.instagram ? ` - ${r.instagram}` : ''}`).join('\n');
+                                                        const newText = newRows.map(r => `[${r.time || '00:00'}${r.endTime ? ` - ${r.endTime}` : ''}] ${r.artist}${r.stage ? ` - ${r.stage}` : ' - '}${r.instagram ? ` - ${r.instagram}` : ' - '}${r.image ? ` - ${r.image}` : ' - '}`).join('\n');
                                                         setTakeoverState({ ...takeoverState, lineup: newText });
                                                     }}
                                                     className="px-4 py-2 bg-neon-red text-white text-[9px] font-black uppercase rounded-xl hover:scale-105 transition-all shadow-lg shadow-neon-red/20"
@@ -4820,11 +4839,12 @@ export function AdminDashboard() {
                                             <div className="space-y-2">
                                                 {takeoverState.lineup && takeoverState.lineup.trim() !== '' && (
                                                     <div className="grid grid-cols-12 gap-2 px-3 pb-1">
-                                                        <div className="col-span-1 text-[9px] text-gray-500 font-black uppercase tracking-widest text-center">ébut</div>
+                                                        <div className="col-span-1 text-[9px] text-gray-500 font-black uppercase tracking-widest text-center">Début</div>
                                                         <div className="col-span-1 text-[9px] text-gray-500 font-black uppercase tracking-widest text-center">Fin</div>
                                                         <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Artiste</div>
-                                                        <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Scène</div>
-                                                        <div className="col-span-3 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Instagram</div>
+                                                        <div className="col-span-2 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Scène</div>
+                                                        <div className="col-span-2 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Instagram</div>
+                                                        <div className="col-span-2 text-[9px] text-gray-500 font-black uppercase tracking-widest ml-1">Image (Requis)</div>
                                                         <div className="col-span-1"></div>
                                                     </div>
                                                 )}
@@ -4839,14 +4859,15 @@ export function AdminDashboard() {
                                                         endTime: endTime,
                                                         artist: parts[0] || '',
                                                         stage: parts[1] || '',
-                                                        instagram: parts[2] || ''
+                                                        instagram: parts[2] || '',
+                                                        image: parts[3] || ''
                                                     };
 
                                                     const updateRow = (newData: Partial<typeof row>) => {
                                                         const rows = (takeoverState.lineup || '').split('\n').map((l, i) => {
                                                             if (i === idx) {
                                                                 const updated = { ...row, ...newData };
-                                                                return `[${updated.time || '00:00'}${updated.endTime ? ` - ${updated.endTime}` : ''}] ${updated.artist}${updated.stage ? ` - ${updated.stage}` : ''}${updated.instagram ? ` - ${updated.instagram}` : ''}`;
+                                                                return `[${updated.time || '00:00'}${updated.endTime ? ` - ${updated.endTime}` : ''}] ${updated.artist} - ${updated.stage || ' '} - ${updated.instagram || ' '} - ${updated.image || ' '}`;
                                                             }
                                                             return l;
                                                         });
@@ -4899,7 +4920,7 @@ export function AdminDashboard() {
                                                                     className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white font-black uppercase focus:border-neon-red outline-none"
                                                                 />
                                                             </div>
-                                                            <div className="col-span-3">
+                                                            <div className="col-span-2">
                                                                 <input
                                                                     type="text"
                                                                     value={row.stage}
@@ -4917,11 +4938,52 @@ export function AdminDashboard() {
                                                                     className="w-full bg-black/40 border border-white/10 rounded-lg px-2 py-1.5 text-[10px] text-white font-bold uppercase focus:border-neon-red outline-none"
                                                                 />
                                                             </div>
-                                                            <div className="col-span-2 flex items-center justify-end gap-1 px-1">
+                                                            <div className="col-span-2 group/img relative">
+                                                                <div className={`flex items-center gap-2 p-1 rounded-lg border ${row.image ? 'border-neon-cyan/30 bg-neon-cyan/5' : 'border-dashed border-white/10 bg-white/5'}`}>
+                                                                    <div className="w-6 h-6 rounded bg-black/60 flex items-center justify-center overflow-hidden shrink-0 border border-white/10">
+                                                                        {row.image ? (
+                                                                            <img src={row.image} alt="" className="w-full h-full object-cover" />
+                                                                        ) : (
+                                                                            <ImageIcon className="w-3 h-3 text-gray-600" />
+                                                                        )}
+                                                                    </div>
+                                                                    <input
+                                                                        type="text"
+                                                                        value={row.image}
+                                                                        onChange={e => updateRow({ image: e.target.value })}
+                                                                        placeholder="URL Image"
+                                                                        className="flex-1 bg-transparent border-none p-0 text-[9px] text-white outline-none placeholder:text-gray-700"
+                                                                    />
+                                                                    <button
+                                                                        onClick={() => {
+                                                                            const input = document.createElement('input');
+                                                                            input.type = 'file';
+                                                                            input.accept = 'image/*';
+                                                                            input.onchange = async (e: any) => {
+                                                                                const file = e.target.files?.[0];
+                                                                                if (file) {
+                                                                                    try {
+                                                                                        const url = await uploadFile(file);
+                                                                                        updateRow({ image: url });
+                                                                                    } catch (err) {
+                                                                                        console.error('Upload failed', err);
+                                                                                    }
+                                                                                }
+                                                                            };
+                                                                            input.click();
+                                                                        }}
+                                                                        className="p-1 text-gray-500 hover:text-white transition-colors"
+                                                                        title="Uploader"
+                                                                    >
+                                                                        <Upload className="w-3 h-3" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <div className="col-span-1 flex items-center justify-end gap-1">
                                                                 <button
                                                                     onClick={() => moveRow('up')}
                                                                     disabled={idx === 0}
-                                                                    className="p-1.5 text-gray-600 hover:text-neon-cyan transition-all disabled:opacity-20"
+                                                                    className="p-1 text-gray-600 hover:text-neon-cyan transition-all disabled:opacity-20"
                                                                     title="Monter"
                                                                 >
                                                                     <ChevronUp className="w-3.5 h-3.5" />
@@ -4929,14 +4991,14 @@ export function AdminDashboard() {
                                                                 <button
                                                                     onClick={() => moveRow('down')}
                                                                     disabled={idx === rowsArray.length - 1}
-                                                                    className="p-1.5 text-gray-600 hover:text-neon-cyan transition-all disabled:opacity-20"
+                                                                    className="p-1 text-gray-600 hover:text-neon-cyan transition-all disabled:opacity-20"
                                                                     title="Descendre"
                                                                 >
                                                                     <ChevronDown className="w-3.5 h-3.5" />
                                                                 </button>
                                                                 <button
                                                                     onClick={deleteRow}
-                                                                    className="p-1.5 text-gray-600 hover:text-neon-red transition-all ml-1"
+                                                                    className="p-1 text-gray-600 hover:text-neon-red transition-all"
                                                                     title="Supprimer"
                                                                 >
                                                                     <Trash2 className="w-3.5 h-3.5" />
@@ -6710,40 +6772,7 @@ export function AdminDashboard() {
                                         <h2 className="text-2xl font-black text-white uppercase tracking-tighter flex items-center gap-3">
                                             <ShieldAlert className="text-neon-red w-6 h-6" />
                                             Vérificateur de Photos
-                                            2026-03-19T00:45:33.077Z	Initializing build environment...
-                                            2026-03-19T00:45:35.913Z	Success: Finished initializing build environment
-                                            2026-03-19T00:45:36.425Z	Cloning repository...
-                                            2026-03-19T00:46:25.751Z	Detected the following tools from environment: npm@10.9.2, nodejs@22.16.0
-                                            2026-03-19T00:46:25.753Z	Restoring from dependencies cache
-                                            2026-03-19T00:46:25.754Z	Restoring from build output cache
-                                            2026-03-19T00:46:27.218Z	Success: Dependencies restored from build cache.
-                                            2026-03-19T00:46:27.220Z	Installing project dependencies: npm clean-install --progress=false
-                                            2026-03-19T00:46:33.047Z	npm warn deprecated whatwg-encoding@3.1.1: Use @exodus/bytes instead for a more spec-conformant and faster implementation
-                                            2026-03-19T00:46:33.342Z	npm warn deprecated sourcemap-codec@1.4.8: Please use @jridgewell/sourcemap-codec instead
-                                            2026-03-19T00:46:33.737Z	npm warn deprecated source-map@0.8.0-beta.0: The work that was done in this beta branch won't be included in future versions
-                                            2026-03-19T00:46:34.285Z	npm warn deprecated glob@11.1.0: Old versions of glob are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exorbitant rates) by contacting i@izs.me
-                                            2026-03-19T00:46:40.884Z
-                                            2026-03-19T00:46:40.885Z	added 873 packages, and audited 874 packages in 13s
-                                            2026-03-19T00:46:40.885Z
-                                            2026-03-19T00:46:40.885Z	312 packages are looking for funding
-                                            2026-03-19T00:46:40.885Z	  run `npm fund` for details
-                                            2026-03-19T00:46:40.948Z
-                                            2026-03-19T00:46:40.949Z	17 vulnerabilities (16 high, 1 critical)
-                                            2026-03-19T00:46:40.949Z
-                                            2026-03-19T00:46:40.949Z	To address issues that do not require attention, run:
-                                            2026-03-19T00:46:40.949Z	  npm audit fix
-                                            2026-03-19T00:46:40.949Z
-                                            2026-03-19T00:46:40.949Z	To address all issues (including breaking changes), run:
-                                            2026-03-19T00:46:40.949Z	  npm audit fix --force
-                                            2026-03-19T00:46:40.949Z
-                                            2026-03-19T00:46:40.949Z	Run `npm audit` for details.
-                                            2026-03-19T00:46:41.208Z	Executing user build command: npm run build
-                                            2026-03-19T00:46:41.475Z	
-2026-03-19T00:46:41.475Z	> site-dropsiders-v2@0.0.0 build
-2026-03-19T00:46:41.475Z	> tsc -b && vite build
-                                            2026-03-19T00:46:41.475Z
-                                            2026-03-19T00:46:44.622Z	src/pages/TakeoverPage.tsx(3701,33): error TS1005: ')' expected.
-                                            2026-03-19T00:46:45.319Z	Failed: error occurred while running build command                                        </h2>
+                                        </h2>
                                         <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mt-1">
                                             {brokenImages.length} liens pointant vers des fichiers inexistants sur R2
                                         </p>

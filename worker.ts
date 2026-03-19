@@ -3236,14 +3236,20 @@ ${urls.map(u => `  <url>
                     }
                 }
 
-                // Remove from pending (for both approve and reject)
-                // Retry loop for robustness against 409 conflicts
+                // Update status instead of removing (requested by user)
                 let savedPending = { ok: false, error: '' };
                 let attempts = 0;
                 while (attempts < 3) {
                     const currentSubFile = await fetchGitHubFile(PENDING_SUBMISSIONS_PATH, gitConfig);
                     if (!currentSubFile) break;
-                    const updatedSubs = currentSubFile.content.filter(s => s.id !== id);
+                    
+                    const updatedSubs = currentSubFile.content.map(s => {
+                        if (s.id === id) {
+                            return { ...s, status: action === 'approve' ? 'approved' : 'rejected' };
+                        }
+                        return s;
+                    });
+                    
                     savedPending = await saveGitHubFile(PENDING_SUBMISSIONS_PATH, updatedSubs, `${action === 'approve' ? 'Approve' : 'Reject'} photo submission ${id}`, currentSubFile.sha, gitConfig);
                     if (savedPending.ok) break;
                     if (savedPending.status !== 409) break;
@@ -3519,7 +3525,7 @@ ${urls.map(u => `  <url>
                 // Update item
                 file.content[index].image = imageUrl;
                 if (file.content[index].status === 'waiting') {
-                    delete file.content[index].status;
+                    file.content[index].status = 'verified';
                 }
 
                 const saved = await saveGitHubFile(filePath, file.content, `Update photo for ${file.content[index].name} (${type})`, file.sha, gitConfig);
@@ -3553,7 +3559,7 @@ ${urls.map(u => `  <url>
                 file.content.forEach(item => {
                     if (ids.includes(item.id)) {
                         if (item.status === 'waiting') {
-                            delete item.status;
+                            item.status = 'verified';
                             count++;
                         }
                     }
