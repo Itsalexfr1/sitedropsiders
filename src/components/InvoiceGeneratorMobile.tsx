@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import html2pdf from 'html2pdf.js';
-import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock, Download, Printer, RefreshCw } from 'lucide-react';
+import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock, Download, Printer, RefreshCw, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -139,6 +139,16 @@ export function InvoiceGeneratorMobile() {
                 body: JSON.stringify({ id, paid: !paid }) 
             });
             setHistory(prev => prev.map(inv => inv.id === id ? { ...inv, paid: !paid } : inv));
+        } catch { }
+    };
+
+    const deleteInvoice = async (id: number) => {
+        if (!confirm('Voulez-vous vraiment supprimer cette facture ?')) return;
+        try {
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const res = await fetch('/api/invoices/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }, body: JSON.stringify({ id }) });
+            if (res.ok) fetchHistory();
         } catch { }
     };
 
@@ -382,31 +392,75 @@ export function InvoiceGeneratorMobile() {
                             </div>
                             {isLoadingHistory ? (
                                 <div className="flex items-center justify-center py-20"><Loader className="w-8 h-8 animate-spin text-indigo-400" /></div>
-                            ) : history.length === 0 ? (
-                                <div className="text-center py-20 border border-dashed border-white/5 rounded-3xl">
-                                     <History className="w-12 h-12 text-white/5 mx-auto mb-4" />
-                                     <p className="text-sm font-black text-white/20 uppercase tracking-widest">Aucune facture</p>
-                                </div>
-                            ) : (
-                                <div className="space-y-3 pb-20">
-                                    {history.map((inv: any) => (
-                                        <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                                            <div className="flex-1 min-w-0 mr-4">
-                                                <div className="flex items-center gap-2 mb-1">
-                                                    <span className="text-[10px] font-black text-indigo-400">#{inv.id}</span>
-                                                    <span className="text-xs font-bold text-white truncate">{inv.client || 'Client inconnu'}</span>
-                                                </div>
-                                                <div className="text-[10px] text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
-                                                <div className="font-black text-sm text-white mt-1">{parseFloat(inv.total || 0).toFixed(2)} €</div>
+                            ) : (() => {
+                                const stats = history.reduce((acc, inv) => {
+                                    const d = new Date(inv.date || inv.created_at || Date.now());
+                                    const t = parseFloat(inv.total) || 0;
+                                    acc.allTime += t;
+                                    if (d.getFullYear() === new Date().getFullYear()) {
+                                        acc.thisYear += t;
+                                        if (d.getMonth() === new Date().getMonth()) acc.thisMonth += t;
+                                    }
+                                    return acc;
+                                }, { thisMonth: 0, thisYear: 0, allTime: 0 });
+
+                                return (
+                                    <>
+                                        <div className="grid grid-cols-2 gap-3 mb-6">
+                                            <div className="bg-indigo-500/10 border border-indigo-500/20 rounded-2xl p-4 text-center">
+                                                <div className="text-[9px] font-black uppercase tracking-widest text-indigo-400/70 mb-1">Ce Mois</div>
+                                                <div className="text-xl font-black text-indigo-400">{stats.thisMonth.toFixed(2)} €</div>
                                             </div>
-                                            <button onClick={() => togglePaid(inv.id, inv.paid)}
-                                                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30'}`}>
-                                                {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> Attente</>}
-                                            </button>
+                                            <div className="bg-white/5 border border-white/10 rounded-2xl p-4 text-center">
+                                                <div className="text-[9px] font-black uppercase tracking-widest text-white/40 mb-1">Cette Année</div>
+                                                <div className="text-xl font-black text-white">{stats.thisYear.toFixed(2)} €</div>
+                                            </div>
                                         </div>
-                                    ))}
-                                </div>
-                            )}
+                                        {history.length === 0 ? (
+                                            <div className="text-center py-20 border border-dashed border-white/5 rounded-3xl">
+                                                <History className="w-12 h-12 text-white/5 mx-auto mb-4" />
+                                                <p className="text-sm font-black text-white/20 uppercase tracking-widest">Aucune facture</p>
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4 pb-20">
+                                                {history.map((inv: any) => (
+                                                    <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4">
+                                                        <div className="flex items-start justify-between mb-3">
+                                                            <div className="flex-1 min-w-0 mr-4">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <span className="text-[10px] font-black text-indigo-400">#{inv.id}</span>
+                                                                    <span className="text-xs font-bold text-white truncate">{inv.client || 'Client inconnu'}</span>
+                                                                </div>
+                                                                <div className="text-[10px] text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
+                                                                {inv.emailTo && <div className="text-[10px] text-white/50 mt-1 whitespace-nowrap overflow-hidden text-ellipsis truncate">{inv.emailTo}</div>}
+                                                                <div className="font-black text-sm text-white mt-1">{parseFloat(inv.total || 0).toFixed(2)} €</div>
+                                                            </div>
+                                                            <div className="flex flex-col gap-2">
+                                                                <button onClick={() => togglePaid(inv.id, inv.paid)}
+                                                                    className={`px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center justify-center gap-1 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30'}`}>
+                                                                    {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> Attente</>}
+                                                                </button>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-2 pt-3 border-t border-white/5">
+                                                            {inv.pdfUrl ? (
+                                                                <a href={inv.pdfUrl} target="_blank" rel="noopener noreferrer" className="flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 bg-white/5 border border-white/10 text-white hover:text-indigo-400">
+                                                                    <BookOpen className="w-3 h-3" /> PDF
+                                                                </a>
+                                                            ) : (
+                                                                <div className="flex-1" />
+                                                            )}
+                                                            <button onClick={() => deleteInvoice(inv.id)} className="p-3 border border-white/10 rounded-xl text-red-500/50 bg-white/5">
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                    </>
+                                );
+                            })()}
                         </motion.div>
                     )}
 

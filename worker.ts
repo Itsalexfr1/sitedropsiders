@@ -3102,6 +3102,23 @@ ${urls.map(u => `  <url>
                     return new Response(JSON.stringify({ error: "Erreur lors de l'envoi: " + errText }), { status: 500, headers });
                 }
 
+                // Upload PDF to R2
+                let pdfUrl = '';
+                if (pdfBase64 && env.R2) {
+                    try {
+                        const b64Parts = pdfBase64.split('base64,');
+                        const b64Content = b64Parts.length > 1 ? b64Parts[1] : b64Parts[0];
+                        const binaryStr = atob(b64Content);
+                        const bytes = new Uint8Array(binaryStr.length);
+                        for (let i = 0; i < binaryStr.length; i++) {
+                            bytes[i] = binaryStr.charCodeAt(i);
+                        }
+                        const key = `factures/${Date.now()}_${filename || 'facture.pdf'}`;
+                        await env.R2.put(key, bytes, { httpMetadata: { contentType: 'application/pdf' } });
+                        pdfUrl = `/uploads/${key}`;
+                    } catch (e) { console.error('R2 upload failed', e); }
+                }
+
                 // If invoiceData is provided, auto-save to history
                 if (invoiceData) {
                     const INVOICE_FILE = 'src/data/invoices.json';
@@ -3111,7 +3128,9 @@ ${urls.map(u => `  <url>
                         ...invoiceData,
                         id: Date.now(),
                         sentDate: new Date().toISOString(),
-                        paid: false
+                        paid: false,
+                        emailTo: to,
+                        pdfUrl: pdfUrl
                     };
                     await saveGitHubFile(INVOICE_FILE, [newInvoice, ...history], `Save invoice: ${invoiceData.number}`, file?.sha, gitConfig);
                 }
@@ -3140,6 +3159,29 @@ ${urls.map(u => `  <url>
 
                 const updated = file.content.map(inv => inv.id === id ? { ...inv, paid } : inv);
                 await saveGitHubFile(INVOICE_FILE, updated, `Update invoice status: ${id}`, file.sha, gitConfig);
+                return new Response(JSON.stringify({ success: true }), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/invoices/delete' && request.method === 'POST') {
+            try {
+                const { id } = await request.json();
+                const INVOICE_FILE = 'src/data/invoices.json';
+                const file = await fetchGitHubFile(INVOICE_FILE, gitConfig);
+                if (!file) return new Response(JSON.stringify({ error: 'File not found' }), { status: 404, headers });
+
+                const invoice = file.content.find((inv: any) => inv.id === id);
+                if (invoice && invoice.pdfUrl && env.R2) {
+                    try {
+                        const r2Key = invoice.pdfUrl.split('/uploads/').pop();
+                        if (r2Key) await env.R2.delete(r2Key);
+                    } catch (e) { console.error('Failed to delete PDF from R2:', e); }
+                }
+
+                const updated = file.content.filter((inv: any) => inv.id !== id);
+                await saveGitHubFile(INVOICE_FILE, updated, `Delete invoice: ${id}`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e: any) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
