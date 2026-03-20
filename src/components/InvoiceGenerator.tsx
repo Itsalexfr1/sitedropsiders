@@ -374,7 +374,7 @@ export function InvoiceGenerator() {
 
     const TABS = [
         { key: 'edit', icon: <Plus className="w-3 h-3" />, label: 'Nouvelle' },
-        { key: 'archive', icon: <History className="w-3 h-3" />, label: 'Archive' },
+        { key: 'archive', icon: <History className="w-3 h-3" />, label: 'Archives' },
         { key: 'clients', icon: <User className="w-3 h-3" />, label: 'Clients' },
         { key: 'settings', icon: <Settings className="w-3 h-3" />, label: 'Paramètres' },
     ] as const;
@@ -711,30 +711,30 @@ export function InvoiceGenerator() {
                     {/* ========== ARCHIVE TAB ========== */}
                     {view === 'archive' && (
                         <motion.div key="archive" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-8">
-                            <h2 className="text-xl font-black uppercase tracking-tight mb-6 text-gray-900">Historique des Factures</h2>
+                            <h2 className="text-xl font-black uppercase tracking-tight mb-6 text-white">Archives des Factures</h2>
                             {isLoadingHistory ? (
-                                <div className="flex items-center justify-center h-48"><Loader className="w-8 h-8 animate-spin text-indigo-300" /></div>
+                                <div className="flex items-center justify-center h-48"><Loader className="w-8 h-8 animate-spin text-indigo-400" /></div>
                             ) : history.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-48 text-gray-300">
+                                <div className="flex flex-col items-center justify-center h-48 text-white/20">
                                     <Building2 className="w-12 h-12 mb-4" />
-                                    <p className="text-sm font-bold">Aucune facture envoyée</p>
+                                    <p className="text-sm font-bold opacity-30">Aucune facture envoyée</p>
                                 </div>
                             ) : (
-                                <div className="space-y-3">
+                                <div className="space-y-3 pb-20">
                                     {history.map((inv: any) => (
-                                        <div key={inv.id} className={cardCls + " flex items-center gap-6"}>
-                                            <div className="w-10 h-10 bg-indigo-50 rounded-xl flex items-center justify-center">
+                                        <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-6 flex items-center gap-6">
+                                            <div className="w-10 h-10 bg-indigo-500/10 rounded-xl flex items-center justify-center">
                                                 <span className="text-xs font-black text-indigo-400">#{inv.id}</span>
                                             </div>
                                             <div className="flex-1">
-                                                <div className="font-black text-sm text-gray-900">{inv.client || 'Client inconnu'}</div>
-                                                <div className="text-xs text-gray-400">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
+                                                <div className="font-black text-sm text-white">{inv.client || 'Client inconnu'}</div>
+                                                <div className="text-xs text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
                                             </div>
                                             <div className="text-right">
-                                                <div className="font-black text-lg text-indigo-700">{parseFloat(inv.total || 0).toFixed(2)} €</div>
+                                                <div className="font-black text-lg text-indigo-400">{parseFloat(inv.total || 0).toFixed(2)} €</div>
                                             </div>
                                             <button onClick={() => togglePaid(inv.id, inv.paid)}
-                                                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${inv.paid ? 'bg-green-50 border border-green-200 text-green-600' : 'bg-gray-50 border border-gray-200 text-gray-400 hover:border-indigo-300'}`}>
+                                                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30 hover:border-indigo-500/50'}`}>
                                                 {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> En attente</>}
                                             </button>
                                         </div>
@@ -854,8 +854,8 @@ export function InvoiceGenerator() {
                                             placeholder={f.placeholder} className={inputCls} />
                                     </div>
                                 ))}
-                                <div className="bg-indigo-50 rounded-xl p-3 mt-2">
-                                    <p className="text-[10px] text-indigo-500 font-bold">Ces informations apparaîtront sur toutes vos factures générées.</p>
+                                <div className="bg-white/5 border border-white/5 rounded-2xl p-4 mt-2">
+                                    <p className="text-[10px] text-indigo-400 font-bold">Ces informations apparaîtront sur toutes vos factures générées.</p>
                                 </div>
                             </div>
 
@@ -865,8 +865,8 @@ export function InvoiceGenerator() {
                                 <p className="text-xs text-gray-400">Sauvegardez vos prestations récurrentes pour les retrouver rapidement lors de la création d'une facture.</p>
 
                                 {/* Add new article */}
-                                <div className="bg-indigo-50 rounded-xl p-4 space-y-3">
-                                    <p className="text-[9px] font-black text-indigo-400 uppercase tracking-widest">Nouvel article</p>
+                                <div className="bg-white/5 border border-white/5 rounded-2xl p-5 space-y-4">
+                                    <p className="text-[10px] font-black text-indigo-400 uppercase tracking-[0.2em]">Nouvel article</p>
                                     <input value={newArticleDesc} onChange={e => setNewArticleDesc(e.target.value)}
                                         placeholder="Description (ex: Mix DJ 4h)" className={inputCls} />
                                     <div className="flex gap-3">
@@ -874,8 +874,8 @@ export function InvoiceGenerator() {
                                             <input type="number" value={newArticlePrice} onChange={e => setNewArticlePrice(parseFloat(e.target.value) || 0)}
                                                 placeholder="Prix unitaire (€)" className={inputCls} />
                                         </div>
-                                        <button onClick={saveArticle} className="px-5 py-3 bg-indigo-700 text-white rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-indigo-800 transition-all shrink-0">
-                                            <Plus className="w-3 h-3" /> Ajouter
+                                        <button onClick={saveArticle} className="px-6 py-3 bg-indigo-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 hover:bg-indigo-700 transition-all shrink-0 border border-indigo-500/30">
+                                            <Plus className="w-4 h-4" /> Ajouter
                                         </button>
                                     </div>
                                 </div>
@@ -888,14 +888,14 @@ export function InvoiceGenerator() {
                                         <p className="text-xs mt-1">Ajoutez des articles ci-dessus ou cliquez sur 💾 dans une ligne de facture</p>
                                     </div>
                                 ) : (
-                                    <div className="space-y-2 max-h-80 overflow-y-auto">
+                                    <div className="space-y-2 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
                                         {savedArticles.map(a => (
-                                            <div key={a.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-100 rounded-xl">
+                                            <div key={a.id} className="flex items-center gap-4 p-4 bg-white/[0.02] border border-white/5 rounded-2xl group hover:border-indigo-500/30 transition-all">
                                                 <div className="flex-1">
-                                                    <div className="text-sm font-bold text-gray-800">{a.description}</div>
-                                                    <div className="text-xs text-indigo-600 font-black">{a.unitPrice.toFixed(2)} €</div>
+                                                    <div className="text-sm font-bold text-white">{a.description}</div>
+                                                    <div className="text-[10px] text-indigo-400 font-black uppercase tracking-wider mt-0.5">{a.unitPrice.toFixed(2)} €</div>
                                                 </div>
-                                                <button onClick={() => deleteArticle(a.id)} className="p-1.5 text-gray-200 hover:text-red-500 transition-colors">
+                                                <button onClick={() => deleteArticle(a.id)} className="p-2 text-white/10 hover:text-red-500 hover:bg-red-500/10 rounded-lg transition-all">
                                                     <Trash2 className="w-4 h-4" />
                                                 </button>
                                             </div>
@@ -912,31 +912,47 @@ export function InvoiceGenerator() {
             <AnimatePresence>
                 {showClientPicker && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-6">
+                        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-6">
                         <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }}
-                            className="w-full max-w-md bg-white rounded-3xl p-8 shadow-2xl">
-                            <div className="flex items-center justify-between mb-6">
-                                <h3 className="text-lg font-black uppercase tracking-tight text-gray-900">Clients Sauvegardés</h3>
-                                <button onClick={() => setShowClientPicker(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
-                                    <X className="w-5 h-5 text-gray-400" />
+                            className="w-full max-w-md bg-[#16192c] border border-white/10 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-30"></div>
+                            
+                            <div className="flex items-center justify-between mb-8">
+                                <div>
+                                    <h3 className="text-xl font-black uppercase tracking-tight text-white">Clients</h3>
+                                    <p className="text-[10px] text-indigo-400 font-bold uppercase tracking-widest mt-1">Sélectionner un destinataire</p>
+                                </div>
+                                <button onClick={() => setShowClientPicker(false)} className="p-2 hover:bg-white/5 rounded-2xl transition-all">
+                                    <X className="w-5 h-5 text-white/30" />
                                 </button>
                             </div>
-                            <div className="space-y-2 max-h-80 overflow-y-auto">
+
+                            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                                 {savedClients.map(c => (
-                                    <div key={c.id} className="flex items-center gap-3 p-3 hover:bg-indigo-50 rounded-xl transition-all">
-                                        <button onClick={() => loadClient(c)} className="flex-1 text-left">
-                                            <div className="font-bold text-sm text-gray-900">{c.name}</div>
-                                            <div className="text-xs text-gray-400">{c.email}</div>
-                                        </button>
-                                        <button onClick={() => loadClient(c)} className="px-3 py-1.5 bg-indigo-700 text-white rounded-lg text-[9px] font-black uppercase tracking-widest flex items-center gap-1">
-                                            <ChevronRight className="w-3 h-3" /> Choisir
-                                        </button>
-                                        <button onClick={() => deleteClient(c.id)} className="p-1.5 text-gray-200 hover:text-red-500 transition-colors">
-                                            <Trash2 className="w-4 h-4" />
+                                    <div key={c.id} className="group relative">
+                                        <button onClick={() => { loadClient(c); setShowClientPicker(false); }} 
+                                            className="w-full flex items-center gap-4 p-5 bg-white/[0.03] border border-white/5 rounded-3xl hover:bg-indigo-500/10 hover:border-indigo-500/30 transition-all text-left">
+                                            <div className="w-12 h-12 bg-indigo-500/10 rounded-2xl flex items-center justify-center group-hover:bg-indigo-500/20 transition-all">
+                                                <User className="w-5 h-5 text-indigo-400" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="font-black text-sm text-white">{c.name}</div>
+                                                <div className="text-[10px] text-white/30 truncate mt-0.5 uppercase tracking-wide">{c.email || c.city}</div>
+                                            </div>
+                                            <ChevronRight className="w-5 h-5 text-white/10 group-hover:text-indigo-400 transition-all" />
                                         </button>
                                     </div>
                                 ))}
                             </div>
+
+                            {savedClients.length === 0 && (
+                                <div className="py-12 text-center">
+                                    <div className="w-16 h-16 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-4">
+                                        <User className="w-8 h-8 text-white/10" />
+                                    </div>
+                                    <p className="text-sm font-bold text-white/30 uppercase tracking-widest">Aucun client trouvé</p>
+                                </div>
+                            )}
                         </motion.div>
                     </motion.div>
                 )}
@@ -946,54 +962,65 @@ export function InvoiceGenerator() {
             <AnimatePresence>
                 {showEmailModal && (
                     <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                        className="fixed inset-0 z-50 bg-black/40 backdrop-blur-sm flex items-center justify-center p-6">
+                        className="fixed inset-0 z-50 bg-black/60 backdrop-blur-md flex items-center justify-center p-6">
                         <motion.div initial={{ scale: 0.95, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.95 }}
-                            className="w-full max-w-lg bg-white rounded-3xl p-8 shadow-2xl">
-                            <div className="flex items-center justify-between mb-8">
+                            className="w-full max-w-lg bg-[#16192c] border border-white/10 rounded-[2.5rem] p-10 shadow-2xl relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-indigo-500 to-transparent opacity-30"></div>
+                            
+                            <div className="flex items-center justify-between mb-10">
                                 <div>
-                                    <h3 className="text-xl font-black uppercase tracking-tight text-gray-900">Envoyer la Facture</h3>
-                                    <p className="text-xs text-indigo-400 mt-1 font-bold">{formattedNumber} • {total.toFixed(2)} €</p>
+                                    <h3 className="text-2xl font-black uppercase tracking-tight text-white">Envoi Email</h3>
+                                    <p className="text-[10px] text-indigo-400 mt-1 font-bold uppercase tracking-[0.2em]">{formattedNumber} • {total.toFixed(2)} €</p>
                                 </div>
-                                <button onClick={() => setShowEmailModal(false)} className="p-2 hover:bg-gray-100 rounded-xl transition-all">
-                                    <X className="w-5 h-5 text-gray-400" />
+                                <button onClick={() => setShowEmailModal(false)} className="p-3 hover:bg-white/5 rounded-2xl transition-all">
+                                    <X className="w-6 h-6 text-white/30" />
                                 </button>
                             </div>
 
                             {sendStatus === 'success' ? (
-                                <div className="flex flex-col items-center justify-center py-12 gap-4">
-                                    <div className="w-16 h-16 bg-green-50 border border-green-200 rounded-2xl flex items-center justify-center">
-                                        <CheckCircle className="w-8 h-8 text-green-500" />
+                                <div className="flex flex-col items-center justify-center py-12 gap-6 bg-green-500/5 border border-green-500/10 rounded-3xl">
+                                    <div className="w-20 h-20 bg-green-500/20 border border-green-500/20 rounded-[2rem] flex items-center justify-center animate-pulse">
+                                        <CheckCircle className="w-10 h-10 text-green-400" />
                                     </div>
-                                    <p className="text-green-600 font-black text-lg uppercase">Facture envoyée !</p>
+                                    <div className="text-center">
+                                        <p className="text-green-400 font-black text-xl uppercase tracking-widest">Facture envoyée !</p>
+                                        <p className="text-green-400/50 text-[10px] uppercase font-bold mt-2">Le destinataire va la recevoir d'ici peu</p>
+                                    </div>
                                 </div>
                             ) : (
-                                <div className="space-y-4">
-                                    {[
-                                        { label: 'Destinataire', value: emailTo, setter: setEmailTo, type: 'email' },
-                                        { label: 'Objet', value: emailSubject, setter: setEmailSubject, type: 'text' },
-                                    ].map(f => (
-                                        <div key={f.label}>
-                                            <label className={labelCls}>{f.label}</label>
-                                            <input type={f.type} value={f.value} onChange={e => f.setter(e.target.value)} className={inputCls} />
-                                        </div>
-                                    ))}
-                                    <div>
-                                        <label className={labelCls}>Message</label>
-                                        <textarea value={emailMessage} onChange={e => setEmailMessage(e.target.value)} rows={5}
-                                            className={inputCls + " resize-none"} />
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-1 gap-6">
+                                        {[
+                                            { label: 'Destinataire', value: emailTo, setter: setEmailTo, type: 'email', placeholder: 'client@example.com' },
+                                            { label: 'Objet de l\'email', value: emailSubject, setter: setEmailSubject, type: 'text' },
+                                        ].map(f => (
+                                            <div key={f.label}>
+                                                <label className={labelCls}>{f.label}</label>
+                                                <input type={f.type} value={f.value} onChange={e => f.setter(e.target.value)} 
+                                                    placeholder={f.placeholder} className={inputCls} />
+                                            </div>
+                                        ))}
                                     </div>
+                                    <div>
+                                        <label className={labelCls}>Message personnalisé</label>
+                                        <textarea value={emailMessage} onChange={e => setEmailMessage(e.target.value)} rows={5}
+                                            className={inputCls + " resize-none py-4"} />
+                                    </div>
+                                    
                                     {sendError && (
-                                        <div className="bg-red-50 border border-red-200 rounded-xl px-4 py-3">
-                                            <p className="text-red-500 text-xs font-bold">{sendError}</p>
+                                        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl px-5 py-4 flex items-center gap-3">
+                                            <div className="w-2 h-2 bg-red-500 rounded-full animate-ping"></div>
+                                            <p className="text-red-400 text-[10px] font-black uppercase tracking-widest">{sendError}</p>
                                         </div>
                                     )}
-                                    <div className="flex gap-3 pt-2">
-                                        <button onClick={() => setShowEmailModal(false)} className="flex-1 py-3 bg-gray-100 border border-gray-200 rounded-xl text-[10px] font-black uppercase tracking-widest text-gray-500 hover:bg-gray-200 transition-all">
+
+                                    <div className="flex gap-4 pt-4">
+                                        <button onClick={() => setShowEmailModal(false)} className="flex-1 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white/40 hover:bg-white/10 hover:text-white/60 transition-all">
                                             Annuler
                                         </button>
                                         <button onClick={handleSendEmail} disabled={sendStatus === 'sending'}
-                                            className="flex-1 py-3 bg-indigo-700 text-white rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-indigo-800 transition-all disabled:opacity-50">
-                                            {sendStatus === 'sending' ? <><Loader className="w-4 h-4 animate-spin" /> Envoi...</> : <><Mail className="w-4 h-4" /> Envoyer</>}
+                                            className="flex-2 py-4 bg-indigo-600 text-white rounded-2xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-3 hover:bg-indigo-700 transition-all disabled:opacity-50 border border-indigo-500/30">
+                                            {sendStatus === 'sending' ? <><Loader className="w-5 h-5 animate-spin" /> Envoi en cours...</> : <><Mail className="w-5 h-5" /> Envoyer la facture</>}
                                         </button>
                                     </div>
                                 </div>

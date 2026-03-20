@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import html2pdf from 'html2pdf.js';
-import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock } from 'lucide-react';
+import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock, Download, Printer, BookOpen } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -101,7 +101,8 @@ export function InvoiceGeneratorMobile() {
     });
 
     // Sheet states
-    const [sheet, setSheet] = useState<'none' | 'client' | 'date' | 'event' | 'details' | 'line' | 'settings' | 'history' | 'email' | 'preview' | 'clients_list'>('none');
+    const [view, setView] = useState<'edit' | 'archive' | 'clients' | 'settings'>('edit');
+    const [sheet, setSheet] = useState<'none' | 'client' | 'date' | 'event' | 'details' | 'line' | 'settings' | 'email' | 'preview'>('none');
     const [previewKey, setPreviewKey] = useState(0);
     const [editingLine, setEditingLine] = useState<InvoiceLine | null>(null);
     const [senderDraft, setSenderDraft] = useState<Sender>(sender);
@@ -112,6 +113,10 @@ export function InvoiceGeneratorMobile() {
     const [ncEmail, setNcEmail] = useState('');
     const [history, setHistory] = useState<any[]>([]);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+    useEffect(() => {
+        if (view === 'archive') fetchHistory();
+    }, [view]);
 
     const fetchHistory = async () => {
         setIsLoadingHistory(true);
@@ -233,8 +238,15 @@ export function InvoiceGeneratorMobile() {
     const dueDateLabel = dueDate ? new Date(dueDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Aucune';
     const eventLabel = eventClub || eventDate ? [eventClub, eventDate ? new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) : ''].filter(Boolean).join(' – ') : 'Aucun';
 
+    const TABS = [
+        { key: 'edit', icon: <Plus className="w-4 h-4" />, label: 'Facture' },
+        { key: 'archive', icon: <History className="w-4 h-4" />, label: 'Archives' },
+        { key: 'clients', icon: <User className="w-4 h-4" />, label: 'Clients' },
+        { key: 'settings', icon: <Settings className="w-4 h-4" />, label: 'Compte' },
+    ] as const;
+
     return (
-        <div className="flex flex-col h-full bg-[#0d0f1a] text-white overflow-hidden">
+        <div className="flex flex-col h-full bg-[#0d0f1a] text-white overflow-hidden pb-[80px]">
 
             {/* ── TOP NAV ── */}
             <div className="shrink-0 flex items-center justify-between px-4 py-3 bg-[#0d0f1a] border-b border-white/[0.06]">
@@ -242,141 +254,236 @@ export function InvoiceGeneratorMobile() {
                     <ChevronRight className="w-4 h-4 rotate-180" /> Admin
                 </Link>
                 <div className="flex gap-4">
-                    <button onClick={openPreview} className="text-indigo-400 font-semibold text-sm">Aperçu</button>
-                    <button onClick={handlePrint} className="text-indigo-400 font-semibold text-sm">Imprimer</button>
+                    {view === 'edit' && (
+                        <>
+                            <button onClick={openPreview} className="text-indigo-400 font-semibold text-sm">Aperçu</button>
+                            <button onClick={handlePrint} className="text-indigo-400 font-semibold text-sm">Imprimer</button>
+                        </>
+                    )}
                 </div>
             </div>
 
             {/* ── SCROLLABLE BODY ── */}
-            <div className="flex-1 overflow-y-auto pb-28">
+            <div className="flex-1 overflow-y-auto">
+                <AnimatePresence mode="wait">
+                    {/* ========== FACTURE TAB ========== */}
+                    {view === 'edit' && (
+                        <motion.div key="edit" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="pb-10">
+                            {/* Invoice title */}
+                            <div className="px-4 pt-6 pb-4 border-b border-white/[0.05]">
+                                <p className="text-[9px] font-black text-indigo-400/60 uppercase tracking-[0.25em] mb-1">{formattedNumber}</p>
+                                <h1 className="text-3xl font-black text-white tracking-tight leading-none mb-3">{displayNumber}</h1>
+                                <div className="flex flex-wrap gap-2 mt-2">
+                                    <span className="flex items-center gap-1.5 px-3 py-1 bg-white/[0.06] rounded-full text-[11px] font-bold text-white/60">
+                                        <User className="w-3 h-3 text-indigo-400" />
+                                        {clientName || <span className="text-white/25 italic">Client</span>}
+                                    </span>
+                                    <span className="flex items-center gap-1.5 px-3 py-1 bg-white/[0.06] rounded-full text-[11px] font-bold text-white/60">
+                                        <Calendar className="w-3 h-3 text-indigo-400" />
+                                        {new Date(date).toLocaleDateString('fr-FR')}
+                                    </span>
+                                    {dueDate && (
+                                        <span className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 rounded-full text-[11px] font-bold text-amber-400">
+                                            <Calendar className="w-3 h-3" />
+                                            Éch. {new Date(dueDate).toLocaleDateString('fr-FR')}
+                                        </span>
+                                    )}
+                                    {total > 0 && (
+                                        <span className="flex items-center gap-1.5 px-3 py-1 bg-indigo-500/15 rounded-full text-[11px] font-black text-indigo-300">
+                                            {total.toFixed(2)} €
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
 
-                {/* Invoice title */}
-                <div className="px-4 pt-6 pb-4 border-b border-white/[0.05]">
-                    <p className="text-[9px] font-black text-indigo-400/60 uppercase tracking-[0.25em] mb-1">{formattedNumber}</p>
-                    <h1 className="text-3xl font-black text-white tracking-tight leading-none mb-3">{displayNumber}</h1>
-                    <div className="flex flex-wrap gap-2 mt-2">
-                        <span className="flex items-center gap-1.5 px-3 py-1 bg-white/[0.06] rounded-full text-[11px] font-bold text-white/60">
-                            <User className="w-3 h-3 text-indigo-400" />
-                            {clientName || <span className="text-white/25 italic">Client</span>}
-                        </span>
-                        <span className="flex items-center gap-1.5 px-3 py-1 bg-white/[0.06] rounded-full text-[11px] font-bold text-white/60">
-                            <Calendar className="w-3 h-3 text-indigo-400" />
-                            {new Date(date).toLocaleDateString('fr-FR')}
-                        </span>
-                        {dueDate && (
-                            <span className="flex items-center gap-1.5 px-3 py-1 bg-amber-500/10 rounded-full text-[11px] font-bold text-amber-400">
-                                <Calendar className="w-3 h-3" />
-                                Éch. {new Date(dueDate).toLocaleDateString('fr-FR')}
-                            </span>
-                        )}
-                        {total > 0 && (
-                            <span className="flex items-center gap-1.5 px-3 py-1 bg-indigo-500/15 rounded-full text-[11px] font-black text-indigo-300">
-                                {total.toFixed(2)} €
-                            </span>
-                        )}
-                    </div>
-                </div>
+                            {/* Info Section */}
+                            <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mt-6 mb-1">
+                                <button className={ROW} onClick={() => setSheet('client')}>
+                                    <span className={ROW_LABEL}><User className="w-4 h-4 text-indigo-400" /> Client :</span>
+                                    <span className={ROW_VALUE}>{clientName || 'Ajouter un client'}<ChevronRight className="w-4 h-4" /></span>
+                                </button>
+                                <button className={ROW} onClick={() => setSheet('date')}>
+                                    <span className={ROW_LABEL}><Calendar className="w-4 h-4 text-indigo-400" /> Date d'échéance</span>
+                                    <span className={ROW_VALUE}>{dueDateLabel}<ChevronRight className="w-4 h-4" /></span>
+                                </button>
+                                <button className={ROW + " border-b-0"} onClick={() => setSheet('details')}>
+                                    <span className={ROW_LABEL}><FileText className="w-4 h-4 text-indigo-400" /> Détails</span>
+                                    <span className={ROW_VALUE}><ChevronRight className="w-4 h-4" /></span>
+                                </button>
+                            </div>
 
+                            <p className={SECTION_HEADER}>Auto-remplissage</p>
+                            <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mb-1">
+                                <button className={ROW + " border-b-0"} onClick={() => setSheet('event')}>
+                                    <span className={ROW_LABEL}><Calendar className="w-4 h-4 text-indigo-400" /> Événement</span>
+                                    <span className={ROW_VALUE}><span className="truncate max-w-[120px]">{eventLabel}</span><ChevronRight className="w-4 h-4" /></span>
+                                </button>
+                            </div>
 
-                {/* ── SECTION 1: Info ── */}
-                <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mb-1">
-                    {/* Client */}
-                    <button className={ROW} onClick={() => setSheet('client')}>
-                        <span className={ROW_LABEL}><User className="w-4 h-4 text-indigo-400" /> Client :</span>
-                        <span className={ROW_VALUE}>{clientName || 'Ajouter un client'}<ChevronRight className="w-4 h-4" /></span>
-                    </button>
-                    {/* Date échéance */}
-                    <button className={ROW} onClick={() => setSheet('date')}>
-                        <span className={ROW_LABEL}><Calendar className="w-4 h-4 text-indigo-400" /> Date d'échéance</span>
-                        <span className={ROW_VALUE}>{dueDateLabel}<ChevronRight className="w-4 h-4" /></span>
-                    </button>
-                    <button className={ROW + " border-b-0"} onClick={() => setSheet('details')}>
-                        <span className={ROW_LABEL}><FileText className="w-4 h-4 text-indigo-400" /> Détails</span>
-                        <span className={ROW_VALUE}><ChevronRight className="w-4 h-4" /></span>
-                    </button>
-                </div>
+                            {/* Articles Section */}
+                            <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mt-3 mb-1">
+                                {lines.map((line, i) => (
+                                    <button key={line.id} className={ROW + (i === lines.length - 1 ? ' border-b-0' : '')}
+                                        onClick={() => { setEditingLine(line); setSheet('line'); }}>
+                                        <span className="flex flex-col items-start gap-0.5 flex-1 min-w-0">
+                                            <span className="text-sm font-semibold text-white truncate max-w-[200px]">{line.description || 'Article'}</span>
+                                            <span className="text-xs text-white/30">Qté {line.quantity}</span>
+                                        </span>
+                                        <span className={ROW_VALUE}>
+                                            {line.unitPrice > 0 ? `${(line.quantity * line.unitPrice).toFixed(2)} €` : '—'}
+                                            <ChevronRight className="w-4 h-4" />
+                                        </span>
+                                    </button>
+                                ))}
+                                <button className={ROW + " border-b-0"} onClick={addLine}>
+                                    <span className={ROW_LABEL}><Plus className="w-4 h-4 text-indigo-400" /> Ajouter un article</span>
+                                    <ChevronRight className="w-4 h-4 text-white/20" />
+                                </button>
+                            </div>
 
-                {/* ── SECTION 2: Événement ── */}
-                <p className={SECTION_HEADER}>Auto-remplissage</p>
-                <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mb-1">
-                    <button className={ROW + " border-b-0"} onClick={() => setSheet('event')}>
-                        <span className={ROW_LABEL}><Calendar className="w-4 h-4 text-indigo-400" /> Événement</span>
-                        <span className={ROW_VALUE}><span className="truncate max-w-[120px]">{eventLabel}</span><ChevronRight className="w-4 h-4" /></span>
-                    </button>
-                </div>
+                            {/* Total */}
+                            <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mt-3 mb-1">
+                                <div className="flex items-center justify-between px-4 py-4">
+                                    <span className="text-base font-black text-white">Total</span>
+                                    <span className="text-base font-black text-white">{total.toFixed(2)} €</span>
+                                </div>
+                            </div>
+                            
+                            {/* Send Action */}
+                            <div className="p-4 mt-4">
+                                <button onClick={openEmail}
+                                    className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:bg-indigo-700 transition-colors">
+                                    <Send className="w-4 h-4" /> Envoyer la facture
+                                </button>
+                            </div>
+                        </motion.div>
+                    )}
 
-                {/* ── SECTION 3: Articles ── */}
-                <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mt-3 mb-1">
-                    {lines.map((line, i) => (
-                        <button key={line.id} className={ROW + (i === lines.length - 1 ? ' border-b-0' : '')}
-                            onClick={() => { setEditingLine(line); setSheet('line'); }}>
-                            <span className="flex flex-col items-start gap-0.5 flex-1 min-w-0">
-                                <span className="text-sm font-semibold text-white truncate max-w-[200px]">{line.description || 'Article'}</span>
-                                <span className="text-xs text-white/30">Qté {line.quantity}</span>
-                            </span>
-                            <span className={ROW_VALUE}>
-                                {line.unitPrice > 0 ? `${(line.quantity * line.unitPrice).toFixed(2)} €` : '—'}
-                                <ChevronRight className="w-4 h-4" />
-                            </span>
-                        </button>
-                    ))}
-                    <button className={ROW + " border-b-0"} onClick={addLine}>
-                        <span className={ROW_LABEL}><Plus className="w-4 h-4 text-indigo-400" /> Ajouter un article</span>
-                        <ChevronRight className="w-4 h-4 text-white/20" />
-                    </button>
-                </div>
+                    {/* ========== ARCHIVES TAB ========== */}
+                    {view === 'archive' && (
+                        <motion.div key="archive" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6">
+                            <h2 className="text-2xl font-black text-white tracking-tight mb-6">Archives</h2>
+                            {isLoadingHistory ? (
+                                <div className="flex items-center justify-center py-20"><Loader className="w-8 h-8 animate-spin text-indigo-400" /></div>
+                            ) : history.length === 0 ? (
+                                <div className="text-center py-20 border border-dashed border-white/5 rounded-3xl">
+                                     <History className="w-12 h-12 text-white/5 mx-auto mb-4" />
+                                     <p className="text-sm font-black text-white/20 uppercase tracking-widest">Aucune facture</p>
+                                </div>
+                            ) : (
+                                <div className="space-y-3 pb-20">
+                                    {history.map((inv: any) => (
+                                        <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                                            <div className="flex-1 min-w-0 mr-4">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-[10px] font-black text-indigo-400">#{inv.id}</span>
+                                                    <span className="text-xs font-bold text-white truncate">{inv.client || 'Client inconnu'}</span>
+                                                </div>
+                                                <div className="text-[10px] text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
+                                                <div className="font-black text-sm text-white mt-1">{parseFloat(inv.total || 0).toFixed(2)} €</div>
+                                            </div>
+                                            <button onClick={() => togglePaid(inv.id, inv.paid)}
+                                                className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30'}`}>
+                                                {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> Attente</>}
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </motion.div>
+                    )}
 
-                {/* ── TOTAL ── */}
-                <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mt-3 mb-1">
-                    <div className="flex items-center justify-between px-4 py-4">
-                        <span className="text-base font-black text-white">Total</span>
-                        <span className="text-base font-black text-white">{total.toFixed(2)} €</span>
-                    </div>
-                </div>
+                    {/* ========== CLIENTS TAB ========== */}
+                    {view === 'clients' && (
+                        <motion.div key="clients" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 space-y-8">
+                             <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 space-y-4">
+                                <div className="flex items-center gap-2">
+                                     <Plus className="w-3 h-3 text-indigo-400" />
+                                     <h3 className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Nouveau Client</h3>
+                                </div>
+                                <div className="space-y-4">
+                                    <input value={ncName} onChange={e => setNcName(e.target.value)} placeholder="Nom du client" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                    <input value={ncAddress} onChange={e => setNcAddress(e.target.value)} placeholder="Adresse" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                    <input value={ncCity} onChange={e => setNcCity(e.target.value)} placeholder="Code Postal / Ville" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                    <input value={ncEmail} onChange={e => setNcEmail(e.target.value)} placeholder="Email" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                    <button onClick={addNewClient} className="w-full py-4 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest">
+                                        Ajouter au carnet
+                                    </button>
+                                </div>
+                            </div>
 
+                            <div className="space-y-4 pb-20">
+                                <div className="flex items-center gap-2">
+                                     <User className="w-3 h-3 text-white/40" />
+                                     <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40">Carnet ({savedClients.length})</h3>
+                                </div>
+                                <div className="space-y-3">
+                                    {savedClients.length === 0 ? (
+                                        <div className="text-center py-10 border border-dashed border-white/5 rounded-2xl">
+                                            <User className="w-10 h-10 text-white/5 mx-auto mb-2" />
+                                            <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Aucun client</p>
+                                        </div>
+                                    ) : savedClients.map(c => (
+                                        <div key={c.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                                            <div className="min-w-0 flex-1 mr-4">
+                                                <div className="font-bold text-sm text-white truncate">{c.name}</div>
+                                                <div className="text-[10px] text-white/30 truncate">{c.city}</div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => { 
+                                                    setClientName(c.name); setClientAddress(c.address); setClientEmail(c.email); setClientCity(c.city || ''); setView('edit'); 
+                                                }} className="px-3 py-1.5 bg-indigo-500/20 text-indigo-400 rounded-lg text-[10px] font-black uppercase">
+                                                    Utiliser
+                                                </button>
+                                                <button onClick={() => deleteClient(c.id)} className="p-2 text-white/10"><Trash2 className="w-4 h-4" /></button>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        </motion.div>
+                    )}
 
-                {/* ── SECTION 3: Paramètres ── */}
-                <p className={SECTION_HEADER}>Compte</p>
-                <div className="bg-white/[0.03] rounded-2xl mx-3 overflow-hidden mb-3">
-                    <button
-                        className="w-full flex items-center justify-between px-4 py-4 bg-white/[0.04] border-b border-white/[0.06] active:bg-white/10 transition-colors cursor-pointer select-none"
-                        onClick={() => { setSenderDraft(sender); setSheet('settings'); }}
-                    >
-                        <span className="flex items-center gap-3">
-                            <Settings className="w-4 h-4 text-indigo-400 flex-shrink-0" />
-                            <span className="flex flex-col items-start gap-0.5">
-                                <span className="text-sm font-semibold text-white">Mes informations</span>
-                                <span className="text-xs text-white/30 font-medium">{sender.name}</span>
-                            </span>
-                        </span>
-                        <ChevronRight className="w-4 h-4 text-white/20 flex-shrink-0" />
-                    </button>
-                    <button
-                        className="w-full flex items-center justify-between px-4 py-4 active:bg-white/10 transition-colors cursor-pointer select-none"
-                        onClick={() => setSheet('history')}
-                    >
-                        <span className="flex items-center gap-3">
-                            <History className="w-4 h-4 text-indigo-400 flex-shrink-0" />
-                            <span className="flex flex-col items-start gap-0.5">
-                                <span className="text-sm font-semibold text-white">Historique</span>
-                                <span className="text-xs text-white/30 font-medium">Factures précédentes</span>
-                            </span>
-                        </span>
-                        <ChevronRight className="w-4 h-4 text-white/20 flex-shrink-0" />
-                    </button>
-                </div>
-
+                    {/* ========== SETTINGS TAB ========== */}
+                    {view === 'settings' && (
+                        <motion.div key="settings" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6 space-y-4 pb-20">
+                            <h2 className="text-2xl font-black text-white tracking-tight mb-6">Mon Compte</h2>
+                            {(['name', 'siret', 'address', 'email', 'phone', 'legal'] as (keyof Sender)[]).map(k => {
+                                const labels: Record<keyof Sender, string> = { name: 'Nom', siret: 'SIRET', address: 'Adresse', email: 'Email', phone: 'Téléphone', legal: 'Mention TVA' };
+                                return (
+                                    <Field key={k} label={labels[k]}>
+                                        <input value={senderDraft[k]} onChange={e => setSenderDraft(d => ({ ...d, [k]: e.target.value }))} className={INPUT} />
+                                    </Field>
+                                );
+                            })}
+                            <button onClick={saveSenderSettings}
+                                className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${settingsSaved ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-indigo-600 text-white'}`}>
+                                {settingsSaved ? <><CheckCircle className="w-4 h-4" /> Enregistré !</> : <><Save className="w-4 h-4" /> Enregistrer</>}
+                            </button>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
-            {/* ── FIXED BOTTOM: Send button ── */}
-            <div className="fixed bottom-0 left-0 right-0 z-30 p-4 bg-[#0d0f1a]/95 backdrop-blur-xl border-t border-white/[0.06]">
-                <button onClick={openEmail}
-                    className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 active:bg-indigo-700 transition-colors">
-                    <Send className="w-4 h-4" /> Envoyer la facture
+            {/* ── FIXED BOTTOM TAB BAR ── */}
+            <div className="fixed bottom-0 left-0 right-0 z-[100] flex border-t border-white/10 bg-[#0d0f1a]/95 backdrop-blur-xl pb-safe">
+                {TABS.map(t => (
+                    <button key={t.key}
+                        onClick={() => setView(t.key)}
+                        className={`flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[9px] font-black uppercase tracking-widest transition-all ${view === t.key ? 'text-indigo-400' : 'text-white/30'}`}>
+                        <span className={`p-2 rounded-xl transition-all ${view === t.key ? 'bg-indigo-500/20' : ''}`}>{t.icon}</span>
+                        {t.label}
+                    </button>
+                ))}
+                <button onClick={handleDownload} className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[9px] font-black uppercase tracking-widest text-white/30">
+                    <span className="p-2 rounded-xl"><Download className="w-4 h-4" /></span>
+                    HTML
+                </button>
+                <button onClick={handlePrint} className="flex-1 flex flex-col items-center justify-center py-3 gap-1 text-[9px] font-black uppercase tracking-widest text-white/30">
+                    <span className="p-2 rounded-xl"><Printer className="w-4 h-4" /></span>
+                    PDF
                 </button>
             </div>
-
-            {/* ═══════════ SHEETS ═══════════ */}
 
             {/* CLIENT */}
             <Sheet open={sheet === 'client'} onClose={() => setSheet('none')} title="Client">
@@ -393,25 +500,10 @@ export function InvoiceGeneratorMobile() {
                     <input type="email" value={clientEmail} onChange={e => setClientEmail(e.target.value)} placeholder="client@exemple.com" className={INPUT} />
                 </Field>
                 <div className="flex gap-3 pt-2">
-                    <button onClick={saveClient} className="flex-1 py-3.5 bg-white/5 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest text-white/60 flex items-center justify-center gap-2">
+                    <button onClick={() => { saveClient(); setSheet('none'); }} className="flex-1 py-3.5 bg-white/5 border border-white/10 rounded-xl text-xs font-black uppercase tracking-widest text-white/60 flex items-center justify-center gap-2">
                         <Save className="w-3.5 h-3.5" />  Sauvegarder
                     </button>
                 </div>
-                {savedClients.length > 0 && (
-                    <>
-                        <p className="text-[9px] font-black text-white/30 uppercase tracking-widest pt-2">Clients sauvegardés</p>
-                        {savedClients.map((c: any) => (
-                            <button key={c.id} onClick={() => { loadClient(c); setSheet('none'); }}
-                                className="w-full flex items-center justify-between p-3.5 bg-white/5 rounded-xl active:bg-white/10">
-                                <div className="text-left">
-                                    <div className="text-sm font-bold text-white">{c.name}</div>
-                                    <div className="text-xs text-white/40">{c.email}</div>
-                                </div>
-                                <ChevronRight className="w-4 h-4 text-white/20" />
-                            </button>
-                        ))}
-                    </>
-                )}
             </Sheet>
 
             {/* DATE */}
@@ -421,9 +513,6 @@ export function InvoiceGeneratorMobile() {
                 </Field>
                 <Field label="Date d'échéance (optionnel)">
                     <input type="date" value={dueDate} onChange={e => setDueDate(e.target.value)} className={INPUT + " text-white [color-scheme:dark]"} />
-                </Field>
-                <Field label="Numéro de facture">
-                    <input type="number" value={invoiceNumber} onChange={e => setInvoiceNumber(parseInt(e.target.value) || 1)} className={INPUT + " font-black text-lg"} />
                 </Field>
                 <div className="bg-indigo-500/10 rounded-xl px-4 py-2">
                     <p className="text-[10px] text-indigo-300 font-mono">Réf : <span className="font-black">{formattedNumber}</span></p>
@@ -439,13 +528,6 @@ export function InvoiceGeneratorMobile() {
                 <Field label="Date de l'événement">
                     <input type="date" value={eventDate} onChange={e => setEventDate(e.target.value)} className={INPUT + " text-white [color-scheme:dark]"} />
                 </Field>
-                {(eventClub || eventDate) && (
-                    <div className="bg-indigo-500/10 rounded-xl px-4 py-3">
-                        <p className="text-xs text-indigo-300 font-mono italic">
-                            "{[lines[0]?.description?.split(' – ')[0] || 'Prestation Light', eventClub, eventDate ? new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : ''].filter(Boolean).join(' – ')}"
-                        </p>
-                    </div>
-                )}
                 <button onClick={() => {
                     if (!eventClub && !eventDate) return;
                     const dateStr = eventDate ? new Date(eventDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
@@ -457,7 +539,7 @@ export function InvoiceGeneratorMobile() {
                 </button>
             </Sheet>
 
-            {/* DETAILS (Virement + N° fact) */}
+            {/* DETAILS */}
             <Sheet open={sheet === 'details'} onClose={() => setSheet('none')} title="Coordonnées bancaires">
                 <Field label="IBAN">
                     <input value={iban} onChange={e => setIban(e.target.value)} placeholder="FR76 0000 0000 0000…" className={INPUT + " font-mono"} />
@@ -475,17 +557,14 @@ export function InvoiceGeneratorMobile() {
                             <input value={editingLine.description} onChange={e => updateEditingLine('description', e.target.value)} placeholder="Prestation Light" className={INPUT} />
                         </Field>
                         {savedArticles.length > 0 && (
-                            <>
-                                <p className="text-[9px] font-black text-white/30 uppercase tracking-widest">Catalogue rapide</p>
-                                <div className="flex flex-wrap gap-2">
-                                    {savedArticles.map(a => (
-                                        <button key={a.id} onClick={() => { updateEditingLine('description', a.description); updateEditingLine('unitPrice', a.unitPrice); }}
-                                            className="px-3 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs font-bold text-indigo-300">
-                                            {a.description}{a.unitPrice > 0 ? ` • ${a.unitPrice}€` : ''}
-                                        </button>
-                                    ))}
-                                </div>
-                            </>
+                            <div className="flex flex-wrap gap-2 py-2">
+                                {savedArticles.map(a => (
+                                    <button key={a.id} onClick={() => { updateEditingLine('description', a.description); updateEditingLine('unitPrice', a.unitPrice); }}
+                                        className="px-3 py-2 bg-indigo-500/10 border border-indigo-500/20 rounded-xl text-xs font-bold text-indigo-300">
+                                        {a.description}
+                                    </button>
+                                ))}
+                            </div>
                         )}
                         <Field label="Quantité">
                             <input type="number" value={editingLine.quantity} onChange={e => updateEditingLine('quantity', parseFloat(e.target.value) || 1)} className={INPUT + " font-black text-lg"} min="1" />
@@ -497,35 +576,17 @@ export function InvoiceGeneratorMobile() {
                             <span className="text-sm text-indigo-300 font-bold">Total ligne</span>
                             <span className="text-xl font-black text-white">{(editingLine.quantity * editingLine.unitPrice).toFixed(2)} €</span>
                         </div>
-                        <button onClick={saveCurrentArticle}
-                            className="w-full py-3.5 bg-white/5 border border-white/10 text-white/40 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                             <Save className="w-3.5 h-3.5 text-indigo-400" /> Sauvegarder dans le catalogue
+                        <button onClick={saveCurrentArticle} className="w-full py-3.5 bg-white/5 border border-white/10 text-white/40 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 lowercase">
+                             <Save className="w-3.5 h-3.5 text-indigo-400" /> Sauvegarder article
                         </button>
                         {lines.length > 1 && (
                             <button onClick={() => { deleteLine(editingLine.id); setSheet('none'); }}
                                 className="w-full py-4 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2">
-                                <Trash2 className="w-4 h-4" /> Supprimer cet article
+                                <Trash2 className="w-4 h-4" /> Supprimer
                             </button>
                         )}
                     </>
                 )}
-            </Sheet>
-
-            {/* SETTINGS */}
-            <Sheet open={sheet === 'settings'} onClose={() => setSheet('none')} title="Mes informations">
-                {(['name', 'siret', 'address', 'email', 'phone', 'legal'] as (keyof Sender)[]).map(k => {
-                    const labels: Record<keyof Sender, string> = { name: 'Nom', siret: 'SIRET', address: 'Adresse', email: 'Email', phone: 'Téléphone', legal: 'Mention TVA' };
-                    return (
-                        <Field key={k} label={labels[k]}>
-                            <input value={senderDraft[k]} onChange={e => setSenderDraft(d => ({ ...d, [k]: e.target.value }))}
-                                className={INPUT} />
-                        </Field>
-                    );
-                })}
-                <button onClick={saveSenderSettings}
-                    className={`w-full py-4 rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${settingsSaved ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-indigo-600 text-white'}`}>
-                    {settingsSaved ? <><CheckCircle className="w-4 h-4" /> Enregistré !</> : <><Save className="w-4 h-4" /> Enregistrer</>}
-                </button>
             </Sheet>
 
             {/* EMAIL */}
@@ -535,7 +596,7 @@ export function InvoiceGeneratorMobile() {
                         <div className="w-16 h-16 bg-green-500/20 rounded-2xl flex items-center justify-center">
                             <CheckCircle className="w-8 h-8 text-green-400" />
                         </div>
-                        <p className="text-green-400 font-black text-lg uppercase">Facture envoyée !</p>
+                        <p className="text-green-400 font-black text-lg uppercase">Envoyée !</p>
                     </div>
                 ) : (
                     <>
@@ -548,7 +609,7 @@ export function InvoiceGeneratorMobile() {
                         <Field label="Message">
                             <textarea value={emailMessage} onChange={e => setEmailMessage(e.target.value)} rows={5} className={INPUT + " resize-none"} />
                         </Field>
-                        {sendError && <p className="text-red-400 text-xs font-bold bg-red-500/10 px-4 py-3 rounded-xl">{sendError}</p>}
+                        {sendError && <p className="text-red-400 text-xs font-bold px-4 py-3 bg-red-500/10 rounded-xl">{sendError}</p>}
                         <button onClick={handleSendEmail} disabled={sendStatus === 'sending'}
                             className="w-full py-4 bg-indigo-600 text-white rounded-2xl font-black text-sm uppercase tracking-widest flex items-center justify-center gap-2 disabled:opacity-50">
                             {sendStatus === 'sending' ? <><Loader className="w-4 h-4 animate-spin" /> Envoi…</> : <><Send className="w-4 h-4" /> Envoyer</>}
@@ -558,121 +619,11 @@ export function InvoiceGeneratorMobile() {
             </Sheet>
 
             {/* PREVIEW */}
-            <Sheet open={sheet === 'preview'} onClose={() => setSheet('none')} title="Aperçu facture" fullscreen>
-                <div className="flex flex-col h-full">
-                    {/* Preview toolbar */}
-                    <div className="flex-shrink-0 flex items-center gap-3 px-4 py-3 bg-[#0d0f1a] border-b border-white/[0.05]">
-                        <div className="flex-1">
-                            <p className="text-[10px] font-black text-white/30 uppercase tracking-widest">{formattedNumber}</p>
-                            <p className="text-sm font-bold text-white">{clientName || 'Client non défini'} · {total.toFixed(2)} €</p>
-                        </div>
-                        <button
-                            onClick={handlePrint}
-                            className="flex items-center gap-2 px-4 py-2.5 bg-indigo-600 text-white rounded-xl font-black text-xs uppercase tracking-widest active:bg-indigo-700 transition-colors"
-                        >
-                            <Send className="w-3.5 h-3.5" /> Imprimer / PDF
-                        </button>
-                    </div>
-                    {/* Iframe preview */}
-                    <div className="flex-1 overflow-auto bg-gray-50 p-4">
-                        <div className="bg-white shadow-2xl mx-auto origin-top" style={{ width: '210mm', minHeight: '297mm', transform: 'scale(0.40)' }}>
-                            <iframe
-                                key={previewKey}
-                                srcDoc={buildHTML()}
-                                title="Aperçu facture"
-                                className="w-full h-full border-0"
-                                style={{ minHeight: '1122px' }}
-                            />
-                        </div>
-                    </div>
-                </div>
-            </Sheet>
-
-            {/* HISTORY */}
-            <Sheet open={sheet === 'history'} onClose={() => setSheet('none')} title="Historique" fullscreen>
-                <div className="p-6 space-y-4 pb-20 overflow-y-auto h-full bg-[#0d0f1a]">
-                    {isLoadingHistory ? (
-                        <div className="flex items-center justify-center py-20"><Loader className="w-8 h-8 animate-spin text-indigo-400" /></div>
-                    ) : history.length === 0 ? (
-                        <div className="text-center py-20 border border-dashed border-white/5 rounded-3xl">
-                             <History className="w-12 h-12 text-white/5 mx-auto mb-4" />
-                             <p className="text-sm font-black text-white/20 uppercase tracking-widest">Aucune facture</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-3">
-                            {history.map((inv: any) => (
-                                <div key={inv.id} className="bg-white/[0.03] border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                                    <div className="flex-1 min-w-0 mr-4">
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <span className="text-[10px] font-black text-indigo-400">#{inv.id}</span>
-                                            <span className="text-xs font-bold text-white truncate">{inv.client || 'Client inconnu'}</span>
-                                        </div>
-                                        <div className="text-[10px] text-white/30">{inv.number} • {new Date(inv.date || inv.created_at).toLocaleDateString('fr-FR')}</div>
-                                        <div className="font-black text-sm text-white mt-1">{parseFloat(inv.total || 0).toFixed(2)} €</div>
-                                    </div>
-                                    <button onClick={() => togglePaid(inv.id, inv.paid)}
-                                        className={`px-4 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest flex items-center gap-2 transition-all ${inv.paid ? 'bg-green-500/10 border border-green-500/20 text-green-400' : 'bg-white/5 border border-white/10 text-white/30'}`}>
-                                        {inv.paid ? <><CheckCircle className="w-3 h-3" /> Payée</> : <><Clock className="w-3 h-3" /> Attente</>}
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
-            </Sheet>
-
-            {/* CLIENTS LIST SHEET */}
-            <Sheet open={sheet === 'clients_list'} onClose={() => setSheet('none')} title="Gestion Clients" fullscreen>
-                <div className="flex flex-col h-full bg-[#0d0f1a] p-6 space-y-8 overflow-y-auto">
-                    {/* Form */}
-                    <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 space-y-4">
-                        <div className="flex items-center gap-2">
-                             <Plus className="w-3 h-3 text-indigo-400" />
-                             <h3 className="text-[10px] font-black uppercase tracking-widest text-indigo-400">Nouveau Client</h3>
-                        </div>
-                        <div className="space-y-4">
-                            <input value={ncName} onChange={e => setNcName(e.target.value)} placeholder="Nom du client" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                            <input value={ncAddress} onChange={e => setNcAddress(e.target.value)} placeholder="Adresse" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                            <input value={ncCity} onChange={e => setNcCity(e.target.value)} placeholder="Code Postal / Ville" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                            <input value={ncEmail} onChange={e => setNcEmail(e.target.value)} placeholder="Email" className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                            <button onClick={addNewClient} className="w-full py-4 bg-indigo-600 text-white rounded-xl text-xs font-black uppercase tracking-widest">
-                                Ajouter au carnet
-                            </button>
-                        </div>
-                    </div>
-
-                    {/* List */}
-                    <div className="space-y-4 pb-20">
-                        <div className="flex items-center gap-2">
-                             <User className="w-3 h-3 text-white/40" />
-                             <h3 className="text-[10px] font-black uppercase tracking-widest text-white/40">Carnet ({savedClients.length})</h3>
-                        </div>
-                        <div className="space-y-3">
-                            {savedClients.length === 0 ? (
-                                <div className="text-center py-10 border border-dashed border-white/5 rounded-2xl">
-                                    <User className="w-10 h-10 text-white/5 mx-auto mb-2" />
-                                    <p className="text-[10px] font-black text-white/20 uppercase tracking-widest">Aucun client</p>
-                                </div>
-                            ) : savedClients.map(c => (
-                                <div key={c.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                                    <div className="min-w-0 flex-1 mr-4">
-                                        <div className="font-bold text-sm text-white truncate">{c.name}</div>
-                                        <div className="text-[10px] text-white/30 truncate">{c.city}</div>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => { 
-                                            setClientName(c.name); 
-                                            setClientAddress(c.address); 
-                                            setClientEmail(c.email); 
-                                            setClientCity(c.city); 
-                                            setSheet('none'); 
-                                        }} className="px-3 py-1.5 bg-indigo-500/20 text-indigo-400 rounded-lg text-[10px] font-black uppercase">
-                                            Utiliser
-                                        </button>
-                                        <button onClick={() => deleteClient(c.id)} className="p-2 text-white/10"><Trash2 className="w-4 h-4" /></button>
-                                    </div>
-                                </div>
-                            ))}
+            <Sheet open={sheet === 'preview'} onClose={() => setSheet('none')} title="Aperçu" fullscreen>
+                <div className="flex flex-col h-full bg-gray-100 overflow-hidden">
+                    <div className="flex-1 overflow-auto p-4 flex justify-center">
+                        <div className="bg-white shadow-2xl origin-top" style={{ width: '210mm', minHeight: '297mm', transform: 'scale(0.40)' }}>
+                            <iframe key={previewKey} srcDoc={buildHTML()} title="Aperçu" className="w-full h-full border-0" style={{ minHeight: '1122px' }} />
                         </div>
                     </div>
                 </div>
