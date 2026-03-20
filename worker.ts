@@ -1014,7 +1014,7 @@ ${urls.map(u => `  <url>
 
                     if (editor) {
                         // For invoice route, we bypass the session check if password is correct
-                        if (path === '/api/facture/send' || requestSessionId === (editor.session_id || 'editor-initial-id')) {
+                        if (path === '/api/facture/send' || path.startsWith('/api/invoices') || requestSessionId === (editor.session_id || 'editor-initial-id')) {
                             authenticated = true;
                             userPermissions = editor.permissions || [];
                         }

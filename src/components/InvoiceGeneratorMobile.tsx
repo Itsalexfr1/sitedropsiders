@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import html2pdf from 'html2pdf.js';
-import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock, Download, Printer } from 'lucide-react';
+import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock, Download, Printer, RefreshCw } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -121,7 +121,11 @@ export function InvoiceGeneratorMobile() {
     const fetchHistory = async () => {
         setIsLoadingHistory(true);
         try {
-            const res = await fetch('/api/invoices');
+            const adminUser = localStorage.getItem('admin_user') || '';
+            const adminPass = localStorage.getItem('admin_password') || '';
+            const res = await fetch('/api/invoices?t=' + Date.now(), {
+                headers: { 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }
+            });
             if (res.ok) setHistory(await res.json());
         } catch { } finally { setIsLoadingHistory(false); }
     };
@@ -370,7 +374,12 @@ export function InvoiceGeneratorMobile() {
                     {/* ========== ARCHIVES TAB ========== */}
                     {view === 'archive' && (
                         <motion.div key="archive" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-6">
-                            <h2 className="text-2xl font-black text-white tracking-tight mb-6">Archives</h2>
+                            <div className="flex items-center justify-between mb-6">
+                                <h2 className="text-2xl font-black text-white tracking-tight">Archives</h2>
+                                <button onClick={fetchHistory} className="p-2 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-white/50 hover:text-white transition-all">
+                                    <RefreshCw className={`w-5 h-5 ${isLoadingHistory ? 'animate-spin' : ''}`} />
+                                </button>
+                            </div>
                             {isLoadingHistory ? (
                                 <div className="flex items-center justify-center py-20"><Loader className="w-8 h-8 animate-spin text-indigo-400" /></div>
                             ) : history.length === 0 ? (

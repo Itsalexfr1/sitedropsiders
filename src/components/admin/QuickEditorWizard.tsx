@@ -212,7 +212,7 @@ export function QuickEditorWizard({ isOpen, onClose }: QuickEditorWizardProps) {
                                     <textarea
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
-                                        placeholder="Ex: TANGUY EXPLOSE LE MAIN STAGE DE L'ELECTROBEACH..."
+                                        placeholder="Ex: DJ SNAKE EXPLOSE LE MAIN STAGE DE L'ELECTROBEACH..."
                                         rows={3}
                                         className="w-full bg-white/5 border border-white/10 rounded-2xl p-6 text-xl font-bold text-white placeholder-white/10 focus:border-neon-red outline-none transition-all resize-none shadow-inner"
                                     />
