@@ -462,10 +462,6 @@ export function NewsCreate() {
     // Fetch item if missing from state but ID is present
     useEffect(() => {
         const id = searchParams.get('id');
-        if (!isEditing || !id) {
-            setIsLoading(false);
-            return;
-        }
 
         const parseAndInitialize = (articleData: any, fullContent: string) => {
             setTitle(articleData.title || '');
@@ -635,9 +631,16 @@ export function NewsCreate() {
         if (editingItem) {
             console.log('[NewsCreate] Using item from state:', editingItem.id);
             parseAndInitialize(editingItem, editingItem.content || '');
-        } else {
-            console.log('[NewsCreate] Fetching item from API:', id);
-            setIsLoading(true);
+            return;
+        }
+
+        if (!isEditing || !id) {
+            setIsLoading(false);
+            return;
+        }
+
+        console.log('[NewsCreate] Fetching item from API:', id);
+        setIsLoading(true);
             const fetchFullItem = async () => {
                 try {
                     const response = await fetch(`/api/news/content?id=${id}`, { headers: getAuthHeaders() });
@@ -660,7 +663,6 @@ export function NewsCreate() {
                 }
             };
             fetchFullItem();
-        }
     }, [isEditing, editingItem, searchParams, type]);
 
     const [linkModal, setLinkModal] = useState<{

@@ -18,12 +18,8 @@ import { translateText } from '../utils/translate';
 import { SocialSuite } from '../components/SocialSuite';
 import { ModerationModal } from '../components/admin/ModerationModal';
 import { PubliGenerator } from '../components/admin/PubliGenerator';
-import { ImageUploadModal } from '../components/ImageUploadModal';
-import { ConfirmModal } from '../components/ui/ConfirmModal';
-import { AgendaModal } from '../components/AgendaModal';
-import { Downloader } from './Downloader';
-import { AudioWaveformSelector } from '../components/admin/AudioWaveformSelector';
 import { TracklistModal } from '../components/admin/TracklistModal';
+import { QuickEditorWizard } from '../components/admin/QuickEditorWizard';
 
 import WIKI_DJS from '../data/wiki_djs.json';
 import WIKI_CLUBS from '../data/wiki_clubs.json';
@@ -74,6 +70,7 @@ export function AdminDashboard() {
     const [isWikiExpanded, setIsWikiExpanded] = useState(false);
     const [socialRecentArticles, setSocialRecentArticles] = useState<any[]>([]);
     const [selectedSocialArticle, setSelectedSocialArticle] = useState<any | null>(null);
+    const [isQuickWizardOpen, setIsQuickWizardOpen] = useState(false);
     const [isLoadingSocial, setIsLoadingSocial] = useState(false);
     const [bannerState, setBannerState] = useState({
         enabled: false,
@@ -1405,6 +1402,7 @@ export function AdminDashboard() {
         { title: "Notifications", description: "Push News", icon: "Bell", category: "SHOP", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "push_newsletter", baseColor: "yellow", columns: 1 },
         { title: "Communauté", description: "Membres, Photos & Quiz", icon: "MessageSquare", category: "CONCOURS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "community_mod", baseColor: "pink", columns: 2 },
         { title: "Générateur Publi", description: "Outil Alex", icon: "Pencil", category: "STUDIO", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "alex_only", baseColor: "orange", columns: 1 },
+        { title: "Générateur Express", description: "Mise en page Auto", icon: "Zap", category: "NEWS", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "news", baseColor: "red", columns: 1 },
 
         // SYSTÈME
         { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "ALL", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
@@ -2692,6 +2690,9 @@ export function AdminDashboard() {
                                                     } else if (action.title === 'Générateur Publi') {
                                                         e.preventDefault();
                                                         setIsPubliModalOpen(true);
+                                                    } else if (action.title === 'Générateur Express') {
+                                                        e.preventDefault();
+                                                        setIsQuickWizardOpen(true);
                                                     }
                                                 }}
                                                 className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -6835,6 +6836,11 @@ export function AdminDashboard() {
                     initialTab={moderationTab}
                     onClose={() => setIsModerationModalOpen(false)}
                     onSuccess={fetchPhotosCount}
+                />
+
+                <QuickEditorWizard
+                    isOpen={isQuickWizardOpen}
+                    onClose={() => setIsQuickWizardOpen(false)}
                 />
 
                 {/* Duplicates Modal */}
