@@ -4306,7 +4306,7 @@ export function AdminDashboard() {
                                         )}
                                     </Link>
 
-                                    {(username.toLowerCase() === 'alex' || username.toLowerCase() === 'contact@dropsiders.fr' || username.toLowerCase() === 'alexflex30@gmail.com') && (
+                                    {username.toLowerCase() === 'alex' && (
                                         <Link
                                             to="/admin/factures"
                                             onClick={() => setIsMessagesModalOpen(false)}

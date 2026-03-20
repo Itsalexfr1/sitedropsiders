@@ -12,7 +12,7 @@ export function AdminFactures() {
         setCurrentUser(localStorage.getItem('admin_user')?.toLowerCase() || '');
     }, []);
 
-    if (currentUser !== 'alex' && currentUser !== 'alexlight3034@icloud.com' && currentUser !== 'alexflex30@gmail.com') {
+    if (currentUser !== 'alex') {
         return <Navigate to="/admin" replace />;
     }
 
