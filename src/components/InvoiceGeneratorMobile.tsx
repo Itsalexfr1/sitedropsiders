@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import html2pdf from 'html2pdf.js';
-import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock, Download, Printer, BookOpen } from 'lucide-react';
+import { ChevronRight, Plus, Trash2, Send, Loader, X, CheckCircle, User, Calendar, FileText, Settings, History, Save, Clock, Download, Printer } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 
@@ -187,7 +187,6 @@ export function InvoiceGeneratorMobile() {
         const updated = [nc, ...savedClients.filter((c: any) => c.name !== clientName)];
         setSavedClients(updated); localStorage.setItem('inv_clients', JSON.stringify(updated));
     };
-    const loadClient = (c: any) => { setClientName(c.name); setClientAddress(c.address); setClientCity(c.city || ''); setClientEmail(c.email); };
 
     const saveSenderSettings = () => { setSender(senderDraft); localStorage.setItem('inv_sender', JSON.stringify(senderDraft)); setSettingsSaved(true); setTimeout(() => setSettingsSaved(false), 2000); };
 
@@ -197,6 +196,15 @@ export function InvoiceGeneratorMobile() {
     };
 
     const handlePrint = () => { const w = window.open('', '_blank'); if (!w) return; w.document.write(buildHTML()); w.document.close(); w.onload = () => { w.focus(); w.print(); }; };
+    const handleDownload = () => {
+        const element = document.createElement('a');
+        const file = new Blob([buildHTML()], { type: 'text/html' });
+        element.href = URL.createObjectURL(file);
+        element.download = `Facture_${formattedNumber}.html`;
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    };
     const openPreview = () => { setPreviewKey(k => k + 1); setSheet('preview'); };
 
     const openEmail = () => { setEmailTo(clientEmail); setEmailSubject(`Facture ${formattedNumber} – ${sender.name}`); setEmailMessage(`Bonjour ${clientName || ''},\n\nVeuillez trouver votre facture N° ${formattedNumber} — ${total.toFixed(2)} €.\n\nCordialement,\n${sender.name}`); setSendStatus('idle'); setSendError(''); setSheet('email'); };

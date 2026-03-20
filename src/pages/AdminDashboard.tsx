@@ -20,6 +20,11 @@ import { ModerationModal } from '../components/admin/ModerationModal';
 import { PubliGenerator } from '../components/admin/PubliGenerator';
 import { TracklistModal } from '../components/admin/TracklistModal';
 import { QuickEditorWizard } from '../components/admin/QuickEditorWizard';
+import { AudioWaveformSelector } from '../components/admin/AudioWaveformSelector';
+import { ConfirmModal } from '../components/ui/ConfirmModal';
+import { AgendaModal } from '../components/AgendaModal';
+import { ImageUploadModal } from '../components/ImageUploadModal';
+import { Downloader } from './Downloader';
 
 import WIKI_DJS from '../data/wiki_djs.json';
 import WIKI_CLUBS from '../data/wiki_clubs.json';
@@ -5745,7 +5750,7 @@ export function AdminDashboard() {
                                     <div className="flex-1">
                                         <Downloader
                                             isPopup={true}
-                                            onSelect={(url) => {
+                                            onSelect={(url: string) => {
                                                 setSelectedSocialArticle({ title: 'Média Téléchargé', image: url });
                                                 setIsDownloaderOpen(false);
                                                 setIsSocialModalOpen(false); // If it came from Social Studio, we replace
@@ -6331,7 +6336,7 @@ export function AdminDashboard() {
                                                     audioUrl={quizToEdit.audioUrl}
                                                     startTime={quizToEdit.startTime || 0}
                                                     duration={30}
-                                                    onChange={(newStart) => setQuizToEdit((prev: any) => prev ? { ...prev, startTime: newStart } : null)}
+                                                    onChange={(newStart: number) => setQuizToEdit((prev: any) => prev ? { ...prev, startTime: newStart } : null)}
                                                 />
                                             )}
 
