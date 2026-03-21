@@ -39,15 +39,6 @@
   },
   {
     "number": "INV-2026-066",
-    "client": "Quai St Lazare - le Bokaos",
-    "total": 800,
-    "date": "2026-03-19",
-    "id": 1773944645035,
-    "sentDate": "2026-03-19T18:24:05.035Z",
-    "paid": false
-  },
-  {
-    "number": "INV-2026-066",
     "client": "test",
     "total": 0,
     "date": "2026-03-09",
