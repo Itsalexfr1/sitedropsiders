@@ -174,7 +174,7 @@ export function Navbar() {
                         {/* Social Icons - Stacked vertically next to logo */}
                         <div className="hidden lg:flex flex-col items-center gap-1.5 py-1 border-l border-white/10 pl-3">
                             <a
-                                href={`https://instagram.com/${(socials.instagram || 'dropsiders.fr').replace('@', '')}`}
+                                href={`https://instagram.com/dropsiders.eu`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-white/20 hover:text-white transition-all transform hover:scale-110"
@@ -183,7 +183,7 @@ export function Navbar() {
                                 <Instagram className="w-3.5 h-3.5" />
                             </a>
                             <a
-                                href={`https://tiktok.com/@${(socials.tiktok || 'dropsiders.fr').replace('@', '')}`}
+                                href={`https://tiktok.com/@dropsiders.eu`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-white/20 hover:text-white transition-all transform hover:scale-110"
