@@ -50,7 +50,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                 if (heroItem && item.id === heroItem.id) return false;
 
                 const cat = (item.category || '').toLowerCase();
-                return cat.includes('news') || cat.includes('musique') || cat.includes('music');
+                return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('focus');
             })
             .slice(0, 8);
     }, [newsData]);

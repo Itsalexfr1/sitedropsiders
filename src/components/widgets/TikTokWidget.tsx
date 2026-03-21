@@ -4,7 +4,7 @@ import { useEffect } from 'react';
 import { Share2 } from 'lucide-react';
 
 export function TikTokWidget({ accentColor = 'cyan', resolvedColor, username }: { accentColor?: string, resolvedColor?: string, username?: string }) {
-    const account = (username || 'dropsiders.fr').replace('@', '');
+    const account = (username || 'dropsiders.eu').replace('@', '');
     const tiktokUrl = `https://www.tiktok.com/@${account}`;
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const playHoverSound = useHoverSound();
