@@ -5517,5 +5517,29 @@
     "isSoldOut": true,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 510,
+    "title": "HellWatt Festival",
+    "date": "2026-07-07",
+    "startDate": "2026-07-07",
+    "endDate": "2026-07-07",
+    "venue": "Via Dell'Aereonautica",
+    "location": "REGIO EMILIA",
+    "country": "ITALIE",
+    "type": "Festival",
+    "image": "/uploads/uploads/ba83c8279f07dc49-IMG_4146.jpeg",
+    "url": "https://www.hellwattfestival.com/",
+    "genre": "Hybride",
+    "month": "JUILLET",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": [
+      "2026-07-08",
+      "2026-07-11",
+      "2026-07-17",
+      "2026-07-18"
+    ]
   }
 ]
