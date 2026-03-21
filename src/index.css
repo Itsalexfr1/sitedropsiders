@@ -18,19 +18,19 @@
 }
 
 html.light-mode {
-  --bg-primary: #f5f6f7;
+  --bg-primary: #f8f9fa;
   --bg-secondary: #ffffff;
   --bg-card: #ffffff;
-  --bg-card-hover: #f0f2f4;
-  --text-primary: #1a1a1a;
-  --text-secondary: #555555;
-  --text-muted: #888888;
-  --border-color: rgba(0, 0, 0, 0.08);
-  --border-bright: rgba(0, 0, 0, 0.12);
-  --neon-red: #d9002a; 
-  --neon-cyan: #0099aa;
-  --glass-bg: rgba(255, 255, 255, 0.9);
-  --glass-border: rgba(0, 0, 0, 0.05);
+  --bg-card-hover: #f1f3f5;
+  --text-primary: #111111;
+  --text-secondary: #444444;
+  --text-muted: #777777;
+  --border-color: rgba(0, 0, 0, 0.05);
+  --border-bright: rgba(0, 0, 0, 0.1);
+  --neon-red: #e60026; 
+  --neon-cyan: #008899;
+  --glass-bg: rgba(255, 255, 255, 0.85);
+  --glass-border: rgba(0, 0, 0, 0.04);
   --bg-black-theme: #ffffff;
 }
 
@@ -129,19 +129,20 @@ html.light-mode {
   html.light-mode .bg-dark-card,
   html.light-mode .bg-white\/5,
   html.light-mode .bg-white\/10 {
-    background-color: var(--bg-card) !important;
-    border-color: var(--border-color) !important;
+    background-color: #ffffff !important;
+    border-color: rgba(0, 0, 0, 0.05) !important;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.03) !important;
   }
 
   html.light-mode .bg-dark-card {
     background-color: #ffffff !important;
-    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.05) !important;
-    border: 1px solid var(--border-color) !important;
+    box-shadow: 0 10px 40px -10px rgba(0,0,0,0.04) !important;
+    border: 1px solid rgba(0, 0, 0, 0.05) !important;
   }
 
   html.light-mode .hover\:bg-white\/5:hover,
   html.light-mode .hover\:bg-white\/10:hover {
-    background-color: var(--bg-card-hover) !important;
+    background-color: #f8f9fa !important;
   }
 
   html.light-mode input,
@@ -730,11 +731,11 @@ body {
   }
 
   body {
-    background-color: var(--color-dark-bg) !important;
+    background-color: var(--bg-primary) !important;
   }
 
   .bg-dark-bg {
-    background-color: var(--color-dark-bg) !important;
+    background-color: var(--bg-primary) !important;
   }
 
   /* Force GPU acceleration ONLY for scroll containers */
@@ -757,11 +758,11 @@ body {
   nav .backdrop-blur-xl,
   nav .backdrop-blur-md,
   header .backdrop-blur-md {
-    background-color: rgba(10, 10, 10, 0.95) !important;
+    background-color: var(--glass-bg) !important;
   }
 
   .backdrop-blur-2xl {
-    background-color: rgba(10, 10, 10, 0.92) !important;
+    background-color: var(--glass-bg) !important;
   }
 
   /* Reduce shadow complexity - Safari composites each shadow layer */
