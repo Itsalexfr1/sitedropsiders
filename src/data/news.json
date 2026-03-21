@@ -1,5 +1,65 @@
 [
   {
+    "id": 1001,
+    "title": "Tomorrowland Winter : Les sets à ne pas manquer",
+    "date": "2026-03-21T09:00",
+    "summary": "Découvrez notre sélection des meilleurs sets de la semaine à l'Alpe d'Huez.",
+    "content": "",
+    "image": "https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=2070&auto=format&fit=crop",
+    "category": "News",
+    "isFeatured": true,
+    "isFocus": false,
+    "author": "Admin"
+  },
+  {
+    "id": 1002,
+    "title": "Exclusif : Interview avec Charlotte de Witte",
+    "date": "2026-03-21T08:30",
+    "summary": "La reine de la techno nous parle de son nouveau concept KNTXT.",
+    "content": "",
+    "image": "https://images.unsplash.com/photo-1493225255756-d9584f8606e9?q=80&w=2070&auto=format&fit=crop",
+    "category": "Interview",
+    "isFeatured": false,
+    "isFocus": true,
+    "author": "Admin"
+  },
+  {
+    "id": 1003,
+    "title": "Top 10 des sorties Techno de Mars",
+    "date": "2026-03-21T08:00",
+    "summary": "Umek, Adam Beyer et bien d'autres dans notre sélection mensuelle.",
+    "content": "",
+    "image": "https://images.unsplash.com/photo-1514525253344-a812ef9eecd7?q=80&w=2070&auto=format&fit=crop",
+    "category": "Musique",
+    "isFeatured": false,
+    "isFocus": false,
+    "author": "Admin"
+  },
+  {
+    "id": 1004,
+    "title": "Ultra Miami 2026 : Le programme complet",
+    "date": "2026-03-21T07:30",
+    "summary": "Tout ce qu'il faut savoir sur la prochaine édition à Bayfront Park.",
+    "content": "",
+    "image": "https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop",
+    "category": "News",
+    "isFeatured": false,
+    "isFocus": false,
+    "author": "Admin"
+  },
+  {
+    "id": 1005,
+    "title": "Les résidences d'Ibiza dévoilées",
+    "date": "2026-03-21T07:00",
+    "summary": "Hï, Ushuaïa et Amnesia annoncent leurs line-ups pour l'été.",
+    "content": "",
+    "image": "https://images.unsplash.com/photo-1571261316654-7299064c5148?q=80&w=2070&auto=format&fit=crop",
+    "category": "News",
+    "isFeatured": false,
+    "isFocus": false,
+    "author": "Admin"
+  },
+  {
     "id": 1,
     "title": "Les sorties de la semaine - 20 Mars ",
     "date": "2026-03-20T20:25",
