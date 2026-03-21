@@ -29,7 +29,6 @@ export function Navbar() {
     const { language, setLanguage, t } = useLanguage();
     const [shopEnabled, setShopEnabled] = useState(settings.shop_enabled);
     const [shopPasswordProtected, setShopPasswordProtected] = useState((settings as any).shop_password_protected || false);
-    const [socials, setSocials] = useState((settings as any).socials || {});
     const [takeoverEnabled, setTakeoverEnabled] = useState(settings.takeover?.enabled || false);
     const [takeoverSettings, setTakeoverSettings] = useState(settings.takeover);
     const isMobile = window.innerWidth < 1024;
@@ -56,7 +55,6 @@ export function Navbar() {
                     const data = await response.json();
                     setShopEnabled(data.shop_enabled);
                     setShopPasswordProtected(data.shop_password_protected || false);
-                    if (data.socials) setSocials(data.socials);
                     if (data.takeover) {
                         setTakeoverEnabled(data.takeover.enabled);
                         setTakeoverSettings(data.takeover);

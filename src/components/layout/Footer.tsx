@@ -11,7 +11,6 @@ export function Footer() {
     const { t } = useLanguage();
     const [shopEnabled, setShopEnabled] = useState(settings.shop_enabled);
     const [shopPasswordProtected, setShopPasswordProtected] = useState((settings as any).shop_password_protected || false);
-    const [socials, setSocials] = useState((settings as any).socials || {});
 
     useEffect(() => {
         const fetchSettings = async () => {
@@ -21,7 +20,6 @@ export function Footer() {
                     const data = await response.json();
                     setShopEnabled(data.shop_enabled);
                     setShopPasswordProtected(data.shop_password_protected || false);
-                    if (data.socials) setSocials(data.socials);
                 }
             } catch (e: any) {
                 // Keep default
