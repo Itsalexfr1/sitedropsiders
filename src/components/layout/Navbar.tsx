@@ -194,7 +194,7 @@ export function Navbar() {
                                 </svg>
                             </a>
                             <a
-                                href={`https://www.facebook.com/${(socials.facebook || 'dropsidersfr').replace('@', '')}`}
+                                href={`https://www.facebook.com/dropsidersfr`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="text-white/20 hover:text-white transition-all transform hover:scale-110"
