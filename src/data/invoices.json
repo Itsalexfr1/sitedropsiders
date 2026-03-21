@@ -11,15 +11,6 @@
     "pdfUrl": "/uploads/factures/1774074845908_Facture_INV-2026-070.pdf"
   },
   {
-    "number": "INV-2026-069",
-    "client": "CBG France ",
-    "total": 2150,
-    "date": "2026-03-19",
-    "id": 1773951812950,
-    "sentDate": "2026-03-19T20:23:32.950Z",
-    "paid": false
-  },
-  {
     "number": "INV-2026-068",
     "client": "Alex",
     "total": 0,
