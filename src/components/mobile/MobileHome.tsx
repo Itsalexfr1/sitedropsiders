@@ -22,11 +22,13 @@ export function MobileHome() {
         return sortedNews.slice(0, 1);
     }, [sortedNews]);
 
-    // 2. Filter News (exclude interviews/musique for this block)
+    // 2. Filter News (include musique/news, exclude interviews)
     const newsHighlight = useMemo(() => {
         return sortedNews.filter(n => {
             const cat = n.category?.toLowerCase() || '';
-            return cat === 'news' || (!cat.includes('interview') && cat !== 'musique');
+            const isInterview = cat.includes('interview');
+            const isNewsOrMusic = cat.includes('news') || cat.includes('musique') || cat.includes('music');
+            return isNewsOrMusic && !isInterview;
         }).slice(0, 6);
     }, [sortedNews]);
 
