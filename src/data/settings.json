@@ -58,6 +58,10 @@
       {
         "command": "!insta ",
         "response": "Suivez nous sur Instagram >> instagram.com/dropsiders.eu"
+      },
+      {
+        "command": "!tiktok",
+        "response": "Suivez nous sur Tiktok >> https://tiktok.com/@dropsiders.eu"
       }
     ],
     "tracklist": "[]",
