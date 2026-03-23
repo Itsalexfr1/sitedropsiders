@@ -52,10 +52,6 @@
     "twitterLink": "",
     "botCommands": [
       {
-        "command": "!insta",
-        "response": "Suivez-nous sur @dropsiders.fr !"
-      },
-      {
         "command": "!lineup",
         "response": "La lineup est disponible dans l'onglet PLANNING."
       }
