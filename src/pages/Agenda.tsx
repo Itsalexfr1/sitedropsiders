@@ -1,5 +1,5 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, Link } from 'react-router-dom';
 import { MapPin, ChevronDown, Filter, ChevronLeft, ChevronRight, X, Edit2, Trash2, CheckSquare, Square, Plus, Calendar } from 'lucide-react';
 import { useState, useMemo, useEffect } from 'react';
 import { useHoverSound } from '../hooks/useHoverSound';
@@ -46,6 +46,8 @@ export function Agenda() {
     const [isDeleting, setIsDeleting] = useState(false);
     const [itemToDelete, setItemToDelete] = useState<number[] | null>(null);
     const [isContestActive, setIsContestActive] = useState(false);
+    const [takeoverEnabled, setTakeoverEnabled] = useState(false);
+    const [takeoverSettings, setTakeoverSettings] = useState<any>(null);
 
     const fetchAgenda = async () => {
         try {
@@ -63,6 +65,11 @@ export function Agenda() {
                     const data = await response.json();
                     if (data.is_contest_active !== undefined) {
                         setIsContestActive(data.is_contest_active);
+                    }
+                    if (data.takeover) {
+                        const isSecret = !!data.takeover.isSecret;
+                        setTakeoverSettings(isSecret ? null : data.takeover);
+                        setTakeoverEnabled(isSecret ? false : !!data.takeover.isOnline);
                     }
                 }
             } catch (e) { }
@@ -506,7 +513,67 @@ export function Agenda() {
                     </div>
                 )}
 
-                <div className="flex overflow-x-auto gap-4 pb-8 md:pb-0 md:block md:space-y-4 w-full relative snap-x snap-mandatory no-scrollbar">
+                <div className="flex overflow-x-auto gap-4 pb-8 md:pb-0 md:block md:space-y-4 w-full relative snap-x snap-mandatory no-scrollbar text-left">
+                    {takeoverEnabled && (
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.95 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            className="mb-8 w-[85vw] md:w-full flex-shrink-0 snap-center"
+                        >
+                            <Link
+                                to="/live"
+                                className="block relative group overflow-hidden rounded-[2rem] md:rounded-2xl border-2 border-neon-red shadow-[0_0_30px_rgba(255,0,51,0.4)] transition-all duration-500 hover:scale-[1.01] hover:shadow-[0_0_50px_rgba(255,0,51,0.6)] bg-black/40 backdrop-blur-xl"
+                            >
+                                <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
+                                    <motion.div 
+                                        animate={{ x: ['100%', '-100%'] }}
+                                        transition={{ duration: 4, repeat: Infinity, ease: "linear" }}
+                                        className="absolute inset-0 w-1/3 h-full bg-gradient-to-r from-transparent via-white/5 to-transparent -skew-x-12"
+                                    />
+                                </div>
+
+                                <div className="p-6 md:p-10 flex flex-col md:flex-row items-center gap-6 md:gap-10 relative z-10">
+                                    <div className="relative shrink-0">
+                                        <div className="absolute inset-0 bg-neon-red blur-xl rounded-full animate-pulse opacity-40" />
+                                        <div className="w-20 h-20 md:w-28 md:h-28 bg-black rounded-full border-4 border-neon-red flex items-center justify-center relative z-10 shadow-[0_0_30px_rgba(255,0,51,0.4)]">
+                                            <div className="flex flex-col items-center">
+                                                <span className="text-neon-red font-black text-xl md:text-3xl animate-pulse italic">LIVE</span>
+                                                <div className="w-2 h-2 bg-neon-red rounded-full mt-1 animate-ping" />
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="flex-1 text-center md:text-left min-w-0">
+                                        <div className="flex flex-wrap items-center justify-center md:justify-start gap-4 mb-3">
+                                            <span className="px-4 py-1.5 bg-neon-red text-white text-[10px] md:text-xs font-black rounded-full uppercase tracking-widest animate-pulse shadow-[0_0_15px_rgba(255,0,51,0.8)]">
+                                                {t('home.live_now')}
+                                            </span>
+                                            <div className="h-4 w-[1px] bg-white/10 hidden md:block" />
+                                            <span className="text-gray-400 text-[10px] md:text-xs font-black uppercase tracking-widest">
+                                                Dropsiders TV
+                                            </span>
+                                        </div>
+                                        
+                                        <h2 className="text-2xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter leading-tight mb-4 group-hover:text-neon-red transition-colors duration-300 truncate">
+                                            {takeoverSettings?.title || 'DROPSIDERS LIVE'}
+                                        </h2>
+                                        
+                                        <p className="text-gray-400 text-sm md:text-base font-medium max-w-xl">
+                                            {language === 'fr' 
+                                                ? 'Rejoignez le stream en direct pour vivre l\'expérience Dropsiders. Chat interactif, cadeaux et exclusivités.'
+                                                : 'Join the live stream for the Dropsiders experience. Interactive chat, giveaways and exclusives.'}
+                                        </p>
+                                    </div>
+
+                                    <div className="shrink-0 w-full md:w-auto">
+                                        <button className="w-full md:w-auto px-10 py-5 bg-neon-red text-white rounded-2xl font-black uppercase tracking-widest hover:scale-105 transition-all shadow-[0_15px_40px_rgba(255,0,51,0.3)]">
+                                            Regarder le Live
+                                        </button>
+                                    </div>
+                                </div>
+                            </Link>
+                        </motion.div>
+                    )}
 
                     <AnimatePresence mode="popLayout">
                         {months.length > 0 && filteredEvents.length > 0 ? (

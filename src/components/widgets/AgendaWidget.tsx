@@ -187,13 +187,18 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
             <div className="flex justify-between items-center mb-6">
                 <h3 className="text-2xl font-display font-bold text-white flex items-center gap-3">
                     <span
-                        className="w-2 h-2 rounded-full animate-pulse"
-                        style={{
+                        className={`w-2.5 h-2.5 rounded-full ${takeoverEnabled ? 'bg-neon-red shadow-[0_0_12px_#ff0033] animate-pulse' : ''}`}
+                        style={!takeoverEnabled ? {
                             backgroundColor: color,
                             boxShadow: `0 0 10px ${color}`
-                        }}
+                        } : {}}
                     />
                     {t('home.agenda')}
+                    {takeoverEnabled && (
+                        <span className="ml-2 px-2 py-0.5 bg-neon-red text-white text-[9px] font-black rounded-full animate-bounce shadow-[0_0_15px_rgba(255,0,51,0.6)] uppercase tracking-tighter">
+                            {t('home.live_now')}
+                        </span>
+                    )}
                 </h3>
                 <Link
                     to="/agenda"
@@ -218,10 +223,19 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                 {takeoverEnabled && (
                     <Link
                         to="/live"
-                        className="block relative group overflow-hidden rounded-xl border border-neon-red shadow-[0_0_15px_rgba(255,0,51,0.5)] transition-all duration-300 hover:scale-[1.02] hover:shadow-[0_0_25px_rgba(255,0,51,0.8)]"
+                        className="block relative group overflow-hidden rounded-xl border-2 border-neon-red shadow-[0_0_20px_rgba(255,0,51,0.6)] transition-all duration-300 hover:scale-[1.03] hover:shadow-[0_0_35px_rgba(255,0,51,0.9)] bg-black"
                         onClick={playHoverSound}
                         style={{ height: 'auto' }}
                     >
+                        {/* Effet de balayage lumineux périodique */}
+                        <div className="absolute inset-0 w-full h-full pointer-events-none overflow-hidden">
+                            <motion.div 
+                                animate={{ x: ['100%', '-100%'] }}
+                                transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
+                                className="absolute inset-0 w-1/2 h-full bg-gradient-to-r from-transparent via-white/10 to-transparent -skew-x-12"
+                            />
+                        </div>
+
                         <div className="absolute inset-0 bg-neon-red/10 group-hover:bg-neon-red/20 transition-all duration-300 pointer-events-none" />
                         <div className="absolute top-0 right-0 w-32 h-32 bg-neon-red/20 blur-3xl group-hover:bg-neon-red/30 transition-all duration-500 rounded-full mix-blend-screen pointer-events-none translate-x-1/2 -translate-y-1/2" />
 

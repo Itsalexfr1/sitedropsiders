@@ -2,7 +2,7 @@
 export type TranslationKey =
     | 'nav.news' | 'nav.recaps' | 'nav.communaute' | 'nav.music' | 'nav.interviews' | 'nav.agenda' | 'nav.team' | 'nav.shop' | 'nav.contact'
     | 'footer.slogan' | 'footer.desc' | 'footer.community' | 'footer.join' | 'footer.subscribe' | 'footer.subscribe_btn' | 'footer.nav' | 'footer.contact' | 'footer.privacy' | 'footer.terms' | 'footer.cookies' | 'footer.legal' | 'footer.admin' | 'footer.rights'
-    | 'home.hero.title' | 'home.hero.subtitle' | 'home.latest_news' | 'home.latest_recaps' | 'home.all_recaps' | 'home.upcoming_events' | 'home.view_more' | 'home.featured' | 'home.hot' | 'home.no_article' | 'home.new' | 'home.all_news' | 'home.view_all_agenda' | 'home.view_full_agenda' | 'home.agenda' | 'home.view_all' | 'home.no_recap' | 'home.recap_badge' | 'home.latest_interviews' | 'home.no_interview' | 'home.interview_badge' | 'home.all_events'
+    | 'home.hero.title' | 'home.hero.subtitle' | 'home.latest_news' | 'home.latest_recaps' | 'home.all_recaps' | 'home.upcoming_events' | 'home.view_more' | 'home.featured' | 'home.hot' | 'home.no_article' | 'home.new' | 'home.all_news' | 'home.view_all_agenda' | 'home.view_full_agenda' | 'home.agenda' | 'home.live_now' | 'home.view_all' | 'home.no_recap' | 'home.recap_badge' | 'home.latest_interviews' | 'home.no_interview' | 'home.interview_badge' | 'home.all_events'
     | 'news.badge' | 'news.title' | 'news.title_span' | 'news.subtitle' | 'news.no_news'
     | 'recaps.badge' | 'recaps.title' | 'recaps.title_span' | 'recaps.subtitle' | 'recaps.no_recaps'
     | 'interviews.badge' | 'interviews.title' | 'interviews.title_span' | 'interviews.read_more' | 'interviews.no_interviews' | 'interviews.no_interviews_subtitle'
@@ -94,6 +94,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'home.view_all_agenda': { fr: 'TOUT VOIR', en: 'VIEW ALL' },
     'home.view_full_agenda': { fr: 'TOUT VOIR', en: 'VIEW ALL' },
     'home.agenda': { fr: 'AGENDA', en: 'AGENDA' },
+    'home.live_now': { fr: 'EN DIRECT', en: 'LIVE NOW' },
     'home.view_all': { fr: 'TOUT VOIR', en: 'VIEW ALL' },
     'home.all_events': { fr: "VOIR TOUT L'AGENDA", en: 'VIEW FULL AGENDA' },
     'home.no_article': { fr: 'Aucun article pour le moment', en: 'No article for now' },
