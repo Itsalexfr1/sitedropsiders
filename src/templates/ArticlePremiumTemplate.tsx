@@ -314,11 +314,11 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             .replace(/├ä/g, 'Ä')
             .replace(/ÔÇô/g, '–')
             .replace(/Ã‚/g, '') // Remove weird ghost 'A'
-            .replace(/Ã /g, 'à')
-            .replace(/Ã©/g, 'é')
-            .replace(/Ã¨/g, 'è')
-            .replace(/Ãª/g, 'ê')
-            .replace(/Ã§/g, 'ç');
+            .replace(/à/g, 'à')
+            .replace(/é/g, 'é')
+            .replace(/è/g, 'è')
+            .replace(/ê/g, 'ê')
+            .replace(/ç/g, 'ç');
 
         // Apply Premium Standardizer (Keywords, Links)
         finalHtml = standardizeText(finalHtml);

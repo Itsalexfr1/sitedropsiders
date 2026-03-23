@@ -55,9 +55,10 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
 
         return exploded
             .filter((event: any) => {
-                const eventDate = new Date(event.date || event.startDate);
-                eventDate.setHours(23, 59, 59, 999);
-                return eventDate >= today;
+                const start = new Date(event.date || event.startDate);
+                const end = event.endDate ? new Date(event.endDate) : start;
+                end.setHours(23, 59, 59, 999);
+                return end >= today;
             })
             .sort((a: any, b: any) => new Date(a.date || a.startDate).getTime() - new Date(b.date || b.startDate).getTime())
             .slice(0, maxItems);

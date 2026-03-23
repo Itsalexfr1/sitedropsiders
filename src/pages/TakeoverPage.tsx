@@ -2997,11 +2997,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
                                                                 country: "FR"
                                                             });
-                                                            showNotification('Bandeau mis ÃƒÆ’Ã‚Â  jour', 'success');
+                                                            showNotification('Bandeau mis à  jour', 'success');
                                                         }}
                                                         className="w-full py-4 bg-neon-red text-white font-black uppercase rounded-2xl mt-4 hover:bg-red-600 transition-colors shadow-xl shadow-red-500/20"
                                                     >
-                                                        Mettre ÃƒÆ’Ã‚Â  jour le bandeau
+                                                        Mettre à  jour le bandeau
                                                     </button>
                                                 </div>
                                             </div>
@@ -3062,7 +3062,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         </p>
                                     </div>
                                     <div className="bg-white/5 border border-white/10 p-3 rounded-2xl">
-                                        <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-1">Ratio CrÃƒÆ’Ã‚Â©dibilitÃƒÆ’Ã‚Â©</p>
+                                        <p className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-1">Ratio Crédibilité</p>
                                         <p className="text-lg font-black text-amber-500">
                                             {selectedProfile.pseudo === localStorage.getItem('chat_pseudo')
                                                 ? (userDrops / Math.max(1, timeOnSite / 3600)).toFixed(1)
@@ -3165,12 +3165,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         <AnimatePresence>
                             {mentionNotify && (
                                 <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0 }} className="absolute bottom-4 right-4 z-[50] bg-neon-red text-white text-[10px] font-black px-4 py-2 rounded-full shadow-[0_0_20px_rgba(255,0,51,0.5)]">
-                                    ON T'A CITÃƒÆ’Ã¢â‚¬Â° ! ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Â¡
+                                    ON T'A CITÉ ! 👇
                                 </motion.div>
                             )}
                         </AnimatePresence>
 
-                        {/* ÃƒÂ¢Ã…Â¡Ã¢â‚¬ÂÃƒÂ¯Ã‚Â¸Ã‚Â Clash Poll Banner */}
+                        {/* ⚡ Clash Poll Banner */}
                         <AnimatePresence>
                             {clashPoll && clashPoll.active && (
                                 <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9 }} className="sticky top-0 z-[45] bg-black/95 border-2 border-white/20 rounded-3xl p-6 mb-6 shadow-2xl relative overflow-hidden">
@@ -3198,7 +3198,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             )}
                         </AnimatePresence>
 
-                        {/* ÃƒÂ¢Ã…Â¡Ã‚Â¡ Quick Time Event (QTE) */}
+                        {/* ⚡ Quick Time Event (QTE) */}
                         <AnimatePresence>
                             {qteActive && (
                                 <motion.div initial={{ scale: 0, rotate: -20, x: '-50%', y: '-50%' }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 z-[200]">
@@ -3206,7 +3206,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         onClick={async () => {
                                             const myPseudo = localStorage.getItem('chat_pseudo') || "VISITEUR";
                                             setQteActive(false);
-                                            showNotification("TU AS GAGNÃƒÆ’Ã¢â‚¬Â° LE QTE ! ÃƒÂ¢Ã…Â¡Ã‚Â¡ (+500 DROPS)", 'success');
+                                            showNotification("TU AS GAGNÉ LE QTE ! ⚡ (+500 DROPS)", 'success');
                                             triggerConfetti();
                                             setUserDrops(prev => prev + 500);
                                             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
@@ -3284,7 +3284,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             )}
                         </AnimatePresence>
 
-                        {/* ÃƒÂ¢Ã…Â¡Ã‚Â¡ Quick Time Event (QTE) */}
+                        {/* ⚡ Quick Time Event (QTE) */}
                         <AnimatePresence>
                             {qteActive && (
                                 <motion.div initial={{ scale: 0, rotate: -20, x: '-50%', y: '-50%' }} animate={{ scale: 1, rotate: 0 }} exit={{ scale: 0 }} className="fixed top-1/2 left-1/2 z-[200]">
@@ -3292,7 +3292,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         onClick={async () => {
                                             const myPseudo = localStorage.getItem('chat_pseudo') || "VISITEUR";
                                             setQteActive(false);
-                                            showNotification("TU AS GAGNÃƒÆ’Ã¢â‚¬Â° LE QTE ! ÃƒÂ¢Ã…Â¡Ã‚Â¡ (+500 DROPS)", 'success');
+                                            showNotification("TU AS GAGNÉ LE QTE ! ⚡ (+500 DROPS)", 'success');
                                             triggerConfetti();
                                             setUserDrops(prev => prev + 500);
                                             await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
@@ -3380,16 +3380,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     </div>
 
                                     <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
-                                        <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">RÃƒÆ’Ã‚Â©pondez par 1, 2, 3 ou 4 dans le chat</p>
+                                        <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Répondez par 1, 2, 3 ou 4 dans le chat</p>
                                         {userHasAnswered && (
-                                            <span className="text-[8px] font-black text-neon-cyan uppercase">Participation enregistrÃƒÆ’Ã‚Â©e ÃƒÂ¢Ã…â€œÃ¢â‚¬Â</span>
+                                            <span className="text-[8px] font-black text-neon-cyan uppercase">Participation enregistrée ✅</span>
                                         )}
                                     </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
 
-                        {/* ÃƒÂ¢Ã‚Â­Ã‚Â Artist Rating Prompt */}
+                        {/* ⭐ Artist Rating Prompt */}
                         <AnimatePresence>
                             {showRatingPrompt && (
                                 <motion.div
@@ -3402,7 +3402,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         <Heart className="w-8 h-8 text-neon-cyan animate-pulse" />
                                     </div>
                                     <h4 className="text-xl font-display font-black text-white uppercase italic tracking-tighter mb-2">NOTE LE SET DE <span className="text-neon-cyan">{fluxCurrentArtist.artist}</span></h4>
-                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-6">Partage ton avis avec la communautÃƒÆ’Ã‚Â© !</p>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-6">Partage ton avis avec la communauté !</p>
 
                                     <div className="flex justify-center gap-3 mb-8">
                                         {[1, 2, 3, 4, 5].map(star => (
@@ -3411,7 +3411,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 onClick={async () => {
                                                     setSetRatings(prev => ({ ...prev, [fluxCurrentArtist.artist]: star }));
                                                     setShowRatingPrompt(false);
-                                                    showNotification(`VOTE ENREGISTRÃƒÆ’Ã¢â‚¬Â° : ${star}/5 ÃƒÂ¢Ã‚Â­Ã‚Â`, 'success');
+                                                    showNotification(`VOTE ENREGISTRÉ : ${star}/5 ⭐`, 'success');
 
                                                     // Broadcast rating via Appwrite
                                                     await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
@@ -3522,7 +3522,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     value={captchaInput}
                                                     onChange={e => setCaptchaInput(e.target.value)}
                                                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-black outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
-                                                    placeholder="RÃƒÆ’Ã‚Â©sultat..."
+                                                    placeholder="Résultat..."
                                                 />
                                             </div>
 
@@ -3538,11 +3538,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         <div className="p-3 bg-neon-red/10 border border-neon-red/20 rounded-xl relative overflow-hidden group">
                                             <div className="flex items-center justify-between mb-1">
                                                 <p className="text-[10px] text-neon-red font-black uppercase flex items-center gap-2">
-                                                    <Pin className="w-3 h-3" /> Message ÃƒÆ’Ã¢â‚¬Â°pinglÃƒÆ’Ã‚Â©
+                                                    <Pin className="w-3 h-3" /> Message Épinglé
                                                 </p>
                                                 {isMod && (
                                                     <button onClick={() => setPinnedMessage(null)} className="text-[9px] text-gray-500 hover:text-white font-bold uppercase transition-all">
-                                                        DÃƒÆ’Ã‚Â©sÃƒÆ’Ã‚Â©pingler
+                                                        Désépingler
                                                     </button>
                                                 )}
                                             </div>
@@ -3652,7 +3652,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 ) : renderMessageContent(msg.message || msg.text)}
                                                             </p>
                                                             <div className="flex gap-1 mt-2">
-                                                                {['ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ‚Â', 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ÂÃ‚Â¥', 'ÃƒÂ°Ã…Â¸Ã‹Å“Ã¢â‚¬Å¡', 'ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Ëœ', 'ÃƒÂ°Ã…Â¸Ã¢â‚¬â„¢Ã…Â½'].map(emoji => (
+                                                                {['👍', '🔥', '😂', '👀', '💎'].map(emoji => (
                                                                     <button
                                                                         key={emoji}
                                                                         onClick={async (e) => {
@@ -3675,11 +3675,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                                         <div className="absolute right-0 top-0 hidden group-hover:flex items-center gap-1 bg-black/80 backdrop-blur-md p-1.5 rounded-xl border border-white/10 z-20 shadow-2xl">
                                                             {/* Reply capability removed as DB schema doesn't support it */}
-                                                            <button onClick={(e) => { e.stopPropagation(); setPinnedMessage(msg); }} title="ÃƒÆ’Ã¢â‚¬Â°pingler" className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"><Pin className="w-3 h-3" /></button>
+                                                            <button onClick={(e) => { e.stopPropagation(); setPinnedMessage(msg); }} title="Épingler" className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"><Pin className="w-3 h-3" /></button>
                                                             <button
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    setChatMessages(prev => prev.map(m => m.id === msg.id ? { ...m, translated: `[Traduction simulÃƒÆ’Ã‚Â©e]: ${m.message}` } : m));
+                                                                    setChatMessages(prev => prev.map(m => m.id === msg.id ? { ...m, translated: `[Traduction simulée]: ${m.message}` } : m));
                                                                 }}
                                                                 title="Traduire"
                                                                 className="p-1.5 text-gray-400 hover:text-neon-cyan transition-all"
@@ -3773,7 +3773,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 <div className={`w-2 h-2 rounded-full ${isCurrent ? 'bg-neon-cyan animate-pulse shadow-[0_0_10px_#00ffff]' : 'bg-gray-600'}`} />
                                                                 <div className="text-left">
                                                                     <h4 className="text-xs font-black text-white uppercase">{set.artist}</h4>
-                                                                    <p className="text-[8px] text-gray-500 font-mono uppercase">DÃƒÆ’Ã‚Â©but du set : {set.startTime}</p>
+                                                                    <p className="text-[8px] text-gray-500 font-mono uppercase">Début du set : {set.startTime}</p>
                                                                 </div>
                                                             </div>
                                                             <div className="flex items-center gap-2">
@@ -3799,7 +3799,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     className="p-4 space-y-3 overflow-hidden border-t border-white/5"
                                                                 >
                                                                     {set.tracks.length === 0 ? (
-                                                                        <p className="text-[9px] text-gray-600 font-black uppercase italic text-center py-4">Soyez le premier ÃƒÆ’Ã‚Â  indiquer un titre !</p>
+                                                                        <p className="text-[9px] text-gray-600 font-black uppercase italic text-center py-4">Soyez le premier à  indiquer un titre !</p>
                                                                     ) : (
                                                                         set.tracks.map(track => (
                                                                             <motion.div initial={{ x: -10, opacity: 0 }} animate={{ x: 0, opacity: 1 }} key={track.id} className="flex items-center justify-between gap-4 p-3 bg-black/40 rounded-2xl border border-white/5 group hover:border-white/10 transition-all">
@@ -3913,13 +3913,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             <div className="flex-1 flex flex-col justify-between">
                                                                 <div>
                                                                     <p className="text-[9px] lg:text-[10px] font-black text-white uppercase mb-1 leading-tight">{item.name}</p>
-                                                                    <p className="text-[11px] font-black text-neon-cyan">{item.price} ÃƒÂ¢Ã¢â‚¬Å¡Ã‚Â¬</p>
+                                                                    <p className="text-[11px] font-black text-neon-cyan">{item.price} €</p>
                                                                 </div>
                                                                 <button 
                                                                     onClick={() => item.url ? window.open(item.url, '_blank') : showNotification(`ACHETER : ${item.name}`, 'success')} 
                                                                     className="w-full mt-3 py-1.5 bg-white/5 border border-white/10 text-[8px] font-black uppercase rounded-lg hover:bg-white/10 text-white transition-all"
                                                                 >
-                                                                    {item.url ? 'VOIR/ACHETER' : 'BIENTÃƒÆ’Ã¢â‚¬ÂT'}
+                                                                    {item.url ? 'VOIR/ACHETER' : 'BIENTÔT'}
                                                                 </button>
                                                             </div>
                                                         </div>
@@ -3929,16 +3929,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         ))}
                                     </div>
                                     <div className="p-4 bg-neon-cyan/5 border border-neon-cyan/20 rounded-2xl mt-8">
-                                        <p className="text-[8px] font-bold text-neon-cyan/60 uppercase text-center leading-relaxed">Les articles officiels sont expÃƒÆ’Ã‚Â©diÃƒÆ’Ã‚Â©s sous 48h. Paiement sÃƒÆ’Ã‚Â©curisÃƒÆ’Ã‚Â©.</p>
+                                        <p className="text-[8px] font-bold text-neon-cyan/60 uppercase text-center leading-relaxed">Les articles officiels sont expédiés sous 48h. Paiement sécurisé.</p>
                                     </div>
                                 </motion.div>
                             ) : activeChatTab === 'drops' ? (
                                 <motion.div key="drops-view" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="flex-1 overflow-y-auto space-y-4 text-center py-6 px-4 custom-scrollbar">
                                     <Trophy className="w-12 h-12 text-amber-500 mx-auto mb-4 animate-bounce" />
                                     <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Shop des Drops</h3>
-                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-8">AmÃƒÆ’Ã‚Â©liorez votre profil avec vos drops</p>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mb-8">Améliorez votre profil avec vos drops</p>
 
-                                    {/* ÃƒÂ°Ã…Â¸Ã‚ÂÃ¢â‚¬Â  Leaderboard Section */}
+                                    {/* 🏆 Leaderboard Section */}
                                     <div className="bg-white/5 border border-white/10 rounded-3xl p-6 mb-8 text-left space-y-4">
                                         <div className="flex items-center gap-2 mb-2">
                                             <Trophy className="w-5 h-5 text-amber-500" />
@@ -3967,13 +3967,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         </div>
                                     </div>
 
-                                    <p className="text-xs text-gray-500 font-bold uppercase mb-8">Obtenez des rÃƒÆ’Ã‚Â©compenses virtuelles avec vos drops !</p>
+                                    <p className="text-xs text-gray-500 font-bold uppercase mb-8">Obtenez des récompenses virtuelles avec vos drops !</p>
                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-3 lg:gap-4">
                                         <button
                                             onClick={() => {
                                                 setActiveChatTab('chat');
                                                 setIsHighlightChecked(true);
-                                                showNotification("Activez l'ÃƒÆ’Ã‚Â©clair dans le chat pour choisir votre couleur !", 'success');
+                                                showNotification("Activez l'éclair dans le chat pour choisir votre couleur !", 'success');
                                             }}
                                             className="aspect-square bg-amber-500/10 border-2 border-amber-500/40 rounded-2xl flex flex-col items-center justify-center gap-2 hover:bg-amber-500/20 transition-all border-dashed relative overflow-hidden group shadow-xl"
                                         >
@@ -4009,24 +4009,24 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                                         if (lot.name.startsWith('TITRE:')) {
                                                             const t = lot.name.replace('TITRE: ', '');
-                                                            // setUserTitle(t); // DÃƒÆ’Ã‚Â©sactivÃƒÆ’Ã‚Â© car les titres ont ÃƒÆ’Ã‚Â©tÃƒÆ’Ã‚Â© remplacÃƒÆ’Ã‚Â©s par les drapeaux
+                                                            // setUserTitle(t); // Désactivé car les titres ont été remplacés par les drapeaux
                                                             localStorage.setItem('user_chat_title', t);
-                                                            showNotification(`Titre ÃƒÆ’Ã‚Â©quipÃƒÆ’Ã‚Â© : ${t}`, 'success');
+                                                            showNotification(`Titre équipé : ${t}`, 'success');
                                                         } else if (lot.name.startsWith('BORDURE:')) {
                                                             const color = lot.name.includes('NEON') ? 'neon-cyan' : 'amber-500';
                                                             setProfileBorder(color);
                                                             localStorage.setItem('user_profile_border', color);
-                                                            showNotification(`Bordure ÃƒÆ’Ã‚Â©quipÃƒÆ’Ã‚Â©e !`, 'success');
+                                                            showNotification(`Bordure équipée !`, 'success');
                                                         } else if (lot.name.includes('PIXEL')) {
                                                             setSpecialFontStyle('pixel-font');
                                                             localStorage.setItem('user_font_style', 'pixel-font');
-                                                            showNotification(`Police Pixel activÃƒÆ’Ã‚Â©e !`, 'success');
+                                                            showNotification(`Police Pixel activée !`, 'success');
                                                         } else if (lot.name.includes('STYLE') || lot.name.includes('FONTS')) {
                                                             setSpecialFontStyle('italic-bold');
                                                             localStorage.setItem('user_font_style', 'italic-bold');
-                                                            showNotification(`Style de police activÃƒÆ’Ã‚Â© !`, 'success');
+                                                            showNotification(`Style de police activé !`, 'success');
                                                         } else {
-                                                            showNotification(`Achat rÃƒÆ’Ã‚Â©ussi: ${lot.name}`, 'success');
+                                                            showNotification(`Achat réussi: ${lot.name}`, 'success');
                                                         }
                                                     }}
                                                     className="aspect-square bg-white/5 border border-white/10 rounded-2xl flex flex-col items-center justify-center gap-2 hover:border-amber-500/30 hover:bg-white/10 transition-all group shadow-xl relative overflow-hidden"
@@ -4067,11 +4067,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     )}
                                     <input
                                         type="text"
-                                        value={isBanned ? "VOUS ÃƒÆ’Ã…Â TES BANNI" : newMessage}
+                                        value={isBanned ? "VOUS ÊTES BANNI" : newMessage}
                                         onChange={e => setNewMessage(e.target.value)}
                                         disabled={isBanned}
                                         onKeyDown={e => e.key === 'Enter' && handleSendMessage(newMessage)}
-                                        placeholder={isBanned ? "ACCÃƒÆ’Ã‹â€ S REFUSÃƒÆ’Ã¢â‚¬Â°..." : slowModeEnabled && !isMod ? "MODE LENT ACTIF..." : "VOTRE MESSAGE..."}
+                                        placeholder={isBanned ? "ACCÈS REFUSÉ..." : slowModeEnabled && !isMod ? "MODE LENT ACTIF..." : "VOTRE MESSAGE..."}
                                         className={`flex-1 bg-transparent text-xs font-bold outline-none uppercase tracking-wider ${isBanned ? 'text-red-500' : 'text-white placeholder:text-gray-600'}`}
                                     />
                                     <button onClick={() => setShowGifPicker(!showGifPicker)} className="p-2 text-gray-500 hover:text-white transition-all">
@@ -4080,7 +4080,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
                                         <Zap className="w-4 h-4" />
                                     </button>
-                                    <button onClick={() => window.open(window.location.href, 'Chat', 'width=400,height=800')} className="p-2 text-gray-500 hover:text-white transition-all" title="DÃƒÆ’Ã‚Â©tacher le chat">
+                                    <button onClick={() => window.open(window.location.href, 'Chat', 'width=400,height=800')} className="p-2 text-gray-500 hover:text-white transition-all" title="Détacher le chat">
                                         <Maximize2 className="w-4 h-4" />
                                     </button>
                                     <button onClick={() => handleSendMessage(newMessage)} className="p-2 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all" style={{ backgroundColor: accentColor }}>
@@ -4108,7 +4108,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     className="w-full h-16 object-cover rounded-lg cursor-pointer hover:scale-110 active:scale-95 transition-all bg-white/5" 
                                                 />
                                             ))}
-                                            {gifResults.length === 0 && <p className="col-span-3 text-center text-[8px] font-black text-gray-500 uppercase py-8 tracking-widest">Aucun rÃƒÆ’Ã‚Â©sultat</p>}
+                                            {gifResults.length === 0 && <p className="col-span-3 text-center text-[8px] font-black text-gray-500 uppercase py-8 tracking-widest">Aucun résultat</p>}
                                         </div>
                                     </div>
                                 )}
@@ -4162,7 +4162,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     }
                 </AnimatePresence >
 
-                {/* ÃƒÂ°Ã…Â¸Ã¢â‚¬Â Ã¢â‚¬Â¢ Arrival Animation */}
+                {/* 🚀 Arrival Animation */}
                 <AnimatePresence>
                     {
                         newArrival && (
@@ -4296,10 +4296,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <ShieldCheck className="w-6 h-6 text-neon-cyan animate-bounce" />
                                     <div>
                                         <p className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">BRAQUAGE EN COURS</p>
-                                        <p className="text-xs font-bold text-white uppercase">{activeHeist?.participants?.length || 0} Braqueurs prÃƒÆ’Ã‚Âªts</p>
+                                        <p className="text-xs font-bold text-white uppercase">{activeHeist?.participants?.length || 0} Braqueurs prêts</p>
                                     </div>
                                 </div>
-                                <div className="text-[9px] font-black text-white/50 mb-2 uppercase">TOTAL MISÃƒÆ’Ã¢â‚¬Â° : {activeHeist?.participants?.reduce((a, b) => a + (b?.bet || 0), 0) || 0} DROPS</div>
+                                <div className="text-[9px] font-black text-white/50 mb-2 uppercase">TOTAL MISÉ : {activeHeist?.participants?.reduce((a, b) => a + (b?.bet || 0), 0) || 0} DROPS</div>
                                 <div className="text-center py-1 bg-neon-cyan/10 rounded-lg">
                                     <span className="text-neon-cyan font-black animate-pulse">!braquage [montant] pour rejoindre</span>
                                 </div>
@@ -4319,10 +4319,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         const isVipReward = Math.random() > 0.8;
                                         if (isVipReward) {
                                             setVipsList(prev => [...prev, localStorage.getItem('chat_pseudo') || '']);
-                                            showNotification(`ÃƒÂ¢Ã…Â¡Ã‚Â¡ RÃƒÆ’Ã¢â‚¬Â°FLEXE DE GÃƒÆ’Ã¢â‚¬Â°NIE ! TU ES VIP TEMPORAIRE ! ÃƒÂ°Ã…Â¸Ã¢â‚¬ËœÃ¢â‚¬Ëœ`, 'success');
+                                            showNotification(`⚡ RÉFLEXE DE GÉNIE ! TU ES VIP TEMPORAIRE ! 👀`, 'success');
                                         } else {
                                             setUserDrops(prev => prev + reward);
-                                            showNotification(`ÃƒÂ¢Ã…Â¡Ã‚Â¡ FAST CLICK ! +${reward} DROPS ! ÃƒÂ¢Ã…Â¡Ã‚Â¡`, 'success');
+                                            showNotification(`⚡ FAST CLICK ! +${reward} DROPS ! ⚡`, 'success');
                                         }
                                         setActiveQTE(null);
                                     }}
@@ -4345,7 +4345,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <Trophy className="w-7 h-7 text-black" />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">SuccÃƒÆ’Ã‚Â¨s DÃƒÆ’Ã‚Â©bloquÃƒÆ’Ã‚Â© !</p>
+                                    <p className="text-[10px] font-black text-amber-500 uppercase tracking-[0.3em]">Succès Débloqué !</p>
                                     <p className="text-xs font-black text-white uppercase italic">{showAchievementPopup}</p>
                                 </div>
                             </motion.div>
@@ -4389,7 +4389,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                     <div className="space-y-2 w-full">
                                         <p className="text-[10px] text-gray-400 font-bold uppercase">
-                                            {activeSlots.participants.length} JOUEURS ÃƒÂ¢Ã¢â€šÂ¬Ã‚Â¢ TICKET 50 DROPS
+                                            {activeSlots.participants.length} JOUEURS • TICKET 50 DROPS
                                         </p>
                                         <div className="h-1 bg-white/10 rounded-full overflow-hidden">
                                             <motion.div
@@ -4411,7 +4411,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     }
                 </AnimatePresence>
 
-                {/* MUR DES LÃƒÆ’Ã¢â‚¬Â°GENDES (Legends Wall Overlay) */}
+                {/* MUR DES LÉGENDES (Legends Wall Overlay) */}
                 <AnimatePresence>
                     {
                         showLegendsWall && (

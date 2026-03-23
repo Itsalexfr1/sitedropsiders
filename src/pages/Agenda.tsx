@@ -128,11 +128,14 @@ export function Agenda() {
         });
 
         const upcoming = categoryFiltered.filter((event: any) => {
-            const dateStr = event.startDate || event.date;
-            if (!dateStr) return false;
-            const d = new Date(dateStr);
-            d.setHours(0, 0, 0, 0);
-            return d >= today;
+            const startDateStr = event.startDate || event.date;
+            const endDateStr = event.endDate || startDateStr;
+            if (!startDateStr) return false;
+            
+            const end = new Date(endDateStr);
+            end.setHours(23, 59, 59, 999);
+            
+            return end >= today;
         });
 
         const monthKeys = new Set<string>();
@@ -184,12 +187,13 @@ export function Agenda() {
                 if (!event.date && !event.startDate) return false;
 
                 const eventDate = new Date(event.startDate || event.date);
+                const endDate = event.endDate ? new Date(event.endDate) : eventDate;
                 if (isNaN(eventDate.getTime())) return false;
 
-                eventDate.setHours(0, 0, 0, 0);
+                endDate.setHours(23, 59, 59, 999);
 
-                // Date filter (upcoming only)
-                if (eventDate < today) return false;
+                // Date filter (active events only)
+                if (endDate < today) return false;
 
                 // Category filter (First, to show correct months)
                 if (activeCategory !== 'ALL') {
