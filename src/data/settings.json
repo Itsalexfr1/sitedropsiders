@@ -54,6 +54,10 @@
       {
         "command": "!lineup",
         "response": "La lineup est disponible dans l'onglet PLANNING."
+      },
+      {
+        "command": "!insta ",
+        "response": "Suivez nous sur Instagram >> instagram.com/dropsiders.eu"
       }
     ],
     "tracklist": "[]",
