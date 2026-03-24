@@ -106,7 +106,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const isSpecialAdmin = storedPseudo && ['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr', 'contact@dropsiders.fr'].includes(storedPseudo.toLowerCase());
     const userRole: 'admin' | 'mod' | 'user' = (isAdmin || isSpecialAdmin) ? 'admin' : 'user';
-    const isMod = userRole === 'admin' || userRole === 'mod';
+    const isMod = userRole !== 'user';
     const [showAdminPanel, setShowAdminPanel] = useState(false);
     const [activeChatTab, setActiveChatTab] = useState('chat');
     const [newMessage, setNewMessage] = useState('');
