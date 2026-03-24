@@ -355,7 +355,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'musique.subtitle': { fr: "L'\u00e9picentre de la musique \u00e9lectronique mondiale. Retrouvez les derniers classements Beatport, Traxsource et nos tracklists exclusives.", en: 'The epicenter of global electronic music. Find the latest Beatport and Traxsource charts and our exclusive tracklists.' },
     'musique.world_charts': { fr: 'World Charts', en: 'World Charts' },
     'home.explore': { fr: 'Explorer', en: 'Explore' },
-    'live.syncing': { fr: 'Synchronisation avec le satellite...', en: 'Syncing with satellite...' },
+    'live.syncing': { fr: 'Synchronisation avec le festival...', en: 'Syncing with the festival...' },
     'live.off_title': { fr: 'Live Indisponible', en: 'Live Unavailable' },
     'live.off_subtitle': { fr: "Le live n'est pas actif pour le moment. Revenez plus tard !", en: "The live is not active at the moment. Check back later!" },
     'live.prep_title': { fr: 'Live en Pr\u00e9paration', en: 'Live Preparation' },

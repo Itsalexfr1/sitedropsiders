@@ -8,7 +8,7 @@ import {
     BarChart3, Clock, Sword, Crown, Maximize2, Minimize2,
     Trophy, Stars, Heart, Volume2, Timer, ShieldAlert, Calendar, Edit2, Edit3, Image as ImageIcon,
     Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
-    Search, ChevronUp, ChevronDown, Camera
+    Search, ChevronUp, ChevronDown, Camera, Check
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
@@ -124,7 +124,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [loginPseudo, setLoginPseudo] = useState('');
     const [loginEmail, setLoginEmail] = useState('');
     const [loginCountry, setLoginCountry] = useState('FR');
-    const subscribeNewsletter = true; // Const for now as setter is unused
+    const [subscribeNewsletter, setSubscribeNewsletter] = useState(false);
 
     const countries = [
         { code: 'FR', name: 'France' },
@@ -3524,6 +3524,20 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-black outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
                                                     placeholder="Résultat..."
                                                 />
+                                            </div>
+
+                                            {/* Newsletter Checkbox */}
+                                            <div 
+                                                onClick={() => setSubscribeNewsletter(!subscribeNewsletter)}
+                                                className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl cursor-pointer group hover:border-neon-red/30 transition-all"
+                                            >
+                                                <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${subscribeNewsletter ? 'bg-neon-red border-neon-red shadow-[0_0_15px_rgba(255,0,51,0.4)]' : 'border-white/20 group-hover:border-white/40'}`}>
+                                                    {subscribeNewsletter && <Check className="w-4 h-4 text-white" />}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <p className="text-[10px] font-black text-white uppercase italic tracking-wider">S'inscrire à la Newsletter</p>
+                                                    <p className="text-[8px] text-gray-500 font-bold uppercase tracking-tight">Actu, Line-ups & Exclusivités</p>
+                                                </div>
                                             </div>
 
                                             <button type="submit" className="w-full bg-gradient-to-r from-neon-red to-pink-600 py-4 rounded-2xl text-white font-black uppercase italic tracking-widest shadow-lg shadow-neon-red/20 hover:scale-[1.02] active:scale-95 transition-all">
