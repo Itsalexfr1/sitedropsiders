@@ -96,9 +96,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const COLLECTION_BANS = 'bans';
 
     const isAdmin = localStorage.getItem('admin_auth') === 'true';
+    const adminUser = localStorage.getItem('admin_user');
     const storedPseudo = localStorage.getItem('chat_pseudo');
-    const isSpecialAdmin = storedPseudo && ['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr'].includes(storedPseudo.toLowerCase());
-    const [userRole] = useState<'admin' | 'mod' | 'user'>(isAdmin || isSpecialAdmin ? 'admin' : 'user');
+    
+    // Si on est admin mais qu'aucun pseudo de chat n'est défini, on utilise le pseudo admin par défaut
+    if (isAdmin && adminUser && !storedPseudo) {
+        localStorage.setItem('chat_pseudo', adminUser);
+    }
+
+    const isSpecialAdmin = storedPseudo && ['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr', 'contact@dropsiders.fr'].includes(storedPseudo.toLowerCase());
+    const userRole = (isAdmin || isSpecialAdmin) ? 'admin' : 'user';
     const isMod = userRole === 'admin' || userRole === 'mod';
     const [showAdminPanel, setShowAdminPanel] = useState(false);
     const [activeChatTab, setActiveChatTab] = useState('chat');
