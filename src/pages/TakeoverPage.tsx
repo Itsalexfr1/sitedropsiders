@@ -96,7 +96,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const COLLECTION_BANS = 'bans';
 
     const isAdmin = localStorage.getItem('admin_auth') === 'true';
-    const [userRole] = useState<'admin' | 'mod' | 'user'>(isAdmin ? 'admin' : 'user');
+    const storedPseudo = localStorage.getItem('chat_pseudo');
+    const isSpecialAdmin = storedPseudo && ['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr'].includes(storedPseudo.toLowerCase());
+    const [userRole] = useState<'admin' | 'mod' | 'user'>(isAdmin || isSpecialAdmin ? 'admin' : 'user');
     const isMod = userRole === 'admin' || userRole === 'mod';
     const [showAdminPanel, setShowAdminPanel] = useState(false);
     const [activeChatTab, setActiveChatTab] = useState('chat');
@@ -1881,7 +1883,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 <>
 
                     {/* 2. HEADER */}
-                    <div className="h-10 lg:h-16 border-b border-white/5 flex items-center justify-between px-3 lg:px-6 bg-black/40 backdrop-blur-md relative z-40">
+                    <div className="h-14 lg:h-16 border-b border-white/5 flex items-center justify-between px-3 lg:px-6 bg-black/40 backdrop-blur-md relative z-40">
                         <div className="flex items-center gap-4 lg:gap-8">
                             <div className="flex flex-col">
                                 <div className="flex items-center gap-2 lg:gap-4">
@@ -1893,7 +1895,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
                                             <span className="text-[6px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
                                         </div>
-                                        <h1 className="text-[18px] lg:text-[32px] font-display font-black text-white italic tracking-tighter leading-none">{settings.title.toUpperCase()}</h1>
+                                        <h1 className="text-base lg:text-[32px] font-display font-black text-white italic tracking-tighter leading-none">{settings.title.toUpperCase()}</h1>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1 lg:gap-2 mt-2">
@@ -1980,7 +1982,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 </button>
                             )}
                             <button onClick={() => navigate('/')} className="p-2 hover:bg-white/5 rounded-full">
-                                <X className="w-5 h-5 text-gray-500" />
+                                <X className="w-5 h-5 text-white" />
                             </button>
                         </div>
                     </div>
@@ -2086,8 +2088,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
             {/* 3. MAIN CONTENT AREA */}
             <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden relative">
-                {/* A. VIDEO PANEL (35% Mobile / 60% Desktop) */}
-                <div className={`transition-all duration-700 ease-in-out ${isPopout ? 'hidden' : (isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[35%] lg:h-full')} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
+                {/* A. VIDEO PANEL (40% Mobile / 60% Desktop) */}
+                <div className={`transition-all duration-700 ease-in-out ${isPopout ? 'hidden' : (isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[40vh] lg:h-full')} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
                     <div className="absolute inset-0 z-0">
                         {viewMode === 'single' ? (
                             <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${settings.streams?.find((s: any) => s.id === settings.activeStreamId)?.youtubeId || settings.youtubeId || 'dQw4w9WgXcQ'}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
@@ -3095,7 +3097,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1.5">
                                 <MessageSquare className="w-3 h-3 text-neon-red" />
-                                <h3 className="text-2xl md:text-4xl font-black text-white uppercase italic tracking-tighter">LIVE CHAT</h3>
+                                <h3 className="text-xs md:text-2xl font-black text-white uppercase italic tracking-tighter">LIVE CHAT</h3>
                             </div>
                             {settings.showSponsorBanner && settings.sponsorText && (
                                 <div className="hidden sm:flex items-center gap-2">
