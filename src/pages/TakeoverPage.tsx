@@ -99,8 +99,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const adminUser = localStorage.getItem('admin_user');
     const storedPseudo = localStorage.getItem('chat_pseudo');
     
-    // Si on est admin mais qu'aucun pseudo de chat n'est défini, on utilise le pseudo admin par défaut
-    if (isAdmin && adminUser && !storedPseudo) {
+    // Si on est admin mais qu'aucun pseudo de chat n'est défini ou qu'on a le pseudo par défaut 'simon', on utilise le pseudo admin
+    if (isAdmin && adminUser && (!storedPseudo || storedPseudo === 'simon')) {
         localStorage.setItem('chat_pseudo', adminUser);
     }
 
