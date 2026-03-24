@@ -1898,10 +1898,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         <h1 className="text-xs lg:text-[32px] font-display font-black text-white italic tracking-tighter leading-none">{settings.title.toUpperCase()}</h1>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1 lg:gap-2 mt-2">
-                                    <div className="w-1 h-1 lg:w-1.5 lg:h-1.5 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_8px_#00ffff]" />
-                                    <span className="text-[10px] lg:text-[11px] font-black text-gray-500 uppercase tracking-widest leading-none">NOW &gt;&gt;</span>
-                                    <span className="text-[14px] lg:text-[16px] font-black text-white uppercase italic tracking-tighter max-w-[220px] lg:max-w-none overflow-hidden text-ellipsis whitespace-nowrap">{fluxCurrentArtist.artist}</span>
+                                <div className="flex items-center gap-1.5 lg:gap-2 mt-1 lg:mt-2">
+                                    <Music className="w-3 h-3 lg:w-4 lg:h-4 text-neon-cyan animate-pulse" />
+                                    <span className="text-[8px] lg:text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none">NOW</span>
+                                    <span className="text-[12px] lg:text-[16px] font-black text-white uppercase italic tracking-tighter truncate max-w-[120px] sm:max-w-none">{fluxCurrentArtist.artist}</span>
                                 </div>
                             </div>
                         </div>
