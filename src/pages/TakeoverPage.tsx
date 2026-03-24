@@ -1895,7 +1895,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
                                             <span className="text-[6px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
                                         </div>
-                                        <h1 className="text-base lg:text-[32px] font-display font-black text-white italic tracking-tighter leading-none">{settings.title.toUpperCase()}</h1>
+                                        <h1 className="text-xs lg:text-[32px] font-display font-black text-white italic tracking-tighter leading-none">{settings.title.toUpperCase()}</h1>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1 lg:gap-2 mt-2">
@@ -2088,8 +2088,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
             {/* 3. MAIN CONTENT AREA */}
             <div className="flex-1 flex flex-col lg:flex-row min-h-0 overflow-hidden relative">
-                {/* A. VIDEO PANEL (40% Mobile / 60% Desktop) */}
-                <div className={`transition-all duration-700 ease-in-out ${isPopout ? 'hidden' : (isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[40vh] lg:h-full')} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
+                {/* A. VIDEO PANEL (35% Mobile / 60% Desktop) */}
+                <div className={`transition-all duration-700 ease-in-out ${isPopout ? 'hidden' : (isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[35%] lg:h-full')} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
                     <div className="absolute inset-0 z-0">
                         {viewMode === 'single' ? (
                             <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${settings.streams?.find((s: any) => s.id === settings.activeStreamId)?.youtubeId || settings.youtubeId || 'dQw4w9WgXcQ'}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
@@ -3097,7 +3097,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1.5">
                                 <MessageSquare className="w-3 h-3 text-neon-red" />
-                                <h3 className="text-xs md:text-2xl font-black text-white uppercase italic tracking-tighter">LIVE CHAT</h3>
+                                <h3 className="text-[10px] md:text-2xl font-black text-white uppercase italic tracking-tighter">LIVE CHAT</h3>
                             </div>
                             {settings.showSponsorBanner && settings.sponsorText && (
                                 <div className="hidden sm:flex items-center gap-2">
@@ -3588,15 +3588,15 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     onMouseEnter={() => setHoveredMessageId(msg.id)}
                                                     onMouseLeave={() => setHoveredMessageId(null)}
                                                     onDoubleClick={() => setSelectedProfile({ pseudo: msg.pseudo, country: msg.country, color: msg.color })}
-                                                    className={`group flex flex-col gap-1 relative p-3 rounded-2xl transition-all duration-300 cursor-pointer ${clashPoll?.active
+                                                    className={`group flex flex-col gap-0.5 relative px-2 py-0.5 lg:p-3 rounded-xl transition-all duration-300 cursor-pointer ${clashPoll?.active
                                                         ? (clashPoll.votesA.includes(msg.pseudo) ? 'mr-12 border-l-2 border-red-500' : clashPoll.votesB.includes(msg.pseudo) ? 'ml-12 border-r-2 border-blue-500 text-right items-end' : 'hover:bg-white/[0.02]')
                                                         : (msg.pseudo === localStorage.getItem('chat_pseudo') ? 'bg-white/5 ml-4 lg:ml-8' : 'hover:bg-white/[0.02]')
                                                         }`}
                                                     style={{
-                                                        backgroundColor: msg.bgColor ? `${msg.bgColor}15` : undefined,
-                                                        borderColor: msg.pseudo === localStorage.getItem('chat_pseudo') && profileBorder !== 'none' ? profileBorder : (msg.bgColor ? `${msg.bgColor}30` : undefined),
+                                                        backgroundColor: msg.bgColor ? `${msg.bgColor}10` : undefined,
+                                                        borderColor: msg.pseudo === localStorage.getItem('chat_pseudo') && profileBorder !== 'none' ? profileBorder : (msg.bgColor ? `${msg.bgColor}20` : undefined),
                                                         borderWidth: (msg.pseudo === localStorage.getItem('chat_pseudo') && profileBorder !== 'none') || msg.bgColor ? '1px' : '0px',
-                                                        boxShadow: msg.bgColor ? `0 0 15px ${msg.bgColor}10` : 'none'
+                                                        boxShadow: 'none'
                                                     }}
                                                 >
                                                     {/* Mention highlighting */}
@@ -3681,9 +3681,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                                 country: "FR"
                                                                             });
                                                                         }}
-                                                                        className="px-1.5 py-0.5 bg-white/5 border border-white/10 rounded-lg text-[10px] hover:bg-white/20 transition-all flex items-center gap-1"
+                                                                        className="px-1 py-0 bg-white/5 border border-white/5 rounded-md text-[8px] hover:bg-white/20 transition-all flex items-center gap-1"
                                                                     >
-                                                                        {emoji} <span className="opacity-50">{msg.reactions?.[emoji] || 0}</span>
+                                                                        {emoji} <span className="opacity-40">{msg.reactions?.[emoji] || 0}</span>
                                                                     </button>
                                                                 ))}
                                                             </div>
