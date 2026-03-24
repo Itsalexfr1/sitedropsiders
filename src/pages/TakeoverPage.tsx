@@ -2165,7 +2165,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                 <div className="space-y-6">
                                                     <div>
-                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre du Live</label>
+                                                        <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre du Live</label>
                                                         <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: MAIN STAGE LIVE" />
                                                     </div>
 
@@ -2176,19 +2176,19 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         </div>
                                                         <div className="grid grid-cols-2 gap-4">
                                                             <div className="space-y-1">
-                                                                <label className="text-[8px] font-black text-gray-500 uppercase">Instagram</label>
+                                                                <label className="text-[11px] font-black text-gray-500 uppercase">Instagram</label>
                                                                 <input type="text" value={editInsta} onChange={e => setEditInsta(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-neon-pink" placeholder="@pseudo" />
                                                             </div>
                                                             <div className="space-y-1">
-                                                                <label className="text-[8px] font-black text-gray-500 uppercase">TikTok</label>
+                                                                <label className="text-[11px] font-black text-gray-500 uppercase">TikTok</label>
                                                                 <input type="text" value={editTiktok} onChange={e => setEditTiktok(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-neon-pink" placeholder="@pseudo" />
                                                             </div>
                                                             <div className="space-y-1">
-                                                                <label className="text-[8px] font-black text-gray-500 uppercase">YouTube</label>
+                                                                <label className="text-[11px] font-black text-gray-500 uppercase">YouTube</label>
                                                                 <input type="text" value={editYoutube} onChange={e => setEditYoutube(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-neon-pink" placeholder="@pseudo" />
                                                             </div>
                                                             <div className="space-y-1">
-                                                                <label className="text-[8px] font-black text-gray-500 uppercase">Twitter (X)</label>
+                                                                <label className="text-[11px] font-black text-gray-500 uppercase">Twitter (X)</label>
                                                                 <input type="text" value={editTwitter} onChange={e => setEditTwitter(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-neon-pink" placeholder="@pseudo" />
                                                             </div>
                                                         </div>
@@ -2220,7 +2220,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     </div>
                                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                                                         <div className="space-y-2">
-                                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-2">Nom de la scène</label>
+                                                                            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-2">Nom de la scène</label>
                                                                             <input type="text" value={stream.name} onChange={e => {
                                                                                 const ns = [...editStreams];
                                                                                 ns[idx].name = e.target.value.toUpperCase();
@@ -2228,7 +2228,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                             }} className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-purple uppercase" placeholder="MAIN STAGE" />
                                                                         </div>
                                                                         <div className="space-y-2">
-                                                                            <label className="text-[8px] font-black text-gray-500 uppercase tracking-widest pl-2">YouTube (Link or ID)</label>
+                                                                            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-2">YouTube (Link or ID)</label>
                                                                             <input type="text" value={stream.youtubeId} onChange={e => {
                                                                                 const ns = [...editStreams];
                                                                                 ns[idx].youtubeId = extractYoutubeId(e.target.value);
@@ -2249,7 +2249,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
 
                                                     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-                                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Statut de la diffusion</label>
+                                                        <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest">Statut de la diffusion</label>
                                                         <div className="flex gap-2 p-1 bg-black/40 border border-white/10 rounded-xl">
                                                             {(['live', 'edit', 'off'] as const).map(s => (
                                                                 <button
@@ -2268,7 +2268,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                                     <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
                                                         <div className="flex items-center justify-between">
-                                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Partenaires / Sponsor</label>
+                                                            <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest">Partenaires / Sponsor</label>
                                                             <button
                                                                 onClick={() => {
                                                                     setEditShowSponsorBanner(!editShowSponsorBanner);
@@ -2510,11 +2510,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div className="space-y-2">
-                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Artiste</label>
+                                                        <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Artiste</label>
                                                         <input type="text" value={newSetArtist} onChange={e => setNewSetArtist(e.target.value)} placeholder="NOM DE L'ARTISTE" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
                                                     </div>
                                                     <div className="space-y-2">
-                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Début (Optionnel)</label>
+                                                        <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Début (Optionnel)</label>
                                                         <input type="text" value={newSetTime} onChange={e => setNewSetTime(e.target.value)} placeholder="00:00" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
                                                     </div>
                                                 </div>
@@ -2557,7 +2557,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 </div>
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                                                     <div className="flex flex-col gap-1.5">
-                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Date / Agenda</label>
+                                                        <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest ml-1">Date / Agenda</label>
                                                         <input type="date" value={newLineupItem.day} onChange={e => setNewLineupItem({ ...newLineupItem, day: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-cyan transition-all" />
                                                     </div>
                                                     <input type="text" placeholder="ARTISTE" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, artist: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
@@ -2572,7 +2572,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 </div>
                                                 {/* Image Upload */}
                                                 <div className="flex flex-col gap-1.5">
-                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-1">Photo de l'artiste <span className="text-neon-red">*</span></label>
+                                                    <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest ml-1">Photo de l'artiste <span className="text-neon-red">*</span></label>
                                                     <div className="flex gap-2 items-center">
                                                         <input
                                                             type="text"
@@ -3095,7 +3095,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         <div className="flex items-center gap-4">
                             <div className="flex items-center gap-1.5">
                                 <MessageSquare className="w-3 h-3 text-neon-red" />
-                                <h3 className="text-[10px] font-black text-white tracking-[0.1em] uppercase italic">LIVE CHAT</h3>
+                                <h3 className="text-2xl md:text-4xl font-black text-white uppercase italic tracking-tighter">LIVE CHAT</h3>
                             </div>
                             {settings.showSponsorBanner && settings.sponsorText && (
                                 <div className="hidden sm:flex items-center gap-2">
@@ -3449,14 +3449,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             <div className="w-20 h-20 bg-neon-red/10 border-2 border-neon-red rounded-[2.5rem] flex items-center justify-center mx-auto shadow-[0_0_30px_rgba(255,0,51,0.2)]">
                                                 <MessageSquare className="w-10 h-10 text-neon-red animate-pulse" />
                                             </div>
-                                            <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">Live Chat</h2>
+                                            <h2 className="text-2xl md:text-3xl lg:text-4xl font-display font-black text-white uppercase italic tracking-tighter">Live Chat</h2>
                                             <p className="text-gray-500 text-xs font-black uppercase tracking-[0.3em]">Connectez-vous pour participer</p>
                                         </div>
 
                                         <form onSubmit={handleConnect} className="space-y-4">
                                             <div className="grid grid-cols-2 gap-4">
                                                 <div className="space-y-1.5">
-                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pseudo</label>
+                                                    <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pseudo</label>
                                                     <input
                                                         value={loginPseudo}
                                                         onChange={e => setLoginPseudo(e.target.value)}
@@ -3465,7 +3465,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     />
                                                 </div>
                                                 <div className="space-y-1.5">
-                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pseudo Color</label>
+                                                    <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pseudo Color</label>
                                                     <div className="flex gap-2 h-[58px]">
                                                         <input
                                                             type="color"
@@ -4432,7 +4432,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[1000] bg-black/95 flex flex-col items-center justify-center overflow-hidden">
                                 <div className="absolute top-10 flex flex-col items-center">
                                     <Crown className="w-16 h-16 text-amber-500 mb-4 animate-bounce" />
-                                    <h2 className="text-4xl font-black text-white uppercase italic tracking-[0.5em] mb-2">Mur des Légendes</h2>
+                                    <h2 className="text-2xl md:text-4xl font-black text-white uppercase italic tracking-[0.5em] mb-2">Mur des Légendes</h2>
                                     <p className="text-amber-500/50 text-[10px] font-black uppercase tracking-[0.5em]">Dropsiders Hall of Fame</p>
                                 </div>
                                 <div className="flex-1 w-full max-w-4xl relative">

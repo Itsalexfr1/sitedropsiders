@@ -838,7 +838,7 @@ export function AdminDashboard() {
                 setUsername(storedUser);
 
                 // EMERGENCY FIX: If user is alex, force 'all' permissions
-                if (storedUser.toLowerCase() === 'alex' || storedUser.toLowerCase() === 'contact@dropsiders.fr') {
+                if (storedUser.toLowerCase() === 'alex' || storedUser.toLowerCase() === 'alexf' || storedUser.toLowerCase() === 'itsalexfr1' || storedUser.toLowerCase() === 'contact@dropsiders.fr') {
                     const perms = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
                     if (!perms.includes('all')) {
                         const newPerms = [...new Set([...perms, 'all'])];
