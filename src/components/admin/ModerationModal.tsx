@@ -892,7 +892,10 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                             setActiveItem(null);
                         }}
                         onUploadSuccess={(url) => {
-                            confirmWikiPhoto(url);
+                            if (activeItem) {
+                                const actualUrl = Array.isArray(url) ? url[0] : url;
+                                confirmWikiPhoto(actualUrl, activeItem.id, activeItem.type);
+                            }
                             setIsUploadModalOpen(false);
                             setActiveItem(null);
                         }}
@@ -906,7 +909,8 @@ export function ModerationModal({ isOpen, onClose, onSuccess, initialTab = 'phot
                         onClose={() => setPhotoUploadTarget(null)}
                         onUploadSuccess={(url) => {
                             if (photoUploadTarget) {
-                                handleReplacePhoto(photoUploadTarget, url);
+                                const actualUrl = Array.isArray(url) ? url[0] : url;
+                                handleReplacePhoto(photoUploadTarget, actualUrl);
                             }
                         }}
                         accentColor="neon-cyan"

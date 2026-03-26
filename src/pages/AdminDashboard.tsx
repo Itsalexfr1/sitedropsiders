@@ -7246,7 +7246,10 @@ export function AdminDashboard() {
                         setShowResidenceUpload(false);
                         setEditingResidence(null);
                     }}
-                    onUploadSuccess={handleUpdateResidencePhoto}
+                    onUploadSuccess={(urls) => {
+                        const url = Array.isArray(urls) ? urls[0] : urls;
+                        handleUpdateResidencePhoto(url);
+                    }}
                 />
 
                 {/* Maintenance Modal */}

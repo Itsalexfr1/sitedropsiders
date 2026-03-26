@@ -644,7 +644,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                 isOpen={showUploadModal}
                 onClose={() => setShowUploadModal(false)}
                 initialImage={imageUrl}
-                onUploadSuccess={(url) => setImageUrl(url)}
+                onUploadSuccess={(url) => setImageUrl(Array.isArray(url) ? url[0] : url)}
                 onClear={() => {
                     setImageUrl('');
                     setShowUploadModal(false);

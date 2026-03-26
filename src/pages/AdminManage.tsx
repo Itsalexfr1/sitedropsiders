@@ -378,8 +378,9 @@ export function AdminManage() {
         }
     };
 
-    const handleUpdatePhoto = async (newImageUrl: string) => {
+    const handleUpdatePhoto = async (newImageUrl: string | string[]) => {
         if (!activePhotoId) return;
+        const actualUrl = Array.isArray(newImageUrl) ? newImageUrl[0] : newImageUrl;
 
         try {
             setLoading(true);
@@ -387,11 +388,11 @@ export function AdminManage() {
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ id: activePhotoId, image: newImageUrl })
+                body: JSON.stringify({ id: activePhotoId, image: actualUrl })
             });
 
             if (response.ok) {
-                setItems(prev => prev.map(i => i.id === activePhotoId ? { ...i, image: newImageUrl } : i));
+                setItems(prev => prev.map(i => i.id === activePhotoId ? { ...i, image: actualUrl } : i));
                 setIsImageModalOpen(false);
             }
         } catch (e: any) {

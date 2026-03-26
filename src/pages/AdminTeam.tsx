@@ -374,7 +374,8 @@ export function AdminTeam() {
                 isOpen={isUploadModalOpen}
                 onClose={() => setIsUploadModalOpen(false)}
                 accentColor="neon-red"
-                onUploadSuccess={(url) => {
+                onUploadSuccess={(urls) => {
+                    const url = Array.isArray(urls) ? urls[0] : urls;
                     if (editingMember) {
                         setEditingMember({ ...editingMember, image: url });
                     }

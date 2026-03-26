@@ -332,10 +332,11 @@ export function NewsletterComposer() {
         setter({ ...current, content: newContent } as any);
     };
 
-    const onUploadSuccess = (url: string) => {
-        if (uploadTarget === 'main') setMainArticle({ ...mainArticle, image: url });
-        else if (uploadTarget === 'news1') setNews1({ ...news1, image: url });
-        else if (uploadTarget === 'news2') setNews2({ ...news2, image: url });
+    const onUploadSuccess = (url: string | string[]) => {
+        const actualUrl = Array.isArray(url) ? url[0] : url;
+        if (uploadTarget === 'main') setMainArticle({ ...mainArticle, image: actualUrl });
+        else if (uploadTarget === 'news1') setNews1({ ...news1, image: actualUrl });
+        else if (uploadTarget === 'news2') setNews2({ ...news2, image: actualUrl });
         setIsUploadModalOpen(false);
         setUploadTarget(null);
     };

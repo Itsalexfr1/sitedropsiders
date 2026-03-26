@@ -794,17 +794,18 @@ export function AdminShop() {
                 accentColor="neon-red"
                 initialImage={shopUploadTarget.initialImage}
                 onUploadSuccess={(url) => {
+                    const actualUrl = Array.isArray(url) ? url[0] : url;
                     const { type, colorHex } = shopUploadTarget;
                     if (type === 'color' && colorHex) {
                         setNewProduct(prev => ({
                             ...prev,
-                            colorImages: { ...prev.colorImages, [colorHex]: url }
+                            colorImages: { ...prev.colorImages, [colorHex]: actualUrl }
                         }));
                     } else if (type === 'password_image') {
-                        setShopPasswordImage(url);
+                        setShopPasswordImage(actualUrl);
                         setHasChanges(true);
                     } else {
-                        setNewProduct(prev => ({ ...prev, [type]: url }));
+                        setNewProduct(prev => ({ ...prev, [type]: actualUrl }));
                     }
                     setStatus('success');
                     setTimeout(() => setStatus('idle'), 3000);

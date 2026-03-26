@@ -121,17 +121,18 @@ export function WikiDropsiders() {
         setTimeout(() => setSaveMsg(''), 3000);
     };
 
-    const handleUpdatePhoto = async (url: string) => {
+    const handleUpdatePhoto = async (url: string | string[]) => {
         if (!selectedDj) return;
+        const actualUrl = Array.isArray(url) ? url[0] : url;
         setIsSaving(true);
         try {
             const res = await apiFetch('/api/wiki/update', {
                 method: 'POST',
                 headers: getAuthHeaders(),
-                body: JSON.stringify({ id: selectedDj.id, updates: { image: url } })
+                body: JSON.stringify({ id: selectedDj.id, updates: { image: actualUrl } })
             });
             if (res.ok) {
-                const updatedDj = { ...selectedDj, image: url };
+                const updatedDj = { ...selectedDj, image: actualUrl };
                 setDjData(prev => prev.map(dj => dj.id === selectedDj.id ? updatedDj : dj));
                 setSelectedDj(updatedDj);
                 setSaveMsg(t('saved_success'));

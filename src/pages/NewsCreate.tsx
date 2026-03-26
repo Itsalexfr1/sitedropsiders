@@ -3740,20 +3740,21 @@ ${generateSocialsHtml()}
                 isOpen={showUploadModal}
                 onClose={() => setShowUploadModal(false)}
                 initialImage={uploadTarget.initialImage}
-                onUploadSuccess={(url: string) => {
-                    const isVideo = url.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || url.includes('/video/upload/');
+                onUploadSuccess={(url: string | string[]) => {
+                    const actualUrl = Array.isArray(url) ? url[0] : url;
+                    const isVideo = actualUrl.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || actualUrl.includes('/video/upload/');
                     const mediaTag = isVideo
-                        ? `<video src="${url}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`
-                        : `<img src="${url}" alt="Image" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
+                        ? `<video src="${actualUrl}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`
+                        : `<img src="${actualUrl}" alt="Image" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
 
                     if (uploadTarget.type === 'main') {
-                        setImageUrl(url);
+                        setImageUrl(actualUrl);
                     } else if (uploadTarget.type === 'duo1' as any) {
-                        setDuoModal(prev => ({ ...prev, url1: url }));
+                        setDuoModal(prev => ({ ...prev, url1: actualUrl }));
                     } else if (uploadTarget.type === 'duo2' as any) {
-                        setDuoModal(prev => ({ ...prev, url2: url }));
+                        setDuoModal(prev => ({ ...prev, url2: actualUrl }));
                     } else if (uploadTarget.type === 'interview-media') {
-                        setInterviewQuestions(prev => prev.map(q => q.id === uploadTarget.interviewBlockId ? { ...q, mediaUrl: url } : q));
+                        setInterviewQuestions(prev => prev.map(q => q.id === uploadTarget.interviewBlockId ? { ...q, mediaUrl: actualUrl } : q));
                     } else if (uploadTarget.type === 'widget-edit' as any) {
                         const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  ${mediaTag}\n</div>`;
                         updateWidget(uploadTarget.widgetId!, imgWidget);

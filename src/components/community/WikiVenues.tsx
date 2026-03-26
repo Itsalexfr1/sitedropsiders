@@ -151,8 +151,9 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
         setTimeout(() => { setAddSuccess(false); setShowAdd(false); }, 2000);
     };
 
-    const handleUpdatePhoto = async (url: string) => {
+    const handleUpdatePhoto = async (url: string | string[]) => {
         if (!selected) return;
+        const actualUrl = Array.isArray(url) ? url[0] : url;
         setIsSaving(true);
         try {
             const endpoint = '/api/wiki/update';
@@ -165,12 +166,12 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                 body: JSON.stringify({ 
                     id: selected.id, 
                     type: mode === 'clubs' ? 'CLUBS' : 'FESTIVALS',
-                    updates: { image: url } 
+                    updates: { image: actualUrl } 
                 })
             });
 
             if (response.ok) {
-                const updated = { ...selected, image: url };
+                const updated = { ...selected, image: actualUrl };
                 if (mode === 'clubs') {
                     setCustomClubs(prev => prev.map(v => v.id === selected.id ? updated : v));
                 } else {
@@ -461,15 +462,16 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                 isOpen={showImageModal}
                 onClose={() => { setShowImageModal(false); setIsEditingPhoto(false); }}
                 onUploadSuccess={(url) => {
+                    const actualUrl = Array.isArray(url) ? url[0] : url;
                     if (isEditingPhoto) {
-                        handleUpdatePhoto(url);
+                        handleUpdatePhoto(actualUrl);
                     } else {
-                        setAddForm(p => ({ ...p, image: url }));
-                        setShowImageModal(false);
+                        setAddForm(p => ({ ...p, image: actualUrl }));
                     }
+                    setShowImageModal(false);
                 }}
                 accentColor="neon-red"
-                aspect={4/5}
+                aspect={mode === 'clubs' ? 4/5 : 16/9}
             />
         </div>
     );
