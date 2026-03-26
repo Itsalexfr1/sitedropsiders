@@ -1,11 +1,12 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Play, ArrowUpRight } from 'lucide-react';
+import { Play, ArrowUpRight, Camera } from 'lucide-react';
 import recapsData from '../../data/recaps.json';
+import galerieData from '../../data/galerie.json';
 import { Link } from 'react-router-dom';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
-import { getRecapLink } from '../../utils/slugify';
+import { getRecapLink, getGalleryLink } from '../../utils/slugify';
 import { translateText } from '../../utils/translate';
 
 export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
@@ -14,13 +15,40 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
 
     const latestRecaps = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
-        return (recapsData as any[])
-            .filter(item => (item.date || '').substring(0, 10) <= today)
+        
+        // Combine recaps and gallery items
+        const combined = [
+            ...(recapsData as any[]).map(item => ({ ...item, contentType: 'recap' })),
+            ...(galerieData as any[]).map(item => ({ 
+                ...item, 
+                contentType: 'gallery',
+                image: item.cover // Gallery uses 'cover', Recap uses 'image'
+            }))
+        ];
+
+        return combined
+            .filter(item => {
+                const itemDate = (item.date || '').toString();
+                if (itemDate.length === 4) return itemDate <= today.substring(0, 4);
+                return itemDate.substring(0, 10) <= today;
+            })
             .sort((a, b) => {
-                const yearA = Number(a.year) || new Date(a.date).getFullYear();
-                const yearB = Number(b.year) || new Date(b.date).getFullYear();
+                const dateA = new Date(a.date).getTime() || 0;
+                const dateB = new Date(b.date).getTime() || 0;
+                
+                // If years are different, sort by year
+                const yearA = Number(a.year) || (isNaN(dateA) ? Number(a.date) : new Date(a.date).getFullYear());
+                const yearB = Number(b.year) || (isNaN(dateB) ? Number(b.date) : new Date(b.date).getFullYear());
+                
                 if (yearB !== yearA) return yearB - yearA;
-                return new Date(b.date).getTime() - new Date(a.date).getTime();
+                
+                // If same year, try full date comparison
+                if (!isNaN(dateA) && !isNaN(dateB)) {
+                    return dateB - dateA;
+                }
+                
+                // Fallback to ID for stable sorting if dates are same or missing
+                return String(b.id).localeCompare(String(a.id));
             })
             .slice(0, 12);
     }, []);
@@ -84,14 +112,18 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
             ) : (
                 <div className="flex-1 grid grid-cols-2 lg:grid-cols-4 gap-3">
                     {latestRecaps.map((item: any, index: number) => (
-                        <Link to={getRecapLink(item)} key={item.id} className="block group">
+                        <Link 
+                            to={item.contentType === 'gallery' ? getGalleryLink(item) : getRecapLink(item)} 
+                            key={`${item.contentType}-${item.id}`} 
+                            className="block group"
+                        >
                             <motion.div
                                 initial={{ opacity: 0, scale: 0.95 }}
                                 animate={{ opacity: 1, scale: 1 }}
                                 whileHover={{ scale: 1.05 }}
                                 onMouseEnter={playHoverSound}
                                 transition={{ delay: index * 0.1 }}
-                                className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border border-white/10 hover:border-white/50 transition-all duration-300 shadow-xl flex items-stretch glow-card-${accentColor}`}
+                                className={`relative aspect-square rounded-xl overflow-hidden cursor-pointer border border-white/10 hover:border-white/50 transition-all duration-300 shadow-xl flex items-stretch glow-card-${item.contentType === 'gallery' ? 'blue' : accentColor}`}
                                 onMouseOver={(e) => e.currentTarget.style.borderColor = color}
                                 onMouseOut={(e) => e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)'}
                             >
@@ -113,19 +145,23 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                                         onMouseOver={(e) => e.currentTarget.style.backgroundColor = `${color}33`}
                                         onMouseOut={(e) => e.currentTarget.style.backgroundColor = 'rgba(255,255,255,0.1)'}
                                     >
-                                        <Play className="w-4 h-4 text-white fill-white shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+                                        {item.contentType === 'gallery' ? (
+                                            <Camera className="w-4 h-4 text-white fill-white/20" />
+                                        ) : (
+                                            <Play className="w-4 h-4 text-white fill-white shadow-[0_0_10px_rgba(255,255,255,0.5)]" />
+                                        )}
                                     </div>
                                 </div>
                                 <div className="absolute top-2 left-2 z-20">
                                     <span
                                         className="px-1.5 py-0.5 bg-dark-bg/80 backdrop-blur-md border text-[7px] font-black rounded uppercase tracking-tighter"
                                         style={{
-                                            borderColor: color,
-                                            color: color,
-                                            boxShadow: `0 0 10px ${color}4D`
+                                            borderColor: item.contentType === 'gallery' ? 'var(--color-neon-blue)' : color,
+                                            color: item.contentType === 'gallery' ? 'var(--color-neon-blue)' : color,
+                                            boxShadow: `0 0 10px ${item.contentType === 'gallery' ? 'var(--color-neon-blue)4D' : color + '4D'}`
                                         }}
                                     >
-                                        {t('home.recap_badge')}
+                                        {item.contentType === 'gallery' ? 'Photo' : t('home.recap_badge')}
                                     </span>
                                 </div>
                                 <div className="absolute bottom-0 left-0 right-0 p-3 bg-gradient-to-t from-black/95 via-black/40 to-transparent z-20">
@@ -136,7 +172,12 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                                     >
                                         {translatedTitles[item.id] || item.title}
                                     </h4>
-                                    <p className="text-[8px] text-gray-500 mt-1 font-bold uppercase tracking-widest">{new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short' })}</p>
+                                    <p className="text-[8px] text-gray-500 mt-1 font-bold uppercase tracking-widest">
+                                        {item.date && !isNaN(new Date(item.date).getTime()) 
+                                            ? new Date(item.date).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+                                            : item.date // Fallback for just year
+                                        }
+                                    </p>
                                 </div>
                             </motion.div>
                         </Link>
