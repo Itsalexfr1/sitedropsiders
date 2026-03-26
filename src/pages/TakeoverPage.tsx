@@ -951,7 +951,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }
     }, [activeQuiz]);
 
-    // 🗓️ Auto-Cleanup Planning (Basé sur la date réelle et l'heure/minute)
+    // 🗓️ Auto-Cleanup Planning (DÉSACTIVÉ : On garde tout l'historique de la journée)
+    /*
     useEffect(() => {
         const interval = setInterval(() => {
             const now = new Date();
@@ -962,48 +963,43 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     if (!item.endTime || !item.day) return true;
                     
                     try {
-                        // Normalisation (accepter "23h10" ou "23:10")
-                        const normalizedEnd = item.endTime.toLowerCase().replace('h', ':').replace(' ', '');
+                        const normalizedEnd = item.endTime.toLowerCase().replace('h', ':').replace(' ', '').replace('.', ':');
                         const endParts = normalizedEnd.split(':');
                         const endH = parseInt(endParts[0] || "0", 10);
                         const endM = parseInt(endParts[1] || "0", 10);
                         
-                        let startH = 12; // Valeur par défaut pour repérer la nuit
+                        let startH = 12;
                         if (item.startTime) {
-                            const startStr = item.startTime.toLowerCase().replace('h', ':').replace(' ', '');
+                            const startStr = item.startTime.toLowerCase().replace('h', ':').replace(' ', '').replace('.', ':');
                             startH = parseInt(startStr.split(':')[0] || "12", 10);
                         }
 
-                        // Construction propre de la date annoncée (YYYY-MM-DD)
                         const dateParts = item.day.split('-');
                         const year = parseInt(dateParts[0], 10);
-                        const month = parseInt(dateParts[1], 10) - 1; // 0-indexed
+                        const month = parseInt(dateParts[1], 10) - 1; 
                         const day = parseInt(dateParts[2], 10);
                         
                         const endDateTime = new Date(year, month, day, endH, endM, 0);
 
-                        // Si on note un set 23:00 -> 01:00, 01 est physiquement le lendemain !
-                        // Si endH est plus petit que startH, on ajoute 1 jour
                         if (!isNaN(startH) && endH < startH) {
                             endDateTime.setDate(endDateTime.getDate() + 1);
                         }
                         
-                        // Si la date EXACTE de fin est passée par rapport à l'heure du monde réel
                         const isFuture = endDateTime > now;
                         if (!isFuture) shouldUpdate = true;
                         
                         return isFuture;
                     } catch (e) {
-                        // En cas de malformation grave du texte par l'admin, on garde en sécurité
                         return true;
                     }
                 });
                 
                 return shouldUpdate ? filtered : prev;
             });
-        }, 60000); // Exécuté toutes les minutes
+        }, 60000); 
         return () => clearInterval(interval);
     }, []);
+    */
 
     // 🏆 Top Talkers Tracking
     useEffect(() => {
@@ -1796,11 +1792,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     };
 
     const fluxCurrentArtist = lineupItems.find(item => {
+        if (!item.day || !item.startTime || !item.endTime) return false;
         const now = new Date();
-        const [h, m] = item.startTime.split(':').map(Number);
-        const [eh, em] = item.endTime.split(':').map(Number);
-        const startTime = new Date(); startTime.setHours(h, m, 0);
-        const endTime = new Date(); endTime.setHours(eh, em, 0);
+        const curDay = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        if (item.day !== curDay) return false;
+
+        const [sh, sm] = item.startTime.replace('.', ':').replace('h', ':').split(':').map(Number);
+        const [eh, em] = item.endTime.replace('.', ':').replace('h', ':').split(':').map(Number);
+        
+        const startTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), sh, sm, 0);
+        const endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh, em, 0);
+        
+        if (eh < sh) endTime.setDate(endTime.getDate() + 1);
         return now >= startTime && now <= endTime;
     }) || { artist: 'DROPSIDERS LIVE', stage: 'MAIN STAGE' };
 
@@ -1842,8 +1845,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     });
 
     const planDays = Array.from(new Set(normalizedLineup.map(i => i.logicalDay).filter(Boolean))) as string[];
+    planDays.sort(); 
     const planMulti = planDays.length > 1;
-    const planActive = planningActiveDay || planDays[0] || '';
+    const nowLocal = new Date();
+    const currentDayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
+    const planActive = planningActiveDay || (planDays.includes(currentDayStr) ? currentDayStr : planDays[0]) || '';
     const planItems = planMulti ? normalizedLineup.filter(i => i.logicalDay === planActive) : normalizedLineup;
     const fmtPlanDay = (d: string) => {
         const s = d.match(/^(\d{1,2})[\/-](\d{1,2})/);
@@ -3882,15 +3888,29 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             )}
                                             {planItems.map(item => {
                                                 const now = new Date();
-                                                const [h, m] = (item.startTime || '00:00').split(':').map(Number);
-                                                const [eh, em] = (item.endTime || '00:00').split(':').map(Number);
-                                                const start = new Date(); start.setHours(h, m, 0);
-                                                const end = new Date(); end.setHours(eh, em, 0);
+                                                const [h, m] = (item.startTime || '00:00').replace('.', ':').replace('h', ':').split(':').map(Number);
+                                                const [eh, em] = (item.endTime || '00:00').replace('.', ':').replace('h', ':').split(':').map(Number);
+                                                
+                                                // Construction de la date exacte du set
+                                                const dateParts = item.day.split('-');
+                                                const year = parseInt(dateParts[0]);
+                                                const month = parseInt(dateParts[1]) - 1;
+                                                const day = parseInt(dateParts[2]);
+
+                                                const start = new Date(year, month, day, h, m, 0);
+                                                const end = new Date(year, month, day, eh, em, 0);
+                                                
+                                                // Gérer les sets qui finissent après minuit
+                                                if (eh < h) {
+                                                    end.setDate(end.getDate() + 1);
+                                                }
+
                                                 const isNow = now >= start && now <= end;
+                                                const isPast = now > end;
                                                 const progress = isNow ? Math.min(100, Math.max(0, ((now.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100)) : 0;
                                                 return (
-                                                    <div key={item.id} className={`p-4 border rounded-2xl space-y-3 transition-all relative overflow-hidden group ${isNow ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,255,255,0.05)]' : 'bg-white/5 border-white/10'}`}>
-                                                        {item.image && (<img src={item.image} alt="" className="absolute inset-0 w-full h-full object-cover object-center opacity-30 group-hover:opacity-45 group-hover:scale-105 transition-all duration-700 pointer-events-none" />)}
+                                                    <div key={item.id} className={`p-4 border rounded-2xl space-y-3 transition-all relative overflow-hidden group ${isNow ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,255,255,0.05)]' : isPast ? 'opacity-40 grayscale-[0.5] bg-black/20 border-white/5' : 'bg-white/5 border-white/10'}`}>
+                                                        {item.image && (<img src={item.image} alt="" className={`absolute inset-0 w-full h-full object-cover object-center ${isPast ? 'opacity-10' : 'opacity-30'} group-hover:opacity-45 group-hover:scale-105 transition-all duration-700 pointer-events-none`} />)}
                                                         <div className="flex items-center justify-between relative z-10">
                                                             <div className="flex items-center gap-2"><Calendar className="w-3 h-3 text-gray-500" /><span className={`text-[10px] font-black uppercase ${isNow ? 'text-neon-cyan' : 'text-gray-500'}`}>{item.stage}</span></div>
                                                             <div className="flex flex-col items-end">{!planMulti && <span className="text-[10px] font-mono text-white/80">{item.day}</span>}<span className="text-[10px] font-mono text-gray-500">{item.startTime} - {item.endTime}</span></div>

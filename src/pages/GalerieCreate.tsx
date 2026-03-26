@@ -701,24 +701,29 @@ export function GalerieCreate() {
             <ImageUploadModal
                 isOpen={showUploadModal}
                 onClose={() => setShowUploadModal(false)}
+                allowMultiple={uploadTarget === 'gallery' && replaceIndex === null}
+                watermark={uploadTarget === 'gallery'}
                 initialImage={
                     uploadTarget === 'cover' ? coverUrl :
                         uploadTarget === 'hover' ? hoverMediaUrl :
                             (uploadTarget === 'gallery' && replaceIndex !== null) ? imageUrls.split('\n')[replaceIndex] : undefined
                 }
-                onUploadSuccess={(url) => {
+                onUploadSuccess={(urlOrUrls) => {
+                    const urls = Array.isArray(urlOrUrls) ? urlOrUrls : [urlOrUrls];
+                    
                     if (uploadTarget === 'cover') {
-                        setCoverUrl(url);
+                        setCoverUrl(urls[0]);
                     } else if (uploadTarget === 'hover') {
-                        setHoverMediaUrl(url);
+                        setHoverMediaUrl(urls[0]);
                     } else if (uploadTarget === 'gallery') {
                         if (replaceIndex !== null) {
                             const lines = imageUrls.split('\n');
-                            lines[replaceIndex] = url;
+                            lines[replaceIndex] = urls[0];
                             setImageUrls(lines.join('\n'));
                             setReplaceIndex(null);
                         } else {
-                            setImageUrls(prev => prev ? prev + '\n' + url : url);
+                            const newUrls = urls.join('\n');
+                            setImageUrls(prev => prev ? prev + '\n' + newUrls : newUrls);
                         }
                     }
                 }}

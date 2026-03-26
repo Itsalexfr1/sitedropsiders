@@ -2491,47 +2491,54 @@ export function RecapCreate() {
             </AnimatePresence>
 
             {/* Upload Modal */}
-            <ImageUploadModal
-                isOpen={showUploadModal}
-                onClose={() => setShowUploadModal(false)}
-                initialImage={uploadTarget.initialImage}
-                onUploadSuccess={(url: string) => {
-                    const isVideo = url.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || url.includes('/video/upload/');
-                    const mediaTag = isVideo
-                        ? `<video src="${url}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`
-                        : `<img src="${url}" alt="Image" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
+             <ImageUploadModal
+                 isOpen={showUploadModal}
+                 onClose={() => setShowUploadModal(false)}
+                 allowMultiple={uploadTarget.type !== 'main' && uploadTarget.type !== 'duo1' && uploadTarget.type !== 'duo2' && uploadTarget.type !== 'widget-edit'}
+                 watermark={uploadTarget.type !== 'main'}
+                 initialImage={uploadTarget.initialImage}
+                 onUploadSuccess={(urlOrUrls: string | string[]) => {
+                    const urls = Array.isArray(urlOrUrls) ? urlOrUrls : [urlOrUrls];
+                    
+                    urls.forEach((url, i) => {
+                        const isVideo = url.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || url.includes('/video/upload/');
+                        const mediaTag = isVideo
+                            ? `<video src="${url}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`
+                            : `<img src="${url}" alt="Image" class="w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
 
-                    if (uploadTarget.type === 'main') {
-                        setCoverImage(url);
-                    } else if (uploadTarget.type === 'duo1' as any) {
-                        setDuoModal(prev => ({ ...prev, url1: url }));
-                    } else if (uploadTarget.type === 'duo2' as any) {
-                        setDuoModal(prev => ({ ...prev, url2: url }));
-                    } else if (uploadTarget.type === 'widget-edit') {
-                        const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  ${mediaTag}\n</div>`;
-                        updateWidget(uploadTarget.widgetId!, imgWidget);
-                        setMediaModal(prev => ({ ...prev, show: false }));
-                    } else {
-                        // Create a new image widget
-                        const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  ${mediaTag}\n</div>`;
-                        addWidget(uploadTarget.index, imgWidget);
-                    }
-                }}
-                onClear={() => {
-                    if (uploadTarget.type === 'main') {
-                        setCoverImage('');
-                    } else if (uploadTarget.type === 'duo1' as any) {
-                        setDuoModal(prev => ({ ...prev, url1: '' }));
-                    } else if (uploadTarget.type === 'duo2' as any) {
-                        setDuoModal(prev => ({ ...prev, url2: '' }));
-                    } else if (uploadTarget.type === 'widget-edit') {
-                        updateWidget(uploadTarget.widgetId!, '');
-                        setMediaModal(prev => ({ ...prev, show: false }));
-                    }
-                    setShowUploadModal(false);
-                }}
-                accentColor="neon-red"
-            />
+                        if (uploadTarget.type === 'main') {
+                            setCoverImage(url);
+                        } else if (uploadTarget.type === 'duo1' as any) {
+                            setDuoModal(prev => ({ ...prev, url1: url }));
+                        } else if (uploadTarget.type === 'duo2' as any) {
+                            setDuoModal(prev => ({ ...prev, url2: url }));
+                        } else if (uploadTarget.type === 'widget-edit') {
+                            const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  ${mediaTag}\n</div>`;
+                            updateWidget(uploadTarget.widgetId!, imgWidget);
+                            setMediaModal(prev => ({ ...prev, show: false }));
+                        } else {
+                            // Create a new image widget
+                            const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  ${mediaTag}\n</div>`;
+                            // If multiple, add them one after another
+                            addWidget(uploadTarget.index !== undefined ? uploadTarget.index + i : undefined, imgWidget);
+                        }
+                    });
+                 }}
+                 onClear={() => {
+                     if (uploadTarget.type === 'main') {
+                         setCoverImage('');
+                     } else if (uploadTarget.type === 'duo1' as any) {
+                         setDuoModal(prev => ({ ...prev, url1: '' }));
+                     } else if (uploadTarget.type === 'duo2' as any) {
+                         setDuoModal(prev => ({ ...prev, url2: '' }));
+                     } else if (uploadTarget.type === 'widget-edit') {
+                         updateWidget(uploadTarget.widgetId!, '');
+                         setMediaModal(prev => ({ ...prev, show: false }));
+                     }
+                     setShowUploadModal(false);
+                 }}
+                 accentColor="neon-red"
+             />
 
             {/* Duo Photos Modal */}
             <AnimatePresence>
