@@ -12,7 +12,7 @@ export type TranslationKey =
     | 'agenda.title' | 'agenda.subtitle' | 'agenda.filter_all' | 'agenda.filter_club' | 'agenda.filter_festival' | 'agenda.title_span' | 'agenda.badge' | 'agenda.official_site' | 'agenda.filter_by' | 'agenda.no_results' | 'agenda.infos_tickets' | 'agenda.no_events_selection' | 'agenda.loading'
     | 'article_detail.back_to_news' | 'article_detail.back_to_interviews' | 'article_detail.back_to_home' | 'article_detail.read_time' | 'article_detail.video_title' | 'article_detail.video_subtitle' | 'article_detail.gallery_title' | 'article_detail.related_title' | 'article_detail.other_interviews' | 'article_detail.not_found_title' | 'article_detail.not_found_btn' | 'article_detail.newsletter_title' | 'article_detail.newsletter_subtitle' | 'article_detail.newsletter_placeholder' | 'article_detail.newsletter_btn' | 'article_detail.newsletter_count'
     | 'recap_detail.not_found_title' | 'recap_detail.not_found_btn' | 'recap_detail.back_to_recaps' | 'recap_detail.video_available' | 'recap_detail.video_title' | 'recap_detail.gallery_expand' | 'recap_detail.related_title' | 'recap_detail.view_all_recaps'
-    | 'album_detail.not_found_title' | 'album_detail.back_to_communaute' | 'album_detail.share_btn' | 'album_detail.default_category'
+    | 'album_detail.not_found_title' | 'album_detail.back_to_communaute' | 'album_detail.back_to_galerie' | 'album_detail.share_btn' | 'album_detail.default_category'
     | 'home.playlists_title' | 'home.follow' | 'recaps.no_recaps_subtitle'
     | 'newsletter.hero.badge' | 'newsletter.hero.title' | 'newsletter.hero.title_span' | 'newsletter.hero.desc' | 'newsletter.stats.subscribers' | 'newsletter.stats.frequency' | 'newsletter.stats.coverage' | 'newsletter.form.title' | 'newsletter.form.subtitle' | 'newsletter.benefits.title' | 'newsletter.benefits.subtitle' | 'newsletter.benefits.exclusive_news' | 'newsletter.benefits.exclusive_news_desc' | 'newsletter.benefits.recaps' | 'newsletter.benefits.recaps_desc' | 'newsletter.benefits.alerts' | 'newsletter.benefits.alerts_desc' | 'newsletter.benefits.content' | 'newsletter.benefits.content_desc' | 'newsletter.community.title' | 'newsletter.community.desc' | 'newsletter.community.free' | 'newsletter.community.no_spam' | 'newsletter.community.easy_unsubscribe'
     | 'newsletter_form.email_label' | 'newsletter_form.email_placeholder' | 'newsletter_form.first_name_label' | 'newsletter_form.first_name_placeholder' | 'newsletter_form.last_name_label' | 'newsletter_form.last_name_placeholder' | 'newsletter_form.submit_btn' | 'newsletter_form.submitting_btn' | 'newsletter_form.success_msg' | 'newsletter_form.error_required' | 'newsletter_form.error_invalid' | 'newsletter_form.error_server' | 'newsletter_form.privacy_notice' | 'newsletter_form.privacy_link'
@@ -207,6 +207,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
 
     'album_detail.not_found_title': { fr: 'Album introuvable', en: 'Album not found' },
     'album_detail.back_to_communaute': { fr: 'Retour \u00e0 la communaut\u00e9', en: 'Back to community' },
+    'album_detail.back_to_galerie': { fr: 'Retour \u00e0 la galerie', en: 'Back to gallery' },
     'album_detail.share_btn': { fr: 'PARTAGER L\'ALBUM', en: 'SHARE ALBUM' },
     'album_detail.default_category': { fr: 'Album Photo', en: 'Photo Album' },
 

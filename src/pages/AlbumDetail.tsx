@@ -11,15 +11,15 @@ import { MediaInteractions } from '../components/shared/MediaInteractions';
 export function AlbumDetail() {
     const { t } = useLanguage();
     const { id } = useParams();
-    const albumId = extractIdFromSlug(id || '') || id;
-    const album = galerieData.find(a => a.id === albumId);
+    const album = galerieData.find(a => String(a.id) === String(id)) || 
+                  galerieData.find(a => String(a.id) === String(extractIdFromSlug(id || '')));
     const navigate = useNavigate();
 
     useEffect(() => {
         if (album) {
             trackPageView(album.id.toString(), 'galerie');
         }
-    }, [albumId, album]);
+    }, [id, album]);
     const [selectedPhoto, setSelectedPhoto] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
     const [isAdmin, setIsAdmin] = useState(false);
