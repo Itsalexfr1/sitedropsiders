@@ -116,5 +116,22 @@
       "messages_contact"
     ],
     "created": "2026-02-24T22:02:20.569Z"
+  },
+  {
+    "username": "tanguy",
+    "password": "2026",
+    "name": "Tanguy",
+    "permissions": [
+      "news_focus",
+      "all",
+      "musique_releases",
+      "interviews_video",
+      "recaps_festivals",
+      "agenda_events",
+      "social_studio",
+      "live",
+      "community_mod"
+    ],
+    "created": "2026-03-26T09:21:25.364Z"
   }
 ]
