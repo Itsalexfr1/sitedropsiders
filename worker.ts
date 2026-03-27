@@ -326,6 +326,19 @@ ${urls.map(u => `  <url>
             }
         }
 
+        // --- API: SCRAPINGBEE CREDITS PROXY ---
+        if (path === '/api/proxy-scrapingbee-usage' && request.method === 'GET') {
+            const SB_KEY = env.SCRAPINGBEE_API_KEY || 'GNOH62OMJTZUVJCH4ITXB4CANAIV0250UHXI9WR4QH1M93XMR96WOBP2057PHLEH8C7RIFRSBPXN4RYV';
+            try {
+                const sbRes = await fetch(`https://app.scrapingbee.com/api/v1/usage?api_key=${SB_KEY}`);
+                if (!sbRes.ok) return new Response(JSON.stringify({ error: 'ScrapingBee API error' }), { status: 502, headers });
+                const sbData = await sbRes.json();
+                return new Response(JSON.stringify(sbData), { headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: 'Proxy error' }), { status: 500, headers });
+            }
+        }
+
         // --- API: GEOLOCATION ---
         if (path === '/api/geo' && request.method === 'GET') {
             const country = request.headers.get('cf-ipcountry') || 'FR';

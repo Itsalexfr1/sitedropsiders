@@ -119,12 +119,28 @@ export function AdminDashboard() {
     const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
     const [maintenanceLoading, setMaintenanceLoading] = useState(false);
     const [bulkYearShift, setBulkYearShift] = useState({ oldYear: '2025', newYear: '2026', type: 'agenda' });
+    const [sbCredits, setSbCredits] = useState<{ used: number; max: number; renewal: string } | null>(null);
 
     const toggleSelection = (key: string) => {
         setSelectedKeys(prev =>
             prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key]
         );
     };
+
+    useEffect(() => {
+        const fetchSbCredits = async () => {
+            try {
+                const res = await fetch('/api/proxy-scrapingbee-usage');
+                if (res.ok) {
+                    const data = await res.json();
+                    setSbCredits({ used: data.used_api_credit, max: data.max_api_credit, renewal: data.renewal_subscription_date });
+                }
+            } catch (e) {
+                // Silence - not critical
+            }
+        };
+        fetchSbCredits();
+    }, []);
 
     const autoSelectDuplicates = () => {
         const keysToSelect: string[] = [];
@@ -1929,14 +1945,6 @@ export function AdminDashboard() {
                                                     SCAN TEXTE
                                                 </button>
                                                 <button
-                                                    onClick={() => setIsMaintenanceModalOpen(true)}
-                                                    className="text-[9px] font-black text-neon-yellow/60 hover:text-neon-yellow uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-yellow/10 border border-neon-yellow/20 rounded-full"
-                                                    title="Outils de maintenance groupée"
-                                                >
-                                                    <Settings className="w-2.5 h-2.5" />
-                                                    MAINTENANCE
-                                                </button>
-                                                <button
                                                     onClick={fetchUnusedImages}
                                                     disabled={isScanningUnused}
                                                     className="text-[9px] font-black text-neon-red/60 hover:text-neon-red uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-red/10 border border-neon-red/20 rounded-full"
@@ -1945,6 +1953,20 @@ export function AdminDashboard() {
                                                     {isScanningUnused ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <HardDrive className="w-2.5 h-2.5" />}
                                                     SCAN R2
                                                 </button>
+                                                {sbCredits !== null && (
+                                                    <span
+                                                        className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1 px-2 py-0.5 rounded-full border ${
+                                                            sbCredits.max - sbCredits.used <= 50
+                                                                ? 'text-neon-red border-neon-red/30 bg-neon-red/10 animate-pulse'
+                                                                : sbCredits.max - sbCredits.used <= 100
+                                                                ? 'text-neon-yellow border-neon-yellow/30 bg-neon-yellow/10'
+                                                                : 'text-neon-green border-neon-green/30 bg-neon-green/10'
+                                                        }`}
+                                                        title={`ScrapingBee — Renouvellement : ${new Date(sbCredits.renewal).toLocaleDateString('fr-FR')}`}
+                                                    >
+                                                        🐝 {sbCredits.max - sbCredits.used} crédits
+                                                    </span>
+                                                )}
                                                 <span className="text-[10px] font-black text-white/60 uppercase tracking-widest">
                                                     {((r2Stats.limit - r2Stats.used) / 1024 / 1024 / 1024).toFixed(2)} GB Libres
                                                 </span>
