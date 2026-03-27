@@ -6,7 +6,7 @@
   "takeover": {
     "enabled": true,
     "youtubeId": "FLdsxiIQYhY",
-    "title": "LIVESTREAM",
+    "title": "ULTRA MUSIC FESTIVAL MIAMI",
     "moderators": "",
     "lineup": "[]",
     "customCommands": "",
@@ -46,9 +46,19 @@
         "id": "1xp7r0uyy",
         "name": "WORLDWIDE STAGE",
         "youtubeId": "FLdsxiIQYhY"
+      },
+      {
+        "id": "my3zeasqx",
+        "name": "THE COVE BY RESISTANCE",
+        "youtubeId": "KxJD3P8Q_Mw"
+      },
+      {
+        "id": "edkou1rpa",
+        "name": "LIVE STAGE",
+        "youtubeId": "53j4xn1oWkI"
       }
     ],
-    "activeStreamId": "1xp7r0uyy",
+    "activeStreamId": "g9ke3ipuc",
     "highlightPrice": 100,
     "lots": [],
     "dropsAmount": 10,
@@ -56,7 +66,7 @@
     "sponsorText": "LIVE RENDU POSSIBLE GRÂCE À NOS PARTENAIRES !",
     "sponsorLink": "https://dropsiders.fr",
     "showSponsorBanner": true,
-    "instagramLink": "",
+    "instagramLink": "https://www.instagram.com/ultra/",
     "tiktokLink": "",
     "youtubeLink": "",
     "twitterLink": "",
@@ -71,7 +81,8 @@
       }
     ],
     "tracklist": "[]",
-    "auddToken": "0707d622c51645acc2e4fa26ed64538d"
+    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
+    "bannedWords": ""
   },
   "socials": {
     "instagram": "dropsiders.fr",
