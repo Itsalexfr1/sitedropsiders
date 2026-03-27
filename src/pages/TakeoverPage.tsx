@@ -6,9 +6,9 @@ import {
     Save, AlertCircle, Music, Trash2, Plus,
     Pin, Star, ShieldCheck, Ban, Megaphone, User,
     BarChart3, Clock, Sword, Crown, Maximize2, Minimize2,
-    Trophy, Stars, Heart, Volume2, Timer, ShieldAlert, Calendar, Edit2, Edit3, Image as ImageIcon,
+    Trophy, Stars, Heart, Timer, ShieldAlert, Calendar, Edit2, Edit3,
     Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
-    Search, ChevronUp, ChevronDown, Camera, Check, Bot, Coins
+    Search, ChevronUp, ChevronDown, Camera, Check, Coins, Shield
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
@@ -220,6 +220,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [selectedProfile, setSelectedProfile] = useState<any>(null);
     const [mentionNotify, setMentionNotify] = useState(false);
     const [isCinemaMode, setIsCinemaMode] = useState(false);
+
     const [showBadgesAdmin, setShowBadgesAdmin] = useState(() => {
         const saved = localStorage.getItem('chat_show_badges');
         return saved !== null ? saved === 'true' : true;
@@ -255,6 +256,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [setRatings, setSetRatings] = useState<{ [artist: string]: number }>({});
     const [showRatingPrompt, setShowRatingPrompt] = useState(false);
     const [isTTSActive, setIsTTSActive] = useState(false);
+
     const [vipsList, setVipsList] = useState<string[]>([]);
     const [showViewersList, setShowViewersList] = useState(false);
     const [flashMessage, setFlashMessage] = useState<{ text: string, type: 'info' | 'warn' | 'success' } | null>(null);
@@ -309,20 +311,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const fetchPhotosCount = async () => {
         try {
-            const [photosRes, wikiRes] = await Promise.all([
-                fetch('/api/photos/pending'),
-                fetch('/api/wiki/list')
-            ]);
-            
-            await photosRes.json();
-            const wikis = await wikiRes.json();
-            
-            setPendingWikiPhotosCount(
-                wikis.filter((w: any) => 
-                    (w.entity_type === 'DJS' || w.entity_type === 'CLUBS' || w.entity_type === 'FESTIVALS') && 
-                    w.status === 'waiting'
-                ).length
-            );
+            const wikiRes = await fetch('/api/wiki/list');
+            await wikiRes.json();
+            // Count logic removed as redundant
         } catch (e) {
             console.error("Error fetching photos count:", e);
         }
@@ -546,6 +537,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editDropsInterval, setEditDropsInterval] = useState(settings.dropsInterval || 5);
     const [adminActiveTab, setAdminActiveTab] = useState<'config' | 'planning' | 'tracklist' | 'interactif' | 'bot_drops'>('config');
     const [interactivityDuration, setInteractivityDuration] = useState(30);
+
     // 🎰 Lottery (Tirage au sort)
     const [lotteryParticipants, setLotteryParticipants] = useState<string[]>([]);
     const [lotteryActive, setLotteryActive] = useState(false);
@@ -564,9 +556,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         });
         showNotification(`Commande ${cmd} envoyée`, 'success');
     };
-    const [editSponsorText, setEditSponsorText] = useState(settings.sponsorText || '');
-    const [editSponsorLink, setEditSponsorLink] = useState(settings.sponsorLink || '');
-    const [editShowSponsorBanner, setEditShowSponsorBanner] = useState(settings.showSponsorBanner !== undefined ? settings.showSponsorBanner : true);
+
     const [editInsta, setEditInsta] = useState(settings.instagramLink || '');
     const [editTiktok, setEditTiktok] = useState(settings.tiktokLink || '');
     const [editYoutube, setEditYoutube] = useState(settings.youtubeLink || '');
@@ -580,10 +570,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         { command: "!insta", response: "Suivez-nous sur @dropsiders.fr !" },
         { command: "!lineup", response: "La lineup est disponible dans l'onglet PLANNING." }
     ]);
-
-    // Admin Form States
-    const [newLot, setNewLot] = useState({ name: '', price: '', stock: '' });
+    const [editSponsorText, setEditSponsorText] = useState(settings.sponsorText || '');
+    const [editSponsorLink, setEditSponsorLink] = useState(settings.sponsorLink || '');
+    const [editShowSponsorBanner, setEditShowSponsorBanner] = useState(settings.showSponsorBanner !== undefined ? settings.showSponsorBanner : true);
     const [newCmd, setNewCmd] = useState({ command: '', response: '' });
+    const [newLot, setNewLot] = useState({ name: '', price: '', stock: '' });
+
     const [lineupItems, setLineupItems] = useState<LineupItem[]>(() => {
         try {
             return JSON.parse(settings.lineup || '[]');
@@ -683,6 +675,26 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({
         show: false, message: '', type: 'success'
     });
+
+    const handleAddLineupItem = async () => {
+        if (!newLineupItem.artist || !newLineupItem.day || !newLineupItem.startTime || !newLineupItem.endTime || !newLineupItem.image) {
+            showNotification('Veuillez remplir tous les champs obligatoires (Photo incluse)', 'error');
+            return;
+        }
+
+        const item = { ...newLineupItem, id: editingLineupId || ID.unique() };
+        let next;
+        if (editingLineupId) {
+            next = lineupItems.map(i => i.id === editingLineupId ? item : i);
+        } else {
+            next = [...lineupItems, item];
+        }
+
+        setLineupItems(next);
+        setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', instagram2: '', instagram3: '', image: '' });
+        setEditingLineupId(null);
+        showNotification(editingLineupId ? 'Session modifiée' : 'Session ajoutée', 'success');
+    };
 
     useEffect(() => {
         const init = async () => {
@@ -1274,56 +1286,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
 
 
-    const handleSaveSettings = async () => {
-        setIsSaving(true);
-        const activeStream = editStreams.find(s => s.id === editActiveStreamId);
-        const updatedTakeover: TakeoverSettings = {
-            title: editTitle,
-            youtubeId: activeStream?.youtubeId || '',
-            mainFluxName: activeStream?.name || '',
-            currentTrack: 'ID - UNRELEASED',
-            tickerText: editAnnText,
-            showTickerBanner: editAnnEnabled,
-            tickerBgColor: editTickerBg,
-            tickerTextColor: editTickerTextC,
-            lineup: JSON.stringify(lineupItems),
-            status: editStatus,
-            enabled: editStatus !== 'off',
-            streams: editStreams,
-            activeStreamId: editActiveStreamId,
-            highlightPrice: Number(editHighlightPrice),
-            lots: dropsLots,
-            dropsAmount: Number(editDropsAmount),
-            dropsInterval: Number(editDropsInterval),
-            sponsorText: editSponsorText,
-            sponsorLink: editSponsorLink,
-            showSponsorBanner: editShowSponsorBanner,
-            instagramLink: editInsta,
-            tiktokLink: editTiktok,
-            youtubeLink: editYoutube,
-            twitterLink: editTwitter,
-            botCommands: botCommands,
-            tracklist: JSON.stringify(tracklist)
-        };
 
-        try {
-            const saveRes = await fetch('/api/takeover-settings', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(updatedTakeover)
-            });
-            if (saveRes.ok) {
-                setSettings(updatedTakeover);
-                showNotification('Paramètres mis à jour !', 'success');
-            } else {
-                showNotification('Erreur lors de la sauvegarde', 'error');
-            }
-        } catch (e) {
-            showNotification('Erreur de connexion', 'error');
-        } finally {
-            setIsSaving(false);
-        }
-    };
 
     const clearChat = async () => {
         if (!confirm('Voulez-vous vraiment vider tout le chat ?')) return;
@@ -2413,31 +2376,31 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                                                     <div className="space-y-2">
                                                         <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Date</label>
-                                                        <input type="date" value={newLineupItem.day} onChange={e => setNewLineupItem({ ...newLineupItem, day: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                        <input type="date" value={newLineupItem.day} onChange={e => setNewLineupItem({ ...newLineupItem, id: editingLineupId || '', day: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Début</label>
-                                                        <input type="text" placeholder="21:00" value={newLineupItem.startTime} onChange={e => setNewLineupItem({ ...newLineupItem, startTime: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                        <input type="text" placeholder="21:00" value={newLineupItem.startTime} onChange={e => setNewLineupItem({ ...newLineupItem, id: editingLineupId || '', startTime: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Fin</label>
-                                                        <input type="text" placeholder="22:30" value={newLineupItem.endTime} onChange={e => setNewLineupItem({ ...newLineupItem, endTime: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                        <input type="text" placeholder="22:30" value={newLineupItem.endTime} onChange={e => setNewLineupItem({ ...newLineupItem, id: editingLineupId || '', endTime: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                     </div>
                                                     <div className="space-y-2">
                                                         <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Artiste</label>
-                                                        <input type="text" placeholder="NOM DE L'ARTISTE" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, artist: e.target.value.toUpperCase() })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                        <input type="text" placeholder="NOM DE L'ARTISTE" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, id: editingLineupId || '', artist: e.target.value.toUpperCase() })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                     </div>
                                                     <div className="col-span-2 md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-6">
                                                         <div className="space-y-2">
                                                             <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Scène (Stage)</label>
-                                                            <select value={newLineupItem.stage} onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value.toUpperCase() })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white">
+                                                            <select value={newLineupItem.stage} onChange={e => setNewLineupItem({ ...newLineupItem, id: editingLineupId || '', stage: e.target.value.toUpperCase() })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white">
                                                                 <option value="">CHOISIR SCÈNE</option>
                                                                 {editStreams.map(s => <option key={s.id} value={s.name.toUpperCase()}>{s.name.toUpperCase()}</option>)}
                                                             </select>
                                                         </div>
                                                         <div className="space-y-2">
                                                             <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Instagram (@pseudo)</label>
-                                                            <input type="text" placeholder="@artist_name" value={newLineupItem.instagram} onChange={e => setNewLineupItem({ ...newLineupItem, instagram: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                            <input type="text" placeholder="@artist_name" value={newLineupItem.instagram} onChange={e => setNewLineupItem({ ...newLineupItem, id: editingLineupId || '', instagram: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -2474,7 +2437,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                                 <div className="flex gap-4">
                                                      <button onClick={handleAddLineupItem} className="flex-1 py-4 bg-neon-cyan text-black font-black uppercase rounded-2xl hover:bg-neon-cyan/80 transition-all shadow-xl shadow-neon-cyan/20">{editingLineupId ? 'Mettre à jour' : 'Ajouter au Planning'}</button>
-                                                     {editingLineupId && <button onClick={() => { setEditingLineupId(null); setNewLineupItem({ day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', instagram2: '', instagram3: '', image: '' }); }} className="px-8 py-4 bg-white/5 text-gray-500 rounded-2xl hover:text-white transition-all">Annuler</button>}
+                                                     {editingLineupId && <button onClick={() => { setEditingLineupId(null); setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', instagram2: '', instagram3: '', image: '' }); }} className="px-8 py-4 bg-white/5 text-gray-500 rounded-2xl hover:text-white transition-all">Annuler</button>}
                                                 </div>
                                             </div>
 
@@ -2483,7 +2446,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     image={cropImageSrc}
                                                     aspect={8 / 1}
                                                     onCropComplete={(croppedImage) => {
-                                                        setNewLineupItem({ ...newLineupItem, image: croppedImage });
+                                                        setNewLineupItem({ ...newLineupItem, id: editingLineupId || '', image: croppedImage });
                                                         setCropImageSrc(null);
                                                     }}
                                                     onCancel={() => setCropImageSrc(null)}
