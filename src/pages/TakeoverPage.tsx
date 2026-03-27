@@ -1850,7 +1850,25 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const nowLocal = new Date();
     const currentDayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
     const planActive = planningActiveDay || (planDays.includes(currentDayStr) ? currentDayStr : planDays[0]) || '';
-    const planItems = planMulti ? normalizedLineup.filter(i => i.logicalDay === planActive) : normalizedLineup;
+    const planItems = (planMulti ? normalizedLineup.filter(i => i.logicalDay === planActive) : normalizedLineup)
+        .filter(i => {
+            // Filter by activeStage (mapping stage1 -> index 0 of streams name, or literal match)
+            if (!i.stage) return true; // Default to all if not set
+            const itemStage = i.stage.toUpperCase();
+            
+            // Map stage1, stage2... to stream indices if needed, or just match names
+            const stageMapping: Record<string, string> = {
+                'stage1': (settings.streams?.[0]?.name || 'STAGE 1').toUpperCase(),
+                'stage2': (settings.streams?.[1]?.name || 'STAGE 2').toUpperCase(),
+                'stage3': (settings.streams?.[2]?.name || 'STAGE 3').toUpperCase(),
+                'stage4': (settings.streams?.[3]?.name || 'STAGE 4').toUpperCase(),
+                'stage5': (settings.streams?.[4]?.name || 'STAGE 5').toUpperCase(),
+                'stage6': (settings.streams?.[5]?.name || 'STAGE 6').toUpperCase()
+            };
+
+            const targetStageName = stageMapping[activeStage as string] || activeStage.toUpperCase();
+            return itemStage === targetStageName || itemStage === activeStage.toUpperCase();
+        });
     const fmtPlanDay = (d: string) => {
         const s = d.match(/^(\d{1,2})[\/-](\d{1,2})/);
         if (s) return `${s[1].padStart(2,'0')}/${s[2].padStart(2,'0')}`;
@@ -1922,10 +1940,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         {/* MULTI-CAM SELECTOR IN HEADER */}
                         {settings.streams && settings.streams.length > 1 && (
                             <div className="hidden lg:flex gap-1 md:gap-2 p-1.5 bg-white/5 border border-white/10 rounded-2xl mx-auto overflow-hidden shadow-lg">
-                                {settings.streams.map((s: any) => (
+                                {settings.streams.map((s: any, idx: number) => (
                                     <button
                                         key={s.id}
-                                        onClick={() => setSettings(prev => ({ ...prev, activeStreamId: s.id }))}
+                                        onClick={() => {
+                                            setSettings(prev => ({ ...prev, activeStreamId: s.id }));
+                                            setActiveStage(`stage${idx + 1}` as any);
+                                        }}
                                         className={`px-2 py-1 md:px-4 md:py-2 rounded-xl text-[8px] md:text-[10px] font-black uppercase transition-all flex items-center gap-2 truncate ${settings.activeStreamId === s.id ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
                                     >
                                         <Video className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0" />
@@ -2590,7 +2611,27 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     <input type="text" placeholder="ARTISTE" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, artist: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                     <input type="text" placeholder="DEBUT" value={newLineupItem.startTime} onChange={e => setNewLineupItem({ ...newLineupItem, startTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                     <input type="text" placeholder="FIN" value={newLineupItem.endTime} onChange={e => setNewLineupItem({ ...newLineupItem, endTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                    <input type="text" placeholder="SCÈNE" value={newLineupItem.stage} onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                    <select 
+                                                        value={newLineupItem.stage} 
+                                                        onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value.toUpperCase() })} 
+                                                        className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
+                                                    >
+                                                        <option value="">CHOISIR SCÈNE</option>
+                                                        {editStreams.map(s => (
+                                                            <option key={s.id} value={s.name.toUpperCase()}>{s.name.toUpperCase()}</option>
+                                                        ))}
+                                                        {/* Fallback stage values in case names are missing */}
+                                                        {editStreams.length === 0 && (
+                                                            <>
+                                                                <option value="STAGE 1">STAGE 1</option>
+                                                                <option value="STAGE 2">STAGE 2</option>
+                                                                <option value="STAGE 3">STAGE 3</option>
+                                                                <option value="STAGE 4">STAGE 4</option>
+                                                                <option value="STAGE 5">STAGE 5</option>
+                                                                <option value="STAGE 6">STAGE 6</option>
+                                                            </>
+                                                        )}
+                                                    </select>
                                                     <div className="col-span-2 md:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-6">
                                                         <input type="text" placeholder="INSTAGRAM 1" value={newLineupItem.instagram} onChange={e => setNewLineupItem({ ...newLineupItem, instagram: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
                                                         <input type="text" placeholder="INSTAGRAM 2 (Optionnel B2B)" value={newLineupItem.instagram2 || ''} onChange={e => setNewLineupItem({ ...newLineupItem, instagram2: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
