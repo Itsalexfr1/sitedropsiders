@@ -71,6 +71,7 @@ interface TakeoverSettings {
     botCommands?: { command: string, response: string }[];
     tracklist?: string;
     bannedWords?: string;
+    festivalLogo?: string;
 }
 
 interface TrackItem {
@@ -290,7 +291,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [isPacmanActive, setIsPacmanActive] = useState(false);
     const [showHeistOverlay, setShowHeistOverlay] = useState(false);
     const [activeSlots, setActiveSlots] = useState<{ id: string, participants: string[], timeLeft: number } | null>(null);
-    const [takeoverAlert, setTakeoverAlert] = useState<{ text: string } | null>(null);
+    const [confirmModal, setConfirmModal] = useState<{ show: boolean, title: string, text: string, onConfirm: () => void } | null>(null);
+    const [takeoverAlert, setTakeoverAlert] = useState<{ text: string, type: 'alert' | 'heist' } | null>(null);
     const [userWarnings, setUserWarnings] = useState<{ [pseudo: string]: number }>({});
     const [isRouletteTimeout, setIsRouletteTimeout] = useState(false);
     const [topTalkers, setTopTalkers] = useState<{ pseudo: string, count: number }[]>([]);
@@ -586,6 +588,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editTiktok, setEditTiktok] = useState(settings.tiktokLink || '');
     const [editYoutube, setEditYoutube] = useState(settings.youtubeLink || '');
     const [editTwitter, setEditTwitter] = useState(settings.twitterLink || '');
+    const [editFestivalLogo, setEditFestivalLogo] = useState(settings.festivalLogo || '');
     const [isSaving, setIsSaving] = useState(false);
 
     const [dropsLots, setDropsLots] = useState<any[]>(settings.lots || []);
@@ -927,7 +930,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             setChatMessages(prev => prev.filter(m => m.pseudo !== target));
                         } else if (cmd.startsWith('TAKEOVER_ALERT:')) {
                             const text = cmd.replace('TAKEOVER_ALERT:', '');
-                            setTakeoverAlert({ text });
+                            setTakeoverAlert({ text, type: 'alert' });
                             setTimeout(() => setTakeoverAlert(null), 5000);
                         } else if (cmd.startsWith('JACKPOT_SPAWN')) {
                             setActiveSlots({ id: Math.random().toString(), participants: [], timeLeft: 60 });
@@ -1311,18 +1314,25 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
 
     const clearChat = async () => {
-        if (!confirm('Voulez-vous vraiment vider tout le chat ?')) return;
-        try {
-            const res = await databases.listDocuments(DATABASE_ID, COLLECTION_CHAT, [Query.limit(100)]);
-            for (const doc of res.documents) {
-                await databases.deleteDocument(DATABASE_ID, COLLECTION_CHAT, doc.$id);
+        setConfirmModal({
+            show: true,
+            title: 'Vider le Chat',
+            text: 'Voulez-vous vraiment supprimer définitivement tous les messages du chat ?',
+            onConfirm: async () => {
+                try {
+                    const res = await databases.listDocuments(DATABASE_ID, COLLECTION_CHAT, [Query.limit(100)]);
+                    for (const doc of res.documents) {
+                        await databases.deleteDocument(DATABASE_ID, COLLECTION_CHAT, doc.$id);
+                    }
+                    setChatMessages([]);
+                    showNotification('Chat vidé avec succès !', 'success');
+                } catch (e) {
+                    console.error("Clear chat error:", e);
+                    showNotification('Erreur lors du nettoyage', 'error');
+                }
+                setConfirmModal(null);
             }
-            setChatMessages([]);
-            showNotification('Chat vidé avec succès !', 'success');
-        } catch (e) {
-            console.error("Clear chat error:", e);
-            showNotification('Erreur lors du nettoyage', 'error');
-        }
+        });
     };
 
     const showNotification = (message: string, type: 'success' | 'error') => {
@@ -1915,25 +1925,25 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 <>
 
                     {/* 2. HEADER */}
-                    <div className="h-14 lg:h-16 border-b border-white/5 flex items-center justify-between px-3 lg:px-6 bg-black/40 backdrop-blur-md relative z-40">
-                        <div className="flex items-center gap-4 lg:gap-8">
-                            <div className="flex flex-col">
-                                <div className="flex items-center gap-2 lg:gap-4">
-                                    <div className="flex flex-col items-start pr-4 border-r border-white/10">
-                                        <span className="text-[12px] lg:text-[14px] font-black text-white italic tracking-tighter tabular-nums leading-none">{currentTime}</span>
+                    <div className="h-12 lg:h-16 border-b border-white/5 flex items-center justify-between px-2 lg:px-6 bg-black/40 backdrop-blur-md relative z-40 overflow-hidden">
+                        <div className="flex items-center gap-2 lg:gap-8 min-w-0">
+                            <div className="flex flex-col min-w-0">
+                                <div className="flex items-center gap-2 lg:gap-4 truncate">
+                                    <div className="flex flex-col items-start pr-2 lg:pr-4 border-r border-white/10 shrink-0">
+                                        <span className="text-[10px] lg:text-[14px] font-black text-white italic tracking-tighter tabular-nums leading-none">{currentTime}</span>
                                     </div>
-                                    <div className="flex items-center gap-2 lg:gap-3">
-                                        <div className="flex items-center gap-1 px-1 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md">
+                                    <div className="flex items-center gap-1.5 lg:gap-3 truncate">
+                                        <div className="flex items-center gap-1 px-1 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md shrink-0">
                                             <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
                                             <span className="text-[6px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
                                         </div>
-                                        <h1 className="text-xs lg:text-[32px] font-display font-black text-white italic tracking-tighter leading-none">{settings.title.toUpperCase()}</h1>
+                                        <h1 className="text-[10px] sm:text-xs lg:text-[28px] xl:text-[32px] font-display font-black text-white italic tracking-tighter leading-none truncate max-w-[120px] sm:max-w-none">{settings.title.toUpperCase()}</h1>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1.5 lg:gap-2 mt-1 lg:mt-2">
-                                    <Music className="w-3 h-3 lg:w-4 lg:h-4 text-neon-cyan animate-pulse" />
-                                    <span className="text-[8px] lg:text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none">NOW</span>
-                                    <span className="text-[12px] lg:text-[16px] font-black text-white uppercase italic tracking-tighter truncate max-w-[120px] sm:max-w-none">
+                                <div className="flex items-center gap-1 lg:gap-2 mt-1 lg:mt-2 truncate">
+                                    <Music className="w-2.5 h-2.5 lg:w-4 lg:h-4 text-neon-cyan animate-pulse shrink-0" />
+                                    <span className="text-[7px] lg:text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none shrink-0 border-r border-neon-cyan/20 pr-1.5 mr-1.5">NOW</span>
+                                    <span className="text-[9px] lg:text-[16px] font-black text-white uppercase italic tracking-tighter truncate max-w-[150px] sm:max-w-none">
                                         {settings.streams?.find(s => s.id === settings.activeStreamId)?.overrideArtist || fluxCurrentArtist.artist} {settings.streams?.find(s => s.id === settings.activeStreamId)?.currentTrack ? ` - ${settings.streams.find(s => s.id === settings.activeStreamId)?.currentTrack}` : ''}
                                     </span>
                                 </div>
@@ -2025,10 +2035,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     </div>
 
                     {/* TOP NEWS MARQUEE (Replacing small ticker) */}
-                    <div className="h-8 lg:h-10 bg-neon-red/10 backdrop-blur-md border-b border-neon-red/30 flex items-center overflow-hidden group">
-                        <div className="bg-neon-red px-3 h-full flex items-center shrink-0 z-10 relative shadow-[0_0_15px_rgba(255,0,51,0.5)]">
-                            <Megaphone className="w-3.5 h-3.5 text-white" />
-                            <span className="ml-2 text-[9px] lg:text-[9px] font-black text-white uppercase tracking-tighter cursor-default">NEWS FLUX</span>
+                    <div className="h-6 lg:h-10 bg-neon-red/10 backdrop-blur-md border-b border-neon-red/30 flex items-center overflow-hidden group">
+                        <div className="bg-neon-red px-2 lg:px-3 h-full flex items-center shrink-0 z-10 relative shadow-[0_0_15px_rgba(255,0,51,0.5)]">
+                            <Megaphone className="w-3 lg:w-3.5 h-3 lg:h-3.5 text-white" />
+                            <span className="ml-1 lg:ml-2 text-[7px] lg:text-[9px] font-black text-white uppercase tracking-tighter cursor-default">NEWS FLUX</span>
                         </div>
                         <motion.div
                             animate={{ x: [0, -2000] }}
@@ -2315,6 +2325,52 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     </div>
 
                                                     <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
+                                                        <div className="flex items-center gap-4">
+                                                            <div className="w-10 h-10 bg-neon-cyan/20 rounded-xl flex items-center justify-center">
+                                                                <Camera className="w-5 h-5 text-neon-cyan" />
+                                                            </div>
+                                                            <div>
+                                                                <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Logo du Festival / Live</h3>
+                                                                <p className="text-[8px] text-gray-500 font-bold uppercase">S'affichera sur l'agenda en page d'accueil</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className="flex items-center gap-6">
+                                                            <div className="relative group">
+                                                                <div className="w-20 h-20 rounded-2xl bg-black/40 border border-white/10 overflow-hidden flex items-center justify-center relative shadow-xl">
+                                                                    {editFestivalLogo ? (
+                                                                        <img src={editFestivalLogo} alt="Logo" className="w-full h-full object-cover" />
+                                                                    ) : (
+                                                                        <Camera className="w-8 h-8 text-gray-700" />
+                                                                    )}
+                                                                    <label htmlFor="festival-logo-upload" className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center cursor-pointer transition-all">
+                                                                        <Plus className="w-6 h-6 text-white" />
+                                                                    </label>
+                                                                </div>
+                                                                <input 
+                                                                    id="festival-logo-upload" 
+                                                                    type="file" 
+                                                                    className="hidden" 
+                                                                    accept="image/*" 
+                                                                    onChange={(e) => {
+                                                                        const file = e.target.files?.[0];
+                                                                        if (file) {
+                                                                            const reader = new FileReader();
+                                                                            reader.onload = (re) => {
+                                                                                setCropImageSrc(re.target?.result as string);
+                                                                                setEditingLineupId('FESTIVAL_LOGO'); 
+                                                                            };
+                                                                            reader.readAsDataURL(file);
+                                                                        }
+                                                                    }}
+                                                                />
+                                                            </div>
+                                                            {editFestivalLogo && (
+                                                                <button onClick={() => setEditFestivalLogo('')} className="text-[10px] font-black text-red-500 hover:text-white uppercase tracking-widest border border-red-500/20 px-4 py-2 rounded-xl hover:bg-red-500/20 transition-all">Supprimer</button>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
                                                         <div className="flex items-center justify-between border-b border-white/5 pb-4">
                                                             <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Flux Vidéo</h3>
                                                             <button onClick={() => setEditStreams([...editStreams, { id: Math.random().toString(36).substr(2, 9), name: '', youtubeId: '' }])} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg"><Plus className="w-4 h-4 text-white" /></button>
@@ -2412,6 +2468,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 dropsInterval: editDropsInterval,
                                                                 lots: dropsLots,
                                                                 botCommands: botCommands,
+                                                                festivalLogo: editFestivalLogo,
                                                                 lineup: JSON.stringify(lineupItems),
                                                                 tracklist: JSON.stringify(tracklist)
                                                             };
@@ -2520,12 +2577,20 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             {cropImageSrc && (
                                                 <ImageCropper
                                                     image={cropImageSrc}
-                                                    aspect={8 / 1}
+                                                    aspect={editingLineupId === 'FESTIVAL_LOGO' ? 1/1 : 8/1}
                                                     onCropComplete={(croppedImage) => {
-                                                        setNewLineupItem({ ...newLineupItem, id: editingLineupId || '', image: croppedImage });
+                                                        if (editingLineupId === 'FESTIVAL_LOGO') {
+                                                             setEditFestivalLogo(croppedImage);
+                                                             setEditingLineupId(null);
+                                                        } else {
+                                                             setNewLineupItem({ ...newLineupItem, id: editingLineupId || '', image: croppedImage });
+                                                        }
                                                         setCropImageSrc(null);
                                                     }}
-                                                    onCancel={() => setCropImageSrc(null)}
+                                                    onCancel={() => {
+                                                        setCropImageSrc(null);
+                                                        if (editingLineupId === 'FESTIVAL_LOGO') setEditingLineupId(null);
+                                                    }}
                                                 />
                                             )}
 
@@ -4196,13 +4261,69 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 20 }}
-                            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[200]"
+                            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[300]"
                         >
                             <div className={`px-6 py-3 rounded-full shadow-2xl flex items-center gap-3 border ${toast.type === 'success' ? 'bg-green-500/10 border-green-500/20 text-green-500' : 'bg-red-500/10 border-red-500/20 text-red-500'}`}>
                                 {toast.type === 'success' ? <ShieldCheck className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
                                 <span className="text-[10px] font-black uppercase tracking-widest">{toast.message}</span>
                             </div>
                         </motion.div>
+                    )}
+                </AnimatePresence>
+
+                {/* ======= CUSTOM CONFIRM MODAL ======= */}
+                <AnimatePresence>
+                    {confirmModal && (
+                        <div className="fixed inset-0 z-[500] flex items-center justify-center p-6">
+                            <motion.div 
+                                initial={{ opacity: 0 }} 
+                                animate={{ opacity: 1 }} 
+                                exit={{ opacity: 0 }}
+                                onClick={() => setConfirmModal(null)}
+                                className="absolute inset-0 bg-black/90 backdrop-blur-2xl" 
+                            />
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.8, y: 50 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.8, y: 50 }}
+                                className="bg-[#0a0a0a] border-2 border-white/10 rounded-[3rem] p-10 max-w-md w-full relative z-10 shadow-[0_0_100px_rgba(0,0,0,1)] overflow-hidden"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-neon-red via-neon-cyan to-neon-purple shadow-[0_0_15px_#ff0033]" />
+                                
+                                <div className="relative z-10 flex flex-col items-center text-center space-y-6">
+                                    <div className="w-20 h-20 bg-neon-red/10 border-2 border-neon-red/30 rounded-[2rem] flex items-center justify-center animate-pulse">
+                                        <AlertCircle className="w-10 h-10 text-neon-red" />
+                                    </div>
+                                    
+                                    <div className="space-y-3">
+                                        <h3 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">
+                                            {confirmModal.title}
+                                        </h3>
+                                        <p className="text-xs text-gray-500 font-bold uppercase tracking-widest leading-relaxed">
+                                            {confirmModal.text}
+                                        </p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 gap-4 w-full pt-4">
+                                        <button
+                                            onClick={() => setConfirmModal(null)}
+                                            className="px-6 py-5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[10px] font-black text-white uppercase tracking-[0.2em] transition-all"
+                                        >
+                                            Annuler
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                confirmModal.onConfirm();
+                                                setConfirmModal(null);
+                                            }}
+                                            className="px-6 py-5 bg-neon-red hover:bg-red-700 shadow-[0_15px_40px_rgba(255,0,51,0.3)] rounded-2xl text-[10px] font-black text-white uppercase tracking-[0.2em] transition-all transform active:scale-95"
+                                        >
+                                            Confirmer
+                                        </button>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
                     )}
                 </AnimatePresence>
             </div>

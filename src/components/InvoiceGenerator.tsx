@@ -211,6 +211,7 @@ export function InvoiceGenerator() {
         try { return JSON.parse(localStorage.getItem('inv_clients') || '[]'); } catch { return []; }
     });
     const [showClientPicker, setShowClientPicker] = useState(false);
+    const [confirmModal, setConfirmModal] = useState<{ show: boolean, title: string, text: string, onConfirm: () => void } | null>(null);
 
     // Saved articles catalog — seed with Prestation Light if empty
     const [savedArticles, setSavedArticles] = useState<SavedArticle[]>(() => {
@@ -378,13 +379,20 @@ export function InvoiceGenerator() {
     };
 
     const deleteInvoice = async (id: number) => {
-        if (!confirm('Voulez-vous vraiment supprimer cette facture ?')) return;
-        try {
-            const adminUser = localStorage.getItem('admin_user') || '';
-            const adminPass = localStorage.getItem('admin_password') || '';
-            const res = await fetch('/api/invoices/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }, body: JSON.stringify({ id }) });
-            if (res.ok) fetchHistory();
-        } catch { }
+        setConfirmModal({
+            show: true,
+            title: 'Suppression Facture',
+            text: 'Voulez-vous vraiment supprimer cette facture de l\'archive ? Cette action est irréversible.',
+            onConfirm: async () => {
+                try {
+                    const adminUser = localStorage.getItem('admin_user') || '';
+                    const adminPass = localStorage.getItem('admin_password') || '';
+                    const res = await fetch('/api/invoices/delete', { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-Admin-Username': adminUser, 'X-Admin-Password': adminPass }, body: JSON.stringify({ id }) });
+                    if (res.ok) fetchHistory();
+                } catch { }
+                setConfirmModal(null);
+            }
+        });
     };
 
     const TABS = [
@@ -1089,6 +1097,60 @@ export function InvoiceGenerator() {
                             )}
                         </motion.div>
                     </motion.div>
+                )}
+            </AnimatePresence>
+            {/* ======= CUSTOM CONFIRM MODAL ======= */}
+            <AnimatePresence>
+                {confirmModal && (
+                    <div className="fixed inset-0 z-[100] flex items-center justify-center p-6">
+                        <motion.div 
+                            initial={{ opacity: 0 }} 
+                            animate={{ opacity: 1 }} 
+                            exit={{ opacity: 0 }}
+                            onClick={() => setConfirmModal(null)}
+                            className="absolute inset-0 bg-black/80 backdrop-blur-xl" 
+                        />
+                        <motion.div
+                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                            className="bg-[#0d0f1a] border border-white/10 rounded-[2.5rem] p-8 md:p-10 max-w-lg w-full relative z-10 shadow-[0_30px_100px_rgba(0,0,0,0.8)] overflow-hidden"
+                        >
+                            {/* Decorative background glow */}
+                            <div className="absolute -top-24 -right-24 w-48 h-48 bg-indigo-600/20 blur-[80px] rounded-full pointer-events-none" />
+                            <div className="absolute -bottom-24 -left-24 w-48 h-48 bg-red-600/10 blur-[80px] rounded-full pointer-events-none" />
+
+                            <div className="relative z-10 space-y-6">
+                                <div className="w-20 h-20 bg-indigo-500/10 border border-indigo-500/20 rounded-3xl flex items-center justify-center mx-auto mb-2">
+                                    <Trash2 className="w-10 h-10 text-indigo-400" />
+                                </div>
+                                
+                                <div className="text-center space-y-2">
+                                    <h3 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
+                                        {confirmModal.title.toUpperCase()}
+                                    </h3>
+                                    <p className="text-sm text-gray-400 font-medium leading-relaxed">
+                                        {confirmModal.text}
+                                    </p>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4 pt-4">
+                                    <button
+                                        onClick={() => setConfirmModal(null)}
+                                        className="px-6 py-4 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-[11px] font-black text-white uppercase tracking-widest transition-all"
+                                    >
+                                        Annuler
+                                    </button>
+                                    <button
+                                        onClick={confirmModal.onConfirm}
+                                        className="px-6 py-4 bg-red-600 hover:bg-red-700 shadow-[0_10px_30px_rgba(220,38,38,0.3)] rounded-2xl text-[11px] font-black text-white uppercase tracking-widest transition-all transform active:scale-95"
+                                    >
+                                        Confirmer
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </div>
                 )}
             </AnimatePresence>
         </div>

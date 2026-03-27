@@ -513,7 +513,7 @@ export function Agenda() {
                     </div>
                 )}
 
-                <div className="flex overflow-x-auto gap-4 pb-8 md:pb-0 md:block md:space-y-4 w-full relative snap-x snap-mandatory no-scrollbar text-left">
+                <div className="flex overflow-x-auto gap-8 pb-12 pt-8 px-8 -mx-8 md:px-6 md:mx-0 md:pt-10 md:block md:space-y-10 w-full relative snap-x snap-mandatory no-scrollbar text-left md:overflow-visible">
                     {takeoverEnabled && (
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95 }}

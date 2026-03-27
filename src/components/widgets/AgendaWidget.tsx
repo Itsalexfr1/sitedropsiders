@@ -219,7 +219,7 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                 </Link>
             </div>
 
-            <div className="flex-1 space-y-3 mb-4">
+            <div className="flex-1 space-y-4 p-8 -m-8 overflow-x-auto md:overflow-visible no-scrollbar">
                 {takeoverEnabled && (
                     <Link
                         to="/live"
@@ -242,8 +242,12 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                         <div className="p-3 lg:p-4 flex items-center gap-3 lg:gap-4 relative z-10">
                             <div className="relative">
                                 <div className="absolute inset-0 bg-neon-red blur-md rounded-full animate-pulse opacity-50" />
-                                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-black rounded-full border-2 border-neon-red flex items-center justify-center relative z-10">
-                                    <Camera className="w-4 h-4 text-neon-red" />
+                                <div className="w-10 h-10 lg:w-12 lg:h-12 bg-black rounded-full border-2 border-neon-red flex items-center justify-center relative z-10 overflow-hidden">
+                                    {takeoverSettings?.festivalLogo ? (
+                                        <img src={takeoverSettings.festivalLogo} alt="Festival Logo" className="w-full h-full object-cover" />
+                                    ) : (
+                                        <Camera className="w-4 h-4 text-neon-red" />
+                                    )}
                                     <span className="absolute bottom-[-2px] right-[-2px] w-2.5 h-2.5 lg:w-3 lg:h-3 rounded-full bg-neon-red shadow-[0_0_10px_#ff0033] animate-pulse" />
                                 </div>
                             </div>
