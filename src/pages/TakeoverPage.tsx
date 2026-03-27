@@ -2013,6 +2013,17 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 >
                                     <BarChart3 className="w-4 h-4 rotate-90" />
                                 </button>
+                                {viewMode === 'grid' && (
+                                    <select
+                                        value={gridCount}
+                                        onChange={(e) => setGridCount(Number(e.target.value))}
+                                        className="bg-black/40 border border-white/10 rounded-lg px-2 text-[10px] font-black text-white outline-none focus:border-neon-cyan"
+                                    >
+                                        {[1, 2, 3, 4, 5, 6].map(n => (
+                                            <option key={n} value={n}>{n} STAGES</option>
+                                        ))}
+                                    </select>
+                                )}
                             </div>
                             <button
                                 onClick={() => setIsCinemaMode(!isCinemaMode)}
