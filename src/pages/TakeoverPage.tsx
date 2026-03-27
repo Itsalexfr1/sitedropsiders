@@ -8,7 +8,7 @@ import {
     BarChart3, Clock, Sword, Crown, Maximize2, Minimize2,
     Trophy, Stars, Heart, Volume2, Timer, ShieldAlert, Calendar, Edit2, Edit3, Image as ImageIcon,
     Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
-    Search, ChevronUp, ChevronDown, Camera, Check
+    Search, ChevronUp, ChevronDown, Camera, Check, Bot, Coins
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
@@ -67,6 +67,7 @@ interface TakeoverSettings {
     twitterLink?: string;
     botCommands?: { command: string, response: string }[];
     tracklist?: string;
+    bannedWords?: string;
 }
 
 interface TrackItem {
@@ -543,11 +544,26 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editHighlightPrice, setEditHighlightPrice] = useState(settings.highlightPrice || 100);
     const [editDropsAmount, setEditDropsAmount] = useState(settings.dropsAmount || 10);
     const [editDropsInterval, setEditDropsInterval] = useState(settings.dropsInterval || 5);
-    const [adminActiveTab, setAdminActiveTab] = useState('general');
+    const [adminActiveTab, setAdminActiveTab] = useState<'config' | 'planning' | 'tracklist' | 'interactif' | 'bot_drops'>('config');
+    const [interactivityDuration, setInteractivityDuration] = useState(30);
     // 🎰 Lottery (Tirage au sort)
     const [lotteryParticipants, setLotteryParticipants] = useState<string[]>([]);
     const [lotteryActive, setLotteryActive] = useState(false);
     const [lotteryWinner, setLotteryWinner] = useState<string | null>(null);
+    const [lotteryPrize, setLotteryPrize] = useState('');
+    const [editBannedWords, setEditBannedWords] = useState(settings.bannedWords || '');
+
+    const handleAdminCommand = async (cmd: string) => {
+        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+            pseudo: "BOT_SYSTEM",
+            message: `[SYSTEM]:COMMAND:${cmd}`,
+            color: "text-neon-red",
+            time: new Date().toLocaleTimeString(),
+            country: "FR",
+            stage: activeStage
+        });
+        showNotification(`Commande ${cmd} envoyée`, 'success');
+    };
     const [editSponsorText, setEditSponsorText] = useState(settings.sponsorText || '');
     const [editSponsorLink, setEditSponsorLink] = useState(settings.sponsorLink || '');
     const [editShowSponsorBanner, setEditShowSponsorBanner] = useState(settings.showSponsorBanner !== undefined ? settings.showSponsorBanner : true);
@@ -1218,7 +1234,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         const newTrack: TrackItem = {
             id: Date.now().toString(),
             time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-            title: trackSuggestion.trim(),
+            title: trackSuggestion.trim().toUpperCase(),
             user: pseudo
         };
 
@@ -1226,15 +1242,34 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         setTracklist(newList);
         setTrackSuggestion('');
 
-        // Broadcast
-        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-            pseudo: "BOT_SYSTEM",
-            message: `[SYSTEM]:TRACKLIST_TRACK_NEW:${JSON.stringify({ setId, track: newTrack })}`,
-            color: "text-neon-cyan",
-            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-            country: "FR"
-        });
-        showNotification("Titre suggéré !", "success");
+        // 1. Broadcast Realtime via Appwrite (Chat)
+        try {
+            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                pseudo: "BOT_SYSTEM",
+                message: `[SYSTEM]:TRACKLIST_TRACK_NEW:${JSON.stringify({ setId, track: newTrack })}`,
+                color: "text-neon-cyan",
+                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+                stage: activeStage,
+                country: "FR"
+            });
+        } catch (e) {
+            console.error("Broadcast failed", e);
+        }
+
+        // 2. Persist to Backend JSON (Proxy) - NO isMod check to allow all viewers
+        try {
+            const updated = { ...settings, tracklist: JSON.stringify(newList) };
+            await fetch('/api/takeover-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updated)
+            });
+            setSettings(updated);
+            showNotification(`MERCI @${pseudo} ! Track identifiée 🔥`, "success");
+        } catch (e) {
+            console.error("Save failed", e);
+            showNotification("Erreur lors de l'enregistrement", "error");
+        }
     };
 
 
@@ -1980,7 +2015,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 onClick={() => {
                                     if (isMod) {
                                         setShowAdminPanel(true);
-                                        setAdminActiveTab('moderation');
+                                        setAdminActiveTab('config');
                                     }
                                 }}
                                 className={`flex items-center gap-2 lg:gap-4 px-2 lg:px-4 py-1.5 lg:py-2 bg-white/5 border border-white/10 rounded-xl transition-all ${isMod ? 'hover:bg-white/10 cursor-pointer' : ''}`}
@@ -2206,540 +2241,240 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
                             className="absolute inset-0 z-50 bg-black/80 backdrop-blur-xl p-8 overflow-y-auto custom-scrollbar"
                         >
-                            <div className="max-w-3xl mx-auto space-y-10">
+                            <div className="max-w-4xl mx-auto space-y-10">
                                 <div className="flex items-center justify-between border-b border-white/10 pb-6">
                                     <h2 className="text-3xl font-display font-black text-white uppercase italic tracking-tighter">Configuration du <span className="text-neon-purple">Studio</span></h2>
-                                    <div className="flex gap-2">
-                                        {['GÉNÉRAL', 'PLANNING', 'TRACKLIST', 'SONDAGES / QUIZ', 'DROPS', 'BOT', 'TIRAGE AU SORT', 'MODÉRATION'].map(t => {
-                                            const tabId = t.split(' ')[0].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-                                            return (
-                                                <button
-                                                    key={t}
-                                                    onClick={() => setAdminActiveTab(tabId)}
-                                                    className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminActiveTab === tabId ? 'bg-white/10 text-white border border-white/20' : 'text-gray-500 hover:text-white'}`}
-                                                >
-                                                    {t}
-                                                </button>
-                                            );
-                                        })}
+                                    <div className="flex gap-2 bg-white/5 p-1 rounded-2xl">
+                                        {[
+                                            { id: 'config', label: '🛠️ CONFIG' },
+                                            { id: 'planning', label: '📅 PLANNING' },
+                                            { id: 'tracklist', label: '🎵 TRACKLIST' },
+                                            { id: 'interactif', label: '🎮 INTERACTIF' },
+                                            { id: 'bot_drops', label: '🤖 BOT & DROPS' }
+                                        ].map(tab => (
+                                            <button
+                                                key={tab.id}
+                                                onClick={() => setAdminActiveTab(tab.id as any)}
+                                                className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${adminActiveTab === tab.id ? 'bg-white/10 text-white border border-white/20 shadow-lg' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                {tab.label}
+                                            </button>
+                                        ))}
                                     </div>
                                     <button onClick={() => setShowAdminPanel(false)} className="p-2 hover:bg-white/5 rounded-full"><X className="w-6 h-6 text-gray-500" /></button>
                                 </div>
 
                                 <div className="min-h-[400px]">
-                                    {adminActiveTab === 'general' ? (
-                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    {adminActiveTab === 'config' ? (
+                                        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                                <div className="space-y-6">
-                                                    <div>
-                                                        <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest mb-2">Titre du Live</label>
-                                                        <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-sm font-bold text-white outline-none focus:border-neon-purple transition-all uppercase" placeholder="EX: MAIN STAGE LIVE" />
-                                                    </div>
-
-                                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            <Instagram className="w-4 h-4 text-neon-pink" />
-                                                            <h3 className="text-[10px] font-black text-white uppercase tracking-widest">Réseaux Sociaux</h3>
-                                                        </div>
-                                                        <div className="grid grid-cols-2 gap-4">
-                                                            <div className="space-y-1">
-                                                                <label className="text-[11px] font-black text-gray-500 uppercase">Instagram</label>
-                                                                <input type="text" value={editInsta} onChange={e => setEditInsta(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-neon-pink" placeholder="@pseudo" />
+                                                <div className="space-y-8">
+                                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
+                                                        <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+                                                            <div className="w-10 h-10 bg-neon-purple/20 rounded-xl flex items-center justify-center">
+                                                                <Settings className="w-5 h-5 text-neon-purple" />
                                                             </div>
-                                                            <div className="space-y-1">
-                                                                <label className="text-[11px] font-black text-gray-500 uppercase">TikTok</label>
-                                                                <input type="text" value={editTiktok} onChange={e => setEditTiktok(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-neon-pink" placeholder="@pseudo" />
-                                                            </div>
-                                                            <div className="space-y-1">
-                                                                <label className="text-[11px] font-black text-gray-500 uppercase">YouTube</label>
-                                                                <input type="text" value={editYoutube} onChange={e => setEditYoutube(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-neon-pink" placeholder="@pseudo" />
-                                                            </div>
-                                                            <div className="space-y-1">
-                                                                <label className="text-[11px] font-black text-gray-500 uppercase">Twitter (X)</label>
-                                                                <input type="text" value={editTwitter} onChange={e => setEditTwitter(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white outline-none focus:border-neon-pink" placeholder="@pseudo" />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="pt-6 border-t border-white/5 space-y-6">
-                                                        <div className="flex items-center gap-2 mb-2">
-                                                            <Video className="w-4 h-4 text-neon-purple" />
-                                                            <h3 className="text-xs font-black text-white uppercase tracking-widest font-display italic">Gestion des Flux (Multiple)</h3>
-                                                        </div>
-                                                        <div className="space-y-4 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
-                                                            {editStreams.map((stream, idx) => (
-                                                                <div key={stream.id || idx} className={`p-4 rounded-2xl border transition-all ${editActiveStreamId === stream.id ? 'bg-neon-purple/10 border-neon-purple shadow-[0_0_20px_rgba(168,85,247,0.15)]' : 'bg-white/5 border-white/10 opacity-70 hover:opacity-100'}`}>
-                                                                    <div className="flex items-center justify-between mb-4">
-                                                                        <div className="flex items-center gap-3">
-                                                                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-[10px] ${editActiveStreamId === stream.id ? 'bg-neon-purple text-white' : 'bg-white/10 text-gray-500'}`}>
-                                                                                {idx + 1}
-                                                                            </div>
-                                                                            <span className="text-[10px] font-black text-white uppercase tracking-widest">{stream.name || "Nouveau Flux"}</span>
-                                                                        </div>
-                                                                        <div className="flex items-center gap-2">
-                                                                            <button onClick={() => setEditActiveStreamId(stream.id)} className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase transition-all ${editActiveStreamId === stream.id ? 'bg-neon-purple text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
-                                                                                {editActiveStreamId === stream.id ? 'ACTIF' : 'ACTIVER'}
-                                                                            </button>
-                                                                            <button onClick={() => setEditStreams(editStreams.filter(s => s.id !== stream.id))} className="p-1.5 text-gray-500 hover:text-red-500 transition-all bg-white/5 rounded-lg">
-                                                                                <Trash2 className="w-4 h-4" />
-                                                                            </button>
-                                                                        </div>
-                                                                    </div>
-                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                        <div className="space-y-2">
-                                                                            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-2">Nom de la scène</label>
-                                                                            <input type="text" value={stream.name} onChange={e => {
-                                                                                const ns = [...editStreams];
-                                                                                ns[idx].name = e.target.value.toUpperCase();
-                                                                                setEditStreams(ns);
-                                                                            }} className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-purple uppercase" placeholder="MAIN STAGE" />
-                                                                        </div>
-                                                                        <div className="space-y-2">
-                                                                            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-2">YouTube (Link or ID)</label>
-                                                                            <input type="text" value={stream.youtubeId} onChange={e => {
-                                                                                const ns = [...editStreams];
-                                                                                ns[idx].youtubeId = extractYoutubeId(e.target.value);
-                                                                                setEditStreams(ns);
-                                                                            }} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-purple" placeholder="Link or ID" />
-                                                                        </div>
-                                                                        <div className="col-span-full space-y-2">
-                                                                            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-2">Titre Actuel (Affiché dans le Live)</label>
-                                                                            <input type="text" value={stream.currentTrack || ''} onChange={e => {
-                                                                                const ns = [...editStreams];
-                                                                                ns[idx].currentTrack = e.target.value.toUpperCase();
-                                                                                setEditStreams(ns);
-                                                                            }} className="w-full bg-neon-purple/5 border border-neon-purple/20 rounded-xl px-4 py-3 text-xs font-black text-white outline-none focus:border-neon-purple uppercase" placeholder="EX: ID - UNRELEASED (REMIX)" />
-                                                                        </div>
-                                                                    </div>
-                                                                </div>
-                                                            ))}
-                                                            <button onClick={() => setEditStreams([...editStreams, { id: Math.random().toString(36).substr(2, 9), name: '', youtubeId: '' }])} className="w-full py-4 bg-white/5 border border-dashed border-white/20 rounded-2xl text-[10px] font-black text-gray-500 uppercase tracking-widest hover:border-white/40 hover:text-white transition-all flex items-center justify-center gap-2">
-                                                                <Plus className="w-4 h-4" /> Ajouter un autre flux
-                                                            </button>
-                                                        </div>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-6">
-
-
-                                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-                                                        <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest">Statut de la diffusion</label>
-                                                        <div className="flex gap-2 p-1 bg-black/40 border border-white/10 rounded-xl">
-                                                            {(['live', 'edit', 'off'] as const).map(s => (
-                                                                <button
-                                                                    key={s}
-                                                                    onClick={() => setEditStatus(s)}
-                                                                    className={`flex-1 py-3 rounded-lg text-[9px] font-black uppercase tracking-widest transition-all ${editStatus === s
-                                                                        ? (s === 'live' ? 'bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : s === 'edit' ? 'bg-orange-600 text-white' : 'bg-gray-600 text-white')
-                                                                        : 'text-gray-500 hover:text-white hover:bg-white/5'
-                                                                        }`}
-                                                                >
-                                                                    {s === 'live' ? 'EN DIRECT' : s === 'edit' ? 'PRÉPARAT.' : 'OFFLINE'}
-                                                                </button>
-                                                            ))}
-                                                        </div>
-                                                    </div>
-
-                                                    <div className="bg-white/5 border border-white/10 rounded-2xl p-6 space-y-4">
-                                                        <div className="flex items-center justify-between">
-                                                            <label className="block text-[11px] font-black text-gray-500 uppercase tracking-widest">Partenaires / Sponsor</label>
-                                                            <button
-                                                                onClick={() => {
-                                                                    setEditShowSponsorBanner(!editShowSponsorBanner);
-                                                                    setSettings(prev => ({ ...prev, showSponsorBanner: !editShowSponsorBanner }));
-                                                                }}
-                                                                className={`px-3 py-1 rounded-full text-[8px] font-black uppercase transition-all ${editShowSponsorBanner ? 'bg-neon-purple text-white' : 'bg-gray-700 text-gray-400'}`}
-                                                            >
-                                                                {editShowSponsorBanner ? 'ACTIVÉ' : 'DÉSACTIVÉ'}
-                                                            </button>
+                                                            <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Identité du Live</h3>
                                                         </div>
                                                         <div className="space-y-4">
-                                                            <input type="text" value={editSponsorText || ''} onChange={e => {
-                                                                setEditSponsorText(e.target.value);
-                                                                setSettings(prev => ({ ...prev, sponsorText: e.target.value }));
-                                                            }} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-purple" placeholder="TEXTE SPONSOR" />
-                                                            <input type="text" value={editSponsorLink || ''} onChange={e => {
-                                                                setEditSponsorLink(e.target.value);
-                                                                setSettings(prev => ({ ...prev, sponsorLink: e.target.value }));
-                                                            }} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-purple" placeholder="LIEN SPONSOR (HTTPS://...)" />
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : adminActiveTab === 'sondages' ? (
-                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-8">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center">
-                                                        <BarChart3 className="w-6 h-6 text-neon-cyan" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion des Sondages</h3>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Lancez des votes interactifs pour les viewers</p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-6 pt-4 border-t border-white/5">
-                                                    {activePoll ? (
-                                                        <div className="bg-neon-cyan/10 border-2 border-neon-cyan/30 rounded-3xl p-8 space-y-6">
-                                                            <div className="flex justify-between items-start">
-                                                                <div>
-                                                                    <span className="px-3 py-1 bg-neon-cyan text-black text-[8px] font-black rounded-lg uppercase tracking-widest mb-2 inline-block">SONDAGE ACTIF</span>
-                                                                    <h4 className="text-xl font-black text-white uppercase italic">{activePoll.question}</h4>
-                                                                </div>
-                                                                <button
-                                                                    onClick={async () => {
-                                                                        await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                            pseudo: "BOT_SYSTEM",
-                                                                            message: '[SYSTEM]:CLEAR_POLL',
-                                                                            color: "text-neon-purple",
-                                                                            time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                            country: "FR",
-                                                                            stage: activeStage
-                                                                        });
-                                                                    }}
-                                                                    className="px-6 py-3 bg-red-600 text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
-                                                                >
-                                                                    Arrêter le sondage
-                                                                </button>
-                                                            </div>
-                                                            <div className="space-y-3">
-                                                                {activePoll.options.map((opt: any, idx: number) => {
-                                                                    const totalVotes = activePoll.options.reduce((sum: number, o: any) => sum + (o.votes || 0), 0);
-                                                                    const percentage = totalVotes > 0 ? Math.round(((opt.votes || 0) / totalVotes) * 100) : 0;
-                                                                    return (
-                                                                        <div key={idx} className="space-y-1">
-                                                                            <div className="flex justify-between text-[10px] font-black text-white uppercase">
-                                                                                <span>{opt.text}</span>
-                                                                                <span>{opt.votes || 0} Votes ({percentage}%)</span>
-                                                                            </div>
-                                                                            <div className="h-2 bg-white/5 rounded-full overflow-hidden">
-                                                                                <motion.div
-                                                                                    initial={{ width: 0 }}
-                                                                                    animate={{ width: `${percentage}%` }}
-                                                                                    className="h-full bg-neon-cyan"
-                                                                                />
-                                                                            </div>
-                                                                        </div>
-                                                                    );
-                                                                })}
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="space-y-6">
-                                                            <div className="space-y-2">
-                                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Question du sondage</label>
-                                                                <input
-                                                                    type="text"
-                                                                    value={pollQuestion}
-                                                                    onChange={e => setPollQuestion(e.target.value)}
-                                                                    placeholder="EX: QU'AVEZ-VOUS PENSÉ DE CE SET ?"
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-sm font-bold text-white outline-none focus:border-neon-cyan transition-all uppercase"
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-4">
-                                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Options de réponse</label>
-                                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                                    {pollOptions.map((opt, idx) => (
-                                                                        <div key={idx} className="relative group">
-                                                                            <input
-                                                                                type="text"
-                                                                                value={opt}
-                                                                                onChange={e => {
-                                                                                    const next = [...pollOptions];
-                                                                                    next[idx] = e.target.value.toUpperCase();
-                                                                                    setPollOptions(next);
-                                                                                }}
-                                                                                placeholder={`OPTION ${idx + 1}`}
-                                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-cyan uppercase"
-                                                                            />
-                                                                            {pollOptions.length > 2 && (
-                                                                                <button
-                                                                                    onClick={() => setPollOptions(pollOptions.filter((_, i) => i !== idx))}
-                                                                                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-gray-500 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
-                                                                                >
-                                                                                    <Trash2 className="w-4 h-4" />
-                                                                                </button>
-                                                                            )}
-                                                                        </div>
-                                                                    ))}
-                                                                </div>
-                                                                {pollOptions.length < 4 && (
-                                                                    <button
-                                                                        onClick={() => setPollOptions([...pollOptions, ''])}
-                                                                        className="w-full py-3 border border-dashed border-white/10 rounded-xl text-[10px] font-black text-gray-500 uppercase hover:border-white/30 hover:text-white transition-all flex items-center justify-center gap-2"
-                                                                    >
-                                                                        <Plus className="w-3 h-3" /> Ajouter une option
-                                                                    </button>
-                                                                )}
-                                                            </div>
-                                                            <button
-                                                                onClick={async () => {
-                                                                    if (!pollQuestion || pollOptions.some(o => !o)) {
-                                                                        showNotification("Remplis tout le sondage !", 'error');
-                                                                        return;
-                                                                    }
-                                                                    const pollData = {
-                                                                        question: pollQuestion,
-                                                                        options: pollOptions.map(o => ({ text: o, votes: 0 })),
-                                                                        active: true
-                                                                    };
-                                                                    await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                        pseudo: "BOT_POLL",
-                                                                        message: `[SYSTEM]:POLL:${JSON.stringify(pollData)}`,
-                                                                        color: "text-neon-purple",
-                                                                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                        country: "FR"
-                                                                    });
-                                                                    setPollQuestion('');
-                                                                    setPollOptions(['', '']);
-                                                                }}
-                                                                className="w-full py-5 bg-neon-cyan text-black font-black uppercase rounded-2xl shadow-[0_10px_30px_rgba(0,255,255,0.2)] hover:scale-[1.02] active:scale-95 transition-all"
-                                                            >
-                                                                LANCER LE SONDAGE 🔥
-                                                            </button>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-8">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center">
-                                                        <Zap className="w-6 h-6 text-neon-purple" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion des Quiz</h3>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Lancez des questions avec récompense (+100 DROPS)</p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="space-y-6 pt-4 border-t border-white/5">
-                                                    {activeQuiz ? (
-                                                        <div className="bg-neon-purple/10 border-2 border-neon-purple/30 rounded-3xl p-8 flex items-center justify-between">
                                                             <div>
-                                                                <span className="px-3 py-1 bg-neon-purple text-white text-[8px] font-black rounded-lg uppercase mb-2 inline-block">QUIZ EN COURS</span>
-                                                                <h4 className="text-xl font-black text-white uppercase italic">{activeQuiz.question}</h4>
+                                                                <label className="block text-[10px] font-black text-gray-500 uppercase mb-2">Titre Global</label>
+                                                                <input type="text" value={editTitle} onChange={e => setEditTitle(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-purple" placeholder="EX: TAKEOVER #42" />
                                                             </div>
-                                                            <button
-                                                                onClick={async () => {
-                                                                    await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                        pseudo: "BOT_SYSTEM",
-                                                                        message: '[SYSTEM]:CLEAR_QUIZ',
-                                                                        color: "text-neon-purple",
-                                                                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                        country: "FR"
-                                                                    });
-                                                                }}
-                                                                className="px-6 py-3 bg-red-600 text-white text-[10px] font-black uppercase rounded-xl hover:bg-red-700 transition-all shadow-lg shadow-red-600/20"
-                                                            >
-                                                                Arrêter le quiz
-                                                            </button>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            {predefinedQuizzes.length > 0 ? (
-                                                                predefinedQuizzes.map((q, idx) => (
-                                                                    <button
-                                                                        key={idx}
-                                                                        onClick={async () => {
-                                                                            const msg = `[QUIZ_START]:${q.question}|${q.options.join('|')}|${q.correct}`;
-                                                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                                pseudo: "BOT_QUIZ",
-                                                                                message: msg,
-                                                                                color: "text-neon-purple",
-                                                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                                country: "FR",
-                                                                                stage: activeStage
-                                                                            });
-                                                                        }}
-                                                                        className="p-6 bg-white/5 border border-white/10 rounded-2xl text-left hover:border-neon-purple/50 hover:bg-white/10 transition-all group"
-                                                                    >
-                                                                        <p className="text-[10px] font-black text-neon-purple uppercase mb-1 tracking-widest">QUIZ PRÉDÉFINI #{idx + 1}</p>
-                                                                        <p className="text-sm font-bold text-white uppercase line-clamp-2">{q.question}</p>
-                                                                    </button>
-                                                                ))
-                                                            ) : (
-                                                                <div className="col-span-2 text-center py-10 border border-dashed border-white/10 rounded-3xl">
-                                                                    <p className="text-xs font-bold text-gray-500 uppercase">Aucun quiz prédéfini dispo.</p>
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <div className="space-y-1">
+                                                                     <label className="text-[8px] font-black text-gray-500 uppercase">Instagram</label>
+                                                                     <input type="text" value={editInsta} onChange={e => setEditInsta(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="INSTAGRAM" />
                                                                 </div>
-                                                            )}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : adminActiveTab === 'tracklist' ? (
-                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
-                                                <div className="flex items-center gap-4">
-                                                    <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center">
-                                                        <Music className="w-6 h-6 text-neon-cyan" />
-                                                    </div>
-                                                    <div>
-                                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion Tracklist</h3>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Ajoutez des sets et gérez les tracks</p>
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <div className="space-y-2">
-                                                        <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Artiste</label>
-                                                        <input type="text" value={newSetArtist} onChange={e => setNewSetArtist(e.target.value)} placeholder="NOM DE L'ARTISTE" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
-                                                    </div>
-                                                    <div className="space-y-2">
-                                                        <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Début (Optionnel)</label>
-                                                        <input type="text" value={newSetTime} onChange={e => setNewSetTime(e.target.value)} placeholder="00:00" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
-                                                    </div>
-                                                </div>
-                                                <button onClick={handleAddSet} className="w-full py-4 bg-neon-cyan text-black font-black uppercase rounded-2xl hover:bg-neon-cyan/80 transition-all shadow-xl shadow-neon-cyan/20">Lancer un nouveau Set</button>
-                                            </div>
-
-                                            <div className="space-y-4">
-                                                {tracklist.filter(s => (s.stage || 'stage1') === activeStage).map(set => (
-                                                    <div key={set.id} className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-4">
-                                                        <div className="flex items-center justify-between">
-                                                            <div>
-                                                                <h4 className="text-white font-black uppercase text-sm">{set.artist}</h4>
-                                                                <p className="text-[10px] text-gray-500 font-mono">Début : {set.startTime}</p>
+                                                                <div className="space-y-1">
+                                                                     <label className="text-[8px] font-black text-gray-500 uppercase">TikTok</label>
+                                                                     <input type="text" value={editTiktok} onChange={e => setEditTiktok(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="TIKTOK" />
+                                                                </div>
                                                             </div>
-                                                            <button onClick={() => setTracklist(prev => prev.filter(s => s.id !== set.id))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
                                                         </div>
-                                                        <div className="space-y-2">
-                                                            {set.tracks.map(track => (
-                                                                <div key={track.id} className="flex items-center justify-between p-2 bg-black/20 rounded-lg">
-                                                                    <div className="flex items-center gap-3">
-                                                                        <span className="text-[9px] font-mono text-gray-500">{track.time}</span>
-                                                                        <span className="text-[10px] font-bold text-white uppercase">{track.title}</span>
+                                                    </div>
+
+                                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
+                                                        <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                                            <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Flux Vidéo</h3>
+                                                            <button onClick={() => setEditStreams([...editStreams, { id: Math.random().toString(36).substr(2, 9), name: '', youtubeId: '' }])} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg"><Plus className="w-4 h-4 text-white" /></button>
+                                                        </div>
+                                                        <div className="space-y-4 max-h-[250px] overflow-y-auto pr-2 custom-scrollbar">
+                                                            {editStreams.map((stream, idx) => (
+                                                                <div key={stream.id || idx} className={`p-4 rounded-2xl border transition-all ${editActiveStreamId === stream.id ? 'bg-neon-purple/10 border-neon-purple' : 'bg-black/20 border-white/5'}`}>
+                                                                    <div className="flex items-center justify-between gap-3 mb-2">
+                                                                        <input type="text" value={stream.name} onChange={e => {
+                                                                            const ns = [...editStreams];
+                                                                            ns[idx].name = e.target.value.toUpperCase();
+                                                                            setEditStreams(ns);
+                                                                        }} className="flex-1 bg-transparent border-none text-[10px] font-black text-white p-0 outline-none" placeholder="NOM STAGE" />
+                                                                        <button onClick={() => setEditActiveStreamId(stream.id)} className={`px-2 py-1 rounded text-[8px] font-black ${editActiveStreamId === stream.id ? 'bg-neon-purple text-white' : 'text-gray-500 hover:text-white'}`}>ACTIF</button>
+                                                                        <button onClick={() => setEditStreams(editStreams.filter(s => s.id !== stream.id))} className="text-gray-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                                                                     </div>
-                                                                    <span className="text-[8px] text-neon-cyan font-black uppercase">@{track.user}</span>
+                                                                    <input type="text" value={stream.youtubeId} onChange={e => {
+                                                                        const ns = [...editStreams];
+                                                                        ns[idx].youtubeId = extractYoutubeId(e.target.value);
+                                                                        setEditStreams(ns);
+                                                                    }} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white focus:border-neon-purple outline-none" placeholder="Lien YouTube ou ID" />
                                                                 </div>
                                                             ))}
                                                         </div>
                                                     </div>
-                                                ))}
+                                                </div>
+
+                                                <div className="space-y-8">
+                                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
+                                                        <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Status & News</h3>
+                                                        <div className="space-y-4">
+                                                            <div className="flex gap-2 p-1 bg-black/40 rounded-xl">
+                                                                {(['live', 'edit', 'off'] as const).map(s => (
+                                                                    <button key={s} onClick={() => setEditStatus(s)} className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase transition-all ${editStatus === s ? 'bg-red-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>{s}</button>
+                                                                ))}
+                                                            </div>
+                                                            <div className="space-y-3">
+                                                                <label className="block text-[10px] font-black text-gray-500 uppercase">Bandeau News (Défilant)</label>
+                                                                {editMarqueeItems.map((item, idx) => (
+                                                                    <div key={idx} className="flex gap-2">
+                                                                        <input type="text" value={item.text} onChange={e => { const next = [...editMarqueeItems]; next[idx].text = e.target.value; setEditMarqueeItems(next); }} className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="INFO" />
+                                                                        <input type="text" value={item.link} onChange={e => { const next = [...editMarqueeItems]; next[idx].link = e.target.value; setEditMarqueeItems(next); }} className="w-20 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" placeholder="URL" />
+                                                                    </div>
+                                                                ))}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {/* SAUVEGARDE GLOBALE */}
+                                            <div className="pt-8 mb-12">
+                                                <button 
+                                                    onClick={async () => {
+                                                        try {
+                                                            setIsSaving(true);
+                                                            const updated = { 
+                                                                ...settings, 
+                                                                title: editTitle, 
+                                                                streams: editStreams, 
+                                                                activeStreamId: editActiveStreamId, 
+                                                                tickerText: editAnnText, 
+                                                                showTickerBanner: editAnnEnabled, 
+                                                                status: editStatus, 
+                                                                tickerBgColor: editTickerBg, 
+                                                                tickerTextColor: editTickerTextC, 
+                                                                instagramLink: editInsta, 
+                                                                tiktokLink: editTiktok, 
+                                                                youtubeLink: editYoutube, 
+                                                                twitterLink: editTwitter, 
+                                                                sponsorText: editSponsorText, 
+                                                                sponsorLink: editSponsorLink, 
+                                                                showSponsorBanner: editShowSponsorBanner, 
+                                                                bannedWords: editBannedWords,
+                                                                dropsAmount: editDropsAmount,
+                                                                dropsInterval: editDropsInterval,
+                                                                lots: dropsLots,
+                                                                botCommands: botCommands,
+                                                                lineup: JSON.stringify(lineupItems),
+                                                                tracklist: JSON.stringify(tracklist)
+                                                            };
+                                                            await fetch('/api/takeover-settings', {
+                                                                method: 'POST',
+                                                                headers: { 'Content-Type': 'application/json' },
+                                                                body: JSON.stringify(updated)
+                                                            });
+                                                            setSettings(updated);
+                                                            showNotification('Configuration enregistrée !', 'success');
+                                                        } catch (e) {
+                                                            showNotification('Erreur lors de la sauvegarde', 'error');
+                                                        } finally {
+                                                            setIsSaving(false);
+                                                        }
+                                                    }}
+                                                    disabled={isSaving}
+                                                    className={`w-full py-6 bg-neon-cyan text-black font-black uppercase rounded-3xl transition-all shadow-2xl flex items-center justify-center gap-4 ${isSaving ? 'opacity-50' : 'hover:scale-[1.02] active:scale-95 shadow-neon-cyan/20 cursor-pointer'}`}
+                                                >
+                                                    {isSaving ? <Timer className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" />}
+                                                    {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER TOUTE LA CONFIGURATION'}
+                                                </button>
                                             </div>
                                         </div>
                                     ) : adminActiveTab === 'planning' ? (
-                                        <div className="space-y-10">
+                                        <div className="space-y-10 animate-in fade-in duration-500">
                                             <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6" id="planning-form">
-                                                <div className="flex items-center gap-3 mb-2">
-                                                    {editingLineupId ? <Edit3 className="w-6 h-6 text-amber-500" /> : <Plus className="w-6 h-6 text-neon-cyan" />}
-                                                    <h3 className="text-sm font-black text-white uppercase tracking-widest">
-                                                        {editingLineupId ? 'Modifier la session' : 'Ajouter une session'}
-                                                    </h3>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center">
+                                                        {editingLineupId ? <Edit3 className="w-6 h-6 text-amber-500" /> : <Plus className="w-6 h-6 text-neon-cyan" />}
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">{editingLineupId ? 'Modifier Session' : 'Nouvelle Session'}</h3>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Ajoutez un artiste au planning du takeover</p>
+                                                    </div>
                                                 </div>
+
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                                                    <div className="flex flex-col gap-1.5">
-                                                        <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest ml-1">Date / Agenda</label>
-                                                        <input type="date" value={newLineupItem.day} onChange={e => setNewLineupItem({ ...newLineupItem, day: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-cyan transition-all" />
+                                                    <div className="space-y-2">
+                                                        <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Date</label>
+                                                        <input type="date" value={newLineupItem.day} onChange={e => setNewLineupItem({ ...newLineupItem, day: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
                                                     </div>
-                                                    <input type="text" placeholder="ARTISTE" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, artist: e.target.value.toUpperCase() })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                    <input type="text" placeholder="DEBUT" value={newLineupItem.startTime} onChange={e => setNewLineupItem({ ...newLineupItem, startTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                    <input type="text" placeholder="FIN" value={newLineupItem.endTime} onChange={e => setNewLineupItem({ ...newLineupItem, endTime: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
-                                                    <select 
-                                                        value={newLineupItem.stage} 
-                                                        onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value.toUpperCase() })} 
-                                                        className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
-                                                    >
-                                                        <option value="">CHOISIR SCÈNE</option>
-                                                        {editStreams.map(s => (
-                                                            <option key={s.id} value={s.name.toUpperCase()}>{s.name.toUpperCase()}</option>
-                                                        ))}
-                                                        {/* Fallback stage values in case names are missing */}
-                                                        {editStreams.length === 0 && (
-                                                            <>
-                                                                <option value="STAGE 1">STAGE 1</option>
-                                                                <option value="STAGE 2">STAGE 2</option>
-                                                                <option value="STAGE 3">STAGE 3</option>
-                                                                <option value="STAGE 4">STAGE 4</option>
-                                                                <option value="STAGE 5">STAGE 5</option>
-                                                                <option value="STAGE 6">STAGE 6</option>
-                                                            </>
-                                                        )}
-                                                    </select>
-                                                    <div className="col-span-2 md:col-span-4 grid grid-cols-1 md:grid-cols-3 gap-6">
-                                                        <input type="text" placeholder="INSTAGRAM 1" value={newLineupItem.instagram} onChange={e => setNewLineupItem({ ...newLineupItem, instagram: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
-                                                        <input type="text" placeholder="INSTAGRAM 2 (Optionnel B2B)" value={newLineupItem.instagram2 || ''} onChange={e => setNewLineupItem({ ...newLineupItem, instagram2: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
-                                                        <input type="text" placeholder="INSTAGRAM 3 (Optionnel B3B)" value={newLineupItem.instagram3 || ''} onChange={e => setNewLineupItem({ ...newLineupItem, instagram3: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all" />
+                                                    <div className="space-y-2">
+                                                        <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Début</label>
+                                                        <input type="text" placeholder="21:00" value={newLineupItem.startTime} onChange={e => setNewLineupItem({ ...newLineupItem, startTime: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Fin</label>
+                                                        <input type="text" placeholder="22:30" value={newLineupItem.endTime} onChange={e => setNewLineupItem({ ...newLineupItem, endTime: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Artiste</label>
+                                                        <input type="text" placeholder="NOM DE L'ARTISTE" value={newLineupItem.artist} onChange={e => setNewLineupItem({ ...newLineupItem, artist: e.target.value.toUpperCase() })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                    </div>
+                                                    <div className="col-span-2 md:col-span-4 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                        <div className="space-y-2">
+                                                            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Scène (Stage)</label>
+                                                            <select value={newLineupItem.stage} onChange={e => setNewLineupItem({ ...newLineupItem, stage: e.target.value.toUpperCase() })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white">
+                                                                <option value="">CHOISIR SCÈNE</option>
+                                                                {editStreams.map(s => <option key={s.id} value={s.name.toUpperCase()}>{s.name.toUpperCase()}</option>)}
+                                                            </select>
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Instagram (@pseudo)</label>
+                                                            <input type="text" placeholder="@artist_name" value={newLineupItem.instagram} onChange={e => setNewLineupItem({ ...newLineupItem, instagram: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white" />
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                {/* Image Upload */}
-                                                <div className="flex flex-col gap-1.5">
-                                                    <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest ml-1">Photo de l'artiste <span className="text-neon-red">*</span></label>
-                                                    <div className="flex gap-2 items-center">
+
+                                                {/* Upload Image Section */}
+                                                <div className="space-y-2">
+                                                    <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Photo de l'artiste <span className="text-neon-red">*</span></label>
+                                                    <div className="flex gap-4 items-center">
                                                         <input
-                                                            type="text"
-                                                            placeholder="URL ou coller une image"
-                                                            value={newLineupItem.image || ''}
-                                                            onChange={e => setNewLineupItem({ ...newLineupItem, image: e.target.value })}
-                                                            className="flex-1 bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-cyan outline-none transition-all"
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={(e) => {
+                                                                const file = e.target.files?.[0];
+                                                                if (file) {
+                                                                    const reader = new FileReader();
+                                                                    reader.onload = (event) => setCropImageSrc(event.target?.result as string);
+                                                                    reader.readAsDataURL(file);
+                                                                }
+                                                            }}
+                                                            className="hidden"
+                                                            id="lineup-image-upload"
                                                         />
-                                                        <label className="cursor-pointer flex items-center gap-1.5 px-3 py-3 bg-white/5 border border-white/10 hover:border-neon-cyan/40 rounded-xl transition-all">
-                                                            <input
-                                                                type="file"
-                                                                accept="image/*"
-                                                                className="hidden"
-                                                                onChange={e => {
-                                                                    const file = e.target.files?.[0];
-                                                                    if (file) {
-                                                                        const reader = new FileReader();
-                                                                        reader.onload = (ev) => {
-                                                                            setCropImageSrc(ev.target?.result as string);
-                                                                        }
-                                                                        reader.readAsDataURL(file);
-                                                                    }
-                                                                }}
-                                                            />
-                                                            <ImageIcon className="w-4 h-4 text-neon-cyan" />
+                                                        <label htmlFor="lineup-image-upload" className="flex-1 py-3 border-2 border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black text-gray-500 hover:border-neon-cyan hover:text-white transition-all cursor-pointer uppercase">
+                                                            <Camera className="w-4 h-4" />
+                                                            {newLineupItem.image ? 'Changer la photo' : 'Charger une photo'}
                                                         </label>
                                                         {newLineupItem.image && (
-                                                            <button
-                                                                className="relative rounded-lg overflow-hidden group/crop border-white/10 border transition-all cursor-pointer flex-shrink-0"
-                                                                onClick={() => setCropImageSrc(newLineupItem.image!)}
-                                                                title="Recadrer l'image"
-                                                            >
-                                                                <img src={newLineupItem.image} alt="preview" className="w-10 h-10 object-cover group-hover/crop:opacity-50 transition-opacity" />
-                                                                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/crop:opacity-100 transition-opacity bg-black/40">
-                                                                    <Edit2 className="w-4 h-4 text-white" />
-                                                                </div>
-                                                            </button>
+                                                            <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/20">
+                                                                <img src={newLineupItem.image} alt="" className="w-full h-full object-cover" />
+                                                            </div>
                                                         )}
                                                     </div>
                                                 </div>
-                                                <div className="flex gap-3">
-                                                    <button 
-                                                        onClick={() => { 
-                                                            if (!newLineupItem.artist || !newLineupItem.image) {
-                                                                showNotification("L'artiste et l'image sont obligatoires", "error");
-                                                                return;
-                                                            }
-                                                            if (editingLineupId) {
-                                                                setLineupItems(prev => prev.map(item => item.id === editingLineupId ? { ...newLineupItem, id: editingLineupId } : item));
-                                                                setEditingLineupId(null);
-                                                                showNotification("Session mise à jour", "success");
-                                                            } else {
-                                                                setLineupItems([...lineupItems, { ...newLineupItem, id: Date.now().toString() }]);
-                                                                showNotification("Session ajoutée", "success");
-                                                            }
-                                                            setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', instagram2: '', instagram3: '', image: '' }); 
-                                                        }} 
-                                                        className={`flex-1 py-4 ${editingLineupId ? 'bg-amber-500' : 'bg-neon-cyan'} text-black font-black uppercase rounded-2xl hover:bg-opacity-80 transition-all`}
-                                                    >
-                                                        {editingLineupId ? 'Mettre à jour' : 'Ajouter'}
-                                                    </button>
-                                                    {editingLineupId && (
-                                                        <button 
-                                                            onClick={() => {
-                                                                setEditingLineupId(null);
-                                                                setNewLineupItem({ id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', instagram2: '', instagram3: '', image: '' });
-                                                            }}
-                                                            className="px-6 py-4 bg-white/10 text-white font-black uppercase rounded-2xl hover:bg-white/20 transition-all"
-                                                        >
-                                                            Annuler
-                                                        </button>
-                                                    )}
+
+                                                <div className="flex gap-4">
+                                                     <button onClick={handleAddLineupItem} className="flex-1 py-4 bg-neon-cyan text-black font-black uppercase rounded-2xl hover:bg-neon-cyan/80 transition-all shadow-xl shadow-neon-cyan/20">{editingLineupId ? 'Mettre à jour' : 'Ajouter au Planning'}</button>
+                                                     {editingLineupId && <button onClick={() => { setEditingLineupId(null); setNewLineupItem({ day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', instagram2: '', instagram3: '', image: '' }); }} className="px-8 py-4 bg-white/5 text-gray-500 rounded-2xl hover:text-white transition-all">Annuler</button>}
                                                 </div>
                                             </div>
 
@@ -2757,360 +2492,225 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                             <div className="space-y-4">
                                                 {lineupItems.map((item, i) => (
-                                                    <div key={item.id || i} className="p-4 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between relative overflow-hidden group">
+                                                    <div key={item.id || i} className="p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between group hover:border-white/20 transition-all relative overflow-hidden">
                                                         {item.image && (
                                                             <>
                                                                 <img src={item.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 pointer-events-none" />
-                                                                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/70 to-transparent pointer-events-none" />
+                                                                <div className="absolute inset-0 bg-gradient-to-r from-black via-black/50 to-transparent pointer-events-none" />
                                                             </>
                                                         )}
-                                                        <div className="flex items-center gap-4 relative z-10">
-                                                            {item.image && <img src={item.image} alt="" className="w-8 h-8 rounded-lg object-cover border border-white/20 shrink-0" />}
-                                                            <div className="text-gray-500 font-mono text-xs">{item.startTime}</div>
+                                                        <div className="flex items-center gap-6 relative z-10">
+                                                            <div className="flex flex-col items-center">
+                                                                <span className="text-[10px] font-black text-neon-cyan uppercase">{fmtPlanDay(item.day)}</span>
+                                                                <span className="text-lg font-black text-white">{item.startTime}</span>
+                                                            </div>
+                                                            <div className="w-px h-10 bg-white/10" />
                                                             <div>
-                                                                <p className="text-white font-black uppercase text-sm">{item.artist}</p>
-                                                                <p className="text-[10px] text-neon-cyan font-bold uppercase">{item.stage}</p>
+                                                                <p className="text-xl font-display font-black text-white uppercase italic tracking-tighter">{item.artist}</p>
+                                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">{item.stage}</p>
                                                             </div>
                                                         </div>
-                                                        <div className="flex items-center gap-2 relative z-10">
-                                                            <button 
-                                                                onClick={() => {
-                                                                    setEditingLineupId(item.id);
-                                                                    setNewLineupItem({ ...item });
-                                                                    document.getElementById('planning-form')?.scrollIntoView({ behavior: 'smooth' });
-                                                                }} 
-                                                                className="p-2.5 bg-white/5 text-gray-400 hover:text-amber-500 hover:bg-amber-500/10 rounded-xl transition-all"
-                                                            >
-                                                                <Edit2 className="w-4 h-4" />
-                                                            </button>
-                                                            <button onClick={() => setLineupItems(lineupItems.filter((_, idx) => idx !== i))} className="p-2.5 bg-white/5 text-gray-400 hover:text-red-500 hover:bg-red-500/10 rounded-xl transition-all">
-                                                                <Trash2 className="w-4 h-4" />
-                                                            </button>
+                                                        <div className="flex gap-2 relative z-10">
+                                                            <button onClick={() => { setEditingLineupId(item.id || null); setNewLineupItem({ ...item }); document.getElementById('planning-form')?.scrollIntoView({ behavior: 'smooth' }); }} className="p-3 bg-white/5 text-gray-500 hover:text-white rounded-xl transition-all"><Edit2 className="w-4 h-4" /></button>
+                                                            <button onClick={() => setLineupItems(lineupItems.filter((_, idx) => idx !== i))} className="p-3 bg-white/5 text-gray-500 hover:text-red-500 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
                                                         </div>
                                                     </div>
                                                 ))}
                                             </div>
                                         </div>
-                                    ) : adminActiveTab === 'drops' ? (
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                            <div className="space-y-4">
-                                                <h3 className="text-xs font-black text-white uppercase tracking-widest">Configuration Gains</h3>
-                                                <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
-                                                    <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">Prix Message Couleur (Drops)</label>
-                                                    <input type="number" placeholder="PRIX HIGHLIGHT" value={editHighlightPrice} onChange={e => setEditHighlightPrice(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white focus:border-neon-red outline-none" />
-
-                                                    <div className="grid grid-cols-2 gap-4 mt-4">
-                                                        <div>
-                                                            <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">Gains (Drops)</label>
-                                                            <input type="number" placeholder="MONTANT" value={editDropsAmount} onChange={e => setEditDropsAmount(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-red outline-none" />
-                                                        </div>
-                                                        <div>
-                                                            <label className="block text-[8px] font-black text-gray-400 uppercase tracking-widest pl-1">Toutes les (Min)</label>
-                                                            <input type="number" placeholder="INTERVALLE" value={editDropsInterval} onChange={e => setEditDropsInterval(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white focus:border-neon-red outline-none" />
-                                                        </div>
+                                    ) : adminActiveTab === 'tracklist' ? (
+                                        <div className="space-y-8 animate-in fade-in duration-500">
+                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center">
+                                                        <Music className="w-6 h-6 text-neon-cyan" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Gestion Tracklist</h3>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Ajoutez des sets et gérez les tracks</p>
                                                     </div>
                                                 </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <input type="text" value={newSetArtist} onChange={e => setNewSetArtist(e.target.value)} placeholder="NOM DE L'ARTISTE" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-cyan transition-all" />
+                                                    <input type="text" value={newSetTime} onChange={e => setNewSetTime(e.target.value)} placeholder="00:00" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-cyan transition-all" />
+                                                </div>
+                                                <button onClick={handleAddSet} className="w-full py-4 bg-neon-cyan text-black font-black uppercase rounded-2xl hover:bg-neon-cyan/80 transition-all shadow-xl shadow-neon-cyan/20">Lancer un nouveau Set</button>
                                             </div>
                                             <div className="space-y-4">
-                                                <h3 className="text-xs font-black text-white uppercase tracking-widest">Gestion Boutique Drops</h3>
-                                                <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
-                                                    <div className="grid grid-cols-2 gap-2">
-                                                        <input type="text" placeholder="NOM DU LOT" value={newLot.name} onChange={e => setNewLot({ ...newLot, name: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white outline-none" />
-                                                        <input type="number" placeholder="PRIX" value={newLot.price} onChange={e => setNewLot({ ...newLot, price: e.target.value })} className="bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-[10px] text-white outline-none" />
-                                                    </div>
-                                                    <button onClick={() => { if (newLot.name) { setDropsLots([...dropsLots, { id: Date.now(), name: newLot.name, price: Number(newLot.price), stock: 10 }]); setNewLot({ name: '', price: '', stock: '' }); showNotification('Lot ajouté !', 'success'); } }} className="w-full py-3 bg-neon-cyan text-black font-black text-[10px] rounded-xl hover:scale-[1.02] transition-all uppercase tracking-widest">Ajouter un article</button>
-                                                </div>
-
-                                                <div className="space-y-2 mt-4 max-h-[250px] overflow-y-auto custom-scrollbar pr-2">
-                                                    {dropsLots.map((lot, idx) => (
-                                                        <div key={lot.id || idx} className="flex items-center gap-3 bg-black/40 border border-white/10 p-3 rounded-xl group transition-all hover:border-white/20">
-                                                            <span className="text-[10px] font-black text-white uppercase flex-1 truncate">{lot.name}</span>
-                                                            <input
-                                                                type="number"
-                                                                value={lot.price}
-                                                                onChange={(e) => {
-                                                                    const next = [...dropsLots];
-                                                                    next[idx].price = Number(e.target.value);
-                                                                    setDropsLots(next);
-                                                                }}
-                                                                className="w-20 bg-black/60 border border-white/10 rounded-lg px-2 py-1 text-[10px] text-neon-cyan font-black text-center"
-                                                            />
-                                                            <button onClick={() => setDropsLots(dropsLots.filter((_, i) => i !== idx))} className="p-1.5 text-gray-500 hover:text-red-500 transition-all opacity-0 group-hover:opacity-100">
-                                                                <Trash2 className="w-3.5 h-3.5" />
-                                                            </button>
+                                                {tracklist.filter(s => (s.stage || 'stage1') === activeStage).map(set => (
+                                                    <div key={set.id} className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-4">
+                                                        <div className="flex items-center justify-between">
+                                                            <div>
+                                                                <h4 className="text-white font-black uppercase text-sm tracking-widest">{set.artist}</h4>
+                                                                <p className="text-[10px] text-gray-500 font-mono">Début : {set.startTime}</p>
+                                                            </div>
+                                                            <button onClick={() => setTracklist(prev => prev.filter(s => s.id !== set.id))} className="p-2 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
                                                         </div>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ) : adminActiveTab === 'bot' ? (
-                                        <div className="space-y-8">
-                                            <div className="p-6 bg-white/5 border border-white/10 rounded-2xl space-y-4">
-                                                <h4 className="text-xs font-black text-neon-cyan uppercase tracking-widest">➜ Nouvelle Commande</h4>
-                                                <input type="text" placeholder="!COMMANDE" value={newCmd.command} onChange={e => setNewCmd({ ...newCmd, command: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
-                                                <textarea placeholder="REPONSE" value={newCmd.response} onChange={e => setNewCmd({ ...newCmd, response: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white min-h-[80px]" />
-                                                <button onClick={async () => { 
-                                                    if (newCmd.command) { 
-                                                        const next = [...botCommands, { command: newCmd.command, response: newCmd.response }];
-                                                        setBotCommands(next); 
-                                                        setNewCmd({ command: '', response: '' });
-                                                        // Auto-save bot commands
-                                                        const updated = { ...settings, botCommands: next, tracklist: JSON.stringify(tracklist) };
-                                                        await fetch('/api/takeover-settings', {
-                                                            method: 'POST',
-                                                            headers: { 'Content-Type': 'application/json' },
-                                                            body: JSON.stringify(updated)
-                                                        });
-                                                        showNotification('Commande enregistrée !', 'success');
-                                                    } 
-                                                }} className="w-full py-3 bg-neon-cyan text-black font-black rounded-xl hover:scale-[1.02] transition-all uppercase tracking-widest text-[10px]">AJOUTER LA COMMANDE</button>
-                                            </div>
-
-                                            {/* List of existing commands */}
-                                            <div className="space-y-3">
-                                                <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest mb-2">📋 Commandes Actives ({botCommands.length})</h4>
-                                                {botCommands.length === 0 ? (
-                                                    <div className="text-center py-8 bg-white/5 border border-white/5 rounded-2xl">
-                                                        <p className="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Aucune commande configurée</p>
-                                                    </div>
-                                                ) : (
-                                                    botCommands.map((cmd, idx) => (
-                                                        <div key={idx} className="flex items-center gap-3 bg-white/[0.03] border border-white/5 hover:border-neon-cyan/20 p-4 rounded-2xl transition-all group">
-                                                            <span className="text-neon-cyan font-black text-xs uppercase tracking-tight shrink-0 min-w-[100px]">{cmd.command}</span>
-                                                            <span className="text-gray-400 text-xs font-bold flex-1 truncate">{cmd.response}</span>
-                                                            <button
-                                                                onClick={async () => {
-                                                                    const next = botCommands.filter((_, i) => i !== idx);
-                                                                    setBotCommands(next);
-                                                                    // Auto-save bot commands
-                                                                    const updated = { ...settings, botCommands: next, tracklist: JSON.stringify(tracklist) };
-                                                                    await fetch('/api/takeover-settings', {
-                                                                        method: 'POST',
-                                                                        headers: { 'Content-Type': 'application/json' },
-                                                                        body: JSON.stringify(updated)
-                                                                    });
-                                                                    showNotification('Commande supprimée', 'success');
-                                                                }}
-                                                                className="opacity-0 group-hover:opacity-100 p-2 text-gray-600 hover:text-neon-red transition-all rounded-lg hover:bg-red-500/10"
-                                                            >
-                                                                <Trash2 className="w-3.5 h-3.5" />
-                                                            </button>
+                                                        <div className="space-y-1">
+                                                            {set.tracks.map(track => (
+                                                                <div key={track.id} className="flex items-center justify-between p-2 bg-black/20 rounded-lg">
+                                                                    <span className="text-[10px] font-bold text-white uppercase">{track.title}</span>
+                                                                    <span className="text-[9px] text-neon-cyan font-black uppercase">@{track.user}</span>
+                                                                </div>
+                                                            ))}
                                                         </div>
-                                                    ))
-                                                )}
-                                            </div>
-                                        </div>
-                                    ) : adminActiveTab === 'tirage' ? (
-                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
-                                            {/* Lottery Status Banner */}
-                                            <div className={`p-6 rounded-[2rem] border text-center space-y-3 ${lotteryActive ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_30px_rgba(0,255,255,0.05)]' : 'bg-white/5 border-white/10'}`}>
-                                                <Crown className={`w-10 h-10 mx-auto ${lotteryActive ? 'text-neon-cyan' : 'text-gray-600'}`} />
-                                                <h4 className="text-white font-black uppercase text-lg">
-                                                    {lotteryActive ? '🎰 Tirage au sort ACTIF' : '🎰 Tirage au sort inactif'}
-                                                </h4>
-                                                {lotteryActive && (
-                                                    <p className="text-neon-cyan font-black text-2xl">{lotteryParticipants.length} participant{lotteryParticipants.length > 1 ? 's' : ''}</p>
-                                                )}
-                                                <div className="flex gap-3 justify-center flex-wrap pt-2">
-                                                    {!lotteryActive ? (
-                                                        <button
-                                                            onClick={() => { setLotteryActive(true); setLotteryParticipants([]); setLotteryWinner(null); showNotification('🎰 Tirage au sort lancé ! Les utilisateurs peuvent taper !ticket', 'success'); }}
-                                                            className="px-8 py-3 bg-neon-cyan text-black font-black uppercase rounded-2xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(0,255,255,0.2)] text-sm"
-                                                        >Démarrer le tirage</button>
-                                                    ) : (
-                                                        <>
-                                                            <button
-                                                                onClick={() => {
-                                                                    if (lotteryParticipants.length === 0) { showNotification('Aucun participant !', 'error'); return; }
-                                                                    const winner = lotteryParticipants[Math.floor(Math.random() * lotteryParticipants.length)];
-                                                                    setLotteryWinner(winner);
-                                                                    setLotteryActive(false);
-                                                                    triggerConfetti();
-                                                                    showNotification(`🎉 GAGNANT : ${winner} !`, 'success');
-                                                                    databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                        pseudo: 'BOT_SYSTEM',
-                                                                        message: `🎉 TIRAGE AU SORT : Le gagnant est @${winner} ! Félicitations ! 🥳`,
-                                                                        color: 'text-amber-500',
-                                                                        time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                        country: 'FR'
-                                                                    });
-                                                                }}
-                                                                className="px-8 py-3 bg-amber-500 text-black font-black uppercase rounded-2xl hover:scale-105 transition-all shadow-[0_0_20px_rgba(245,158,11,0.2)] text-sm"
-                                                            >🎲 Tirer au sort</button>
-                                                            <button
-                                                                onClick={() => { setLotteryActive(false); setLotteryParticipants([]); setLotteryWinner(null); showNotification('Tirage annulé.', 'success'); }}
-                                                                className="px-8 py-3 bg-red-500/20 border border-red-500/40 text-red-400 font-black uppercase rounded-2xl hover:scale-105 transition-all text-sm"
-                                                            >Annuler</button>
-                                                        </>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Winner Display */}
-                                            {lotteryWinner && (
-                                                <div className="p-6 bg-amber-500/10 border border-amber-500/30 rounded-[2rem] text-center space-y-3">
-                                                    <Crown className="w-12 h-12 text-amber-500 mx-auto" />
-                                                    <p className="text-gray-400 text-xs font-black uppercase tracking-widest">Dernier gagnant</p>
-                                                    <p className="text-amber-400 font-black text-2xl uppercase tracking-tighter">@{lotteryWinner}</p>
-                                                </div>
-                                            )}
-
-                                            {/* Participants List */}
-                                            {lotteryParticipants.length > 0 && (
-                                                <div className="p-6 bg-white/5 border border-white/10 rounded-[2rem] space-y-4">
-                                                        <h4 className="text-xs font-black text-gray-500 uppercase tracking-widest">📋 Participants ({lotteryParticipants.length})</h4>
-                                                    <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto custom-scrollbar">
-                                                        {lotteryParticipants.map((p, i) => (
-                                                            <span key={i} className="px-3 py-1 bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan font-black text-[10px] uppercase rounded-full">{p}</span>
-                                                        ))}
                                                     </div>
-                                                    <button
-                                                        onClick={() => setLotteryParticipants([])}
-                                                        className="text-[10px] text-red-400 font-black uppercase hover:text-red-300 transition-all"
-                                                    >Réinitialiser les participants</button>
-                                                </div>
-                                            )}
-
-                                            {/* Info */}
-                                            <div className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl text-center">
-                                                <p className="text-gray-600 text-[10px] font-black uppercase tracking-widest">Les utilisateurs participent en tapant <span className="text-neon-cyan">!ticket</span> dans le chat</p>
+                                                ))}
                                             </div>
                                         </div>
-                                    ) : adminActiveTab === 'moderation' ? (
-                                        <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                    ) : adminActiveTab === 'interactif' ? (
+                                        <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            {/* SÉLECTEUR DE DURÉE PARTAGÉ */}
+                                            <div className="p-6 bg-neon-purple/20 border border-neon-purple/40 rounded-3xl flex items-center justify-between shadow-[0_0_20px_rgba(168,85,247,0.2)]">
+                                                <div className="flex items-center gap-4">
+                                                    <Timer className="w-6 h-6 text-neon-purple" />
+                                                    <div>
+                                                        <p className="text-[10px] font-black text-neon-purple uppercase tracking-widest">Durée des Interactions</p>
+                                                        <p className="text-[8px] text-gray-500 font-bold uppercase italic">Affichage des Sondages & Quiz</p>
+                                                    </div>
+                                                </div>
+                                                <select value={interactivityDuration} onChange={e => setInteractivityDuration(Number(e.target.value))} className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-black text-white outline-none focus:border-neon-purple">
+                                                    <option value={15}>15 SECONDES</option>
+                                                    <option value={30}>30 SECONDES</option>
+                                                    <option value={60}>1 MINUTE</option>
+                                                    <option value={120}>2 MINUTES</option>
+                                                </select>
+                                            </div>
+
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                                                <div className="p-8 bg-red-600/5 border border-red-600/20 rounded-[2.5rem] text-center space-y-4">
-                                                    <Trash2 className="w-8 h-8 text-red-500 mx-auto" />
-                                                    <h4 className="text-white font-black uppercase">Nettoyage Chat</h4>
-                                                    <button onClick={clearChat} className="w-full py-4 bg-red-600 text-white rounded-2xl font-black uppercase hover:bg-red-700 transition-all shadow-xl shadow-red-600/20">Vider le Chat</button>
-                                                </div>
-                                                <div className="p-8 bg-amber-600/5 border border-amber-600/20 rounded-[2.5rem] text-center space-y-4">
-                                                    <Ban className="w-8 h-8 text-amber-500 mx-auto" />
-                                                    <h4 className="text-white font-black uppercase">Mode Lent</h4>
-                                                    <button
-                                                        onClick={async () => {
-                                                            const sysMsg = slowModeEnabled ? '[SYSTEM]:SLOW_OFF' : '[SYSTEM]:SLOW_ON';
-                                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                pseudo: "BOT_SYSTEM",
-                                                                message: sysMsg,
-                                                                color: "text-neon-purple",
-                                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                country: "FR",
-                                                                stage: activeStage
-                                                            });
-                                                        }}
-                                                        className={`w-full py-4 ${slowModeEnabled ? 'bg-amber-600' : 'bg-gray-600'} text-white rounded-2xl font-black uppercase transition-all`}
-                                                    >
-                                                        {slowModeEnabled ? 'DÉSACTIVER MODE LENT' : 'ACTIVER MODE LENT'}
-                                                    </button>
-                                                </div>
-                                            </div>
+                                                {/* SONDAGES & QUIZ */}
+                                                <div className="space-y-8">
+                                                    <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <BarChart3 className="w-6 h-6 text-neon-cyan" />
+                                                            <h3 className="text-sm font-black text-white uppercase tracking-widest">Sondages Express</h3>
+                                                        </div>
+                                                        <div className="space-y-4">
+                                                            <input type="text" value={pollQuestion} onChange={e => setPollQuestion(e.target.value)} placeholder="QUESTION (OUI/NON) ?" className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white uppercase" />
+                                                            <button onClick={async () => { if(!pollQuestion) return; const pollData = { question: pollQuestion, options: [{text:'OUI',votes:0},{text:'NON',votes:0}], active: true }; await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), { pseudo: "BOT_POLL", message: `[SYSTEM]:POLL:${JSON.stringify(pollData)}`, color: "text-neon-purple", time: new Date().toLocaleTimeString(), country: "FR", stage: activeStage }); setPollQuestion(''); setTimeout(() => handleAdminCommand('!clearpoll'), interactivityDuration * 1000); }} className="w-full py-4 bg-neon-cyan text-black font-black uppercase rounded-2xl">LANCER LE VOTE 📊</button>
+                                                        </div>
+                                                    </div>
 
-                                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                                <div className="p-8 bg-neon-purple/5 border border-neon-purple/20 rounded-[2.5rem] text-center space-y-4">
-                                                    <Sparkles className="w-8 h-8 text-neon-purple mx-auto" />
-                                                    <h4 className="text-white font-black uppercase">Effets Fixes</h4>
-                                                    <div className="flex gap-4 flex-wrap justify-center">
-                                                        <button onClick={() => triggerConfetti()} className="flex-1 min-w-[120px] py-4 bg-neon-purple text-white rounded-2xl font-black uppercase">Confettis</button>
-                                                        <button onClick={() => triggerFireworks()} className="flex-1 min-w-[120px] py-4 bg-pink-600 text-white rounded-2xl font-black uppercase">Artifices</button>
-                                                        <button onClick={() => handleSendMessage('!rate')} className="flex-1 min-w-[120px] py-4 bg-yellow-500 text-black rounded-2xl font-black uppercase">Avis Set</button>
+                                                    <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <Zap className="w-6 h-6 text-neon-purple" />
+                                                            <h3 className="text-sm font-black text-white uppercase tracking-widest">Quiz Aléatoire</h3>
+                                                        </div>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase italic text-center">Une question choisie aléatoirement</p>
+                                                        <button onClick={async () => { const q = predefinedQuizzes[Math.floor(Math.random() * predefinedQuizzes.length)]; const msg = `[QUIZ_START]:${q.question}|${q.options.join('|')}|${q.correct}`; await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), { pseudo: "BOT_QUIZ", message: msg, color: "text-neon-purple", time: new Date().toLocaleTimeString(), country: "FR", stage: activeStage }); setTimeout(() => handleAdminCommand('!clearquiz'), interactivityDuration * 1000); }} className="w-full py-6 bg-neon-purple text-white font-black uppercase rounded-2xl shadow-xl shadow-neon-purple/20">Lancer Question 🎲</button>
                                                     </div>
                                                 </div>
-                                                <div className="p-8 bg-blue-600/5 border border-blue-600/20 rounded-[2.5rem] text-center space-y-4">
-                                                    <Crown className="w-8 h-8 text-blue-500 mx-auto" />
-                                                    <h4 className="text-white font-black uppercase">Affichage des Badges</h4>
-                                                    <button
-                                                        onClick={() => {
-                                                            const next = !showBadgesAdmin;
-                                                            setShowBadgesAdmin(next);
-                                                            localStorage.setItem('chat_show_badges', next ? 'true' : 'false');
-                                                        }}
-                                                        className={`w-full py-4 ${showBadgesAdmin ? 'bg-blue-600' : 'bg-gray-600'} text-white rounded-2xl font-black uppercase transition-all`}
-                                                    >
-                                                        {showBadgesAdmin ? 'BADGES ACTIVÉS' : 'BADGES DÉSACTIVÉS'}
-                                                    </button>
-                                                    <div className="mt-4 pt-4 border-t border-white/10 text-left">
-                                                        <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Utiliser les commandes chat :</div>
-                                                        <div className="text-xs font-bold text-white uppercase italic">!vip @pseudo <span className="text-gray-500 font-normal">pour ajouter</span></div>
-                                                        <div className="text-xs font-bold text-white uppercase italic">!unvip @pseudo <span className="text-gray-500 font-normal">pour retirer</span></div>
+
+                                                {/* LOTERIE & EFFETS */}
+                                                <div className="space-y-8">
+                                                    <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <Trophy className="w-6 h-6 text-amber-500" />
+                                                            <h3 className="text-sm font-black text-white uppercase tracking-widest">Tirage au Sort</h3>
+                                                        </div>
+                                                        <div className="space-y-4">
+                                                            <input type="text" placeholder="QUEL EST LE PRIX ?" value={lotteryPrize} onChange={e => setLotteryPrize(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white uppercase" />
+                                                            <button onClick={() => { if(!lotteryPrize) return; handleAdminCommand(`!lottery ${lotteryPrize}`); }} className="w-full py-4 bg-amber-500 text-black font-black uppercase rounded-2xl">LANCER LA LOTERIE 🎰</button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <Sparkles className="w-6 h-6 text-pink-500" />
+                                                            <h3 className="text-sm font-black text-white uppercase tracking-widest">Effets en Direct</h3>
+                                                        </div>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <button onClick={() => triggerConfetti()} className="py-4 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple rounded-xl font-black uppercase text-[10px]">Confettis</button>
+                                                            <button onClick={() => triggerFireworks()} className="py-4 bg-pink-600/10 border border-pink-500/30 text-pink-500 rounded-xl font-black uppercase text-[10px]">Artifices</button>
+                                                            <button onClick={() => handleAdminCommand('!rate')} className="col-span-2 py-4 bg-white/5 border border-white/10 text-white rounded-xl font-black uppercase text-[10px]">Avis (!rate)</button>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="p-8 bg-neon-red/5 border border-neon-red/20 rounded-[2.5rem] space-y-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <Shield className="w-6 h-6 text-neon-red" />
+                                                            <h3 className="text-sm font-black text-white uppercase tracking-widest">Admin Chat</h3>
+                                                        </div>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <button onClick={clearChat} className="py-4 bg-red-600/10 border border-red-500/30 text-red-500 rounded-xl font-black uppercase text-[10px] hover:bg-red-500 hover:text-white transition-all">Vider Chat</button>
+                                                            <button 
+                                                                onClick={async () => {
+                                                                    const sysMsg = slowModeEnabled ? '[SYSTEM]:SLOW_OFF' : '[SYSTEM]:SLOW_ON';
+                                                                    await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
+                                                                        pseudo: "BOT_SYSTEM",
+                                                                        message: sysMsg,
+                                                                        color: "text-neon-purple",
+                                                                        time: new Date().toLocaleTimeString(),
+                                                                        country: "FR",
+                                                                        stage: activeStage
+                                                                    });
+                                                                }}
+                                                                className={`py-4 ${slowModeEnabled ? 'bg-amber-600 text-black' : 'bg-amber-600/10 border border-amber-600/30 text-amber-500'} rounded-xl font-black uppercase text-[10px] transition-all`}
+                                                            >
+                                                                {slowModeEnabled ? 'LENT ACTIVÉ' : 'MODE LENT'}
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                                <div className="p-8 bg-neon-cyan/5 border border-neon-cyan/20 rounded-[2.5rem] text-center space-y-4">
-                                                    <Volume2 className="w-8 h-8 text-neon-cyan mx-auto" />
-                                                    <h4 className="text-white font-black uppercase">Synthèse Vocale (TTS)</h4>
-                                                    <button onClick={() => setIsTTSActive(!isTTSActive)} className={`w-full py-4 ${isTTSActive ? 'bg-neon-cyan text-black' : 'bg-gray-600 text-white'} rounded-2xl font-black uppercase transition-all`}>
-                                                        {isTTSActive ? 'DÉSACTIVER TTS' : 'ACTIVER TTS'}
-                                                    </button>
-                                                </div>
-
-                                                <div className="p-8 bg-neon-green/5 border border-neon-green/20 rounded-[2.5rem] text-center space-y-4">
-                                                    <Camera className="w-8 h-8 text-neon-green mx-auto" />
-                                                    <h4 className="text-white font-black uppercase">Wiki & Photos</h4>
-                                                    <button 
-                                                        onClick={() => { setModerationTab('wiki'); setIsModerationModalOpen(true); }}
-                                                        className="w-full py-4 bg-neon-green text-black rounded-2xl font-black uppercase hover:bg-neon-green/80 transition-all flex items-center justify-center gap-2"
-                                                    >
-                                                        VÉRIFIER PHOTOS {(pendingWikiPhotosCount > 0) && <span className="px-2 py-0.5 bg-black text-white rounded-full text-[10px]">{pendingWikiPhotosCount}</span>}
-                                                    </button>
-                                                </div>
                                             </div>
-
-                                            {/* Marquee Settings */}
-                                            <div className="col-span-1 md:col-span-2 p-8 bg-neon-red/5 border border-neon-red/20 rounded-[2.5rem] space-y-6">
-                                                <div className="flex items-center gap-4 justify-center mb-6">
-                                                    <Megaphone className="w-8 h-8 text-neon-red" />
-                                                    <h4 className="text-white font-black uppercase text-xl">Bandeau News (Défilant)</h4>
+                                        </div>
+                                    ) : adminActiveTab === 'bot_drops' ? (
+                                        <div className="space-y-12 animate-in fade-in duration-500">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                                                {/* SECTION BOT */}
+                                                <div className="space-y-8">
+                                                    <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <MessageSquare className="w-6 h-6 text-neon-cyan" />
+                                                            <h3 className="text-sm font-black text-white uppercase tracking-widest">Commandes Bot</h3>
+                                                        </div>
+                                                        <div className="space-y-3">
+                                                            <input type="text" placeholder="!COMMANDE" value={newCmd.command} onChange={e => setNewCmd({ ...newCmd, command: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white outline-none focus:border-neon-cyan" />
+                                                            <textarea placeholder="RÉPONSE" value={newCmd.response} onChange={e => setNewCmd({ ...newCmd, response: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white min-h-[60px]" />
+                                                            <button onClick={() => { if (newCmd.command) { setBotCommands([...botCommands, { command: newCmd.command, response: newCmd.response }]); setNewCmd({ command: '', response: '' }); } }} className="w-full py-3 bg-neon-cyan text-black font-black text-[10px] rounded-xl uppercase">Ajouter</button>
+                                                        </div>
+                                                        <div className="max-h-[160px] overflow-y-auto pr-2 custom-scrollbar space-y-2">
+                                                            {botCommands.map((cmd, idx) => (
+                                                                <div key={idx} className="flex justify-between items-center p-3 bg-white/5 rounded-xl border border-white/5">
+                                                                    <span className="text-neon-cyan font-black text-[10px] uppercase">{cmd.command}</span>
+                                                                    <button onClick={() => setBotCommands(botCommands.filter((_, i) => i !== idx))} className="text-gray-500 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                                <div className="space-y-4">
-                                                    {editMarqueeItems.map((item, idx) => (
-                                                        <div key={idx} className="flex flex-col md:flex-row gap-4 bg-black/40 p-4 rounded-2xl border border-white/10">
-                                                            <div className="flex-1 space-y-2">
-                                                                <label className="text-[10px] font-black text-neon-red uppercase">Texte Info {idx + 1}</label>
-                                                                <input type="text" value={item.text} onChange={e => {
-                                                                    const next = [...editMarqueeItems];
-                                                                    next[idx].text = e.target.value;
-                                                                    setEditMarqueeItems(next);
-                                                                }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white uppercase outline-none focus:border-neon-red" placeholder="TEXTE (OPTIONNEL)" />
+
+                                                {/* SECTION ECONOMIE */}
+                                                <div className="space-y-8">
+                                                    <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <Coins className="w-6 h-6 text-neon-red" />
+                                                            <h3 className="text-sm font-black text-white uppercase tracking-widest">Économie Drops</h3>
+                                                        </div>
+                                                        <div className="grid grid-cols-2 gap-4">
+                                                            <div>
+                                                                <label className="text-[9px] font-black text-gray-500 uppercase ml-1 tracking-widest">Montant (💧)</label>
+                                                                <input type="number" value={editDropsAmount} onChange={e => setEditDropsAmount(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
                                                             </div>
-                                                            <div className="flex-1 space-y-2">
-                                                                <label className="text-[10px] font-black text-neon-red uppercase">Lien (Optionnel)</label>
-                                                                <input type="text" value={item.link} onChange={e => {
-                                                                    const next = [...editMarqueeItems];
-                                                                    next[idx].link = e.target.value;
-                                                                    setEditMarqueeItems(next);
-                                                                }} className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-neon-red" placeholder="https://" />
+                                                            <div>
+                                                                <label className="text-[9px] font-black text-gray-500 uppercase ml-1 tracking-widest">Intervalle (Min)</label>
+                                                                <input type="number" value={editDropsInterval} onChange={e => setEditDropsInterval(Number(e.target.value))} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs text-white" />
                                                             </div>
                                                         </div>
-                                                    ))}
-                                                    <button
-                                                        onClick={async () => {
-                                                            setMarqueeItems(editMarqueeItems);
-                                                            await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                                                                pseudo: "BOT_SYSTEM",
-                                                                message: `[SYSTEM]:MARQUEE_UPDATE:${JSON.stringify(editMarqueeItems)}`,
-                                                                color: "text-neon-cyan",
-                                                                time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                                                                country: "FR"
-                                                            });
-                                                            showNotification('Bandeau mis à  jour', 'success');
-                                                        }}
-                                                        className="w-full py-4 bg-neon-red text-white font-black uppercase rounded-2xl mt-4 hover:bg-red-600 transition-colors shadow-xl shadow-red-500/20"
-                                                    >
-                                                        Mettre à  jour le bandeau
-                                                    </button>
+                                                        <div className="max-h-[200px] overflow-y-auto pr-2 custom-scrollbar space-y-2">
+                                                            {dropsLots.map((lot, idx) => (
+                                                                <div key={idx} className="flex justify-between items-center p-2 bg-black/20 rounded-lg">
+                                                                    <span className="text-[10px] font-bold text-white uppercase">{lot.name}</span>
+                                                                    <span className="text-[10px] font-black text-neon-red">{lot.price} 💧</span>
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     ) : null}
                                 </div>
-
-                                <div className="flex gap-4 pt-6 border-t border-white/10">
-                                    <button onClick={handleSaveSettings} disabled={isSaving} className="flex-1 py-4 bg-neon-purple text-white font-black uppercase tracking-[0.3em] rounded-2xl hover:bg-neon-purple/80 transition-all shadow-xl shadow-neon-purple/20 flex items-center justify-center gap-3 disabled:opacity-50">
-                                        <Save className={`w-5 h-5 ${isSaving ? 'animate-spin' : ''}`} />
-                                        {isSaving ? 'ENREGISTREMENT...' : 'SAUVEGARDER'}
-                                    </button>
-                                </div>
-                                
                                 <ModerationModal 
                                     isOpen={isModerationModalOpen} 
                                     onClose={() => setIsModerationModalOpen(false)} 
