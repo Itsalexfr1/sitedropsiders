@@ -32,13 +32,12 @@
     "auddToken": "0707d622c51645acc2e4fa26ed64538d",
     "streams": [
       {
-        "id": "l0hfqhzkp",
-        "name": "",
-        "youtubeId": "UMF-Live",
-        "overrideArtist": "HTTPS://WWW.YOUTUBE.COM/LIVE/HTNZZMIZUJ8?SI=BBONRB8ISVFVAPY3"
+        "id": "t60t7k5ct",
+        "name": "UMF LIVE",
+        "youtubeId": "https://www.youtube.com/live/htnZzmIZUJ8?si=6vwqw12N1QEBagkX"
       }
     ],
-    "activeStreamId": "l0hfqhzkp",
+    "activeStreamId": "t60t7k5ct",
     "instagramLink": "",
     "tiktokLink": "",
     "youtubeLink": "",
