@@ -563,9 +563,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         { command: "!insta", response: "Suivez-nous sur @dropsiders.fr !" },
         { command: "!lineup", response: "La lineup est disponible dans l'onglet PLANNING." }
     ]);
-    const [editSponsorText] = useState(settings.sponsorText || '');
-    const [editSponsorLink] = useState(settings.sponsorLink || '');
-    const [editShowSponsorBanner] = useState(settings.showSponsorBanner !== undefined ? settings.showSponsorBanner : true);
+    const [editSponsorText, setEditSponsorText] = useState(settings.sponsorText || '');
+    const [editSponsorLink, setEditSponsorLink] = useState(settings.sponsorLink || '');
+    const [editShowSponsorBanner, setEditShowSponsorBanner] = useState(settings.showSponsorBanner !== undefined ? settings.showSponsorBanner : true);
     const [newCmd, setNewCmd] = useState({ command: '', response: '' });
 
     const [lineupItems, setLineupItems] = useState<LineupItem[]>(() => {
@@ -2214,6 +2214,26 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                                     <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
                                                         <div className="flex items-center justify-between border-b border-white/5 pb-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <Trophy className="w-5 h-5 text-amber-500" />
+                                                                <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Partenaire / Sponsor</h3>
+                                                            </div>
+                                                            <button onClick={() => setEditShowSponsorBanner(!editShowSponsorBanner)} className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all ${editShowSponsorBanner ? 'bg-neon-purple text-white shadow-[0_0_15px_rgba(168,85,247,0.3)]' : 'bg-white/5 text-gray-400 opacity-50'}`}>{editShowSponsorBanner ? 'ACTIVÉ' : 'DÉSACTIVÉ'}</button>
+                                                        </div>
+                                                        <div className="space-y-4">
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[10px] font-black text-gray-500 uppercase ml-1">Nom du Partenaire</label>
+                                                                <input type="text" value={editSponsorText} onChange={e => setEditSponsorText(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-purple" placeholder="EX: LIVE RENDU POSSIBLE PAR..." />
+                                                            </div>
+                                                            <div className="space-y-1.5">
+                                                                <label className="text-[10px] font-black text-gray-500 uppercase ml-1">Lien de Destination</label>
+                                                                <input type="text" value={editSponsorLink} onChange={e => setEditSponsorLink(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs font-bold text-white outline-none focus:border-neon-purple" placeholder="https://..." />
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">
+                                                        <div className="flex items-center justify-between border-b border-white/5 pb-4">
                                                             <h3 className="text-sm font-black text-white uppercase tracking-widest italic">Flux Vidéo</h3>
                                                             <button onClick={() => setEditStreams([...editStreams, { id: Math.random().toString(36).substr(2, 9), name: '', youtubeId: '' }])} className="p-2 bg-white/5 hover:bg-white/10 rounded-lg"><Plus className="w-4 h-4 text-white" /></button>
                                                         </div>
@@ -2713,8 +2733,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 <div className="hidden sm:flex items-center gap-2">
                                     <div className="h-3 w-[1px] bg-white/10" />
                                     <a href={settings.sponsorLink} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 group">
-                                        <div className="px-1.5 py-0.5 bg-neon-purple/20 border border-neon-purple/30 rounded text-[6px] font-black text-neon-purple uppercase tracking-widest italic group-hover:bg-neon-purple/30 transition-all">PARTENAIRE</div>
-                                        <span className="text-[8px] font-black text-white/40 group-hover:text-white transition-all uppercase italic truncate max-w-[100px]">{settings.sponsorText}</span>
+                                        <div className="px-2 py-1 bg-neon-purple/20 border border-neon-purple/50 rounded-lg text-[8px] font-black text-neon-purple uppercase tracking-widest italic group-hover:bg-neon-purple/40 transition-all shadow-[0_0_10px_rgba(168,85,247,0.2)]">PARTENAIRE</div>
+                                        <span className="text-[10px] font-black text-white group-hover:text-neon-cyan transition-all uppercase italic truncate max-w-[200px] drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]">{settings.sponsorText}</span>
                                     </a>
                                 </div>
                             )}
