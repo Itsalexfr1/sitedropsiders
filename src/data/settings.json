@@ -6,7 +6,7 @@
   "takeover": {
     "enabled": true,
     "youtubeId": "FLdsxiIQYhY",
-    "title": "ULTRA MUSIC FESTIVAL MIAMI",
+    "title": "UMF MIAMI",
     "moderators": "",
     "lineup": "[]",
     "customCommands": "",
@@ -34,7 +34,7 @@
     "streams": [
       {
         "id": "g9ke3ipuc",
-        "name": "ULTRA LIVE",
+        "name": "UMF LIVE",
         "youtubeId": "htnZzmIZUJ8"
       },
       {
