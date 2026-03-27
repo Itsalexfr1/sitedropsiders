@@ -615,7 +615,13 @@ export function Agenda() {
                                         )}
 
                                         {/* Mobile Variant */}
-                                        <div className="absolute inset-0 md:hidden block" onClick={() => { if (event.url) window.location.href = event.url }}>
+                                        <div className="absolute inset-0 md:hidden block" onClick={() => { 
+                                            if (event.isLiveDropsiders) {
+                                                window.location.href = '/live';
+                                            } else if (event.url) {
+                                                window.location.href = event.url;
+                                            }
+                                        }}>
                                             {event.image && (
                                                 <img
                                                     src={event.image}
@@ -666,7 +672,13 @@ export function Agenda() {
                                                 )}
                                                 <div
                                                     className="flex-1 p-3 md:p-6 cursor-pointer hover:bg-white/10 transition-colors"
-                                                    onClick={() => toggleEvent(event.compositeId)}
+                                                    onClick={() => {
+                                                        if (event.isLiveDropsiders) {
+                                                            window.location.href = '/live';
+                                                        } else {
+                                                            toggleEvent(event.compositeId);
+                                                        }
+                                                    }}
                                                 >
                                                     <div className="flex flex-row items-center justify-between gap-4 md:gap-6">
                                                         <div className="flex items-center gap-4 md:gap-6">
@@ -702,9 +714,12 @@ export function Agenda() {
                                                                         {event.genre}
                                                                     </span>
                                                                     {event.isLiveDropsiders && (
-                                                                        <span className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-neon-red/20 text-neon-red border border-neon-red/30 animate-pulse">
+                                                                        <button 
+                                                                            onClick={(e) => { e.stopPropagation(); window.location.href = '/live'; }}
+                                                                            className="inline-flex items-center px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-neon-red/20 text-neon-red border border-neon-red/30 animate-pulse hover:bg-neon-red hover:text-white transition-colors cursor-pointer"
+                                                                        >
                                                                             LIVE
-                                                                        </span>
+                                                                        </button>
                                                                     )}
                                                                 </div>
                                                                 <h3 className="text-sm md:text-2xl font-black text-white group-hover:text-neon-red transition-colors leading-tight uppercase italic truncate max-w-[150px] md:max-w-none">

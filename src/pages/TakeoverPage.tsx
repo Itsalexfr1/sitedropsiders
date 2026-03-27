@@ -534,6 +534,29 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editStatus, setEditStatus] = useState(settings.status);
     const [editStartDate, setEditStartDate] = useState(settings.startDate || '');
     const [editEndDate, setEditEndDate] = useState(settings.endDate || '');
+
+    // 📅 Auto-Trigger Live based on Schedule
+    useEffect(() => {
+        const checkSchedule = () => {
+            if (!editStartDate || !editEndDate || editStatus === 'off') return;
+            
+            const now = new Date();
+            const start = new Date(editStartDate);
+            const end = new Date(editEndDate);
+            
+            if (now >= start && now <= end) {
+                if (editStatus !== 'live') {
+                    setEditStatus('live');
+                    setSettings(prev => ({ ...prev, status: 'live' }));
+                    showNotification("🚀 PROGRAMMATION : LE LIVE PASSE EN DIRECT !", 'success');
+                }
+            }
+        };
+
+        const timer = setInterval(checkSchedule, 10000); // Check every 10s for responsiveness
+        checkSchedule();
+        return () => clearInterval(timer);
+    }, [editStartDate, editEndDate, editStatus]);
     const [editTickerBg, setEditTickerBg] = useState(settings.tickerBgColor);
     const [editTickerTextC, setEditTickerTextC] = useState(settings.tickerTextColor);
     const [editDropsAmount, setEditDropsAmount] = useState(settings.dropsAmount || 10);
@@ -2190,6 +2213,57 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 <div className="min-h-[400px]">
                                     {adminActiveTab === 'config' ? (
                                         <div className="space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                                            {/* ⚡ Quick Override Control */}
+                                            <div className="bg-white/5 border border-neon-cyan/20 rounded-3xl p-8 space-y-6 shadow-2xl relative overflow-hidden group">
+                                                <div className="absolute top-0 right-0 p-4 opacity-10">
+                                                    <Zap className="w-20 h-20 text-neon-cyan" />
+                                                </div>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center">
+                                                        <Edit3 className="w-6 h-6 text-neon-cyan" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Artiste en Direct <span className="text-neon-cyan">(Override)</span></h3>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase">Changez l'artiste instantanément sans passer par le planning</p>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="flex flex-col md:flex-row gap-4">
+                                                    <div className="flex-1 space-y-2">
+                                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Nom de l'artiste</label>
+                                                        <input 
+                                                            type="text" 
+                                                            value={editStreams.find(s => s.id === editActiveStreamId)?.overrideArtist || ''} 
+                                                            onChange={e => {
+                                                                const ns = [...editStreams];
+                                                                const idx = ns.findIndex(s => s.id === editActiveStreamId);
+                                                                if (idx !== -1) {
+                                                                    ns[idx].overrideArtist = e.target.value.toUpperCase();
+                                                                    setEditStreams(ns);
+                                                                }
+                                                            }}
+                                                            placeholder="EX: TIESTO, CHARLOTTE DE WITTE..." 
+                                                            className="w-full bg-black/60 border border-white/10 rounded-2xl px-6 py-4 text-sm font-black text-neon-cyan uppercase outline-none focus:border-neon-cyan focus:ring-4 focus:ring-neon-cyan/5 transition-all" 
+                                                        />
+                                                    </div>
+                                                    <div className="w-full md:w-48 space-y-2">
+                                                         <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest ml-1">Choix Stage</label>
+                                                         <select 
+                                                            value={editActiveStreamId}
+                                                            onChange={e => setEditActiveStreamId(e.target.value)}
+                                                            className="w-full bg-black/60 border border-white/10 rounded-2xl px-4 py-4 text-xs font-black text-white outline-none focus:border-neon-cyan cursor-pointer"
+                                                         >
+                                                             {editStreams.map(s => <option key={s.id} value={s.id}>{s.name.toUpperCase()}</option>)}
+                                                         </select>
+                                                    </div>
+                                                </div>
+                                                
+                                                <p className="text-[10px] text-amber-500 font-bold uppercase italic flex items-center gap-2">
+                                                    <AlertCircle className="w-3 h-3" />
+                                                    Ce champ annule l'affichage du planning pour ce stage. Laissez vide pour revenir au planning auto.
+                                                </p>
+                                            </div>
+
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                                 <div className="space-y-8">
                                                     <div className="bg-white/5 border border-white/10 rounded-3xl p-6 space-y-6">

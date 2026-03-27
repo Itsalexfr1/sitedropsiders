@@ -278,7 +278,7 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                     return (
                         <Link
                             key={event.compositeId}
-                            to={getAgendaLink(event)}
+                            to={event.isLiveTakeover || event.isLiveDropsiders ? '/live' : getAgendaLink(event)}
                             className="block"
                         >
                             <motion.div

@@ -1757,6 +1757,24 @@ ${urls.map(u => `  <url>
             const SETTINGS_PATH = 'src/data/settings.json';
             const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
             if (!file) return new Response(JSON.stringify({ shop_enabled: false }), { status: 200, headers });
+            
+            // Logique Auto-Live
+            if (file.content && file.content.takeover) {
+                const tk = file.content.takeover;
+                if (tk.startDate && tk.endDate && tk.status !== 'off') {
+                    const now = new Date();
+                    const start = new Date(tk.startDate);
+                    const end = new Date(tk.endDate);
+                    if (now >= start && now <= end) {
+                        tk.status = 'live';
+                        tk.isOnline = true;
+                    } else if (tk.status === 'edit') {
+                        tk.status = 'edit';
+                        tk.isOnline = false;
+                    }
+                }
+            }
+            
             return new Response(JSON.stringify(file.content), { status: 200, headers });
         }
 
@@ -1764,7 +1782,23 @@ ${urls.map(u => `  <url>
             const SETTINGS_PATH = 'src/data/settings.json';
             const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
             if (!file || !file.content.takeover) return new Response(JSON.stringify({ enabled: false }), { status: 200, headers });
+            
             const takeover = file.content.takeover;
+            
+            // Logique Auto-Live
+            if (takeover.startDate && takeover.endDate && takeover.status !== 'off') {
+                const now = new Date();
+                const start = new Date(takeover.startDate);
+                const end = new Date(takeover.endDate);
+                if (now >= start && now <= end) {
+                    takeover.status = 'live';
+                    takeover.isOnline = true;
+                } else if (takeover.status === 'edit') {
+                    takeover.status = 'edit';
+                    takeover.isOnline = false;
+                }
+            }
+            
             if (!takeover.auddToken) takeover.auddToken = '0707d622c51645acc2e4fa26ed64538d';
             return new Response(JSON.stringify(takeover), { status: 200, headers });
         }
