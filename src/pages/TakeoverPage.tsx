@@ -33,6 +33,7 @@ interface StreamItem {
     id: string;
     name: string;
     youtubeId: string;
+    currentTrack?: string;
 }
 
 interface TakeoverSettings {
@@ -80,6 +81,7 @@ interface TracklistSet {
     artist: string;
     startTime: string;
     tracks: TrackItem[];
+    stage: string;
 }
 
 
@@ -1176,7 +1178,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             id: Date.now().toString(),
             artist: newSetArtist.toUpperCase(),
             startTime: newSetTime || new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-            tracks: []
+            tracks: [],
+            stage: activeStage
         };
         const newList = [nextSet, ...tracklist];
         setTracklist(newList);
@@ -1804,6 +1807,20 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         const endTime = new Date(now.getFullYear(), now.getMonth(), now.getDate(), eh, em, 0);
         
         if (eh < sh) endTime.setDate(endTime.getDate() + 1);
+        
+        // Stage filtering
+        const itemStage = item.stage.toUpperCase();
+        const stageMapping: Record<string, string> = {
+            'stage1': (settings.streams?.[0]?.name || 'STAGE 1').toUpperCase(),
+            'stage2': (settings.streams?.[1]?.name || 'STAGE 2').toUpperCase(),
+            'stage3': (settings.streams?.[2]?.name || 'STAGE 3').toUpperCase(),
+            'stage4': (settings.streams?.[4]?.name || 'STAGE 4').toUpperCase(),
+            'stage5': (settings.streams?.[5]?.name || 'STAGE 5').toUpperCase(),
+            'stage6': (settings.streams?.[6]?.name || 'STAGE 6').toUpperCase()
+        };
+        const targetStageName = stageMapping[activeStage as string] || activeStage.toUpperCase();
+        if (itemStage !== targetStageName && itemStage !== activeStage.toUpperCase()) return false;
+
         return now >= startTime && now <= endTime;
     }) || { artist: 'DROPSIDERS LIVE', stage: 'MAIN STAGE' };
 
@@ -1932,7 +1949,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 <div className="flex items-center gap-1.5 lg:gap-2 mt-1 lg:mt-2">
                                     <Music className="w-3 h-3 lg:w-4 lg:h-4 text-neon-cyan animate-pulse" />
                                     <span className="text-[8px] lg:text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none">NOW</span>
-                                    <span className="text-[12px] lg:text-[16px] font-black text-white uppercase italic tracking-tighter truncate max-w-[120px] sm:max-w-none">{fluxCurrentArtist.artist}</span>
+                                    <span className="text-[12px] lg:text-[16px] font-black text-white uppercase italic tracking-tighter truncate max-w-[120px] sm:max-w-none">
+                                        {fluxCurrentArtist.artist} {settings.streams?.find(s => s.id === settings.activeStreamId)?.currentTrack ? ` - ${settings.streams.find(s => s.id === settings.activeStreamId)?.currentTrack}` : ''}
+                                    </span>
                                 </div>
                             </div>
                         </div>
@@ -2281,7 +2300,15 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                                 const ns = [...editStreams];
                                                                                 ns[idx].youtubeId = extractYoutubeId(e.target.value);
                                                                                 setEditStreams(ns);
-                                                                            }} className="w-full bg-black/60 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-purple" placeholder="Link or ID" />
+                                                                            }} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-bold text-white outline-none focus:border-neon-purple" placeholder="Link or ID" />
+                                                                        </div>
+                                                                        <div className="col-span-full space-y-2">
+                                                                            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-2">Titre Actuel (Affiché dans le Live)</label>
+                                                                            <input type="text" value={stream.currentTrack || ''} onChange={e => {
+                                                                                const ns = [...editStreams];
+                                                                                ns[idx].currentTrack = e.target.value.toUpperCase();
+                                                                                setEditStreams(ns);
+                                                                            }} className="w-full bg-neon-purple/5 border border-neon-purple/20 rounded-xl px-4 py-3 text-xs font-black text-white outline-none focus:border-neon-purple uppercase" placeholder="EX: ID - UNRELEASED (REMIX)" />
                                                                         </div>
                                                                     </div>
                                                                 </div>
@@ -2570,7 +2597,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             </div>
 
                                             <div className="space-y-4">
-                                                {tracklist.map(set => (
+                                                {tracklist.filter(s => (s.stage || 'stage1') === activeStage).map(set => (
                                                     <div key={set.id} className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-4">
                                                         <div className="flex items-center justify-between">
                                                             <div>
@@ -3199,21 +3226,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         </button>
                                     ))}
                                 </div>
-                                <div className="flex gap-1 p-1 bg-white/5 rounded-xl border border-white/10 my-1">
-                                    {(['stage1', 'stage2', 'stage3', 'stage4', 'stage5', 'stage6'] as const).map((s, idx) => {
-                                        // Garder le STAGE 1 visible par défaut. Cacher les autres (Stage 2+) s'il n'y a pas de config youtube.
-                                        if (idx >= 1 && (!settings.streams || !settings.streams[idx]?.youtubeId)) return null;
-                                        return (
-                                            <button
-                                                key={s}
-                                                onClick={() => setActiveStage(s)}
-                                                className={`px-3 py-1.5 rounded-lg text-[8px] font-black uppercase tracking-tighter transition-all ${activeStage === s ? 'bg-neon-purple text-white shadow-[0_0_10px_rgba(168,85,247,0.3)]' : 'text-gray-500 hover:text-white'}`}
-                                            >
-                                                {settings.streams?.[idx]?.name || `STAGE ${idx + 1}`}
-                                            </button>
-                                        );
-                                    })}
-                                </div>
                             </div>
                         )
                     }
@@ -3636,7 +3648,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     )}
 
                                     <AnimatePresence initial={false}>
-                                        {chatMessages.filter(m => (isModChat ? m.isModOnly : !m.isModOnly) && (m.stage || 'stage1') === activeStage && !m.message?.startsWith('[SYSTEM]:')).map((msg, idx) => {
+                                        {chatMessages.filter(m => (isModChat || m.isModOnly ? m.isModOnly : true) && (m.stage || 'stage1') === activeStage && !m.message?.startsWith('[SYSTEM]:')).map((msg, idx) => {
                                             const isHovered = hoveredMessageId === msg.id;
                                             const isDimmed = hoveredMessageId !== null && !isHovered;
 
@@ -3831,13 +3843,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     </div>
 
                                     <div className="space-y-4">
-                                        {tracklist.length === 0 ? (
+                                        {tracklist.filter(s => (s.stage || 'stage1') === activeStage).length === 0 ? (
                                             <div className="py-20 text-center space-y-4 bg-white/5 border border-white/5 rounded-[2.5rem] border-dashed">
                                                 <Search className="w-12 h-12 text-gray-800 mx-auto" />
                                                 <p className="text-gray-600 font-black uppercase text-[10px] tracking-widest italic">Aucun morceau répertorié</p>
                                             </div>
                                         ) : (
-                                            tracklist.map((set, i) => {
+                                            tracklist.filter(s => (s.stage || 'stage1') === activeStage).map((set, i) => {
                                                 const isCurrent = i === 0;
                                                 const isExpanded = isCurrent || expandedSets.includes(set.id);
 
