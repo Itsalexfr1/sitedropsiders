@@ -936,10 +936,10 @@ export function AdminManage() {
                                                             </button>
                                                         </div>
                                                     )}
-                                                    {['News', 'Musique', 'Interviews', 'Recaps'].includes(activeTab) && (
+                                                    {['News', 'Musique', 'Interviews', 'Recaps', 'Focus'].includes(activeTab) && (
                                                         <button
                                                             onClick={() => setFeaturedTarget(item)}
-                                                            className={`p-3 rounded-xl transition-all ${item.isFeatured ? 'text-yellow-500 bg-yellow-500/10' : 'text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10 opacity-0 group-hover:opacity-100'}`}
+                                                            className={`p-3 rounded-xl transition-all ${item.isFeatured ? 'text-yellow-500 bg-yellow-500/10' : 'text-gray-500 hover:text-yellow-500 hover:bg-yellow-500/10'}`}
                                                             title={item.isFeatured ? "Retirer de la une" : "Mettre à la une"}
                                                         >
                                                             <Star className={`w-5 h-5 ${item.isFeatured ? 'fill-current' : ''}`} />
