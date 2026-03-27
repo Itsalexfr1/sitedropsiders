@@ -9,7 +9,6 @@
     "title": "UMF MIAMI",
     "moderators": "",
     "lineup": "[]",
-    "customCommands": "",
     "tickerType": "news",
     "tickerText": "",
     "tickerLink": "",
@@ -19,8 +18,9 @@
     "showTickerBanner": false,
     "showInNavbar": true,
     "forceHomepage": true,
+    "customCommands": "",
     "isSecret": false,
-    "password": "",
+    "password": "2024",
     "channels": "",
     "autoMessage": "",
     "autoMessageInterval": 60,
@@ -28,62 +28,7 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "edit",
-    "mainFluxName": "WORLDWIDE STAGE",
-    "currentTrack": "ID - UNRELEASED",
-    "streams": [
-      {
-        "id": "g9ke3ipuc",
-        "name": "UMF LIVE",
-        "youtubeId": "htnZzmIZUJ8"
-      },
-      {
-        "id": "a3wky7cal",
-        "name": "RESISTANCE",
-        "youtubeId": "EjH_KW1zbQ8"
-      },
-      {
-        "id": "1xp7r0uyy",
-        "name": "WORLDWIDE STAGE",
-        "youtubeId": "FLdsxiIQYhY"
-      },
-      {
-        "id": "my3zeasqx",
-        "name": "THE COVE BY RESISTANCE",
-        "youtubeId": "KxJD3P8Q_Mw"
-      },
-      {
-        "id": "edkou1rpa",
-        "name": "LIVE STAGE",
-        "youtubeId": "53j4xn1oWkI"
-      }
-    ],
-    "activeStreamId": "g9ke3ipuc",
-    "highlightPrice": 100,
-    "lots": [],
-    "dropsAmount": 10,
-    "dropsInterval": 5,
-    "sponsorText": "LIVE RENDU POSSIBLE GRÂCE À NOS PARTENAIRES !",
-    "sponsorLink": "https://dropsiders.fr",
-    "showSponsorBanner": false,
-    "instagramLink": "https://www.instagram.com/ultra/",
-    "tiktokLink": "",
-    "youtubeLink": "",
-    "twitterLink": "",
-    "botCommands": [
-      {
-        "command": "!insta",
-        "response": "Suivez-nous sur @dropsiders.fr !"
-      },
-      {
-        "command": "!lineup",
-        "response": "La lineup est disponible dans l'onglet PLANNING."
-      }
-    ],
-    "tracklist": "[]",
-    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
-    "bannedWords": "",
-    "isOnline": true
+    "status": "live"
   },
   "socials": {
     "instagram": "dropsiders.fr",
