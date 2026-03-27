@@ -2105,7 +2105,19 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 <div className={`transition-all duration-700 ease-in-out ${isPopout ? 'hidden' : (isCinemaMode ? 'w-full lg:w-full h-full lg:h-full' : 'w-full lg:w-[60%] h-[35%] lg:h-full')} bg-black lg:border-r border-b lg:border-b-0 border-white/10 relative flex flex-col shrink-0 overflow-hidden`}>
                     <div className="absolute inset-0 z-0">
                         {viewMode === 'single' ? (
-                            <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${settings.streams?.find((s: any) => s.id === settings.activeStreamId)?.youtubeId || settings.youtubeId || 'dQw4w9WgXcQ'}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                            (() => {
+                                const activeYtId = settings.streams?.find((s: any) => s.id === settings.activeStreamId)?.youtubeId || settings.youtubeId;
+                                return activeYtId ? (
+                                    <iframe className="w-full h-full border-none" src={`https://www.youtube.com/embed/${activeYtId}?autoplay=1&mute=0&rel=0&modestbranding=1`} allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen />
+                                ) : (
+                                    <div className="w-full h-full flex flex-col items-center justify-center bg-black gap-4">
+                                        <div className="w-16 h-16 rounded-full bg-white/5 border border-white/10 flex items-center justify-center animate-pulse">
+                                            <span className="text-2xl">📺</span>
+                                        </div>
+                                        <p className="text-white/30 text-xs font-black uppercase tracking-[0.3em]">Stream bientôt en ligne</p>
+                                    </div>
+                                );
+                            })()
                         ) : (
                             <div className={`grid h-full w-full gap-1 p-1 bg-black ${gridCount === 1 ? 'grid-cols-1' : gridCount === 2 ? 'grid-cols-2' : gridCount <= 4 ? 'grid-cols-2' : 'grid-cols-3'}`}>
                                 {settings.streams?.slice(0, gridCount).map((s: any, idx: number) => (
