@@ -1183,6 +1183,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             setTracklist(Array.isArray(parsed) ? parsed : []);
                         } catch (e) { setTracklist([]); }
                     }
+                    if (data.festivalLogo) setEditFestivalLogo(data.festivalLogo);
+                    if (data.sponsorText) setEditSponsorText(data.sponsorText);
+                    if (data.sponsorLink) setEditSponsorLink(data.sponsorLink);
+                    if (data.showSponsorBanner !== undefined) setEditShowSponsorBanner(data.showSponsorBanner);
                 }
             }
         } catch (e) { console.error("Error loading settings:", e); }
@@ -1925,9 +1929,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 <>
 
                     {/* 2. HEADER */}
-                    <div className="h-12 lg:h-16 border-b border-white/5 flex items-center justify-between px-2 lg:px-6 bg-black/40 backdrop-blur-md relative z-40 overflow-hidden">
-                        <div className="flex items-center gap-2 lg:gap-8 min-w-0">
-                            <div className="flex flex-col min-w-0">
+                    <div className="h-20 lg:h-16 border-b border-white/5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between px-2 lg:px-6 bg-black/40 backdrop-blur-md relative z-40 overflow-hidden shrink-0">
+                        <div className="flex flex-1 items-center justify-between lg:justify-start gap-4 min-w-0">
+                            <div className="flex flex-col min-w-0 flex-1">
                                 <div className="flex items-center gap-2 lg:gap-4 truncate">
                                     <div className="flex flex-col items-start pr-2 lg:pr-4 border-r border-white/10 shrink-0">
                                         <span className="text-[10px] lg:text-[14px] font-black text-white italic tracking-tighter tabular-nums leading-none">{currentTime}</span>
@@ -1937,7 +1941,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
                                             <span className="text-[6px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
                                         </div>
-                                        <h1 className="text-[10px] sm:text-xs lg:text-[28px] xl:text-[32px] font-display font-black text-white italic tracking-tighter leading-none truncate max-w-[120px] sm:max-w-none">{settings.title.toUpperCase()}</h1>
+                                        <h1 className="text-[10px] sm:text-xs lg:text-[24px] xl:text-[28px] font-display font-black text-white italic tracking-tighter leading-none truncate max-w-[120px] sm:max-w-none">{settings.title.toUpperCase()}</h1>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1 lg:gap-2 mt-1 lg:mt-2 truncate">
@@ -1948,11 +1952,24 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     </span>
                                 </div>
                             </div>
+
+                            {/* Mobile specific controls for header top right */}
+                            <div className="flex lg:hidden items-center gap-2">
+                                <button
+                                    onClick={() => setShowViewersList(!showViewersList)}
+                                    className={`p-1.5 rounded-lg border ${showViewersList ? 'bg-pink-600 border-pink-500 text-white' : 'bg-white/5 border-white/10 text-gray-500'}`}
+                                >
+                                    <Users className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => navigate('/')} className="p-1 hover:bg-white/5 rounded-full">
+                                    <X className="w-5 h-5 text-white" />
+                                </button>
+                            </div>
                         </div>
 
-                        {/* MULTI-CAM SELECTOR IN HEADER */}
+                        {/* STAGE SELECTOR (Visible on mobile too now) */}
                         {settings.streams && settings.streams.length > 1 && (
-                            <div className="hidden lg:flex gap-1 md:gap-2 p-1.5 bg-white/5 border border-white/10 rounded-2xl mx-auto overflow-hidden shadow-lg">
+                            <div className="flex lg:flex gap-1 p-1 bg-white/5 border-t lg:border-t-0 lg:border-l border-white/5 lg:ml-4 overflow-x-auto no-scrollbar py-2 lg:py-1">
                                 {settings.streams.map((s: any, idx: number) => (
                                     <button
                                         key={s.id}
@@ -1960,16 +1977,17 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             setSettings(prev => ({ ...prev, activeStreamId: s.id }));
                                             setActiveStage(`stage${idx + 1}` as any);
                                         }}
-                                        className={`px-2 py-1 md:px-4 md:py-2 rounded-xl text-[8px] md:text-[10px] font-black uppercase transition-all flex items-center gap-2 truncate ${settings.activeStreamId === s.id ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
+                                        className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg lg:rounded-xl text-[7px] lg:text-[10px] font-black uppercase transition-all flex items-center gap-1.5 shrink-0 ${settings.activeStreamId === s.id ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
                                     >
-                                        <Video className="w-3 h-3 md:w-3.5 md:h-3.5 shrink-0" />
-                                        <span className="truncate max-w-[80px] md:max-w-none">{s.name}</span>
+                                        <Video className="w-2.5 h-2.5 lg:w-3.5 lg:h-3.5 shrink-0" />
+                                        <span className="truncate max-w-[60px] lg:max-w-none">{s.name}</span>
                                     </button>
                                 ))}
                             </div>
                         )}
 
-                        <div className="flex items-center gap-4">
+                        {/* Desktop Only Buttons moved to a container */}
+                        <div className="hidden lg:flex items-center gap-4 ml-4">
                             <button
                                 onClick={() => {
                                     if (isMod) {
@@ -1977,65 +1995,41 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         setAdminActiveTab('config');
                                     }
                                 }}
-                                className={`flex items-center gap-2 lg:gap-4 px-2 lg:px-4 py-1.5 lg:py-2 bg-white/5 border border-white/10 rounded-xl transition-all ${isMod ? 'hover:bg-white/10 cursor-pointer' : ''}`}
+                                className={`flex items-center gap-4 px-4 py-2 bg-white/5 border border-white/10 rounded-xl transition-all ${isMod ? 'hover:bg-white/10 cursor-pointer' : ''}`}
                             >
-                                <Users className="w-3.5 h-3.5 lg:w-4 lg:h-4 text-neon-cyan" />
-                                <span className="text-[11px] lg:text-xs font-black text-white">{settings.status === 'off' ? 0 : Array.from(new Set(chatMessages.filter(m => m.pseudo && m.pseudo !== 'BOT_SYSTEM').map(m => m.pseudo))).length}</span>
+                                <Users className="w-4 h-4 text-neon-cyan" />
+                                <span className="text-xs font-black text-white">{settings.status === 'off' ? 0 : Array.from(new Set(chatMessages.filter(m => m.pseudo && m.pseudo !== 'BOT_SYSTEM').map(m => m.pseudo))).length}</span>
                             </button>
-                            <div className="hidden lg:flex gap-1 p-1 bg-white/5 border border-white/10 rounded-xl mr-2">
+                            <div className="flex gap-1 p-1 bg-white/5 border border-white/10 rounded-xl">
                                 <button
                                     onClick={() => setViewMode('single')}
                                     className={`p-2 rounded-lg transition-all ${viewMode === 'single' ? 'bg-neon-cyan text-black' : 'text-gray-500 hover:text-white'}`}
-                                    title="Vue Simple"
                                 >
                                     <Square className="w-4 h-4" />
                                 </button>
                                 <button
                                     onClick={() => setViewMode('grid')}
                                     className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-neon-cyan text-black' : 'text-gray-500 hover:text-white'}`}
-                                    title="Vue Grille"
                                 >
                                     <BarChart3 className="w-4 h-4 rotate-90" />
                                 </button>
-                                {viewMode === 'grid' && (
-                                    <select
-                                        value={gridCount}
-                                        onChange={(e) => setGridCount(Number(e.target.value))}
-                                        className="bg-black/40 border border-white/10 rounded-lg px-2 text-[10px] font-black text-white outline-none focus:border-neon-cyan"
-                                    >
-                                        {[1, 2, 3, 4, 5, 6].map(n => (
-                                            <option key={n} value={n}>{n} STAGES</option>
-                                        ))}
-                                    </select>
-                                )}
                             </div>
                             <button
-                                onClick={() => setShowViewersList(!showViewersList)}
-                                className={`p-2 lg:p-3 rounded-xl transition-all border ${showViewersList ? 'bg-pink-600 border-pink-500 shadow-[0_0_15px_rgba(219,39,119,0.4)] text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
-                                title="Liste des Viewers"
-                            >
-                                <Users className="w-4 h-4 lg:w-5 lg:h-5" />
-                            </button>
-                            <button
                                 onClick={() => setIsCinemaMode(!isCinemaMode)}
-                                className={`p-2 lg:p-3 rounded-xl transition-all border ${isCinemaMode ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_15px_rgba(0,255,255,0.4)] text-black' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
-                                title="Mode Cinéma"
+                                className={`p-3 rounded-xl transition-all border ${isCinemaMode ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_15px_rgba(0,255,255,0.4)] text-black' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
                             >
-                                {isCinemaMode ? <Minimize2 className="w-4 h-4 lg:w-5 lg:h-5" /> : <Maximize2 className="w-4 h-4 lg:w-5 lg:h-5" />}
+                                {isCinemaMode ? <Minimize2 className="w-5 h-5" /> : <Maximize2 className="w-5 h-5" />}
                             </button>
                             {isMod && (
-                                <button onClick={() => setShowAdminPanel(!showAdminPanel)} className={`p-2 lg:p-3 rounded-xl transition-all border ${showAdminPanel ? 'bg-neon-purple border-neon-purple shadow-[0_0_15px_rgba(168,85,247,0.4)] text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}>
-                                    <Settings className="w-4 h-4 lg:w-5 lg:h-5" />
+                                <button onClick={() => setShowAdminPanel(!showAdminPanel)} className={`p-3 rounded-xl transition-all border ${showAdminPanel ? 'bg-neon-purple border-neon-purple shadow-[0_0_15px_rgba(168,85,247,0.4)] text-white' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}>
+                                    <Settings className="w-5 h-5" />
                                 </button>
                             )}
-                            <button onClick={() => navigate('/')} className="p-2 hover:bg-white/5 rounded-full">
-                                <X className="w-5 h-5 text-white" />
-                            </button>
                         </div>
                     </div>
 
-                    {/* TOP NEWS MARQUEE (Replacing small ticker) */}
-                    <div className="h-6 lg:h-10 bg-neon-red/10 backdrop-blur-md border-b border-neon-red/30 flex items-center overflow-hidden group">
+                    {/* TOP NEWS MARQUEE (Hidden on Mobile) */}
+                    <div className="hidden lg:flex h-6 lg:h-10 bg-neon-red/10 backdrop-blur-md border-b border-neon-red/30 items-center overflow-hidden group shrink-0">
                         <div className="bg-neon-red px-2 lg:px-3 h-full flex items-center shrink-0 z-10 relative shadow-[0_0_15px_rgba(255,0,51,0.5)]">
                             <Megaphone className="w-3 lg:w-3.5 h-3 lg:h-3.5 text-white" />
                             <span className="ml-1 lg:ml-2 text-[7px] lg:text-[9px] font-black text-white uppercase tracking-tighter cursor-default">NEWS FLUX</span>
