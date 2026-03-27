@@ -328,7 +328,7 @@ export function RecapCreate() {
                             setYear(data.recap.year || '');
                             setIsFeatured(data.recap.isFeatured || false);
 
-                            let c = data.content || data.recap.content || '';
+                            const c = data.content || data.recap.content || '';
                             const foundWidgets = [];
                             const articleSectionPattern = '<div class="article-section';
                             if (c.includes(articleSectionPattern)) {
@@ -760,7 +760,7 @@ export function RecapCreate() {
         setWidgets(prev => prev.map(w => {
             if (w.id !== id) return w;
 
-            let content = w.content;
+            const content = w.content;
             const wrapperRegex = /^<div class="([^"]*)">\n([\s\S]*)\n<\/div>$/;
             const match = content.match(wrapperRegex);
 

@@ -74,7 +74,7 @@ export const ArticleReader: React.FC<ArticleReaderProps> = ({ content, title, au
         selectorsToRemove.forEach(selector => doc.querySelectorAll(selector).forEach(el => el.remove()));
 
         // Add "..." for breathing pauses between sections
-        let authorText = author ? `${t('common.by')} ${author}... ` : '';
+        const authorText = author ? `${t('common.by')} ${author}... ` : '';
         let textToRead = `${title}...... ${authorText} ${doc.body.innerText}`;
 
         // Standardize punctuation for the engine (add slight breaths)

@@ -348,7 +348,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         if (!html) return { cleanHtml: '', socials: [], artistLabel: "L'ARTISTE", festivalSocials: [], festivalLabel: "LE FESTIVAL" };
 
         // Pre-clean: fix malformed HTML from older publications (spaces in tags/attributes)
-        let fixedHtml = html
+        const fixedHtml = html
             .replace(/< (\w)/g, '<$1')           // "< div" -> "<div", "< a" -> "<a"
             .replace(/<\/(\w+) >/g, '</$1>')      // "</div >" -> "</div>", "</a >" -> "</a>"
             .replace(/data - platform=/g, 'data-platform=')  // "data - platform" -> "data-platform"

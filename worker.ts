@@ -279,7 +279,7 @@ export default {
 
         // --- NEW: SITEMAP GENERATOR ---
         if (path === '/sitemap.xml') {
-            let urls = [
+            const urls = [
                 { loc: '/', priority: '1.0' },
                 { loc: '/news', priority: '0.8' },
                 { loc: '/recaps', priority: '0.8' },
@@ -839,7 +839,7 @@ ${urls.map(u => `  <url>
             if (existingSummary && existingSummary.trim() !== '') return existingSummary;
             if (!content) return '';
             // Remove social links blocks before extracting text for summary
-            let cleanContent = content
+            const cleanContent = content
                 .replace(/<div[^>]*class="[^"]*artist-socials-premium[^"]*"[^>]*>[\s\S]*?<\/div>\s*<\/div>/gi, '')
                 .replace(/<div[^>]*class="[^"]*festival-socials-premium[^"]*"[^>]*>[\s\S]*?<\/div>\s*<\/div>\s*<\/div>/gi, '')
                 .replace(/SUIVEZ\s+[A-Z][^<]*/gi, '');
@@ -870,7 +870,7 @@ ${urls.map(u => `  <url>
         const decodePass = (p: string) => p && p.startsWith('b64:') ? atob(p.slice(4)) : p;
         const adminPassword = (env.ADMIN_PASSWORD || '').trim();
         const requestPassword = (request.headers.get('X-Admin-Password') || '').trim();
-        let requestUsername = (request.headers.get('X-Admin-Username') || '').trim();
+        const requestUsername = (request.headers.get('X-Admin-Username') || '').trim();
 
         const isAuthRoute = (
             path.startsWith('/api/news/create') ||
@@ -2381,7 +2381,7 @@ ${urls.map(u => `  <url>
                     const end = new Date(endDate);
                     end.setHours(23, 59, 59, 999);
 
-                    let currentDate = new Date(start);
+                    const currentDate = new Date(start);
                     let maxId = currentData.reduce((max, item) => (item.id > max ? item.id : max), 0);
 
                     const newEvents = [];
@@ -2471,7 +2471,7 @@ ${urls.map(u => `  <url>
                     const end = new Date(endDate);
                     end.setHours(23, 59, 59, 999);
 
-                    let currentDate = new Date(start);
+                    const currentDate = new Date(start);
                     const newEvents = [];
                     while (currentDate <= end) {
                         maxId++;
@@ -3537,7 +3537,7 @@ ${urls.map(u => `  <url>
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
                 // 1. Get ALL keys currently in R2
-                let allKeys = new Set();
+                const allKeys = new Set();
                 let cursor = undefined;
                 do {
                     const listResult = await env.R2.list({ cursor });
@@ -3615,7 +3615,7 @@ ${urls.map(u => `  <url>
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
                 // 1. Get ALL keys from R2
-                let allR2Keys = [];
+                const allR2Keys = [];
                 let cursor = undefined;
                 do {
                     const listResult = await env.R2.list({ cursor });

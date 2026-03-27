@@ -504,7 +504,7 @@ export function NewsCreate() {
             setIsAuthorConfirmed(true);
 
             // Parse Content Base
-            let c = fullContent || articleData.content || '';
+            const c = fullContent || articleData.content || '';
             const parser = new DOMParser();
             const doc = parser.parseFromString(c, 'text/html');
 
@@ -597,7 +597,7 @@ export function NewsCreate() {
             if (articleData.category === 'Musique') {
                 setActiveTab('Musique');
                 const musicSectionRegex = /<div class="music-top-item-premium[^>]*>[\s\S]*?<h3[^>]*>(.*?)<\/h3>[\s\S]*?<iframe[^>]*src="(.*?)"[\s\S]*?<\/div>/g;
-                let foundMusic = [];
+                const foundMusic = [];
                 let match;
                 while ((match = musicSectionRegex.exec(c)) !== null) {
                     foundMusic.push({
@@ -940,7 +940,7 @@ export function NewsCreate() {
         setWidgets(prev => prev.map(w => {
             if (w.id !== id) return w;
 
-            let content = w.content;
+            const content = w.content;
             const wrapperRegex = /^<div class="([^"]*)">\n([\s\S]*)\n<\/div>$/;
             const match = content.match(wrapperRegex);
 
@@ -1139,13 +1139,64 @@ export function NewsCreate() {
             }
 
             // 3. Beatport Title Fetch (using Microlink as proxy to avoid CORS/Parsing)
-            else if (url.includes('beatport.com')) {
-                const response = await fetch(`https://api.microlink.io/?url=${encodeURIComponent(url)}`);
-                const data = await response.json();
-                if (data.status === 'success' && data.data.title) {
-                    // Beatport title format: Artist - Track Name (Version) [Label] | Music & Downloads on Beatport
-                    let bTitle = data.data.title.split('|')[0].trim();
-                    title = bTitle;
+            else if (url.includes('beatport.com') || url.match(/^\d+$/)) {
+                try {
+                    let sCredits = parseInt(localStorage.getItem('scrapingbee_credits') || '1000');
+                    if (sCredits <= 0) {
+                        alert("Le compteur ScrapingBee interne est à 0. Pense à le remettre à zéro dans tes paramètres de navigateur après avoir créé un compte !");
+                        throw new Error("No limit");
+                    }
+
+                    const sbKey = 'GNOH62OMJTZUVJCH4ITXB4CANAIV0250UHXI9WR4QH1M93XMR96WOBP2057PHLEH8C7RIFRSBPXN4RYV';
+                    const rules = encodeURIComponent('{"title":"title"}');
+                    // Premium Proxy might be required for Beatport Cloudflare, meaning up to 25 credits per request, but we'll try without JS first to save credits. We'll deduct roughly 5 credits.
+                    const sbUrl = `https://app.scrapingbee.com/api/v1/?api_key=${sbKey}&url=${encodeURIComponent(url)}&extract_rules=${rules}&render_js=false`;
+
+                    const response = await fetch(sbUrl);
+                    if (!response.ok) throw new Error("ScrapingBee failure");
+                    
+                    const data = await response.json();
+                    
+                    if (data && data.title && !data.title.includes('Just a moment') && !data.title.includes('Cloudflare')) {
+                        const bTitle = data.title.split('|')[0].trim();
+                        title = bTitle;
+
+                        sCredits -= 5;
+                        if (sCredits < 0) sCredits = 0;
+                        localStorage.setItem('scrapingbee_credits', sCredits.toString());
+
+                        if (sCredits <= 10 && sCredits > 0) {
+                            alert(`🚨 ATTENTION : Ton quota théorique de crédits ScrapingBee atteint ${sCredits} ! \nPense à recréer un nouveau compte très vite.`);
+                        }
+                    } else {
+                        // Sometimes standard bypass fails, fall back to iTunes
+                        throw new Error("ScrapingBee blocked by CF");
+                    }
+                } catch (e) {
+                    // Fallback to extract title from the URL slug due to bot protection
+                    const match = url.match(/\/(?:track|release)\/([^/]+)/);
+                    if (match && match[1]) {
+                        // "losing-it" -> "Losing It"
+                        const slugTitle = match[1]
+                            .replace(/-/g, ' ')
+                            .replace(/\b\w/g, char => char.toUpperCase());
+                        
+                        // Attempt to fetch Artist - Title from iTunes Search API as a smart fallback
+                        try {
+                            const itunesRes = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(slugTitle)}&media=music&limit=1`);
+                            const itunesData = await itunesRes.json();
+                            if (itunesData && itunesData.results && itunesData.results.length > 0) {
+                                const t = itunesData.results[0];
+                                title = `${t.artistName} - ${t.trackName}`;
+                            } else {
+                                title = slugTitle;
+                            }
+                        } catch (err) {
+                            title = slugTitle;
+                        }
+                    } else if (url.match(/^\d+$/)) {
+                        title = `Beatport ID: ${url}`;
+                    }
                 }
             }
 
@@ -1160,7 +1211,18 @@ export function NewsCreate() {
     };
 
     const updateMusicItem = (id: string, field: 'title' | 'media' | 'imageUrl' | 'playerType', value: string) => {
-        setMusicItems(musicItems.map(item => item.id === id ? { ...item, [field]: value } : item));
+        setMusicItems(musicItems.map(item => {
+            if (item.id === id) {
+                let newPlayerType = item.playerType;
+                if (field === 'media' && value) {
+                    if (value.includes('spotify.com')) newPlayerType = 'spotify';
+                    else if (value.includes('youtube.com') || value.includes('youtu.be')) newPlayerType = 'youtube';
+                    else if (value.includes('beatport.com') || value.match(/^\d+$/)) newPlayerType = 'beatport';
+                }
+                return { ...item, [field]: value, playerType: newPlayerType };
+            }
+            return item;
+        }));
 
         if (field === 'media' && value && activeTab === 'Musique') {
             fetchMusicMetadata(id, value);
@@ -1230,9 +1292,9 @@ export function NewsCreate() {
             const imgClass = aspectRatio && aspectRatio !== 'auto' ? 'w-full h-full object-cover' : 'w-full h-auto object-cover';
 
             // Layout classes for "premium journal" effect
-            let layoutClasses = "image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group";
-            let sectionWrapperAttribs = `data-align="${alignment || 'center'}"`;
-            let sectionWrapperStyles = alignment !== 'center' ? `width: ${width || 45}%; max-width: 100%;` : '';
+            const layoutClasses = "image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group";
+            const sectionWrapperAttribs = `data-align="${alignment || 'center'}"`;
+            const sectionWrapperStyles = alignment !== 'center' ? `width: ${width || 45}%; max-width: 100%;` : '';
 
             content = `<div class="premium-image-float-container" ${sectionWrapperAttribs} style="${sectionWrapperStyles}">
   <div class="${layoutClasses} ${aspectClass}">
@@ -1392,7 +1454,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
         try {
             let finalContent = '';
             let finalCategory = category;
-            let isFocus = activeTab === 'Focus';
+            const isFocus = activeTab === 'Focus';
             let finalImageUrl = imageUrl;
 
             if (isInterviewVideo) {

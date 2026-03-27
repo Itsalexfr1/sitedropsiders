@@ -599,14 +599,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const fontSize = activeTab === 'PUBLICATION' ? 55 : 78; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
                 const paragraphs = customText.toUpperCase().split('\n');
-                let lines: string[] = [];
+                const lines: string[] = [];
                 ctx.font = `900 italic ${fontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 const stripTags = (s: string) => s.replace(/\[[CB]:[^\]]+\]|\[\/[CB]\]/gi, '');
-                for (let para of paragraphs) {
+                for (const para of paragraphs) {
                     if (para.trim() === '') { lines.push(''); continue; }
                     const words = para.split(' ');
                     let currentLine = '';
-                    for (let word of words) {
+                    for (const word of words) {
                         const testLine = currentLine + word + ' ';
                         if (ctx.measureText(stripTags(testLine)).width < canvas.width - 240) currentLine += word + ' ';
                         else { lines.push(currentLine.trim()); currentLine = word + ' '; }

@@ -40,7 +40,7 @@ export function Interviews() {
         setLoadingEditId(item.id);
         try {
             const res = await fetch(`/api/news/content?id=${item.id}`, { headers: getAuthHeaders() });
-            let fullItem = { ...item };
+            const fullItem = { ...item };
             if (res.ok) {
                 const data = await res.json();
                 fullItem.content = data.content || '';

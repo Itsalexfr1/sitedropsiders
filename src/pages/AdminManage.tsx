@@ -335,7 +335,7 @@ export function AdminManage() {
         } catch (e: any) {
             console.error('Error fetching content for edit:', e);
             // Toujours naviguer même en cas d'erreur de chargement du contenu
-            let fallbackPath = isInterview ? `/news/create?type=Interview&id=${item.id}` :
+            const fallbackPath = isInterview ? `/news/create?type=Interview&id=${item.id}` :
                 isMusique ? `/news/create?type=Musique&id=${item.id}` :
                         activeTab === 'Agenda' ? '' :
                             activeTab === 'Communauté' ? `/galerie/create?id=${item.id}` :
@@ -473,7 +473,7 @@ export function AdminManage() {
     }, [items, activeTab]);
 
     const filteredAndSortedItems = useMemo(() => {
-        let result = items.filter(item => {
+        const result = items.filter(item => {
             const matchesSearch =
                 item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 item.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
