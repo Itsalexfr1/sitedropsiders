@@ -1756,11 +1756,12 @@ ${urls.map(u => `  <url>
         if (path === '/api/settings' && request.method === 'GET') {
             const SETTINGS_PATH = 'src/data/settings.json';
             const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
-            if (!file) return new Response(JSON.stringify({ shop_enabled: false }), { status: 200, headers });
+            if (!file) return new Response(JSON.stringify({ shop_enabled: false, takeover: { enabled: false } }), { status: 200, headers });
             
             // Logique Auto-Live
             if (file.content && file.content.takeover) {
                 const tk = file.content.takeover;
+                // On n'active le live auto QUE si on n'est pas en "off" manuel
                 if (tk.startDate && tk.endDate && tk.status !== 'off') {
                     const now = new Date();
                     const start = new Date(tk.startDate);
@@ -1768,7 +1769,8 @@ ${urls.map(u => `  <url>
                     if (now >= start && now <= end) {
                         tk.status = 'live';
                         tk.isOnline = true;
-                    } else if (tk.status === 'edit') {
+                    } else if (tk.status === 'live') {
+                        // Si le live était forcé mais qu'on est hors plage, on le repasse en 'edit'
                         tk.status = 'edit';
                         tk.isOnline = false;
                     }
@@ -1781,7 +1783,7 @@ ${urls.map(u => `  <url>
         if ((path === '/api/settings/takeover' || path === '/api/takeover-settings') && request.method === 'GET') {
             const SETTINGS_PATH = 'src/data/settings.json';
             const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
-            if (!file || !file.content.takeover) return new Response(JSON.stringify({ enabled: false }), { status: 200, headers });
+            if (!file || !file.content.takeover) return new Response(JSON.stringify({ enabled: false, status: 'off' }), { status: 200, headers });
             
             const takeover = file.content.takeover;
             
@@ -1805,8 +1807,9 @@ ${urls.map(u => `  <url>
 
         if (path === '/api/takeover-settings' && request.method === 'POST') {
             const takeoverData = await request.json();
-            const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig) || { content: {}, sha: null };
-            if (!file.content) file.content = {};
+            const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
+            if (!file) return new Response(JSON.stringify({ error: 'Could not fetch current settings for update' }), { status: 500, headers });
+            
             file.content.takeover = {
                 ...(file.content.takeover || {}),
                 ...takeoverData,
@@ -1819,9 +1822,15 @@ ${urls.map(u => `  <url>
         if (path === '/api/settings/update' && request.method === 'POST') {
             const SETTINGS_PATH = 'src/data/settings.json';
             const newSettings = await request.json();
-            const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig) || { content: { shop_enabled: false }, sha: null };
-            // Merge: preserve master_session_id and other critical fields
-            const merged = { ...file.content, ...newSettings, master_session_id: file.content.master_session_id || 'initial-session-id' };
+            const file = await fetchGitHubFile(SETTINGS_PATH, gitConfig);
+            if (!file) return new Response(JSON.stringify({ error: 'Could not fetch current settings' }), { status: 500, headers });
+            
+            // Si le takeover est présent dans les nouvelles settings, s'assurer de ne pas écraser les champs critiques
+            const merged = { 
+                ...file.content, 
+                ...newSettings, 
+                master_session_id: file.content.master_session_id || 'initial-session-id' 
+            };
             const saved = await saveGitHubFile(SETTINGS_PATH, merged, `Update site settings`, file.sha, gitConfig);
             return new Response(JSON.stringify({ success: saved.ok, error: saved.error }), { status: saved.ok ? 200 : 500, headers });
         }

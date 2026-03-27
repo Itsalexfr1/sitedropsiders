@@ -525,6 +525,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }
     }, [isConnected]);
 
+    const [hasAutoTriggered, setHasAutoTriggered] = useState(false);
+
     // Admin Panel States
     const [editTitle, setEditTitle] = useState(settings.title);
     const [editStreams, setEditStreams] = useState<StreamItem[]>(settings.streams || []);
@@ -538,7 +540,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     // 📅 Auto-Trigger Live based on Schedule
     useEffect(() => {
         const checkSchedule = () => {
-            if (!editStartDate || !editEndDate || editStatus === 'off') return;
+            if (!editStartDate || !editEndDate || editStatus === 'off' || hasAutoTriggered) return;
             
             const now = new Date();
             const start = new Date(editStartDate);
@@ -548,15 +550,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 if (editStatus !== 'live') {
                     setEditStatus('live');
                     setSettings(prev => ({ ...prev, status: 'live' }));
+                    setHasAutoTriggered(true);
                     showNotification("🚀 PROGRAMMATION : LE LIVE PASSE EN DIRECT !", 'success');
                 }
             }
         };
 
-        const timer = setInterval(checkSchedule, 10000); // Check every 10s for responsiveness
+        const timer = setInterval(checkSchedule, 10000); 
         checkSchedule();
         return () => clearInterval(timer);
-    }, [editStartDate, editEndDate, editStatus]);
+    }, [editStartDate, editEndDate, editStatus, hasAutoTriggered]);
     const [editTickerBg, setEditTickerBg] = useState(settings.tickerBgColor);
     const [editTickerTextC, setEditTickerTextC] = useState(settings.tickerTextColor);
     const [editDropsAmount, setEditDropsAmount] = useState(settings.dropsAmount || 10);
