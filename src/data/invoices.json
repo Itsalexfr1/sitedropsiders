@@ -12,15 +12,6 @@
   },
   {
     "number": "INV-2026-067",
-    "client": "Alex",
-    "total": 0,
-    "date": "2026-03-19",
-    "id": 1773946587222,
-    "sentDate": "2026-03-19T18:56:27.222Z",
-    "paid": false
-  },
-  {
-    "number": "INV-2026-067",
     "client": "test",
     "total": 0,
     "date": "2026-03-19",
