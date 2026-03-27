@@ -537,8 +537,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [interactivityDuration, setInteractivityDuration] = useState(30);
 
     // 🎰 Lottery (Tirage au sort)
-    const [lotteryParticipants, setLotteryParticipants] = useState<string[]>([]);
-    const [lotteryActive] = useState(false);
     const [editBannedWords] = useState(settings.bannedWords || '');
 
     const handleAdminCommand = async (cmd: string) => {
