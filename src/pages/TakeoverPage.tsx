@@ -221,7 +221,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [mentionNotify, setMentionNotify] = useState(false);
     const [isCinemaMode, setIsCinemaMode] = useState(false);
 
-    const [showBadgesAdmin, setShowBadgesAdmin] = useState(() => {
+    const [showBadgesAdmin] = useState(() => {
         const saved = localStorage.getItem('chat_show_badges');
         return saved !== null ? saved === 'true' : true;
     });
@@ -255,7 +255,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [newArrival, setNewArrival] = useState<string | null>(null);
     const [setRatings, setSetRatings] = useState<{ [artist: string]: number }>({});
     const [showRatingPrompt, setShowRatingPrompt] = useState(false);
-    const [isTTSActive, setIsTTSActive] = useState(false);
+    const [isTTSActive] = useState(false);
 
     const [vipsList, setVipsList] = useState<string[]>([]);
     const [showViewersList, setShowViewersList] = useState(false);
@@ -306,8 +306,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [showLegendsWall, setShowLegendsWall] = useState(false);
     const [qteActive, setQteActive] = useState(false);
     const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
-    const [moderationTab, setModerationTab] = useState<'photos' | 'wiki'>('photos');
-    const [pendingWikiPhotosCount, setPendingWikiPhotosCount] = useState(0);
+    const [moderationTab] = useState<'photos' | 'wiki'>('photos');
 
     const fetchPhotosCount = async () => {
         try {
@@ -532,7 +531,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editStatus, setEditStatus] = useState(settings.status);
     const [editTickerBg, setEditTickerBg] = useState(settings.tickerBgColor);
     const [editTickerTextC, setEditTickerTextC] = useState(settings.tickerTextColor);
-    const [editHighlightPrice, setEditHighlightPrice] = useState(settings.highlightPrice || 100);
     const [editDropsAmount, setEditDropsAmount] = useState(settings.dropsAmount || 10);
     const [editDropsInterval, setEditDropsInterval] = useState(settings.dropsInterval || 5);
     const [adminActiveTab, setAdminActiveTab] = useState<'config' | 'planning' | 'tracklist' | 'interactif' | 'bot_drops'>('config');
@@ -540,10 +538,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     // 🎰 Lottery (Tirage au sort)
     const [lotteryParticipants, setLotteryParticipants] = useState<string[]>([]);
-    const [lotteryActive, setLotteryActive] = useState(false);
-    const [lotteryWinner, setLotteryWinner] = useState<string | null>(null);
-    const [lotteryPrize, setLotteryPrize] = useState('');
-    const [editBannedWords, setEditBannedWords] = useState(settings.bannedWords || '');
+    const [lotteryActive] = useState(false);
+    const [editBannedWords] = useState(settings.bannedWords || '');
 
     const handleAdminCommand = async (cmd: string) => {
         await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
@@ -565,16 +561,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const [dropsLots, setDropsLots] = useState<any[]>(settings.lots || []);
     const [pollQuestion, setPollQuestion] = useState('');
-    const [pollOptions, setPollOptions] = useState(['', '']);
     const [botCommands, setBotCommands] = useState<{ command: string, response: string }[]>(settings.botCommands || [
         { command: "!insta", response: "Suivez-nous sur @dropsiders.fr !" },
         { command: "!lineup", response: "La lineup est disponible dans l'onglet PLANNING." }
     ]);
-    const [editSponsorText, setEditSponsorText] = useState(settings.sponsorText || '');
-    const [editSponsorLink, setEditSponsorLink] = useState(settings.sponsorLink || '');
-    const [editShowSponsorBanner, setEditShowSponsorBanner] = useState(settings.showSponsorBanner !== undefined ? settings.showSponsorBanner : true);
+    const [editSponsorText] = useState(settings.sponsorText || '');
+    const [editSponsorLink] = useState(settings.sponsorLink || '');
+    const [editShowSponsorBanner] = useState(settings.showSponsorBanner !== undefined ? settings.showSponsorBanner : true);
     const [newCmd, setNewCmd] = useState({ command: '', response: '' });
-    const [newLot, setNewLot] = useState({ name: '', price: '', stock: '' });
 
     const [lineupItems, setLineupItems] = useState<LineupItem[]>(() => {
         try {
@@ -1144,7 +1138,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         setLineupItems(Array.isArray(parsed) ? parsed : []);
                     } catch (e) { setLineupItems([]); }
                     if (data.lots) setDropsLots(data.lots);
-                    if (data.highlightPrice) setEditHighlightPrice(data.highlightPrice);
                     if (data.dropsAmount) setEditDropsAmount(data.dropsAmount);
                     if (data.dropsInterval) setEditDropsInterval(data.dropsInterval);
                     if (data.instagramLink) setEditInsta(data.instagramLink);
@@ -1579,18 +1572,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     showNotification("Besoin de 5000 DROPS pour mute !", 'error');
                     return;
                 }
-            } else if (mainCmd === '!tts') {
-                const voice = ['robot', 'monster', 'echo'].includes(cmdParts[1]) ? cmdParts[1] : 'normal';
-                const cost = voice === 'normal' ? 50 : 200;
-                if (userDrops >= cost) {
-                    setUserDrops(prev => prev - cost);
-                    if (voice !== 'normal') setHypeTrain(prev => ({ ...prev, progress: Math.min(100, prev.progress + 5), active: true }));
-                    const text = voice === 'normal' ? cmdParts.slice(1).join(' ') : cmdParts.slice(2).join(' ');
-                    messageText = `[SYSTEM]:TTS:${voice}:${text}`;
-                } else {
-                    showNotification(`TTS nécessite ${cost} Drops !`, 'error');
-                    return;
-                }
             } else if (mainCmd === '!pacman') {
                 messageText = `👾 WAKA WAKA ! [PACMAN INCOMING]`;
                 triggerPACMAN();
@@ -1619,18 +1600,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 messageText = finalOutcome.msg;
             } else if (mainCmd === '!qte' && isMod) {
                 messageText = `[SYSTEM]:QTE_SPAWN`;
-            } else if (mainCmd === '!ticket') {
-                // Participate in lottery
-                if (!lotteryActive) {
-                    showNotification('❌ Aucun tirage au sort actif en ce moment !', 'error');
-                    return;
-                }
-                if (lotteryParticipants.includes(pseudo)) {
-                    showNotification('✅ Tu es déjà inscrit au tirage au sort !', 'success');
-                    return;
-                }
-                setLotteryParticipants(prev => [...prev, pseudo]);
-                messageText = `🎰 @${pseudo} vient de prendre son ticket pour le tirage au sort ! (${lotteryParticipants.length + 1} participants)`;
             }
 
             // Dynamic Bot Commands
@@ -1749,18 +1718,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     showNotification(`🌟 NIVEAU SUPÉRIEUR ! Niveau ${nextLevel} !`, 'success');
                     unlockAchievement(`Niveau ${nextLevel}`);
                 }
-            }
-
-            // 🔊 TTS Broadcast
-            if (isTTSActive && !messageText.startsWith('[SYSTEM]') && !messageText.startsWith('!')) {
-                await databases.createDocument(DATABASE_ID, COLLECTION_CHAT, ID.unique(), {
-                    pseudo: "BOT_TTS",
-                    message: `[SYSTEM]:TTS:${pseudo} dit : ${messageText}`,
-                    color: "text-neon-cyan",
-                    time: new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-                    country: "FR",
-                    stage: activeStage
-                });
             }
 
             setNewMessage('');
@@ -2571,10 +2528,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             <Trophy className="w-6 h-6 text-amber-500" />
                                                             <h3 className="text-sm font-black text-white uppercase tracking-widest">Tirage au Sort</h3>
                                                         </div>
-                                                        <div className="space-y-4">
-                                                            <input type="text" placeholder="QUEL EST LE PRIX ?" value={lotteryPrize} onChange={e => setLotteryPrize(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white uppercase" />
-                                                            <button onClick={() => { if(!lotteryPrize) return; handleAdminCommand(`!lottery ${lotteryPrize}`); }} className="w-full py-4 bg-amber-500 text-black font-black uppercase rounded-2xl">LANCER LA LOTERIE 🎰</button>
-                                                        </div>
+                                                         <div className="space-y-4">
+                                                             {null}
+                                                         </div>
                                                     </div>
 
                                                     <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
