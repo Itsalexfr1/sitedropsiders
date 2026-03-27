@@ -28,7 +28,40 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "live"
+    "status": "live",
+    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
+    "streams": [
+      {
+        "id": "l0hfqhzkp",
+        "name": "",
+        "youtubeId": "UMF-Live",
+        "overrideArtist": "HTTPS://WWW.YOUTUBE.COM/LIVE/HTNZZMIZUJ8?SI=BBONRB8ISVFVAPY3"
+      }
+    ],
+    "activeStreamId": "l0hfqhzkp",
+    "instagramLink": "",
+    "tiktokLink": "",
+    "youtubeLink": "",
+    "twitterLink": "",
+    "sponsorText": "LIVE RENDU POSSIBLE GRÂCE À NOS PARTENAIRES !",
+    "sponsorLink": "https://dropsiders.fr",
+    "showSponsorBanner": true,
+    "bannedWords": "",
+    "dropsAmount": 10,
+    "dropsInterval": 5,
+    "lots": [],
+    "botCommands": [
+      {
+        "command": "!insta",
+        "response": "Suivez-nous sur @dropsiders.fr !"
+      },
+      {
+        "command": "!lineup",
+        "response": "La lineup est disponible dans l'onglet PLANNING."
+      }
+    ],
+    "festivalLogo": "",
+    "tracklist": "[]"
   },
   "socials": {
     "instagram": "dropsiders.fr",
