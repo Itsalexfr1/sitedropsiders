@@ -26,8 +26,8 @@
     "autoMessageInterval": 60,
     "pinnedMessage": "",
     "showInAgenda": true,
-    "startDate": "2026-03-27T17:55",
-    "endDate": "2026-03-27T18:00",
+    "startDate": "",
+    "endDate": "",
     "status": "edit",
     "mainFluxName": "WORLDWIDE STAGE",
     "currentTrack": "ID - UNRELEASED",
@@ -82,7 +82,8 @@
     ],
     "tracklist": "[]",
     "auddToken": "0707d622c51645acc2e4fa26ed64538d",
-    "bannedWords": ""
+    "bannedWords": "",
+    "isOnline": true
   },
   "socials": {
     "instagram": "dropsiders.fr",
