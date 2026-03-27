@@ -1941,7 +1941,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
                                             <span className="text-[6px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
                                         </div>
-                                        <h1 className="text-[10px] sm:text-xs lg:text-[24px] xl:text-[28px] font-display font-black text-white italic tracking-tighter leading-none truncate max-w-[120px] sm:max-w-none">{settings.title.toUpperCase()}</h1>
+                                        <h1 className="text-[8px] sm:text-xs lg:text-[24px] xl:text-[28px] font-display font-black text-white italic tracking-tighter leading-none truncate max-w-[150px] sm:max-w-none">{settings.title.toUpperCase()}</h1>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-1 lg:gap-2 mt-1 lg:mt-2 truncate">
