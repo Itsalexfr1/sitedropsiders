@@ -47,6 +47,8 @@ interface TakeoverSettings {
     tickerTextColor: string;
     lineup: string;
     status: 'live' | 'edit' | 'off';
+    startDate?: string;
+    endDate?: string;
     enabled: boolean;
     streams?: StreamItem[];
     activeStreamId?: string;
@@ -529,6 +531,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editAnnText, setEditAnnText] = useState(settings.tickerText);
     const [editAnnEnabled, setEditAnnEnabled] = useState(settings.showTickerBanner);
     const [editStatus, setEditStatus] = useState(settings.status);
+    const [editStartDate, setEditStartDate] = useState(settings.startDate || '');
+    const [editEndDate, setEditEndDate] = useState(settings.endDate || '');
     const [editTickerBg, setEditTickerBg] = useState(settings.tickerBgColor);
     const [editTickerTextC, setEditTickerTextC] = useState(settings.tickerTextColor);
     const [editDropsAmount, setEditDropsAmount] = useState(settings.dropsAmount || 10);
@@ -2269,6 +2273,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     <button key={s} onClick={() => setEditStatus(s)} className={`flex-1 py-2 rounded-lg text-[8px] font-black uppercase transition-all ${editStatus === s ? 'bg-red-600 text-white shadow-lg' : 'text-gray-400 hover:text-white'}`}>{s}</button>
                                                                 ))}
                                                             </div>
+                                                            <div className="grid grid-cols-2 gap-4">
+                                                                <div className="space-y-1">
+                                                                    <label className="text-[8px] font-black text-gray-500 uppercase">Début Programmation</label>
+                                                                    <input type="datetime-local" value={editStartDate} onChange={e => setEditStartDate(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white focus:border-neon-purple outline-none" style={{ colorScheme: 'dark' }} />
+                                                                </div>
+                                                                <div className="space-y-1">
+                                                                    <label className="text-[8px] font-black text-gray-500 uppercase">Fin Programmation</label>
+                                                                    <input type="datetime-local" value={editEndDate} onChange={e => setEditEndDate(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white focus:border-neon-purple outline-none" style={{ colorScheme: 'dark' }} />
+                                                                </div>
+                                                            </div>
                                                             <div className="space-y-3">
                                                                 <label className="block text-[10px] font-black text-gray-500 uppercase">Bandeau News (Défilant)</label>
                                                                 {editMarqueeItems.map((item, idx) => (
@@ -2297,6 +2311,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 tickerText: editAnnText, 
                                                                 showTickerBanner: editAnnEnabled, 
                                                                 status: editStatus, 
+                                                                startDate: editStartDate,
+                                                                endDate: editEndDate,
                                                                 tickerBgColor: editTickerBg, 
                                                                 tickerTextColor: editTickerTextC, 
                                                                 instagramLink: editInsta, 
