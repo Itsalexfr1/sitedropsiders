@@ -34,6 +34,7 @@ interface StreamItem {
     name: string;
     youtubeId: string;
     currentTrack?: string;
+    overrideArtist?: string;
 }
 
 interface TakeoverSettings {
@@ -1907,7 +1908,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <Music className="w-3 h-3 lg:w-4 lg:h-4 text-neon-cyan animate-pulse" />
                                     <span className="text-[8px] lg:text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none">NOW</span>
                                     <span className="text-[12px] lg:text-[16px] font-black text-white uppercase italic tracking-tighter truncate max-w-[120px] sm:max-w-none">
-                                        {fluxCurrentArtist.artist} {settings.streams?.find(s => s.id === settings.activeStreamId)?.currentTrack ? ` - ${settings.streams.find(s => s.id === settings.activeStreamId)?.currentTrack}` : ''}
+                                        {settings.streams?.find(s => s.id === settings.activeStreamId)?.overrideArtist || fluxCurrentArtist.artist} {settings.streams?.find(s => s.id === settings.activeStreamId)?.currentTrack ? ` - ${settings.streams.find(s => s.id === settings.activeStreamId)?.currentTrack}` : ''}
                                     </span>
                                 </div>
                             </div>
@@ -2253,11 +2254,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                         <button onClick={() => setEditActiveStreamId(stream.id)} className={`px-2 py-1 rounded text-[8px] font-black ${editActiveStreamId === stream.id ? 'bg-neon-purple text-white' : 'text-gray-500 hover:text-white'}`}>ACTIF</button>
                                                                         <button onClick={() => setEditStreams(editStreams.filter(s => s.id !== stream.id))} className="text-gray-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                                                                     </div>
-                                                                    <input type="text" value={stream.youtubeId} onChange={e => {
-                                                                        const ns = [...editStreams];
-                                                                        ns[idx].youtubeId = extractYoutubeId(e.target.value);
-                                                                        setEditStreams(ns);
-                                                                    }} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white focus:border-neon-purple outline-none" placeholder="Lien YouTube ou ID" />
+                                                                    <div className="space-y-2">
+                                                                        <input type="text" value={stream.youtubeId} onChange={e => {
+                                                                            const ns = [...editStreams];
+                                                                            ns[idx].youtubeId = extractYoutubeId(e.target.value);
+                                                                            setEditStreams(ns);
+                                                                        }} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white focus:border-neon-purple outline-none" placeholder="Lien YouTube ou ID" />
+                                                                        <input type="text" value={stream.overrideArtist || ''} onChange={e => {
+                                                                            const ns = [...editStreams];
+                                                                            ns[idx].overrideArtist = e.target.value.toUpperCase();
+                                                                            setEditStreams(ns);
+                                                                        }} className="w-full bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white focus:border-neon-cyan outline-none" placeholder="Artiste actuel (Manuel: Force l'affichage au lieu du planning)" />
+                                                                    </div>
                                                                 </div>
                                                             ))}
                                                         </div>
