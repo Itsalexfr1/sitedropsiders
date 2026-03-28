@@ -1929,14 +1929,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 <>
 
                     {/* 2. HEADER */}
-                    <div className="h-20 lg:h-16 border-b border-white/5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between px-2 lg:px-6 bg-black/40 backdrop-blur-md relative z-40 overflow-hidden shrink-0">
+                    <div className="h-20 lg:h-16 border-b border-white/5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between px-2 lg:px-6 bg-black/40 backdrop-blur-md relative z-40 shrink-0">
                         <div className="flex flex-1 items-center justify-between lg:justify-start gap-4 min-w-0">
                             <div className="flex flex-col min-w-0 flex-1">
-                                <div className="flex items-center gap-2 lg:gap-4 truncate">
+                                <div className="flex items-center gap-2 lg:gap-4">
                                     <div className="flex flex-col items-start pr-2 lg:pr-4 border-r border-white/10 shrink-0">
                                         <span className="text-[8px] lg:text-[14px] font-black text-white italic tracking-tighter tabular-nums leading-none">{currentTime}</span>
                                     </div>
-                                    <div className="flex items-center gap-1.5 lg:gap-3 truncate">
+                                    <div className="flex items-center gap-1.5 lg:gap-3">
                                         <div className="flex items-center gap-1 px-1 py-0.5 bg-red-500/10 border border-red-500/20 rounded-md shrink-0">
                                             <span className="w-1 h-1 bg-red-600 rounded-full animate-pulse" />
                                             <span className="text-[6px] lg:text-[9px] font-black text-red-500 uppercase tracking-tighter">LIVE</span>
@@ -1944,7 +1944,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         <h1 className="text-[12px] sm:text-xs lg:text-[24px] xl:text-[28px] font-display font-black text-white italic tracking-tighter leading-none sm:max-w-none">{settings.title.toUpperCase()}</h1>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-1 lg:gap-2 mt-1 lg:mt-2 truncate">
+                                <div className="flex items-center gap-1 lg:gap-2 mt-1 lg:mt-2">
                                     <Music className="w-2.5 h-2.5 lg:w-4 lg:h-4 text-neon-cyan animate-pulse shrink-0" />
                                     <span className="text-[7px] lg:text-[10px] font-black text-neon-cyan uppercase tracking-widest leading-none shrink-0 border-r border-neon-cyan/20 pr-1.5 mr-1.5">NOW</span>
                                     <span className="text-[10px] lg:text-[16px] font-black text-white uppercase italic tracking-tighter sm:max-w-none">
