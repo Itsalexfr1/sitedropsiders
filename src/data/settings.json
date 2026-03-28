@@ -27,35 +27,35 @@
     "pinnedMessage": "",
     "showInAgenda": true,
     "startDate": "",
-    "endDate": "",
+    "endDate": "2026-03-29T10:00",
     "status": "edit",
     "mainFluxName": "WORLDWIDE STAGE",
     "currentTrack": "ID - UNRELEASED",
     "streams": [
       {
         "id": "g9ke3ipuc",
-        "name": "UMF LIVE",
-        "youtubeId": "htnZzmIZUJ8"
+        "name": "ULTRA LIVE",
+        "youtubeId": "_yK05J7Ka-o"
       },
       {
         "id": "a3wky7cal",
         "name": "RESISTANCE",
-        "youtubeId": "EjH_KW1zbQ8"
+        "youtubeId": "Wt40Ll3JIug"
       },
       {
         "id": "1xp7r0uyy",
         "name": "WORLDWIDE STAGE",
-        "youtubeId": "FLdsxiIQYhY"
+        "youtubeId": "sGlfTlATwzc"
       },
       {
         "id": "my3zeasqx",
         "name": "THE COVE BY RESISTANCE",
-        "youtubeId": "KxJD3P8Q_Mw"
+        "youtubeId": "m8D79UPZ8I0"
       },
       {
         "id": "edkou1rpa",
         "name": "LIVE STAGE",
-        "youtubeId": "53j4xn1oWkI"
+        "youtubeId": "c6gdJoIpCYk"
       }
     ],
     "activeStreamId": "g9ke3ipuc",
