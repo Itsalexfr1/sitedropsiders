@@ -1967,9 +1967,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                             </div>
                         </div>
 
-                        {/* STAGE SELECTOR (Visible on mobile too now) */}
                         {settings.streams && settings.streams.length > 1 && (
-                            <div className="flex lg:flex gap-1 p-1 bg-white/5 border-t lg:border-t-0 lg:border-l border-white/5 lg:ml-4 overflow-x-auto no-scrollbar py-2 lg:py-1">
+                            <div className="flex lg:absolute lg:left-1/2 lg:-translate-x-1/2 gap-1 p-1 bg-white/5 border-t lg:border-t-0 border-white/5 overflow-x-auto no-scrollbar py-2 lg:py-1">
                                 {settings.streams.map((s: any, idx: number) => (
                                     <button
                                         key={s.id}
