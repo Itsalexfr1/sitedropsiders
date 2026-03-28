@@ -2733,6 +2733,33 @@ ${urls.map(u => `  <url>
                 }
             } catch (e: any) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
         }
+        
+        // --- API: CLEAN ENCODING ---
+        if (path === '/api/admin/clean-encoding' && request.method === 'POST') {
+            if (!TOKEN) return new Response(JSON.stringify({ error: 'Config missing' }), { status: 500, headers });
+            const FILES_TO_FIX = [
+                'src/data/news.json',
+                'src/data/agenda.json',
+                'src/data/festivals.json',
+                'src/data/wiki_festivals.json',
+                'src/data/wiki_artists.json',
+                'src/data/wiki_clubs.json',
+                'src/data/wiki_labels.json',
+                'src/data/settings.json'
+            ];
+            
+            let fixedCount = 0;
+            try {
+                for (const filePath of FILES_TO_FIX) {
+                    const file = await fetchGitHubFile(filePath, gitConfig);
+                    if (file && file.content) {
+                        fixedCount++;
+                        await saveGitHubFile(filePath, file.content, `Fix encoding in ${filePath}`, file.sha, gitConfig);
+                    }
+                }
+                return new Response(JSON.stringify({ success: true, fixedFiles: fixedCount }), { status: 200, headers });
+            } catch (e: any) { return new Response(JSON.stringify({ error: e.message }), { status: 500, headers }); }
+        }
 
         // --- API: CREATE GALERIE ---
         if (path === '/api/galerie/create' && request.method === 'POST') {
