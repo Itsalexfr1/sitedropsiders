@@ -911,6 +911,7 @@ ${urls.map(u => `  <url>
             path.startsWith('/api/editors') ||
             path === '/api/auth/revoke-all' ||
             path.startsWith('/api/contacts') ||
+            path === '/api/chat/clear' ||
             path === '/api/chat/delete' ||
             path === '/api/chat/ban' ||
             path === '/api/chat/unban' ||
@@ -933,6 +934,11 @@ ${urls.map(u => `  <url>
             path === '/api/admin/validate-photo' ||
             path === '/api/admin/validate-photo-bulk' ||
             path === '/api/admin/unused-r2-images' ||
+            path === '/api/admin/bulk-update-year' ||
+            path === '/api/admin/cleanup-past-agenda' ||
+            path === '/api/admin/reset-leaderboards' ||
+            path === '/api/admin/clean-encoding' ||
+            path === '/api/quiz/reset-blind-test' ||
             path === '/api/r2/delete'
         );
 
