@@ -6,7 +6,7 @@
   "takeover": {
     "enabled": true,
     "youtubeId": "FLdsxiIQYhY",
-    "title": "UMF MIAMI",
+    "title": "ULTRA MUSIC FESTIVAL",
     "moderators": "",
     "lineup": "[]",
     "customCommands": "",
@@ -83,7 +83,8 @@
     "tracklist": "[]",
     "auddToken": "0707d622c51645acc2e4fa26ed64538d",
     "bannedWords": "",
-    "isOnline": true
+    "isOnline": true,
+    "festivalLogo": ""
   },
   "socials": {
     "instagram": "dropsiders.fr",
