@@ -1929,9 +1929,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 <>
 
                     {/* 2. HEADER */}
-                    <div className="h-20 lg:h-16 border-b border-white/5 flex flex-col lg:flex-row items-stretch lg:items-center justify-between px-2 lg:px-6 bg-black/40 backdrop-blur-md relative z-40 shrink-0">
-                        <div className="flex flex-1 items-center justify-between lg:justify-start gap-4 min-w-0">
-                            <div className="flex flex-col min-w-0 flex-1">
+                    <div className="h-20 lg:h-16 border-b border-white/5 flex flex-col lg:flex-row items-stretch lg:items-center justify-start px-2 lg:px-6 bg-black/40 backdrop-blur-md relative z-40 shrink-0">
+                        <div className="flex items-center justify-between lg:justify-start gap-4 min-w-0">
+                            <div className="flex flex-col min-w-0">
                                 <div className="flex items-center gap-2 lg:gap-4">
                                     <div className="flex flex-col items-start pr-2 lg:pr-4 border-r border-white/10 shrink-0">
                                         <span className="text-[8px] lg:text-[14px] font-black text-white italic tracking-tighter tabular-nums leading-none">{currentTime}</span>
@@ -1987,7 +1987,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         )}
 
                         {/* Desktop Only Buttons moved to a container */}
-                        <div className="hidden lg:flex items-center gap-4 ml-4">
+                        <div className="hidden lg:flex items-center gap-4 ml-auto">
                             <button
                                 onClick={() => {
                                     if (isMod) {
