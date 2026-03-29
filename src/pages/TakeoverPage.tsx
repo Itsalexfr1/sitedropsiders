@@ -2578,25 +2578,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 </div>
                                             </div>
 
-                                            {cropImageSrc && (
-                                                <ImageCropper
-                                                    image={cropImageSrc}
-                                                    aspect={editingLineupId === 'FESTIVAL_LOGO' ? 1/1 : 8/1}
-                                                    onCropComplete={(croppedImage) => {
-                                                        if (editingLineupId === 'FESTIVAL_LOGO') {
-                                                             setEditFestivalLogo(croppedImage);
-                                                             setEditingLineupId(null);
-                                                        } else {
-                                                             setNewLineupItem({ ...newLineupItem, id: editingLineupId || '', image: croppedImage });
-                                                        }
-                                                        setCropImageSrc(null);
-                                                    }}
-                                                    onCancel={() => {
-                                                        setCropImageSrc(null);
-                                                        if (editingLineupId === 'FESTIVAL_LOGO') setEditingLineupId(null);
-                                                    }}
-                                                />
-                                            )}
+
 
                                             <div className="space-y-4">
                                                 {lineupItems.map((item, i) => (
@@ -4331,6 +4313,27 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     )}
                 </AnimatePresence>
             </div>
+
+            {/* IMAGE CROPPER GLOBAL — accessible depuis tous les onglets (config logo, planning artiste) */}
+            {cropImageSrc && (
+                <ImageCropper
+                    image={cropImageSrc}
+                    aspect={editingLineupId === 'FESTIVAL_LOGO' ? 1 / 1 : 8 / 1}
+                    onCropComplete={(croppedImage) => {
+                        if (editingLineupId === 'FESTIVAL_LOGO') {
+                            setEditFestivalLogo(croppedImage);
+                            setEditingLineupId(null);
+                        } else {
+                            setNewLineupItem({ ...newLineupItem, id: editingLineupId || '', image: croppedImage });
+                        }
+                        setCropImageSrc(null);
+                    }}
+                    onCancel={() => {
+                        setCropImageSrc(null);
+                        if (editingLineupId === 'FESTIVAL_LOGO') setEditingLineupId(null);
+                    }}
+                />
+            )}
         </div>
     );
 };

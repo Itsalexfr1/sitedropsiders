@@ -20,13 +20,14 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
     const [takeoverEnabled, setTakeoverEnabled] = useState(false);
 
     const scheduledTakeover = (takeoverSettings?.showInAgenda && takeoverSettings?.startDate) ? {
-        name: takeoverSettings.title || "LIVE TAKEOVER",
-        name_en: takeoverSettings.title || "LIVE TAKEOVER",
+        title: takeoverSettings.title || "LIVE TAKEOVER",
+        title_en: takeoverSettings.title || "LIVE TAKEOVER",
         date: takeoverSettings.startDate,
         endDate: takeoverSettings.endDate,
         location: "LIVE STREAM",
         id: "live-takeover-scheduled",
         isLiveTakeover: true,
+        isLiveDropsiders: takeoverSettings?.status === 'live',
         category: "LIVE",
         image: "https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=2070&auto=format&fit=crop"
     } : null;
