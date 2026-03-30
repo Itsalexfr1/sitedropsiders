@@ -70,6 +70,17 @@ export function ArticleDetail() {
         fetchContent();
     }, [articleId]);
 
+    if (isNewsLoading) {
+        return (
+            <div className="min-h-screen flex items-center justify-center bg-dark-bg">
+                <div className="flex flex-col items-center gap-4">
+                    <div className="w-10 h-10 border-4 border-neon-red/20 border-t-neon-red rounded-full animate-spin" />
+                    <p className="text-gray-500 text-xs font-black uppercase tracking-widest">Chargement...</p>
+                </div>
+            </div>
+        );
+    }
+
     if (!article) {
         return (
             <div className="min-h-screen flex items-center justify-center bg-dark-bg">
