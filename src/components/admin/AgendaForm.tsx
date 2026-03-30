@@ -1,10 +1,9 @@
-import { useState, useEffect, useRef, useMemo } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Calendar, MapPin, Tag, Image as ImageIcon, Link as LinkIcon, Send, AlertCircle, FileText, Globe, Upload, Plus, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders } from '../../utils/auth';
 import { ImageUploadModal } from '../ImageUploadModal';
-import recapsData from '../../data/recaps.json';
-import agendaData from '../../data/agenda.json';
+// Remove JSON imports to avoid build errors
 
 interface AgendaFormProps {
     editingItem?: any;
@@ -45,34 +44,48 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
     const [message, setMessage] = useState('');
 
     // Extract unique locations from data for autocomplete
-    const allLocations = useMemo(() => {
-        const locations = new Map<string, string>();
+    const [allLocations, setAllLocations] = useState<{ city: string, country: string }[]>([]);
 
-        // From recaps
-        (recapsData as any[]).forEach(item => {
-            if (item.location) {
-                const city = item.location.split(',')[0].trim();
-                if (city && !locations.has(city.toLowerCase())) {
-                    locations.set(city.toLowerCase(), item.country || '');
-                }
+    useEffect(() => {
+        const loadInitialData = async () => {
+            try {
+                const [recaps, agenda] = await Promise.all([
+                    fetch('/api/recaps').then(r => r.ok ? r.json() : []),
+                    fetch('/api/agenda').then(r => r.ok ? r.json() : [])
+                ]);
+
+                const locations = new Map<string, string>();
+
+                // From recaps
+                (recaps as any[]).forEach(item => {
+                    if (item.location) {
+                        const city = item.location.split(',')[0].trim();
+                        if (city && !locations.has(city.toLowerCase())) {
+                            locations.set(city.toLowerCase(), item.country || '');
+                        }
+                    }
+                });
+
+                // From agenda
+                (agenda as any[]).forEach(item => {
+                    if (item.location) {
+                        const city = item.location.split(',')[0].trim();
+                        const countryVal = item.country || (item.location.split(',').length > 1 ? item.location.split(',')[1].trim() : '');
+                        if (city && !locations.has(city.toLowerCase())) {
+                            locations.set(city.toLowerCase(), countryVal);
+                        }
+                    }
+                });
+
+                setAllLocations(Array.from(locations.entries()).map(([city, country]) => ({
+                    city: city.toUpperCase(),
+                    country: country.toUpperCase()
+                })));
+            } catch (e) {
+                console.error("Failed to load autocomplete data", e);
             }
-        });
-
-        // From agenda
-        (agendaData as any[]).forEach(item => {
-            if (item.location) {
-                const city = item.location.split(',')[0].trim();
-                const countryVal = item.country || (item.location.split(',').length > 1 ? item.location.split(',')[1].trim() : '');
-                if (city && !locations.has(city.toLowerCase())) {
-                    locations.set(city.toLowerCase(), countryVal);
-                }
-            }
-        });
-
-        return Array.from(locations.entries()).map(([city, country]) => ({
-            city: city.toUpperCase(),
-            country: country.toUpperCase()
-        }));
+        };
+        loadInitialData();
     }, []);
 
     useEffect(() => {
