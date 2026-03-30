@@ -69,12 +69,16 @@ export function Interviews() {
     const articlesPerPage = 8;
 
     const allInterviews = useMemo(() => {
-        const today = new Date().toISOString().split('T')[0];
         const base = (newsData as any[])
             .filter((item: any) => {
-                if ((item.date || '').substring(0, 10) > today) return false;
+                if (!item) return false;
                 const cat = (item.category || '').toLowerCase();
-                return cat.includes('interview');
+                const title = (item.title || '').toLowerCase();
+                // Inclure tout ce qui ressemble à une interview ou qui appartient aux sous-catégories
+                return cat.includes('interview') || 
+                       cat.includes('fast quizz') || title.includes('fast quizz') ||
+                       cat.includes('playlist') || title.includes('playlist') ||
+                       cat.includes('drop & talk') || title.includes('drop & talk');
             });
 
         if (activeTab === 'all') return base.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
