@@ -14,6 +14,7 @@ interface ImageUploadModalProps {
     initialImage?: string;
     allowMultiple?: boolean;
     watermark?: boolean;   // Automatically add DROPSIDERS logo
+    forceFilename?: string; // Force upload filename
 }
 
 export function ImageUploadModal({ 
@@ -25,7 +26,8 @@ export function ImageUploadModal({
     aspect, 
     initialImage,
     allowMultiple = false,
-    watermark = false
+    watermark = false,
+    forceFilename
 }: ImageUploadModalProps) {
     const [isUploading, setIsUploading] = useState(false);
     const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -163,6 +165,10 @@ export function ImageUploadModal({
                     base64 = item.preview;
                     filename = `image-${Date.now()}-${i}.jpg`;
                     fileType = 'image/jpeg';
+                }
+
+                if (forceFilename) {
+                    filename = forceFilename;
                 }
 
                 const response = await fetch('/api/upload', {

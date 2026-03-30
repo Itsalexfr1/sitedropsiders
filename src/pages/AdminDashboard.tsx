@@ -9,7 +9,7 @@ import {
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil,
     ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram,
     Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download,
-    Trophy, Settings, Camera, HardDrive, MapPin, Sparkles, Eye
+    Trophy, Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -128,8 +128,11 @@ export function AdminDashboard() {
     const [brokenImages, setBrokenImages] = useState<any[]>([]);
     const [selectedBrokenImages, setSelectedBrokenImages] = useState<any[]>([]);
     const [isBrokenImagesModalOpen, setIsBrokenImagesModalOpen] = useState(false);
+    const [isBrokenImageUploadOpen, setIsBrokenImageUploadOpen] = useState(false);
+    const [currentBrokenImageToFix, setCurrentBrokenImageToFix] = useState<any>(null);
     const [isUnusedImagesModalOpen, setIsUnusedImagesModalOpen] = useState(false);
     const [unusedImages, setUnusedImages] = useState<any[]>([]);
+
     const [isScanningUnused, setIsScanningUnused] = useState(false);
     const [totalR2Count, setTotalR2Count] = useState(0);
     const [usedOnSiteCount, setUsedOnSiteCount] = useState(0);
@@ -7304,6 +7307,21 @@ export function AdminDashboard() {
                     }}
                 />
 
+                <ImageUploadModal 
+                    isOpen={isBrokenImageUploadOpen}
+                    onClose={() => {
+                        setIsBrokenImageUploadOpen(false);
+                        setCurrentBrokenImageToFix(null);
+                    }}
+                    forceFilename={currentBrokenImageToFix?.key?.split('/').pop()}
+                    onUploadSuccess={(urls) => {
+                        if (currentBrokenImageToFix) {
+                            handleValidatePhoto(currentBrokenImageToFix);
+                            setGlobalAlert({ message: "Photo uploadée et corrigée avec succès !", type: 'info' });
+                        }
+                    }}
+                />
+
                 {/* Maintenance Modal */}
                 <AnimatePresence>
                     {isMaintenanceModalOpen && (
@@ -7525,18 +7543,48 @@ export function AdminDashboard() {
                                                                     <ExternalLink className="w-2.5 h-2.5" />
                                                                 </a>
                                                             </div>
-                                                            <div className="text-[9px] font-mono text-gray-600 break-all px-1">
+                                                        </div>
+
+                                                        {/* Prévisualisation de l'image ou de son chemin */}
+                                                        <div className="w-full h-32 bg-black/40 rounded-xl border border-white/5 flex items-center justify-center overflow-hidden relative group/preview">
+                                                            <img
+                                                                src={`https://dropsiders.fr${img.url}`}
+                                                                alt={img.entityName}
+                                                                className="w-full h-full object-cover opacity-30 grayscale blur-sm"
+                                                                onError={(e) => {
+                                                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                                                }}
+                                                            />
+                                                            <div className="absolute inset-0 bg-black/60 flex items-center justify-center pointer-events-none">
+                                                                <ImageOff className="w-8 h-8 text-white/20" />
+                                                            </div>
+                                                            <div className="absolute bottom-2 left-2 right-2 bg-black/80 backdrop-blur-sm border border-white/10 p-1.5 rounded-lg text-[8.5px] font-mono text-neon-red break-all text-center">
+                                                                {img.key}
+                                                            </div>
+                                                            <div className="absolute top-2 left-2 right-2 bg-black/80 backdrop-blur-sm border border-white/10 p-1.5 rounded-lg text-[9px] font-mono text-gray-400 text-center">
                                                                 ID: {img.entityId}
                                                             </div>
                                                         </div>
 
-                                                        <button
-                                                            onClick={() => handleValidatePhoto(img)}
-                                                            className="w-full py-2.5 bg-neon-green/10 border border-neon-green/20 text-neon-green rounded-xl hover:bg-neon-green/30 transition-all flex items-center justify-center gap-2 group/val"
-                                                        >
-                                                            <CheckCircle2 className="w-3.5 h-3.5 group-hover/val:scale-110 transition-transform" />
-                                                            <span className="text-[10px] font-black uppercase tracking-widest">Valider la photo</span>
-                                                        </button>
+                                                        <div className="flex gap-2 w-full">
+                                                            <button
+                                                                onClick={() => {
+                                                                    setCurrentBrokenImageToFix(img);
+                                                                    setIsBrokenImageUploadOpen(true);
+                                                                }}
+                                                                className="flex-1 py-2.5 bg-neon-cyan/10 border border-neon-cyan/20 text-neon-cyan rounded-xl hover:bg-neon-cyan/30 transition-all flex items-center justify-center gap-2 group/upload"
+                                                            >
+                                                                <Upload className="w-3.5 h-3.5 group-hover/upload:-translate-y-1 transition-transform" />
+                                                                <span className="text-[9px] font-black uppercase tracking-widest">Uploader la photo</span>
+                                                            </button>
+                                                            <button
+                                                                onClick={() => handleValidatePhoto(img)}
+                                                                className="flex-[0.5] py-2.5 bg-neon-green/5 border border-neon-green/10 text-neon-green rounded-xl hover:bg-neon-green/20 transition-all flex items-center justify-center group/val"
+                                                                title="Ignorer & Valider manuellement"
+                                                            >
+                                                                <CheckCircle2 className="w-4 h-4 group-hover/val:scale-110 transition-transform" />
+                                                            </button>
+                                                        </div>
                                                     </div>
                                                 );
                                             })}
