@@ -22,8 +22,7 @@ import { TrackIdForum } from '../components/community/TrackIdForum';
 import { NotificationSettings } from '../components/community/NotificationSettings';
 import { useUser } from '../context/UserContext';
 import { useEffect } from 'react';
-import galerieData from '../data/galerie.json';
-import agendaData from '../data/agenda.json';
+
 import { InstagramContest } from '../components/community/InstagramContest';
 import confetti from 'canvas-confetti';
 import { SEO } from '../components/utils/SEO';
@@ -313,10 +312,30 @@ export function Community() {
         fetchSettings();
     }, [activeTab]);
 
+    const [galerieData, setGalerieData] = useState<any[]>([]);
+    const [agendaData, setAgendaData] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchCommunityData = async () => {
+            try {
+                const [galerieRes, agendaRes] = await Promise.all([
+                    fetch('/api/galerie'),
+                    fetch('/api/agenda')
+                ]);
+                if (galerieRes.ok) setGalerieData(await galerieRes.json());
+                if (agendaRes.ok) setAgendaData(await agendaRes.json());
+            } catch (error) {
+                console.error('Failed to fetch community data', error);
+            } finally {
+            }
+        };
+        fetchCommunityData();
+    }, []);
+
     const festivals = useMemo(() => {
         const unique = new Set(agendaData.map(a => a.title));
         return Array.from(unique).sort();
-    }, []);
+    }, [agendaData]);
 
 
 

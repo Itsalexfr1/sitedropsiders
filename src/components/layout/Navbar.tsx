@@ -6,9 +6,7 @@ import { twMerge } from 'tailwind-merge';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useUser } from '../../context/UserContext';
 import { UserAuthModal } from '../auth/UserAuthModal';
-import newsData from '../../data/news.json';
-import recapsData from '../../data/recaps.json';
-import agendaData from '../../data/agenda.json';
+
 import { useLanguage } from '../../context/LanguageContext';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -36,6 +34,31 @@ export function Navbar() {
     const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const { isLoggedIn, user } = useUser();
+    const [newsData, setNewsData] = useState<any[]>([]);
+    const [recapsData, setRecapsData] = useState<any[]>([]);
+    const [agendaData, setAgendaData] = useState<any[]>([]);
+    const [isSearchDataFetched, setIsSearchDataFetched] = useState(false);
+
+    useEffect(() => {
+        if (isSearchOpen && !isSearchDataFetched) {
+            const fetchSearchData = async () => {
+                try {
+                    const [newsRes, recapsRes, agendaRes] = await Promise.all([
+                        fetch('/api/news'),
+                        fetch('/api/recaps'),
+                        fetch('/api/agenda')
+                    ]);
+                    if (newsRes.ok) setNewsData(await newsRes.json());
+                    if (recapsRes.ok) setRecapsData(await recapsRes.json());
+                    if (agendaRes.ok) setAgendaData(await agendaRes.json());
+                    setIsSearchDataFetched(true);
+                } catch (e) {
+                    console.error('Failed to fetch search data', e);
+                }
+            };
+            fetchSearchData();
+        }
+    }, [isSearchOpen, isSearchDataFetched]);
 
     useEffect(() => {
         if (isMobile) return;
@@ -91,26 +114,26 @@ export function Navbar() {
 
 
     const searchResults = useMemo(() => {
-        if (isMobile || !searchQuery.trim()) return [];
+        if (isMobile || !searchQuery.trim() || !isSearchDataFetched) return [];
 
         let query = searchQuery.toLowerCase();
         if (query === 'multistyle') query = 'multi-';
 
-        const filteredNews = (newsData as any[])
-            .map(item => ({ ...item, searchType: item.category.toLowerCase() }))
+        const filteredNews = (newsData || [])
+            .map(item => ({ ...item, searchType: (item.category || '').toLowerCase() }))
             .filter((item: any) =>
                 item.title?.toLowerCase().includes(query) ||
                 item.summary?.toLowerCase().includes(query)
             );
 
-        const filteredRecaps = (recapsData as any[])
+        const filteredRecaps = (recapsData || [])
             .map(item => ({ ...item, searchType: 'recap', category: 'Recaps' }))
             .filter((item: any) =>
                 item.title?.toLowerCase().includes(query) ||
                 item.festival?.toLowerCase().includes(query)
             );
 
-        const filteredAgenda = (agendaData as any[])
+        const filteredAgenda = (agendaData || [])
             .map(item => ({ ...item, searchType: 'agenda', category: 'Agenda' }))
             .filter((item: any) =>
                 item.title?.toLowerCase().includes(query) ||
@@ -127,7 +150,7 @@ export function Navbar() {
         ];
 
         return combined.slice(0, 10);
-    }, [searchQuery]);
+    }, [searchQuery, newsData, recapsData, agendaData, isSearchDataFetched]);
 
     const handleSearchResultClick = (item: any) => {
         let path = '';
