@@ -318,7 +318,8 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             .replace(/é/g, 'é')
             .replace(/è/g, 'è')
             .replace(/ê/g, 'ê')
-            .replace(/ç/g, 'ç');
+            .replace(/ç/g, 'ç')
+            .replace(/https:\/\/www\.dropsiders\.fr/g, 'https://dropsiders.fr');
 
         // Apply Premium Standardizer (Keywords, Links)
         finalHtml = standardizeText(finalHtml);
@@ -436,13 +437,20 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     const readingTime = Math.ceil(displayContent.split(/\s+/).length / 200);
 
 
-    const getThumbUrl = (url: string) => {
+    const resolveImageUrl = (url: string) => {
         if (!url) return '';
-        if (url.includes('cloudinary.com')) {
-            // Add face-centered square crop if it's a Cloudinary URL
-            return url.replace('/upload/', '/upload/ar_1:1,c_fill,g_auto,w_200/');
+        let resolved = url;
+        if (url.startsWith('http')) {
+            resolved = url.replace('www.dropsiders.fr', 'dropsiders.fr');
+        } else {
+            resolved = `https://dropsiders.fr${url.startsWith('/') ? '' : '/'}${url}`;
         }
-        return url;
+        
+        // Handle Cloudinary specifically if needed
+        if (resolved.includes('cloudinary.com')) {
+            return resolved.replace('/upload/', '/upload/ar_1:1,c_fill,g_auto,w_200/');
+        }
+        return resolved;
     };
 
     return (
@@ -511,7 +519,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                         className="absolute inset-0 z-0"
                     >
                         <img
-                            src={article.image}
+                            src={resolveImageUrl(article.image)}
                             alt={article.title}
                             className="w-full h-full object-cover"
                         />
@@ -798,7 +806,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                     onClick={() => setSelectedImage(img)}
                                                 >
                                                     <img
-                                                        src={img}
+                                                        src={resolveImageUrl(img)}
                                                         alt=""
                                                         className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
                                                     />
@@ -829,7 +837,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                             {previousArticle.image && (
                                                                 <div className="w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden border border-white/10 bg-black/20">
                                                                     <img
-                                                                        src={getThumbUrl(previousArticle.image)}
+                                                                        src={resolveImageUrl(previousArticle.image)}
                                                                         alt=""
                                                                         className="w-full h-full object-cover object-[center_30%] group-hover:scale-110 transition-transform duration-500"
                                                                     />
@@ -860,7 +868,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                             {nextArticle.image && (
                                                                 <div className="w-16 h-16 flex-shrink-0 rounded-xl overflow-hidden border border-white/10 bg-black/20">
                                                                     <img
-                                                                        src={getThumbUrl(nextArticle.image)}
+                                                                        src={resolveImageUrl(nextArticle.image)}
                                                                         alt=""
                                                                         className="w-full h-full object-cover object-[center_30%] group-hover:scale-110 transition-transform duration-500"
                                                                     />

@@ -18,7 +18,7 @@ function AdminThumbnail({ src }: { src?: string | null }) {
     // sont préfixés avec https://dropsiders.fr par uploadService
     const resolvedSrc = (() => {
         if (!src) return null;
-        if (src.startsWith('http')) return src;
+        if (src.startsWith('http')) return src.replace('www.dropsiders.fr', 'dropsiders.fr');
         const clean = src.startsWith('/') ? src : `/${src}`;
         return `https://dropsiders.fr${clean}`;
     })();
