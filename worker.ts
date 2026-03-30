@@ -3761,16 +3761,26 @@ ${urls.map(u => `  <url>
                     }
                 }
 
-                // 3. Find Unused
-                const unused = allR2Keys.filter(obj => {
-                   if (!obj.key.startsWith('uploads/') && !obj.key.startsWith('migrated/')) return false;
-                   return !usedKeys.has(obj.key) && !usedKeys.has(obj.key.replace('uploads/', ''));
-                }).sort((a,b) => b.uploaded.getTime() - a.uploaded.getTime());
+                // 3. Find Unused and Used
+                const usedInR2 = new Set();
+                const unused = [];
+                
+                allR2Keys.forEach(obj => {
+                    const isUsed = usedKeys.has(obj.key) || usedKeys.has(obj.key.replace('uploads/', ''));
+                    if (isUsed) {
+                        usedInR2.add(obj.key);
+                    } else if (obj.key.startsWith('uploads/')) {
+                        unused.push(obj);
+                    }
+                });
+
+                unused.sort((a,b) => b.uploaded.getTime() - a.uploaded.getTime());
 
                 return new Response(JSON.stringify({ 
                     success: true, 
                     unused: unused,
-                    totalCount: allR2Keys.length,
+                    totalR2Count: allR2Keys.length,
+                    usedOnSiteCount: usedInR2.size,
                     unusedCount: unused.length
                 }), { status: 200, headers: { ...headers, 'Cache-Control': 'no-cache' } });
             } catch (e: any) {

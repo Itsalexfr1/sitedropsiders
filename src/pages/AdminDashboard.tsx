@@ -129,6 +129,8 @@ export function AdminDashboard() {
     const [isUnusedImagesModalOpen, setIsUnusedImagesModalOpen] = useState(false);
     const [unusedImages, setUnusedImages] = useState<any[]>([]);
     const [isScanningUnused, setIsScanningUnused] = useState(false);
+    const [totalR2Count, setTotalR2Count] = useState(0);
+    const [usedOnSiteCount, setUsedOnSiteCount] = useState(0);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [isResidencesModalOpen, setIsResidencesModalOpen] = useState(false);
     const [residencesList, setResidencesList] = useState<any[]>([]);
@@ -353,6 +355,8 @@ export function AdminDashboard() {
             if (res.ok) {
                 const data = await res.json();
                 setUnusedImages(data.unused || []);
+                setTotalR2Count(data.totalR2Count || 0);
+                setUsedOnSiteCount(data.usedOnSiteCount || 0);
                 setIsUnusedImagesModalOpen(true);
             }
         } catch (e) {
@@ -7121,8 +7125,12 @@ export function AdminDashboard() {
                                             <HardDrive className="text-neon-yellow w-6 h-6" />
                                             Ménage <span className="text-neon-yellow">R2</span> : Photos Orphelines
                                         </h2>
-                                        <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mt-1">
-                                            {unusedImages.length} fichiers trouvés qui ne sont cités dans aucun fichier JSON
+                                        <p className="text-xs text-gray-500 uppercase font-bold tracking-widest mt-1 flex items-center gap-4">
+                                            <span>{unusedImages.length} fichiers orphelins</span>
+                                            <span className="w-1 h-1 rounded-full bg-white/10" />
+                                            <span className="text-neon-cyan">{usedOnSiteCount} images utilisées sur le site</span>
+                                            <span className="w-1 h-1 rounded-full bg-white/10" />
+                                            <span className="text-white/30">{totalR2Count} fichiers total sur R2</span>
                                         </p>
                                     </div>
                                     <div className="flex items-center gap-4">
