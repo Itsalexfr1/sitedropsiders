@@ -24,6 +24,7 @@ import { AudioWaveformSelector } from '../components/admin/AudioWaveformSelector
 import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { AgendaModal } from '../components/AgendaModal';
 import { ImageUploadModal } from '../components/ImageUploadModal';
+import { ShopMenuModal } from '../components/admin/modals/ShopMenuModal';
 import { Downloader } from './Downloader';
 
 
@@ -1440,7 +1441,7 @@ export function AdminDashboard() {
         { title: "L'Équipe & Éditeurs", description: "Accès & Membres", icon: "Users", category: "TEAM", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "all", baseColor: "purple", columns: 2 },
 
         // SHOP & CONTACT
-        { title: "Shop", description: "Drops Shop", icon: "ShoppingBag", category: "SHOP", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
+        { title: "Boutique", description: "Ventes & Produits", icon: "ShoppingBag", category: "SHOP", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
         { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "push_newsletter", baseColor: "green", columns: 1 },
         { title: "Messagerie", description: "Emails & Contact", icon: "Mail", category: "SHOP", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages_contact", baseColor: "orange", columns: 1 },
         { title: "Downloader", description: "Outil Médias", icon: "Download", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "all", baseColor: "cyan", columns: 1 },
@@ -2559,24 +2560,24 @@ export function AdminDashboard() {
                                     <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none">
                                         <ShoppingBag className="w-48 h-48 text-white rotate-12" />
                                     </div>
-                                    <div className="relative z-10 w-24 h-24 bg-neon-pink/20 rounded-[2rem] border border-neon-pink/30 flex items-center justify-center flex-shrink-0 animate-pulse-subtle">
-                                        <ShoppingBag className="w-10 h-10 text-neon-pink shadow-neon-pink" />
+                                    <div className="relative z-10 w-24 h-24 bg-neon-pink/20 rounded-[2.5rem] border border-neon-pink/40 flex items-center justify-center flex-shrink-0 shadow-[0_0_50px_rgba(255,18,114,0.2)]">
+                                        <ShoppingBag className="w-10 h-10 text-neon-pink" />
                                     </div>
                                     <div className="relative z-10 text-center md:text-left">
-                                        <h2 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic leading-none mb-3">
-                                            Gestion <span className="text-neon-pink">Boutique</span>
+                                        <h2 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic leading-none mb-3 tracking-tighter">
+                                            Espace <span className="text-neon-pink">Boutique</span>
                                         </h2>
-                                        <p className="text-gray-400 font-medium max-w-xl text-xs md:text-sm leading-relaxed uppercase tracking-wider">
-                                            Paramètres globaux, gestion du catalogue Fourthwall, messagerie client et promotions.
+                                        <p className="text-gray-400 font-medium max-w-xl text-xs md:text-sm leading-relaxed uppercase tracking-widest opacity-70">
+                                            Pilotage du shop officiel, gestion des stocks et suivi des ventes en temps réel.
                                         </p>
                                     </div>
                                     <div className="relative z-10 ml-auto flex flex-col sm:flex-row gap-4 w-full md:w-auto mt-6 md:mt-0">
                                         <button 
                                             onClick={() => setIsShopModalOpen(true)}
-                                            className="px-10 py-5 bg-neon-pink text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-neon-pink/80 transition-all shadow-[0_10px_40px_rgba(255,17,17,0.3)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 group/btn"
+                                            className="px-10 py-5 bg-neon-pink text-white text-[11px] font-black uppercase tracking-[0.2em] rounded-2xl hover:bg-neon-pink/80 transition-all shadow-[0_15px_45px_rgba(255,18,114,0.4)] hover:scale-[1.05] active:scale-95 flex items-center justify-center gap-3 group/btn"
                                         >
-                                            <Shield className="w-4 h-4 group-hover/btn:rotate-12 transition-transform" /> 
-                                            Action Boutique Rapide
+                                            <Sparkles className="w-4 h-4 group-hover:rotate-12 transition-transform" /> 
+                                            Menu Boutique
                                         </button>
                                     </div>
                                 </motion.div>
@@ -4067,67 +4068,11 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal Shop */}
-                <AnimatePresence>
-                    {isShopModalOpen && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
-                            >
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-pink via-white to-neon-pink" />
-
-                                <div className="flex justify-between items-start mb-12">
-                                    <div>
-                                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Gestion <span className="text-neon-pink">Shop</span>
-                                        </h2>
-                                        <p className="text-gray-400 font-medium">Boutique en ligne</p>
-                                    </div>
-                                    <button
-                                        onClick={() => setIsShopModalOpen(false)}
-                                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
-                                    >
-                                        <X className="w-6 h-6" />
-                                    </button>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <Link
-                                        to="/shop"
-                                        target="_blank"
-                                        onClick={() => setIsShopModalOpen(false)}
-                                        className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
-                                    >
-                                        <div className="w-12 h-12 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform flex-shrink-0">
-                                            <ShoppingBag className="w-6 h-6 text-neon-pink" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Aller au Shop</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Voir la boutique en ligne</p>
-                                        </div>
-                                    </Link>
-
-                                    <Link
-                                        to="/admin/shop"
-                                        onClick={() => setIsShopModalOpen(false)}
-                                        className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-white/10 transition-all group"
-                                    >
-                                        <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform flex-shrink-0">
-                                            <Plus className="w-6 h-6 text-white" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Gestion Catalogue</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Ajouter ou modifier des produits</p>
-                                        </div>
-                                    </Link>
-                                </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
+                {/* Modal Boutique */}
+                <ShopMenuModal 
+                    isOpen={isShopModalOpen} 
+                    onClose={() => setIsShopModalOpen(false)} 
+                />
                 {/* Modal Accueil */}
                 <AnimatePresence>
                     {isAccueilModalOpen && (
