@@ -30,17 +30,24 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
     }, []);
 
     const recentNews = useMemo(() => {
-        const today = new Date().toISOString().split('T')[0];
-        const all = [...(newsData as any[])]
-            .filter(item => (item.date || '').substring(0, 10) <= today)
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        if (!Array.isArray(newsData)) return [];
+
+        const all = [...newsData]
+            .filter(item => item)
+            .sort((a, b) => {
+                const dateA = new Date(a.date).getTime();
+                const dateB = new Date(b.date).getTime();
+                return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+            });
+
+        if (all.length === 0) return [];
 
         const featured = all.find(item => item.isFeatured);
 
         // Logical fallback to identify which one is in the Hero slot
         const heroItem = featured || all.filter((item: any) => {
             const cat = (item.category || '').toLowerCase();
-            return cat.includes('news') || cat.includes('musique') || cat.includes('music');
+            return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('focus');
         })[0];
 
         return all

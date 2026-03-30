@@ -29,10 +29,18 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
     }, []);
 
     const heroNews = useMemo(() => {
-        const today = new Date().toISOString().split('T')[0];
-        const all = [...(newsData as any[])]
-            .filter(item => (item.date || '').substring(0, 10) <= today)
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        if (!Array.isArray(newsData)) return null;
+        
+        const all = [...newsData]
+            .filter(item => item)
+            .sort((a, b) => {
+                const dateA = new Date(a.date).getTime();
+                const dateB = new Date(b.date).getTime();
+                return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+            });
+            
+        if (all.length === 0) return null;
+
         const featured = all.find(item => item.isFeatured);
         if (featured) return featured;
 

@@ -14,8 +14,6 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
     const [galerieData, setGalerieData] = useState<any[]>([]);
 
     const latestRecaps = useMemo(() => {
-        const today = new Date().toISOString().split('T')[0];
-        
         // Combine recaps and gallery items
         const combined = [
             ...(recapsData as any[]).map(item => ({ ...item, contentType: 'recap' })),
@@ -28,9 +26,9 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
 
         return combined
             .filter(item => {
-                const itemDate = (item.date || '').toString();
-                if (itemDate.length === 4) return itemDate <= today.substring(0, 4);
-                return itemDate.substring(0, 10) <= today;
+                if (!item) return false;
+                // Removed the restrictive 'today' filter to ensure all recaps are visible
+                return true;
             })
             .sort((a, b) => {
                 const dateA = new Date(a.date).getTime() || 0;

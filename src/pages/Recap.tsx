@@ -54,18 +54,18 @@ export function Recap() {
     const articlesPerPage = 8; // 2 rows of 4 items per page
 
     const recapsByYear = useMemo(() => {
-        const today = new Date().toISOString().split('T')[0];
-        
         let filtered: any[] = [];
         
         if (mainMode === 'WRITTEN') {
             const base = (recapsData as any[])
-                .filter(item => (item.date || '').substring(0, 10) <= today)
+                .filter(item => item) // Suppression du filtre 'today' pour tout afficher
                 .sort((a, b) => {
                     const yearA = Number(a.year) || new Date(a.date).getFullYear();
                     const yearB = Number(b.year) || new Date(b.date).getFullYear();
                     if (yearB !== yearA) return yearB - yearA;
-                    return new Date(b.date).getTime() - new Date(a.date).getTime();
+                    const dateA = new Date(a.date).getTime();
+                    const dateB = new Date(b.date).getTime();
+                    return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
                 });
             filtered = activeTab === 'all' ? base : base.filter(item => item.type === activeTab);
         } else {

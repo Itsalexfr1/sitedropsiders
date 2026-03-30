@@ -76,15 +76,22 @@ export function News() {
 
     // All news/musique/focus articles (base pool)
     const baseNews = useMemo(() => {
-        const today = new Date().toISOString().split('T')[0];
-        return (newsData as any[])
+        // Safe check for newsData being an array
+        if (!Array.isArray(newsData)) return [];
+
+        return newsData
             .filter((item: any) => {
-                if ((item.date || '').substring(0, 10) > today) return false;
+                if (!item) return false;
+                // Removed the restrictive 'today' filter to ensure all published news are visible
                 const cat = (item.category || '').toLowerCase();
                 return cat.includes('news') || cat.includes('musique') || cat.includes('music') || item.isFocus;
             })
-            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, []);
+            .sort((a, b) => {
+                const dateA = new Date(a.date).getTime();
+                const dateB = new Date(b.date).getTime();
+                return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+            });
+    }, [newsData]);
 
     // Filter based on current tab
     const filteredNews = useMemo(() => {
