@@ -1,4 +1,6 @@
 import { createRoot } from 'react-dom/client'
+// Force cache refresh after build fixes
+(window as any).APP_VERSION = '2.2.0-' + new Date().getTime();
 import './index.css'
 import './styles/article-premium.css'
 import App from './App.tsx'
