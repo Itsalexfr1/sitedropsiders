@@ -13,9 +13,7 @@ import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { fixEncoding, standardizeContent } from '../utils/standardizer';
 import { SocialSuite } from '../components/SocialSuite';
-import newsData from '../data/news.json';
-import recapsData from '../data/recaps.json';
-import agendaData from '../data/agenda.json';
+// LARGE JSON DATA IMPORTS REMOVED TO FIX CLOUDFLARE ERROR 10013
 import editorsData from '../data/editors.json';
 
 import '../styles/article-premium.css';
@@ -188,7 +186,7 @@ function StyledCheckbox({ checked, onChange, label, sublabel, icon: Icon, colorC
     return (
         <div
             className={`flex items-center gap-4 p-4 rounded-2xl cursor-pointer transition-all border ${checked ? 'bg-white/[0.03]' : 'bg-black/20 border-white/5 hover:bg-white/[0.05] hover:border-white/10'}`}
-            style={checked ? { borderColor: isRed ? 'rgba(255,18,65,0.3)' : isCyan ? 'rgba(0,255,243,0.3)' : 'rgba(255,255,255,0.2)' } : {}}
+            style={checked ? { borderColor: isRed ? 'rgba(255,18,65,0.3)' : isCyan ? 'rgba(0,240,243,0.3)' : 'rgba(255,255,255,0.2)' } : {}}
             onClick={() => onChange(!checked)}
         >
             <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${checked ? colorMap[colorClass] || colorMap['neon-red'] : 'bg-black/40 border-white/10'}`}>
@@ -231,10 +229,6 @@ function VisualEditor({ content, onChange, className, widgetId, onFocus }: { con
         />
     );
 }
-
-// DATA REMOVED FOR BUNDLE SIZE OPTIMIZATION (Fix Cloudflare 10013)
-import editorsData from '../data/editors.json';
-import '../styles/article-premium.css';
 
 export function NewsCreate() {
     const [searchParams] = useSearchParams();
