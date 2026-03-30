@@ -1,4 +1,4 @@
-import { useEffect, Suspense, useState, lazy } from 'react';
+import { useEffect, Suspense, useState } from 'react';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -36,14 +36,14 @@ const ClipsPage = lazyRetry(() => import('./pages/ClipsPage').then(m => m.ClipsP
 const RecapCreate = lazyRetry(() => import('./pages/RecapCreate').then(m => m.RecapCreate));
 const AgendaCreate = lazyRetry(() => import('./pages/AgendaCreate').then(m => m.AgendaCreate));
 const GalerieCreate = lazyRetry(() => import('./pages/GalerieCreate').then(m => m.GalerieCreate));
-const AdminDashboard = lazy(() => import('./pages/AdminDashboard').then(m => ({ default: m.AdminDashboard })));
+const AdminDashboard = lazyRetry(() => import('./pages/AdminDashboard').then(m => m.AdminDashboard));
 const NewsletterAdmin = lazyRetry(() => import('./pages/NewsletterAdmin').then(m => m.NewsletterAdmin));
 const NewsletterComposer = lazyRetry(() => import('./pages/NewsletterComposer').then(m => m.NewsletterComposer));
 const NewsCreate = lazyRetry(() => import('./pages/NewsCreate').then(m => m.NewsCreate));
 const AdminManage = lazyRetry(() => import('./pages/AdminManage').then(m => m.AdminManage));
 const AdminTeam = lazyRetry(() => import('./pages/AdminTeam').then(m => m.AdminTeam));
 const AdminEditors = lazyRetry(() => import('./pages/AdminEditors').then(m => m.AdminEditors));
-const AdminStats = lazy(() => import('./pages/AdminStats').then(m => ({ default: m.AdminStats })));
+const AdminStats = lazyRetry(() => import('./pages/AdminStats').then(m => m.AdminStats));
 const AdminSpotify = lazyRetry(() => import('./pages/AdminSpotify').then(m => m.AdminSpotify));
 const AdminShop = lazyRetry(() => import('./pages/AdminShop').then(m => m.AdminShop));
 const KitMedia = lazyRetry(() => import('./pages/KitMedia'));

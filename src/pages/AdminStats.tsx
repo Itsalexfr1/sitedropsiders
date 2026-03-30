@@ -227,6 +227,7 @@ export function AdminStats() {
 
     const stats = useMemo(() => {
         const isDateInRange = (dateStr: string) => {
+            if (!dateStr) return false;
             if (!dateRange.start || !dateRange.end) return true;
             if (dateStr.length === 4) {
                 const year = parseInt(dateStr);
@@ -299,8 +300,8 @@ export function AdminStats() {
         // Timeline data
         const timeline = serverStats?.timeline || [];
         const monthData = timeline.map((t: any) => ({
-            label: t.date.split('-').slice(2).join(''), // Just the day
-            value: t.value
+            label: (t?.date && typeof t.date === 'string') ? t.date.split('-').slice(2).join('') : '??', // Just the day
+            value: t?.value || 0
         })).slice(-30);
 
         const dayData = Array.from({ length: 24 }, (_, h) => ({ label: `${h}h`, value: 0 })); // Placeholder for hourly

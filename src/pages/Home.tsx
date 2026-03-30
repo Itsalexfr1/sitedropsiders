@@ -89,7 +89,7 @@ export function Home() {
                             className="grid grid-cols-1 gap-8 items-stretch"
                             style={{
                                 display: 'grid',
-                                gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1.5fr 1fr' : columns.replace('_', ' ')) : '1fr'
+                                gridTemplateColumns: window.innerWidth > 1024 ? ((columns || '1fr') === '1fr' ? '1.5fr 1fr' : (columns || '1fr').toString().replace('_', ' ')) : '1fr'
                             }}
                         >
                             <div className="">
@@ -114,7 +114,7 @@ export function Home() {
                             className="grid grid-cols-1 gap-8 items-stretch"
                             style={{
                                 display: 'grid',
-                                gridTemplateColumns: window.innerWidth > 1024 ? (columns === '1fr' ? '1fr 1fr' : columns.replace('_', ' ')) : '1fr'
+                                gridTemplateColumns: window.innerWidth > 1024 ? ((columns || '1fr') === '1fr' ? '1fr 1fr' : (columns || '1fr').toString().replace('_', ' ')) : '1fr'
                             }}
                         >
                             <InstagramWidget accentColor={accentColor} resolvedColor={color} username={socials?.instagram} />
