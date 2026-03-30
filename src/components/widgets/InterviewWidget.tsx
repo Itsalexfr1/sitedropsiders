@@ -1,15 +1,26 @@
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, Mic2 } from 'lucide-react';
-import newsData from '../../data/news.json';
 import { Link } from 'react-router-dom';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
 
-import { useMemo } from 'react';
-
 export function InterviewWidget({ accentColor = 'purple', resolvedColor, featuredInterviews }: { accentColor?: string, resolvedColor?: string, featuredInterviews?: string[] }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
+    const [newsData, setNewsData] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchNews = async () => {
+            try {
+                const res = await fetch('/api/news');
+                if (res.ok) setNewsData(await res.json());
+            } catch (err) {
+                console.error('Failed to fetch news for interview widget:', err);
+            }
+        };
+        fetchNews();
+    }, []);
 
     const displayInterviews = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
@@ -41,7 +52,7 @@ export function InterviewWidget({ accentColor = 'purple', resolvedColor, feature
         }
 
         return baseInterviews.slice(0, 4);
-    }, [featuredInterviews]);
+    }, [newsData, featuredInterviews]);
 
     const playHoverSound = useHoverSound();
 

@@ -26,9 +26,7 @@ import { AgendaModal } from '../components/AgendaModal';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { Downloader } from './Downloader';
 
-import WIKI_DJS from '../data/wiki_djs.json';
-import WIKI_CLUBS from '../data/wiki_clubs.json';
-import WIKI_FESTIVALS from '../data/wiki_festivals.json';
+
 
 export function AdminDashboard() {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -98,6 +96,27 @@ export function AdminDashboard() {
     const [quizTab, setQuizTab] = useState<'active' | 'pending' | 'results'>('active');
     const [isEditQuizModalOpen, setIsEditQuizModalOpen] = useState(false);
     const [quizFilter, setQuizFilter] = useState('ALL');
+    const [wikiDjs, setWikiDjs] = useState<any[]>([]);
+    const [wikiClubs, setWikiClubs] = useState<any[]>([]);
+    const [wikiFestivals, setWikiFestivals] = useState<any[]>([]);
+
+    useEffect(() => {
+        const fetchWikiData = async () => {
+            try {
+                const [djs, clubs, fests] = await Promise.all([
+                    fetch('/api/wiki/djs'),
+                    fetch('/api/wiki/clubs'),
+                    fetch('/api/wiki/festivals')
+                ]);
+                if (djs.ok) setWikiDjs(await djs.json());
+                if (clubs.ok) setWikiClubs(await clubs.json());
+                if (fests.ok) setWikiFestivals(await fests.json());
+            } catch (err) {
+                console.error('Failed to fetch wiki data for admin board', err);
+            }
+        };
+        fetchWikiData();
+    }, []);
     const [quizSearch, setQuizSearch] = useState('');
     const [quizToEdit, setQuizToEdit] = useState<any>(null);
     const [testQuiz, setTestQuiz] = useState<any>(null);
@@ -3004,9 +3023,9 @@ export function AdminDashboard() {
                         const djVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_djs') || '[]'); } catch { return []; } })());
                         const clubVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_clubs') || '[]'); } catch { return []; } })());
                         const festVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_festivals') || '[]'); } catch { return []; } })());
-                        const djR = [...(WIKI_DJS as any[])].map(d => ({ ...d, tv: djVotes.has(d.id) ? 1 : 0 })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
-                        const clubR = [...(WIKI_CLUBS as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (clubVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
-                        const festR = [...(WIKI_FESTIVALS as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (festVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
+                        const djR = [...(wikiDjs as any[])].map(d => ({ ...d, tv: djVotes.has(d.id) ? 1 : 0 })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
+                        const clubR = [...(wikiClubs as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (clubVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
+                        const festR = [...(wikiFestivals as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (festVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
                         const allRanked = wikiTab === 'djs' ? djR : wikiTab === 'clubs' ? clubR : festR;
                         const ranked = isWikiExpanded ? allRanked : allRanked.slice(0, 5);
                         const topVotes = allRanked[0]?.tv || 1;

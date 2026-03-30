@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
-import newsDataStatic from '../../data/news.json';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
 import { getArticleLink } from '../../utils/slugify';
@@ -10,7 +9,7 @@ import { useState, useEffect, useMemo } from 'react';
 export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
-    const [newsData, setNewsData] = useState<any[]>(newsDataStatic);
+    const [newsData, setNewsData] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchNews = async () => {

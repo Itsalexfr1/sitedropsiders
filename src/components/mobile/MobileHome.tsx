@@ -1,21 +1,40 @@
 import { Link } from 'react-router-dom';
 import { Newspaper, TrendingUp, Calendar, MapPin, Play, MessageSquare, Camera } from 'lucide-react';
-import newsData from '../../data/news.json';
-import agendaData from '../../data/agenda.json';
-import recapsData from '../../data/recaps.json';
-import galerieData from '../../data/galerie.json';
 import { getArticleLink, getAgendaLink, getRecapLink, getGalleryLink } from '../../utils/slugify';
 import { useLanguage } from '../../context/LanguageContext';
-import { useMemo } from 'react';
+import { useMemo, useState, useEffect } from 'react';
 
 export function MobileHome() {
     const { t, language } = useLanguage();
+    const [newsData, setNewsData] = useState<any[]>([]);
+    const [agendaData, setAgendaData] = useState<any[]>([]);
+    const [recapsData, setRecapsData] = useState<any[]>([]);
+    const [galerieData, setGalerieData] = useState<any[]>([]);
 
+    useEffect(() => {
+        const fetchAll = async () => {
+            try {
+                const [newsRes, agendaRes, recapsRes, galerieRes] = await Promise.all([
+                    fetch('/api/news'),
+                    fetch('/api/agenda'),
+                    fetch('/api/recaps'),
+                    fetch('/api/galerie')
+                ]);
 
+                if (newsRes.ok) setNewsData(await newsRes.json());
+                if (agendaRes.ok) setAgendaData(await agendaRes.json());
+                if (recapsRes.ok) setRecapsData(await recapsRes.json());
+                if (galerieRes.ok) setGalerieData(await galerieRes.json());
+            } catch (err) {
+                console.error('Failed to fetch mobile home data', err);
+            }
+        };
+        fetchAll();
+    }, []);
 
     const sortedNews = useMemo(() => {
         return [...newsData].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, []);
+    }, [newsData]);
 
     const featuredNews = useMemo(() => {
         const featured = sortedNews.filter(n => n.isFeatured).slice(0, 1);
@@ -38,8 +57,8 @@ export function MobileHome() {
         const today = new Date().toISOString().split('T')[0];
         
         const combined = [
-            ...(recapsData as any[]).map(r => ({ ...r, contentType: 'recap' })),
-            ...(galerieData as any[]).map(g => ({ ...g, contentType: 'gallery', image: g.cover }))
+            ...recapsData.map(r => ({ ...r, contentType: 'recap' })),
+            ...galerieData.map(g => ({ ...g, contentType: 'gallery', image: g.cover }))
         ];
 
         return combined
@@ -58,7 +77,7 @@ export function MobileHome() {
                 return String(b.id).localeCompare(String(a.id));
             })
             .slice(0, 8);
-    }, []);
+    }, [recapsData, galerieData]);
 
     // 4. Interviews
     const interviewsHighlight = useMemo(() => {
@@ -79,7 +98,7 @@ export function MobileHome() {
                 return dateA - dateB;
             })
             .slice(0, 8);
-    }, []);
+    }, [agendaData]);
 
 
 

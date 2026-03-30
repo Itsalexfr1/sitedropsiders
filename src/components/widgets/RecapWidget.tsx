@@ -1,8 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Play, ArrowUpRight, Camera } from 'lucide-react';
-import recapsData from '../../data/recaps.json';
-import galerieData from '../../data/galerie.json';
 import { Link } from 'react-router-dom';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
@@ -12,6 +10,8 @@ import { translateText } from '../../utils/translate';
 export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
+    const [recapsData, setRecapsData] = useState<any[]>([]);
+    const [galerieData, setGalerieData] = useState<any[]>([]);
 
     const latestRecaps = useMemo(() => {
         const today = new Date().toISOString().split('T')[0];
@@ -51,9 +51,25 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                 return String(b.id).localeCompare(String(a.id));
             })
             .slice(0, 12);
-    }, []);
+    }, [recapsData, galerieData]);
 
     const [translatedTitles, setTranslatedTitles] = useState<Record<string, string>>({});
+
+    useEffect(() => {
+        const fetchRecaps = async () => {
+            try {
+                const [r, g] = await Promise.all([
+                    fetch('/api/recaps'),
+                    fetch('/api/galerie')
+                ]);
+                if (r.ok) setRecapsData(await r.json());
+                if (g.ok) setGalerieData(await g.json());
+            } catch (err) {
+                console.error('Failed to fetch recap widget data:', err);
+            }
+        };
+        fetchRecaps();
+    }, []);
 
     useEffect(() => {
         if (language === 'en') {

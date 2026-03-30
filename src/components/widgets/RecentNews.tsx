@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import newsDataStatic from '../../data/news.json';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
 import { getArticleLink } from '../../utils/slugify';
@@ -11,7 +10,7 @@ import { translateText } from '../../utils/translate';
 export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
-    const [newsData, setNewsData] = useState<any[]>(newsDataStatic);
+    const [newsData, setNewsData] = useState<any[]>([]);
 
     useEffect(() => {
         const fetchNews = async () => {

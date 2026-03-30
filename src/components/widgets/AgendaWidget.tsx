@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { MapPin } from 'lucide-react';
 import { Camera } from 'lucide-react';
-import agendaData from '../../data/agenda.json';
 import { Link } from 'react-router-dom';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { motion } from 'framer-motion';
@@ -13,6 +12,7 @@ import { Users, Music2 } from 'lucide-react';
 export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor }: { maxItems?: number, accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
+    const [agendaData, setAgendaData] = useState<any[]>([]);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -88,6 +88,18 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
         fetchSettings();
         const interval = setInterval(fetchSettings, 5000);
         return () => clearInterval(interval);
+    }, []);
+
+    useEffect(() => {
+        const fetchAgenda = async () => {
+            try {
+                const res = await fetch('/api/agenda');
+                if (res.ok) setAgendaData(await res.json());
+            } catch (err) {
+                console.error('Failed to fetch agenda for widget:', err);
+            }
+        };
+        fetchAgenda();
     }, []);
 
     // Polling Spectators
