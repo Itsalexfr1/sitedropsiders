@@ -48,3 +48,7 @@ migration_state.json
 migration_state_v2.json
 migration_state_v3.json
 tmp_migration_backup/
+
+# Static Assets (Stored on R2)
+public/uploads/
+_BACKUP_UPLOADS/
