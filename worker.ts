@@ -3659,8 +3659,7 @@ ${urls.map(u => `  <url>
                     const items = Array.isArray(fileObj.content) ? fileObj.content : [fileObj.content];
 
                     items.forEach((item: any, index: number) => {
-                        // OPTION: Skip if already verified
-                        if (item.status === 'verified' || item.photo_verified === true) return;
+                        // Scan all items regardless of verification status to find truly broken images
 
                         const itemStr = JSON.stringify(item);
                         // Reset regex state for each item

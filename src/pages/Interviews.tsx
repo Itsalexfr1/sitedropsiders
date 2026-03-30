@@ -69,7 +69,8 @@ export function Interviews() {
     const articlesPerPage = 8;
 
     const allInterviews = useMemo(() => {
-        const base = (newsData as any[])
+        const dataArray = Array.isArray(newsData) ? newsData : (newsData && typeof newsData === 'object' && (newsData as any).news ? (newsData as any).news : []);
+        const base = (dataArray as any[])
             .filter((item: any) => {
                 if (!item) return false;
                 const cat = (item.category || '').toLowerCase();
