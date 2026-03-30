@@ -148,9 +148,12 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                                 className={`h-full relative rounded-2xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-xl glow-card-${accentColor}`}
                             >
                                 <img
-                                    src={item.image}
-                                    alt=""
+                                    src={item.image || item.cover || 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop'}
+                                    alt={item.title || ""}
                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                    }}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent opacity-90" />
 
@@ -172,7 +175,14 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                     <div className="flex flex-col gap-3 mt-2 md:hidden">
                         {recentNews.slice(2, 6).map((item) => (
                             <Link to={getArticleLink(item)} key={item.id} className="flex items-center gap-4 p-2 bg-white/5 border border-white/5 rounded-2xl active:bg-white/10 transition-all">
-                                <img src={item.image} className="w-16 h-16 rounded-xl object-cover shrink-0" alt="" />
+                                <img 
+                                    src={item.image || item.cover || 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop'} 
+                                    className="w-16 h-16 rounded-xl object-cover shrink-0" 
+                                    alt={item.title || ""} 
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                    }}
+                                />
                                 <div className="flex-1 min-w-0">
                                     <div className="flex items-center gap-2 text-[8px] font-bold text-gray-500 uppercase tracking-widest mb-1">
                                         <span style={{ color: color }}>{item.category}</span>
