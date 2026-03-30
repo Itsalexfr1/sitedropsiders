@@ -818,7 +818,18 @@ export function AdminManage() {
                                                 )}
                                                 <td className="px-6 py-4">
                                                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-black/40 border border-white/10">
-                                                        <img src={item.image} alt="" className="w-full h-full object-cover" />
+                                                        <img 
+                                                            src={item.image?.startsWith('http') ? item.image : `https://www.dropsiders.fr${item.image?.startsWith('/') ? '' : '/'}${item.image}`} 
+                                                            alt="" 
+                                                            className="w-full h-full object-cover" 
+                                                            onError={(e) => {
+                                                                // Final fallback for locally uploaded images not yet in prod
+                                                                const target = e.target as HTMLImageElement;
+                                                                if (!target.src.includes('unsplash')) {
+                                                                    target.src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop&blur=10';
+                                                                }
+                                                            }}
+                                                        />
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
