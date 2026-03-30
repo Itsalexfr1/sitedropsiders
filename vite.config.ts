@@ -118,17 +118,18 @@ export default defineConfig({
       output: {
         manualChunks(id) {
           if (id.includes('node_modules')) {
-            if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('html2pdf.js')) return 'lib-pdf';
+            if (id.includes('jspdf')) return 'lib-jspdf';
+            if (id.includes('html2canvas')) return 'lib-canvas';
+            if (id.includes('html2pdf.js')) return 'lib-html2pdf';
             if (id.includes('@uiw/react-md-editor')) return 'lib-editor';
             if (id.includes('framer-motion')) return 'lib-framer';
             if (id.includes('lucide-react')) return 'lib-lucide';
             if (id.includes('react-social-media-embed')) return 'lib-social-embeds';
             if (id.includes('react-simple-maps') || id.includes('d3-')) return 'lib-maps';
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) return 'lib-core';
             return 'vendor';
           }
           
-          // Isolate EACH large JSON data file separately to avoid 1MB+ chunks
+          // Isolate large JSON data files individually
           if (id.includes('src/data/') && id.endsWith('.json')) {
             const fileName = id.split('/').pop()?.replace('.json', '') || 'data';
             return `data-${fileName}`;
