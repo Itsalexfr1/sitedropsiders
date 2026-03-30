@@ -49,7 +49,10 @@ export const uploadFile = async (
                     try {
                         const data = JSON.parse(xhr.responseText);
                         if (data.success && data.url) {
-                            resolve(data.url);
+                            const finalUrl = data.url.startsWith('/uploads') 
+                                ? `https://dropsiders.fr${data.url}` 
+                                : data.url;
+                            resolve(finalUrl);
                         } else {
                             reject(new Error(data.error || 'Upload failed'));
                         }
