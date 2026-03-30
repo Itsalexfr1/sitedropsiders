@@ -116,29 +116,23 @@ export default defineConfig({
     minify: 'esbuild',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor': ['react', 'react-dom', 'react-router-dom'],
-          'framer': ['framer-motion'],
-          'lucide': ['lucide-react'],
-          'md-editor': ['@uiw/react-md-editor'],
-          'confetti.module': ['canvas-confetti'],
-          'invoice-core': ['./src/components/InvoiceGenerator.tsx'],
-          'admin-system': [
-            './src/pages/AdminManage.tsx',
-            './src/pages/AdminDashboard.tsx',
-            './src/pages/AdminStats.tsx',
-            './src/pages/AdminSettings.tsx'
-          ],
-          'admin-news': ['./src/pages/NewsCreate.tsx'],
-          'admin-billing': ['./src/pages/AdminFactures.tsx'],
-          'admin-recap': ['./src/pages/RecapCreate.tsx'],
-          'admin-news-edit': ['./src/pages/News.tsx'],
-          'admin-recap-edit': ['./src/pages/Recap.tsx'],
-          'pdf-utils': ['jspdf', 'html2canvas', 'html2pdf.js'],
-          'social-embeds': ['react-social-media-embed'],
-          'maps': ['react-simple-maps', 'd3-geo', 'd3-scale'],
-          'community-wall': ['./src/components/community/MemoryWall.tsx'],
-          'wiki-venues': ['./src/components/community/WikiVenues.tsx'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('html2pdf.js')) return 'lib-pdf';
+            if (id.includes('@uiw/react-md-editor')) return 'lib-editor';
+            if (id.includes('framer-motion')) return 'lib-framer';
+            if (id.includes('lucide-react')) return 'lib-lucide';
+            if (id.includes('react-social-media-embed')) return 'lib-social';
+            if (id.includes('react-simple-maps') || id.includes('d3-')) return 'lib-maps';
+            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) return 'lib-core';
+            return 'lib-vendor';
+          }
+          if (id.includes('src/pages/NewsCreate.tsx')) return 'p-admin-news-create';
+          if (id.includes('src/pages/AdminFactures.tsx')) return 'p-admin-billing';
+          if (id.includes('src/pages/AdminDashboard.tsx')) return 'p-admin-dashboard';
+          if (id.includes('src/components/InvoiceGenerator')) return 'c-invoice';
+          if (id.includes('src/components/community/MemoryWall')) return 'c-community-wall';
+          if (id.includes('src/components/community/WikiVenues')) return 'c-wiki-venues';
         }
       }
     },
