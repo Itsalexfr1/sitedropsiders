@@ -87,15 +87,27 @@ export function Shop() {
 
     if (isPasswordProtected && !isAuthenticated) {
         return (
-            <div className="min-h-[80vh] flex flex-col items-center justify-center px-6">
-                <motion.div
-                    initial={{ opacity: 0, y: 30 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="w-full max-w-md bg-white/5 border border-white/10 rounded-[40px] p-12 shadow-2xl backdrop-blur-xl relative overflow-hidden"
-                >
-                    {/* Decorative Elements */}
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-neon-red/10 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
-                    <div className="absolute bottom-0 left-0 w-32 h-32 bg-neon-red/5 blur-[40px] rounded-full translate-y-1/2 -translate-x-1/2" />
+            <>
+                <AdminEditBar 
+                    pageName="Boutique"
+                    pageActions={[
+                        {
+                            label: 'Gérer le Shop',
+                            icon: <Settings2 className="w-3.5 h-3.5" />,
+                            to: '/admin/shop',
+                            permission: 'shop'
+                        }
+                    ]}
+                />
+                <div className="min-h-[80vh] flex flex-col items-center justify-center px-6">
+                    <motion.div
+                        initial={{ opacity: 0, y: 30 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="w-full max-w-md bg-white/5 border border-white/10 rounded-[40px] p-12 shadow-2xl backdrop-blur-xl relative overflow-hidden"
+                    >
+                        {/* Decorative Elements */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-neon-red/10 blur-[60px] rounded-full -translate-y-1/2 translate-x-1/2" />
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-neon-red/5 blur-[40px] rounded-full translate-y-1/2 -translate-x-1/2" />
 
                     <div className="relative z-10 text-center">
                         <div className="w-20 h-20 bg-neon-red/10 rounded-[24px] flex items-center justify-center mx-auto mb-8 border border-neon-red/20 rotate-12 group hover:rotate-0 transition-transform duration-500">
@@ -159,20 +171,33 @@ export function Shop() {
                     </div>
                 </motion.div>
             </div>
+            </>
         );
     }
 
     if (!isEnabled && !isAuthenticated) {
         return (
-            <div className="min-h-[70vh] flex flex-col items-center justify-center px-4">
-                <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    className="text-center"
-                >
-                    <div className="w-20 h-20 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-neon-red/20 shadow-[0_0_20px_rgba(255,0,51,0.2)]">
-                        <Construction className="w-10 h-10 text-neon-red" />
-                    </div>
+            <>
+                <AdminEditBar 
+                    pageName="Boutique"
+                    pageActions={[
+                        {
+                            label: 'Gérer le Shop',
+                            icon: <Settings2 className="w-3.5 h-3.5" />,
+                            to: '/admin/shop',
+                            permission: 'shop'
+                        }
+                    ]}
+                />
+                <div className="min-h-[70vh] flex flex-col items-center justify-center px-4">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.9 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="text-center"
+                    >
+                        <div className="w-20 h-20 bg-neon-red/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-neon-red/20 shadow-[0_0_20px_rgba(255,0,51,0.2)]">
+                            <Construction className="w-10 h-10 text-neon-red" />
+                        </div>
                     <h1 className="text-5xl md:text-7xl font-display font-black text-white mb-6 uppercase italic tracking-tighter" dangerouslySetInnerHTML={{ __html: t('shop.coming_soon.title') }} />
                     <p className="text-gray-400 max-w-md mx-auto mb-10 font-bold uppercase tracking-widest text-sm opacity-60">
                         {t('shop.coming_soon.subtitle')}
@@ -185,11 +210,24 @@ export function Shop() {
                     </Link>
                 </motion.div>
             </div>
+            </>
         );
     }
 
     return (
-        <div className={`min-h-screen bg-dark-bg text-white ${isMini ? 'py-8 px-2' : 'py-32 px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24'} overflow-x-hidden relative`}>
+        <>
+            <AdminEditBar 
+                pageName="Boutique"
+                pageActions={[
+                    {
+                        label: 'Gérer le Shop',
+                        icon: <Settings2 className="w-3.5 h-3.5" />,
+                        to: '/admin/shop',
+                        permission: 'shop'
+                    }
+                ]}
+            />
+            <div className={`min-h-screen bg-dark-bg text-white ${isMini ? 'py-8 px-2' : 'py-32 px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24'} overflow-x-hidden relative`}>
             {/* Background Ambient Glows */}
             <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
                 <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] rounded-full blur-[150px] bg-neon-red/10 animate-pulse transition-all duration-1000" />
@@ -328,13 +366,8 @@ export function Shop() {
                     </div>
                 )}
             </AnimatePresence>
-            <AdminEditBar
-                pageName="Boutique"
-                pageActions={[
-                    { label: 'Gérer le shop', icon: <Settings2 className="w-3.5 h-3.5" />, to: '/admin/shop', permission: 'shop' },
-                ]}
-            />
-        </div >
+        </div>
+        </>
     );
 }
 

@@ -1596,7 +1596,8 @@ export function AdminDashboard() {
     }
 
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
-    const isAlex = localStorage.getItem('admin_user') === 'alex' || localStorage.getItem('admin_user') === 'contact@dropsiders.fr';
+    const adminUser = (localStorage.getItem('admin_user') || '').toLowerCase();
+    const isAlex = adminUser === 'alex' || adminUser === 'alexf' || adminUser === 'itsalexfr1' || adminUser === 'contact@dropsiders.fr';
 
     const hasPermission = (p: string) => {
         if (p === 'alex_only') return isAlex;
@@ -1735,11 +1736,11 @@ export function AdminDashboard() {
             return action.title === 'Contenu' || action.title === 'Agenda' || action.title === 'News Focus' || action.title === 'Social Studio';
         }
 
-        if (dashboardTab === 'STUDIO') return action.category === 'STUDIO';
-        if (dashboardTab === 'SHOP') return action.category === 'SHOP';
-        if (dashboardTab === 'COMMUNAUTÉ') return action.category === 'CONCOURS' || action.title === 'Communauté' || action.title === 'Quiz & Blind Test';
-        if (dashboardTab === 'WIKI') return action.category === 'WIKI' || action.title === 'Wiki';
-        if (dashboardTab === 'TEAM') return action.category === 'TEAM' || action.title.includes('Équipe');
+        if (dashboardTab === 'STUDIO') return action.category?.toUpperCase() === 'STUDIO';
+        if (dashboardTab === 'SHOP') return action.category?.toUpperCase() === 'SHOP' || action.title === 'Shop' || action.title === 'Boutique' || action.icon === 'ShoppingBag';
+        if (dashboardTab === 'COMMUNAUTÉ') return action.category?.toUpperCase() === 'CONCOURS' || action.title === 'Communauté' || action.title === 'Quiz & Blind Test' || action.icon === 'MessageSquare';
+        if (dashboardTab === 'WIKI') return action.category?.toUpperCase() === 'WIKI' || action.title === 'Wiki' || action.icon === 'Globe';
+        if (dashboardTab === 'TEAM') return action.category?.toUpperCase() === 'TEAM' || action.title.includes('Équipe') || action.icon === 'Users';
 
         return true;
     });
@@ -2524,7 +2525,39 @@ export function AdminDashboard() {
                             </div>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="space-y-12">
+                            {dashboardTab === 'SHOP' && (
+                                <motion.div 
+                                    className="flex flex-col md:flex-row items-center gap-8 mb-12 p-8 md:p-12 bg-white/[0.03] border border-neon-pink/20 rounded-[3rem] relative overflow-hidden group transition-all hover:bg-white/[0.05]"
+                                    initial={{ opacity: 0, y: 20 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                >
+                                    <div className="absolute top-0 right-0 p-8 opacity-[0.03] group-hover:opacity-[0.06] transition-opacity pointer-events-none">
+                                        <ShoppingBag className="w-48 h-48 text-white rotate-12" />
+                                    </div>
+                                    <div className="relative z-10 w-24 h-24 bg-neon-pink/20 rounded-[2rem] border border-neon-pink/30 flex items-center justify-center flex-shrink-0 animate-pulse-subtle">
+                                        <ShoppingBag className="w-10 h-10 text-neon-pink shadow-neon-pink" />
+                                    </div>
+                                    <div className="relative z-10 text-center md:text-left">
+                                        <h2 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic leading-none mb-3">
+                                            Gestion <span className="text-neon-pink">Boutique</span>
+                                        </h2>
+                                        <p className="text-gray-400 font-medium max-w-xl text-xs md:text-sm leading-relaxed uppercase tracking-wider">
+                                            Paramètres globaux, gestion du catalogue Fourthwall, messagerie client et promotions.
+                                        </p>
+                                    </div>
+                                    <div className="relative z-10 ml-auto flex flex-col sm:flex-row gap-4 w-full md:w-auto mt-6 md:mt-0">
+                                        <button 
+                                            onClick={() => setIsShopModalOpen(true)}
+                                            className="px-10 py-5 bg-neon-pink text-white text-[10px] font-black uppercase tracking-widest rounded-2xl hover:bg-neon-pink/80 transition-all shadow-[0_10px_40px_rgba(255,17,17,0.3)] hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 group/btn"
+                                        >
+                                            <Shield className="w-4 h-4 group-hover/btn:rotate-12 transition-transform" /> 
+                                            Action Boutique Rapide
+                                        </button>
+                                    </div>
+                                </motion.div>
+                            )}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                             <AnimatePresence>
                                 {filteredActions.map((action) => {
                                     const globalIndex = actions.findIndex(a => a.title === action.title);
@@ -2656,14 +2689,16 @@ export function AdminDashboard() {
                                                     } else if (action.title === 'Agenda') {
                                                         e.preventDefault();
                                                         setIsAgendaModalOpen(true);
-                                                    } else if (action.title === 'Communauté') {
+                                                    } else if (action.title === 'Communauté' || action.icon === 'MessageSquare') {
                                                         e.preventDefault();
                                                         setIsCommunauteModalOpen(true);
-                                                    } else if (action.title === 'Shop') {
-                                                    } else if (action.title === 'Contenu') {
+                                                    } else if (action.title === 'Shop' || action.title === 'Boutique' || action.icon === 'ShoppingBag') {
+                                                        e.preventDefault();
+                                                        setIsShopModalOpen(true);
+                                                    } else if (action.title === 'Contenu' || action.icon === 'FileText') {
                                                         e.preventDefault();
                                                         setIsContenuModalOpen(true);
-                                                    } else if (action.title === 'Newsletter' || action.title === 'Abonnés') {
+                                                    } else if (action.title === 'Newsletter' || action.title === 'Abonnés' || action.icon === 'Mail') {
                                                         e.preventDefault();
                                                         setIsNewsletterModalOpen(true);
 
@@ -2959,7 +2994,8 @@ export function AdminDashboard() {
                                 )}
                             </AnimatePresence>
                         </div>
-                    )}
+                    </div>
+                )}
                 </div>
 
                 {/* ─── CLASSEMENT WIKI VOTES ─── */}
