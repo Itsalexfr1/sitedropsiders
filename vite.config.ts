@@ -120,19 +120,14 @@ export default defineConfig({
           if (id.includes('node_modules')) {
             if (id.includes('jspdf') || id.includes('html2canvas') || id.includes('html2pdf.js')) return 'lib-pdf';
             if (id.includes('@uiw/react-md-editor')) return 'lib-editor';
-            if (id.includes('framer-motion')) return 'lib-framer';
-            if (id.includes('lucide-react')) return 'lib-lucide';
-            if (id.includes('react-social-media-embed')) return 'lib-social';
+            if (id.includes('react-social-media-embed')) return 'lib-social-embeds';
             if (id.includes('react-simple-maps') || id.includes('d3-')) return 'lib-maps';
-            if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) return 'lib-core';
-            return 'lib-vendor';
+            return 'vendor';
           }
           if (id.includes('src/pages/NewsCreate.tsx')) return 'p-admin-news-create';
           if (id.includes('src/pages/AdminFactures.tsx')) return 'p-admin-billing';
-          if (id.includes('src/pages/AdminDashboard.tsx')) return 'p-admin-dashboard';
-          if (id.includes('src/components/InvoiceGenerator')) return 'c-invoice';
-          if (id.includes('src/components/community/MemoryWall')) return 'c-community-wall';
-          if (id.includes('src/components/community/WikiVenues')) return 'c-wiki-venues';
+          if (id.includes('src/components/SocialSuite.tsx')) return 'c-social-suite';
+          if (id.includes('src/components/InvoiceGenerator.tsx')) return 'c-invoice';
         }
       }
     },
