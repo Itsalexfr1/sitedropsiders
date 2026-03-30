@@ -1,3 +1,5 @@
+import { resolveImageUrl } from '../../utils/image';
+
 export function Hero({ videoId, videoUrl, accentColor = 'cyan', resolvedColor }: { videoId?: string, videoUrl?: string, accentColor?: string, resolvedColor?: string }) {
     const finalVideoId = videoId || "xoB5fdoOMV8";
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
@@ -14,13 +16,13 @@ export function Hero({ videoId, videoUrl, accentColor = 'cyan', resolvedColor }:
                     {isImageUrl ? (
                         <img
                             className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 object-cover scale-110"
-                            src={videoUrl}
+                            src={resolveImageUrl(videoUrl)}
                             alt="Hero banner"
                         />
                     ) : isVideoUrl ? (
                         <video
                             className="absolute top-1/2 left-1/2 min-w-full min-h-full w-auto h-auto -translate-x-1/2 -translate-y-1/2 object-cover scale-110"
-                            src={videoUrl}
+                            src={resolveImageUrl(videoUrl)}
                             autoPlay
                             muted
                             loop

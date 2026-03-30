@@ -4,6 +4,7 @@ import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
 import { getArticleLink } from '../../utils/slugify';
 import { translateText } from '../../utils/translate';
+import { resolveImageUrl } from '../../utils/image';
 import { useState, useEffect, useMemo } from 'react';
 
 export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
@@ -111,7 +112,7 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
                         }}
                     />
                     <img
-                        src={heroNews.image || heroNews.cover || 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop'}
+                        src={resolveImageUrl(heroNews.image || heroNews.cover)}
                         alt={heroNews.title || ""}
                         className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                         onError={(e) => {

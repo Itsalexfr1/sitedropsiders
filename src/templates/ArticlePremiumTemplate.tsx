@@ -7,6 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { standardizeContent as standardizeText } from '../utils/standardizer';
 import { translateText, translateHTML } from '../utils/translate';
 import { getArticleLink, getRecapLink } from '../utils/slugify';
+import { resolveImageUrl } from '../utils/image';
 import { ArticleReader } from '../components/widgets/ArticleReader';
 import settings from '../data/settings.json';
 import '../styles/article-premium.css';
@@ -436,26 +437,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     // Calculate reading time
     const readingTime = Math.ceil(displayContent.split(/\s+/).length / 200);
 
-
-    const resolveImageUrl = (url: string) => {
-        if (!url) return '';
-        let resolved = url;
-        if (url.startsWith('http')) {
-            // Strip domain to make it root-relative
-            resolved = url.replace(/https?:\/\/(www\.)?dropsiders\.fr/g, '');
-        } 
-        
-        // Ensure relative internal paths from DB are root-relative
-        if (!resolved.startsWith('http') && !resolved.startsWith('/')) {
-            resolved = '/' + resolved;
-        }
-        
-        // Handle Cloudinary specifically if needed
-        if (resolved.includes('cloudinary.com')) {
-            return resolved.replace('/upload/', '/upload/ar_1:1,c_fill,g_auto,w_200/');
-        }
-        return resolved;
-    };
+    // Article content processing utils
 
     return (
         <div className={`min-h-screen bg-dark-bg selection:bg-neon-red selection:text-white ${type === 'recap' ? 'article-type-recap' : isInterview ? 'article-type-interview' : isMusic ? 'article-type-music' : 'article-type-news'}`}>

@@ -1755,7 +1755,6 @@ export function AdminDashboard() {
             });
 
             if (res.ok) {
-                const data = await res.json();
                 alert('Mise en ligne déclenchée avec succès ! (Le site sera à jour dans 1-2 min)');
             } else {
                 const err = await res.json();

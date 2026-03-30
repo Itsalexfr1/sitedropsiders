@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Newspaper, TrendingUp, Calendar, MapPin, Play, MessageSquare, Camera } from 'lucide-react';
 import { getArticleLink, getAgendaLink, getRecapLink, getGalleryLink } from '../../utils/slugify';
+import { resolveImageUrl } from '../../utils/image';
 import { useLanguage } from '../../context/LanguageContext';
 import { useMemo, useState, useEffect } from 'react';
 
@@ -122,7 +123,7 @@ export function MobileHome() {
                             to={getArticleLink(news)}
                             className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden snap-center border border-white/10 group active:scale-95 transition-transform"
                         >
-                            <img src={news.image} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" alt="" />
+                            <img src={resolveImageUrl(news.image)} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" alt="" />
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
                             <div className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
                                 <span className="text-xs font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
@@ -154,7 +155,7 @@ export function MobileHome() {
                             to={getArticleLink(news)}
                             className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center border border-white/10 active:scale-95 transition-transform"
                         >
-                            <img src={news.image} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" alt="" />
+                            <img src={resolveImageUrl(news.image)} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" alt="" />
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
                             <div className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
                                 <span className="text-xs font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
@@ -190,7 +191,7 @@ export function MobileHome() {
                         >
                             {/* Événement Photo en fond */}
                             <img
-                                src={event.image}
+                                src={resolveImageUrl(event.image)}
                                 className="absolute inset-0 w-full h-full object-cover opacity-50"
                                 loading="lazy"
                                 decoding="async"

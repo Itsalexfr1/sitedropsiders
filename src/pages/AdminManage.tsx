@@ -5,6 +5,7 @@ import { ImageUploadModal } from '../components/ImageUploadModal';
 import { SocialSuite } from '../components/SocialSuite';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
+import { resolveImageUrl } from '../utils/image';
 import { getAuthHeaders } from '../utils/auth';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { AgendaModal } from '../components/AgendaModal';
@@ -13,32 +14,15 @@ import { AgendaModal } from '../components/AgendaModal';
 function AdminThumbnail({ src }: { src?: string | null }) {
     const [error, setError] = useState(false);
 
-    // Construire l'URL correctement sans jamais produire "undefined"
-    // Les images R2 sont déjà en https://, les paths relatifs /uploads/ 
-    // sont préfixés avec https://dropsiders.fr par uploadService
-    const resolvedSrc = (() => {
-        if (!src) return null;
-        let resolved = src;
-        if (src.startsWith('http')) {
-            resolved = src.replace(/https?:\/\/(www\.)?dropsiders\.fr/g, '');
-        }
-        if (!resolved.startsWith('http') && !resolved.startsWith('/')) {
-            resolved = '/' + resolved;
-        }
-        return resolved;
-    })();
-
-    if (!resolvedSrc || error) {
-        return (
-            <div className="w-full h-full flex items-center justify-center bg-white/5">
-                <ImageIcon className="w-5 h-5 text-gray-600" />
-            </div>
-        );
-    }
+    if (!src || error) return (
+        <div className="w-full h-full flex items-center justify-center bg-white/5">
+            <ImageIcon className="w-5 h-5 text-gray-600" />
+        </div>
+    );
 
     return (
         <img
-            src={resolvedSrc}
+            src={resolveImageUrl(src)}
             alt=""
             className="w-full h-full object-cover"
             onError={() => setError(true)}
