@@ -127,6 +127,10 @@ export default defineConfig({
             if (id.includes('react') || id.includes('react-dom') || id.includes('react-router')) return 'lib-core';
             return 'vendor';
           }
+          // Isolate large JSON data files
+          if (id.endsWith('news.json')) return 'data-news';
+          if (id.includes('src/data/') && id.endsWith('.json')) return 'data-json';
+          
           if (id.includes('src/pages/NewsCreate.tsx')) return 'p-admin-news-create';
           if (id.includes('src/pages/AdminFactures.tsx')) return 'p-admin-billing';
           if (id.includes('src/components/SocialSuite.tsx')) return 'c-social-suite';
