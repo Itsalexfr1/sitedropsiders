@@ -13,9 +13,14 @@ export function RecapDetail() {
     const { id } = useParams();
     const playHoverSound = useHoverSound();
     const [recapsData, setRecapsData] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const recapId = extractIdFromSlug(id || '');
-    const recap = recapsData.find((item: any) => item.id === recapId);
+    const recap = (recapsData as any[]).find((item: any) => 
+        item.id === recapId || 
+        (item.link && item.link.includes(`/${recapId}_`)) ||
+        (item.link && item.link.endsWith(`-${recapId}`))
+    );
 
     useEffect(() => {
         const fetchRecaps = async () => {
@@ -26,6 +31,8 @@ export function RecapDetail() {
                 }
             } catch (e) {
                 console.error('Error fetching recaps:', e);
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchRecaps();
@@ -37,6 +44,14 @@ export function RecapDetail() {
             trackPageView(recap.id.toString(), 'recap');
         }
     }, [recapId, recap]);
+
+    if (isLoading) {
+        return (
+            <div className="min-h-screen bg-dark-bg flex items-center justify-center p-4">
+                <div className="w-12 h-12 rounded-full border-t-2 border-neon-red animate-spin" />
+            </div>
+        );
+    }
 
     if (!recap) {
         return (

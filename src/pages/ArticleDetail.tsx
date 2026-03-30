@@ -14,7 +14,11 @@ export function ArticleDetail() {
     const articleId = extractIdFromSlug(id || '');
     const [newsData, setNewsData] = useState<any[]>([]);
     const [isNewsLoading, setIsNewsLoading] = useState(true);
-    const article = newsData.find(item => item.id === articleId);
+    const article = newsData.find(item => 
+        item.id === articleId || 
+        (item.link && item.link.includes(`/${articleId}_`)) ||
+        (item.link && item.link.endsWith(`-${articleId}`))
+    );
 
     const [liveContent, setLiveContent] = useState<string | null>(null);
     const [isLoadingContent, setIsLoadingContent] = useState(true);
