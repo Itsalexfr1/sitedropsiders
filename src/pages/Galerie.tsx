@@ -63,8 +63,6 @@ export function Galerie() {
         return galerieData.filter(album => (album as any).isCommunity || (album.category || '').toLowerCase().includes('communauté'));
     }, [galerieData]);
 
-    const currentAlbums = filteredAlbums.slice(0, ALBUMS_PER_PAGE);
-
     return (
         <div className="bg-dark-bg min-h-screen relative">
             {/* Background Ambient Glows */}

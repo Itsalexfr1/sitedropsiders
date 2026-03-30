@@ -7,7 +7,6 @@ export function Team() {
     const { t } = useLanguage();
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [teamData, setTeamData] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchTeam = async () => {
@@ -18,8 +17,6 @@ export function Team() {
                 }
             } catch (e) {
                 console.error('Error fetching team:', e);
-            } finally {
-                setIsLoading(false);
             }
         };
         fetchTeam();

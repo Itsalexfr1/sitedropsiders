@@ -13,7 +13,6 @@ export function RecapDetail() {
     const { id } = useParams();
     const playHoverSound = useHoverSound();
     const [recapsData, setRecapsData] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
 
     const recapId = extractIdFromSlug(id || '');
     const recap = recapsData.find((item: any) => item.id === recapId);
@@ -27,8 +26,6 @@ export function RecapDetail() {
                 }
             } catch (e) {
                 console.error('Error fetching recaps:', e);
-            } finally {
-                setIsLoading(false);
             }
         };
         fetchRecaps();

@@ -13,7 +13,6 @@ export function ArticleDetail() {
 
     const articleId = extractIdFromSlug(id || '');
     const [newsData, setNewsData] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const article = newsData.find(item => item.id === articleId);
 
     const [liveContent, setLiveContent] = useState<string | null>(null);
@@ -29,7 +28,7 @@ export function ArticleDetail() {
             } catch (e) {
                 console.error('Failed to fetch news data:', e);
             } finally {
-                setIsLoading(false);
+                setIsLoadingContent(false);
             }
         };
         fetchNews();

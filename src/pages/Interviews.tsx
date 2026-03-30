@@ -26,7 +26,6 @@ export function Interviews() {
     const { t, language } = useLanguage();
     const navigate = useNavigate();
     const [newsData, setNewsData] = useState<any[]>([]);
-    const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [direction, setDirection] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
@@ -44,8 +43,6 @@ export function Interviews() {
                 }
             } catch (e) {
                 console.error('Error fetching news:', e);
-            } finally {
-                setIsLoading(false);
             }
         };
         fetchNews();
