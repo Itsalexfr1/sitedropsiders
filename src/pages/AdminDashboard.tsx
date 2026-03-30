@@ -9,7 +9,7 @@ import {
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil,
     ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram,
     Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download,
-    Trophy, Settings, Camera, HardDrive, MapPin, Sparkles
+    Trophy, Settings, Camera, HardDrive, MapPin, Sparkles, Eye
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -129,6 +129,7 @@ export function AdminDashboard() {
     const [isUnusedImagesModalOpen, setIsUnusedImagesModalOpen] = useState(false);
     const [unusedImages, setUnusedImages] = useState<any[]>([]);
     const [isScanningUnused, setIsScanningUnused] = useState(false);
+    const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [isResidencesModalOpen, setIsResidencesModalOpen] = useState(false);
     const [residencesList, setResidencesList] = useState<any[]>([]);
     const [isResidencesLoading, setIsResidencesLoading] = useState(false);
@@ -7154,33 +7155,51 @@ export function AdminDashboard() {
                                         </div>
                                     ) : (
                                         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
-                                            {unusedImages.map((item: any) => (
-                                                <div 
-                                                    key={item.key} 
-                                                    className="group relative"
-                                                    onClick={() => toggleSelection(item.key)}
-                                                >
-                                                    <div className={`aspect-square bg-white/5 rounded-2xl border transition-all overflow-hidden relative cursor-pointer ${selectedKeys.includes(item.key) ? 'border-neon-red ring-2 ring-neon-red/20 scale-[0.98]' : 'border-white/10 hover:border-white/30'}`}>
-                                                        <img
-                                                            src={`https://dropsiders.fr/uploads/${item.key.replace('uploads/', '')}`}
-                                                            alt=""
-                                                            className={`w-full h-full object-cover transition-opacity ${selectedKeys.includes(item.key) ? 'opacity-30' : 'opacity-80 group-hover:opacity-100'}`}
-                                                            loading="lazy"
-                                                        />
-                                                        
-                                                        {/* Info Overlay */}
-                                                        <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/80 backdrop-blur-sm transform translate-y-full group-hover:translate-y-0 transition-transform">
-                                                            <p className="text-[7px] font-black text-white/50 uppercase truncate">{item.key.split('/').pop()}</p>
-                                                            <p className="text-[7px] font-black text-neon-cyan uppercase">{(item.size / 1024 / 1024).toFixed(2)} MB</p>
-                                                        </div>
+                                            {unusedImages.map((item: any) => {
+                                                const imageUrl = `https://dropsiders.fr/uploads/${item.key.replace('uploads/', '')}`;
+                                                return (
+                                                    <div 
+                                                        key={item.key} 
+                                                        className="group relative"
+                                                    >
+                                                        <div 
+                                                            className={`aspect-square bg-white/5 rounded-2xl border transition-all overflow-hidden relative cursor-pointer ${selectedKeys.includes(item.key) ? 'border-neon-red ring-2 ring-neon-red/20 scale-[0.98]' : 'border-white/10 hover:border-white/30'}`}
+                                                            onClick={() => toggleSelection(item.key)}
+                                                        >
+                                                            <img
+                                                                src={imageUrl}
+                                                                alt=""
+                                                                className={`w-full h-full object-cover transition-opacity ${selectedKeys.includes(item.key) ? 'opacity-30' : 'opacity-80 group-hover:opacity-100'}`}
+                                                                loading="lazy"
+                                                            />
+                                                            
+                                                            {/* Preview Overlay */}
+                                                            <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                                                <div 
+                                                                    onClick={(e) => {
+                                                                        e.stopPropagation();
+                                                                        setPreviewImage(imageUrl);
+                                                                    }}
+                                                                    className="p-3 bg-white/10 hover:bg-white/20 backdrop-blur-md rounded-full border border-white/20 text-white transform hover:scale-110 transition-all"
+                                                                >
+                                                                    <Eye className="w-5 h-5" />
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            {/* Info Overlay */}
+                                                            <div className="absolute bottom-0 left-0 right-0 p-2 bg-black/80 backdrop-blur-sm transform translate-y-full group-hover:translate-y-0 transition-transform">
+                                                                <p className="text-[7px] font-black text-white/50 uppercase truncate">{item.key.split('/').pop()}</p>
+                                                                <p className="text-[7px] font-black text-neon-cyan uppercase">{(item.size / 1024 / 1024).toFixed(2)} MB</p>
+                                                            </div>
 
-                                                        {/* Selection Overlay */}
-                                                        <div className={`absolute top-3 left-3 w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${selectedKeys.includes(item.key) ? 'bg-neon-red border-neon-red shadow-[0_0_15px_rgba(255,0,51,0.5)]' : 'bg-black/40 border-white/20 opacity-0 group-hover:opacity-100'}`}>
-                                                            {selectedKeys.includes(item.key) && <Check className="w-3.5 h-3.5 text-white" />}
+                                                            {/* Selection Overlay */}
+                                                            <div className={`absolute top-3 left-3 w-6 h-6 rounded-lg border flex items-center justify-center transition-all ${selectedKeys.includes(item.key) ? 'bg-neon-red border-neon-red shadow-[0_0_15px_rgba(255,0,51,0.5)]' : 'bg-black/40 border-white/20 opacity-0 group-hover:opacity-100'}`}>
+                                                                {selectedKeys.includes(item.key) && <Check className="w-3.5 h-3.5 text-white" />}
+                                                            </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                            ))}
+                                                );
+                                            })}
                                         </div>
                                     )}
                                 </div>
@@ -7213,6 +7232,35 @@ export function AdminDashboard() {
                                         <div className="text-[10px] font-black text-gray-500 uppercase tracking-widest italic">Sélectionne des photos pour libérer de l'espace</div>
                                     )}
                                 </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+    
+                {/* Full Image Preview Modal */}
+                <AnimatePresence>
+                    {previewImage && (
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4">
+                            <motion.div 
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                onClick={() => setPreviewImage(null)}
+                                className="absolute inset-0 bg-black/95 backdrop-blur-3xl cursor-zoom-out"
+                            />
+                            <motion.div
+                                initial={{ scale: 0.8, opacity: 0 }}
+                                animate={{ scale: 1, opacity: 1 }}
+                                exit={{ scale: 0.8, opacity: 0 }}
+                                className="relative max-w-[95vw] max-h-[95vh] rounded-3xl overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.8)] border border-white/10"
+                            >
+                                <img src={previewImage} className="max-w-full max-h-[95vh] object-contain" alt="" />
+                                <button 
+                                    onClick={() => setPreviewImage(null)}
+                                    className="absolute top-6 right-6 p-4 bg-black/60 hover:bg-black/80 backdrop-blur-xl rounded-2xl border border-white/10 text-white transition-all transform hover:scale-110 active:scale-90"
+                                >
+                                    <X className="w-6 h-6" />
+                                </button>
                             </motion.div>
                         </div>
                     )}

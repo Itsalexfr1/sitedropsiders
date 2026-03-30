@@ -123,8 +123,8 @@ export default defineConfig({
           'md-editor': ['@uiw/react-md-editor'],
           'confetti.module': ['canvas-confetti'],
           'invoice-core': ['./src/components/InvoiceGenerator.tsx'],
-          'admin-manage': ['./src/pages/AdminManage.tsx'],
-          'admin-content': [
+          'admin-system': [
+            './src/pages/AdminManage.tsx',
             './src/pages/AdminDashboard.tsx',
             './src/pages/AdminStats.tsx',
             './src/pages/AdminSettings.tsx'
