@@ -1926,6 +1926,14 @@ export function AdminDashboard() {
                                         <Youtube className="w-4 h-4" />
                                         <span className="hidden md:inline">Live</span>
                                     </Link>
+                                    <button
+                                        onClick={() => setIsScanMenuOpen(true)}
+                                        title="Centre de Scan"
+                                        className="w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center rounded-xl md:rounded-full bg-neon-cyan/10 border border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan hover:text-white text-xs font-black uppercase tracking-widest transition-all gap-2 shadow-lg shadow-neon-cyan/10"
+                                    >
+                                        <Search className="w-4 h-4" />
+                                        <span className="hidden md:inline">Scan Center</span>
+                                    </button>
                                 </>
                             )}
 
@@ -1945,13 +1953,6 @@ export function AdminDashboard() {
                                                 </button>
                                             </div>
                                             <div className="flex items-center gap-3">
-                                                <button
-                                                    onClick={() => setIsScanMenuOpen(true)}
-                                                    className="px-6 py-2 bg-neon-red/10 hover:bg-neon-red border border-neon-red/30 hover:border-neon-red text-neon-red hover:text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 group shadow-lg shadow-neon-red/10"
-                                                >
-                                                    <Search className="w-3.5 h-3.5 group-hover:scale-125 transition-transform" />
-                                                    Centre de Scan
-                                                </button>
                                                 {sbCredits !== null && (
                                                     <span
                                                         className={`text-[10px] font-black uppercase tracking-widest flex items-center gap-1 px-2 py-0.5 rounded-full border ${
