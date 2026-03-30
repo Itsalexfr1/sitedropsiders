@@ -18,9 +18,14 @@ function AdminThumbnail({ src }: { src?: string | null }) {
     // sont préfixés avec https://dropsiders.fr par uploadService
     const resolvedSrc = (() => {
         if (!src) return null;
-        if (src.startsWith('http')) return src.replace('www.dropsiders.fr', 'dropsiders.fr');
-        const clean = src.startsWith('/') ? src : `/${src}`;
-        return `https://dropsiders.fr${clean}`;
+        let resolved = src;
+        if (src.startsWith('http')) {
+            resolved = src.replace(/https?:\/\/(www\.)?dropsiders\.fr/g, '');
+        }
+        if (!resolved.startsWith('http') && !resolved.startsWith('/')) {
+            resolved = '/' + resolved;
+        }
+        return resolved;
     })();
 
     if (!resolvedSrc || error) {

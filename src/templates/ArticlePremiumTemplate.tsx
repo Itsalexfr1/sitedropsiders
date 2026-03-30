@@ -319,7 +319,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             .replace(/è/g, 'è')
             .replace(/ê/g, 'ê')
             .replace(/ç/g, 'ç')
-            .replace(/https:\/\/www\.dropsiders\.fr/g, 'https://dropsiders.fr');
+            .replace(/https?:\/\/(www\.)?dropsiders\.fr/g, '');
 
         // Apply Premium Standardizer (Keywords, Links)
         finalHtml = standardizeText(finalHtml);
@@ -441,9 +441,13 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         if (!url) return '';
         let resolved = url;
         if (url.startsWith('http')) {
-            resolved = url.replace('www.dropsiders.fr', 'dropsiders.fr');
-        } else {
-            resolved = `https://dropsiders.fr${url.startsWith('/') ? '' : '/'}${url}`;
+            // Strip domain to make it root-relative
+            resolved = url.replace(/https?:\/\/(www\.)?dropsiders\.fr/g, '');
+        } 
+        
+        // Ensure relative internal paths from DB are root-relative
+        if (!resolved.startsWith('http') && !resolved.startsWith('/')) {
+            resolved = '/' + resolved;
         }
         
         // Handle Cloudinary specifically if needed
