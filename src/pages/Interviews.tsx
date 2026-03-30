@@ -78,10 +78,10 @@ export function Interviews() {
                 return cat.includes('interview') || 
                        cat.includes('fast quizz') || title.includes('fast quizz') ||
                        cat.includes('playlist') || title.includes('playlist') ||
-                       cat.includes('drop & talk') || title.includes('drop & talk');
+                       cat.includes('drop & talk') || title.includes('drop-talk') || title.includes('drop & talk') || cat.includes('drop-talk');
             });
 
-        if (activeTab === 'all') return base.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        if (activeTab === 'all') return base.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
 
         return base.filter((item: any) => {
             const cat = (item.category || '').toLowerCase();
@@ -101,8 +101,8 @@ export function Interviews() {
                 default:
                     return true;
             }
-        }).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    }, [activeTab]);
+        }).sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
+    }, [activeTab, newsData]);
 
     const totalPages = Math.ceil(allInterviews.length / articlesPerPage);
 
@@ -315,7 +315,14 @@ export function Interviews() {
                                             <Link to={getArticleLink(item)} className="absolute inset-0 md:static block w-full h-full">
                                                 {/* Mobile: full-cover card */}
                                                 <div className="absolute inset-0 md:hidden">
-                                                    <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                                    <img 
+                                                        src={item.image || item.cover || 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop'} 
+                                                        alt={item.title} 
+                                                        className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                                        }}
+                                                    />
                                                     <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
                                                     <div className="absolute inset-0 p-6 flex flex-col justify-end text-left z-10">
                                                         <div className="flex items-center justify-between mb-3">
@@ -332,7 +339,14 @@ export function Interviews() {
                                                 {/* Desktop: standard card */}
                                                 <div className="hidden md:flex flex-col h-full overflow-hidden">
                                                     <div className="h-64 overflow-hidden bg-black/40 relative">
-                                                        <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                                        <img 
+                                                            src={item.image || item.cover || 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop'} 
+                                                            alt={item.title} 
+                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
+                                                            onError={(e) => {
+                                                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                                            }}
+                                                        />
                                                     </div>
                                                     <div className="p-6 flex flex-col flex-1 relative z-10">
                                                         <div className="flex justify-between items-center mb-3">
