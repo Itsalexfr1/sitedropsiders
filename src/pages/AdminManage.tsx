@@ -9,6 +9,38 @@ import { getAuthHeaders } from '../utils/auth';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { AgendaModal } from '../components/AgendaModal';
 
+// Composant thumbnail robuste avec fallback SVG inline (évite les blocages SW/CORS)
+function AdminThumbnail({ src }: { src?: string | null }) {
+    const [error, setError] = useState(false);
+
+    // Construire l'URL correctement sans jamais produire "undefined"
+    // Les images R2 sont déjà en https://, les paths relatifs /uploads/ 
+    // sont préfixés avec https://dropsiders.fr par uploadService
+    const resolvedSrc = (() => {
+        if (!src) return null;
+        if (src.startsWith('http')) return src;
+        const clean = src.startsWith('/') ? src : `/${src}`;
+        return `https://dropsiders.fr${clean}`;
+    })();
+
+    if (!resolvedSrc || error) {
+        return (
+            <div className="w-full h-full flex items-center justify-center bg-white/5">
+                <ImageIcon className="w-5 h-5 text-gray-600" />
+            </div>
+        );
+    }
+
+    return (
+        <img
+            src={resolvedSrc}
+            alt=""
+            className="w-full h-full object-cover"
+            onError={() => setError(true)}
+        />
+    );
+}
+
 // Data will be fetched from API via fetchJson
 
 const EDITOR_COLORS = [
@@ -818,18 +850,7 @@ export function AdminManage() {
                                                 )}
                                                 <td className="px-6 py-4">
                                                     <div className="w-12 h-12 rounded-lg overflow-hidden bg-black/40 border border-white/10">
-                                                        <img 
-                                                            src={item.image?.startsWith('http') ? item.image : `https://www.dropsiders.fr${item.image?.startsWith('/') ? '' : '/'}${item.image}`} 
-                                                            alt="" 
-                                                            className="w-full h-full object-cover" 
-                                                            onError={(e) => {
-                                                                // Final fallback for locally uploaded images not yet in prod
-                                                                const target = e.target as HTMLImageElement;
-                                                                if (!target.src.includes('unsplash')) {
-                                                                    target.src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop&blur=10';
-                                                                }
-                                                            }}
-                                                        />
+                                                        <AdminThumbnail src={item.image} />
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4">
