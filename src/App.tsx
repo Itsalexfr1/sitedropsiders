@@ -1,4 +1,5 @@
 import { useEffect, Suspense, useState, lazy } from 'react';
+import { AlertCircle, RefreshCw } from 'lucide-react';
 import { createBrowserRouter, RouterProvider, Outlet, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Layout } from './components/layout/Layout';
@@ -8,7 +9,7 @@ import { GoogleAdSense } from './components/analytics/GoogleAdSense';
 import { ScrollToTop } from './components/utils/ScrollToTop';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import { lazyRetry } from './utils/lazyRetry';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+
 import { UserProvider } from './context/UserContext';
 
 // Lazy load pages for better mobile performance
@@ -58,21 +59,34 @@ const Community = lazyRetry(() => import('./pages/Community').then(m => m.Commun
 
 function ErrorFallback() {
   return (
-    <div className="min-h-screen bg-dark-bg flex items-center justify-center p-6">
-      <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 text-center space-y-8">
-        <div className="w-20 h-20 bg-neon-red/10 rounded-3xl flex items-center justify-center mx-auto">
-          <AlertCircle className="w-10 h-10 text-neon-red" />
+    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-6">
+      <div className="max-w-md w-full bg-white/5 border border-white/10 rounded-[2.5rem] p-8 md:p-12 text-center space-y-8 relative overflow-hidden">
+        {/* Glow Effects */}
+        <div className="absolute -top-24 -left-24 w-48 h-48 bg-neon-red/10 rounded-full blur-[80px]" />
+        <div className="absolute -bottom-24 -right-24 w-48 h-48 bg-neon-cyan/10 rounded-full blur-[80px]" />
+
+        <div className="relative">
+          <div className="w-20 h-20 bg-neon-red/10 rounded-3xl flex items-center justify-center mx-auto mb-8 group transition-all duration-500 hover:scale-110">
+            <AlertCircle className="w-10 h-10 text-neon-red shadow-[0_0_15px_rgba(255,0,51,0.3)]" />
+          </div>
+          
+          <div className="space-y-4">
+            <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">
+              Oups, une petite <span className="text-neon-red">erreur</span> !
+            </h2>
+            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest leading-relaxed">
+              Le site a reçu une mise à jour ou un petit grain de sable s'est glissé. 
+              <br />Rafraîchis la page pour profiter de la dernière version.
+            </p>
+          </div>
+
+          <button
+            onClick={() => window.location.reload()}
+            className="w-full mt-10 py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-[0.3em] hover:bg-neon-red hover:text-white transition-all duration-300 flex items-center justify-center gap-3 shadow-[0_10px_20px_rgba(0,0,0,0.4)] hover:shadow-neon-red/20 active:scale-95"
+          >
+            <RefreshCw className="w-4 h-4 animate-spin-slow" /> RAFRAÎCHIR LA EXPÉRIENCE
+          </button>
         </div>
-        <div>
-          <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Oups, une petite erreur !</h2>
-          <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-4">Le site a reçu une mise à jour. Rafraîchis la page pour profiter de la dernière version.</p>
-        </div>
-        <button
-          onClick={() => window.location.reload()}
-          className="w-full py-5 bg-white text-black rounded-2xl font-black text-[10px] uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all flex items-center justify-center gap-3"
-        >
-          <RefreshCw className="w-4 h-4" /> RAFRAÎCHIR LA PAGE
-        </button>
       </div>
     </div>
   );
@@ -121,7 +135,7 @@ const router = createBrowserRouter([
   {
     path: "/",
     element: <Root />,
-    // errorElement: <ErrorFallback />,
+    errorElement: <ErrorFallback />,
     children: [
       { index: true, element: <Home /> },
       { path: "musique", element: <Musique /> },
