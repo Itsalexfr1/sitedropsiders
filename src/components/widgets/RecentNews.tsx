@@ -10,6 +10,7 @@ import { translateText } from '../../utils/translate';
 export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t, language } = useLanguage();
+    const playHoverSound = useHoverSound();
     const [newsData, setNewsData] = useState<any[]>([]);
 
     useEffect(() => {
@@ -30,15 +31,8 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
     }, []);
 
     const recentNews = useMemo(() => {
-        if (!Array.isArray(newsData)) return [];
-
-        const all = [...newsData]
-            .filter(item => item)
-            .sort((a, b) => {
-                const dateA = new Date(a.date).getTime();
-                const dateB = new Date(b.date).getTime();
-                return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
-            });
+        const all = [...(newsData as any[])]
+            .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
         if (all.length === 0) return [];
 
@@ -101,7 +95,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
         );
     }
 
-    const playHoverSound = useHoverSound();
+    // playHoverSound moved to top
 
     return (
         <div className="h-auto flex flex-col">
