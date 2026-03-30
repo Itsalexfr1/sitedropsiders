@@ -95,6 +95,7 @@ export function AdminDashboard() {
     const [allPendingQuizzes, setAllPendingQuizzes] = useState<any[]>([]);
     const [contestResults, setContestResults] = useState<any[]>([]);
     const [isQuizLoading, setIsQuizLoading] = useState(false);
+    const [isDeploying, setIsDeploying] = useState(false);
     const [quizTab, setQuizTab] = useState<'active' | 'pending' | 'results'>('active');
     const [isEditQuizModalOpen, setIsEditQuizModalOpen] = useState(false);
     const [quizFilter, setQuizFilter] = useState('ALL');
@@ -1743,6 +1744,30 @@ export function AdminDashboard() {
         }
     };
 
+    const handleManualDeploy = async () => {
+        if (!window.confirm('Voulez-vous vraiment lancer la mise en ligne manuelle ?')) return;
+        setIsDeploying(true);
+        try {
+            const res = await apiFetch('/api/deploy', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ reason: 'Mise en ligne manuelle depuis dashboard' })
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                alert('Mise en ligne déclenchée avec succès ! (Le site sera à jour dans 1-2 min)');
+            } else {
+                const err = await res.json();
+                alert('Erreur : ' + (err.error || 'Impossible de déployer'));
+            }
+        } catch (e: any) {
+            alert('Erreur réseau : ' + e.message);
+        } finally {
+            setIsDeploying(false);
+        }
+    };
+
     const isAdminAcc = storedPermissions.includes('all');
 
 
@@ -1864,6 +1889,16 @@ export function AdminDashboard() {
                                         >
                                             <Paintbrush className="w-3.5 h-3.5" />
                                             Mode Édition
+                                        </button>
+                                    )}
+                                    {isAlex && (
+                                        <button
+                                            onClick={handleManualDeploy}
+                                            disabled={isDeploying}
+                                            className="px-6 py-2 bg-neon-red/10 hover:bg-neon-red border border-neon-red/30 text-neon-red hover:text-white rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 shadow-lg shadow-neon-red/10 group active:scale-95 disabled:opacity-50"
+                                        >
+                                            <Zap className={`w-3.5 h-3.5 ${isDeploying ? 'animate-pulse' : 'group-hover:scale-125 transition-transform'}`} />
+                                            {isDeploying ? 'Mise en ligne...' : 'Mettre en ligne'}
                                         </button>
                                     )}
                                 </>
