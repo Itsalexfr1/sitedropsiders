@@ -134,6 +134,9 @@ export default defineConfig({
           'admin-recap': ['./src/pages/RecapCreate.tsx'],
           'admin-news-edit': ['./src/pages/News.tsx'],
           'admin-recap-edit': ['./src/pages/Recap.tsx'],
+          'pdf-utils': ['jspdf', 'html2canvas', 'html2pdf.js'],
+          'social-embeds': ['react-social-media-embed'],
+          'maps': ['react-simple-maps', 'd3-geo', 'd3-scale'],
           'community-wall': ['./src/components/community/MemoryWall.tsx'],
           'wiki-venues': ['./src/components/community/WikiVenues.tsx'],
         }
