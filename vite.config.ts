@@ -129,6 +129,11 @@ export default defineConfig({
             './src/pages/AdminStats.tsx',
             './src/pages/AdminSettings.tsx'
           ],
+          'admin-news': ['./src/pages/NewsCreate.tsx'],
+          'admin-billing': ['./src/pages/AdminFactures.tsx'],
+          'admin-recap': ['./src/pages/RecapCreate.tsx'],
+          'admin-news-edit': ['./src/pages/News.tsx'],
+          'admin-recap-edit': ['./src/pages/Recap.tsx'],
           'community-wall': ['./src/components/community/MemoryWall.tsx'],
           'wiki-venues': ['./src/components/community/WikiVenues.tsx'],
         }
