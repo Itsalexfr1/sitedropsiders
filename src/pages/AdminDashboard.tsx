@@ -7314,7 +7314,7 @@ export function AdminDashboard() {
                         setCurrentBrokenImageToFix(null);
                     }}
                     forceFilename={currentBrokenImageToFix?.key?.split('/').pop()}
-                    onUploadSuccess={(urls) => {
+                    onUploadSuccess={() => {
                         if (currentBrokenImageToFix) {
                             handleValidatePhoto(currentBrokenImageToFix);
                             setGlobalAlert({ message: "Photo uploadée et corrigée avec succès !", type: 'info' });
