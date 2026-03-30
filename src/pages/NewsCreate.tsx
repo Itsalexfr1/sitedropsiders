@@ -629,13 +629,11 @@ export function NewsCreate() {
                         if (data.article) {
                             parseAndInitialize(data.article, data.content || data.article.content || '');
                         } else if (data.content) {
-                            const localItem = (newsData as any[]).find(n => String(n.id) === String(id));
-                            parseAndInitialize(localItem || {}, data.content);
+                            parseAndInitialize({}, data.content);
                         }
                     } else {
-                        // Fallback to local data if API fails
-                        const localItem = (newsData as any[]).find(n => String(n.id) === String(id));
-                        if (localItem) parseAndInitialize(localItem, localItem.content || '');
+                        // API fail - stop loading
+                        setIsLoading(false);
                     }
                 } catch (e: any) {
                     console.error("Failed to fetch item for edit", e);
