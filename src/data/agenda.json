@@ -115,7 +115,7 @@
     "date": "2026-05-15",
     "startDate": "2026-05-15",
     "endDate": "2026-05-17",
-    "location": "Las Vegas",
+    "location": "LAS VEGAS",
     "type": "Festival",
     "image": "/uploads/uploads/3ffe19974bebc674-edclv_2026_mk_lu_full_soc_1080.png",
     "description": "Celebration des 30 ans sous le ciel électrique du Speedway.",
@@ -126,7 +126,7 @@
     "isWeekly": false,
     "isLiveDropsiders": true,
     "photo_verified": true,
-    "venue": "",
+    "venue": "Las Vegas Motor Speedway",
     "additionalDates": []
   },
   {
