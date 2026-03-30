@@ -96,17 +96,23 @@
   },
   {
     "id": 6,
-    "title": "EDC Week (Las Vegas)",
+    "title": "EDC Week ",
     "date": "2026-05-13",
     "startDate": "2026-05-13",
     "endDate": "2026-05-19",
-    "location": "Las Vegas",
+    "location": "LAS VEGAS",
     "type": "Events",
     "image": "https://dropsiders.fr/uploads/migrated/dropsiders/images/xkoxba2zurmlvemq2zzx.jpg",
     "description": "Une semaine de fêtes non-stop dans les meilleurs clubs de Vegas.",
     "url": "https://www.edcweek.com",
     "genre": "Multi Styles",
-    "country": "USA"
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "venue": "",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   },
   {
     "id": 7,
