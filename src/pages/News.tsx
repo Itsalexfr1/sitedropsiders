@@ -2,7 +2,6 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Edit2, Loader2, Filter, ArrowRight } from 'lucide-react';
-import newsData from '../data/news.json';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { getArticleLink } from '../utils/slugify';
@@ -26,6 +25,8 @@ const TABS: { key: TabKey; label: string; activeClass: string; inactiveClass: st
 export function News() {
     const { t, language } = useLanguage();
     const navigate = useNavigate();
+    const [newsData, setNewsData] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [direction, setDirection] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
@@ -33,6 +34,20 @@ export function News() {
 
     useEffect(() => {
         setIsAdmin(localStorage.getItem('admin_auth') === 'true');
+        
+        const fetchNews = async () => {
+            try {
+                const res = await fetch('/api/news');
+                if (res.ok) {
+                    setNewsData(await res.json());
+                }
+            } catch (e) {
+                console.error('Error fetching news:', e);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchNews();
     }, []);
     const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
 

@@ -42,12 +42,6 @@ const CITIES_DATA: Record<string, { name: string, coordinates: [number, number],
     ]
 };
 
-import newsData from '../data/news.json';
-import recapsData from '../data/recaps.json';
-import agendaData from '../data/agenda.json';
-import galerieData from '../data/galerie.json';
-import subscribersData from '../data/subscribers.json';
-
 // --- SVG Pie Chart Component ---
 function PieChart({ data }: { data: { label: string; value: number; color: string; hex: string }[] }) {
     const [hovered, setHovered] = useState<number | null>(null);
@@ -159,6 +153,11 @@ function VisitsBarChart({ data }: { data: { label: string; value: number }[] }) 
 }
 
 export function AdminStats() {
+    const [newsData, setNewsData] = useState<any[]>([]);
+    const [recapsData, setRecapsData] = useState<any[]>([]);
+    const [agendaData, setAgendaData] = useState<any[]>([]);
+    const [galerieData, setGalerieData] = useState<any[]>([]);
+    const [subscribersData, setSubscribersData] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [serverStats, setServerStats] = useState<any>(null);
     const [selectedDetail, setSelectedDetail] = useState<null | 'articles' | 'subscribers' | 'content'>(null);
@@ -187,25 +186,42 @@ export function AdminStats() {
     };
 
     useEffect(() => {
-        const fetchData = async () => {
+        const fetchAllData = async () => {
             try {
-                const res = await fetch('/api/analytics/stats');
-                if (res.ok) {
-                    const data = await res.json();
+                // Fetch server analytics
+                const resAnalytics = await fetch('/api/analytics/stats');
+                if (resAnalytics.ok) {
+                    const data = await resAnalytics.json();
                     setServerStats(data);
                     if (data.onlineUsers !== undefined) {
                         setOnlineUsers(data.onlineUsers);
                     }
                 }
+
+                // Fetch content data
+                const [news, recaps, agenda, galerie, subscribers] = await Promise.all([
+                    fetch('/api/news').then(r => r.ok ? r.json() : []),
+                    fetch('/api/recaps').then(r => r.ok ? r.json() : []),
+                    fetch('/api/agenda').then(r => r.ok ? r.json() : []),
+                    fetch('/api/galerie').then(r => r.ok ? r.json() : []),
+                    fetch('/api/subscribers').then(r => r.ok ? r.json() : [])
+                ]);
+
+                setNewsData(news);
+                setRecapsData(recaps);
+                setAgendaData(agenda);
+                setGalerieData(galerie);
+                setSubscribersData(subscribers);
+
             } catch (e) {
-                console.error("Failed to fetch server stats", e);
+                console.error("Failed to fetch data", e);
             } finally {
                 setLoading(false);
             }
         };
 
-        fetchData();
-        const interval = setInterval(fetchData, 30000); // Actualiser toutes les 30s
+        fetchAllData();
+        const interval = setInterval(fetchAllData, 30000);
         return () => clearInterval(interval);
     }, []);
 

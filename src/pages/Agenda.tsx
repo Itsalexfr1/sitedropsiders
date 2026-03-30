@@ -10,7 +10,6 @@ import { ConfirmationModal } from '../components/ConfirmationModal';
 import { CollaborativeCalendar } from '../components/community/CollaborativeCalendar';
 
 import { extractIdFromSlug } from '../utils/slugify';
-import agendaDataLocal from '../data/agenda.json';
 import { trackPageView } from '../utils/analytics';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { SEO } from '../components/utils/SEO';
@@ -55,9 +54,6 @@ export function Agenda() {
             if (response.ok) {
                 const data = await response.json();
                 setAgendaData(data);
-            } else {
-                // API unavailable (preview/dev without worker), fallback to local JSON
-                setAgendaData(agendaDataLocal as any[]);
             }
             try {
                 const response = await fetch('/api/settings');
@@ -74,8 +70,7 @@ export function Agenda() {
                 }
             } catch (e) { }
         } catch (error: any) {
-            console.error('Failed to fetch agenda, using local data:', error);
-            setAgendaData(agendaDataLocal as any[]);
+            console.error('Failed to fetch agenda:', error);
         } finally {
             setIsLoading(false);
         }

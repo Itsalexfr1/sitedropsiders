@@ -1,6 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
-import { useEffect } from 'react';
-import recapsData from '../data/recaps.json';
+import { useEffect, useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { extractIdFromSlug } from '../utils/slugify';
 import { getRecapContent } from '../utils/contentLoader';
@@ -13,9 +12,27 @@ export function RecapDetail() {
     const { t } = useLanguage();
     const { id } = useParams();
     const playHoverSound = useHoverSound();
+    const [recapsData, setRecapsData] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     const recapId = extractIdFromSlug(id || '');
-    const recap = (recapsData as any[]).find((item: any) => item.id === recapId);
+    const recap = recapsData.find((item: any) => item.id === recapId);
+
+    useEffect(() => {
+        const fetchRecaps = async () => {
+            try {
+                const res = await fetch('/api/recaps');
+                if (res.ok) {
+                    setRecapsData(await res.json());
+                }
+            } catch (e) {
+                console.error('Error fetching recaps:', e);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchRecaps();
+    }, []);
 
     useEffect(() => {
         window.scrollTo(0, 0);

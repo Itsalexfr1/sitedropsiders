@@ -1,6 +1,5 @@
 import { useParams, Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import newsData from '../data/news.json';
 import { useLanguage } from '../context/LanguageContext';
 import { extractIdFromSlug } from '../utils/slugify';
 import { getNewsContent } from '../utils/contentLoader';
@@ -8,16 +7,33 @@ import { trackPageView } from '../utils/analytics';
 import ArticlePremiumTemplate from '../templates/ArticlePremiumTemplate';
 import { SEO } from '../components/utils/SEO';
 
-
 export function ArticleDetail() {
     const { t } = useLanguage();
     const { id } = useParams();
 
     const articleId = extractIdFromSlug(id || '');
+    const [newsData, setNewsData] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
     const article = newsData.find(item => item.id === articleId);
 
     const [liveContent, setLiveContent] = useState<string | null>(null);
     const [isLoadingContent, setIsLoadingContent] = useState(true);
+
+    useEffect(() => {
+        const fetchNews = async () => {
+            try {
+                const res = await fetch('/api/news');
+                if (res.ok) {
+                    setNewsData(await res.json());
+                }
+            } catch (e) {
+                console.error('Failed to fetch news data:', e);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchNews();
+    }, []);
 
     useEffect(() => {
         window.scrollTo(0, 0);

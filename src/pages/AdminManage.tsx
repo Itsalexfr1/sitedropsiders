@@ -9,18 +9,7 @@ import { getAuthHeaders } from '../utils/auth';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { AgendaModal } from '../components/AgendaModal';
 
-// Import des données locales (fallback si GitHub inaccessible)
-import newsDataLocal from '../data/news.json';
-import recapsDataLocal from '../data/recaps.json';
-import agendaDataLocal from '../data/agenda.json';
-import galerieDataLocal from '../data/galerie.json';
-
-const LOCAL_DATA: Record<string, any[]> = {
-    'news.json': newsDataLocal as any[],
-    'recaps.json': recapsDataLocal as any[],
-    'agenda.json': agendaDataLocal as any[],
-    'galerie.json': galerieDataLocal as any[],
-};
+// Data will be fetched from API via fetchJson
 
 const EDITOR_COLORS = [
     '#FF1241', // neon-red
@@ -76,9 +65,9 @@ async function fetchJson(file: string): Promise<any[]> {
             return await response.json();
         }
     } catch (error: any) {
-        console.error(`API fetch failed for ${file}, falling back to local:`, error);
+        console.error(`API fetch failed for ${file}:`, error);
     }
-    return LOCAL_DATA[file] ?? [];
+    return [];
 }
 
 type ContentType = 'News' | 'Musique' | 'Recaps' | 'Interviews' | 'Agenda' | 'Communauté' | 'Focus';

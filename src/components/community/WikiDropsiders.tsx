@@ -4,7 +4,6 @@ import { Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, X,
 import { apiFetch, getAuthHeaders } from '../../utils/auth';
 import { useLanguage } from '../../context/LanguageContext';
 import { ImageUploadModal } from '../ImageUploadModal';
-import DJ_DATA_RAW from '../../data/wiki_djs.json';
 
 type DjEntry = {
     id: string;
@@ -24,10 +23,6 @@ const VOTE_KEY = 'dropsiders_votes_djs';
 function loadVotes(): Set<string> { try { return new Set(JSON.parse(localStorage.getItem(VOTE_KEY) || '[]')); } catch { return new Set(); } }
 function saveVotes(v: Set<string>) { localStorage.setItem(VOTE_KEY, JSON.stringify([...v])); }
 
-const initialData: DjEntry[] = (DJ_DATA_RAW as any[])
-    .filter(dj => dj.status !== 'waiting')
-    .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }));
-
 function groupByLetter(data: DjEntry[]): Record<string, DjEntry[]> {
     return data.reduce((acc, dj) => {
         const letter = dj.name.charAt(0).toUpperCase().replace(/[^A-Z]/, '#');
@@ -40,7 +35,8 @@ function groupByLetter(data: DjEntry[]): Record<string, DjEntry[]> {
 export function WikiDropsiders() {
     const { t, language } = useLanguage();
     const [search, setSearch] = useState('');
-    const [djData, setDjData] = useState<DjEntry[]>(initialData);
+    const [djData, setDjData] = useState<DjEntry[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
         const fetchLive = async () => {
@@ -55,6 +51,8 @@ export function WikiDropsiders() {
                 }
             } catch (error) {
                 console.error('Failed to fetch live wiki data:', error);
+            } finally {
+                setIsLoading(false);
             }
         };
         fetchLive();
@@ -166,76 +164,87 @@ export function WikiDropsiders() {
                 </div>
             </div>
 
-            {/* Alphabet nav */}
-            <div className="flex flex-wrap gap-1.5">
-                {allLetters.map(letter => {
-                    const has = !!grouped[letter]?.length;
-                    return (
-                        <button key={letter}
-                            onClick={() => has && document.getElementById(`dj-section-${letter}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
-                            className={`w-8 h-8 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${has ? 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red hover:text-white cursor-pointer' : 'bg-white/[0.03] border border-white/5 text-white/10 cursor-default'}`}>
-                            {letter}
-                        </button>
-                    );
-                })}
-            </div>
-
-            {/* A-Z sections */}
-            <div className="space-y-12">
-                {sortedLetters.map(letter => (
-                    <div key={letter} id={`dj-section-${letter}`}>
-                        <div className="flex items-center gap-4 mb-6">
-                            <div className="w-14 h-14 bg-neon-red rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(255,0,0,0.3)] shrink-0">
-                                <span className="text-white font-display font-black text-2xl italic">{letter}</span>
-                            </div>
-                            <div className="flex-1 h-px bg-gradient-to-r from-neon-red/30 to-transparent" />
-                            <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">{grouped[letter].length} artiste{grouped[letter].length > 1 ? 's' : ''}</span>
-                        </div>
-
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                            {grouped[letter].map(dj => {
-                                const hasVoted = votes.has(dj.id);
-                                return (
-                                    <motion.div key={dj.id} whileHover={{ y: -4, scale: 1.02 }}
-                                        className={`group relative rounded-2xl overflow-hidden border transition-all duration-300 cursor-pointer ${selectedDj?.id === dj.id ? 'border-neon-red shadow-[0_0_20px_rgba(255,0,0,0.3)]' : 'border-white/10 hover:border-white/30'}`}>
-
-                                        {/* Photo — format 4/5 pour tout le monde pour cohérence */}
-                                        <div className="relative aspect-[4/5] bg-black overflow-hidden" onClick={() => handleSelectDj(dj)}>
-                                            <img 
-                                                src={dj.image} 
-                                                alt={dj.name}
-                                                onError={() => {
-                                                    setBrokenImages(prev => new Set([...prev, dj.id]));
-                                                    reportBrokenImage(dj.id);
-                                                }}
-                                                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
-                                            />
-                                            {/* Fondu premium vers le bas */}
-                                            <div className="absolute bottom-0 left-0 right-0 h-3/5 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
-                                            {/* Name on gradient */}
-                                            <div className="absolute bottom-0 left-0 right-0 p-2.5">
-                                                <div className="text-[9px] font-black text-white uppercase tracking-widest leading-tight line-clamp-1">{dj.name}</div>
-                                            </div>
-                                            {/* Rating */}
-                                            <div className="absolute top-2 right-2 flex items-center gap-0.5 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5">
-                                                <Star className="w-2.5 h-2.5 text-neon-red fill-current" />
-                                                <span className="text-[8px] font-black text-white">{dj.rating}</span>
-                                            </div>
-                                        </div>
-
-                                        {/* Vote button */}
-                                        <button onClick={e => toggleVote(dj.id, e)}
-                                            className={`w-full flex items-center justify-center gap-1 py-2 text-[8px] font-black uppercase tracking-wider transition-all border-t ${hasVoted ? 'bg-neon-red/15 border-neon-red/30 text-neon-red' : 'bg-black border-white/10 text-gray-500 hover:text-neon-red/70'}`}>
-                                            <Heart className={`w-3 h-3 ${hasVoted ? 'fill-current' : ''}`} />
-                                            {hasVoted ? t('voted') : t('vote')}
-                                        </button>
-                                    </motion.div>
-                                );
-                            })}
-                        </div>
+            {isLoading ? (
+                <div className="flex flex-col items-center justify-center py-20">
+                    <div className="w-12 h-12 border-t-2 border-neon-red rounded-full animate-spin mb-4" />
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest animate-pulse">
+                        Synchronisation avec l'archive...
+                    </span>
+                </div>
+            ) : (
+                <>
+                    {/* Alphabet nav */}
+                    <div className="flex flex-wrap gap-1.5">
+                        {allLetters.map(letter => {
+                            const has = !!grouped[letter]?.length;
+                            return (
+                                <button key={letter}
+                                    onClick={() => has && document.getElementById(`dj-section-${letter}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                                    className={`w-8 h-8 rounded-lg text-[10px] font-black uppercase tracking-wider transition-all ${has ? 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red hover:text-white cursor-pointer' : 'bg-white/[0.03] border border-white/5 text-white/10 cursor-default'}`}>
+                                    {letter}
+                                </button>
+                            );
+                        })}
                     </div>
-                ))}
-            </div>
+
+                    {/* A-Z sections */}
+                    <div className="space-y-12">
+                        {sortedLetters.map(letter => (
+                            <div key={letter} id={`dj-section-${letter}`}>
+                                <div className="flex items-center gap-4 mb-6">
+                                    <div className="w-14 h-14 bg-neon-red rounded-2xl flex items-center justify-center shadow-[0_0_20px_rgba(255,0,0,0.3)] shrink-0">
+                                        <span className="text-white font-display font-black text-2xl italic">{letter}</span>
+                                    </div>
+                                    <div className="flex-1 h-px bg-gradient-to-r from-neon-red/30 to-transparent" />
+                                    <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">{grouped[letter].length} artiste{grouped[letter].length > 1 ? 's' : ''}</span>
+                                </div>
+
+                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
+                                    {grouped[letter].map(dj => {
+                                        const hasVoted = votes.has(dj.id);
+                                        return (
+                                            <motion.div key={dj.id} whileHover={{ y: -4, scale: 1.02 }}
+                                                className={`group relative rounded-2xl overflow-hidden border transition-all duration-300 cursor-pointer ${selectedDj?.id === dj.id ? 'border-neon-red shadow-[0_0_20px_rgba(255,0,0,0.3)]' : 'border-white/10 hover:border-white/30'}`}>
+
+                                                {/* Photo — format 4/5 pour tout le monde pour cohérence */}
+                                                <div className="relative aspect-[4/5] bg-black overflow-hidden" onClick={() => handleSelectDj(dj)}>
+                                                    <img
+                                                        src={dj.image}
+                                                        alt={dj.name}
+                                                        onError={() => {
+                                                            setBrokenImages(prev => new Set([...prev, dj.id]));
+                                                            reportBrokenImage(dj.id);
+                                                        }}
+                                                        className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                                    />
+                                                    {/* Fondu premium vers le bas */}
+                                                    <div className="absolute bottom-0 left-0 right-0 h-3/5 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
+                                                    {/* Name on gradient */}
+                                                    <div className="absolute bottom-0 left-0 right-0 p-2.5">
+                                                        <div className="text-[9px] font-black text-white uppercase tracking-widest leading-tight line-clamp-1">{dj.name}</div>
+                                                    </div>
+                                                    {/* Rating */}
+                                                    <div className="absolute top-2 right-2 flex items-center gap-0.5 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5">
+                                                        <Star className="w-2.5 h-2.5 text-neon-red fill-current" />
+                                                        <span className="text-[8px] font-black text-white">{dj.rating}</span>
+                                                    </div>
+                                                </div>
+
+                                                {/* Vote button */}
+                                                <button onClick={e => toggleVote(dj.id, e)}
+                                                    className={`w-full flex items-center justify-center gap-1 py-2 text-[8px] font-black uppercase tracking-wider transition-all border-t ${hasVoted ? 'bg-neon-red/15 border-neon-red/30 text-neon-red' : 'bg-black border-white/10 text-gray-500 hover:text-neon-red/70'}`}>
+                                                    <Heart className={`w-3 h-3 ${hasVoted ? 'fill-current' : ''}`} />
+                                                    {hasVoted ? t('voted') : t('vote')}
+                                                </button>
+                                            </motion.div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </>
+            )}
 
             {/* Detail slide-over */}
             <AnimatePresence>

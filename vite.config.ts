@@ -119,9 +119,18 @@ export default defineConfig({
         manualChunks: {
           'vendor': ['react', 'react-dom', 'react-router-dom'],
           'framer': ['framer-motion'],
-          'ui-icons': ['lucide-react'],
+          'lucide': ['lucide-react'],
           'md-editor': ['@uiw/react-md-editor'],
           'confetti.module': ['canvas-confetti'],
+          'invoice-core': ['./src/components/InvoiceGenerator.tsx'],
+          'admin-manage': ['./src/pages/AdminManage.tsx'],
+          'admin-content': [
+            './src/pages/AdminDashboard.tsx',
+            './src/pages/AdminStats.tsx',
+            './src/pages/AdminSettings.tsx'
+          ],
+          'community-wall': ['./src/components/community/MemoryWall.tsx'],
+          'wiki-venues': ['./src/components/community/WikiVenues.tsx'],
         }
       }
     },

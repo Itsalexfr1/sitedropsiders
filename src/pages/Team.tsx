@@ -1,12 +1,29 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import teamData from '../data/team.json';
 import { useLanguage } from '../context/LanguageContext';
 import { TeamContactModal } from '../components/widgets/TeamContactModal';
 
 export function Team() {
     const { t } = useLanguage();
     const [isModalOpen, setIsModalOpen] = useState(false);
+    const [teamData, setTeamData] = useState<any[]>([]);
+    const [isLoading, setIsLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchTeam = async () => {
+            try {
+                const res = await fetch('/api/team');
+                if (res.ok) {
+                    setTeamData(await res.json());
+                }
+            } catch (e) {
+                console.error('Error fetching team:', e);
+            } finally {
+                setIsLoading(false);
+            }
+        };
+        fetchTeam();
+    }, []);
 
     return (
         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12">

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import html2pdf from 'html2pdf.js';
 import { Plus, Trash2, Send, Loader, X, Mail, Save, History, CheckCircle, Clock, Download, Printer, ChevronRight, Building2, User, Settings, BookOpen, RefreshCw } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -341,6 +340,9 @@ export function InvoiceGenerator() {
             const html = buildInvoiceHTML(getInvoiceData());
             
             // Generate PDF on frontend
+            const html2pdfModule = await import('html2pdf.js');
+            const html2pdf = (html2pdfModule as any).default || html2pdfModule;
+
             const element = document.createElement('div');
             element.innerHTML = html;
             const opt = { margin: 0, filename: `Facture_${formattedNumber}.pdf`, image: { type: 'jpeg' as const, quality: 0.98 }, html2canvas: { scale: 2, useCORS: true }, jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const } };
