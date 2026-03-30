@@ -25,6 +25,7 @@ import { ConfirmModal } from '../components/ui/ConfirmModal';
 import { AgendaModal } from '../components/AgendaModal';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ShopMenuModal } from '../components/admin/modals/ShopMenuModal';
+import { ScanMenuModal } from '../components/admin/modals/ScanMenuModal';
 import { Downloader } from './Downloader';
 
 
@@ -140,6 +141,7 @@ export function AdminDashboard() {
     const [showResidenceUpload, setShowResidenceUpload] = useState(false);
     const [editingResidence, setEditingResidence] = useState<any>(null);
     const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
+    const [isScanMenuOpen, setIsScanMenuOpen] = useState(false);
     const [maintenanceLoading, setMaintenanceLoading] = useState(false);
     const [bulkYearShift, setBulkYearShift] = useState({ oldYear: '2025', newYear: '2026', type: 'agenda' });
     const [sbCredits, setSbCredits] = useState<{ used: number; max: number; renewal: string } | null>(null);
@@ -1944,40 +1946,11 @@ export function AdminDashboard() {
                                             </div>
                                             <div className="flex items-center gap-3">
                                                 <button
-                                                    onClick={fetchDuplicates}
-                                                    disabled={isR2Loading}
-                                                    className="text-[9px] font-black text-neon-cyan/60 hover:text-neon-cyan uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full"
-                                                    title="Détecter les images en double"
+                                                    onClick={() => setIsScanMenuOpen(true)}
+                                                    className="px-6 py-2 bg-neon-red/10 hover:bg-neon-red border border-neon-red/30 hover:border-neon-red text-neon-red hover:text-white rounded-full text-[10px] font-black uppercase tracking-widest transition-all flex items-center gap-2 group shadow-lg shadow-neon-red/10"
                                                 >
-                                                    {isR2Loading ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <ShieldAlert className="w-2.5 h-2.5" />}
-                                                    Check Doublons
-                                                </button>
-                                                <button
-                                                    onClick={fetchBrokenImages}
-                                                    disabled={isScanningBroken}
-                                                    className="text-[9px] font-black text-neon-red/60 hover:text-neon-red uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-red/10 border border-neon-red/20 rounded-full"
-                                                    title="Détecter les images cassées"
-                                                >
-                                                    {isScanningBroken ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <ShieldAlert className="w-2.5 h-2.5" />}
-                                                    SCAN PHOTOS
-                                                </button>
-                                                <button
-                                                    onClick={handleCleanEncoding}
-                                                    disabled={maintenanceLoading}
-                                                    className="text-[9px] font-black text-neon-cyan/60 hover:text-neon-cyan uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-cyan/10 border border-neon-cyan/20 rounded-full"
-                                                    title="Corriger les erreurs d'accentuation (coquilles)"
-                                                >
-                                                    {maintenanceLoading ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <RefreshCw className="w-2.5 h-2.5" />}
-                                                    SCAN TEXTE
-                                                </button>
-                                                <button
-                                                    onClick={fetchUnusedImages}
-                                                    disabled={isScanningUnused}
-                                                    className="text-[9px] font-black text-neon-red/60 hover:text-neon-red uppercase tracking-widest transition-all flex items-center gap-1.5 px-2 py-0.5 bg-neon-red/10 border border-neon-red/20 rounded-full"
-                                                    title="Nettoyer les images inutilisées"
-                                                >
-                                                    {isScanningUnused ? <Loader2 className="w-2.5 h-2.5 animate-spin" /> : <HardDrive className="w-2.5 h-2.5" />}
-                                                    SCAN R2
+                                                    <Search className="w-3.5 h-3.5 group-hover:scale-125 transition-transform" />
+                                                    Centre de Scan
                                                 </button>
                                                 {sbCredits !== null && (
                                                     <span
@@ -7602,6 +7575,22 @@ export function AdminDashboard() {
                         </div>
                     )}
                 </AnimatePresence>
+
+                <ScanMenuModal
+                    isOpen={isScanMenuOpen}
+                    onClose={() => setIsScanMenuOpen(false)}
+                    isScanningBroken={isScanningBroken}
+                    onScanBroken={fetchBrokenImages}
+                    brokenCount={brokenImages.length}
+                    isScanningUnused={isScanningUnused}
+                    onScanUnused={fetchUnusedImages}
+                    unusedCount={unusedImages.length}
+                    isScanningDuplicates={isR2Loading}
+                    onScanDuplicates={fetchDuplicates}
+                    duplicateCount={duplicateSets.length}
+                    isCleaningEncoding={maintenanceLoading}
+                    onCleanEncoding={handleCleanEncoding}
+                />
 
                 {/* Premium Global Alert Modal */}
                 <AnimatePresence>
