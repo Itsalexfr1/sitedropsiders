@@ -1,5 +1,5 @@
 // Image Upload Modal component with Cloudflare R2 integration
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ArrowUpDown } from 'lucide-react';
 import { ImageCropper } from './ImageCropper';
@@ -57,6 +57,24 @@ export function ImageUploadModal({
     const [r2Loading, setR2Loading] = useState(false);
     const [r2Cursor, setR2Cursor] = useState<string | null>(null);
     const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name'>('newest');
+
+    const sentinelRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        if (!r2Cursor || r2Loading) return;
+
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting) {
+                handleR2LoadMore();
+            }
+        }, { threshold: 0.1 });
+
+        if (sentinelRef.current) {
+            observer.observe(sentinelRef.current);
+        }
+
+        return () => observer.disconnect();
+    }, [r2Cursor, r2Loading]);
 
     useEffect(() => {
         if (isOpen) {
@@ -458,20 +476,12 @@ export function ImageUploadModal({
                                                             </div>
                                                         </div>
                                                     ))}
-                                                    {r2Cursor && (
-                                                        <div className="col-span-full flex justify-center mt-2">
-                                                            <button 
-                                                                onClick={handleR2LoadMore} 
-                                                                disabled={r2Loading}
-                                                                className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 text-[10px] font-black text-white uppercase tracking-widest transition-all disabled:opacity-30"
-                                                            >
-                                                                {r2Loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Afficher plus de fichiers"}
-                                                            </button>
-                                                        </div>
-                                                    )}
+                                                <div ref={sentinelRef} className="col-span-full h-10 flex items-center justify-center">
+                                                    {r2Loading && <Loader2 className="w-5 h-5 animate-spin text-neon-blue" />}
                                                 </div>
-                                            )}
-                                        </div>
+                                            </div>
+                                        )}
+                                    </div>
                                     </div>
                                 )}
 
