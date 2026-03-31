@@ -1,7 +1,7 @@
 // Image Upload Modal component with Cloudflare R2 integration
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ChevronLeft, ChevronRight, Clock, ArrowUpDown } from 'lucide-react';
 import { ImageCropper } from './ImageCropper';
 import { getAuthHeaders } from '../utils/auth';
 
@@ -57,6 +57,7 @@ export function ImageUploadModal({
     const [r2Loading, setR2Loading] = useState(false);
     const [r2Cursor, setR2Cursor] = useState<string | null>(null);
     const [r2History, setR2History] = useState<string[]>([]);
+    const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name'>('newest');
 
     useEffect(() => {
         if (isOpen && initialImage) {
@@ -309,9 +310,24 @@ export function ImageUploadModal({
                             ) : step === 'gallery' ? (
                                 <motion.div key="gallery" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-5">
                                     <div className="flex justify-between items-center bg-white/5 p-3 rounded-2xl border border-white/10">
-                                        <div className="flex items-center gap-2">
-                                            <HardDrive className="w-4 h-4 text-neon-blue" />
-                                            <span className="font-black text-[10px] text-white uppercase tracking-widest">R2 Cloud Assets</span>
+                                        <div className="flex items-center gap-4">
+                                            <div className="flex items-center gap-2">
+                                                <HardDrive className="w-4 h-4 text-neon-blue" />
+                                                <span className="font-black text-[10px] text-white uppercase tracking-widest">R2 Cloud Assets</span>
+                                            </div>
+                                            <div className="h-4 w-px bg-white/10" />
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Trier par:</span>
+                                                <select 
+                                                    value={sortBy} 
+                                                    onChange={(e) => setSortBy(e.target.value as any)}
+                                                    className="bg-black/40 border border-white/10 rounded-lg px-2 py-1 text-[9px] font-bold text-white outline-none focus:border-neon-blue transition-all uppercase"
+                                                >
+                                                    <option value="newest">Plus récent</option>
+                                                    <option value="oldest">Plus ancien</option>
+                                                    <option value="name">Nom (A-Z)</option>
+                                                </select>
+                                            </div>
                                         </div>
                                         <button onClick={() => setStep('idle')} className="text-[10px] text-gray-400 hover:text-white font-bold uppercase transition-colors">Retour</button>
                                     </div>
@@ -320,7 +336,11 @@ export function ImageUploadModal({
                                         <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-neon-blue" /></div>
                                     ) : (
                                         <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 max-h-[60vh] overflow-y-auto no-scrollbar rounded-2xl">
-                                            {r2Photos.map(photo => (
+                                            {[...r2Photos].sort((a, b) => {
+                                                if (sortBy === 'newest') return new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime();
+                                                if (sortBy === 'oldest') return new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime();
+                                                return a.key.localeCompare(b.key);
+                                            }).map(photo => (
                                                 <div 
                                                     key={photo.key} 
                                                     onClick={() => {
