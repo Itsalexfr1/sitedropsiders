@@ -827,7 +827,15 @@ ${urls.map(u => `  <url>
                 object = await env.R2.get('uploads/' + key);
             }
 
-            if (!object) return new Response('Not Found', { status: 404 });
+            if (!object) {
+                // Fallback aux assets originaux (ex: fichiers encore sur GitHub dans public/uploads)
+                const assetsBinding = env.APP_ASSETS || env.ASSETS;
+                if (assetsBinding) {
+                    const fallbackResponse = await assetsBinding.fetch(request);
+                    if (fallbackResponse.ok) return fallbackResponse;
+                }
+                return new Response('Not Found', { status: 404 });
+            }
 
             const assetHeaders = new Headers();
             object.writeHttpMetadata(assetHeaders);
