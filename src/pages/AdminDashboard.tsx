@@ -1462,6 +1462,9 @@ export function AdminDashboard() {
         // SYSTÈME
         { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "ALL", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
         { title: "Accueil", description: "Sections & Vues", icon: "LayoutDashboard", category: "ALL", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "superadmin", baseColor: "cyan", columns: 1 },
+        
+        // MODÉRATION WIKI (Isolée)
+        { title: "Vérifier Photos", description: "Modération Wiki Photos", icon: "Camera", category: "WIKI", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "community_mod", baseColor: "cyan", columns: 2 },
     ];
 
 
@@ -1786,7 +1789,10 @@ export function AdminDashboard() {
         if (!matchSearch) return false;
 
         // Tab selection check
-        if (dashboardTab === 'ALL') return true;
+        if (dashboardTab === 'ALL') {
+            // On retire les actions Wiki du flux principal pour l'isolation
+            return action.category?.toUpperCase() !== 'WIKI';
+        }
 
         if (dashboardTab === 'NEWS') {
             // Specifically for the "News" focused experience
@@ -2239,7 +2245,15 @@ export function AdminDashboard() {
                                     </div>
                                     <div>
                                         <h2 className="text-3xl font-display font-black text-white uppercase italic leading-none">Gestion <span className="text-neon-cyan">Wiki</span></h2>
-                                        <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-1">Gérez les DJ, Clubs et Festivals</p>
+                                        <div className="flex items-center gap-3 mt-1">
+                                            <p className="text-gray-500 text-[10px] font-bold uppercase tracking-widest">Gérez les DJ, Clubs et Festivals</p>
+                                            {pendingPhotosCount > 0 && (
+                                                <>
+                                                    <div className="w-1 h-1 rounded-full bg-neon-cyan animate-pulse" />
+                                                    <span className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">{pendingPhotosCount} PHOTOS EN ATTENTE</span>
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                                 <div className="flex bg-black/40 border border-white/5 rounded-xl p-1 gap-1">
@@ -2329,6 +2343,70 @@ export function AdminDashboard() {
                                     )}
                                 </div>
                             )}
+
+                            {/* WIKI MODERATION SIDEBAR BLOCKS - Isolated from Community */}
+                            <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 mt-12 pt-12 border-t border-white/5">
+                                <div className="lg:col-span-12 grid grid-cols-1 md:grid-cols-2 gap-8">
+                                    {/* MODERATION PHOTOS WIKI */}
+                                    <div className="space-y-6">
+                                        <h3 className="text-xl font-display font-black text-white uppercase italic flex items-center gap-3 px-2">
+                                            <Camera className="w-5 h-5 text-neon-cyan" />
+                                            Vérifier <span className="text-neon-cyan">Photos</span>
+                                        </h3>
+                                        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 relative overflow-hidden group">
+                                            {pendingPhotosCount > 0 && (
+                                                <div className="absolute -top-4 -right-4 w-24 h-24 bg-neon-cyan/10 blur-2xl group-hover:bg-neon-cyan/20 transition-all" />
+                                            )}
+                                            <div className="relative z-10">
+                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4">Photos Wiki en attente</p>
+                                                <div className="flex items-center justify-between mb-6">
+                                                    <div className="text-4xl font-display font-black text-white italic">{pendingPhotosCount}</div>
+                                                    <div className={`p-4 rounded-2xl ${pendingPhotosCount > 0 ? 'bg-neon-cyan/20 text-neon-cyan' : 'bg-white/5 text-gray-600'}`}>
+                                                        <ImageIcon className="w-8 h-8" />
+                                                    </div>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        setModerationTab('wiki');
+                                                        setIsModerationModalOpen(true);
+                                                    }}
+                                                    disabled={pendingPhotosCount === 0}
+                                                    className="w-full py-5 bg-neon-cyan/10 hover:bg-neon-cyan border border-neon-cyan/30 text-neon-cyan hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all disabled:opacity-50 disabled:grayscale"
+                                                >
+                                                    <CheckCircle2 className="w-5 h-5" />
+                                                    Modérer les Photos
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* R2 STORAGE CLEANUP */}
+                                    <div className="space-y-6">
+                                        <h3 className="text-xl font-display font-black text-white uppercase italic flex items-center gap-3 px-2">
+                                            <HardDrive className="w-5 h-5 text-neon-cyan" />
+                                            Nettoyage <span className="text-neon-cyan">Stockage</span>
+                                        </h3>
+                                        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6">
+                                            <div className="flex items-center justify-between mb-6">
+                                                <div>
+                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Espace Cloud R2</p>
+                                                    <p className="text-[9px] text-gray-400">Nettoyer les doublons et fichiers orphelins</p>
+                                                </div>
+                                                <div className="p-3 bg-neon-cyan/10 rounded-xl">
+                                                    <HardDrive className="w-5 h-5 text-neon-cyan" />
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => fetchDuplicates()}
+                                                className="w-full py-5 bg-neon-cyan/10 hover:bg-neon-cyan border border-neon-cyan/30 text-neon-cyan hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all"
+                                            >
+                                                <Trash2 className="w-5 h-5" />
+                                                CHECK DOUBLONS R2
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     ) : dashboardTab === 'COMMUNAUTÉ' ? (
                         <div className="space-y-12 pb-20">
@@ -2348,11 +2426,6 @@ export function AdminDashboard() {
                                         <div className="flex flex-col">
                                             <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Inscrits Concours</span>
                                             <span className="text-2xl font-display font-black text-white italic">{contestResults.length}</span>
-                                        </div>
-                                        <div className="w-px h-8 bg-white/10" />
-                                        <div className="flex flex-col">
-                                            <span className="text-[10px] font-black text-gray-500 uppercase tracking-widest">Photos Wiki en attente</span>
-                                            <span className="text-2xl font-display font-black text-neon-cyan italic">{pendingPhotosCount}</span>
                                         </div>
                                         <div className="w-px h-8 bg-white/10" />
                                         <div className="flex flex-col">
@@ -2511,53 +2584,6 @@ export function AdminDashboard() {
                                                     ))}
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-
-                                    {/* MODERATION PHOTOS WIKI */}
-                                    <div className="space-y-6">
-                                        <h3 className="text-xl font-display font-black text-white uppercase italic flex items-center gap-3 px-2">
-                                            <Camera className="w-5 h-5 text-neon-cyan" />
-                                            Vérifier <span className="text-neon-cyan">Photos</span>
-                                        </h3>
-                                        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 relative overflow-hidden group">
-                                            {pendingPhotosCount > 0 && (
-                                                <div className="absolute -top-4 -right-4 w-24 h-24 bg-neon-cyan/10 blur-2xl group-hover:bg-neon-cyan/20 transition-all" />
-                                            )}
-                                            <div className="relative z-10">
-                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-4">Photos Wiki en attente</p>
-                                                <div className="flex items-center justify-between mb-6">
-                                                    <div className="text-4xl font-display font-black text-white italic">{pendingPhotosCount}</div>
-                                                    <div className={`p-4 rounded-2xl ${pendingPhotosCount > 0 ? 'bg-neon-cyan/20 text-neon-cyan' : 'bg-white/5 text-gray-600'}`}>
-                                                        <ImageIcon className="w-8 h-8" />
-                                                    </div>
-                                                </div>
-                                                <button
-                                                    onClick={() => setIsModerationModalOpen(true)}
-                                                    disabled={pendingPhotosCount === 0}
-                                                    className="w-full py-5 bg-neon-cyan/10 hover:bg-neon-cyan border border-neon-cyan/30 text-neon-cyan hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all disabled:opacity-50 disabled:grayscale"
-                                                >
-                                                    <CheckCircle2 className="w-5 h-5" />
-                                                    Modérer les Photos
-                                                </button>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    {/* R2 STORAGE CLEANUP */}
-                                    <div className="space-y-6">
-                                        <h3 className="text-xl font-display font-black text-white uppercase italic flex items-center gap-3 px-2">
-                                            <HardDrive className="w-5 h-5 text-neon-cyan" />
-                                            Nettoyage <span className="text-neon-cyan">Stockage</span>
-                                        </h3>
-                                        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6">
-                                            <button
-                                                onClick={() => fetchDuplicates()}
-                                                className="w-full py-5 bg-neon-cyan/10 hover:bg-neon-cyan border border-neon-cyan/30 text-neon-cyan hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all"
-                                            >
-                                                <Trash2 className="w-5 h-5" />
-                                                CHECK DOUBLONS R2
-                                            </button>
                                         </div>
                                     </div>
                                 </div>

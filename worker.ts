@@ -818,7 +818,15 @@ ${urls.map(u => `  <url>
         if (path.startsWith('/uploads/') && request.method === 'GET') {
             const rawKey = path.replace('/uploads/', '');
             const key = decodeURIComponent(rawKey);
-            const object = await env.R2.get(key);
+            
+            let object = await env.R2.get(key);
+            
+            // Fallback: Si pas trouvé sous la clé directe, essayer avec le préfixe 'uploads/'
+            // (Utile pour les anciens uploads qui n'auraient pas le double /uploads/ dans leur URL)
+            if (!object && !key.startsWith('uploads/') && !key.startsWith('migrated/')) {
+                object = await env.R2.get('uploads/' + key);
+            }
+
             if (!object) return new Response('Not Found', { status: 404 });
 
             const assetHeaders = new Headers();
