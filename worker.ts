@@ -971,7 +971,8 @@ ${urls.map(u => `  <url>
             path === '/api/admin/reset-leaderboards' ||
             path === '/api/admin/clean-encoding' ||
             path === '/api/quiz/reset-blind-test' ||
-            path === '/api/r2/delete'
+            path === '/api/r2/delete' ||
+            path === '/api/r2/list'
         );
 
         // --- API: PUSH NOTIFICATIONS (pre-auth, public endpoints) ---
@@ -4053,7 +4054,7 @@ ${urls.map(u => `  <url>
                     size: obj.size,
                     uploaded: obj.uploaded,
                     etag: obj.etag,
-                    url: `/uploads/${obj.key}`
+                    url: `/${obj.key}`
                 }));
                 
                 return new Response(JSON.stringify({
