@@ -70,6 +70,16 @@ export function News() {
             setLoadingEditId(null);
         }
     };
+
+    const handlePrefetch = (id: number | string) => {
+        try {
+            // Fetch content in background to populate browser cache
+            fetch(`/api/news/content?id=${id}`);
+        } catch (e) {
+            // Ignore prefetch errors
+        }
+    };
+
     const articlesPerPage = 8;
 
     const [translatedTitles, setTranslatedTitles] = useState<Record<number, string>>({});
@@ -303,7 +313,11 @@ export function News() {
                                                     )}
                                                 </button>
                                             )}
-                                            <Link to={getArticleLink(item)} className="absolute inset-0 md:static block w-full h-full">
+                                            <Link 
+                                                to={getArticleLink(item)} 
+                                                className="absolute inset-0 md:static block w-full h-full"
+                                                onMouseEnter={() => handlePrefetch(item.id)}
+                                            >
                                                 {/* Mobile Variant */}
                                                 <div className="absolute inset-0 md:hidden">
                                                         <img

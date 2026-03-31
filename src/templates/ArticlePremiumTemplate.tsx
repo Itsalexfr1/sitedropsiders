@@ -51,9 +51,10 @@ interface ArticlePremiumTemplateProps {
     relatedArticles?: any[];
     previousArticle?: any;
     nextArticle?: any;
+    isLoading?: boolean;
 }
 
-const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article, content, type, relatedArticles = [], previousArticle, nextArticle }) => {
+const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article, content, type, relatedArticles = [], previousArticle, nextArticle, isLoading }) => {
     const { t, language } = useLanguage();
     const navigate = useNavigate();
     const playHoverSound = useHoverSound();
@@ -709,10 +710,20 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                             {/* LEFT COLUMN: Main Content (9 spans) */}
                             <div className="lg:col-span-9">
-                                <div
-                                    className="article-body-premium w-full"
-                                    dangerouslySetInnerHTML={{ __html: displayContent }}
-                                />
+                                <div className="article-body-premium w-full">
+                                    {isLoading && !content ? (
+                                        <div className="space-y-4 animate-pulse">
+                                            <div className="h-4 bg-white/5 rounded w-3/4"></div>
+                                            <div className="h-4 bg-white/5 rounded w-full"></div>
+                                            <div className="h-4 bg-white/5 rounded w-5/6"></div>
+                                            <div className="h-64 bg-white/5 rounded-2xl w-full my-8"></div>
+                                            <div className="h-4 bg-white/5 rounded w-2/3"></div>
+                                            <div className="h-4 bg-white/5 rounded w-full"></div>
+                                        </div>
+                                    ) : (
+                                        <div dangerouslySetInnerHTML={{ __html: displayContent }} />
+                                    )}
+                                </div>
                                 {artistSocials && artistSocials.length > 0 && (
                                     <div className="artist-socials-premium mt-12 pt-8 border-t border-white/10">
                                         <div className="flex flex-col items-center mb-8">

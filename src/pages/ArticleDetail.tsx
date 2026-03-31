@@ -113,18 +113,6 @@ export function ArticleDetail() {
 
     // Priority: live API content > bundled content files > article content field > summary
     const bundledContent = getNewsContent(article.id);
-    const rawContent = liveContent ?? bundledContent ?? (article as any).content ?? (article as any).summary ?? '';
-
-    if (isLoadingContent) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-dark-bg">
-                <div className="flex flex-col items-center gap-4">
-                    <div className="w-10 h-10 border-4 border-neon-red/20 border-t-neon-red rounded-full animate-spin" />
-                    <p className="text-gray-500 text-xs font-black uppercase tracking-widest">Chargement...</p>
-                </div>
-            </div>
-        );
-    }
 
     return (
         <>
@@ -136,11 +124,12 @@ export function ArticleDetail() {
             />
             <ArticlePremiumTemplate
                 article={article}
-                content={rawContent}
+                content={liveContent || (bundledContent ?? '')}
                 type="news"
                 relatedArticles={relatedArticles}
                 previousArticle={previousArticle}
                 nextArticle={nextArticle}
+                isLoading={isLoadingContent}
             />
         </>
     );

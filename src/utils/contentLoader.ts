@@ -2,6 +2,7 @@
 import newsContent1 from '../data/news_content_1.json';
 import newsContent2 from '../data/news_content_2.json';
 import newsContent3 from '../data/news_content_3.json';
+import newsContentLegacy from '../data/news_content_legacy.json';
 import recapsContent1 from '../data/recaps_content_1.json';
 import recapsContent2 from '../data/recaps_content_2.json';
 
@@ -12,7 +13,8 @@ import recapsContent2 from '../data/recaps_content_2.json';
 const allNewsContent = [
     ...newsContent1,
     ...newsContent2,
-    ...newsContent3
+    ...newsContent3,
+    ...newsContentLegacy
 ];
 
 const allRecapsContent = [
