@@ -1,7 +1,7 @@
 // Image Upload Modal component with Cloudflare R2 integration
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ChevronLeft, ChevronRight, ArrowUpDown } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ArrowUpDown } from 'lucide-react';
 import { ImageCropper } from './ImageCropper';
 import { getAuthHeaders } from '../utils/auth';
 
@@ -56,32 +56,40 @@ export function ImageUploadModal({
     const [r2Photos, setR2Photos] = useState<any[]>([]);
     const [r2Loading, setR2Loading] = useState(false);
     const [r2Cursor, setR2Cursor] = useState<string | null>(null);
-    const [r2History, setR2History] = useState<string[]>([]);
     const [sortBy, setSortBy] = useState<'newest' | 'oldest' | 'name'>('newest');
 
     useEffect(() => {
         if (isOpen) {
+            document.body.style.overflow = 'hidden';
             fetchR2Photos();
             if (initialImage) {
                 setSelectedImages([{ file: null, preview: initialImage }]);
                 setStep('preview');
             }
         } else if (!isOpen) {
+            document.body.style.overflow = 'unset';
             setSelectedImages([]);
             setStep('idle');
             setStatus('idle');
             setUploadProgress(0);
+            setR2Photos([]);
+            setR2Cursor(null);
         }
+        return () => { document.body.style.overflow = 'unset'; };
     }, [isOpen, initialImage]);
 
     const fetchR2Photos = async (targetCursor?: string | null) => {
         setR2Loading(true);
         try {
-            const url = `/api/r2/list?limit=24${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}`;
+            const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}`;
             const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
-                setR2Photos(data.objects || []);
+                if (targetCursor) {
+                    setR2Photos(prev => [...prev, ...data.objects]);
+                } else {
+                    setR2Photos(data.objects || []);
+                }
                 setR2Cursor(data.cursor || null);
             }
         } catch (err) {
@@ -91,19 +99,10 @@ export function ImageUploadModal({
         }
     };
 
-    const handleR2Next = () => {
-        if (r2Cursor) {
-            setR2History(prev => [...prev, r2Cursor]);
+    const handleR2LoadMore = () => {
+        if (r2Cursor && !r2Loading) {
             fetchR2Photos(r2Cursor);
         }
-    };
-
-    const handleR2Back = () => {
-        const newHistory = [...r2History];
-        newHistory.pop();
-        const prevCursor = newHistory[newHistory.length - 1] || null;
-        setR2History(newHistory);
-        fetchR2Photos(prevCursor);
     };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -267,7 +266,7 @@ export function ImageUploadModal({
     return (
         <AnimatePresence>
             {isOpen && (
-                <div className="fixed inset-0 z-[200] overflow-y-auto">
+                <div className="fixed inset-0 z-[200] overflow-hidden flex items-center justify-center">
                     <div className="flex min-h-full items-center justify-center p-6 text-center">
                         <motion.div
                             initial={{ opacity: 0 }}
@@ -459,14 +458,19 @@ export function ImageUploadModal({
                                                             </div>
                                                         </div>
                                                     ))}
+                                                    {r2Cursor && (
+                                                        <div className="col-span-full flex justify-center mt-2">
+                                                            <button 
+                                                                onClick={handleR2LoadMore} 
+                                                                disabled={r2Loading}
+                                                                className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 text-[10px] font-black text-white uppercase tracking-widest transition-all disabled:opacity-30"
+                                                            >
+                                                                {r2Loading ? <Loader2 className="w-4 h-4 animate-spin mx-auto" /> : "Afficher plus de fichiers"}
+                                                            </button>
+                                                        </div>
+                                                    )}
                                                 </div>
                                             )}
-
-                                            <div className="flex justify-between items-center px-2">
-                                                <button disabled={r2History.length === 0} onClick={handleR2Back} className="p-2 text-gray-400 hover:text-white disabled:opacity-30"><ChevronLeft className="w-4 h-4" /></button>
-                                                <span className="text-[8px] text-gray-600 font-bold uppercase tracking-widest">Page {r2History.length + 1}</span>
-                                                <button disabled={!r2Cursor} onClick={handleR2Next} className="p-2 text-gray-400 hover:text-white disabled:opacity-30"><ChevronRight className="w-4 h-4" /></button>
-                                            </div>
                                         </div>
                                     </div>
                                 )}
