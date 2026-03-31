@@ -6,6 +6,7 @@ import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
 import { getRecapLink, getGalleryLink } from '../../utils/slugify';
 import { translateText } from '../../utils/translate';
+import { resolveImageUrl } from '../../utils/image';
 
 export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
@@ -149,7 +150,7 @@ export function RecapWidget({ accentColor = 'orange', resolvedColor }: { accentC
                                     }}
                                 />
                                 <img
-                                    src={item.image || item.cover || 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop'}
+                                    src={resolveImageUrl(item.image || item.cover)}
                                     alt={item.title || ""}
                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                     onError={(e) => {

@@ -10,6 +10,7 @@ import { Pagination } from '../components/ui/Pagination';
 import { translateText } from '../utils/translate';
 import { standardizeContent } from '../utils/standardizer';
 import { SEO } from '../components/utils/SEO';
+import { resolveImageUrl } from '../utils/image';
 
 type TabKey = 'all' | 'written' | 'video' | 'fast-quizz' | 'playlist' | 'drop-talk';
 
@@ -317,7 +318,7 @@ export function Interviews() {
                                                 {/* Mobile: full-cover card */}
                                                 <div className="absolute inset-0 md:hidden">
                                                     <img 
-                                                        src={item.image || item.cover || 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop'} 
+                                                        src={resolveImageUrl(item.image || item.cover)} 
                                                         alt={item.title} 
                                                         className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                                                         onError={(e) => {
@@ -341,7 +342,7 @@ export function Interviews() {
                                                 <div className="hidden md:flex flex-col h-full overflow-hidden">
                                                     <div className="h-64 overflow-hidden bg-black/40 relative">
                                                         <img 
-                                                            src={item.image || item.cover || 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop'} 
+                                                            src={resolveImageUrl(item.image || item.cover)} 
                                                             alt={item.title} 
                                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" 
                                                             onError={(e) => {

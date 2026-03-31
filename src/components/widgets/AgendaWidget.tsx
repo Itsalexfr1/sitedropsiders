@@ -8,6 +8,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { getAgendaLink } from '../../utils/slugify';
 import { FlagIcon } from '../ui/FlagIcon';
 import { Users, Music2 } from 'lucide-react';
+import { resolveImageUrl } from '../../utils/image';
 
 export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor }: { maxItems?: number, accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
@@ -312,9 +313,12 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
                             >
                                 {/* Photo en Fond */}
                                 <img
-                                    src={event.image}
+                                    src={resolveImageUrl(event.image)}
                                     className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-40 group-hover:scale-110 transition-all duration-700 pointer-events-none"
                                     alt=""
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop';
+                                    }}
                                 />
                                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/60 to-transparent pointer-events-none" />
 

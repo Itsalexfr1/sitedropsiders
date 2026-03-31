@@ -5,6 +5,7 @@ import { useState, useMemo, useEffect } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { getGalleryLink } from '../utils/slugify';
 import { MediaInteractions } from '../components/shared/MediaInteractions';
+import { resolveImageUrl } from '../utils/image';
 import { CommunityTabs } from '../components/community/CommunityTabs';
 import { QuizSection } from '../components/community/QuizSection';
 import { AvisSection } from '../components/community/AvisSection';
@@ -191,7 +192,14 @@ export function Galerie() {
                                         ) : (
                                             filteredAlbums.slice(0, ALBUMS_PER_PAGE).map(album => (
                                                 <Link key={album.id} to={getGalleryLink(album)} className="group relative aspect-square bg-white/5 rounded-3xl overflow-hidden border border-white/10 hover:border-neon-red transition-all duration-500">
-                                                    <img src={album.cover} className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" alt="" />
+                                                    <img 
+                                                        src={resolveImageUrl(album.cover)} 
+                                                        className="w-full h-full object-cover opacity-60 group-hover:scale-110 transition-transform duration-700" 
+                                                        alt="" 
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                                        }}
+                                                    />
                                                     <div className="absolute inset-0 p-8 flex flex-col justify-end bg-gradient-to-t from-black/80 to-transparent">
                                                         <h4 className="text-sm font-display font-black text-white uppercase italic tracking-tighter">{album.title}</h4>
                                                     </div>

@@ -7,31 +7,36 @@ export function resolveImageUrl(url: string | undefined | null): string {
     
     if (!url) return fallback;
     
-    // Normalize string type if needed
+    // Normalize string type and trim
     let processedUrl = String(url).trim();
     
-    if (!processedUrl) return fallback;
+    if (!processedUrl || processedUrl === 'undefined' || processedUrl === 'null') return fallback;
 
-    // Convert absolute dropsiders URLs to relative
-    // This handles both https://dropsiders.fr/uploads/... and https://www.dropsiders.fr/uploads/...
-    if (processedUrl.includes('dropsiders.fr')) {
-        processedUrl = processedUrl.replace(/https?:\/\/(www\.)?dropsiders\.fr/g, '');
-    }
+    // Remove domains to make it root-relative
+    // This handles:
+    // http(s)://dropsiders.fr
+    // http(s)://www.dropsiders.fr
+    processedUrl = processedUrl.replace(/^https?:\/\/(www\.)?dropsiders\.fr/i, '');
     
+    // If it's still an absolute URL (external), return it
+    if (processedUrl.startsWith('http')) {
+        return processedUrl;
+    }
+
     // Handle protocol-relative URLs
     if (processedUrl.startsWith('//')) {
         return 'https:' + processedUrl;
     }
     
-    // Handle external absolute URLs
-    if (processedUrl.startsWith('http')) {
-        return processedUrl;
-    }
-    
-    // Ensure relative paths start with a single slash
+    // Ensure relative paths start with a single leading slash
+    // and handle cases where they might accidentally have doubles or none
     if (!processedUrl.startsWith('/')) {
-        return '/' + processedUrl;
+        processedUrl = '/' + processedUrl;
+    } else {
+        // Clean up multiple leading slashes (e.g. //uploads -> /uploads)
+        processedUrl = '/' + processedUrl.replace(/^\/+/, '');
     }
     
     return processedUrl;
 }
+

@@ -332,7 +332,7 @@ export function News() {
                                                 <div className="hidden md:flex flex-col h-full overflow-hidden">
                                                     <div className="h-64 overflow-hidden bg-black/40 relative">
                                                         <img
-                                                            src={(item.image || item.cover || '').startsWith('http') ? (item.image || item.cover).replace(/https?:\/\/(www\.)?dropsiders\.fr/g, '') : (item.image || item.cover) ? `${(item.image || item.cover).startsWith('/') ? '' : '/'}${item.image || item.cover}` : 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop'}
+                                                            src={resolveImageUrl(item.image || item.cover)}
                                                             alt={item.title}
                                                             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                                             onError={(e) => {

@@ -7,6 +7,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { extractIdFromSlug } from '../utils/slugify';
 import { trackPageView } from '../utils/analytics';
 import { MediaInteractions } from '../components/shared/MediaInteractions';
+import { resolveImageUrl } from '../utils/image';
 
 export function AlbumDetail() {
     const { t } = useLanguage();
@@ -76,9 +77,12 @@ export function AlbumDetail() {
             {/* Header / Hero Section for Album */}
             <div className="relative h-[40vh] w-full overflow-hidden">
                 <img
-                    src={album.cover}
+                    src={resolveImageUrl(album.cover)}
                     alt={album.title}
                     className="w-full h-full object-cover opacity-50 blur-sm scale-110"
+                    onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                    }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/60 to-transparent" />
 
@@ -195,10 +199,13 @@ export function AlbumDetail() {
                             onClick={() => setSelectedPhoto(img)}
                         >
                             <img
-                                src={img}
+                                src={resolveImageUrl(img)}
                                 alt={`${album.title} - ${index}`}
                                 className="w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110 block"
                                 loading="lazy"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                }}
                             />
 
                             {/* Hover Overlay */}

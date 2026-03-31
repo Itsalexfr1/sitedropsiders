@@ -6,6 +6,7 @@ import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
 import { getArticleLink } from '../../utils/slugify';
 import { translateText } from '../../utils/translate';
+import { resolveImageUrl } from '../../utils/image';
 
 export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColor?: string, resolvedColor?: string }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
@@ -148,7 +149,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                                 className={`h-full relative rounded-2xl overflow-hidden border border-white/10 bg-dark-bg/40 backdrop-blur-md transition-all duration-500 shadow-xl glow-card-${accentColor}`}
                             >
                                 <img
-                                    src={item.image || item.cover || 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop'}
+                                    src={resolveImageUrl(item.image || item.cover)}
                                     alt={item.title || ""}
                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                     onError={(e) => {
@@ -176,7 +177,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                         {recentNews.slice(2, 6).map((item) => (
                             <Link to={getArticleLink(item)} key={item.id} className="flex items-center gap-4 p-2 bg-white/5 border border-white/5 rounded-2xl active:bg-white/10 transition-all">
                                 <img 
-                                    src={item.image || item.cover || 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop'} 
+                                    src={resolveImageUrl(item.image || item.cover)} 
                                     className="w-16 h-16 rounded-xl object-cover shrink-0" 
                                     alt={item.title || ""} 
                                     onError={(e) => {

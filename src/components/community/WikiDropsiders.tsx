@@ -4,6 +4,7 @@ import { Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, X,
 import { apiFetch, getAuthHeaders } from '../../utils/auth';
 import { useLanguage } from '../../context/LanguageContext';
 import { ImageUploadModal } from '../ImageUploadModal';
+import { resolveImageUrl } from '../../utils/image';
 
 type DjEntry = {
     id: string;
@@ -209,11 +210,12 @@ export function WikiDropsiders() {
                                                 {/* Photo — format 4/5 pour tout le monde pour cohérence */}
                                                 <div className="relative aspect-[4/5] bg-black overflow-hidden" onClick={() => handleSelectDj(dj)}>
                                                     <img
-                                                        src={dj.image}
+                                                        src={resolveImageUrl(dj.image)}
                                                         alt={dj.name}
-                                                        onError={() => {
+                                                        onError={(e) => {
                                                             setBrokenImages(prev => new Set([...prev, dj.id]));
                                                             reportBrokenImage(dj.id);
+                                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=2070&auto=format&fit=crop';
                                                         }}
                                                         className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                                                     />
@@ -260,8 +262,12 @@ export function WikiDropsiders() {
 
                             {/* Hero image — ratio 4/5 fixe pour cohérence */}
                             <div className="relative w-full aspect-[4/5] bg-black overflow-hidden">
-                                <img src={selectedDj.image} alt={selectedDj.name}
-                                    className="w-full h-full object-cover" />
+                                <img src={resolveImageUrl(selectedDj.image)} alt={selectedDj.name}
+                                    className="w-full h-full object-cover" 
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=2070&auto=format&fit=crop';
+                                    }}
+                                />
                                 {/* Gradient fade at bottom of image */}
                                 <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent pointer-events-none" />
                                 {/* Name on gradient */}

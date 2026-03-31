@@ -4,6 +4,7 @@ import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen, Upload, Image
 import { ImageUploadModal } from '../ImageUploadModal';
 import { useLanguage } from '../../context/LanguageContext';
 import { getAuthHeaders } from '../../utils/auth';
+import { resolveImageUrl } from '../../utils/image';
 
 import CLUBS_RAW from '../../data/wiki_clubs.json';
 import FESTIVALS_RAW from '../../data/wiki_festivals.json';
@@ -337,11 +338,15 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                         {/* Photo — format 4/5 pour tout le monde pour cohérence */}
                                         <div className="relative aspect-[4/5] bg-black overflow-hidden" onClick={() => setSelected(selected?.id === venue.id ? null : venue)}>
                                             <img 
-                                                src={venue.image} 
+                                                src={resolveImageUrl(venue.image)} 
                                                 alt={venue.name}
-                                                onError={() => {
-                                                    setBrokenImages(prev => new Set([...prev, venue.id]));
-                                                    reportBrokenImage(venue.id);
+                                                onError={(e) => {
+                                                    const target = e.target as HTMLImageElement;
+                                                    if (!brokenImages.has(venue.id)) {
+                                                        setBrokenImages(prev => new Set([...prev, venue.id]));
+                                                        reportBrokenImage(venue.id);
+                                                    }
+                                                    target.src = 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop';
                                                 }}
                                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" 
                                             />
@@ -385,8 +390,14 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
 
                             {/* Hero image — ratio 4/5 fixe pour cohérence */}
                             <div className="relative w-full aspect-[4/5] bg-black overflow-hidden">
-                                <img src={selected.image} alt={selected.name}
-                                    className="w-full h-full object-cover" />
+                                <img 
+                                    src={resolveImageUrl(selected.image)} 
+                                    alt={selected.name}
+                                    className="w-full h-full object-cover" 
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop';
+                                    }}
+                                />
                                 {/* Gradient fade bottom */}
                                 <div className="absolute bottom-0 left-0 right-0 h-2/3 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/50 to-transparent pointer-events-none" />
                                 {/* Info overlaid on gradient */}

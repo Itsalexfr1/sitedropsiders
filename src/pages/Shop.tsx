@@ -7,6 +7,7 @@ import initialSettings from '../data/settings.json';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
 import { Settings2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
+import { resolveImageUrl } from '../utils/image';
 
 export function Shop() {
     const isMini = new URLSearchParams(window.location.search).get('mini') === 'true';
@@ -154,7 +155,14 @@ export function Shop() {
                                 animate={{ opacity: 1, scale: 1 }}
                                 className="mt-8 rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative group"
                             >
-                                <img src={passwordImage} className="w-full h-auto object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-700" alt="Private Sale" />
+                                <img 
+                                    src={resolveImageUrl(passwordImage)} 
+                                    className="w-full h-auto object-cover opacity-60 group-hover:opacity-100 transition-opacity duration-700" 
+                                    alt="Private Sale" 
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop';
+                                    }}
+                                />
                                 <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-transparent to-transparent opacity-60" />
                                 <div className="absolute bottom-4 left-0 right-0">
                                     <span className="text-[8px] font-black text-white/40 uppercase tracking-[0.5em]">Exclusive Preview</span>
@@ -335,7 +343,14 @@ export function Shop() {
 
                             {isPasswordProtected && passwordImage && (
                                 <div className="mb-8 rounded-2xl overflow-hidden border border-white/10 shadow-xl max-w-sm mx-auto aspect-video bg-black/40">
-                                    <img src={passwordImage} className="w-full h-full object-cover" alt="Private Sale" />
+                                    <img 
+                                        src={resolveImageUrl(passwordImage)} 
+                                        className="w-full h-full object-cover" 
+                                        alt="Private Sale" 
+                                        onError={(e) => {
+                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?q=80&w=2070&auto=format&fit=crop';
+                                        }}
+                                    />
                                 </div>
                             )}
 
@@ -414,12 +429,15 @@ function ProductCard({ product, onBuy, isMini = false }: { product: any, onBuy: 
                     key={currentDisplayImage}
                     initial={{ opacity: 0.5 }}
                     animate={{ opacity: 1 }}
-                    src={currentDisplayImage}
+                    src={resolveImageUrl(currentDisplayImage)}
                     alt={product.name}
                     className="w-full h-full object-cover transition-transform duration-200"
                     style={{
                         transform: isZooming ? `scale(2.5)` : 'scale(1)',
                         transformOrigin: `${zoomPos.x}% ${zoomPos.y}%`
+                    }}
+                    onError={(e) => {
+                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1521572267360-ee0c2909d518?q=80&w=1887&auto=format&fit=crop';
                     }}
                 />
             </div>

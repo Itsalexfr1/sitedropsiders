@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Music, Disc, ExternalLink, ChevronDown, ChevronUp, Filter, Loader2 } from 'lucide-react';
 import { useLanguage } from '../context/LanguageContext';
 import { SEO } from '../components/utils/SEO';
+import { resolveImageUrl } from '../utils/image';
 
 interface Track {
     id: string;
@@ -380,9 +381,12 @@ export function Musique() {
                                                 >
                                                     <div className="aspect-square rounded-[32px] overflow-hidden bg-white/5 border border-white/10 relative shadow-2xl transition-all duration-700 group-hover:shadow-[0_40px_80px_rgba(0,0,0,0.5)] group-hover:border-white/20">
                                                         <img 
-                                                            src={release.image} 
+                                                            src={resolveImageUrl(release.image)} 
                                                             alt={release.title} 
                                                             className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110"
+                                                            onError={(e) => {
+                                                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?q=80&w=2070&auto=format&fit=crop';
+                                                            }}
                                                         />
                                                         <div className="absolute inset-0 bg-gradient-to-tr from-[#020202] via-transparent to-transparent opacity-60" />
                                                         

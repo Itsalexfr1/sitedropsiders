@@ -123,7 +123,16 @@ export function MobileHome() {
                             to={getArticleLink(news)}
                             className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden snap-center border border-white/10 group active:scale-95 transition-transform"
                         >
-                            <img src={resolveImageUrl(news.image)} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" alt="" />
+                            <img 
+                                src={resolveImageUrl(news.image)} 
+                                className="absolute inset-0 w-full h-full object-cover" 
+                                loading="lazy" 
+                                decoding="async" 
+                                alt="" 
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                }}
+                            />
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
                             <div className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
                                 <span className="text-xs font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
@@ -155,7 +164,16 @@ export function MobileHome() {
                             to={getArticleLink(news)}
                             className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center border border-white/10 active:scale-95 transition-transform"
                         >
-                            <img src={resolveImageUrl(news.image)} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" alt="" />
+                            <img 
+                                src={resolveImageUrl(news.image)} 
+                                className="absolute inset-0 w-full h-full object-cover" 
+                                loading="lazy" 
+                                decoding="async" 
+                                alt="" 
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                }}
+                            />
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
                             <div className="absolute top-6 left-6 px-4 py-2 bg-dark-bg/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
                                 <span className="text-xs font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
@@ -196,6 +214,9 @@ export function MobileHome() {
                                 loading="lazy"
                                 decoding="async"
                                 alt=""
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070&auto=format&fit=crop';
+                                }}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/40 to-transparent opacity-80" />
 
@@ -232,7 +253,16 @@ export function MobileHome() {
                             to={recap.contentType === 'gallery' ? getGalleryLink(recap) : getRecapLink(recap)}
                             className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center border border-white/10 active:scale-95 transition-transform"
                         >
-                            <img src={recap.image} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" alt="" />
+                            <img 
+                                src={resolveImageUrl(recap.image)} 
+                                className="absolute inset-0 w-full h-full object-cover" 
+                                loading="lazy" 
+                                decoding="async" 
+                                alt="" 
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop';
+                                }}
+                            />
                             <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent opacity-90" />
                             
                             {/* Content Type Badge */}
@@ -284,7 +314,16 @@ export function MobileHome() {
                             to={getArticleLink(interview)}
                             className="w-[85vw] flex-shrink-0 aspect-square relative rounded-[3rem] overflow-hidden group snap-center border border-white/10 active:scale-95 transition-transform"
                         >
-                            <img src={interview.image} className="absolute inset-0 w-full h-full object-cover" loading="lazy" decoding="async" alt="" />
+                            <img 
+                                src={resolveImageUrl(interview.image)} 
+                                className="absolute inset-0 w-full h-full object-cover" 
+                                loading="lazy" 
+                                decoding="async" 
+                                alt="" 
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1516280440614-37939bbacd81?q=80&w=2070&auto=format&fit=crop';
+                                }}
+                            />
                             <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent opacity-90" />
                             <div className="absolute top-6 left-6 px-4 py-2 bg-black/60 backdrop-blur-md border border-white/20 rounded-xl shadow-lg z-10">
                                 <span className="text-xs font-black text-neon-blue uppercase tracking-[0.2em]">{interview.category}</span>

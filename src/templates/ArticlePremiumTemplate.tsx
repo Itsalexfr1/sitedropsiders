@@ -232,6 +232,27 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             elements.forEach(el => el.remove());
         });
 
+        // Normalize All Images in Content
+        doc.querySelectorAll('img').forEach(img => {
+            const src = img.getAttribute('src') || '';
+            if (src) {
+                // If it's a dropsiders domain, remove it to make it relative
+                let cleanSrc = src.replace(/https?:\/\/(www\.)?dropsiders\.fr/, '');
+                
+                // If it starts with uploads/, add a leading slash
+                if (cleanSrc.startsWith('uploads/')) {
+                    cleanSrc = '/' + cleanSrc;
+                }
+                
+                // Update src
+                img.setAttribute('src', cleanSrc);
+                
+                // Add styling and loading attributes
+                img.loading = 'lazy';
+                img.classList.add('premium-body-img');
+            }
+        });
+
         // Specific iframe handling: only remove if they are NOT inside our premium wrappers
         // OR if they are from a trusted source (YouTube, Spotify, Beatport)
         doc.querySelectorAll('iframe').forEach(iframe => {
@@ -508,6 +529,9 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                             src={resolveImageUrl(article.image)}
                             alt={article.title}
                             className="w-full h-full object-cover"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                            }}
                         />
                         <div className="absolute inset-0 bg-dark-bg/40" />
                         <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-transparent to-transparent opacity-90" />
@@ -795,6 +819,9 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                         src={resolveImageUrl(img)}
                                                         alt=""
                                                         className="absolute inset-0 w-full h-full object-cover object-center transition-transform duration-700 group-hover:scale-110"
+                                                        onError={(e) => {
+                                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?q=80&w=2070&auto=format&fit=crop';
+                                                        }}
                                                     />
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                                 </div>
@@ -826,6 +853,9 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                                         src={resolveImageUrl(previousArticle.image)}
                                                                         alt=""
                                                                         className="w-full h-full object-cover object-[center_30%] group-hover:scale-110 transition-transform duration-500"
+                                                                        onError={(e) => {
+                                                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                                                        }}
                                                                     />
                                                                 </div>
                                                             )}
@@ -857,6 +887,9 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                                         src={resolveImageUrl(nextArticle.image)}
                                                                         alt=""
                                                                         className="w-full h-full object-cover object-[center_30%] group-hover:scale-110 transition-transform duration-500"
+                                                                        onError={(e) => {
+                                                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                                                        }}
                                                                     />
                                                                 </div>
                                                             )}

@@ -14,6 +14,7 @@ import { trackPageView } from '../utils/analytics';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { SEO } from '../components/utils/SEO';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
+import { resolveImageUrl } from '../utils/image';
 
 export function Agenda() {
     const { t, language } = useLanguage();
@@ -619,9 +620,12 @@ export function Agenda() {
                                         }}>
                                             {event.image && (
                                                 <img
-                                                    src={event.image}
+                                                    src={resolveImageUrl(event.image)}
                                                     alt={event.title}
                                                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+                                                    onError={(e) => {
+                                                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                                    }}
                                                 />
                                             )}
                                             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
@@ -791,7 +795,14 @@ export function Agenda() {
                                                         <div className="flex flex-col md:flex-row gap-8 md:gap-14 items-center">
                                                             <div className="w-full md:w-1/3 group">
                                                                 <div className="relative rounded-[2rem] overflow-hidden shadow-2xl border border-white/10">
-                                                                    <img src={event.image} alt="" className="w-full group-hover:scale-110 transition-transform duration-700" />
+                                                                    <img 
+                                                                        src={resolveImageUrl(event.image)} 
+                                                                        alt="" 
+                                                                        className="w-full group-hover:scale-110 transition-transform duration-700" 
+                                                                        onError={(e) => {
+                                                                            (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                                                        }}
+                                                                    />
                                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                                                                 </div>
                                                             </div>
