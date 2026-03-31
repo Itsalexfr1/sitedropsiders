@@ -1379,7 +1379,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
         }
     };
 
-    const handleSubmit = async (publishNow = false, scheduleDate?: string) => {
+    const handleSubmit = async (_publishNow = false, scheduleDate?: string) => {
         let finalDate = scheduleDate || date;
 
         const isInterviewVideo = type === 'Interview' && interviewSubtype === 'video';
