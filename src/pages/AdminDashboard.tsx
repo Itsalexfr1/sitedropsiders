@@ -468,7 +468,7 @@ export function AdminDashboard() {
     // GESTION TEAM STATES
     const [teamMembers, setTeamMembers] = useState<any[]>([]);
     const [editors, setEditors] = useState<any[]>([]);
-    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'WIKI' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM'>('ALL');
+    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'WIKI' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM' | 'R2'>('ALL');
 
     const DASHBOARD_TABS = [
         { id: 'ALL', label: 'Tout' },
