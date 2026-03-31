@@ -13,7 +13,7 @@ export function R2Explorer() {
     const [cursor, setCursor] = useState<string | null>(null);
     const [history, setHistory] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
-    const [prefix, setPrefix] = useState('uploads/');
+    const [prefix, setPrefix] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
     const fetchPhotos = async (targetCursor?: string | null) => {

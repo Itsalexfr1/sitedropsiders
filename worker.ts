@@ -3802,7 +3802,8 @@ ${urls.map(u => `  <url>
                     const isUsed = usedKeys.has(obj.key) || usedKeys.has(obj.key.replace('uploads/', ''));
                     if (isUsed) {
                         usedInR2.add(obj.key);
-                    } else if (obj.key.startsWith('uploads/')) {
+                    } else {
+                        // On inclut désormais tous les fichiers inutilisés, quel que soit le dossier (uploads, migrated, mp3, root...)
                         unused.push(obj);
                     }
                 });
