@@ -5,7 +5,7 @@ import {
     Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Columns, List, Bold, Italic,
     Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram,
     ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star,
-    AlignLeft, AlignCenter, AlignRight, Palette, MapPin, Bell
+    AlignLeft, AlignCenter, AlignRight, Palette, MapPin
 } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
@@ -265,7 +265,7 @@ export function NewsCreate() {
         return found ? found.name : stored;
     });
     const [artistNameLabel, setArtistNameLabel] = useState('');
-    const [sendPush, setSendPush] = useState<boolean | null>(null);
+    // Push notification options removed
     const [showSocialSuite, setShowSocialSuite] = useState(false);
     const [isAuthorConfirmed, setIsAuthorConfirmed] = useState(false);
     const [socialSuiteData, setSocialSuiteData] = useState<{
@@ -1582,7 +1582,6 @@ ${generateSocialsHtml()}
                     ]);
                     setIsFeatured(false);
                     setIsAuthorConfirmed(false);
-                    setSendPush(null);
                     setIsDirty(false); // Reset dirty state after successful publication
                     setActiveTab('News');
                     setShowVideo(type !== 'Interview');
