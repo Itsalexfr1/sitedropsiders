@@ -138,6 +138,7 @@ export function AdminDashboard() {
 
     const [isScanningUnused, setIsScanningUnused] = useState(false);
     const [totalR2Count, setTotalR2Count] = useState(0);
+    const [deployStep, setDeployStep] = useState<'idle' | 'confirm'>('idle');
     const [usedOnSiteCount, setUsedOnSiteCount] = useState(0);
     const [previewImage, setPreviewImage] = useState<string | null>(null);
     const [isResidencesModalOpen, setIsResidencesModalOpen] = useState(false);
@@ -1758,8 +1759,8 @@ export function AdminDashboard() {
     };
 
     const handleManualDeploy = async () => {
-        if (!window.confirm('Voulez-vous vraiment lancer la mise en ligne manuelle ?')) return;
         setIsDeploying(true);
+        setDeployStep('idle');
         try {
             const res = await apiFetch('/api/deploy', {
                 method: 'POST',
@@ -1768,13 +1769,13 @@ export function AdminDashboard() {
             });
 
             if (res.ok) {
-                alert('Mise en ligne déclenchée avec succès ! (Le site sera à jour dans 1-2 min)');
+                setGlobalAlert({ message: 'Mise en ligne déclenchée avec succès ! (Le site sera à jour dans 1-2 min)', type: 'info' });
             } else {
                 const err = await res.json();
-                alert('Erreur : ' + (err.error || 'Impossible de déployer'));
+                setGlobalAlert({ message: 'Erreur : ' + (err.error || 'Impossible de déployer'), type: 'danger' });
             }
         } catch (e: any) {
-            alert('Erreur réseau : ' + e.message);
+            setGlobalAlert({ message: 'Erreur réseau : ' + e.message, type: 'danger' });
         } finally {
             setIsDeploying(false);
         }
@@ -1913,12 +1914,23 @@ export function AdminDashboard() {
                                     )}
                                     {isAlex && (
                                         <button
-                                            onClick={handleManualDeploy}
+                                            onClick={() => {
+                                                if (deployStep === 'confirm') {
+                                                    handleManualDeploy();
+                                                } else {
+                                                    setDeployStep('confirm');
+                                                    setTimeout(() => setDeployStep('idle'), 4000);
+                                                }
+                                            }}
                                             disabled={isDeploying}
-                                            className="px-6 py-2 bg-neon-red/10 hover:bg-neon-red border border-neon-red/30 text-neon-red hover:text-white rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 shadow-lg shadow-neon-red/10 group active:scale-95 disabled:opacity-50"
+                                            className={`px-6 py-2 border rounded-xl text-[10px] font-black uppercase transition-all flex items-center gap-2 shadow-lg group active:scale-95 disabled:opacity-50 ${
+                                                deployStep === 'confirm' 
+                                                ? 'bg-neon-orange border-neon-orange shadow-neon-orange/20 text-white animate-pulse' 
+                                                : 'bg-neon-red/10 border-neon-red/30 text-neon-red hover:bg-neon-red hover:text-white shadow-neon-red/10'
+                                            }`}
                                         >
                                             <Zap className={`w-3.5 h-3.5 ${isDeploying ? 'animate-pulse' : 'group-hover:scale-125 transition-transform'}`} />
-                                            {isDeploying ? 'Mise en ligne...' : 'Mettre en ligne'}
+                                            {isDeploying ? 'Mise en ligne...' : (deployStep === 'confirm' ? 'CONFIRMER ?' : 'Mettre en ligne')}
                                         </button>
                                     )}
                                 </>
