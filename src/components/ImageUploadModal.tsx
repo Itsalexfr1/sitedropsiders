@@ -276,7 +276,7 @@ export function ImageUploadModal({
                             initial={{ opacity: 0, scale: 0.9, y: 20 }}
                             animate={{ opacity: 1, scale: 1, y: 0 }}
                             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                            className="relative w-full max-w-lg bg-[#0a0a0a] border border-white/10 rounded-[40px] p-10 shadow-3xl overflow-hidden text-left my-8"
+                            className={`relative w-full ${step === 'gallery' ? 'max-w-6xl' : 'max-w-lg'} bg-[#0a0a0a] border border-white/10 rounded-[40px] p-10 shadow-3xl overflow-hidden text-left my-8 transition-all duration-500`}
                         >
                         <div className={`absolute top-0 right-0 w-64 h-64 ${bgClass.replace('/20', '/5')} rounded-full blur-[100px] pointer-events-none`} />
 
@@ -319,7 +319,7 @@ export function ImageUploadModal({
                                     {r2Loading && r2Photos.length === 0 ? (
                                         <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-neon-blue" /></div>
                                     ) : (
-                                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-64 overflow-y-auto no-scrollbar rounded-2xl">
+                                        <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 lg:grid-cols-6 gap-2 max-h-[60vh] overflow-y-auto no-scrollbar rounded-2xl">
                                             {r2Photos.map(photo => (
                                                 <div 
                                                     key={photo.key} 
