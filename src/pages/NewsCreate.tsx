@@ -576,19 +576,42 @@ export function NewsCreate() {
 
             if (articleData.category === 'Musique') {
                 setActiveTab('Musique');
-                const musicSectionRegex = /<div class="music-top-item-premium[^>]*>[\s\S]*?<h3[^>]*>(.*?)<\/h3>[\s\S]*?<iframe[^>]*src="(.*?)"[\s\S]*?<\/div>/g;
-                const foundMusic = [];
-                let match;
-                while ((match = musicSectionRegex.exec(c)) !== null) {
-                    foundMusic.push({
-                        id: Math.random().toString(36).substr(2, 9),
-                        title: match[1].trim(),
-                        media: match[2].trim(),
-                        imageUrl: '',
-                        playerType: match[2].includes('spotify') ? 'spotify' : match[2].includes('beatport') ? 'beatport' : 'youtube'
-                    });
+                // First try to parse via data attributes (new format)
+                const domSections = doc.querySelectorAll('.music-top-item-premium');
+                const foundMusicFromDom: any[] = [];
+                domSections.forEach(section => {
+                    const title = section.querySelector('h3')?.textContent?.trim() || '';
+                    const media = section.getAttribute('data-media') || '';
+                    const playerType = section.getAttribute('data-player-type') || 'spotify';
+                    if (media) {
+                        foundMusicFromDom.push({
+                            id: Math.random().toString(36).substr(2, 9),
+                            title,
+                            media,
+                            imageUrl: '',
+                            playerType
+                        });
+                    }
+                });
+
+                if (foundMusicFromDom.length > 0) {
+                    setMusicItems(foundMusicFromDom);
+                } else {
+                    // Fallback: old regex approach (legacy articles without data attrs)
+                    const musicSectionRegex = /<div class="music-top-item-premium[^>]*>[\s\S]*?<h3[^>]*>(.*?)<\/h3>[\s\S]*?<iframe[^>]*src="(.*?)"[\s\S]*?<\/div>/g;
+                    const foundMusic: any[] = [];
+                    let match;
+                    while ((match = musicSectionRegex.exec(c)) !== null) {
+                        foundMusic.push({
+                            id: Math.random().toString(36).substr(2, 9),
+                            title: match[1].trim(),
+                            media: match[2].trim(),
+                            imageUrl: '',
+                            playerType: match[2].includes('spotify') ? 'spotify' : match[2].includes('beatport') ? 'beatport' : 'youtube'
+                        });
+                    }
+                    if (foundMusic.length > 0) setMusicItems(foundMusic);
                 }
-                if (foundMusic.length > 0) setMusicItems(foundMusic);
             } else if (articleData.category === 'Interview Video' || articleData.category === 'Interview' || articleData.category.includes('Interview Video -')) {
                 if (articleData.category.includes('Interview Video')) {
                     setInterviewSubtype('video');
@@ -1496,11 +1519,11 @@ ${generateSocialsHtml()}
             } else if (activeTab === 'Musique') {
                 finalCategory = 'Musique';
                 const musicHtml = musicItems.map((item) => `
-<div class="music-top-item-premium mb-12 last:mb-0">
+<div class="music-top-item-premium mb-12 last:mb-0" data-media="${item.media}" data-player-type="${item.playerType || 'spotify'}">
     <div class="flex items-center gap-6 mb-6">
         <h3 class="text-2xl font-display font-black text-white uppercase italic tracking-tight">${item.title}</h3>
     </div>
-    <div className="rounded-2xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
+    <div class="rounded-2xl overflow-hidden border border-white/10 bg-black/40 shadow-2xl">
         ${renderMediaEmbed(item.media, item.playerType)}
     </div>
 </div>`).join('\n');

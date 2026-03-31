@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ImageCropper } from './ImageCropper';
+import { getAuthHeaders } from '../utils/auth';
 
 interface ImageUploadModalProps {
     isOpen: boolean;
@@ -73,7 +74,7 @@ export function ImageUploadModal({
         setR2Loading(true);
         try {
             const url = `/api/r2/list?limit=24${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}`;
-            const res = await fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+            const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
                 setR2Photos(data.objects || []);
