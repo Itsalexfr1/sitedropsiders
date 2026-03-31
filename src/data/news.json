@@ -152,8 +152,7 @@
     "isFocus": false,
     "year": "2026",
     "link": "https://dropsiders.fr/news/239_après-anyma-et-tomorrowland-illenium-s-empare-de-la-sphere-",
-    "author": "Alex",
-    "photo_verified": true
+    "author": "Alex"
   },
   {
     "id": 238,
@@ -173,7 +172,8 @@
     "isFocus": false,
     "year": "2026",
     "link": "https://dropsiders.fr/news/238_a-state-of-trance-d-barque-varsovie-en-2026-",
-    "author": "Alex"
+    "author": "Alex",
+    "photo_verified": true
   },
   {
     "id": 237,
