@@ -121,7 +121,7 @@ export function AdminManage() {
             const res = await fetch('/api/broken-images', { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
-                setBrokenImages(data);
+                setBrokenImages(Array.isArray(data) ? data : (data.broken || []));
             }
         } catch (e) {
             console.error("Error fetching broken images:", e);

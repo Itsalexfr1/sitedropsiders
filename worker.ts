@@ -962,6 +962,7 @@ ${urls.map(u => `  <url>
             path === '/api/r2/stats' ||
             path === '/api/r2/duplicates' ||
             path === '/api/admin/broken-images' ||
+            path === '/api/broken-images' ||
             path === '/api/admin/validate-photo' ||
             path === '/api/admin/validate-photo-bulk' ||
             path === '/api/admin/unused-r2-images' ||
@@ -3653,7 +3654,7 @@ ${urls.map(u => `  <url>
         }
 
         // --- NEW: BROKEN IMAGES DETECTOR ---
-        if (path === '/api/admin/broken-images' && request.method === 'GET') {
+        if ((path === '/api/admin/broken-images' || path === '/api/broken-images') && request.method === 'GET') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {
                 // 1. Get ALL keys currently in R2
@@ -3680,7 +3681,8 @@ ${urls.map(u => `  <url>
                     dataFiles.map(path => fetchGitHubFile(path, gitConfig).catch(() => null))
                 );
 
-                const urlRegex = /(?:(?:"|')(?:\/uploads\/|https:\/\/dropsiders\.fr\/uploads\/)([^"']+\.[a-z0-9]{2,5})(?:"|'))/gi;
+                // Updated Regex to support www. and absolute/relative paths
+                const urlRegex = /(?:(?:"|')(?:(?:\/|https?:\/\/(?:www\.)?dropsiders\.fr)\/uploads\/)([^"']+\.[a-z0-9]{2,5})(?:"|'))/gi;
 
                 for (let i = 0; i < dataFiles.length; i++) {
                     const fileObj = dataContents[i];
