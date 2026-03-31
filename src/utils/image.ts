@@ -1,6 +1,11 @@
 /**
  * Resolve an image URL to be domain-agnostic and handle fallback images.
- * If the URL points to dropsiders.fr (with or without www), it converts it to a root-relative path.
+ * Strategy: 
+ * 1. If it's a full URL to Dropsiders, we keep it as is for development 
+ *    (to avoid 404s if local uploads folder is missing) OR 
+ *    we make it root-relative if we want to be truly domain-agnostic.
+ * 2. To satisfy the user's need for images that "disappeared suddenly", 
+ *    we will let absolute URLs remain absolute if they match the production domain.
  */
 export function resolveImageUrl(url: string | undefined | null): string {
     const fallback = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
@@ -12,11 +17,27 @@ export function resolveImageUrl(url: string | undefined | null): string {
     
     if (!processedUrl || processedUrl === 'undefined' || processedUrl === 'null') return fallback;
 
-    // Remove domains to make it root-relative
-    // This handles:
-    // http(s)://dropsiders.fr
-    // http(s)://www.dropsiders.fr
-    processedUrl = processedUrl.replace(/^https?:\/\/(www\.)?dropsiders\.fr/i, '');
+    // Handle relative paths from JSON that start with uploads/...
+    if (processedUrl.startsWith('uploads/')) {
+        processedUrl = '/' + processedUrl;
+    }
+
+    // REDUNDANCY FIX: Many JSON paths have /uploads/uploads/
+    if (processedUrl.includes('/uploads/uploads/')) {
+        processedUrl = processedUrl.replace('/uploads/uploads/', '/uploads/');
+    }
+
+    // IF IT'S AN ABSOLUTE URL TO DROPSIDERS.FR:
+    // We choose to KEEP IT for now so it loads from the live server 
+    // even if the local development environment doesn't have the assets.
+    // This fixed the "disappearing images" issue on the user's side.
+    if (/^https?:\/\/(www\.)?dropsiders\.fr/i.test(processedUrl)) {
+        // We clean the redundancy even on absolute URLs
+        if (processedUrl.includes('/uploads/uploads/')) {
+            processedUrl = processedUrl.replace('/uploads/uploads/', '/uploads/');
+        }
+        return processedUrl;
+    }
     
     // If it's still an absolute URL (external), return it
     if (processedUrl.startsWith('http')) {
@@ -29,7 +50,6 @@ export function resolveImageUrl(url: string | undefined | null): string {
     }
     
     // Ensure relative paths start with a single leading slash
-    // and handle cases where they might accidentally have doubles or none
     if (!processedUrl.startsWith('/')) {
         processedUrl = '/' + processedUrl;
     } else {
@@ -39,4 +59,3 @@ export function resolveImageUrl(url: string | undefined | null): string {
     
     return processedUrl;
 }
-
