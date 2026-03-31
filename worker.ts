@@ -95,11 +95,12 @@ async function fetchGitHubFile(filePath, config) {
     const response = await fetch(getUrl, {
         headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' }
     });
+    const fileData = await response.json();
     if (!response.ok) {
+        console.error(`GitHub API error for ${filePath}: ${response.status} ${response.statusText}`);
         if (response.status === 404) return { content: [], sha: null };
         return null;
     }
-    const fileData = await response.json();
     let content;
     if (fileData.content) {
         content = utf8Decode(fileData.content);
@@ -821,7 +822,13 @@ ${urls.map(u => `  <url>
             
             let object = await env.R2.get(key);
             
-            // Fallback: Si pas trouvé sous la clé directe, essayer avec le préfixe 'uploads/'
+            // Fallback: Si pas trouvé sous la clé directe (ex: uploads/file.jpg)
+            // essayer sans le préfixe 'uploads/' (au cas où il a été migré à la racine)
+            if (!object && key.startsWith('uploads/')) {
+                object = await env.R2.get(key.replace('uploads/', ''));
+            }
+            
+            // Fallback inverse: essayer avec le préfixe 'uploads/'
             // (Utile pour les anciens uploads qui n'auraient pas le double /uploads/ dans leur URL)
             if (!object && !key.startsWith('uploads/') && !key.startsWith('migrated/')) {
                 object = await env.R2.get('uploads/' + key);
@@ -831,7 +838,15 @@ ${urls.map(u => `  <url>
                 // Fallback aux assets originaux (ex: fichiers encore sur GitHub dans public/uploads)
                 const assetsBinding = env.APP_ASSETS || env.ASSETS;
                 if (assetsBinding) {
-                    const fallbackResponse = await assetsBinding.fetch(request);
+                    // Si on a un double /uploads/ (ex: /uploads/uploads/file.jpg)
+                    // on normalise pour le binding Pages qui attend /uploads/file.jpg
+                    let normalizedPath = path;
+                    if (path.startsWith('/uploads/uploads/')) {
+                        normalizedPath = path.replace('/uploads/uploads/', '/uploads/');
+                    }
+                    
+                    const fallbackUrl = new URL(normalizedPath, request.url);
+                    const fallbackResponse = await assetsBinding.fetch(new Request(fallbackUrl.toString(), request));
                     if (fallbackResponse.ok) return fallbackResponse;
                 }
                 return new Response('Not Found', { status: 404 });

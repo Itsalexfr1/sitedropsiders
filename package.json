@@ -12,6 +12,7 @@
     "deploy:pages": "wrangler pages deploy dist --config wrangler.pages.json",
     "fix:encoding": "node tools/clean_encoding.cjs",
     "migrate:images": "node tools/migrate_to_cloudinary.cjs",
+    "migrate:r2": "node tools/migrate_to_r2_bulk.cjs",
     "mail:sync": "node tools/mail_bridge.js --watch",
     "mail:once": "node tools/mail_bridge.js"
   },

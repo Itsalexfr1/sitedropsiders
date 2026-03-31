@@ -1798,9 +1798,14 @@ export function AdminDashboard() {
 
         if (dashboardTab === 'NEWS') {
             // Specifically for the "News" focused experience
-            return action.title === 'Contenu' || action.title === 'Agenda' || action.title === 'News Focus' || action.title === 'Social Studio';
+            return action.category?.toUpperCase() === 'NEWS' || 
+                   action.title === 'Contenu' || 
+                   action.title === 'Agenda' || 
+                   action.title === 'News Focus' || 
+                   action.title === 'Social Studio';
         }
 
+        if (dashboardTab === 'R2') return action.title === 'Toutes les Photos';
         if (dashboardTab === 'STUDIO') return action.category?.toUpperCase() === 'STUDIO';
         if (dashboardTab === 'SHOP') return action.category?.toUpperCase() === 'SHOP' || action.title === 'Shop' || action.title === 'Boutique' || action.icon === 'ShoppingBag';
         if (dashboardTab === 'COMMUNAUTÉ') return action.category?.toUpperCase() === 'CONCOURS' || action.title === 'Communauté' || action.title === 'Quiz & Blind Test' || action.icon === 'MessageSquare';

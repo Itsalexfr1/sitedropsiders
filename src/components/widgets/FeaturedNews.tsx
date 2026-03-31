@@ -42,7 +42,14 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
         // Fallback to latest news/music/focus if none marked as isFeatured
         const filtered = all.filter((item: any) => {
             const cat = (item.category || '').toLowerCase();
-            return cat.includes('news') || cat.includes('musique') || cat.includes('music') || item.isFocus || cat.includes('focus');
+            return cat.includes('news') || 
+                   cat.includes('musique') || 
+                   cat.includes('music') || 
+                   cat.includes('actu') || 
+                   cat.includes('festival') || 
+                   cat.includes('artist') ||
+                   item.isFocus || 
+                   cat.includes('focus');
         });
         // If still nothing, take the absolute latest article
         return filtered[0] || all[0];

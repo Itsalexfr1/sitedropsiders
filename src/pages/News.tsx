@@ -85,7 +85,13 @@ export function News() {
                 if (!item) return false;
                 // Removed the restrictive 'today' filter to ensure all published news are visible
                 const cat = (item.category || '').toLowerCase();
-                return cat.includes('news') || cat.includes('musique') || cat.includes('music') || item.isFocus;
+                return cat.includes('news') || 
+                       cat.includes('musique') || 
+                       cat.includes('music') || 
+                       cat.includes('actu') || 
+                       cat.includes('festival') || 
+                       cat.includes('artist') ||
+                       item.isFocus;
             })
             .sort((a, b) => {
                 const dateA = new Date(a.date).getTime();
@@ -99,7 +105,7 @@ export function News() {
         if (activeTab === 'all') return baseNews;
         if (activeTab === 'news') return baseNews.filter((item: any) => {
             const cat = (item.category || '').toLowerCase();
-            return (cat.includes('news') || cat === 'actualité' || cat === 'actualite') && !item.isFocus;
+            return (cat.includes('news') || cat.includes('actu') || cat.includes('festival')) && !item.isFocus;
         });
         if (activeTab === 'musique') return baseNews.filter((item: any) => {
             const cat = (item.category || '').toLowerCase();
