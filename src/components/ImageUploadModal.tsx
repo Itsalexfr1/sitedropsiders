@@ -109,7 +109,7 @@ export function ImageUploadModal({
                 return;
             }
 
-            const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}`;
+            const url = `/api/r2/list?limit=100&prefix=${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}`;
             const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
