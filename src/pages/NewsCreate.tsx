@@ -244,11 +244,7 @@ export function NewsCreate() {
     const [country, setCountry] = useState('');
     const [isAutoLocating, setIsAutoLocating] = useState(false);
     const [imageUrl, setImageUrl] = useState('');
-    const [date, setDate] = useState(() => {
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        return now.toISOString().slice(0, 16);
-    });
+    const [date, setDate] = useState('');
     console.log('[NewsCreate] Initialization. isEditing:', isEditing, 'id:', id);
     const [category, setCategory] = useState(type);
     const [youtubeId, setYoutubeId] = useState('');
@@ -448,9 +444,9 @@ export function NewsCreate() {
             setLocationInput(articleData.location || '');
             setCountry(articleData.country || '');
             setImageUrl(articleData.image || '');
-            const dateValue = articleData.date || new Date().toISOString();
+            const dateValue = articleData.date || '';
             let finalDate = dateValue;
-            if (dateValue.includes('T')) {
+            if (dateValue && dateValue.includes('T')) {
                 try {
                     const parsedDate = new Date(dateValue);
                     parsedDate.setMinutes(parsedDate.getMinutes() - parsedDate.getTimezoneOffset());
@@ -458,7 +454,7 @@ export function NewsCreate() {
                 } catch (e: any) {
                     finalDate = dateValue.slice(0, 16);
                 }
-            } else {
+            } else if (dateValue) {
                 finalDate = dateValue + "T12:00";
             }
             setDate(finalDate);
@@ -1385,18 +1381,21 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
 
     const handleSubmit = async (publishNow = false, scheduleDate?: string) => {
         let finalDate = scheduleDate || date;
-        if (publishNow) {
-            const now = new Date();
-            now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-            finalDate = now.toISOString().slice(0, 16);
-            setDate(finalDate);
-        }
 
         const isInterviewVideo = type === 'Interview' && interviewSubtype === 'video';
 
-        if (!title || !imageUrl) {
+        if (!title || !imageUrl || !finalDate) {
             setStatus('error');
-            setMessage('Veuillez remplir les champs obligatoires (Titre, Image)');
+            setMessage(`Veuillez remplir les champs obligatoires (Titre, Image, Date${!finalDate ? ' [VIDE]' : ''})`);
+            if (!finalDate && !scheduleDate) {
+                // Focus on the main date field if missing
+                const dateEl = document.getElementById('publication-date');
+                if (dateEl) {
+                    dateEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    dateEl.classList.add('animate-shake');
+                    setTimeout(() => dateEl.classList.remove('animate-shake'), 1000);
+                }
+            }
             return;
         }
 
@@ -1608,8 +1607,7 @@ ${generateSocialsHtml()}
                     setIsDirty(false); // Reset dirty state after successful publication
                     setActiveTab('News');
                     setShowVideo(type !== 'Interview');
-                    // Clear status after a while
-                    setTimeout(() => setStatus('idle'), 3000);
+                    setDate('');
                 } else {
                     // If editing, redirect back to management after a short delay
                     setIsDirty(false); // Reset dirty state before redirect
@@ -1926,8 +1924,8 @@ ${generateSocialsHtml()}
 
 
                         {/* Metadata Fields */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="md:col-span-2 lg:col-span-2">
                                 <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Titre <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
                                     <input
@@ -1948,6 +1946,20 @@ ${generateSocialsHtml()}
                                 </div>
                             </div>
 
+                            <div>
+                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
+                                    <Calendar className="w-4 h-4 text-neon-orange" /> Date de publication <span className="text-neon-red">*</span>
+                                </label>
+                                <div className="relative group">
+                                    <input
+                                        id="publication-date"
+                                        type="datetime-local"
+                                        value={date}
+                                        onChange={(e) => setDate(e.target.value)}
+                                        className={`w-full bg-black/20 border ${!date ? 'border-neon-orange/50 shadow-[0_0_15px_rgba(255,165,0,0.1)]' : 'border-white/10'} rounded-lg p-3 text-white focus:border-neon-orange outline-none transition-all`}
+                                    />
+                                </div>
+                            </div>
                         </div>
 
 
@@ -3801,20 +3813,30 @@ ${generateSocialsHtml()}
 
                     if (uploadTarget.type === 'main') {
                         setImageUrl(actualUrl);
+                        setShowUploadModal(false);
                     } else if (uploadTarget.type === 'duo1' as any) {
                         setDuoModal(prev => ({ ...prev, url1: actualUrl }));
+                        setShowUploadModal(false);
                     } else if (uploadTarget.type === 'duo2' as any) {
                         setDuoModal(prev => ({ ...prev, url2: actualUrl }));
+                        setShowUploadModal(false);
                     } else if (uploadTarget.type === 'interview-media') {
                         setInterviewQuestions(prev => prev.map(q => q.id === uploadTarget.interviewBlockId ? { ...q, mediaUrl: actualUrl } : q));
+                        setShowUploadModal(false);
                     } else if (uploadTarget.type === 'widget-edit' as any) {
-                        const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  ${mediaTag}\n</div>`;
-                        updateWidget(uploadTarget.widgetId!, imgWidget);
-                        setMediaModal(prev => ({ ...prev, show: false }));
+                        // Crucial fix: instead of overwriting with a default template, just update the MediaModal state
+                        // so the user can Confirm and preserve their ratio/alignment settings
+                        setMediaModal(prev => ({ ...prev, url: actualUrl }));
+                        setShowUploadModal(false);
+                    } else if (uploadTarget.type === 'widget' as any) {
+                        // Also for new widgets, it's better to update the modal if it's already open
+                        setMediaModal(prev => ({ ...prev, url: actualUrl }));
+                        setShowUploadModal(false);
                     } else {
-                        // Create a new image widget
+                        // Direct addition (if no modal was open, e.g. quick add)
                         const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  ${mediaTag}\n</div>`;
                         addWidget(uploadTarget.index, imgWidget);
+                        setShowUploadModal(false);
                     }
                 }}
                 onClear={() => {
