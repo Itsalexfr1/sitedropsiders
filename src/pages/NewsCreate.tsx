@@ -447,13 +447,8 @@ export function NewsCreate() {
             const dateValue = articleData.date || '';
             let finalDate = dateValue;
             if (dateValue && dateValue.includes('T')) {
-                try {
-                    const parsedDate = new Date(dateValue);
-                    parsedDate.setMinutes(parsedDate.getMinutes() - parsedDate.getTimezoneOffset());
-                    finalDate = parsedDate.toISOString().slice(0, 16);
-                } catch (e: any) {
-                    finalDate = dateValue.slice(0, 16);
-                }
+                // Remove any seconds or timezone part that datetime-local doesn't like
+                finalDate = dateValue.slice(0, 16);
             } else if (dateValue) {
                 finalDate = dateValue + "T12:00";
             }
@@ -473,6 +468,14 @@ export function NewsCreate() {
                 } else {
                     setShowVideo(true);
                 }
+            }
+
+            if (articleData.category === 'Focus' || (articleData.category === 'News' && articleData.isFocus)) {
+                setActiveTab('Focus');
+            } else if (articleData.category === 'Musique') {
+                setActiveTab('Musique');
+            } else {
+                setActiveTab('News');
             }
 
             setIsFeatured(articleData.isFeatured || false);
