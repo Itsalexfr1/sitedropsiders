@@ -14,10 +14,21 @@ export function R2PhotosMenuModal({ isOpen, onClose }: R2PhotosMenuModalProps) {
     const [cursor, setCursor] = useState<string | null>(null);
     const [history, setHistory] = useState<string[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [showUnused, setShowUnused] = useState(false);
 
     const fetchPhotos = async (targetCursor?: string | null) => {
         setLoading(true);
         try {
+            if (showUnused) {
+                const res = await fetch('/api/admin/unused-r2-images', { headers: getAuthHeaders() });
+                if (res.ok) {
+                    const data = await res.json();
+                    setPhotos((data.unused || []).map((p: any) => ({ ...p, url: `/${p.key}` })));
+                    setCursor(null);
+                }
+                return;
+            }
+
             const url = `/api/r2/list?limit=40${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}`;
             const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
@@ -37,16 +48,17 @@ export function R2PhotosMenuModal({ isOpen, onClose }: R2PhotosMenuModalProps) {
             fetchPhotos();
             setHistory([]);
         }
-    }, [isOpen]);
+    }, [isOpen, showUnused]);
 
     const handleNext = () => {
-        if (cursor) {
+        if (cursor && !showUnused) {
             setHistory(prev => [...prev, cursor]);
             fetchPhotos(cursor);
         }
     };
 
     const handleBack = () => {
+        if (showUnused) return;
         const newHistory = [...history];
         newHistory.pop(); // remove current
         const prevCursor = newHistory[newHistory.length - 1] || null;
@@ -94,7 +106,12 @@ export function R2PhotosMenuModal({ isOpen, onClose }: R2PhotosMenuModalProps) {
                                         <HardDrive className="w-3 h-3 text-neon-red" />
                                         <span className="text-[10px] text-gray-400 font-black uppercase tracking-widest">Bucket: dropsiders-assets</span>
                                     </div>
-                                    <p className="text-gray-500 font-bold uppercase tracking-widest text-[10px] hidden sm:block">Toutes les photos uploadées</p>
+                                    <button 
+                                        onClick={() => setShowUnused(!showUnused)}
+                                        className={`px-3 py-1 rounded-full border transition-all text-[10px] font-black uppercase tracking-widest ${showUnused ? 'bg-neon-red text-white border-neon-red shadow-[0_0_15px_rgba(255,18,65,0.3)]' : 'bg-white/5 text-gray-500 border-white/10 hover:text-white'}`}
+                                    >
+                                        Images Non Utilisées {showUnused ? 'Activé' : 'Off'}
+                                    </button>
                                 </div>
                             </div>
 

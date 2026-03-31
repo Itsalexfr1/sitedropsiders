@@ -19,6 +19,20 @@ export function R2Explorer() {
     const fetchPhotos = async (targetCursor?: string | null) => {
         setLoading(true);
         try {
+            if (prefix === 'unused') {
+                const res = await fetch('/api/admin/unused-r2-images', { headers: getAuthHeaders() });
+                if (res.ok) {
+                    const data = await res.json();
+                    const mapped = (data.unused || []).map((obj: any) => ({
+                        ...obj,
+                        url: `/${obj.key}`
+                    }));
+                    setPhotos(mapped);
+                    setCursor(null);
+                }
+                return;
+            }
+
             const url = `/api/r2/list?limit=60${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${prefix ? `&prefix=${encodeURIComponent(prefix)}` : ''}`;
             const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
@@ -39,13 +53,14 @@ export function R2Explorer() {
     }, [prefix]);
 
     const handleNext = () => {
-        if (cursor) {
+        if (cursor && prefix !== 'unused') {
             setHistory(prev => [...prev, cursor]);
             fetchPhotos(cursor);
         }
     };
 
     const handleBack = () => {
+        if (prefix === 'unused') return;
         const newHistory = [...history];
         newHistory.pop(); // remove current
         const prevCursor = newHistory[newHistory.length - 1] || null;
@@ -73,6 +88,7 @@ export function R2Explorer() {
         { label: 'Uploads Site', value: 'uploads/' },
         { label: 'Musiques (MP3)', value: 'mp3/' },
         { label: 'Contenu Migré', value: 'migrated/' },
+        { label: 'Inutilisées 🗑️', value: 'unused' },
         { label: 'Tous les fichiers', value: '' },
     ];
 

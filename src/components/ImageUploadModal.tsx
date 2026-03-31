@@ -99,6 +99,16 @@ export function ImageUploadModal({
     const fetchR2Photos = async (targetCursor?: string | null) => {
         setR2Loading(true);
         try {
+            if (sortBy === 'unused' as any) {
+                const res = await fetch('/api/admin/unused-r2-images', { headers: getAuthHeaders() });
+                if (res.ok) {
+                    const data = await res.json();
+                    setR2Photos((data.unused || []).map((p: any) => ({ ...p, url: `/${p.key}` })));
+                    setR2Cursor(null);
+                }
+                return;
+            }
+
             const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}`;
             const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
@@ -116,6 +126,14 @@ export function ImageUploadModal({
             setR2Loading(false);
         }
     };
+
+    useEffect(() => {
+        if (sortBy === 'unused' as any) {
+            fetchR2Photos();
+        } else if (isOpen) {
+            fetchR2Photos();
+        }
+    }, [sortBy]);
 
     const handleR2LoadMore = () => {
         if (r2Cursor && !r2Loading) {
@@ -447,6 +465,7 @@ export function ImageUploadModal({
                                                             <option value="newest">Récent</option>
                                                             <option value="oldest">Ancien</option>
                                                             <option value="name">Nom</option>
+                                                            <option value="unused">Non utilisées 🗑️</option>
                                                         </select>
                                                     </div>
                                                 </div>
@@ -458,8 +477,8 @@ export function ImageUploadModal({
                                             ) : (
                                                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[50vh] overflow-y-auto no-scrollbar rounded-2xl">
                                                     {[...r2Photos].sort((a, b) => {
-                                                        if (sortBy === 'newest') return new Date(b.uploadedAt).getTime() - new Date(a.uploadedAt).getTime();
-                                                        if (sortBy === 'oldest') return new Date(a.uploadedAt).getTime() - new Date(b.uploadedAt).getTime();
+                                                        if (sortBy === 'newest') return new Date(b.uploaded).getTime() - new Date(a.uploaded).getTime();
+                                                        if (sortBy === 'oldest') return new Date(a.uploaded).getTime() - new Date(b.uploaded).getTime();
                                                         return a.key.localeCompare(b.key);
                                                     }).map(photo => (
                                                         <div 
