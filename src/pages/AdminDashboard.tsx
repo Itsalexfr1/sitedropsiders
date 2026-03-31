@@ -27,6 +27,7 @@ import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ShopMenuModal } from '../components/admin/modals/ShopMenuModal';
 import { ScanMenuModal } from '../components/admin/modals/ScanMenuModal';
 import { R2PhotosMenuModal } from '../components/admin/modals/R2PhotosMenuModal';
+import { R2Explorer } from '../components/admin/R2Explorer';
 import { Downloader } from './Downloader';
 
 
@@ -477,6 +478,7 @@ export function AdminDashboard() {
         { id: 'STUDIO', label: 'Studio' },
         { id: 'SHOP', label: 'Boutique' },
         { id: 'TEAM', label: 'Équipe' },
+        { id: 'R2', label: 'R2 Cloud' },
     ];
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean,
@@ -2235,6 +2237,10 @@ export function AdminDashboard() {
                                     </AnimatePresence>
                                 </div>
                             </div>
+                        </div>
+                    ) : dashboardTab === 'R2' ? (
+                        <div className="pb-20">
+                            <R2Explorer />
                         </div>
                     ) : dashboardTab === 'WIKI' ? (
                         <div className="space-y-12 pb-20">

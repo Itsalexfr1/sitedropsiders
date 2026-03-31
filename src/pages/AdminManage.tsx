@@ -113,6 +113,24 @@ export function AdminManage() {
     const [team, setTeam] = useState<any[]>([]);
     const [featuredTarget, setFeaturedTarget] = useState<any | null>(null);
     const [socialItem, setSocialItem] = useState<any | null>(null);
+    const [brokenImages, setBrokenImages] = useState<any[]>([]);
+    const [showBrokenOnly, setShowBrokenOnly] = useState(false);
+
+    const fetchBrokenImages = async () => {
+        try {
+            const res = await fetch('/api/broken-images', { headers: getAuthHeaders() });
+            if (res.ok) {
+                const data = await res.json();
+                setBrokenImages(data);
+            }
+        } catch (e) {
+            console.error("Error fetching broken images:", e);
+        }
+    };
+
+    useEffect(() => {
+        fetchBrokenImages();
+    }, []);
 
     useEffect(() => {
         const fetchTeam = async () => {
@@ -404,6 +422,7 @@ export function AdminManage() {
             if (response.ok) {
                 setItems(prev => prev.map(i => i.id === activePhotoId ? { ...i, image: actualUrl } : i));
                 setIsImageModalOpen(false);
+                fetchBrokenImages();
             }
         } catch (e: any) {
             console.error('Error updating photo:', e);
@@ -483,7 +502,7 @@ export function AdminManage() {
     }, [items, activeTab]);
 
     const filteredAndSortedItems = useMemo(() => {
-        const result = items.filter(item => {
+        let result = items.filter(item => {
             const matchesSearch =
                 item.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                 item.location?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -493,6 +512,22 @@ export function AdminManage() {
 
             return matchesSearch && matchesCategory;
         });
+
+        if (showBrokenOnly) {
+            const locationMap: Record<string, string> = {
+                'News': 'news',
+                'Musique': 'news',
+                'Interviews': 'news',
+                'Focus': 'news',
+                'Recaps': 'recaps',
+                'Agenda': 'agenda',
+                'Communauté': 'galerie'
+            };
+            const loc = locationMap[activeTab];
+            result = result.filter(item => 
+                brokenImages.some((img: any) => img.location === loc && String(img.entityId) === String(item.id))
+            );
+        }
 
         if (sortBy !== 'manual') {
             result.sort((a, b) => {
@@ -668,6 +703,25 @@ export function AdminManage() {
                                 <option className="bg-dark-bg" value="year">Année</option>
                             </select>
                             <button onClick={() => setSortOrder(prev => prev === 'asc' ? 'desc' : 'asc')} className="text-[10px] font-black text-neon-red uppercase tracking-widest hover:underline">{sortOrder === 'asc' ? 'Croissant' : 'Récent first'}</button>
+                            
+                            <div className="h-4 w-px bg-white/10 mx-2" />
+                            
+                            <button 
+                                onClick={() => setShowBrokenOnly(!showBrokenOnly)}
+                                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${showBrokenOnly ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20' : 'bg-white/5 text-gray-500 hover:text-white'}`}
+                            >
+                                <AlertCircle className={`w-3.5 h-3.5 ${showBrokenOnly ? 'text-white' : 'text-neon-red'}`} />
+                                Images Cassées {brokenImages.length > 0 && <span className="opacity-60">({
+                                    (() => {
+                                        const locationMap: Record<string, string> = {
+                                            'News': 'news', 'Musique': 'news', 'Interviews': 'news', 'Focus': 'news',
+                                            'Recaps': 'recaps', 'Agenda': 'agenda', 'Communauté': 'galerie'
+                                        };
+                                        const loc = locationMap[activeTab];
+                                        return brokenImages.filter(img => img.location === loc).length;
+                                    })()
+                                })</span>}
+                            </button>
                         </div>
 
                         <div className="flex items-center gap-4">
@@ -859,6 +913,20 @@ export function AdminManage() {
                                                         >
                                                             {item.title}
                                                             <ExternalLink className="w-3.5 h-3.5 opacity-0 group-hover/link:opacity-100 transition-opacity flex-shrink-0" />
+                                                            {(() => {
+                                                                const locationMap: Record<string, string> = {
+                                                                    'News': 'news', 'Musique': 'news', 'Interviews': 'news', 'Focus': 'news',
+                                                                    'Recaps': 'recaps', 'Agenda': 'agenda', 'Communauté': 'galerie'
+                                                                };
+                                                                const loc = locationMap[activeTab];
+                                                                const isBroken = brokenImages.some((img: any) => img.location === loc && String(img.entityId) === String(item.id));
+                                                                return isBroken && (
+                                                                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded-md bg-neon-red/20 border border-neon-red/30" title="Image cassée détectée">
+                                                                        <AlertCircle className="w-3 h-3 text-neon-red" />
+                                                                        <span className="text-[8px] font-black text-neon-red uppercase tracking-tighter">Broken</span>
+                                                                    </div>
+                                                                );
+                                                            })()}
                                                         </Link>
                                                     </div>
                                                     <div className="flex items-center gap-2 mt-1">
