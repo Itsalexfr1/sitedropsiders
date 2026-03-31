@@ -4003,6 +4003,36 @@ ${urls.map(u => `  <url>
             }
         }
 
+        // --- NEW: R2 LIST ALL PHOTOS ---
+        if (path === '/api/r2/list' && request.method === 'GET') {
+            if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
+            try {
+                if (!env.R2) return new Response(JSON.stringify({ objects: [], truncated: false }), { status: 200, headers });
+                
+                const cursor = url.searchParams.get('cursor') || undefined;
+                const prefix = url.searchParams.get('prefix') || 'uploads/';
+                const limit = parseInt(url.searchParams.get('limit') || '50');
+                
+                const listResult = await env.R2.list({ cursor, prefix, limit });
+                
+                const objects = listResult.objects.map(obj => ({
+                    key: obj.key,
+                    size: obj.size,
+                    uploaded: obj.uploaded,
+                    etag: obj.etag,
+                    url: `/uploads/${obj.key}`
+                }));
+                
+                return new Response(JSON.stringify({
+                    objects,
+                    truncated: listResult.truncated,
+                    cursor: listResult.cursor,
+                }), { headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/wiki/update-photo' && request.method === 'POST') {
             if (!authenticated) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401, headers });
             try {

@@ -26,6 +26,7 @@ import { AgendaModal } from '../components/AgendaModal';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { ShopMenuModal } from '../components/admin/modals/ShopMenuModal';
 import { ScanMenuModal } from '../components/admin/modals/ScanMenuModal';
+import { R2PhotosMenuModal } from '../components/admin/modals/R2PhotosMenuModal';
 import { Downloader } from './Downloader';
 
 
@@ -145,6 +146,7 @@ export function AdminDashboard() {
     const [showResidenceUpload, setShowResidenceUpload] = useState(false);
     const [editingResidence, setEditingResidence] = useState<any>(null);
     const [isMaintenanceModalOpen, setIsMaintenanceModalOpen] = useState(false);
+    const [isR2PhotosModalOpen, setIsR2PhotosModalOpen] = useState(false);
     const [isScanMenuOpen, setIsScanMenuOpen] = useState(false);
     const [maintenanceLoading, setMaintenanceLoading] = useState(false);
     const [bulkYearShift, setBulkYearShift] = useState({ oldYear: '2025', newYear: '2026', type: 'agenda' });
@@ -1435,6 +1437,7 @@ export function AdminDashboard() {
         // STUDIO & ANALYTICS
         { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", category: "STUDIO", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats_analytics", baseColor: "cyan", columns: 1 },
+        { title: "Toutes les Photos", description: "Bucket R2 Cloud", icon: "Camera", category: "STUDIO", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "all", baseColor: "red", columns: 1 },
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
         { title: "Tracklists", description: "Vérifier & Valider", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "musique_releases", baseColor: "purple", columns: 1 },
 
@@ -2753,6 +2756,9 @@ export function AdminDashboard() {
                                                     } else if (action.title === 'Statistiques') {
                                                         e.preventDefault();
                                                         setIsStatsModalOpen(true);
+                                                    } else if (action.title === 'Toutes les Photos') {
+                                                        e.preventDefault();
+                                                        setIsR2PhotosModalOpen(true);
                                                     } else if (action.title === 'Spotify') {
                                                         e.preventDefault();
                                                         setIsSpotifyModalOpen(true);
@@ -7673,6 +7679,11 @@ export function AdminDashboard() {
                     duplicateCount={duplicateSets.length}
                     isCleaningEncoding={maintenanceLoading}
                     onCleanEncoding={handleCleanEncoding}
+                />
+
+                <R2PhotosMenuModal
+                    isOpen={isR2PhotosModalOpen}
+                    onClose={() => setIsR2PhotosModalOpen(false)}
                 />
 
                 {/* Premium Global Alert Modal */}
