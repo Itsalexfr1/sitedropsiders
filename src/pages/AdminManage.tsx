@@ -408,7 +408,20 @@ export function AdminManage() {
 
     const handleUpdatePhoto = async (newImageUrl: string | string[]) => {
         if (!activePhotoId) return;
-        const actualUrl = Array.isArray(newImageUrl) ? newImageUrl[0] : newImageUrl;
+        let actualUrl = Array.isArray(newImageUrl) ? newImageUrl[0] : newImageUrl;
+
+        // Normalisation de l'URL pour éviter les doublons /uploads/uploads/
+        if (actualUrl.includes('dropsiders.fr/uploads/')) {
+            actualUrl = actualUrl.split('dropsiders.fr')[1];
+        }
+        
+        // Nettoyage des préfixes redondants
+        while (actualUrl.startsWith('/uploads/uploads/')) {
+            actualUrl = actualUrl.substring(8);
+        }
+        if (actualUrl.startsWith('uploads/uploads/')) {
+            actualUrl = '/' + actualUrl.substring(8);
+        }
 
         try {
             setLoading(true);

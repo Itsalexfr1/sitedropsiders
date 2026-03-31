@@ -329,6 +329,7 @@ export function AdminDashboard() {
             if (res.ok) {
                 const data = await res.json();
                 setGlobalAlert({ message: `Nettoyage fini : ${data.fixedFiles} fichiers corrigés !`, type: 'info' });
+                setIsScanMenuOpen(false);
             }
         } catch (e) {
             console.error(e);
@@ -349,6 +350,7 @@ export function AdminDashboard() {
             if (res.ok) {
                 const data = await res.json();
                 setGlobalAlert({ message: `Nettoyage fini : ${data.count} événements passés supprimés !`, type: 'info' });
+                setIsScanMenuOpen(false);
             }
         } catch (e) {
             console.error(e);
@@ -368,6 +370,7 @@ export function AdminDashboard() {
                 setTotalR2Count(data.totalR2Count || 0);
                 setUsedOnSiteCount(data.usedOnSiteCount || 0);
                 setIsUnusedImagesModalOpen(true);
+                setIsScanMenuOpen(false);
             }
         } catch (e) {
             console.error("Failed to fetch unused images", e);
@@ -1069,6 +1072,7 @@ export function AdminDashboard() {
             if (Array.isArray(data)) {
                 setDuplicateSets(data);
                 setIsDuplicatesModalOpen(true);
+                setIsScanMenuOpen(false);
             } else {
                 console.error("Erreur Doublons :", data);
                 // Si ce n'est pas un tableau, c'est probablement une erreur { error: "..." }
@@ -1092,6 +1096,7 @@ export function AdminDashboard() {
             if (data.success) {
                 setBrokenImages(data.broken);
                 setIsBrokenImagesModalOpen(true);
+                setIsScanMenuOpen(false);
                 if (data.broken.length === 0) {
                     setGlobalAlert({ message: 'Félicitations ! Aucune image cassée détectée.', type: 'info' });
                 } else {
@@ -6932,7 +6937,7 @@ export function AdminDashboard() {
                 {/* Duplicates Modal */}
                 <AnimatePresence>
                     {isDuplicatesModalOpen && (
-                        <div className="fixed inset-0 z-[110] flex items-center justify-center px-4">
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center px-4">
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
@@ -7104,7 +7109,7 @@ export function AdminDashboard() {
                 {/* Unused Images Modal */}
                 <AnimatePresence>
                     {isUnusedImagesModalOpen && (
-                        <div className="fixed inset-0 z-[110] flex items-center justify-center px-4">
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center px-4">
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
@@ -7504,7 +7509,7 @@ export function AdminDashboard() {
                 {/* Broken Images Modal */}
                 <AnimatePresence>
                     {isBrokenImagesModalOpen && (
-                        <div className="fixed inset-0 z-[110] flex items-center justify-center px-4">
+                        <div className="fixed inset-0 z-[200] flex items-center justify-center px-4">
                             <motion.div
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}

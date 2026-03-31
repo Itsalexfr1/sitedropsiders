@@ -1,7 +1,7 @@
 // Image Upload Modal component with Cloudflare R2 integration
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ChevronLeft, ChevronRight } from 'lucide-react';
 import { ImageCropper } from './ImageCropper';
 
 interface ImageUploadModalProps {
@@ -48,8 +48,14 @@ export function ImageUploadModal({
 
     const [selectedImages, setSelectedImages] = useState<{file: File | null, preview: string}[]>([]);
     const [isCropOpen, setIsCropOpen] = useState(false);
-    const [step, setStep] = useState<'idle' | 'preview'>(initialImage ? 'preview' : 'idle');
+    const [step, setStep] = useState<'idle' | 'preview' | 'gallery'>(initialImage ? 'preview' : 'idle');
     const [isWatermarkEnabled, setIsWatermarkEnabled] = useState(watermark);
+
+    // R2 State
+    const [r2Photos, setR2Photos] = useState<any[]>([]);
+    const [r2Loading, setR2Loading] = useState(false);
+    const [r2Cursor, setR2Cursor] = useState<string | null>(null);
+    const [r2History, setR2History] = useState<string[]>([]);
 
     useEffect(() => {
         if (isOpen && initialImage) {
@@ -62,6 +68,38 @@ export function ImageUploadModal({
             setUploadProgress(0);
         }
     }, [isOpen, initialImage]);
+
+    const fetchR2Photos = async (targetCursor?: string | null) => {
+        setR2Loading(true);
+        try {
+            const url = `/api/r2/list?limit=24${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}`;
+            const res = await fetch(url, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+            if (res.ok) {
+                const data = await res.json();
+                setR2Photos(data.objects || []);
+                setR2Cursor(data.cursor || null);
+            }
+        } catch (err) {
+            console.error('Failed to fetch R2 photos', err);
+        } finally {
+            setR2Loading(false);
+        }
+    };
+
+    const handleR2Next = () => {
+        if (r2Cursor) {
+            setR2History(prev => [...prev, r2Cursor]);
+            fetchR2Photos(r2Cursor);
+        }
+    };
+
+    const handleR2Back = () => {
+        const newHistory = [...r2History];
+        newHistory.pop();
+        const prevCursor = newHistory[newHistory.length - 1] || null;
+        setR2History(newHistory);
+        fetchR2Photos(prevCursor);
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files || []);
@@ -267,6 +305,44 @@ export function ImageUploadModal({
                                     <p className="font-bold text-white uppercase tracking-widest">Upload Terminé !</p>
                                     <p className="text-xs text-gray-400">Vos médias sont en ligne sur Dropsiders Cloud.</p>
                                 </div>
+                            ) : step === 'gallery' ? (
+                                <motion.div key="gallery" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-5">
+                                    <div className="flex justify-between items-center bg-white/5 p-3 rounded-2xl border border-white/10">
+                                        <div className="flex items-center gap-2">
+                                            <HardDrive className="w-4 h-4 text-neon-blue" />
+                                            <span className="font-black text-[10px] text-white uppercase tracking-widest">R2 Cloud Assets</span>
+                                        </div>
+                                        <button onClick={() => setStep('idle')} className="text-[10px] text-gray-400 hover:text-white font-bold uppercase transition-colors">Retour</button>
+                                    </div>
+
+                                    {r2Loading && r2Photos.length === 0 ? (
+                                        <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-neon-blue" /></div>
+                                    ) : (
+                                        <div className="grid grid-cols-3 sm:grid-cols-4 gap-2 max-h-64 overflow-y-auto no-scrollbar rounded-2xl">
+                                            {r2Photos.map(photo => (
+                                                <div 
+                                                    key={photo.key} 
+                                                    onClick={() => {
+                                                        setSelectedImages([{ file: null, preview: photo.url }]);
+                                                        setStep('preview');
+                                                    }}
+                                                    className="aspect-square bg-black border border-white/10 rounded-lg overflow-hidden cursor-pointer hover:border-neon-blue transition-colors relative group"
+                                                >
+                                                    <img src={photo.url} alt="" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                                                    <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-md p-1 translate-y-full group-hover:translate-y-0 transition-transform">
+                                                        <span className="text-[6px] text-white block truncate text-center">{photo.key.split('/').pop()}</span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    <div className="flex justify-between items-center px-2">
+                                        <button disabled={r2History.length === 0} onClick={handleR2Back} className="p-2 text-gray-400 hover:text-white disabled:opacity-30"><ChevronLeft className="w-4 h-4" /></button>
+                                        <span className="text-[8px] text-gray-600 font-bold uppercase tracking-widest">{r2Photos.length} fichiers (Page {r2History.length + 1})</span>
+                                        <button disabled={!r2Cursor} onClick={handleR2Next} className="p-2 text-gray-400 hover:text-white disabled:opacity-30"><ChevronRight className="w-4 h-4" /></button>
+                                    </div>
+                                </motion.div>
                             ) : step === 'preview' && selectedImages.length > 0 ? (
                                 <motion.div key="preview" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col gap-5">
                                     <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto no-scrollbar rounded-2xl border border-white/10 p-2 bg-black/40">
@@ -335,7 +411,7 @@ export function ImageUploadModal({
                                 </motion.div>
                             ) : (
                                 <>
-                                    <label className="block group cursor-pointer">
+                                    <label className="block group cursor-pointer w-full">
                                         <input type="file" accept="image/*,video/*" multiple={allowMultiple} className="hidden" onChange={handleFileChange} disabled={isUploading} />
                                         <div className={`p-12 bg-white/5 border-2 border-dashed ${isUploading ? 'border-neon-cyan' : 'border-white/10 group-hover:border-neon-pink/50'} rounded-[32px] flex flex-col items-center gap-4 transition-all hover:bg-white/[0.08]`}>
                                             <div className="flex gap-4">
@@ -348,6 +424,17 @@ export function ImageUploadModal({
                                             </div>
                                         </div>
                                     </label>
+
+                                    {!allowMultiple && (
+                                        <button 
+                                            type="button"
+                                            onClick={() => { setStep('gallery'); fetchR2Photos(); }}
+                                            className="w-full mt-4 flex items-center justify-center gap-3 p-4 bg-[#111] border border-white/5 rounded-2xl hover:bg-white/5 hover:border-white/20 transition-all group"
+                                        >
+                                            <HardDrive className="w-5 h-5 text-gray-600 group-hover:text-neon-blue transition-colors" />
+                                            <span className="text-[10px] font-black text-gray-500 group-hover:text-white uppercase tracking-widest transition-colors">Explorer les fichiers existants...</span>
+                                        </button>
+                                    )}
                                     
                                     {initialImage && (
                                         <button onClick={handleClear} className="w-full flex items-center justify-center gap-3 p-4 bg-red-500/5 border border-red-500/20 rounded-2xl text-red-500 hover:bg-red-500/10 transition-all group">

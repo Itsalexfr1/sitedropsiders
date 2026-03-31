@@ -709,22 +709,22 @@ export function NewsCreate() {
 
     // Confirm navigation handled by ConfirmationModal component in JSX
 
-    // Prompt before window reload/close
+    // Prompt before window reload/close supprimé pour éviter la fenêtre native Windows
     useEffect(() => {
-        const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-            if (isDirty) {
-                e.preventDefault();
-                e.returnValue = '';
-            }
-        };
-        window.addEventListener('beforeunload', handleBeforeUnload);
-        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+        // La protection se fait uniquement via le react router (ConfirmationModal)
     }, [isDirty]);
 
 
     useEffect(() => {
         if (!isEditing) {
             setCategory(type || 'News');
+            if (type === 'Musique') {
+                const today = new Date();
+                const dd = String(today.getDate()).padStart(2, '0');
+                const mm = String(today.getMonth() + 1).padStart(2, '0');
+                const yyyy = today.getFullYear();
+                setTitle(`Les Sorties de la Semaine - ${dd}/${mm}/${yyyy}`);
+            }
         }
     }, [type, isEditing]);
 
@@ -1415,13 +1415,12 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             }
         }
 
-        if (!isEditing && sendPush === null) {
+        if (!date) {
             setStatus('error');
-            setMessage('Veuillez choisir si vous souhaitez envoyer une notification push.');
-            // Scroll to the push section
-            const pushSection = document.querySelector('.bg-white\\/5.border-white\\/10.rounded-\\[2rem\\]');
-            if (pushSection) {
-                pushSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            setMessage('Veuillez remplir la date de publication.');
+            const dateSection = document.querySelector('.bg-white\\/5.border-white\\/10.rounded-\\[2rem\\]');
+            if (dateSection) {
+                dateSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
             return;
         }
@@ -1434,6 +1433,17 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
             let finalCategory = category;
             const isFocus = activeTab === 'Focus';
             let finalImageUrl = imageUrl;
+
+            // Normalisation de l'image (si on a un domaine ou un double préfixe)
+            if (finalImageUrl && finalImageUrl.includes('dropsiders.fr/uploads/')) {
+                finalImageUrl = finalImageUrl.split('dropsiders.fr')[1];
+            }
+            while (finalImageUrl && finalImageUrl.startsWith('/uploads/uploads/')) {
+                finalImageUrl = finalImageUrl.substring(8);
+            }
+            if (finalImageUrl && finalImageUrl.startsWith('uploads/uploads/')) {
+                finalImageUrl = '/' + finalImageUrl.substring(8);
+            }
 
             if (isInterviewVideo) {
                 finalCategory = interviewTheme === 'Interview' ? 'Interview Video' : `Interview Video - ${interviewTheme} `;
@@ -1522,8 +1532,7 @@ ${generateSocialsHtml()}
                 year: year || undefined,
                 isFocus,
                 isFeatured,
-                author,
-                sendPush
+                author
             };
 
             const endpoint = isEditing ? '/api/news/update' : '/api/news/create';
@@ -3336,47 +3345,28 @@ ${generateSocialsHtml()}
                     </div>
 
                     <div className="pt-6 flex flex-col gap-4">
-                        {/* Option Push Notification */}
-                        {!isEditing && (
-                            <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 mb-6 relative overflow-hidden group">
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-red via-neon-purple to-neon-blue opacity-50" />
-
-                                <div className="flex items-center gap-4 mb-6">
-                                    <div className="w-12 h-12 rounded-2xl bg-neon-red/10 flex items-center justify-center border border-neon-red/30 shadow-lg shadow-neon-red/5">
-                                        <Bell className="w-6 h-6 text-neon-red animate-pulse" />
-                                    </div>
-                                    <div>
-                                        <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">NOTIFICATION PUSH</h3>
-                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em]">Envoyer une alerte immédiate aux abonnés ?</p>
-                                    </div>
+                        {/* Option Date Obligatoire */}
+                        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 mb-6 relative overflow-hidden group">
+                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-orange to-neon-red opacity-50" />
+                            <div className="flex items-center gap-4 mb-6">
+                                <div className="w-12 h-12 rounded-2xl bg-neon-orange/10 flex items-center justify-center border border-neon-orange/30 shadow-lg shadow-neon-orange/5">
+                                    <Calendar className="w-6 h-6 text-neon-orange" />
                                 </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                    <StyledCheckbox
-                                        checked={sendPush === true}
-                                        onChange={(val) => setSendPush(val ? true : null)}
-                                        label="OUI, NOTIFIER"
-                                        sublabel="Alerte immédiate Mobile"
-                                        icon={Bell}
-                                        colorClass="neon-red"
-                                    />
-                                    <StyledCheckbox
-                                        checked={sendPush === false}
-                                        onChange={(val) => setSendPush(val ? false : null)}
-                                        label="NON, PAS DE PUSH"
-                                        sublabel="Publication silencieuse"
-                                        icon={X}
-                                        colorClass="white"
-                                    />
+                                <div>
+                                    <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-2">DATE DE PUBLICATION <span className="text-neon-red font-bold">*</span></h3>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em]">Cadre obligatoire pour dater l'actualité</p>
                                 </div>
-                                {sendPush === null && (
-                                    <div className="mt-4 flex items-center justify-center gap-2 px-4 py-2 bg-neon-red/10 rounded-lg border border-neon-red/20 animate-pulse">
-                                        <AlertCircle className="w-3.5 h-3.5 text-neon-red" />
-                                        <span className="text-[9px] text-neon-red font-black uppercase tracking-widest">Choix obligatoire avant publication</span>
-                                    </div>
-                                )}
                             </div>
-                        )}
+                            <div className="relative group/date">
+                                <input
+                                    type="datetime-local"
+                                    value={date}
+                                    onChange={(e) => setDate(e.target.value)}
+                                    required
+                                    className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 px-4 text-white font-bold tracking-widest focus:border-neon-orange outline-none transition-all placeholder-gray-600 focus:bg-white/[0.02]"
+                                />
+                            </div>
+                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <button
