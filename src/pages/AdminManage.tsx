@@ -104,7 +104,6 @@ export function AdminManage() {
     const [searchTerm, setSearchTerm] = useState(initialSearch);
     const [deleteStatus, setDeleteStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
     const [message, setMessage] = useState('');
-    const [loadingEditId, setLoadingEditId] = useState<number | string | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<{ id: number | string, title: string } | null>(null);
     const [isImageModalOpen, setIsImageModalOpen] = useState(false);
     const [activePhotoId, setActivePhotoId] = useState<number | string | null>(null);
@@ -319,64 +318,30 @@ export function AdminManage() {
         }
     };
 
-    const handleEdit = async (item: any) => {
-        setLoadingEditId(item.id);
+    const handleEdit = (item: any) => {
         const isInterview = item.category === 'Interview' || item.category === 'Interviews' || item.category === 'Interview Video' || activeTab === 'Interviews';
         const isMusique = item.category === 'Musique' || activeTab === 'Musique';
 
-        try {
-            const contentEndpoint =
-                activeTab === 'Recaps' ? `/api/recaps/content?id=${item.id}` : `/api/news/content?id=${item.id}`;
-
-            const isContentTab = activeTab !== 'Agenda' && activeTab !== 'Communauté';
-
-            let fullItem = { ...item };
-
-            if (isContentTab) {
-                const res = await fetch(contentEndpoint, { headers: getAuthHeaders() });
-                if (res.ok) {
-                    const data = await res.json();
-                    fullItem = { ...item, content: data.content || '' };
-                }
-            }
-
-            let editPath = '';
-            if (activeTab === 'Recaps') {
-                editPath = `/recaps/create?id=${item.id}`;
-            } else if (isInterview) {
-                editPath = `/news/create?type=Interview&id=${item.id}`;
-            } else if (isMusique) {
-                editPath = `/news/create?type=Musique&id=${item.id}`;
-            } else if (activeTab === 'Agenda') {
-                setEditingAgendaItem(fullItem);
-                setIsAgendaModalOpen(true);
-                return;
-            } else if (activeTab === 'Communauté') {
-                editPath = `/galerie/create?id=${item.id}`;
-            } else if (activeTab === 'Focus') {
-                editPath = `/news/create?tab=Focus&id=${item.id}`;
-            } else {
-                editPath = `/news/create?id=${item.id}`;
-            }
-
-            navigate(editPath, { state: { isEditing: true, item: fullItem } });
-        } catch (e: any) {
-            console.error('Error fetching content for edit:', e);
-            // Toujours naviguer même en cas d'erreur de chargement du contenu
-            const fallbackPath = isInterview ? `/news/create?type=Interview&id=${item.id}` :
-                isMusique ? `/news/create?type=Musique&id=${item.id}` :
-                        activeTab === 'Agenda' ? '' :
-                            activeTab === 'Communauté' ? `/galerie/create?id=${item.id}` :
-                                `/news/create?id=${item.id}`;
-            if (activeTab === 'Agenda') {
-                setEditingAgendaItem(item);
-                setIsAgendaModalOpen(true);
-            } else {
-                navigate(fallbackPath, { state: { isEditing: true, item: item } });
-            }
-        } finally {
-            setLoadingEditId(null);
+        let editPath = '';
+        if (activeTab === 'Recaps') {
+            editPath = `/recaps/create?id=${item.id}`;
+        } else if (isInterview) {
+            editPath = `/news/create?type=Interview&id=${item.id}`;
+        } else if (isMusique) {
+            editPath = `/news/create?type=Musique&id=${item.id}`;
+        } else if (activeTab === 'Agenda') {
+            setEditingAgendaItem(item);
+            setIsAgendaModalOpen(true);
+            return;
+        } else if (activeTab === 'Communauté') {
+            editPath = `/galerie/create?id=${item.id}`;
+        } else if (activeTab === 'Focus') {
+            editPath = `/news/create?tab=Focus&id=${item.id}`;
+        } else {
+            editPath = `/news/create?id=${item.id}`;
         }
+
+        navigate(editPath, { state: { isEditing: true, item } });
     };
 
     const handleToggleFeatured = async (item: any) => {
@@ -1039,14 +1004,10 @@ export function AdminManage() {
                                                     {canEdit && (
                                                         <button
                                                             onClick={() => handleEdit(item)}
-                                                            disabled={loadingEditId === item.id}
-                                                            className="p-3 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-xl transition-all focus:opacity-100 disabled:cursor-wait"
+                                                            className="p-3 text-gray-500 hover:text-neon-cyan hover:bg-neon-cyan/10 rounded-xl transition-all"
                                                             title="Modifier"
                                                         >
-                                                            {loadingEditId === item.id
-                                                                ? <Loader2 className="w-5 h-5 animate-spin text-neon-cyan" />
-                                                                : <Pencil className="w-5 h-5" />
-                                                            }
+                                                            <Pencil className="w-5 h-5" />
                                                         </button>
                                                     )}
                                                     {activeTab === 'Interviews' && (

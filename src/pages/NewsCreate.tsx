@@ -630,9 +630,9 @@ export function NewsCreate() {
             initialDataLoaded.current = true;
         };
 
-        if (editingItem) {
+        if (editingItem && editingItem.content) {
             console.log('[NewsCreate] Using item from state:', editingItem.id);
-            parseAndInitialize(editingItem, editingItem.content || '');
+            parseAndInitialize(editingItem, editingItem.content);
             return;
         }
 
@@ -640,6 +640,9 @@ export function NewsCreate() {
             setIsLoading(false);
             return;
         }
+
+        // If editingItem is present but NO content, or no editingItem at all, fetch it
+        setIsLoading(true);
 
         console.log('[NewsCreate] Fetching item from API:', id);
         setIsLoading(true);
