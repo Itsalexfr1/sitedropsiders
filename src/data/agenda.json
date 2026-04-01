@@ -5617,5 +5617,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 521,
+    "title": "EDC Week : Knock2",
+    "date": "2026-05-14",
+    "startDate": "2026-05-14",
+    "endDate": "2026-05-14",
+    "venue": "Liv Beach",
+    "location": "LIV NIGHTCLUB MIAMI",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/9231db5bfc989bcd-40914866253.jpeg",
+    "url": "https://www.livnightclub.com/las-vegas/event/EVE121488100020260514/knock2-edc-week/",
+    "genre": "Big Room",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
