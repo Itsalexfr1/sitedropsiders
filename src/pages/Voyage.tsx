@@ -127,6 +127,8 @@ export function Voyage() {
     const [error, setError] = useState<string | null>(null);
     const [results, setResults] = useState<any[]>([]);
     const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [sortType, setSortType] = useState('price');
+    const [visibleCount, setVisibleCount] = useState(10);
     const [searchStatus, setSearchStatus] = useState('');
     const statusMessages = ["Contact de la base de données...", "Scan des compagnies (V2)...", "Comparaison de 4 000+ routes...", "Optimisation des tarifs...", "Vérification des disponibilités..."];
 
@@ -235,11 +237,13 @@ export function Voyage() {
                 }
 
                 const mappedResults = offers
-                    .sort((a: any, b: any) => parseFloat(a.total_amount) - parseFloat(b.total_amount))
-                    .slice(0, 10)
                     .map((offer: any) => {
                         const slice = offer.slices[0];
                         const segments = slice.segments;
+                        const match = slice.duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+                        const h = parseInt(match[1] || '0');
+                        const m = parseInt(match[2] || '0');
+                        const durationMinutes = (h * 60) + m;
                         const stopCodes = segments.length > 1 
                             ? segments.slice(0, -1).map((s: any) => s.destination.iata_code).join(', ')
                             : null;
@@ -248,8 +252,9 @@ export function Voyage() {
                             id: offer.id,
                             company: offer.owner.name,
                             iata: offer.owner.iata_code,
-                            price: offer.total_amount,
+                            price: parseFloat(offer.total_amount),
                             duration: slice.duration.replace('PT', '').replace('H', 'h ').replace('M', 'm').toLowerCase(),
+                            duration_minutes: durationMinutes,
                             stops: segments.length - 1,
                             stopCodes,
                             departureTime: new Date(segments[0].departing_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
@@ -282,6 +287,13 @@ export function Voyage() {
         openSearchRedirect(travelType === 'flight' ? flightProvider : busProvider);
         setIsSearching(false);
     };
+
+    const sortedResults = [...results].sort((a: any, b: any) => {
+        if (sortType === 'price') return a.price - b.price;
+        if (sortType === 'duration') return a.duration_minutes - b.duration_minutes;
+        if (sortType === 'stops') return a.stops - b.stops;
+        return 0;
+    });
 
     return (
         <div className="min-h-screen bg-[#050505] pb-32">
@@ -478,26 +490,41 @@ export function Voyage() {
 
                         {results.length > 0 && !isSearching && (
                             <motion.div 
-                                key="results"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
                                 className="mt-12 space-y-6"
                             >
-                                <div className="flex items-center justify-between mb-8 px-4 font-display italic uppercase">
+                                {/* Results Header & Sort */}
+                                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10 px-4">
                                     <div className="flex items-center gap-4">
-                                        <h3 className="text-3xl font-black text-white tracking-tighter">OFFRES TROUVÉES</h3>
+                                        <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">OFFRES TROUVÉES</h3>
                                         <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                                            <span className="text-[9px] font-black text-green-500 tracking-[0.2em]">PRIX EN DIRECT</span>
+                                            <span className="text-[9px] font-black text-green-500 tracking-[0.2em]">{results.length} VOLS DISPONIBLES</span>
                                         </div>
                                     </div>
-                                    <div className="flex items-center gap-3 text-[10px] font-black text-neon-red tracking-widest px-4 py-1.5 bg-neon-red/5 border border-neon-red/10 rounded-full">
-                                        MEILLEUR PRIX <Filter className="w-3 h-3" />
+
+                                    <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5">
+                                        {[
+                                            { id: 'price', label: 'Moins cher', icon: Zap },
+                                            { id: 'duration', label: 'Plus rapide', icon: Clock },
+                                            { id: 'stops', label: 'Escale min.', icon: Filter }
+                                        ].map((s) => (
+                                            <button
+                                                key={s.id}
+                                                onClick={() => setSortType(s.id)}
+                                                className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                    sortType === s.id ? 'bg-white text-black shadow-2xl' : 'text-gray-500 hover:text-white'
+                                                }`}
+                                            >
+                                                <s.icon className="w-3.5 h-3.5" />
+                                                {s.label}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
                                 
-                                {results.map((r, idx) => (
+                                {sortedResults.slice(0, visibleCount).map((r, idx) => (
                                     <motion.div 
                                         key={r.id}
                                         initial={{ opacity: 0, y: 20 }}
@@ -667,6 +694,24 @@ export function Voyage() {
                                         </AnimatePresence>
                                     </motion.div>
                                 ))}
+
+                                {/* VOIR PLUS button */}
+                                {sortedResults.length > visibleCount && (
+                                    <motion.div
+                                        initial={{ opacity: 0 }}
+                                        animate={{ opacity: 1 }}
+                                        className="flex justify-center pt-4"
+                                    >
+                                        <button
+                                            onClick={() => setVisibleCount(v => v + 10)}
+                                            className="px-12 py-5 border border-white/10 bg-white/5 text-white rounded-2xl font-black uppercase text-[11px] tracking-[0.3em] hover:bg-white hover:text-black transition-all flex items-center gap-3"
+                                        >
+                                            <ChevronDown className="w-4 h-4" />
+                                            VOIR PLUS DE RÉSULTATS ({sortedResults.length - visibleCount} restants)
+                                        </button>
+                                    </motion.div>
+                                )}
+
                             </motion.div>
                         )}
                     </AnimatePresence>
