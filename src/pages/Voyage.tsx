@@ -216,8 +216,7 @@ export function Voyage() {
                                 { origin: depCode.toUpperCase(), destination: destCode.toUpperCase(), departure_date: date },
                                 ...(isRoundTrip && returnDate ? [{ origin: destCode.toUpperCase(), destination: depCode.toUpperCase(), departure_date: returnDate }] : [])
                             ],
-                            passengers: [{ type: "adult" }],
-                            return_offers: true
+                            passengers: [{ type: "adult" }]
                         }
                     })
                 });
@@ -255,7 +254,7 @@ export function Voyage() {
                             company: offer.owner.name,
                             iata: offer.owner.iata_code,
                             price: parseFloat(offer.total_amount),
-                            duration: slice.duration.replace('PT', '').replace('H', 'h ').replace('M', 'm').toLowerCase(),
+                            duration: (slice.duration || '').replace('PT', '').replace('H', 'h ').replace('M', 'm').toLowerCase(),
                             duration_minutes: durationMinutes,
                             stops: segments.length - 1,
                             stopCodes,
@@ -272,7 +271,7 @@ export function Voyage() {
                                 marketing_carrier: s.marketing_carrier.name,
                                 marketing_carrier_iata: s.marketing_carrier.iata_code,
                                 flight_number: s.marketing_carrier_flight_number,
-                                duration: s.duration.replace('PT', '').replace('H', 'h ').replace('M', 'm').toLowerCase()
+                                duration: (s.duration || '').replace('PT', '').replace('H', 'h ').replace('M', 'm').toLowerCase()
                             }))
                         };
                     });
