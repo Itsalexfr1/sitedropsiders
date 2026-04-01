@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plane, Bus, Calendar, MapPin, ArrowRightLeft, Navigation, ArrowRight, Zap, Info, ExternalLink, Filter, HelpCircle } from 'lucide-react';
+import { Plane, Bus, Calendar, MapPin, ArrowRightLeft, Navigation, ArrowRight, Zap, Info, ExternalLink, Filter, HelpCircle, ChevronDown, Clock } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CovoitSection } from '../components/community/CovoitSection';
@@ -138,6 +138,22 @@ export function Voyage() {
     const [isSearching, setIsSearching] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [results, setResults] = useState<any[]>([]);
+    const [expandedId, setExpandedId] = useState<string | null>(null);
+    const [searchStatus, setSearchStatus] = useState('');
+    const statusMessages = ["Contact de la base de données...", "Scan des compagnies (V2)...", "Comparaison de 4 000+ routes...", "Optimisation des tarifs...", "Vérification des disponibilités..."];
+
+    useEffect(() => {
+        if (isSearching) {
+            let i = 0;
+            const interval = setInterval(() => {
+                setSearchStatus(statusMessages[i % statusMessages.length]);
+                i++;
+            }, 1000);
+            return () => clearInterval(interval);
+        } else {
+            setSearchStatus('');
+        }
+    }, [isSearching]);
 
     const covoitRef = useRef<HTMLDivElement>(null);
     const scrollToCovoit = () => covoitRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -180,6 +196,11 @@ export function Voyage() {
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSearching(true);
+        setError(null);
+        setResults([]);
+        setExpandedId(null);
+        
         const depCode = depObj.iata || depObj.name;
         const destCode = destObj.iata || destObj.name;
 
@@ -216,7 +237,6 @@ export function Voyage() {
                 }
                 const data = await response.json();
                 
-                // If it's a proxy error from our worker
                 if (data.error) throw new Error(`Proxy: ${data.error}`);
                 
                 const offers = data.data?.offers || [];
@@ -231,15 +251,34 @@ export function Voyage() {
                     .slice(0, 10)
                     .map((offer: any) => {
                         const slice = offer.slices[0];
+                        const segments = slice.segments;
+                        const stopCodes = segments.length > 1 
+                            ? segments.slice(0, -1).map((s: any) => s.destination.iata_code).join(', ')
+                            : null;
+
                         return {
                             id: offer.id,
                             company: offer.owner.name,
                             iata: offer.owner.iata_code,
                             price: offer.total_amount,
-                            duration: slice.duration.replace('PT', '').replace('H', 'h').replace('M', 'm').toLowerCase(),
-                            stops: slice.segments.length - 1,
-                            departureTime: new Date(slice.segments[0].departing_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
-                            arrivalTime: new Date(slice.segments[slice.segments.length - 1].arriving_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
+                            duration: slice.duration.replace('PT', '').replace('H', 'h ').replace('M', 'm').toLowerCase(),
+                            stops: segments.length - 1,
+                            stopCodes,
+                            departureTime: new Date(segments[0].departing_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
+                            arrivalTime: new Date(segments[segments.length - 1].arriving_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
+                            departureIata: segments[0].origin.iata_code,
+                            arrivalIata: segments[segments.length - 1].destination.iata_code,
+                            allSegments: segments.map((s: any) => ({
+                                id: s.id,
+                                origin: s.origin.iata_code,
+                                destination: s.destination.iata_code,
+                                departing_at: s.departing_at,
+                                arriving_at: s.arriving_at,
+                                marketing_carrier: s.marketing_carrier.name,
+                                marketing_carrier_iata: s.marketing_carrier.iata_code,
+                                flight_number: s.marketing_carrier_flight_number,
+                                duration: s.duration.replace('PT', '').replace('H', 'h ').replace('M', 'm').toLowerCase()
+                            }))
                         };
                     });
 
@@ -391,8 +430,10 @@ export function Voyage() {
                     <AnimatePresence mode="wait">
                         {error && (
                             <motion.div 
+                                key="error"
                                 initial={{ opacity: 0, y: 10 }}
                                 animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -10 }}
                                 className="mt-8 p-8 bg-neon-red/5 border-2 border-neon-red/20 rounded-[40px] flex flex-col gap-6"
                             >
                                 <div className="flex gap-5 items-start">
@@ -422,79 +463,220 @@ export function Voyage() {
                         )}
 
                         {isSearching && (
-                            <div className="mt-12 space-y-4">
-                                <SkeletonCard />
-                                <SkeletonCard />
-                            </div>
+                            <motion.div 
+                                key="loading"
+                                initial={{ opacity: 0, y: 20 }}
+                                animate={{ opacity: 1, y: 0 }}
+                                exit={{ opacity: 0, y: -20 }}
+                                className="mt-20 flex flex-col items-center gap-10 py-10"
+                            >
+                                <div className="relative">
+                                    <div className="w-24 h-24 border-b-4 border-neon-red rounded-full animate-spin"></div>
+                                    <div className="absolute inset-0 flex items-center justify-center">
+                                        <Zap className="w-8 h-8 text-white animate-pulse" />
+                                    </div>
+                                </div>
+                                <div className="text-center space-y-4">
+                                    <h3 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter">ANALYSE EN COURS</h3>
+                                    <div className="flex flex-col items-center gap-2">
+                                        <div className="px-4 py-1.5 bg-neon-red/10 border border-neon-red/20 rounded-full">
+                                            <span className="text-[11px] font-black text-neon-red uppercase tracking-[0.3em]">{searchStatus}</span>
+                                        </div>
+                                        <p className="text-[10px] font-black text-gray-700 uppercase tracking-[0.5em] mt-2">DÉCRYPTAGE DU FLUX DUFFEL v2</p>
+                                    </div>
+                                </div>
+                            </motion.div>
                         )}
 
                         {results.length > 0 && !isSearching && (
                             <motion.div 
+                                key="results"
                                 initial={{ opacity: 0 }}
                                 animate={{ opacity: 1 }}
-                                className="mt-12 space-y-4"
+                                exit={{ opacity: 0 }}
+                                className="mt-12 space-y-6"
                             >
                                 <div className="flex items-center justify-between mb-8 px-4 font-display italic uppercase">
-                                    <h3 className="text-3xl font-black text-white tracking-tighter">RÉSULTATS DIRECTS</h3>
+                                    <div className="flex items-center gap-4">
+                                        <h3 className="text-3xl font-black text-white tracking-tighter">OFFRES TROUVÉES</h3>
+                                        <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full flex items-center gap-2">
+                                            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                                            <span className="text-[9px] font-black text-green-500 tracking-[0.2em]">PRIX EN DIRECT</span>
+                                        </div>
+                                    </div>
                                     <div className="flex items-center gap-3 text-[10px] font-black text-neon-red tracking-widest px-4 py-1.5 bg-neon-red/5 border border-neon-red/10 rounded-full">
-                                        TRIÉ PAR PRIX <Filter className="w-3 h-3" />
+                                        MEILLEUR PRIX <Filter className="w-3 h-3" />
                                     </div>
                                 </div>
+                                
                                 {results.map((r, idx) => (
                                     <motion.div 
                                         key={r.id}
-                                        initial={{ opacity: 0, x: -20 }}
-                                        animate={{ opacity: 1, x: 0 }}
+                                        initial={{ opacity: 0, y: 20 }}
+                                        animate={{ opacity: 1, y: 0 }}
                                         transition={{ delay: idx * 0.05 }}
-                                        className="bg-[#0c0c0c] border border-white/5 rounded-[32px] p-8 md:p-10 flex flex-col md:flex-row justify-between items-center gap-10 hover:border-neon-red/30 transition-all group"
+                                        className="bg-[#0c0c0c] border border-white/5 rounded-[32px] overflow-hidden hover:border-neon-red/30 transition-all group shadow-2xl"
                                     >
-                                        <div className="flex items-center gap-8 w-full md:w-auto">
-                                            <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/5 shrink-0">
-                                                <img 
-                                                    src={`https://logos.skyscnr.com/images/airlines/favicon/${r.iata}.png`} 
-                                                    alt={r.company}
-                                                    onError={(e: any) => e.target.src = 'https://cdn-icons-png.flaticon.com/512/780/780614.png'} 
-                                                    className="w-10 h-10 object-contain brightness-150"
-                                                />
-                                            </div>
-                                            <div className="space-y-4 flex-1">
-                                                <div className="flex items-center gap-3">
-                                                    <span className="text-sm font-black text-white uppercase italic tracking-tight">{r.company}</span>
-                                                    <span className={`text-[9px] font-black px-2 py-0.5 border rounded-md uppercase ${r.stops === 0 ? 'text-green-500 border-green-500/20 bg-green-500/5' : 'text-neon-red border-neon-red/20 bg-neon-red/5'}`}>
-                                                        {r.stops === 0 ? 'DIRECT' : `${r.stops} ESCALE(S)`}
-                                                    </span>
+                                        <div className="p-8 md:p-10 flex flex-col lg:flex-row justify-between items-center gap-10">
+                                            <div className="flex items-center gap-8 w-full lg:w-auto">
+                                                <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center border border-white/5 shrink-0 relative order-1 lg:order-none">
+                                                    <img 
+                                                        src={`https://logos.skyscnr.com/images/airlines/favicon/${r.iata}.png`} 
+                                                        alt={r.company}
+                                                        onError={(e: any) => e.target.src = 'https://cdn-icons-png.flaticon.com/512/780/780614.png'} 
+                                                        className="w-12 h-12 object-contain brightness-150"
+                                                    />
                                                 </div>
-                                                <div className="flex items-center gap-6">
-                                                    <div className="text-center min-w-[60px]">
-                                                        <div className="text-xl font-black text-white">{r.departureTime}</div>
-                                                        <div className="text-[9px] font-bold text-gray-700 uppercase tracking-widest mt-1">DÉPART</div>
+                                                
+                                                <div className="flex-1 space-y-6">
+                                                    <div className="flex items-center gap-4">
+                                                        <span className="text-base font-black text-white uppercase italic tracking-tighter group-hover:text-neon-red transition-colors">{r.company}</span>
+                                                        <span className={`text-[10px] font-black px-3 py-1 border rounded-lg uppercase tracking-widest ${r.stops === 0 ? 'text-green-500 border-green-500/20 bg-green-500/5' : 'text-neon-red border-neon-red/20 bg-neon-red/5'}`}>
+                                                            {r.stops === 0 ? 'DIRECT' : `${r.stops} ESCALE(S)`}
+                                                        </span>
                                                     </div>
-                                                    <div className="flex-1 min-w-[80px] flex flex-col items-center gap-1.5 opacity-40">
-                                                        <div className="text-[8px] font-black text-gray-400 italic">{r.duration}</div>
-                                                        <div className="h-[1px] w-full bg-white/20 relative">
-                                                            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1 h-1 bg-white rounded-full" />
+
+                                                    <div className="flex items-center gap-8">
+                                                        <div className="text-center min-w-[70px]">
+                                                            <div className="text-2xl font-black text-white tracking-tight">{r.departureTime}</div>
+                                                            <div className="text-[10px] font-black text-gray-700 uppercase tracking-widest mt-1.5">{r.departureIata}</div>
+                                                        </div>
+
+                                                        <div className="flex-1 min-w-[140px] flex flex-col items-center gap-3">
+                                                            <div className="text-[9px] font-black text-gray-500 italic uppercase tracking-[0.2em]">{r.duration}</div>
+                                                            <div className="relative w-full h-[2px] bg-white/5 rounded-full">
+                                                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+                                                                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-white/10 rounded-full border border-white/5" />
+                                                                
+                                                                {/* Layover markers */}
+                                                                {r.stops > 0 && Array.from({length: r.stops}).map((_, i) => (
+                                                                    <div 
+                                                                        key={i} 
+                                                                        className="absolute w-1.5 h-1.5 bg-neon-red/40 border border-neon-red/20 rounded-full top-1/2 -translate-y-1/2" 
+                                                                        style={{ left: `${((i + 1) / (r.stops + 1)) * 100}%` }}
+                                                                    />
+                                                                ))}
+
+                                                                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-2 h-2 bg-neon-red/30 rounded-full border border-neon-red/20 animate-pulse" />
+                                                            </div>
+                                                            {r.stopCodes && (
+                                                                <div className="text-[8px] font-black text-neon-red/40 uppercase tracking-widest bg-neon-red/[0.03] px-2 py-0.5 rounded-md">
+                                                                    Escale: {r.stopCodes}
+                                                                </div>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="text-center min-w-[70px]">
+                                                            <div className="text-2xl font-black text-white tracking-tight">{r.arrivalTime}</div>
+                                                            <div className="text-[10px] font-black text-gray-700 uppercase tracking-widest mt-1.5">{r.arrivalIata}</div>
                                                         </div>
                                                     </div>
-                                                    <div className="text-center min-w-[60px]">
-                                                        <div className="text-xl font-black text-white">{r.arrivalTime}</div>
-                                                        <div className="text-[9px] font-bold text-gray-700 uppercase tracking-widest mt-1">ARRIVÉE</div>
-                                                    </div>
                                                 </div>
+                                            </div>
+
+                                            <div className="flex flex-row lg:flex-col items-center lg:items-end justify-between w-full lg:w-auto gap-8 pt-8 lg:pt-0 border-t lg:border-t-0 border-white/5">
+                                                <div className="text-left lg:text-right">
+                                                    <div className="flex items-baseline gap-1">
+                                                        <div className="text-5xl lg:text-6xl font-display font-black text-white group-hover:scale-110 transition-transform origin-right">{Math.round(r.price)}<span className="text-xl ml-1 italic">€</span></div>
+                                                    </div>
+                                                    <p className="text-[10px] font-black text-green-500 uppercase tracking-[0.3em] mt-2 flex items-center gap-2 justify-end">
+                                                        <Zap className="w-3 h-3" /> MEILLEURE OFFRE
+                                                    </p>
+                                                </div>
+                                                
+                                                <button 
+                                                    onClick={() => openSearchRedirect('skyscanner')}
+                                            className="px-10 py-5 bg-white text-black rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] hover:bg-neon-red hover:text-white transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] flex items-center gap-3 shrink-0 active:scale-95"
+                                                >
+                                                    RÉSERVER <ArrowRight className="w-4 h-4" />
+                                                </button>
                                             </div>
                                         </div>
 
-                                        <div className="flex items-center gap-10 w-full md:w-auto md:text-right border-t md:border-t-0 border-white/5 pt-8 md:pt-0">
-                                            <div className="flex-1">
-                                                <div className="text-5xl font-display font-black text-white">{r.price}<span className="text-lg ml-1 italic">€</span></div>
-                                                <div className="text-[10px] font-bold text-green-500 uppercase tracking-widest mt-1">PRIX DIRECT ✅</div>
+                                        {/* Expandable Info Bar */}
+                                        <div className="bg-white/[0.02] border-t border-white/5 px-8 py-4 flex items-center justify-between">
+                                            <div className="flex gap-6">
+                                                <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-2">
+                                                    <Info className="w-3 h-3" /> BAGAGE CABINE INCLUS
+                                                </span>
+                                                <button 
+                                                    onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
+                                                    className="text-[9px] font-black text-neon-red uppercase tracking-widest flex items-center gap-2 hover:text-white transition-colors"
+                                                >
+                                                    <ChevronDown className={`w-3 h-3 transition-transform duration-500 ${expandedId === r.id ? 'rotate-180' : ''}`} /> 
+                                                    {expandedId === r.id ? 'MASQUER LES DÉTAILS' : 'VOIR LES ESCALES ET DÉTAILS'}
+                                                </button>
                                             </div>
-                                            <button 
-                                                onClick={() => openSearchRedirect('skyscanner')}
-                                                className="px-8 py-5 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-neon-red hover:text-white transition-all shadow-2xl flex items-center gap-2"
-                                            >
-                                                VOIR <ExternalLink className="w-3 h-3" />
-                                            </button>
+                                            <div className="hidden md:block">
+                                                 <span className="text-[9px] font-black text-neon-red uppercase tracking-[0.2em] italic">Dernières places à ce prix</span>
+                                            </div>
                                         </div>
+
+                                        {/* Detailed Breakdown */}
+                                        <AnimatePresence>
+                                            {expandedId === r.id && (
+                                                <motion.div 
+                                                    initial={{ height: 0, opacity: 0 }}
+                                                    animate={{ height: 'auto', opacity: 1 }}
+                                                    exit={{ height: 0, opacity: 0 }}
+                                                    className="overflow-hidden bg-black/40 border-t border-white/5"
+                                                >
+                                                    <div className="p-8 space-y-8">
+                                                        {r.allSegments.map((segment: any, sIdx: number) => (
+                                                            <div key={segment.id} className="relative">
+                                                                {/* Connection Line */}
+                                                                {sIdx < r.allSegments.length - 1 && (
+                                                                    <div className="absolute left-[21px] top-12 bottom-0 w-[1px] bg-dashed-white border-l border-white/10" />
+                                                                )}
+                                                                
+                                                                <div className="flex gap-10">
+                                                                    <div className="w-11 h-11 bg-white/5 rounded-xl border border-white/5 flex items-center justify-center shrink-0">
+                                                                        <img 
+                                                                            src={`https://logos.skyscnr.com/images/airlines/favicon/${segment.marketing_carrier_iata}.png`} 
+                                                                            alt={segment.marketing_carrier}
+                                                                            className="w-7 h-7 object-contain"
+                                                                        />
+                                                                    </div>
+                                                                    
+                                                                    <div className="flex-1 space-y-4">
+                                                                        <div className="flex items-center justify-between">
+                                                                            <span className="text-[10px] font-black text-white uppercase tracking-widest">
+                                                                                {segment.marketing_carrier} • {segment.marketing_carrier_iata}{segment.flight_number}
+                                                                            </span>
+                                                                            <span className="text-[10px] font-bold text-gray-500 uppercase">{segment.duration}</span>
+                                                                        </div>
+                                                                        
+                                                                        <div className="flex items-center gap-10">
+                                                                            <div>
+                                                                                <div className="text-lg font-black text-white">{new Date(segment.departing_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</div>
+                                                                                <div className="text-[9px] font-bold text-gray-600 uppercase mt-1">{segment.origin}</div>
+                                                                            </div>
+                                                                            <ArrowRight className="w-4 h-4 text-white/20" />
+                                                                            <div>
+                                                                                <div className="text-lg font-black text-white">{new Date(segment.arriving_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}</div>
+                                                                                <div className="text-[9px] font-bold text-gray-600 uppercase mt-1">{segment.destination}</div>
+                                                                            </div>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Layover Info */}
+                                                                {sIdx < r.allSegments.length - 1 && (
+                                                                    <div className="ml-21 py-6">
+                                                                        <div className="inline-flex items-center gap-3 px-4 py-2 bg-neon-red/5 border border-neon-red/10 rounded-full">
+                                                                            <Clock className="w-3 h-3 text-neon-red" />
+                                                                            <span className="text-[9px] font-black text-neon-red uppercase tracking-widest">
+                                                                                Escale à {segment.destination}
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </motion.div>
+                                            )}
+                                        </AnimatePresence>
                                     </motion.div>
                                 ))}
                             </motion.div>

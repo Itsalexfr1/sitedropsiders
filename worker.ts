@@ -1623,10 +1623,17 @@ ${urls.map(u => `  <url>
         }
 
         if (path === '/api/voyage/search' && request.method === 'POST') {
-            const DUFFEL_KEY = env.DUFFEL_API_KEY;
-            if (!DUFFEL_KEY) return new Response(JSON.stringify({ error: 'Config error' }), { status: 500, headers });
+            const DUFFEL_KEY = env.DUFFEL_API_KEY || env.VITE_DUFFEL_API_KEY;
+            if (!DUFFEL_KEY) return new Response(JSON.stringify({ error: 'Duffel API key missing in environment' }), { status: 500, headers });
+            
             try {
                 const body = await request.json();
+                
+                // Add default passengers if missing
+                if (!body.data.passengers) {
+                    body.data.passengers = [{ type: "adult" }];
+                }
+
                 const res = await fetch('https://api.duffel.com/air/offer_requests', {
                     method: 'POST',
                     headers: {
@@ -1637,10 +1644,20 @@ ${urls.map(u => `  <url>
                     },
                     body: JSON.stringify(body)
                 });
+                
                 const data = await res.json();
-                return new Response(JSON.stringify(data), { status: res.status, headers });
-            } catch (e) {
-                return new Response(JSON.stringify({ error: 'Proxy error' }), { status: 500, headers });
+                
+                if (!res.ok) {
+                    console.error('Duffel API Error:', data);
+                    return new Response(JSON.stringify({ 
+                        error: data.errors?.[0]?.message || 'Duffel API Error',
+                        details: data 
+                    }), { status: res.status, headers });
+                }
+
+                return new Response(JSON.stringify(data), { status: 200, headers });
+            } catch (e: any) {
+                return new Response(JSON.stringify({ error: 'Proxy error', details: e.message }), { status: 500, headers });
             }
         }
 
