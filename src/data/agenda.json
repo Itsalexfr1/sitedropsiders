@@ -6206,5 +6206,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 552,
+    "title": "EDC Week : John Summit",
+    "date": "2026-05-17",
+    "startDate": "2026-05-17",
+    "endDate": "2026-05-17",
+    "venue": "Liv Beach",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/a74fe020d801ab04-40914867074.jpeg",
+    "url": "https://www.livnightclub.com/las-vegas/event/EVE121488100020260517/john-summit-edc-week/",
+    "genre": "Tech House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
