@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { 
-    Navigation, Search, MapPin, Calendar, ArrowRight, Zap, Info, Clock, 
-    TrendingDown, Share2, ExternalLink, ChevronDown, ChevronUp, Plane, Bus, ArrowRightLeft, HelpCircle 
+    Navigation, MapPin, Calendar, ArrowRight, Zap, Info, Clock, 
+    TrendingDown, Share2, ExternalLink, ChevronDown, Plane, Bus, ArrowRightLeft, HelpCircle 
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
