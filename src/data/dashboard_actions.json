@@ -8,7 +8,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "superadmin",
-    "baseColor": "#ff0000",
+    "baseColor": "#ff7300",
     "columns": 1
   },
   {
@@ -20,7 +20,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "news_focus",
-    "baseColor": "#e100ff",
+    "baseColor": "#ffae00",
     "columns": 1
   },
   {
@@ -32,7 +32,7 @@
     "color": "border-neon-yellow/20 hover:border-neon-yellow",
     "bg": "bg-neon-yellow/5",
     "permission": "agenda_events",
-    "baseColor": "#0062ff",
+    "baseColor": "#c8ff00",
     "columns": 1
   },
   {
@@ -44,7 +44,43 @@
     "color": "border-neon-orange/20 hover:border-neon-orange",
     "bg": "bg-neon-orange/5",
     "permission": "messages_contact",
-    "baseColor": "#99fdff",
+    "baseColor": "#00bfff",
+    "columns": 1
+  },
+  {
+    "title": "Communauté",
+    "description": "Modération & Galerie",
+    "icon": "MessageSquare",
+    "category": "COMMUNAUTÉ",
+    "link": "#",
+    "color": "border-neon-purple/20 hover:border-neon-purple",
+    "bg": "bg-neon-purple/5",
+    "permission": "community_mod",
+    "baseColor": "#0033ff",
+    "columns": 1
+  },
+  {
+    "title": "Studio Création",
+    "description": "Générateurs Rapides",
+    "icon": "Sparkles",
+    "category": "STUDIO",
+    "link": "#",
+    "color": "border-neon-orange/20 hover:border-neon-orange",
+    "bg": "bg-neon-orange/5",
+    "permission": "news",
+    "baseColor": "#00fffb",
+    "columns": 1
+  },
+  {
+    "title": "Newsletter",
+    "description": "Campagnes Mail",
+    "icon": "Mail",
+    "category": "SHOP",
+    "link": "#",
+    "color": "border-green-400/20 hover:border-green-400",
+    "bg": "bg-green-400/5",
+    "permission": "push_newsletter",
+    "baseColor": "#e1a9e5",
     "columns": 1
   },
   {
@@ -81,30 +117,6 @@
     "bg": "bg-neon-purple/5",
     "permission": "all",
     "baseColor": "#ff0000",
-    "columns": 1
-  },
-  {
-    "title": "Newsletter",
-    "description": "Campagnes Mail",
-    "icon": "Mail",
-    "category": "SHOP",
-    "link": "#",
-    "color": "border-green-400/20 hover:border-green-400",
-    "bg": "bg-green-400/5",
-    "permission": "push_newsletter",
-    "baseColor": "#e1a9e5",
-    "columns": 1
-  },
-  {
-    "title": "Studio Création",
-    "description": "Générateurs Rapides",
-    "icon": "Sparkles",
-    "category": "STUDIO",
-    "link": "#",
-    "color": "border-neon-orange/20 hover:border-neon-orange",
-    "bg": "bg-neon-orange/5",
-    "permission": "news",
-    "baseColor": "#00fffb",
     "columns": 1
   },
   {
