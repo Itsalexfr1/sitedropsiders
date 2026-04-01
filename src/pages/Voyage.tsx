@@ -19,7 +19,7 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onChange, travelType 
             return;
         }
 
-        const apiKey = "duffel_live_ZxR68F6QlOhS4zrFGR_n0d9LiBhGjUd-qw74hIGz5Pz";
+        const apiKey = import.meta.env.VITE_DUFFEL_API_KEY;
         if(!apiKey) return;
 
         const fetchSuggestions = async () => {
@@ -124,7 +124,7 @@ export function Voyage() {
         
         if (travelType === 'flight') {
             if (flightProvider === 'direct') {
-                const apiKey = "duffel_live_ZxR68F6QlOhS4zrFGR_n0d9LiBhGjUd-qw74hIGz5Pz";
+                const apiKey = import.meta.env.VITE_DUFFEL_API_KEY;
                 if (!apiKey) {
                     alert("Clé API Duffel non configurée sur ce domaine.");
                     setIsSearching(false);
