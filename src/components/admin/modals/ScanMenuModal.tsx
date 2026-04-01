@@ -2,7 +2,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
     X, ShieldAlert, RefreshCw, HardDrive, 
     AlertTriangle, FileSearch,
-    Loader2
+    Loader2, FolderOpen
 } from 'lucide-react';
 
 interface ScanMenuModalProps {
@@ -23,6 +23,8 @@ interface ScanMenuModalProps {
     // Clean Encoding
     isCleaningEncoding: boolean;
     onCleanEncoding: () => void;
+    // Explorer
+    onOpenExplorer: () => void;
 }
 
 export function ScanMenuModal({
@@ -38,11 +40,21 @@ export function ScanMenuModal({
     onScanDuplicates,
     duplicateCount,
     isCleaningEncoding,
-    onCleanEncoding
+    onCleanEncoding,
+    onOpenExplorer
 }: ScanMenuModalProps) {
     if (!isOpen) return null;
 
     const tools = [
+        {
+            id: 'explorer',
+            label: 'Explorateur Cloud',
+            description: 'Parcourir tous les fichiers stockés sur R2',
+            icon: FolderOpen,
+            color: 'neon-cyan',
+            action: onOpenExplorer,
+            loading: false
+        },
         {
             id: 'broken',
             label: 'Photos Cassées',
@@ -101,9 +113,9 @@ export function ScanMenuModal({
                     <div className="flex justify-between items-start mb-10">
                         <div>
                             <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                Centre <span className="text-neon-cyan">de Scan</span>
+                                Manager <span className="text-neon-cyan">Cloud R2</span>
                             </h2>
-                            <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">Maintenance & Intégrité des données</p>
+                            <p className="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">Maintenance & Explorateur de fichiers</p>
                         </div>
                         <button
                             onClick={onClose}
@@ -167,7 +179,7 @@ export function ScanMenuModal({
                         onClick={onClose}
                         className="w-full mt-8 py-4 bg-white/5 hover:bg-white/10 text-gray-500 hover:text-white rounded-[2rem] font-black uppercase tracking-[0.2em] text-[9px] transition-all border border-white/10"
                     >
-                        Quitter le Maintenance Center
+                        Quitter le Manager R2
                     </button>
                 </motion.div>
             </div>

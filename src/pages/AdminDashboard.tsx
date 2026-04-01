@@ -9,7 +9,7 @@ import {
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil,
     ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram,
     Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download,
-    Trophy, Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff
+    Trophy, Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff, FolderOpen
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -1998,11 +1998,11 @@ export function AdminDashboard() {
                                     </Link>
                                     <button
                                         onClick={() => setIsScanMenuOpen(true)}
-                                        title="Centre de Scan"
+                                        title="R2 Cloud Manager"
                                         className="w-10 h-10 md:w-auto md:px-6 md:py-2 flex items-center justify-center rounded-xl md:rounded-full bg-neon-cyan/10 border border-neon-cyan/40 text-neon-cyan hover:bg-neon-cyan hover:text-white text-xs font-black uppercase tracking-widest transition-all gap-2 shadow-lg shadow-neon-cyan/10"
                                     >
                                         <Search className="w-4 h-4" />
-                                        <span className="hidden md:inline">Scan Center</span>
+                                        <span className="hidden md:inline">R2 Cloud Manager</span>
                                     </button>
                                 </>
                             )}
@@ -2412,24 +2412,24 @@ export function AdminDashboard() {
                                     <div className="space-y-6">
                                         <h3 className="text-xl font-display font-black text-white uppercase italic flex items-center gap-3 px-2">
                                             <HardDrive className="w-5 h-5 text-neon-cyan" />
-                                            Nettoyage <span className="text-neon-cyan">Stockage</span>
+                                            Gestion <span className="text-neon-cyan">Cloud R2</span>
                                         </h3>
                                         <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6">
                                             <div className="flex items-center justify-between mb-6">
                                                 <div>
                                                     <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Espace Cloud R2</p>
-                                                    <p className="text-[9px] text-gray-400">Nettoyer les doublons et fichiers orphelins</p>
+                                                    <p className="text-[9px] text-gray-400">Doublons, Cassés, Inutilisés & Explorateur</p>
                                                 </div>
                                                 <div className="p-3 bg-neon-cyan/10 rounded-xl">
                                                     <HardDrive className="w-5 h-5 text-neon-cyan" />
                                                 </div>
                                             </div>
                                             <button
-                                                onClick={() => fetchDuplicates()}
+                                                onClick={() => setIsScanMenuOpen(true)}
                                                 className="w-full py-5 bg-neon-cyan/10 hover:bg-neon-cyan border border-neon-cyan/30 text-neon-cyan hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all"
                                             >
-                                                <Trash2 className="w-5 h-5" />
-                                                CHECK DOUBLONS R2
+                                                <FolderOpen className="w-5 h-5" />
+                                                OUVRIR LE MANAGER R2
                                             </button>
                                         </div>
                                     </div>
@@ -7742,6 +7742,10 @@ export function AdminDashboard() {
                     duplicateCount={duplicateSets.length}
                     isCleaningEncoding={maintenanceLoading}
                     onCleanEncoding={handleCleanEncoding}
+                    onOpenExplorer={() => {
+                        setIsScanMenuOpen(false);
+                        setIsR2PhotosModalOpen(true);
+                    }}
                 />
 
                 <R2PhotosMenuModal
