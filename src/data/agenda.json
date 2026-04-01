@@ -5807,5 +5807,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 531,
+    "title": "EDC Week : Subtronics",
+    "date": "2026-05-14",
+    "startDate": "2026-05-14",
+    "endDate": "2026-05-14",
+    "venue": "Encore Beach Club",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/ed2031f732ec632d-EDC_1080x1350_EBCaN_Subtronics.jpg",
+    "url": "https://www.wynnsocial.com/event/EVE116300020260514/subtronics-support-by-dennett/",
+    "genre": "Drum & Bass",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
