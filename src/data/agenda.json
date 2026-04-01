@@ -5541,5 +5541,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 517,
+    "title": "EDC Week : Bassrush Pool Party",
+    "date": "2026-05-14",
+    "startDate": "2026-05-14",
+    "endDate": "2026-05-14",
+    "venue": "Ayu DayClub",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Showcase",
+    "image": "/uploads/uploads/5e81901bedc66a9c-edcw_2026_mk_misc_bassrush_poo.png",
+    "url": "https://edcweek.frontgatetickets.com/event/7he3p59e0unbvkye",
+    "genre": "Drum & Bass",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
