@@ -5940,5 +5940,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 538,
+    "title": "EDC Week : Noizu",
+    "date": "2026-05-15",
+    "startDate": "2026-05-15",
+    "endDate": "2026-05-15",
+    "venue": "Ayu DayClub",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Events",
+    "image": "/uploads/uploads/e5d0cf635395d7f0-ZLV_02614_EDC_WEEK_2026_Noizu_.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/76v686spwde30wxs",
+    "genre": "Tech House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
