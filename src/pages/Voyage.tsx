@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plane, Bus, Calendar, MapPin, ArrowRightLeft, Navigation, ArrowRight, ShieldCheck, Zap, Info, Clock, ExternalLink, Filter } from 'lucide-react';
+import { Plane, Bus, Calendar, MapPin, ArrowRightLeft, Navigation, ArrowRight, ShieldCheck, Zap, Info, ExternalLink, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CovoitSection } from '../components/community/CovoitSection';
 import { SEO } from '../components/utils/SEO';
