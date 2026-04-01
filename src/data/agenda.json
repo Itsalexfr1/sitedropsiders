@@ -1222,13 +1222,14 @@
     "location": "AMSTERDAM",
     "country": "Pays-Bas",
     "type": "Events",
-    "image": "https://www.dropsiders.fr/uploads/1772632949616-ADE26-Thumbnail.webp",
+    "image": "/uploads/691dc02698173b14-ADE26_Thumbnail.webp",
     "url": "https://www.amsterdam-dance-event.nl/en/tickets/",
     "genre": "Multi Styles",
     "month": "OCTOBRE",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "additionalDates": []
   },
   {
     "id": 287,
