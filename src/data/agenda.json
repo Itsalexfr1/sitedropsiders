@@ -1386,13 +1386,14 @@
     "location": "AMSTERDAM",
     "country": "Pays-Bas",
     "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/1772712667001-16VZhTUGGFdm.jpg",
+    "image": "/uploads/692306a2cddaa858-amsterdam_music_festival_2026.png",
     "url": "https://amf-festival.com",
     "genre": "Multi Styles",
     "month": "OCTOBRE",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "additionalDates": []
   },
   {
     "id": 298,
