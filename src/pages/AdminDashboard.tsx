@@ -7357,6 +7357,7 @@ export function AdminDashboard() {
                                                             onClick={() => {
                                                                 setEditingResidence(res);
                                                                 setShowResidenceUpload(true);
+                                                                setIsResidencesModalOpen(false); // Automate closing to show upload clearly
                                                             }}
                                                             disabled={!!updatingResidenceId}
                                                             className="px-6 py-2.5 bg-neon-cyan text-black font-black text-[10px] uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-neon-cyan/20 flex items-center gap-2"
@@ -7393,7 +7394,15 @@ export function AdminDashboard() {
                     isOpen={showResidenceUpload}
                     onClose={() => {
                         setShowResidenceUpload(false);
+                        const wasEditing = !!editingResidence;
+                        // NO setEditingResidence(null) ici car handleUpdateResidencePhoto en a besoin 
+                        // Wait, if it closes without upload, we need to clear it.
+                        // But let's check handles.
                         setEditingResidence(null);
+                        // Re-open residences list if we were in it
+                        if (wasEditing) {
+                             setIsResidencesModalOpen(true);
+                        }
                     }}
                     onUploadSuccess={(urls) => {
                         const url = Array.isArray(urls) ? urls[0] : urls;

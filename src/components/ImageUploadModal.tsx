@@ -223,9 +223,15 @@ export function ImageUploadModal({
 
             for (let i = 0; i < toUpload.length; i++) {
                 const item = toUpload[i];
-                let base64: string;
-                let filename: string;
-                let fileType: string;
+                let base64: string = '';
+                let filename: string = '';
+                let fileType: string = '';
+
+                if (item.preview && (item.preview.startsWith('/') || item.preview.startsWith('http'))) {
+                    // This is an existing image URL from gallery/cloud, skip upload
+                    uploadedUrls.push(item.preview);
+                    continue;
+                }
 
                 if (item.file) {
                     filename = item.file.name;
@@ -404,7 +410,9 @@ export function ImageUploadModal({
                                                     )}
                                                 </div>
                                                 <span className="text-xs font-black text-white uppercase tracking-widest">
-                                                    {isUploading ? 'Chargement...' : (allowMultiple ? `Lancer l'envoi (${selectedImages.length})` : 'Uploader Direct')}
+                                                    {isUploading ? 'Chargement...' : 
+                                                     (selectedImages.every(i => !i.file) ? 'Valider la sélection' : 
+                                                     (allowMultiple ? `Lancer l'envoi (${selectedImages.length})` : 'Uploader Direct'))}
                                                 </span>
                                             </button>
                                         </div>
