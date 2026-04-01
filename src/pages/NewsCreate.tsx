@@ -4081,7 +4081,7 @@ ${generateSocialsHtml()}
                                                     return `<div class="premium-video-row" style="display: grid; grid-template-columns: repeat(${row.count}, 1fr); gap: 30px; margin-bottom: 40px; width: 100%;">\n${videosHtml}\n</div>`;
                                                 }).join('\n');
 
-                                                const groupTitleHtml = videoGroupModal.title?.trim() ? `<h2 class="text-white text-3xl font-display font-black uppercase italic mb-10 border-l-4 border-white pl-6">${videoGroupModal.title.toUpperCase()}</h2>\n` : "";
+                                                const groupTitleHtml = videoGroupModal.title?.trim() ? `<h2 class="text-white text-3xl font-display font-black uppercase italic mb-10">${videoGroupModal.title.toUpperCase()}</h2>\n` : "";
                                                 const videoWidget = `${groupTitleHtml}<div class="premium-video-container" style="margin: 60px 0;">\n${rowsHtml}\n</div>`;
 
                                                 if (videoGroupModal.widgetId) {

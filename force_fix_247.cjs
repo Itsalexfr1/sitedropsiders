@@ -25,6 +25,9 @@ html = html.replace(/<div style=\"color: #9ca3af; font-size: [^;]+;[^>]*>([^<]+)
     return `<div style="color: #fff; font-size: 16px; font-weight: 900; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.25em; text-shadow: 0 0 10px rgba(255,255,255,0.4);">${artist}</div>`;
 });
 
+// 4. REMOVE WHITE BORDER-L FROM TITLES
+html = html.replace(/border-l-4 border-white pl-6/g, '');
+
 article.content = html;
 
 fs.writeFileSync(path, JSON.stringify(data, null, 2), 'utf8');
