@@ -420,7 +420,7 @@ export function NewsCreate() {
         width: 100
     });
     const [showUploadModal, setShowUploadModal] = useState(false);
-    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo1' | 'duo2' | 'interview-media', index?: number, widgetId?: string, interviewBlockId?: string, initialImage?: string }>({ type: 'main' });
+    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo1' | 'duo2' | 'interview-media', index?: number, widgetId?: string, interviewBlockId?: string, initialImage?: string, allowMultiple?: boolean }>({ type: 'main' });
     const [isFeatured, setIsFeatured] = useState(false);
     const [showVideo, setShowVideo] = useState(type !== 'Interview' || (type === 'Interview' && (searchParams.get('subtype') === 'video')));
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
