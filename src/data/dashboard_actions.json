@@ -24,6 +24,18 @@
     "columns": 1
   },
   {
+    "title": "Social Studio",
+    "description": "Générateur de Visuels",
+    "icon": "Paintbrush",
+    "category": "SOCIAL_STUDIO",
+    "link": "#",
+    "color": "border-neon-pink/20 hover:border-neon-pink",
+    "bg": "bg-neon-pink/5",
+    "permission": "all",
+    "baseColor": "#ee00ff",
+    "columns": 1
+  },
+  {
     "title": "Agenda",
     "description": "Programmation",
     "icon": "Calendar",
@@ -141,7 +153,7 @@
     "bg": "bg-neon-cyan/5",
     "permission": "all",
     "baseColor": "#ff7b00",
-    "columns": 1
+    "columns": 2
   },
   {
     "title": "Vérifier Photos",
@@ -152,7 +164,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "community_mod",
-    "baseColor": "cyan",
+    "baseColor": "#a36262",
     "columns": 2
   }
 ]
