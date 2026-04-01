@@ -6111,5 +6111,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 547,
+    "title": "EDC Week : Opening with Rüfüs Du Sol",
+    "date": "2026-05-16",
+    "startDate": "2026-05-16",
+    "endDate": "2026-05-16",
+    "venue": "Omnia Dayclub",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Events",
+    "image": "/uploads/uploads/eb7a681a0ccf27ff-image_1773960046529_ygzq5vcwo.jpg",
+    "url": "https://tickets.taogroup.com/e/omnia-dayclub-las-vegas-5-16-2026/tickets",
+    "genre": "House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
