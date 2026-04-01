@@ -2667,7 +2667,10 @@ ${urls.map(u => `  <url>
                 const currentData = agendaFile.content;
                 let updatedCount = 0;
                 const newData = currentData.map(item => {
-                    if (item.title === title && item.location === location && item.isWeekly) {
+                    const isCorrectResidence = (item.title === title && item.location === location);
+                    const isResidenceType = item.type === 'Residence' || item.type === 'Résidence';
+                    
+                    if (isCorrectResidence && (item.isWeekly || isResidenceType)) {
                         updatedCount++;
                         return { ...item, image };
                     }
@@ -4063,7 +4066,47 @@ ${urls.map(u => `  <url>
                 const cursor = url.searchParams.get('cursor') || undefined;
                 const prefix = url.searchParams.get('prefix') || 'uploads/';
                 const limit = parseInt(url.searchParams.get('limit') || '50');
+                const sort = url.searchParams.get('sort');
                 
+                // If sorting by date, we need to get ALL objects because R2 only lists alphabetically
+                if (sort === 'date') {
+                    const allObjects = [];
+                    let currentCursor = undefined;
+                    // We limit to 2000 objects to avoid timeout/memory issues, 
+                    // usually enough for a photo library
+                    let safetyCounter = 0;
+                    
+                    while (safetyCounter < 20) { // Max 2000 items (20 * 100)
+                        const res = await env.R2.list({ cursor: currentCursor, prefix, limit: 100 });
+                        allObjects.push(...res.objects);
+                        if (!res.truncated) break;
+                        currentCursor = res.cursor;
+                        safetyCounter++;
+                    }
+                    
+                    // Sort by upload date (latest first)
+                    allObjects.sort((a: any, b: any) => b.uploaded.getTime() - a.uploaded.getTime());
+                    
+                    // Handle pagination for the sorted list manually or just return the first chunk
+                    // Since we already have everything, we can just slice it
+                    const offset = cursor ? parseInt(atob(cursor)) : 0;
+                    const paginated = allObjects.slice(offset, offset + limit);
+                    const nextOffset = (offset + limit < allObjects.length) ? btoa((offset + limit).toString()) : undefined;
+
+                    return new Response(JSON.stringify({
+                        objects: paginated.map(obj => ({
+                            key: obj.key,
+                            size: obj.size,
+                            uploaded: obj.uploaded,
+                            etag: obj.etag,
+                            url: `/${obj.key}`
+                        })),
+                        truncated: !!nextOffset,
+                        cursor: nextOffset,
+                        total: allObjects.length
+                    }), { headers });
+                }
+
                 const listResult = await env.R2.list({ cursor, prefix, limit });
                 
                 const objects = listResult.objects.map(obj => ({

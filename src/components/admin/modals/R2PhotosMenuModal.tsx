@@ -29,7 +29,7 @@ export function R2PhotosMenuModal({ isOpen, onClose }: R2PhotosMenuModalProps) {
                 return;
             }
 
-            const url = `/api/r2/list?limit=40${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}`;
+            const url = `/api/r2/list?limit=40&sort=date${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}`;
             const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();

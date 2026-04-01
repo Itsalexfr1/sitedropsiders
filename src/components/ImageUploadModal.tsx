@@ -109,7 +109,8 @@ export function ImageUploadModal({
                 return;
             }
 
-            const url = `/api/r2/list?limit=100&prefix=${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}`;
+            const sortParam = sortBy === 'newest' ? '&sort=date' : '';
+            const url = `/api/r2/list?limit=100${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${sortParam}`;
             const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
@@ -476,11 +477,7 @@ export function ImageUploadModal({
                                                 <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-neon-blue" /></div>
                                             ) : (
                                                 <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[50vh] overflow-y-auto no-scrollbar rounded-2xl">
-                                                    {[...r2Photos].sort((a, b) => {
-                                                        if (sortBy === 'newest') return new Date(b.uploaded).getTime() - new Date(a.uploaded).getTime();
-                                                        if (sortBy === 'oldest') return new Date(a.uploaded).getTime() - new Date(b.uploaded).getTime();
-                                                        return a.key.localeCompare(b.key);
-                                                    }).map(photo => (
+                                                {r2Photos.map(photo => (
                                                         <div 
                                                             key={photo.key} 
                                                             onClick={() => {

@@ -15,6 +15,7 @@ export function R2Explorer() {
     const [searchTerm, setSearchTerm] = useState('');
     const [prefix, setPrefix] = useState('');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+    const [sortBy, setSortBy] = useState<'name' | 'date'>('date');
 
     const fetchPhotos = async (targetCursor?: string | null) => {
         setLoading(true);
@@ -33,7 +34,8 @@ export function R2Explorer() {
                 return;
             }
 
-            const url = `/api/r2/list?limit=60${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${prefix ? `&prefix=${encodeURIComponent(prefix)}` : ''}`;
+            const sortParam = sortBy === 'date' ? '&sort=date' : '';
+            const url = `/api/r2/list?limit=60${targetCursor ? `&cursor=${encodeURIComponent(targetCursor)}` : ''}${prefix ? `&prefix=${encodeURIComponent(prefix)}` : ''}${sortParam}`;
             const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
@@ -50,7 +52,7 @@ export function R2Explorer() {
     useEffect(() => {
         fetchPhotos();
         setHistory([]);
-    }, [prefix]);
+    }, [prefix, sortBy]);
 
     const handleNext = () => {
         if (cursor && prefix !== 'unused') {
@@ -144,6 +146,15 @@ export function R2Explorer() {
 
                 <div className="flex items-center gap-3 w-full md:w-auto">
                     <div className="bg-white/5 p-1 rounded-xl flex border border-white/10">
+                        <select 
+                            value={sortBy} 
+                            onChange={(e) => setSortBy(e.target.value as any)}
+                            className="bg-transparent border-none rounded-lg px-2 py-1 text-[10px] font-bold text-white outline-none focus:ring-0 uppercase cursor-pointer"
+                        >
+                            <option value="date" className="bg-[#0a0a0a]">Tri : Récent</option>
+                            <option value="name" className="bg-[#0a0a0a]">Tri : Nom</option>
+                        </select>
+                        <div className="w-px h-100% bg-white/5 mx-1" />
                         <button 
                             onClick={() => setViewMode('grid')}
                             className={`p-2.5 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white/10 text-white' : 'text-gray-500 hover:text-gray-300'}`}
