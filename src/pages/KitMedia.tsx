@@ -157,7 +157,7 @@ const KitMedia = () => {
         return (
             <div className="min-h-screen bg-[#0a0a0a] flex flex-col items-center justify-center p-4 relative overflow-hidden">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-900/40 via-black to-red-600/20 animate-pulse-slow"></div>
-                <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-[url('data:image/svg+xml,%3Csvg%20viewBox=%220%200%20200%20200%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter%20id=%22noiseFilter%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.65%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-20 brightness-100 contrast-150 mix-blend-overlay"></div>
+                <div className="absolute top-[-50%] left-[-50%] w-[200%] h-[200%] bg-gradient-radial from-neon-red/10 to-transparent opacity-30 animate-pulse-slow"></div>
 
                 <div className="absolute top-8 right-8 z-50 flex gap-2">
                     <button
@@ -263,7 +263,7 @@ const KitMedia = () => {
                     transition={{ repeat: Infinity, duration: 25, ease: "easeInOut" }}
                     className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-blue-900/10 blur-[150px] rounded-full"
                 ></motion.div>
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox=%220%200%20200%20200%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter%20id=%22noiseFilter%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.65%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-[0.04] mix-blend-overlay"></div>
+                <div className="absolute inset-0 bg-gradient-to-br from-black via-[#050505] to-black"></div>
             </div>
 
 

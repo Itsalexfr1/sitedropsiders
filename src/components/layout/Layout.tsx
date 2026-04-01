@@ -65,15 +65,15 @@ export function Layout({ children }: LayoutProps) {
 
             {/* Background Effects - Desktop */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden hidden md:block">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-neon-red/10 rounded-full blur-[100px]" />
-                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-neon-red/10 rounded-full blur-[100px]" />
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox=%220%200%20200%20200%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter%20id=%22noiseFilter%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.65%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-20" />
+                <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-neon-red/[0.07] rounded-full blur-[120px] animate-pulse-slow" />
+                <div className="absolute bottom-0 right-1/4 w-[600px] h-[600px] bg-neon-red/[0.05] rounded-full blur-[150px] animate-pulse-slow delay-1000" />
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full bg-gradient-to-b from-transparent via-neon-red/[0.02] to-transparent" />
             </div>
 
             {/* Background Effects - Mobile (Static gradient - no blur for Safari perf) */}
             <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden md:hidden"
                 style={{
-                    background: 'radial-gradient(ellipse at top, rgba(255,0,51,0.08) 0%, transparent 60%), radial-gradient(ellipse at bottom, rgba(255,0,51,0.06) 0%, transparent 60%)'
+                    background: 'radial-gradient(ellipse at top, rgba(255,0,51,0.06) 0%, transparent 70%), radial-gradient(ellipse at bottom, rgba(255,0,51,0.04) 0%, transparent 70%)'
                 }}
             />
 

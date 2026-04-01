@@ -37,7 +37,7 @@ export function FloatingTakeoverPlayer() {
                 className="fixed bottom-6 right-6 z-[100] w-[300px] sm:w-[380px] aspect-video bg-black rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] border border-white/10 hover:border-neon-red/50 overflow-hidden group transition-all duration-500"
             >
                 {/* Glossy Overlay Grid */}
-                <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg%20viewBox=%220%200%20200%20200%22%20xmlns=%22http://www.w3.org/2000/svg%22%3E%3Cfilter%20id=%22noiseFilter%22%3E%3CfeTurbulence%20type=%22fractalNoise%22%20baseFrequency=%220.65%22%20numOctaves=%223%22%20stitchTiles=%22stitch%22/%3E%3C/filter%3E%3Crect%20width=%22100%25%22%20height=%22100%25%22%20filter=%22url(%23noiseFilter)%22/%3E%3C/svg%3E')] opacity-20 pointer-events-none z-[5]" />
+                <div className="absolute inset-0 bg-gradient-to-t from-neon-red/10 to-transparent pointer-events-none z-[5]" />
 
                 {/* Controls Overlay */}
                 <div className="absolute top-0 inset-x-0 h-12 bg-gradient-to-b from-black/90 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 z-10 flex items-center justify-between px-4">
