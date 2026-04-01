@@ -6225,5 +6225,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 553,
+    "title": "EDC Week : Marshmello",
+    "date": "2026-05-17",
+    "startDate": "2026-05-17",
+    "endDate": "2026-05-17",
+    "venue": "Encore Beach Club ",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/71195113885e9516-EDC_1080x1350_EBC_Marshmello_6.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/ssnarekzy491ifj7",
+    "genre": "Big Room",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
