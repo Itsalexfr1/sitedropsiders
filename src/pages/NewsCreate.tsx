@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef, Fragment, useMemo } from 'react';
+import { useState, useEffect, useRef, useMemo, Fragment } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    ArrowLeft, Plus, Trash2, Image as ImageIcon, FileText, Music, Link2, Eye, X, Upload,
-    Youtube, AlertCircle, Calendar, Edit2, CaseUpper, Columns, List, Bold, Italic,
-    Underline as UnderlineIcon, Send, User, Clock, Globe, Facebook, Instagram,
-    ChevronUp, ChevronDown, Check, CheckCircle2, Wand2, Star,
-    AlignLeft, AlignCenter, AlignRight, Palette, MapPin
+    Plus, Image as ImageIcon, Bold, Italic, AlignLeft, AlignCenter, AlignRight,
+    Underline as UnderlineIcon, Check, Wand2, MapPin, Calendar, Globe, Youtube, 
+    Columns, List, Trash2, ArrowLeft, User, CheckCircle2, Send, Star, FileText,
+    Music, AlertCircle, Edit2, CaseUpper, Upload, Clock, Facebook, Instagram,
+    ChevronUp, ChevronDown, Link2, Palette, X, Eye, Minus
 } from 'lucide-react';
 import { useNavigate, useSearchParams, useLocation, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
@@ -250,7 +250,10 @@ export function NewsCreate() {
         const d = editingItem?.date || '';
         if (d && d.includes('T')) return d.slice(0, 16);
         if (d) return `${d}T12:00`;
-        return '';
+        // For new articles, default to current time
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        return now.toISOString().slice(0, 16);
     });
     
     const [category, setCategory] = useState(editingItem?.category || type);
@@ -586,13 +589,19 @@ export function NewsCreate() {
     const [videoGroupModal, setVideoGroupModal] = useState<{
         show: boolean;
         urls: string[];
+        videoTitles: string[];
         count: number;
+        layout: 'row' | 'column';
+        title: string;
         widgetIndex?: number;
         widgetId?: string;
     }>({
         show: false,
-        urls: ['', '', ''],
-        count: 2
+        urls: Array(10).fill(''),
+        videoTitles: Array(10).fill(''),
+        count: 2,
+        layout: 'row',
+        title: ''
     });
 
     const [isDirty, setIsDirty] = useState(false);
@@ -1303,22 +1312,13 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
     };
 
     const handleSubmit = async (_publishNow = false, scheduleDate?: string) => {
-        let finalDate = scheduleDate || date;
+        let finalDate = scheduleDate || (_publishNow ? new Date().toISOString().slice(0, 16) : date);
 
         const isInterviewVideo = type === 'Interview' && interviewSubtype === 'video';
 
         if (!title || !imageUrl || !finalDate) {
             setStatus('error');
             setMessage(`Veuillez remplir les champs obligatoires (Titre, Image, Date${!finalDate ? ' [VIDE]' : ''})`);
-            if (!finalDate && !scheduleDate) {
-                // Focus on the main date field if missing
-                const dateEl = document.getElementById('publication-date');
-                if (dateEl) {
-                    dateEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    dateEl.classList.add('animate-shake');
-                    setTimeout(() => dateEl.classList.remove('animate-shake'), 1000);
-                }
-            }
             return;
         }
 
@@ -1362,11 +1362,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
 
         if (!date) {
             setStatus('error');
-            setMessage('Veuillez remplir la date de publication.');
-            const dateSection = document.querySelector('.bg-white\\/5.border-white\\/10.rounded-\\[2rem\\]');
-            if (dateSection) {
-                dateSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
+            setMessage('Erreur: Date de publication manquante.');
             return;
         }
 
@@ -1848,7 +1844,7 @@ ${generateSocialsHtml()}
 
                         {/* Metadata Fields */}
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            <div className="md:col-span-2 lg:col-span-2">
+                            <div className="md:col-span-2 lg:col-span-3">
                                 <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2">Titre <span className="text-neon-red">*</span></label>
                                 <div className="relative group">
                                     <input
@@ -1866,21 +1862,6 @@ ${generateSocialsHtml()}
                                     >
                                         <Wand2 className="w-4 h-4" />
                                     </button>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label className="block text-xs font-black text-gray-500 uppercase tracking-widest mb-2 flex items-center gap-2">
-                                    <Calendar className="w-4 h-4 text-neon-orange" /> Date de publication <span className="text-neon-red">*</span>
-                                </label>
-                                <div className="relative group">
-                                    <input
-                                        id="publication-date"
-                                        type="datetime-local"
-                                        value={date}
-                                        onChange={(e) => setDate(e.target.value)}
-                                        className={`w-full bg-black/20 border ${!date ? 'border-neon-orange/50 shadow-[0_0_15px_rgba(255,165,0,0.1)]' : 'border-white/10'} rounded-lg p-3 text-white focus:border-neon-orange outline-none transition-all`}
-                                    />
                                 </div>
                             </div>
                         </div>
@@ -2520,8 +2501,11 @@ ${generateSocialsHtml()}
                                                                     const extracted = extractVideoUrls(widget.content);
                                                                     setVideoGroupModal({
                                                                         show: true,
-                                                                        urls: [...extracted.urls, '', ''].slice(0, 3),
-                                                                        count: extracted.count,
+                                                                        urls: Array(10).fill(''), 
+                                                                        videoTitles: Array(10).fill(''),
+                                                                        count: extracted.count, 
+                                                                        layout: 'row',
+                                                                        title: '',
                                                                         widgetId: widget.id
                                                                     });
                                                                 } else if (widget.content.includes('youtube-player-widget')) {
@@ -2699,7 +2683,7 @@ ${generateSocialsHtml()}
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setVideoGroupModal({ show: true, urls: ['', '', ''], count: 2, widgetIndex: index })}
+                                                    onClick={() => setVideoGroupModal({ show: true, urls: Array(10).fill(''), videoTitles: Array(10).fill(''), count: 3, layout: 'row', title: '', widgetIndex: index })}
                                                     className="w-8 h-8 rounded-full bg-red-600/10 border border-red-600/30 text-red-600 flex items-center justify-center hover:bg-red-600/20 transition-all font-bold text-[10px]"
                                                     title="Ajouter un groupe de vidéos (1, 2 ou 3 en ligne)"
                                                 >
@@ -3302,28 +3286,8 @@ ${generateSocialsHtml()}
                     </div>
 
                     <div className="pt-6 flex flex-col gap-4">
-                        {/* Option Date Obligatoire */}
-                        <div className="bg-white/5 border border-white/10 rounded-[2rem] p-8 mb-6 relative overflow-hidden group">
-                            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-orange to-neon-red opacity-50" />
-                            <div className="flex items-center gap-4 mb-6">
-                                <div className="w-12 h-12 rounded-2xl bg-neon-orange/10 flex items-center justify-center border border-neon-orange/30 shadow-lg shadow-neon-orange/5">
-                                    <Calendar className="w-6 h-6 text-neon-orange" />
-                                </div>
-                                <div>
-                                    <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter flex items-center gap-2">DATE DE PUBLICATION <span className="text-neon-red font-bold">*</span></h3>
-                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em]">Cadre obligatoire pour dater l'actualité</p>
-                                </div>
-                            </div>
-                            <div className="relative group/date">
-                                <input
-                                    type="datetime-local"
-                                    value={date}
-                                    onChange={(e) => setDate(e.target.value)}
-                                    required
-                                    className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 px-4 text-white font-bold tracking-widest focus:border-neon-orange outline-none transition-all placeholder-gray-600 focus:bg-white/[0.02]"
-                                />
-                            </div>
-                        </div>
+                        {/* Published Date replaced by automatic current time */}
+
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <button
@@ -3957,56 +3921,109 @@ ${generateSocialsHtml()}
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-lg w-full shadow-2xl relative"
+                            className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative scrollbar-hide"
                         >
                             <button
-                                onClick={() => setVideoGroupModal({ show: false, urls: ['', '', ''], count: 2 })}
+                                onClick={() => setVideoGroupModal({ show: false, urls: Array(10).fill(''), videoTitles: Array(10).fill(''), count: 2, layout: 'row', title: '' })}
                                 className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
                             >
                                 <X className="w-5 h-5" />
                             </button>
 
-                            <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">Groupe de Vidéos en ligne</h3>
+                            <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">Groupe de Vidéos</h3>
 
                             <div className="space-y-6">
                                 <div className="space-y-2">
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Nombre de vidéos par ligne</label>
-                                    <div className="grid grid-cols-3 gap-2">
-                                        {[1, 2, 3].map(n => (
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-neon-cyan">Titre du groupe (optionnel)</label>
+                                    <input
+                                        type="text"
+                                        value={videoGroupModal.title}
+                                        onChange={e => setVideoGroupModal({ ...videoGroupModal, title: e.target.value })}
+                                        className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-neon-cyan transition-all text-sm"
+                                        placeholder="Ex: TOMORROWLAND 2024 - BEST SETS..."
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Nombre de vidéos</label>
+                                        <div className="flex bg-white/5 border border-white/10 rounded-xl p-1 items-center justify-between">
                                             <button
-                                                key={n}
                                                 type="button"
-                                                onClick={() => setVideoGroupModal({ ...videoGroupModal, count: n })}
-                                                className={`py-3 rounded-xl text-sm font-black transition-all border ${videoGroupModal.count === n ? 'bg-red-600 border-red-500 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]' : 'bg-white/5 border-white/10 text-gray-400 hover:bg-white/10'}`}
+                                                onClick={() => setVideoGroupModal(prev => ({ ...prev, count: Math.max(1, prev.count - 1) }))}
+                                                className="w-10 h-10 rounded-lg flex items-center justify-center text-white hover:bg-white/5"
                                             >
-                                                {n} VIDÉO{n > 1 ? 'S' : ''}
+                                                <Minus className="w-4 h-4" />
                                             </button>
-                                        ))}
+                                            <span className="text-sm font-black text-white">{videoGroupModal.count}</span>
+                                            <button
+                                                type="button"
+                                                onClick={() => setVideoGroupModal(prev => ({ ...prev, count: Math.min(10, prev.count + 1) }))}
+                                                className="w-10 h-10 rounded-lg flex items-center justify-center text-white hover:bg-white/5"
+                                            >
+                                                <Plus className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Disposition des vidéos</label>
+                                        <div className="flex bg-white/5 border border-white/10 rounded-xl p-1">
+                                            <button
+                                                type="button"
+                                                onClick={() => setVideoGroupModal({ ...videoGroupModal, layout: 'row' })}
+                                                className={`flex-1 py-2 rounded-lg text-[9px] font-black transition-all flex items-center justify-center gap-2 ${videoGroupModal.layout === 'row' ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                <Columns className="w-3 h-3" /> GRILLE
+                                            </button>
+                                            <button
+                                                type="button"
+                                                onClick={() => setVideoGroupModal({ ...videoGroupModal, layout: 'column' })}
+                                                className={`flex-1 py-2 rounded-lg text-[9px] font-black transition-all flex items-center justify-center gap-2 ${videoGroupModal.layout === 'column' ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                <List className="w-3 h-3" /> COLONNE
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div className="space-y-4">
+                                <div className="space-y-6">
                                     {[...Array(videoGroupModal.count)].map((_, i) => (
-                                        <div key={i}>
-                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 text-neon-red">Vidéo {i + 1} (URL ou ID)</label>
-                                            <input
-                                                type="text"
-                                                value={videoGroupModal.urls[i] || ''}
-                                                onChange={e => {
-                                                    const newUrls = [...videoGroupModal.urls];
-                                                    newUrls[i] = e.target.value;
-                                                    setVideoGroupModal({ ...videoGroupModal, urls: newUrls });
-                                                }}
-                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-red-600 transition-all text-sm"
-                                                placeholder="Lien YouTube..."
-                                            />
+                                        <div key={i} className="p-4 bg-white/5 border border-white/10 rounded-2xl space-y-4">
+                                            <div>
+                                                <label className="block text-[10px] font-black text-neon-cyan uppercase tracking-widest mb-2 italic">Artiste / Nom Vidéo #{i + 1}</label>
+                                                <input
+                                                    type="text"
+                                                    value={videoGroupModal.videoTitles[i] || ''}
+                                                    onChange={e => {
+                                                        const newTitles = [...videoGroupModal.videoTitles];
+                                                        newTitles[i] = e.target.value;
+                                                        setVideoGroupModal({ ...videoGroupModal, videoTitles: newTitles });
+                                                    }}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-neon-cyan transition-all text-sm font-bold"
+                                                    placeholder="Ex: MARTIN GARRIX / DJ SET..."
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">URL YouTube ou ID Vidéo #{i + 1}</label>
+                                                <input
+                                                    type="text"
+                                                    value={videoGroupModal.urls[i] || ''}
+                                                    onChange={e => {
+                                                        const newUrls = [...videoGroupModal.urls];
+                                                        newUrls[i] = e.target.value;
+                                                        setVideoGroupModal({ ...videoGroupModal, urls: newUrls });
+                                                    }}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 text-white outline-none focus:border-red-600 transition-all text-sm font-mono"
+                                                    placeholder="Lien YouTube..."
+                                                />
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
 
                                 <div className="flex gap-4 pt-4">
                                     <button
-                                        onClick={() => setVideoGroupModal({ show: false, urls: ['', '', ''], count: 2 })}
+                                        onClick={() => setVideoGroupModal({ show: false, urls: Array(10).fill(''), videoTitles: Array(10).fill(''), count: 2, layout: 'row', title: '' })}
                                         className="flex-1 py-4 rounded-xl border border-white/10 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
                                     >
                                         Annuler
@@ -4016,8 +4033,9 @@ ${generateSocialsHtml()}
                                             const validUrls = videoGroupModal.urls.slice(0, videoGroupModal.count).filter(u => u.trim());
                                             if (validUrls.length === 0) return;
 
-                                            const processedUrls = validUrls.map(val => {
+                                            const processedUrls = validUrls.map((val, i) => {
                                                 let id = val;
+                                                const artistName = videoGroupModal.videoTitles[i] || '';
                                                 if (val.includes('youtube.com/watch?v=')) {
                                                     id = val.split('v=')[1].split('&')[0];
                                                 } else if (val.includes('youtu.be/')) {
@@ -4025,15 +4043,21 @@ ${generateSocialsHtml()}
                                                 } else if (val.includes('youtube.com/embed/')) {
                                                     id = val.split('youtube.com/embed/')[1].split('?')[0];
                                                 }
-                                                return `https://www.youtube.com/embed/${id}`;
+                                                return { url: `https://www.youtube.com/embed/${id}`, title: artistName };
                                             });
 
-                                            const videoItems = processedUrls.map(url => `
-    <div className="video-wrapper flex-1 relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 group">
-      <iframe src="${url}" className="absolute inset-0 w-full h-full" allowFullScreen></iframe>
+                                            const videoItems = processedUrls.map(video => `
+    <div className="video-wrapper min-w-[280px] group">
+      ${video.title ? `<div class="text-white text-[10px] font-black uppercase mb-3 text-center tracking-[0.2em] italic border-l-2 border-neon-red pl-2">${video.title}</div>` : ''}
+      <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5">
+        <iframe src="${video.url}" className="absolute inset-0 w-full h-full" allowFullScreen></iframe>
+      </div>
     </div>`).join('');
 
-                                            const videoWidget = `<div class="video-group-premium flex flex-col md:flex-row gap-4 my-12">\n${videoItems}\n</div>`;
+                                            const layoutClass = videoGroupModal.layout === 'row' ? 'md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1';
+                                            const videoGroupClass = `video-group-premium grid ${layoutClass} gap-8 my-12`;
+                                            const titleHtml = videoGroupModal.title?.trim() ? `<h2 class="premium-section-title">${videoGroupModal.title.toUpperCase()}</h2>\n` : '';
+                                            const videoWidget = `${titleHtml}<div class="${videoGroupClass}">\n${videoItems}\n</div>`;
 
                                             if (videoGroupModal.widgetId) {
                                                 updateWidget(videoGroupModal.widgetId, videoWidget);
@@ -4042,11 +4066,11 @@ ${generateSocialsHtml()}
                                             } else {
                                                 setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: videoWidget }]);
                                             }
-                                            setVideoGroupModal({ show: false, urls: ['', '', ''], count: 2 });
+                                            setVideoGroupModal({ show: false, urls: Array(10).fill(''), videoTitles: Array(10).fill(''), count: 2, layout: 'row', title: '' });
                                         }}
                                         className="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(220,38,38,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
                                     >
-                                        Confirmer
+                                        Confirmer le groupe
                                     </button>
                                 </div>
                             </div>
