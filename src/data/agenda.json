@@ -5522,5 +5522,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 516,
+    "title": "EDC Week : Porter Robinson (Dj Set)",
+    "date": "2026-05-14",
+    "startDate": "2026-05-14",
+    "endDate": "2026-05-14",
+    "venue": "Tao Beach",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Events",
+    "image": "/uploads/uploads/e91e9b28b0344b9a-260514_TBDC_EDC_PorterRobinson.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/bmzx2bkbneu8arse",
+    "genre": "Tech House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
