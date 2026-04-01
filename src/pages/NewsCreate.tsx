@@ -4070,15 +4070,15 @@ ${generateSocialsHtml()}
                                                             const widthClass = row.count === 1 ? 'width: 100%' : row.count === 2 ? 'width: calc(50% - 20px)' : 'width: calc(33.333% - 27px)';
                                                             
                                                             return `
-          <div class="premium-video-wrapper" style="flex: 1 1 280px; min-width: 280px; ${widthClass}; margin-bottom: 40px;">
-            ${video.title ? `<div style="color: #9ca3af; font-size: 10px; font-weight: 900; text-transform: uppercase; margin-bottom: 12px; letter-spacing: 0.2em;">${video.title.toUpperCase()}</div>` : ''}
+          <div class="premium-video-wrapper" style="flex: 1; ${widthClass}; margin-bottom: 40px;">
+            ${video.title ? `<div style="color: #9ca3af; font-size: 16px; font-weight: 900; text-transform: uppercase; margin-bottom: 15px; letter-spacing: 0.25em; color: #fff !important; text-shadow: 0 0 10px rgba(255,255,255,0.3);">${video.title.toUpperCase()}</div>` : ''}
             <div style="position: relative; aspect-ratio: 16/9; border-radius: 24px; overflow: hidden; background: #111; border: 1px solid rgba(255,255,255,0.05); box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);">
               <iframe src="${embedUrl}" style="position: absolute; top: 0; left: 0; width: 100%; h-full; border: none;" allowfullscreen></iframe>
             </div>
           </div>`;
                                                         }).join('');
 
-                                                    return `<div class="premium-video-row" style="display: flex; flex-wrap: wrap; gap: 40px; justify-content: flex-start; margin-bottom: 20px;">\n${videosHtml}\n</div>`;
+                                                    return `<div class="premium-video-row" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 30px; margin-bottom: 40px; width: 100%;">\n${videosHtml}\n</div>`;
                                                 }).join('\n');
 
                                                 const groupTitleHtml = videoGroupModal.title?.trim() ? `<h2 class="text-white text-3xl font-display font-black uppercase italic mb-10 border-l-4 border-white pl-6">${videoGroupModal.title.toUpperCase()}</h2>\n` : "";
