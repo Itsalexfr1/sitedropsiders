@@ -6301,5 +6301,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 557,
+    "title": "EDC Week : David Guetta ",
+    "date": "2026-05-18",
+    "startDate": "2026-05-18",
+    "endDate": "2026-05-18",
+    "venue": "Liv Nightclub",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/a8c58a4c1a422311-40914869640.jpeg",
+    "url": "https://www.livnightclub.com/las-vegas/event/EVE112156100020260518/david-guetta-edc-week/",
+    "genre": "Big Room",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
