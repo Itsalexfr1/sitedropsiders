@@ -1,4 +1,16 @@
-﻿[
+[
+  {
+    "title": "Accueil",
+    "description": "Sections & Vues",
+    "icon": "LayoutDashboard",
+    "category": "ALL",
+    "link": "#",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "superadmin",
+    "baseColor": "#ff0000",
+    "columns": 1
+  },
   {
     "title": "Contenu",
     "description": "News, Musique, Interviews...",
@@ -8,31 +20,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "news_focus",
-    "baseColor": "#ff0000",
-    "columns": 1
-  },
-  {
-    "title": "Social Studio",
-    "description": "Studio Visuels",
-    "icon": "Instagram",
-    "category": "STUDIO",
-    "link": "#",
-    "color": "border-neon-pink/20 hover:border-neon-pink",
-    "bg": "bg-neon-pink/5",
-    "permission": "social_studio",
-    "baseColor": "#fb6a6a",
-    "columns": 1
-  },
-  {
-    "title": "Générateur Publi",
-    "description": "Outil Alex",
-    "icon": "Pencil",
-    "category": "STUDIO",
-    "link": "#",
-    "color": "border-neon-orange/20 hover:border-neon-orange",
-    "bg": "bg-neon-orange/5",
-    "permission": "alex_only",
-    "baseColor": "#ff7575",
+    "baseColor": "#e100ff",
     "columns": 1
   },
   {
@@ -44,19 +32,7 @@
     "color": "border-neon-yellow/20 hover:border-neon-yellow",
     "bg": "bg-neon-yellow/5",
     "permission": "agenda_events",
-    "baseColor": "#ff0000",
-    "columns": 1
-  },
-  {
-    "title": "Communauté",
-    "description": "Membres, Photos & Quiz",
-    "icon": "MessageSquare",
-    "category": "CONCOURS",
-    "link": "#",
-    "color": "border-neon-pink/20 hover:border-neon-pink",
-    "bg": "bg-neon-pink/5",
-    "permission": "community_mod",
-    "baseColor": "#ff8800",
+    "baseColor": "#0062ff",
     "columns": 1
   },
   {
@@ -68,7 +44,7 @@
     "color": "border-neon-orange/20 hover:border-neon-orange",
     "bg": "bg-neon-orange/5",
     "permission": "messages_contact",
-    "baseColor": "#ffdf99",
+    "baseColor": "#99fdff",
     "columns": 1
   },
   {
@@ -80,19 +56,7 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "stats_analytics",
-    "baseColor": "#f0dead",
-    "columns": 1
-  },
-  {
-    "title": "Shop",
-    "description": "Drops Shop",
-    "icon": "ShoppingBag",
-    "category": "SHOP",
-    "link": "#",
-    "color": "border-neon-pink/20 hover:border-neon-pink",
-    "bg": "bg-neon-pink/5",
-    "permission": "shop",
-    "baseColor": "#ffbb00",
+    "baseColor": "#f0d7ad",
     "columns": 1
   },
   {
@@ -108,18 +72,6 @@
     "columns": 1
   },
   {
-    "title": "Tracklists",
-    "description": "Vérifier & Valider",
-    "icon": "Music",
-    "category": "STUDIO",
-    "link": "#",
-    "color": "border-neon-purple/20 hover:border-neon-purple",
-    "bg": "bg-neon-purple/5",
-    "permission": "musique_releases",
-    "baseColor": "#8aff97",
-    "columns": 1
-  },
-  {
     "title": "L'Équipe & Éditeurs",
     "description": "Accès & Membres",
     "icon": "Users",
@@ -128,7 +80,7 @@
     "color": "border-neon-purple/20 hover:border-neon-purple",
     "bg": "bg-neon-purple/5",
     "permission": "all",
-    "baseColor": "#adffaf",
+    "baseColor": "#ff0000",
     "columns": 1
   },
   {
@@ -140,31 +92,31 @@
     "color": "border-green-400/20 hover:border-green-400",
     "bg": "bg-green-400/5",
     "permission": "push_newsletter",
-    "baseColor": "#00ff04",
+    "baseColor": "#e1a9e5",
     "columns": 1
   },
   {
-    "title": "Quiz & Blind Test",
-    "description": "Questions & Musique",
-    "icon": "Gamepad2",
-    "category": "CONCOURS",
+    "title": "Studio Création",
+    "description": "Générateurs Rapides",
+    "icon": "Sparkles",
+    "category": "STUDIO",
     "link": "#",
-    "color": "border-neon-red/20 hover:border-neon-red",
-    "bg": "bg-neon-red/5",
-    "permission": "community_mod",
-    "baseColor": "#00fbff",
+    "color": "border-neon-orange/20 hover:border-neon-orange",
+    "bg": "bg-neon-orange/5",
+    "permission": "news",
+    "baseColor": "#00fffb",
     "columns": 1
   },
   {
-    "title": "Concours Insta",
-    "description": "Participants Instagram",
-    "icon": "Instagram",
-    "category": "CONCOURS",
+    "title": "Boutique",
+    "description": "Ventes & Produits",
+    "icon": "ShoppingBag",
+    "category": "SHOP",
     "link": "#",
     "color": "border-neon-pink/20 hover:border-neon-pink",
     "bg": "bg-neon-pink/5",
-    "permission": "community_mod",
-    "baseColor": "#75ffe8",
+    "permission": "shop",
+    "baseColor": "#ffae00",
     "columns": 1
   },
   {
@@ -176,44 +128,19 @@
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
     "permission": "all",
-    "baseColor": "#99fff3",
+    "baseColor": "#ff7b00",
     "columns": 1
   },
   {
-    "title": "Notifications",
-    "description": "Push News",
-    "icon": "Bell",
-    "category": "SHOP",
-    "link": "#",
-    "color": "border-neon-yellow/20 hover:border-neon-yellow",
-    "bg": "bg-neon-yellow/5",
-    "permission": "push_newsletter",
-    "baseColor": "#00fbff",
-    "columns": 1
-  },
-  {
-    "title": "Bandeau",
-    "description": "Annonces Teasing",
-    "icon": "Megaphone",
-    "category": "ALL",
-    "link": "#",
-    "color": "border-neon-orange/20 hover:border-neon-orange",
-    "bg": "bg-neon-orange/5",
-    "permission": "superadmin",
-    "baseColor": "#009dff",
-    "columns": 1
-  },
-  {
-    "title": "Accueil",
-    "description": "Sections & Vues",
-    "icon": "LayoutDashboard",
-    "category": "ALL",
+    "title": "Vérifier Photos",
+    "description": "Modération Wiki Photos",
+    "icon": "Camera",
+    "category": "WIKI",
     "link": "#",
     "color": "border-neon-cyan/20 hover:border-neon-cyan",
     "bg": "bg-neon-cyan/5",
-    "permission": "superadmin",
-    "baseColor": "#ff0000",
-    "columns": 1
+    "permission": "community_mod",
+    "baseColor": "cyan",
+    "columns": 2
   }
 ]
-
