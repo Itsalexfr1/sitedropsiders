@@ -2910,7 +2910,7 @@ export function AdminDashboard() {
                                                     } else if (action.title === 'Contenu' || action.icon === 'FileText') {
                                                         e.preventDefault();
                                                         setIsContenuModalOpen(true);
-                                                    } else if (action.title === 'Newsletter' || action.title === 'Abonnés' || action.icon === 'Mail') {
+                                                    } else if (action.title === 'Newsletter' || action.title === 'Abonnés') {
                                                         e.preventDefault();
                                                         setIsNewsletterModalOpen(true);
 
@@ -4129,6 +4129,19 @@ export function AdminDashboard() {
                                         <div>
                                             <h3 className="text-xl font-bold text-white uppercase italic mb-1">Paramètres Contact</h3>
                                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Emails & Destinataires</p>
+                                        </div>
+                                    </Link>
+                                    <Link
+                                        to="/admin/factures"
+                                        onClick={() => setIsMessagesModalOpen(false)}
+                                        className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
+                                    >
+                                        <div className="w-12 h-12 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                            <FileText className="w-6 h-6 text-neon-pink" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Factures</h3>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer les devis & paiements</p>
                                         </div>
                                     </Link>
                                 </div>
