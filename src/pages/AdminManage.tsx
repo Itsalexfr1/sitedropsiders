@@ -873,7 +873,8 @@ export function AdminManage() {
                                                             <Trash2 className="w-5 h-5" />
                                                         </button>
                                                     </td>
-                                                 <td className="px-6 py-4">
+                                                )}
+                                                <td className="px-6 py-4">
                                                     <div 
                                                         className={`w-12 h-12 rounded-lg overflow-hidden bg-black/40 border border-white/10 ${activeTab === 'Agenda' ? 'cursor-pointer hover:border-neon-red ring-offset-2 ring-offset-black hover:ring-2 ring-neon-red/30 transition-all' : ''}`}
                                                         onClick={() => {
