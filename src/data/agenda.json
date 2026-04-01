@@ -5788,5 +5788,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 530,
+    "title": "EDC Week : Lowkey In The Library – Discip & Silva Bumpa",
+    "date": "2026-05-14",
+    "startDate": "2026-05-14",
+    "endDate": "2026-05-14",
+    "venue": "Marquee",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/1ba6eadb98426989-260514_MNC_Lowkey_EDC_Discip_S.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/277cubyc1vwuaxah",
+    "genre": "Tech House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
