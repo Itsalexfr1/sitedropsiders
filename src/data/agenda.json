@@ -5826,5 +5826,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 532,
+    "title": "EDC Week : Omnia Dayclub Opening With FISHER ",
+    "date": "2026-05-15",
+    "startDate": "2026-05-15",
+    "endDate": "2026-05-15",
+    "venue": "Omnia DayClub",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Events",
+    "image": "/uploads/uploads/f128f329458d4195-image_1773776604536_3i5lyqm1j.webp",
+    "url": "https://tickets.taogroup.com/e/omnia-dayclub-las-vegas-5-15-2026/tickets",
+    "genre": "Tech House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
