@@ -9,7 +9,7 @@ import {
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil,
     ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram,
     Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download,
-    Trophy, Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff
+    Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -2682,7 +2682,7 @@ export function AdminDashboard() {
                                     const festR = [...(wikiFestivals as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (festVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
                                     const allRanked = wikiTab === 'djs' ? djR : wikiTab === 'clubs' ? clubR : festR;
                                     const ranked = isWikiExpanded ? allRanked : allRanked.slice(0, 5);
-                                    const topVotes = allRanked[0]?.tv || 1;
+
                                     const medals = ['🥇', '🥈', '🥉'];
                                     return (
                                         <div className="bg-white/[0.03] border border-white/10 rounded-[3rem] p-10">
@@ -3044,6 +3044,7 @@ export function AdminDashboard() {
                                     );
                                 })}
                             </AnimatePresence>
+                        </div>
 
                             {/* Modal Concours Instagram */}
                             <AnimatePresence>
@@ -3204,7 +3205,9 @@ export function AdminDashboard() {
                                         </motion.div>
                                     </div>
                                 )}
-                            </div>
+                            </AnimatePresence>
+                        </div>
+                    )}
 
                             <CreatorStudioMenuModal
                                 isOpen={isCreatorStudioOpen}
@@ -7803,6 +7806,8 @@ export function AdminDashboard() {
                 </AnimatePresence>
             </div>
         </div>
+        </div>
     );
 }
+
 
