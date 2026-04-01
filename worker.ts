@@ -2451,7 +2451,7 @@ ${urls.map(u => `  <url>
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
-                const { id, title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek, additionalDates } = body;
+                const { id, title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek, additionalDates, autoDelete } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig);
@@ -2500,7 +2500,8 @@ ${urls.map(u => `  <url>
                             isWeekly: true,
                             dayOfWeek: dayOfWeek !== undefined ? dayOfWeek : new Date(startDate).getDay(),
                             isSoldOut: isSoldOut !== undefined ? isSoldOut : existing.isSoldOut,
-                            isLiveDropsiders: isLiveDropsiders !== undefined ? isLiveDropsiders : existing.isLiveDropsiders
+                            isLiveDropsiders: isLiveDropsiders !== undefined ? isLiveDropsiders : existing.isLiveDropsiders,
+                            autoDelete: autoDelete !== undefined ? autoDelete : existing.autoDelete || false
                         });
                         currentDate.setDate(currentDate.getDate() + 7);
                     }
@@ -2526,9 +2527,20 @@ ${urls.map(u => `  <url>
                         dayOfWeek: dayOfWeek !== undefined ? dayOfWeek : existing.dayOfWeek,
                         isSoldOut: isSoldOut !== undefined ? isSoldOut : existing.isSoldOut,
                         isLiveDropsiders: isLiveDropsiders !== undefined ? isLiveDropsiders : existing.isLiveDropsiders,
+                        autoDelete: autoDelete !== undefined ? autoDelete : existing.autoDelete || false,
                         additionalDates: additionalDates || existing.additionalDates || []
                     };
                 }
+
+                // --- AUTO CLEANUP OF PAST EVENTS ---
+                const todayStr = new Date().toISOString().split('T')[0];
+                currentData = currentData.filter(item => {
+                    if (item.autoDelete) {
+                        const end = item.endDate || item.startDate || item.date;
+                        if (end && end < todayStr) return false;
+                    }
+                    return true;
+                });
 
                 const saved = await saveGitHubFile(FILE_PATH, currentData, `Update agenda: ${title || existing.title}`, agendaFile.sha, gitConfig);
                 if (saved.ok) {
@@ -2553,7 +2565,7 @@ ${urls.map(u => `  <url>
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
-                const { title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek, additionalDates } = body;
+                const { title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek, additionalDates, autoDelete } = body;
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
                 const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig) || { content: [], sha: null };
@@ -2588,7 +2600,8 @@ ${urls.map(u => `  <url>
                             isWeekly: true,
                             dayOfWeek: dayOfWeek !== undefined ? dayOfWeek : new Date(startDate).getDay(),
                             isSoldOut: isSoldOut || false,
-                            isLiveDropsiders: isLiveDropsiders || false
+                            isLiveDropsiders: isLiveDropsiders || false,
+                            autoDelete: autoDelete || false
                         });
                         currentDate.setDate(currentDate.getDate() + 7);
                     }
@@ -2614,10 +2627,21 @@ ${urls.map(u => `  <url>
                         dayOfWeek: dayOfWeek,
                         isSoldOut: isSoldOut || false,
                         isLiveDropsiders: isLiveDropsiders || false,
+                        autoDelete: autoDelete || false,
                         additionalDates: additionalDates || []
                     };
                     currentData = [...currentData, newItem];
                 }
+
+                // --- AUTO CLEANUP OF PAST EVENTS ---
+                const todayStr2 = new Date().toISOString().split('T')[0];
+                currentData = currentData.filter(item => {
+                    if (item.autoDelete) {
+                        const end = item.endDate || item.startDate || item.date;
+                        if (end && end < todayStr2) return false;
+                    }
+                    return true;
+                });
 
                 const saved = await saveGitHubFile(FILE_PATH, currentData, `Add agenda: ${title}`, agendaFile.sha, gitConfig);
                 if (saved.ok) {
@@ -5178,6 +5202,25 @@ ${urls.map(u => `  <url>
         const fileData = { sha: res.sha };
 
         let settingsChanged = false;
+        let agendaChanged = false;
+        const todayStr = new Date().toISOString().split('T')[0];
+
+        // --- AUTO-CLEANUP AGENDA ---
+        const agendaRes = await fetchGitHubFile(AGENDA_PATH, scheduledGitConfig);
+        let agendaContent = agendaRes?.content || [];
+        const originalAgendaLength = agendaContent.length;
+
+        agendaContent = agendaContent.filter(item => {
+            if (item.autoDelete) {
+                const end = item.endDate || item.startDate || item.date;
+                if (end && end < todayStr) return false;
+            }
+            return true;
+        });
+
+        if (agendaContent.length !== originalAgendaLength) {
+            agendaChanged = true;
+        }
 
         // --- AUTO-SWITCH LIVE STATUS ---
         if (content.takeover) {
@@ -5274,6 +5317,10 @@ ${urls.map(u => `  <url>
 
         if (settingsChanged || lineupChanged) {
             await saveGitHubFile(SETTINGS_PATH, content, 'Auto-cleanup & switch (Scheduled)', fileData.sha, scheduledGitConfig);
+        }
+
+        if (agendaChanged) {
+            await saveGitHubFile(AGENDA_PATH, agendaContent, 'Auto-cleanup past agenda (Scheduled)', agendaRes.sha, scheduledGitConfig);
         }
 
         // --- NOTIFICATIONS ---

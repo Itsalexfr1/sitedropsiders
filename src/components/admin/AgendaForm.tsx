@@ -31,6 +31,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
     const [isSoldOut, setIsSoldOut] = useState(false);
     const [isLiveDropsiders, setIsLiveDropsiders] = useState(false);
     const [isContest, setIsContest] = useState(false);
+    const [autoDelete, setAutoDelete] = useState(false);
     const [additionalDates, setAdditionalDates] = useState<string[]>([]);
     const [year, setYear] = useState(new Date().getFullYear().toString());
     const [showUploadModal, setShowUploadModal] = useState(false);
@@ -119,6 +120,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
             setIsSoldOut(editingItem.isSoldOut || false);
             setIsLiveDropsiders(editingItem.isLiveDropsiders || false);
             setIsContest(editingItem.isContest || false);
+            setAutoDelete(editingItem.autoDelete || false);
             setAdditionalDates(editingItem.additionalDates || []);
             setYear(editingItem.year || (editingItem.startDate || editingItem.date || '').split('-')[0] || new Date().getFullYear().toString());
         }
@@ -185,6 +187,7 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                 isSoldOut,
                 isLiveDropsiders,
                 isContest,
+                autoDelete,
                 year: year || startDate.split('-')[0],
                 additionalDates: additionalDates.filter(d => d),
                 month: new Date(startDate).toLocaleString('fr-FR', { month: 'long' }).toUpperCase()
@@ -476,6 +479,19 @@ export function AgendaForm({ editingItem, onSuccess, onCancel, isModal = false }
                             <div className="flex flex-col">
                                 <span className="text-[9px] font-black uppercase tracking-widest">Jeux Concours</span>
                                 <span className="text-[7px] opacity-70 italic lowercase">Lien auto concours</span>
+                            </div>
+                        </label>
+
+                        <label className={`flex items-center gap-3 cursor-pointer p-3 border rounded-xl transition-all ${autoDelete ? 'bg-neon-red/10 border-neon-red/50 text-neon-red' : 'bg-black/40 border-white/10 text-gray-400'}`}>
+                            <input
+                                type="checkbox"
+                                checked={autoDelete}
+                                onChange={(e) => setAutoDelete(e.target.checked)}
+                                className="w-4 h-4 rounded bg-dark-bg text-neon-red focus:ring-neon-red transition-all"
+                            />
+                            <div className="flex flex-col">
+                                <span className="text-[9px] font-black uppercase tracking-widest">Auto suppression</span>
+                                <span className="text-[7px] opacity-70 italic lowercase text-white">Supprimer après la fin</span>
                             </div>
                         </label>
                     </div>
