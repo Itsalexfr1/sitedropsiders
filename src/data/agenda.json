@@ -5769,5 +5769,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 529,
+    "title": "EDC Week : James Hype & Meduza",
+    "date": "2026-05-14",
+    "startDate": "2026-05-14",
+    "endDate": "2026-05-14",
+    "venue": "Zouk Nightclub",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Events",
+    "image": "/uploads/uploads/6f375780718e29cd-ZLV_02614_EDC_WEEK_2026_James_.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/4yn1374v5g95m9iu",
+    "genre": "Tech House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
