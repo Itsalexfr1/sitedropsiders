@@ -1445,6 +1445,9 @@ export function AdminDashboard() {
         { title: "Contenu", description: "News, Musique, Interviews...", icon: "FileText", category: "NEWS", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "news_focus", baseColor: "cyan", columns: 2 },
         { title: "Agenda", description: "Programmation", icon: "Calendar", category: "NEWS", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda_events", baseColor: "yellow", columns: 1 },
 
+        // COMMUNAUTÉ
+        { title: "Communauté", description: "Modération & Galerie", icon: "MessageSquare", category: "COMMUNAUTÉ", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "community_mod", baseColor: "purple", columns: 2 },
+
         // STUDIO & ANALYTICS
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats_analytics", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
