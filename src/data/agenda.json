@@ -6035,5 +6035,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 543,
+    "title": "EDC Week : Alesso",
+    "date": "2026-05-16",
+    "startDate": "2026-05-16",
+    "endDate": "2026-05-16",
+    "venue": "Palm Tree Beach Club",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Events",
+    "image": "/uploads/uploads/3134c5ea69bb5b91-image_1774555200247_wxvq6ikuc.jpg",
+    "url": "https://tickets.taogroup.com/e/palm-tree-beach-club-las-vegas-5-16-2026/tickets",
+    "genre": "Progressive House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
