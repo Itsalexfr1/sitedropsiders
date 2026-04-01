@@ -6263,5 +6263,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 555,
+    "title": "EDC Week : Sofi Tukker",
+    "date": "2026-05-17",
+    "startDate": "2026-05-17",
+    "endDate": "2026-05-17",
+    "venue": "XS",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/13a984b345a425f4-EDC_1080x1350_XS_Sofi_Tukker_6.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/kqp39d36y9tgyfxb",
+    "genre": "Tech House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
