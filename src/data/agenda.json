@@ -6244,5 +6244,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 554,
+    "title": "EDC Week : Steve Aoki – Dim Mak Takeover",
+    "date": "2026-05-17",
+    "startDate": "2026-05-17",
+    "endDate": "2026-05-17",
+    "venue": "Tao Beach",
+    "location": "PLAGE",
+    "country": "VIÊT NAM",
+    "type": "Showcase",
+    "image": "/uploads/uploads/ec3a42dca55fdb97-260517_TBDC_EDC_Dim_Mak_Steve_.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/bgwsz2334xfftqjd",
+    "genre": "Big Room",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
