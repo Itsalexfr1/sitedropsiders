@@ -1045,7 +1045,7 @@
     "location": "UNVRS IBIZA",
     "country": "Espagne",
     "type": "Résidence",
-    "image": "https://www.dropsiders.fr/uploads/1772627260470-ac8cb992-5a8a-4466-b831-065c25a90d76--2026_UNVRS_ARMIN_SM_SQUARE_1080X1080px.webp",
+    "image": "/uploads/a4f10a2d6939b14e-IMG_20260228_130857.jpg",
     "url": "https://www.unvrs.com/events/2026/armin-van-buuren-asot",
     "genre": "Trance",
     "month": "SEPTEMBRE",
@@ -1053,7 +1053,8 @@
     "dayOfWeek": 1,
     "isSoldOut": false,
     "isLiveDropsiders": false,
-    "venue": ""
+    "venue": "",
+    "additionalDates": []
   },
   {
     "id": 275,
