@@ -239,16 +239,23 @@ export function NewsCreate() {
     const isEditing = !!id;
     const editingItem = location.state?.item;
 
-    const [title, setTitle] = useState('');
-    const [locationInput, setLocationInput] = useState('');
-    const [country, setCountry] = useState('');
+    const [title, setTitle] = useState(editingItem?.title || '');
+    const [locationInput, setLocationInput] = useState(editingItem?.location || '');
+    const [country, setCountry] = useState(editingItem?.country || '');
     const [isAutoLocating, setIsAutoLocating] = useState(false);
-    const [imageUrl, setImageUrl] = useState('');
-    const [date, setDate] = useState('');
-    console.log('[NewsCreate] Initialization. isEditing:', isEditing, 'id:', id);
-    const [category, setCategory] = useState(type);
-    const [youtubeId, setYoutubeId] = useState('');
-    const [year, setYear] = useState('');
+    const [imageUrl, setImageUrl] = useState(editingItem?.image || '');
+    
+    // Format date for datetime-local (must be YYYY-MM-DDTHH:mm)
+    const [date, setDate] = useState(() => {
+        const d = editingItem?.date || '';
+        if (d && d.includes('T')) return d.slice(0, 16);
+        if (d) return `${d}T12:00`;
+        return '';
+    });
+    
+    const [category, setCategory] = useState(editingItem?.category || type);
+    const [youtubeId, setYoutubeId] = useState(editingItem?.youtubeId || '');
+    const [year, setYear] = useState(editingItem?.year || '');
     const [interviewSubtype, setInterviewSubtype] = useState<'written' | 'video'>((searchParams.get('subtype') as 'written' | 'video') || 'written');
     const [interviewTheme, setInterviewTheme] = useState('');
     const interviewThemes = ["Interview", "Fast Quizz", "La Playlist", "Drop & Talk"];
@@ -437,130 +444,83 @@ export function NewsCreate() {
 
     // Fetch item if missing from state but ID is present
     useEffect(() => {
-        const id = searchParams.get('id');
+        const currentId = searchParams.get('id');
+        if (!currentId) {
+            setIsLoading(false);
+            initialDataLoaded.current = false;
+            return;
+        }
 
         const parseAndInitialize = (articleData: any, fullContent: string) => {
-            setTitle(articleData.title || '');
-            setLocationInput(articleData.location || '');
-            setCountry(articleData.country || '');
-            setImageUrl(articleData.image || '');
+            if (articleData.title) setTitle(articleData.title);
+            if (articleData.location) setLocationInput(articleData.location);
+            if (articleData.country) setCountry(articleData.country);
+            if (articleData.image) setImageUrl(articleData.image);
+            
             const dateValue = articleData.date || '';
-            let finalDate = dateValue;
-            if (dateValue && dateValue.includes('T')) {
-                // Remove any seconds or timezone part that datetime-local doesn't like
-                finalDate = dateValue.slice(0, 16);
-            } else if (dateValue) {
-                finalDate = dateValue + "T12:00";
-            }
-            setDate(finalDate);
-            setCategory(articleData.category || 'News');
-            setYoutubeId(articleData.youtubeId || '');
-            setYear(articleData.year || '');
-
-            // For Interview Video, showVideo should be true by default
-            if (articleData.showVideo !== undefined) {
-                setShowVideo(articleData.showVideo);
-            } else {
-                if (articleData.category === 'Interview Video' || (articleData.category === 'Interview' && articleData.youtubeId)) {
-                    setShowVideo(true);
-                } else if (articleData.category === 'Interview' || articleData.category === 'Interviews') {
-                    setShowVideo(false);
-                } else {
-                    setShowVideo(true);
-                }
+            if (dateValue) {
+                let finalDate = dateValue;
+                if (dateValue.includes('T')) finalDate = dateValue.slice(0, 16);
+                else finalDate = `${dateValue}T12:00`;
+                setDate(finalDate);
             }
 
-            if (articleData.category === 'Focus' || (articleData.category === 'News' && articleData.isFocus)) {
-                setActiveTab('Focus');
-            } else if (articleData.category === 'Musique') {
-                setActiveTab('Musique');
-            } else {
-                setActiveTab('News');
-            }
-
-            setIsFeatured(articleData.isFeatured || false);
-            setAuthor(articleData.author || localStorage.getItem('admin_name') || localStorage.getItem('admin_user') || 'Alex');
+            if (articleData.category) setCategory(articleData.category);
+            if (articleData.youtubeId) setYoutubeId(articleData.youtubeId);
+            if (articleData.year) setYear(articleData.year);
+            if (articleData.isFeatured !== undefined) setIsFeatured(articleData.isFeatured);
+            if (articleData.author) setAuthor(articleData.author);
             setIsAuthorConfirmed(true);
 
-            // Parse Content Base
+            if (articleData.category === 'Focus' || (articleData.category === 'News' && articleData.isFocus)) setActiveTab('Focus');
+            else if (articleData.category === 'Musique') setActiveTab('Musique');
+            else setActiveTab('News');
+
+            if (articleData.showVideo !== undefined) setShowVideo(articleData.showVideo);
+            else if (articleData.category?.includes('Interview') && articleData.youtubeId) setShowVideo(true);
+
             const c = fullContent || articleData.content || '';
             const parser = new DOMParser();
             const doc = parser.parseFromString(c, 'text/html');
 
-            // Parse Socials via DOM
+            // Parse Socials
             const artistSocialsContainer = doc.querySelector('.artist-socials-premium');
             if (artistSocialsContainer) {
-                const newSocials = {
-                    website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: '', beatport: ''
-                };
-                artistSocialsContainer.querySelectorAll('a').forEach(a => {
+                const newSocials: any = { website: '', instagram: '', tiktok: '', youtube: '', facebook: '', x: '', spotify: '', soundcloud: '', beatport: '' };
+                Array.from(artistSocialsContainer.querySelectorAll('a')).forEach((a: any) => {
                     const platform = a.getAttribute('data-platform');
                     const url = a.getAttribute('href');
-                    if (platform && url && platform in newSocials) {
-                        (newSocials as any)[platform] = url;
-                    }
+                    if (platform && url && platform in newSocials) newSocials[platform] = url;
                 });
                 setArtistSocials(newSocials);
 
-                // Extract Artist Name Label
                 const h3 = artistSocialsContainer.querySelector('h3');
-                if (h3) {
-                    const labelText = h3.textContent?.replace(/SUIVEZ\s+/i, '').trim();
-                    if (labelText && labelText !== "L'ARTISTE") {
-                        setArtistNameLabel(labelText);
-                    }
-                }
+                const labelText = h3?.textContent?.replace(/SUIVEZ\s+/i, '').trim();
+                if (labelText && labelText !== "L'ARTISTE") setArtistNameLabel(labelText);
             }
 
-
-            // Parse Content
+            const sections = doc.querySelectorAll('.article-section');
             const foundWidgets: { id: string, content: string }[] = [];
             const foundQuestions: any[] = [];
-
-            const sections = doc.querySelectorAll('.article-section');
 
             if (sections.length > 0) {
                 sections.forEach(section => {
                     const html = section.innerHTML.trim();
-
-                    // Identify Interview Blocks (QA, Image, Video)
-                    if (section.classList.contains('interview-qa-block') || (articleData.category === 'Interview' && (html.includes('DROPSIDERS :') || html.includes('interview-q')))) {
-                        const artistNameAttr = section.getAttribute('data-artist-name') || '';
-                        const artistColor = section.getAttribute('data-artist-color') || '#ff1241';
-
+                    if (section.classList.contains('interview-qa-block')) {
                         const qaMatches = Array.from(html.matchAll(/(?:<strong[^>]*|<span[^>]*class=["']interview-q["'][^>]*)>(.*?)<\/(?:strong|span)>\s*(.*?)(?:<\/p|$)/gi));
-
                         if (qaMatches.length >= 2) {
-                            const qText = qaMatches[0][2].trim();
-                            const aText = qaMatches[1][2].trim();
-                            const artistLabel = qaMatches[1][1].replace(/[:]/g, '').trim();
-
                             foundQuestions.push({
                                 id: Math.random().toString(36).substr(2, 9),
-                                type: 'qa',
-                                artistName: artistNameAttr || artistLabel,
-                                artistColor: artistColor,
-                                question: qText,
-                                answer: aText
+                                type: 'qa', artistName: section.getAttribute('data-artist-name') || qaMatches[1][1].replace(/[:]/g, '').trim(),
+                                artistColor: section.getAttribute('data-artist-color') || '#ff1241',
+                                question: qaMatches[0][2].trim(), answer: qaMatches[1][2].trim()
                             });
                         }
-                    } else if (section.classList.contains('interview-image-block') || (articleData.category === 'Interview' && section.querySelector('.image-premium-wrapper'))) {
-                        const mediaUrl = section.getAttribute('data-media-url') || section.querySelector('img')?.src || '';
-                        foundQuestions.push({
-                            id: Math.random().toString(36).substr(2, 9),
-                            type: 'image',
-                            mediaUrl
-                        });
-                    } else if (section.classList.contains('interview-video-block') || (articleData.category === 'Interview' && section.querySelector('.youtube-player-widget'))) {
-                        const mediaUrl = section.getAttribute('data-media-url') || section.querySelector('iframe')?.src?.split('/embed/')[1] || '';
-                        foundQuestions.push({
-                            id: Math.random().toString(36).substr(2, 9),
-                            type: 'video',
-                            mediaUrl
-                        });
-                    } else if (html.includes('artist-socials-premium')) {
-                        // Skip socials block
-                    } else {
+                    } else if (section.classList.contains('interview-image-block')) {
+                        foundQuestions.push({ id: Math.random().toString(36).substr(2, 9), type: 'image', mediaUrl: section.getAttribute('data-media-url') || section.querySelector('img')?.src || '' });
+                    } else if (section.classList.contains('interview-video-block')) {
+                        foundQuestions.push({ id: Math.random().toString(36).substr(2, 9), type: 'video', mediaUrl: section.getAttribute('data-media-url') || section.querySelector('iframe')?.src?.split('/embed/')[1] || '' });
+                    } else if (!html.includes('artist-socials-premium')) {
                         foundWidgets.push({ id: Math.random().toString(36).substring(2, 11), content: html });
                     }
                 });
@@ -568,105 +528,38 @@ export function NewsCreate() {
 
             if (foundWidgets.length > 0) setWidgets(foundWidgets);
             else if (c && !c.includes('article-section')) setWidgets([{ id: 'legacy-1', content: c }]);
-
-            if (foundQuestions.length > 0) {
-                setInterviewQuestions(foundQuestions);
-            }
+            if (foundQuestions.length > 0) setInterviewQuestions(foundQuestions);
 
             if (articleData.category === 'Musique') {
-                setActiveTab('Musique');
-                // First try to parse via data attributes (new format)
-                const domSections = doc.querySelectorAll('.music-top-item-premium');
-                const foundMusicFromDom: any[] = [];
-                domSections.forEach(section => {
-                    const title = section.querySelector('h3')?.textContent?.trim() || '';
-                    const media = section.getAttribute('data-media') || '';
-                    const playerType = section.getAttribute('data-player-type') || 'spotify';
-                    if (media) {
-                        foundMusicFromDom.push({
-                            id: Math.random().toString(36).substr(2, 9),
-                            title,
-                            media,
-                            imageUrl: '',
-                            playerType
-                        });
-                    }
-                });
-
-                if (foundMusicFromDom.length > 0) {
-                    setMusicItems(foundMusicFromDom);
-                } else {
-                    // Fallback: old regex approach (legacy articles without data attrs)
-                    const musicSectionRegex = /<div class="music-top-item-premium[^>]*>[\s\S]*?<h3[^>]*>(.*?)<\/h3>[\s\S]*?<iframe[^>]*src="(.*?)"[\s\S]*?<\/div>/g;
-                    const foundMusic: any[] = [];
-                    let match;
-                    while ((match = musicSectionRegex.exec(c)) !== null) {
-                        foundMusic.push({
-                            id: Math.random().toString(36).substr(2, 9),
-                            title: match[1].trim(),
-                            media: match[2].trim(),
-                            imageUrl: '',
-                            playerType: match[2].includes('spotify') ? 'spotify' : match[2].includes('beatport') ? 'beatport' : 'youtube'
-                        });
-                    }
-                    if (foundMusic.length > 0) setMusicItems(foundMusic);
-                }
-            } else if (articleData.category === 'Interview Video' || articleData.category === 'Interview' || articleData.category.includes('Interview Video -')) {
-                if (articleData.category.includes('Interview Video')) {
-                    setInterviewSubtype('video');
-                    if (articleData.category.includes(' - ')) {
-                        setInterviewTheme(articleData.category.split(' - ')[1]);
-                    } else if (articleData.category === 'Interview Video') {
-                        setInterviewTheme('Interview');
-                    }
-                } else {
-                    setInterviewSubtype('written');
-                }
-            } else if (articleData.isFocus) {
-                setActiveTab('Focus');
+                const domItems = Array.from(doc.querySelectorAll('.music-top-item-premium')).map(el => ({
+                    id: Math.random().toString(36).substr(2, 9),
+                    title: el.querySelector('h3')?.textContent?.trim() || '',
+                    media: el.getAttribute('data-media') || '',
+                    imageUrl: '',
+                    playerType: el.getAttribute('data-player-type') || 'spotify'
+                })).filter(m => m.media);
+                if (domItems.length > 0) setMusicItems(domItems);
             }
 
             setIsLoading(false);
             initialDataLoaded.current = true;
         };
 
-        if (editingItem && editingItem.content) {
-            console.log('[NewsCreate] Using item from state:', editingItem.id);
-            parseAndInitialize(editingItem, editingItem.content);
-            return;
+        if (editingItem && String(editingItem.id) === String(currentId)) {
+            parseAndInitialize(editingItem, editingItem.content || '');
+            if (!editingItem.content) {
+                fetch(`/api/news/content?id=${currentId}`, { headers: getAuthHeaders() })
+                    .then(res => res.json())
+                    .then(data => parseAndInitialize(data.article || editingItem, data.content || ''));
+            }
+        } else {
+            setIsLoading(true);
+            fetch(`/api/news/content?id=${currentId}`, { headers: getAuthHeaders() })
+                .then(res => res.json())
+                .then(data => parseAndInitialize(data.article || {}, data.content || ''))
+                .catch(() => setIsLoading(false));
         }
-
-        if (!isEditing || !id) {
-            setIsLoading(false);
-            return;
-        }
-
-        // If editingItem is present but NO content, or no editingItem at all, fetch it
-        setIsLoading(true);
-
-        console.log('[NewsCreate] Fetching item from API:', id);
-        setIsLoading(true);
-            const fetchFullItem = async () => {
-                try {
-                    const response = await fetch(`/api/news/content?id=${id}`, { headers: getAuthHeaders() });
-                    if (response.ok) {
-                        const data = await response.json();
-                        if (data.article) {
-                            parseAndInitialize(data.article, data.content || data.article.content || '');
-                        } else if (data.content) {
-                            parseAndInitialize({}, data.content);
-                        }
-                    } else {
-                        // API fail - stop loading
-                        setIsLoading(false);
-                    }
-                } catch (e: any) {
-                    console.error("Failed to fetch item for edit", e);
-                    setIsLoading(false);
-                }
-            };
-            fetchFullItem();
-    }, [isEditing, editingItem, searchParams, type]);
+    }, [searchParams, editingItem]);
 
     const [linkModal, setLinkModal] = useState<{
         show: boolean;
