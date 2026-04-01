@@ -5712,5 +5712,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 526,
+    "title": "EDC Week : Dom Dolla",
+    "date": "2026-05-14",
+    "startDate": "2026-05-14",
+    "endDate": "2026-05-14",
+    "venue": "Liv NightClub",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/693e09ce5a147b7b-40914884292.jpeg",
+    "url": "https://speakeasygo.com/liv-nightclub---las-vegas/dom-dolla?eid=EVE-X9BXIR",
+    "genre": "Tech House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
