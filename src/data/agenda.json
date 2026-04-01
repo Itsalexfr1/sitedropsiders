@@ -1104,13 +1104,15 @@
     "location": "LONG BEACH",
     "country": "USA",
     "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/1772627686693-dtf_2026_mk_an_fest_site_mh_1534x1428_r02.jpg",
+    "image": "/uploads/bc3e5c195932b7e4-dtf_2026_mk_an_fest_site_mh_15.jpg",
     "url": "https://www.daytripfest.com",
     "genre": "House",
     "month": "JUIN",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "venue": "",
+    "additionalDates": []
   },
   {
     "id": 278,
