@@ -41,7 +41,15 @@ export type TranslationKey =
     | 'common.back' | 'common.quit' | 'common.loading_charts'
     | 'wiki_encyclopedia' | 'wiki_artist_count' | 'wiki_vote_favs' | 'wiki_djs_title' | 'wiki_clubs_title' | 'wiki_festivals_title' | 'vote' | 'voted' | 'vote_for_artist' | 'voted_for_artist' 
     | 'vote_for_venue' | 'voted_for_venue' | 'fan_rating' | 'official_links' | 'no_links' | 'top_rated' | 'add_to_wiki' | 'added_to_wiki' 
-    | 'all_fields_required' | 'place_count' | 'places_count' | 'searching' | 'no_results' | 'search_placeholder' | 'search_artist' | 'search_clubs' | 'search_festivals' | 'venue_search_placeholder' | 'admin_edit_links';
+    | 'all_fields_required' | 'place_count' | 'places_count' | 'searching' | 'no_results' | 'search_placeholder' | 'search_artist' | 'search_clubs' | 'search_festivals' | 'venue_search_placeholder' | 'admin_edit_links'
+    | 'voyage.title' | 'voyage.subtitle' | 'voyage.badge' | 'voyage.flights' | 'voyage.bus'
+    | 'voyage.from' | 'voyage.to' | 'voyage.date' | 'voyage.return_date' | 'voyage.search_btn'
+    | 'voyage.direct' | 'voyage.stops' | 'voyage.results_found' | 'voyage.offers_found'
+    | 'voyage.sort_price' | 'voyage.sort_duration' | 'voyage.sort_stops'
+    | 'voyage.see_more' | 'voyage.remaining' | 'voyage.show_details' | 'voyage.hide_details'
+    | 'voyage.book' | 'voyage.engine_error' | 'voyage.no_results' | 'voyage.source'
+    | 'voyage.see_on_skyscanner' | 'voyage.see_on_google' | 'voyage.live_price' | 'voyage.best_offer'
+    | 'voyage.cabin_bag' | 'voyage.e_ticket' | 'voyage.last_seats' | 'voyage.layover_at';
 
 export const translations: Record<TranslationKey, { fr: string, en: string }> = {
     'article_detail.link_copied': { fr: 'Lien copi\u00e9 !', en: 'Link copied!' },
@@ -398,5 +406,40 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'search_festivals': { fr: 'Rechercher un festival...', en: 'Search a festival...' },
     'venue_search_placeholder': { fr: 'Rechercher un lieu ou une ville...', en: 'Search a venue or city...' },
     'admin_edit_links': { fr: 'Modifier les liens (admin)', en: 'Edit links (admin)' },
+
+    // Voyage page
+    'voyage.title': { fr: 'VOYAGE', en: 'TRAVEL' },
+    'voyage.subtitle': { fr: 'Le comparateur de voyage ultime pour vos festivals.', en: 'The ultimate travel comparator for your festivals.' },
+    'voyage.badge': { fr: 'TRAVEL ENGINE v4.2', en: 'TRAVEL ENGINE v4.2' },
+    'voyage.flights': { fr: 'VOLS', en: 'FLIGHTS' },
+    'voyage.bus': { fr: 'BUS & TRAIN', en: 'BUS & TRAIN' },
+    'voyage.from': { fr: 'Ville ou aéroport de départ', en: 'Departure city or airport' },
+    'voyage.to': { fr: 'Ville ou aéroport d\'arrivée', en: 'Arrival city or airport' },
+    'voyage.date': { fr: 'Date de départ', en: 'Departure date' },
+    'voyage.return_date': { fr: 'Date de retour (optionnel)', en: 'Return date (optional)' },
+    'voyage.search_btn': { fr: 'RECHERCHER', en: 'SEARCH' },
+    'voyage.direct': { fr: 'DIRECT', en: 'DIRECT' },
+    'voyage.stops': { fr: 'ESCALE(S)', en: 'STOP(S)' },
+    'voyage.results_found': { fr: 'VOLS DISPONIBLES', en: 'FLIGHTS AVAILABLE' },
+    'voyage.offers_found': { fr: 'OFFRES TROUVÉES', en: 'OFFERS FOUND' },
+    'voyage.sort_price': { fr: 'Moins cher', en: 'Cheapest' },
+    'voyage.sort_duration': { fr: 'Plus rapide', en: 'Fastest' },
+    'voyage.sort_stops': { fr: 'Escale min.', en: 'Min. stops' },
+    'voyage.see_more': { fr: 'VOIR PLUS DE RÉSULTATS', en: 'SHOW MORE RESULTS' },
+    'voyage.remaining': { fr: 'restants', en: 'remaining' },
+    'voyage.show_details': { fr: 'VOIR LES ESCALES ET DÉTAILS', en: 'VIEW STOPS & DETAILS' },
+    'voyage.hide_details': { fr: 'MASQUER LES DÉTAILS', en: 'HIDE DETAILS' },
+    'voyage.book': { fr: 'RÉSERVER', en: 'BOOK' },
+    'voyage.engine_error': { fr: 'AIE... MOTEUR INDISPONIBLE', en: 'OOPS... ENGINE UNAVAILABLE' },
+    'voyage.no_results': { fr: 'Aucune offre trouvée pour cette route.', en: 'No offers found for this route.' },
+    'voyage.source': { fr: 'SOURCE DE RECHERCHE', en: 'SEARCH SOURCE' },
+    'voyage.see_on_skyscanner': { fr: 'VOIR SUR SKYSCANNER', en: 'VIEW ON SKYSCANNER' },
+    'voyage.see_on_google': { fr: 'VOIR SUR GOOGLE FLIGHTS', en: 'VIEW ON GOOGLE FLIGHTS' },
+    'voyage.live_price': { fr: 'PRIX EN DIRECT', en: 'LIVE PRICE' },
+    'voyage.best_offer': { fr: 'MEILLEURE OFFRE', en: 'BEST OFFER' },
+    'voyage.cabin_bag': { fr: 'BAGAGE CABINE INCLUS', en: 'CABIN BAG INCLUDED' },
+    'voyage.e_ticket': { fr: 'BILLET ÉLECTRONIQUE', en: 'E-TICKET' },
+    'voyage.last_seats': { fr: 'Dernières places à ce prix', en: 'Last seats at this price' },
+    'voyage.layover_at': { fr: 'Escale à', en: 'Layover at' },
 };
 

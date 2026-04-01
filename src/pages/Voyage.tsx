@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CovoitSection } from '../components/community/CovoitSection';
 import { SEO } from '../components/utils/SEO';
+import { useLanguage } from '../context/LanguageContext';
 
 
 const CitySearchInput = ({ placeholder, icon: Icon, value, onSelect, travelType }: any) => {
@@ -104,6 +105,7 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onSelect, travelType 
 
 export function Voyage() {
     const { type } = useParams();
+    const { t } = useLanguage();
     const navigate = useNavigate();
     const [travelType, setTravelType] = useState<'flight' | 'bus'>(type === 'bus' ? 'bus' : 'flight');
     
@@ -240,9 +242,9 @@ export function Voyage() {
                     .map((offer: any) => {
                         const slice = offer.slices[0];
                         const segments = slice.segments;
-                        const match = slice.duration.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
-                        const h = parseInt(match[1] || '0');
-                        const m = parseInt(match[2] || '0');
+                        const match = slice.duration?.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+                        const h = match ? parseInt(match[1] || '0') : 0;
+                        const m = match ? parseInt(match[2] || '0') : 0;
                         const durationMinutes = (h * 60) + m;
                         const stopCodes = segments.length > 1 
                             ? segments.slice(0, -1).map((s: any) => s.destination.iata_code).join(', ')
@@ -497,18 +499,18 @@ export function Voyage() {
                                 {/* Results Header & Sort */}
                                 <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-10 px-4">
                                     <div className="flex items-center gap-4">
-                                        <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">OFFRES TROUVÉES</h3>
+                                        <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">{t('voyage.offers_found')}</h3>
                                         <div className="px-3 py-1 bg-green-500/10 border border-green-500/20 rounded-full flex items-center gap-2">
                                             <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                                            <span className="text-[9px] font-black text-green-500 tracking-[0.2em]">{results.length} VOLS DISPONIBLES</span>
+                                            <span className="text-[9px] font-black text-green-500 tracking-[0.2em]">{results.length} {t('voyage.results_found')}</span>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5">
-                                        {[
-                                            { id: 'price', label: 'Moins cher', icon: Zap },
-                                            { id: 'duration', label: 'Plus rapide', icon: Clock },
-                                            { id: 'stops', label: 'Escale min.', icon: Filter }
+                                         {[
+                                            { id: 'price', label: t('voyage.sort_price'), icon: Zap },
+                                            { id: 'duration', label: t('voyage.sort_duration'), icon: Clock },
+                                            { id: 'stops', label: t('voyage.sort_stops'), icon: Filter }
                                         ].map((s) => (
                                             <button
                                                 key={s.id}
@@ -547,7 +549,7 @@ export function Voyage() {
                                                     <div className="flex items-center gap-4">
                                                         <span className="text-base font-black text-white uppercase italic tracking-tighter group-hover:text-neon-red transition-colors">{r.company}</span>
                                                         <span className={`text-[10px] font-black px-3 py-1 border rounded-lg uppercase tracking-widest ${r.stops === 0 ? 'text-green-500 border-green-500/20 bg-green-500/5' : 'text-neon-red border-neon-red/20 bg-neon-red/5'}`}>
-                                                            {r.stops === 0 ? 'DIRECT' : `${r.stops} ESCALE(S)`}
+                                                            {r.stops === 0 ? t('voyage.direct') : `${r.stops} ${t('voyage.stops')}`}
                                                         </span>
                                                     </div>
 
@@ -595,7 +597,7 @@ export function Voyage() {
                                                         <div className="text-5xl lg:text-6xl font-display font-black text-white group-hover:scale-110 transition-transform origin-right">{Math.round(r.price)}<span className="text-xl ml-1 italic">€</span></div>
                                                     </div>
                                                     <p className="text-[10px] font-black text-green-500 uppercase tracking-[0.3em] mt-2 flex items-center gap-2 justify-end">
-                                                        <Zap className="w-3 h-3" /> MEILLEURE OFFRE
+                                                        <Zap className="w-3 h-3" /> {t('voyage.best_offer')}
                                                     </p>
                                                 </div>
                                                 
@@ -603,7 +605,7 @@ export function Voyage() {
                                                     onClick={() => openSearchRedirect('skyscanner')}
                                             className="px-10 py-5 bg-white text-black rounded-2xl font-black uppercase text-[11px] tracking-[0.2em] hover:bg-neon-red hover:text-white transition-all shadow-[0_0_40px_rgba(255,255,255,0.1)] flex items-center gap-3 shrink-0 active:scale-95"
                                                 >
-                                                    RÉSERVER <ArrowRight className="w-4 h-4" />
+                                                    {t('voyage.book')} <ArrowRight className="w-4 h-4" />
                                                 </button>
                                             </div>
                                         </div>
@@ -612,18 +614,18 @@ export function Voyage() {
                                         <div className="bg-white/[0.02] border-t border-white/5 px-8 py-4 flex items-center justify-between">
                                             <div className="flex gap-6">
                                                 <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest flex items-center gap-2">
-                                                    <Info className="w-3 h-3" /> BAGAGE CABINE INCLUS
+                                                    <Info className="w-3 h-3" /> {t('voyage.cabin_bag')}
                                                 </span>
                                                 <button 
                                                     onClick={() => setExpandedId(expandedId === r.id ? null : r.id)}
                                                     className="text-[9px] font-black text-neon-red uppercase tracking-widest flex items-center gap-2 hover:text-white transition-colors"
                                                 >
                                                     <ChevronDown className={`w-3 h-3 transition-transform duration-500 ${expandedId === r.id ? 'rotate-180' : ''}`} /> 
-                                                    {expandedId === r.id ? 'MASQUER LES DÉTAILS' : 'VOIR LES ESCALES ET DÉTAILS'}
+                                                    {expandedId === r.id ? t('voyage.hide_details') : t('voyage.show_details')}
                                                 </button>
                                             </div>
                                             <div className="hidden md:block">
-                                                 <span className="text-[9px] font-black text-neon-red uppercase tracking-[0.2em] italic">Dernières places à ce prix</span>
+                                                 <span className="text-[9px] font-black text-neon-red uppercase tracking-[0.2em] italic">{t('voyage.last_seats')}</span>
                                             </div>
                                         </div>
 
@@ -681,7 +683,7 @@ export function Voyage() {
                                                                         <div className="inline-flex items-center gap-3 px-4 py-2 bg-neon-red/5 border border-neon-red/10 rounded-full">
                                                                             <Clock className="w-3 h-3 text-neon-red" />
                                                                             <span className="text-[9px] font-black text-neon-red uppercase tracking-widest">
-                                                                                Escale à {segment.destination}
+                                                                                {t('voyage.layover_at')} {segment.destination}
                                                                             </span>
                                                                         </div>
                                                                     </div>
@@ -707,7 +709,7 @@ export function Voyage() {
                                             className="px-12 py-5 border border-white/10 bg-white/5 text-white rounded-2xl font-black uppercase text-[11px] tracking-[0.3em] hover:bg-white hover:text-black transition-all flex items-center gap-3"
                                         >
                                             <ChevronDown className="w-4 h-4" />
-                                            VOIR PLUS DE RÉSULTATS ({sortedResults.length - visibleCount} restants)
+                                            {t('voyage.see_more')} ({sortedResults.length - visibleCount} {t('voyage.remaining')})
                                         </button>
                                     </motion.div>
                                 )}
