@@ -1088,14 +1088,15 @@
     "location": "IBIZA",
     "country": "Espagne",
     "type": "Events",
-    "image": "https://www.dropsiders.fr/uploads/1772627398643-097f7838-0a06-4b63-90e0-a5383a2d3481--2026_UNVRS_PEGGY GOU_MIDNIGHT LOBSTER CLUB_ANNOUNCEMENT_SQUARE1080x1080.webp",
+    "image": "/uploads/9037760439bb8ae1-4a75400e360bcef6d309679281c4d4.jpg",
     "url": "https://www.unvrs.com/events/2026/peggy-gou/12-06-2026",
     "genre": "House",
     "month": "JUIN",
     "isWeekly": false,
     "isSoldOut": false,
     "isLiveDropsiders": false,
-    "venue": "UNVRS"
+    "venue": "UNVRS",
+    "additionalDates": []
   },
   {
     "id": 277,
