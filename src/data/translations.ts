@@ -49,7 +49,9 @@ export type TranslationKey =
     | 'voyage.see_more' | 'voyage.remaining' | 'voyage.show_details' | 'voyage.hide_details'
     | 'voyage.book' | 'voyage.engine_error' | 'voyage.no_results' | 'voyage.source'
     | 'voyage.see_on_skyscanner' | 'voyage.see_on_google' | 'voyage.live_price' | 'voyage.best_offer'
-    | 'voyage.cabin_bag' | 'voyage.e_ticket' | 'voyage.last_seats' | 'voyage.layover_at';
+    | 'voyage.cabin_bag' | 'voyage.e_ticket' | 'voyage.last_seats' | 'voyage.layover_at'
+    | 'voyage.cabin_class' | 'voyage.economy' | 'voyage.premium_economy' | 'voyage.business' | 'voyage.first'
+    | 'voyage.cabin_class_info' | 'voyage.sort_class';
 
 export const translations: Record<TranslationKey, { fr: string, en: string }> = {
     'article_detail.link_copied': { fr: 'Lien copi\u00e9 !', en: 'Link copied!' },
@@ -441,5 +443,11 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'voyage.e_ticket': { fr: 'BILLET ÉLECTRONIQUE', en: 'E-TICKET' },
     'voyage.last_seats': { fr: 'Dernières places à ce prix', en: 'Last seats at this price' },
     'voyage.layover_at': { fr: 'Escale à', en: 'Layover at' },
+    'voyage.cabin_class': { fr: 'CLASSE DE VOL', en: 'CABIN CLASS' },
+    'voyage.economy': { fr: 'Économie', en: 'Economy' },
+    'voyage.premium_economy': { fr: 'Premium Éco', en: 'Premium Eco' },
+    'voyage.business': { fr: 'Business', en: 'Business' },
+    'voyage.first': { fr: 'Première', en: 'First Class' },
+    'voyage.cabin_class_info': { fr: "La classe est appliquée directement sur le 'Moteur Flash'. Pour les autres, elle sera à confirmer sur leur site.", en: "Class is applied directly on the 'Flash Engine'. For others, you will need to confirm on their site." },
+    'voyage.sort_class': { fr: 'Classe', en: 'Class' },
 };
-

@@ -1,5 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
-import { Plane, Bus, Calendar, MapPin, ArrowRightLeft, Navigation, ArrowRight, Zap, Info, ExternalLink, Filter, HelpCircle, ChevronDown, Clock } from 'lucide-react';
+import { 
+    Navigation, Search, MapPin, Calendar, ArrowRight, Zap, Info, Clock, 
+    TrendingDown, Share2, ExternalLink, ChevronDown, ChevronUp, Plane, Bus, ArrowRightLeft, HelpCircle 
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
 import { CovoitSection } from '../components/community/CovoitSection';
@@ -241,46 +244,56 @@ export function Voyage() {
 
                 const mappedResults = offers
                     .map((offer: any) => {
-                        const slice = offer.slices[0];
-                        const segments = slice.segments;
-                        const match = slice.duration?.match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
+                        if (!offer) return null;
+                        const slice = offer.slices?.[0];
+                        if (!slice) return null;
+                        const segments = slice.segments || [];
+                        if (segments.length === 0) return null;
+
+                        const match = (slice.duration || '').match(/PT(?:(\d+)H)?(?:(\d+)M)?/);
                         const h = match ? parseInt(match[1] || '0') : 0;
                         const m = match ? parseInt(match[2] || '0') : 0;
                         const durationMinutes = (h * 60) + m;
+                        
                         const stopCodes = segments.length > 1 
-                            ? segments.slice(0, -1).map((s: any) => s.destination.iata_code).join(', ')
+                            ? segments.slice(0, -1).map((s: any) => s.destination?.iata_code).filter(Boolean).join(', ')
                             : null;
+
+                        // Identify the real cabin class from the first segment if available
+                        const actualCabinClass = segments[0]?.passenger_conditions?.cabin_class || cabinClass;
 
                         return {
                             id: offer.id,
-                            company: offer.owner.name,
-                            iata: offer.owner.iata_code,
+                            company: offer.owner?.name || 'Inconnue',
+                            iata: offer.owner?.iata_code || '??',
                             price: parseFloat(offer.total_amount),
                             duration: (slice.duration || '').replace('PT', '').replace('H', 'h ').replace('M', 'm').toLowerCase(),
                             duration_minutes: durationMinutes,
-                            cabin_class: cabinClass,
+                            cabin_class: actualCabinClass,
                             stops: segments.length - 1,
                             stopCodes,
-                            departureTime: new Date(segments[0].departing_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
-                            arrivalTime: new Date(segments[segments.length - 1].arriving_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
-                            departureIata: segments[0].origin.iata_code,
-                            arrivalIata: segments[segments.length - 1].destination.iata_code,
+                            departureTime: segments[0]?.departing_at ? new Date(segments[0].departing_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}) : '--:--',
+                            arrivalTime: segments[segments.length - 1]?.arriving_at ? new Date(segments[segments.length - 1].arriving_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}) : '--:--',
+                            departureIata: segments[0]?.origin?.iata_code || '???',
+                            arrivalIata: segments[segments.length - 1]?.destination?.iata_code || '???',
                             allSegments: segments.map((s: any) => ({
                                 id: s.id,
-                                origin: s.origin.iata_code,
-                                destination: s.destination.iata_code,
+                                origin: s.origin?.iata_code,
+                                destination: s.destination?.iata_code,
                                 departing_at: s.departing_at,
                                 arriving_at: s.arriving_at,
-                                marketing_carrier: s.marketing_carrier.name,
-                                marketing_carrier_iata: s.marketing_carrier.iata_code,
+                                marketing_carrier: s.marketing_carrier?.name || 'Inconnue',
+                                marketing_carrier_iata: s.marketing_carrier?.iata_code || '??',
                                 flight_number: s.marketing_carrier_flight_number,
                                 duration: (s.duration || '').replace('PT', '').replace('H', 'h ').replace('M', 'm').toLowerCase()
                             }))
                         };
-                    });
+                    })
+                    .filter(Boolean);
 
                 setResults(mappedResults);
             } catch (err: any) {
+                console.error("Voyage Search Crash:", err);
                 setError(err.message || "Erreur inconnue");
             } finally {
                 setIsSearching(false);
@@ -297,7 +310,11 @@ export function Voyage() {
         if (sortType === 'price') return a.price - b.price;
         if (sortType === 'duration') return a.duration_minutes - b.duration_minutes;
         if (sortType === 'stops') return a.stops - b.stops;
-        if (sortType === 'class') return (cabinClassOrder[a.cabin_class] ?? 9) - (cabinClassOrder[b.cabin_class] ?? 9);
+        if (sortType === 'class') {
+            const classDiff = (cabinClassOrder[a.cabin_class] ?? 9) - (cabinClassOrder[b.cabin_class] ?? 9);
+            if (classDiff !== 0) return classDiff;
+            return a.price - b.price; // Also sort by price within the same class
+        }
         return 0;
     });
 
@@ -403,50 +420,61 @@ export function Voyage() {
                                 </div>
                             </div>
 
-                            {/* Cabin Class Selector */}
-                            {travelType === 'flight' && flightProvider === 'direct' && (
-                                <div className="space-y-3">
-                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">CLASSE DE VOL</span>
-                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                        {[
-                                            { id: 'economy', label: 'Économie', emoji: '💺' },
-                                            { id: 'premium_economy', label: 'Premium Éco', emoji: '⭐' },
-                                            { id: 'business', label: 'Business', emoji: '💎' },
-                                            { id: 'first', label: 'Première', emoji: '👑' },
-                                        ].map((cls) => (
-                                            <button
-                                                key={cls.id}
-                                                type="button"
-                                                onClick={() => { setCabinClass(cls.id); setResults([]); setError(null); }}
-                                                className={`flex items-center gap-2 px-4 py-3 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${
-                                                    cabinClass === cls.id
-                                                        ? 'bg-neon-red/10 border-neon-red text-white'
-                                                        : 'bg-transparent border-white/5 text-gray-600 hover:border-white/10 hover:text-gray-400'
-                                                }`}
-                                            >
-                                                <span>{cls.emoji}</span> {cls.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+                            <div className="flex flex-col md:flex-row gap-10 border-t border-white/5 pt-10">
+                                <div className="flex-1 space-y-6">
+                                    {travelType === 'flight' && (
+                                        <div className="space-y-4">
+                                            <div className="flex items-center gap-2 ml-2">
+                                                <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">{t('voyage.cabin_class')}</span>
+                                                <div className="group relative">
+                                                    <Info className="w-3 h-3 text-gray-600" />
+                                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-50 p-4 bg-black border border-white/10 rounded-2xl text-[9px] font-bold text-gray-400 uppercase leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
+                                                        {t('voyage.cabin_class_info')}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                                {[
+                                                    { id: 'economy', label: t('voyage.economy'), emoji: '💺' },
+                                                    { id: 'premium_economy', label: t('voyage.premium_economy'), emoji: '⭐' },
+                                                    { id: 'business', label: t('voyage.business'), emoji: '💎' },
+                                                    { id: 'first', label: t('voyage.first'), emoji: '👑' },
+                                                ].map((cls) => (
+                                                    <button
+                                                        key={cls.id}
+                                                        type="button"
+                                                        onClick={() => { setCabinClass(cls.id); setResults([]); setError(null); }}
+                                                        className={`flex items-center gap-2 px-4 py-3.5 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                            cabinClass === cls.id
+                                                                ? 'bg-neon-red/10 border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.1)]'
+                                                                : 'bg-transparent border-white/5 text-gray-600 hover:border-white/10 hover:text-gray-400'
+                                                        }`}
+                                                    >
+                                                        <span>{cls.emoji}</span> {cls.label}
+                                                    </button>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
 
-                            <div className="flex flex-col md:flex-row gap-8 items-center border-t border-white/5 pt-10">
-                                <div className="flex-1 w-full">
-                                    <h4 className="text-[10px] font-black uppercase text-gray-600 tracking-[0.3em] mb-4 ml-2">SOURCE DE RECHERCHE</h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {(travelType === 'flight' ? ['direct', 'google', 'skyscanner', 'kayak', 'liligo'] : ['omio', 'busbud', 'flixbus', 'blablacar']).map((p) => (
-                                            <button
-                                                key={p}
-                                                type="button"
-                                                onClick={() => { travelType === 'flight' ? setFlightProvider(p) : setBusProvider(p); setResults([]); setError(null); }}
-                                                className={`px-5 py-3 rounded-xl border text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
-                                                    (travelType === 'flight' ? flightProvider : busProvider) === p ? 'bg-white/10 border-neon-red text-white' : 'bg-transparent border-white/5 text-gray-600 hover:border-white/10 hover:text-gray-400'
-                                                }`}
-                                            >
-                                                {p === 'direct' ? '⚡ MOTEUR FLASH' : p}
-                                            </button>
-                                        ))}
+                                    <div className="space-y-4 pt-4">
+                                        <h4 className="text-[10px] font-black uppercase text-gray-600 tracking-[0.3em] ml-2 italic">{t('voyage.source')}</h4>
+                                        <div className="flex flex-wrap gap-2">
+                                            {(travelType === 'flight' ? ['direct', 'google', 'skyscanner', 'kayak', 'liligo'] : ['omio', 'busbud', 'flixbus', 'blablacar']).map((p) => (
+                                                <button
+                                                    key={p}
+                                                    type="button"
+                                                    onClick={() => { travelType === 'flight' ? setFlightProvider(p) : setBusProvider(p); setResults([]); setError(null); }}
+                                                    className={`px-6 py-4 rounded-xl border text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
+                                                        (travelType === 'flight' ? flightProvider : busProvider) === p 
+                                                            ? 'bg-white/10 border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.1)]' 
+                                                            : 'bg-transparent border-white/5 text-gray-600 hover:border-white/10 hover:text-gray-400'
+                                                    }`}
+                                                >
+                                                    {p === 'direct' ? `⚡ ${t('voyage.engine_error').split('...')[1] || 'ENGINE'} (FLASH)` : p}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
                                 </div>
 
@@ -538,17 +566,17 @@ export function Voyage() {
                                         </div>
                                     </div>
 
-                                    <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5">
-                                     {[
-                                            { id: 'price', label: t('voyage.sort_price'), icon: Zap },
+                                    <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5 overflow-x-auto no-scrollbar">
+                                        {[
+                                            { id: 'price', label: t('voyage.sort_price'), icon: TrendingDown },
+                                            { id: 'class', label: t('voyage.sort_class'), icon: Navigation },
                                             { id: 'duration', label: t('voyage.sort_duration'), icon: Clock },
-                                            { id: 'stops', label: t('voyage.sort_stops'), icon: Filter },
-                                            { id: 'class', label: 'Classe', icon: Navigation }
+                                            { id: 'stops', label: t('voyage.sort_stops'), icon: Share2 }
                                         ].map((s) => (
                                             <button
                                                 key={s.id}
                                                 onClick={() => setSortType(s.id)}
-                                                className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                className={`flex items-center gap-2 px-6 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all shrink-0 ${
                                                     sortType === s.id ? 'bg-white text-black shadow-2xl' : 'text-gray-500 hover:text-white'
                                                 }`}
                                             >
