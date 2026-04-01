@@ -5484,5 +5484,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 514,
+    "title": "EDC Week : {low]KEY présent Chris Lorenzo",
+    "date": "2026-05-13",
+    "startDate": "2026-05-13",
+    "endDate": "2026-05-13",
+    "venue": "Marquee",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/0210165ac4823fee-260513_MNC_Lowkey_EDC_Chris_Lo.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/g38ot306bq6j25g5",
+    "genre": "Tech House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
