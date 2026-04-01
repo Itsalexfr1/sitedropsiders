@@ -2498,7 +2498,7 @@ ${generateSocialsHtml()}
                                                                     const extracted = extractVideoUrls(widget.content);
                                                                     setVideoGroupModal({
                                                                         show: true,
-                                                                        title: '', rows: [{ count: 3, videos: [{ url: '', title: '' }] }]
+                                                                        title: \x27\x27, rows: [{ count: 3, videos: [{ url: \x27\x27, title: \x27\x27 }] }],
                                                                         videoTitles: Array(50).fill(''),
                                                                         count: extracted.count, 
                                                                         layout: 'row',
@@ -4196,3 +4196,4 @@ ${generateSocialsHtml()}
 }
 
 export default NewsCreate;
+
