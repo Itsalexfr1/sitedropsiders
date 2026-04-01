@@ -5636,5 +5636,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 522,
+    "title": "EDC Week : Basscon Pool Party",
+    "date": "2026-04-01",
+    "startDate": "2026-04-01",
+    "endDate": "2026-04-01",
+    "venue": "Swim & Social at The Strat",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Showcase",
+    "image": "/uploads/uploads/16137c58abc08484-05_14_26_EDCW26_BC_PoolParty_1.jpg",
+    "url": "https://wl.eventim.us/event/BASSCON-and-RVLTN-PRESENT-BASSCON-POOL-PARTY-21/686436?afflky=RVLTNEvents",
+    "genre": "Hardstyle",
+    "month": "AVRIL",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
