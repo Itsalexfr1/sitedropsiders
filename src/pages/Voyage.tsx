@@ -261,7 +261,7 @@ export function Voyage() {
                         <span className="text-[10px] font-black text-neon-red uppercase tracking-widest italic">TRAVEL ENGINE v4.2</span>
                     </motion.div>
                     <h1 className="text-5xl md:text-8xl font-display font-black text-white italic uppercase tracking-tighter leading-tight">
-                        DIRECTION <span className="text-neon-red outline-text">FESTIVAL</span>
+                        DIRECTION <span className="text-neon-red outline-text">VOYAGE</span>
                     </h1>
                 </div>
             </div>
