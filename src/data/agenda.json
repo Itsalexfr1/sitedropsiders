@@ -5503,5 +5503,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 515,
+    "title": "EDC Week : Day Trip Pool Party",
+    "date": "2026-05-13",
+    "startDate": "2026-05-13",
+    "endDate": "2026-05-13",
+    "venue": "Marquee DayClub",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Showcase",
+    "image": "/uploads/uploads/19dfeea0d2a6c548-260514_MDC_DAYTRIP_EDC_1080x13.jpg",
+    "url": "https://tickets.taogroup.com/e/marquee-dayclub-las-vegas-5-14-2026/tickets",
+    "genre": "Tech House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
