@@ -6054,5 +6054,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 544,
+    "title": "EDC Week : Calvin Harris",
+    "date": "2026-05-16",
+    "startDate": "2026-05-16",
+    "endDate": "2026-05-16",
+    "venue": "Encore Beach Club",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/dc2abeb7e689f344-EDC_1080x1350_EBC_Calvin_Harri.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/94tr5jgyz8eyuyl4",
+    "genre": "Big Room",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
