@@ -2408,28 +2408,28 @@ export function AdminDashboard() {
                                         </div>
                                     </div>
 
-                                    {/* R2 STORAGE CLEANUP */}
+                                    {/* SHOPPING QUICK ACCESS */}
                                     <div className="space-y-6">
                                         <h3 className="text-xl font-display font-black text-white uppercase italic flex items-center gap-3 px-2">
-                                            <HardDrive className="w-5 h-5 text-neon-cyan" />
-                                            Gestion <span className="text-neon-cyan">Cloud R2</span>
+                                            <ShoppingBag className="w-5 h-5 text-neon-pink" />
+                                            Gestion <span className="text-neon-pink">Boutique</span>
                                         </h3>
                                         <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6">
                                             <div className="flex items-center justify-between mb-6">
                                                 <div>
-                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Espace Cloud R2</p>
-                                                    <p className="text-[9px] text-gray-400">Doublons, Cassés, Inutilisés & Explorateur</p>
+                                                    <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] mb-1">Shop Officiel</p>
+                                                    <p className="text-[9px] text-gray-400">Stocks, Commandes & Produits</p>
                                                 </div>
-                                                <div className="p-3 bg-neon-cyan/10 rounded-xl">
-                                                    <HardDrive className="w-5 h-5 text-neon-cyan" />
+                                                <div className="p-3 bg-neon-pink/10 rounded-xl font-black text-neon-pink text-xs">
+                                                    SHOP
                                                 </div>
                                             </div>
                                             <button
-                                                onClick={() => setIsScanMenuOpen(true)}
-                                                className="w-full py-5 bg-neon-cyan/10 hover:bg-neon-cyan border border-neon-cyan/30 text-neon-cyan hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all"
+                                                onClick={() => setIsShopModalOpen(true)}
+                                                className="w-full py-5 bg-neon-pink/10 hover:bg-neon-pink border border-neon-pink/30 text-neon-pink hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all shadow-lg shadow-neon-pink/5"
                                             >
-                                                <FolderOpen className="w-5 h-5" />
-                                                OUVRIR LE MANAGER R2
+                                                <ShoppingBag className="w-5 h-5" />
+                                                OUVRIR LA BOUTIQUE
                                             </button>
                                         </div>
                                     </div>
