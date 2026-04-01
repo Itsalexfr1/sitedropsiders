@@ -1343,13 +1343,14 @@
     "location": "CULLERA",
     "country": "Espagne",
     "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/1772634219070-MEDUSA2026-v2.webp",
+    "image": "/uploads/dd82c7567669e668-medusa_line_up_2026.jpg",
     "url": "https://www.medusasunbeach.com",
     "genre": "Multi Styles",
     "month": "AOÛT",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "additionalDates": []
   },
   {
     "id": 294,
