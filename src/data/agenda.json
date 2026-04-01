@@ -5997,5 +5997,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 541,
+    "title": "EDC Week : Tiësto",
+    "date": "2026-05-15",
+    "startDate": "2026-05-15",
+    "endDate": "2026-05-15",
+    "venue": "Liv Nightclub",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/cb4367007183acc8-40914868213.jpeg",
+    "url": "https://www.livnightclub.com/las-vegas/event/EVE112156100020260515/ti-sto-edc-week/",
+    "genre": "Trance",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
