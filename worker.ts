@@ -1501,24 +1501,51 @@ ${urls.map(u => `  <url>
             }
         }
 
+        // --- API: VOYAGE (DUFFEL PROXY) ---
         if (path === '/api/voyage/airports' && request.method === 'GET') {
-            const query = url.searchParams.get('q');
+            const query = (url.searchParams.get('q') || '').toUpperCase();
             if (!query || query.length < 2) return new Response(JSON.stringify([]), { headers });
             
             const DUFFEL_KEY = env.DUFFEL_API_KEY;
-            if (!DUFFEL_KEY) return new Response(JSON.stringify({ error: 'Config error' }), { status: 500, headers });
+            const MAJOR_AIRPORTS = [
+                { id: '1', iata_code: 'PAR', name: 'Paris (Tous)', city_name: 'Paris', country_name: 'France' },
+                { id: '2', iata_code: 'CDG', name: 'Paris Charles de Gaulle', city_name: 'Paris', country_name: 'France' },
+                { id: '3', iata_code: 'ORY', name: 'Paris Orly', city_name: 'Paris', country_name: 'France' },
+                { id: '4', iata_code: 'MRS', name: 'Marseille Provence', city_name: 'Marseille', country_name: 'France' },
+                { id: '5', iata_code: 'LYS', name: 'Lyon Saint-Exupéry', city_name: 'Lyon', country_name: 'France' },
+                { id: '6', iata_code: 'NCE', name: 'Nice Côte d’Azur', city_name: 'Nice', country_name: 'France' },
+                { id: '7', iata_code: 'TLS', name: 'Toulouse Blagnac', city_name: 'Toulouse', country_name: 'France' },
+                { id: '8', iata_code: 'NTE', name: 'Nantes Atlantique', city_name: 'Nautnes', country_name: 'France' },
+                { id: '9', iata_code: 'BOD', name: 'Bordeaux Mérignac', city_name: 'Bordeaux', country_name: 'France' },
+                { id: '10', iata_code: 'MAD', name: 'Madrid Barajas', city_name: 'Madrid', country_name: 'Espagne' },
+                { id: '11', iata_code: 'BCN', name: 'Barcelona El Prat', city_name: 'Barcelone', country_name: 'Espagne' },
+                { id: '12', iata_code: 'LHR', name: 'London Heathrow', city_name: 'Londres', country_name: 'Royaume-Uni' },
+                { id: '13', iata_code: 'AMS', name: 'Amsterdam Schiphol', city_name: 'Amsterdam', country_name: 'Pays-Bas' },
+                { id: '14', iata_code: 'BER', name: 'Berlin Brandenburg', city_name: 'Berlin', country_name: 'Allemagne' }
+            ];
+
             try {
-                const res = await fetch(`https://api.duffel.com/air/airports?search=${encodeURIComponent(query)}`, {
-                    headers: {
-                        'Authorization': `Bearer ${DUFFEL_KEY}`,
-                        'Duffel-Version': 'v1',
-                        'Accept': 'application/json'
-                    }
-                });
-                const data = await res.json();
-                return new Response(JSON.stringify(data.data || []), { headers });
+                if (DUFFEL_KEY) {
+                    const res = await fetch(`https://api.duffel.com/air/airports?search=${encodeURIComponent(query)}`, {
+                        headers: { 'Authorization': `Bearer ${DUFFEL_KEY}`, 'Duffel-Version': 'v1', 'Accept': 'application/json' },
+                        signal: AbortSignal.timeout(3000)
+                    });
+                    const data = await res.json();
+                    if (data.data && data.data.length > 0) return new Response(JSON.stringify(data.data), { headers });
+                }
+                
+                // Fallback local search
+                const filtered = MAJOR_AIRPORTS.filter(a => 
+                    a.iata_code.includes(query) || 
+                    a.name.toUpperCase().includes(query) || 
+                    a.city_name.toUpperCase().includes(query)
+                );
+                return new Response(JSON.stringify(filtered), { headers });
+
             } catch (e) {
-                return new Response(JSON.stringify({ error: 'Proxy error' }), { status: 500, headers });
+                // If API fails or times out, use local fallback
+                const filtered = MAJOR_AIRPORTS.filter(a => a.iata_code.includes(query) || a.name.toUpperCase().includes(query));
+                return new Response(JSON.stringify(filtered), { headers });
             }
         }
 

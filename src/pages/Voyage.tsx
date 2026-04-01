@@ -1,8 +1,21 @@
 import { useState, useEffect } from 'react';
-import { Plane, Bus, Calendar, MapPin, ArrowRightLeft, Navigation, ArrowRight, ShieldCheck, Zap } from 'lucide-react';
+import { Plane, Bus, Calendar, MapPin, ArrowRightLeft, Navigation, ArrowRight, ShieldCheck, Zap, Info, Clock, ExternalLink, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CovoitSection } from '../components/community/CovoitSection';
 import { SEO } from '../components/utils/SEO';
+
+const SkeletonCard = () => (
+    <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 h-32 animate-pulse flex items-center justify-between">
+        <div className="flex items-center gap-6">
+            <div className="w-12 h-12 bg-white/5 rounded-xl" />
+            <div className="space-y-2">
+                <div className="w-32 h-4 bg-white/5 rounded" />
+                <div className="w-24 h-3 bg-white/5 rounded" />
+            </div>
+        </div>
+        <div className="w-20 h-8 bg-white/5 rounded" />
+    </div>
+);
 
 const CitySearchInput = ({ placeholder, icon: Icon, value, onChange, travelType }: any) => {
     const [query, setQuery] = useState('');
@@ -16,7 +29,7 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onChange, travelType 
     }, [value]);
 
     useEffect(() => {
-        if(query.length < 2 || !isOpen || travelType !== 'flight') { setSuggestions([]); return; }
+        if(query.length < 2 || !isOpen) { setSuggestions([]); return; }
         
         const fetchAirports = async () => {
             setIsLoading(true);
@@ -35,7 +48,7 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onChange, travelType 
 
         const timer = setTimeout(fetchAirports, 300);
         return () => clearTimeout(timer);
-    }, [query, isOpen, travelType]);
+    }, [query, isOpen]);
 
     return (
         <div className="relative w-full">
@@ -52,10 +65,11 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onChange, travelType 
                     const val = e.target.value;
                     setQuery(val);
                     if(val === '') onChange('');
+                    // For non-flight, we just take the text. For flight, we wait for suggestion click if possible.
                     if(travelType !== 'flight') onChange(val);
                 }}
                 placeholder={placeholder}
-                className="w-full bg-black/40 border border-white/5 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red/30 focus:bg-black/60 transition-all uppercase text-[10px] font-black tracking-widest placeholder:text-gray-700"
+                className="w-full bg-black/40 border border-white/10 rounded-2xl py-4.5 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red/40 focus:bg-black/60 transition-all uppercase text-[11px] font-black tracking-widest placeholder:text-gray-700 shadow-inner"
             />
             
             {isLoading && (
@@ -67,29 +81,29 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onChange, travelType 
             <AnimatePresence>
                 {isOpen && suggestions.length > 0 && (
                     <motion.div 
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: 5 }}
-                        className="absolute top-full left-0 w-full mt-2 bg-[#0a0a0a] border border-white/10 rounded-xl overflow-hidden z-[100] shadow-2xl"
+                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.98 }}
+                        className="absolute top-full left-0 w-full mt-3 bg-[#0c0c0c] border border-white/10 rounded-2xl overflow-hidden z-[110] shadow-[0_20px_60px_rgba(0,0,0,1)] max-h-80 overflow-y-auto"
                     >
                         {suggestions.map(s => (
                             <div 
-                                key={s.id || s.iata_code} 
+                                key={s.id || s.iata_code || Math.random()} 
                                 onClick={() => {
                                     setQuery(s.name);
                                     onChange(s.iata_code || s.name);
                                     setIsOpen(false);
                                 }}
-                                className="px-4 py-3 hover:bg-white/5 cursor-pointer flex justify-between items-center transition-all"
+                                className="px-5 py-4 hover:bg-white/5 cursor-pointer flex justify-between items-center border-b border-white/5 last:border-0 transition-colors"
                             >
                                 <div className="flex flex-col">
-                                    <span className="text-white text-xs font-bold truncate">{s.name}</span>
-                                    <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest">
-                                        {s.city_name || s.city?.name || s.country_name}
+                                    <span className="text-white text-xs font-black truncate">{s.name}</span>
+                                    <span className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-0.5">
+                                        {s.city_name || s.city?.name} • {s.country_name || s.country?.name}
                                     </span>
                                 </div>
                                 {s.iata_code && (
-                                    <span className="text-neon-red text-[10px] font-black px-2 py-0.5 bg-neon-red/5 rounded-md border border-neon-red/10">
+                                    <span className="text-neon-red text-[11px] font-black px-2.5 py-1 bg-neon-red/10 rounded-lg border border-neon-red/20">
                                         {s.iata_code}
                                     </span>
                                 )}
@@ -115,11 +129,13 @@ export function Voyage() {
     const [busProvider, setBusProvider] = useState('omio');
 
     const [isSearching, setIsSearching] = useState(false);
+    const [error, setError] = useState<string | null>(null);
     const [results, setResults] = useState<any[]>([]);
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
         setIsSearching(true);
+        setError(null);
         setResults([]);
         
         const upperDep = departure.toUpperCase();
@@ -155,24 +171,44 @@ export function Voyage() {
                     })
                 });
 
-                if (!response.ok) throw new Error("Search failed");
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    throw new Error(errData.errors?.[0]?.message || "Une erreur est survenue lors de la recherche.");
+                }
+
                 const data = await response.json();
-                const mappedResults = (data.data.offers || [])
+                const offers = data.data.offers || [];
+
+                if (offers.length === 0) {
+                    setError("Aucun vol trouvé pour ces dates/villes. Essaie un partenaire externe ci-dessous.");
+                    return;
+                }
+
+                const mappedResults = offers
                     .sort((a: any, b: any) => parseFloat(a.total_amount) - parseFloat(b.total_amount))
-                    .slice(0, 8)
-                    .map((offer: any) => ({
-                        id: offer.id,
-                        company: offer.owner.name,
-                        price: offer.total_amount,
-                        currency: offer.total_currency,
-                        duration: offer.slices[0].duration.replace('PT', '').replace('H', 'h').replace('M', '').toLowerCase(),
-                        departureTime: new Date(offer.slices[0].segments[0].departing_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
-                        arrivalTime: new Date(offer.slices[0].segments[0].arriving_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
-                    }));
+                    .slice(0, 10)
+                    .map((offer: any) => {
+                        const slice = offer.slices[0];
+                        const segment = slice.segments[0];
+                        const arrivalSegment = slice.segments[slice.segments.length - 1];
+                        
+                        return {
+                            id: offer.id,
+                            company: offer.owner.name,
+                            iata: offer.owner.iata_code,
+                            price: offer.total_amount,
+                            currency: offer.total_currency,
+                            duration: slice.duration.replace('PT', '').replace('H', 'h').replace('M', 'm').toLowerCase(),
+                            stops: slice.segments.length - 1,
+                            departureTime: new Date(segment.departing_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
+                            arrivalTime: new Date(arrivalSegment.arriving_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
+                            isRoundTrip: offer.slices.length > 1
+                        };
+                    });
 
                 setResults(mappedResults);
-            } catch (error) {
-                console.error(error);
+            } catch (err: any) {
+                setError(err.message || "Impossible de contacter le serveur de recherche.");
             } finally {
                 setIsSearching(false);
             }
@@ -183,19 +219,10 @@ export function Voyage() {
         let finalUrl = '';
         if (travelType === 'flight') {
             switch(flightProvider) {
-                case 'google': 
-                    finalUrl = `https://www.google.com/travel/flights?q=flights+to+${upperDest}+from+${upperDep}+on+${date}${isRoundTrip ? '+through+'+returnDate : ''}`; 
-                    break;
-                case 'skyscanner': 
-                    finalUrl = `https://www.skyscanner.fr/transport/vols/${upperDep}/${upperDest}/${yy}${mm}${dd}/` + (isRoundTrip ? `${ryy}${rmm}${rdd}/` : ''); 
-                    break;
-                case 'liligo': 
-                    finalUrl = `https://www.liligo.fr/recherche-vol?departureCode=${upperDep}&destinationCode=${upperDest}&departureDate=${date}${isRoundTrip ? '&returnDate='+returnDate : ''}`; 
-                    break;
-                case 'kayak': 
-                default: 
-                    finalUrl = `https://www.kayak.fr/flights/${upperDep}-${upperDest}/${date}${isRoundTrip ? '/'+returnDate : ''}`; 
-                    break;
+                case 'google': finalUrl = `https://www.google.com/travel/flights?q=flights+to+${upperDest}+from+${upperDep}+on+${date}${isRoundTrip ? '+through+'+returnDate : ''}`; break;
+                case 'skyscanner': finalUrl = `https://www.skyscanner.fr/transport/vols/${upperDep}/${upperDest}/${yy}${mm}${dd}/` + (isRoundTrip ? `${ryy}${rmm}${rdd}/` : ''); break;
+                case 'liligo': finalUrl = `https://www.liligo.fr/recherche-vol?departureCode=${upperDep}&destinationCode=${upperDest}&departureDate=${date}${isRoundTrip ? '&returnDate='+returnDate : ''}`; break;
+                case 'kayak': default: finalUrl = `https://www.kayak.fr/flights/${upperDep}-${upperDest}/${date}${isRoundTrip ? '/'+returnDate : ''}?sort=price_a`; break;
             }
         } else {
             switch(busProvider) {
@@ -210,185 +237,278 @@ export function Voyage() {
     };
 
     return (
-        <div className="min-h-screen bg-[#050505] pb-20">
-            <SEO title="Voyage | Dropsiders" description="Comparez et réservez votre voyage pour les meilleurs festivals." />
+        <div className="min-h-screen bg-[#050505] pb-32">
+            <SEO title="Voyage & Comparator | Dropsiders" description="Le comparateur de voyage ultime pour vos festivals. Vols, Bus et Trains au meilleur prix." />
             
-            <div className="max-w-7xl mx-auto px-6 pt-12">
-                <div className="mb-12">
-                    <motion.h1 
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="text-4xl md:text-6xl font-display font-black text-white italic uppercase tracking-tighter"
-                    >
-                        VOYAGE <span className="text-neon-red drop-shadow-[0_0_10px_rgba(255,18,65,0.3)]">PLANNER</span>
-                    </motion.h1>
-                    <p className="text-gray-500 font-bold uppercase text-[10px] tracking-[0.3em] mt-2">Find the best route to your next drop</p>
+            {/* Header / Hero */}
+            <div className="relative pt-20 pb-12 px-6 overflow-hidden">
+                <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-8 relative z-10">
+                    <div className="space-y-4">
+                        <motion.div
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            className="inline-flex items-center gap-2 px-3 py-1 bg-neon-red/10 border border-neon-red/20 rounded-full mb-2"
+                        >
+                            <Zap className="w-3 h-3 text-neon-red" />
+                            <span className="text-[10px] font-black text-neon-red uppercase tracking-widest italic">IA Travel Search Engine v4.0</span>
+                        </motion.div>
+                        <h1 className="text-5xl md:text-8xl font-display font-black text-white italic uppercase tracking-tighter leading-tight">
+                            WAY TO <span className="text-neon-red outline-text">FESTIVAL</span>
+                        </h1>
+                    </div>
                 </div>
+            </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-                    <div className="lg:col-span-8 space-y-6">
-                        <div className="bg-[#0c0c0c] border border-white/5 rounded-3xl p-6 md:p-8">
-                            <div className="flex gap-4 mb-8">
-                                {[
-                                    { id: 'flight', icon: Plane, label: 'Vols' },
-                                    { id: 'bus', icon: Bus, label: 'Bus / Train' }
-                                ].map((t) => (
-                                    <button
-                                        key={t.id}
-                                        onClick={() => { setTravelType(t.id as any); setResults([]); }}
-                                        className={`flex items-center gap-3 px-6 py-3 rounded-xl font-black uppercase text-[10px] tracking-widest transition-all ${
-                                            travelType === t.id ? 'bg-white text-black' : 'bg-white/5 text-gray-500 hover:text-white'
-                                        }`}
+            <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 mt-4">
+                {/* Search Panel */}
+                <div className="lg:col-span-8">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-[#0a0a0a] border border-white/10 rounded-[40px] p-8 md:p-12 shadow-2xl relative"
+                    >
+                        {/* Transport Type Switcher */}
+                        <div className="flex bg-white/5 p-1.5 rounded-2xl w-fit mb-12 border border-white/5">
+                            {[
+                                { id: 'flight', icon: Plane, label: 'Avion' },
+                                { id: 'bus', icon: Bus, label: 'Bus / Train / BlaBla' }
+                            ].map((t) => (
+                                <button
+                                    key={t.id}
+                                    onClick={() => { setTravelType(t.id as any); setResults([]); setError(null); }}
+                                    className={`flex items-center gap-4 px-8 py-3.5 rounded-xl font-black uppercase text-[11px] tracking-widest transition-all ${
+                                        travelType === t.id ? 'bg-white text-black shadow-xl' : 'text-gray-500 hover:text-white'
+                                    }`}
+                                >
+                                    <t.icon className="w-4 h-4" /> {t.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        <form onSubmit={handleSearch} className="space-y-10">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+                                <div className="space-y-3">
+                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">Départ</span>
+                                    <CitySearchInput placeholder="D'OÙ PARS-TU ?" icon={Navigation} value={departure} onChange={setDeparture} travelType={travelType} />
+                                </div>
+                                
+                                <div className="hidden md:flex absolute left-1/2 bottom-5 -translate-x-1/2 z-20">
+                                    <button 
+                                        type="button"
+                                        onClick={() => { const d = departure; setDeparture(destination); setDestination(d); }}
+                                        className="w-12 h-12 bg-black border-2 border-white/10 rounded-full flex items-center justify-center text-white hover:border-neon-red hover:text-neon-red transition-all group scale-90"
                                     >
-                                        <t.icon className="w-4 h-4" /> {t.label}
+                                        <ArrowRightLeft className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
                                     </button>
-                                ))}
-                            </div>
-
-                            <form onSubmit={handleSearch} className="space-y-6">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative">
-                                    <CitySearchInput placeholder="FROM" icon={Navigation} value={departure} onChange={setDeparture} travelType={travelType} />
-                                    <div className="hidden md:flex absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
-                                        <button 
-                                            type="button"
-                                            onClick={() => { setDeparture(destination); setDestination(departure); }}
-                                            className="p-2 bg-black border border-white/10 rounded-full text-gray-500 hover:text-neon-red transition-all"
-                                        >
-                                            <ArrowRightLeft className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                    <CitySearchInput placeholder="TO" icon={MapPin} value={destination} onChange={setDestination} travelType={travelType} />
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div className="space-y-2">
-                                        <span className="text-[8px] font-black uppercase text-gray-600 tracking-widest ml-2">Departure Date</span>
-                                        <div className="relative">
-                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-700" />
-                                            <input 
-                                                type="date" 
-                                                required
-                                                value={date}
-                                                onChange={(e) => setDate(e.target.value)}
-                                                className="w-full bg-black/40 border border-white/5 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red/30 transition-all font-black text-xs [color-scheme:dark]"
-                                            />
-                                        </div>
+                                <div className="space-y-3">
+                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">Destination</span>
+                                    <CitySearchInput placeholder="VERS QUEL FESTIVAL ?" icon={MapPin} value={destination} onChange={setDestination} travelType={travelType} />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                <div className="space-y-3">
+                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">Aller</span>
+                                    <div className="relative group">
+                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-red transition-colors" />
+                                        <input 
+                                            type="date" 
+                                            required
+                                            value={date}
+                                            onChange={(e) => setDate(e.target.value)}
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl py-4.5 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red/40 transition-all font-black text-xs [color-scheme:dark]"
+                                        />
                                     </div>
-                                    <div className="space-y-2">
-                                        <span className="text-[8px] font-black uppercase text-gray-600 tracking-widest ml-2">Return Date (Optional)</span>
-                                        <div className="relative">
-                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-700" />
-                                            <input 
-                                                type="date" 
-                                                value={returnDate}
-                                                onChange={(e) => { setReturnDate(e.target.value); setIsRoundTrip(!!e.target.value); }}
-                                                className="w-full bg-black/40 border border-white/5 rounded-xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red/30 transition-all font-black text-xs [color-scheme:dark]"
-                                            />
-                                        </div>
+                                </div>
+                                <div className="space-y-3">
+                                    <div className="flex justify-between ml-2">
+                                        <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Retour</span>
+                                        <span className="text-[10px] font-black uppercase text-gray-600 tracking-[0.2em] italic">(Optionnel)</span>
+                                    </div>
+                                    <div className="relative group">
+                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-red transition-colors" />
+                                        <input 
+                                            type="date" 
+                                            value={returnDate}
+                                            onChange={(e) => { setReturnDate(e.target.value); setIsRoundTrip(!!e.target.value); }}
+                                            className="w-full bg-black/40 border border-white/10 rounded-2xl py-4.5 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red/40 transition-all font-black text-xs [color-scheme:dark]"
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="flex flex-col md:flex-row gap-6 items-center">
+                                <div className="flex-1 w-full md:w-auto">
+                                    <h4 className="text-[10px] font-black uppercase text-gray-600 tracking-[0.3em] mb-4 ml-2">Sourcing Engine</h4>
+                                    <div className="flex flex-wrap gap-2">
+                                        {(travelType === 'flight' ? ['direct', 'google', 'skyscanner', 'kayak', 'liligo'] : ['omio', 'busbud', 'flixbus', 'blablacar']).map((p) => (
+                                            <button
+                                                key={p}
+                                                type="button"
+                                                onClick={() => { travelType === 'flight' ? setFlightProvider(p) : setBusProvider(p); setResults([]); setError(null); }}
+                                                className={`px-5 py-3 rounded-xl border text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                    (travelType === 'flight' ? flightProvider : busProvider) === p ? 'bg-white/10 border-white/20 text-white shadow-lg' : 'bg-transparent border-white/5 text-gray-600 hover:text-gray-400'
+                                                }`}
+                                            >
+                                                {p === 'direct' ? '⚡ Dropsiders Search' : p}
+                                            </button>
+                                        ))}
                                     </div>
                                 </div>
 
                                 <button
                                     type="submit"
                                     disabled={isSearching}
-                                    className="w-full bg-neon-red text-white py-5 rounded-xl font-black uppercase text-xs tracking-[0.2em] hover:bg-red-700 transition-all disabled:opacity-50 flex items-center justify-center gap-3"
+                                    className="w-full md:w-auto px-12 py-6 bg-neon-red text-white rounded-2xl font-black uppercase text-xs tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 shadow-[0_0_40px_rgba(255,18,65,0.2)] disabled:opacity-50 flex items-center justify-center gap-4 shrink-0"
                                 >
-                                    {isSearching ? <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin" /> : <>SEARCH NOW <ArrowRight className="w-4 h-4" /></>}
+                                    {isSearching ? <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" /> : <>LANCER LA RECHERCHE <ArrowRight className="w-5 h-5" /></>}
                                 </button>
-                            </form>
-                        </div>
-
-                        <div className="bg-[#0c0c0c] border border-white/5 rounded-3xl p-6">
-                            <h3 className="text-[10px] font-black uppercase text-gray-500 tracking-[0.3em] mb-4">Preferred Partners</h3>
-                            <div className="flex flex-wrap gap-2">
-                                {(travelType === 'flight' ? ['direct', 'google', 'skyscanner', 'kayak', 'liligo'] : ['omio', 'busbud', 'flixbus', 'blablacar']).map((p) => (
-                                    <button
-                                        key={p}
-                                        onClick={() => { travelType === 'flight' ? setFlightProvider(p) : setBusProvider(p); setResults([]); }}
-                                        className={`px-5 py-2.5 rounded-lg border text-[9px] font-black uppercase tracking-widest transition-all ${
-                                            (travelType === 'flight' ? flightProvider : busProvider) === p ? 'bg-white/10 border-white/20 text-white' : 'bg-transparent border-white/5 text-gray-600 hover:text-gray-400'
-                                        }`}
-                                    >
-                                        {p}
-                                    </button>
-                                ))}
                             </div>
-                        </div>
+                        </form>
+                    </motion.div>
 
-                        <AnimatePresence>
-                            {results.length > 0 && (
+                    {/* Results Container */}
+                    <div className="mt-12 space-y-6">
+                        <AnimatePresence mode="wait">
+                            {error && (
                                 <motion.div 
-                                    initial={{ opacity: 0, y: 20 }}
-                                    animate={{ opacity: 1, y: 0 }}
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
+                                    className="p-6 bg-neon-red/5 border border-neon-red/20 rounded-3xl flex gap-4 items-start"
+                                >
+                                    <Info className="w-5 h-5 text-neon-red shrink-0" />
+                                    <p className="text-sm font-bold text-gray-400 italic">{error}</p>
+                                </motion.div>
+                            )}
+
+                            {isSearching && (
+                                <div className="space-y-4">
+                                    <SkeletonCard />
+                                    <SkeletonCard />
+                                    <SkeletonCard />
+                                </div>
+                            )}
+
+                            {results.length > 0 && !isSearching && (
+                                <motion.div 
+                                    initial={{ opacity: 0 }}
+                                    animate={{ opacity: 1 }}
                                     className="space-y-4"
                                 >
-                                    {results.map((r) => (
-                                        <div key={r.id} className="bg-white/[0.02] border border-white/5 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-center gap-6 hover:bg-white/[0.04] transition-all">
-                                            <div className="flex items-center gap-6">
-                                                <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center">
-                                                    <Plane className="w-6 h-6 text-neon-red" />
+                                    <div className="flex items-center justify-between mb-8 px-2">
+                                        <h3 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Meilleures Offres</h3>
+                                        <div className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest px-3 py-1 bg-neon-red/5 border border-neon-red/10 rounded-full">
+                                            <Filter className="w-3 h-3" /> Trié par prix
+                                        </div>
+                                    </div>
+
+                                    {results.map((r, idx) => (
+                                        <motion.div 
+                                            key={r.id}
+                                            initial={{ opacity: 0, x: -20 }}
+                                            animate={{ opacity: 1, x: 0 }}
+                                            transition={{ delay: idx * 0.05 }}
+                                            className="bg-[#0a0a0a] border border-white/5 rounded-3xl p-6 md:p-8 flex flex-col md:flex-row justify-between items-center gap-8 hover:border-neon-red/40 transition-all group"
+                                        >
+                                            <div className="flex items-center gap-8 w-full md:w-auto">
+                                                <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 shrink-0">
+                                                    <img 
+                                                        src={`https://logos.skyscnr.com/images/airlines/favicon/${r.iata}.png`} 
+                                                        alt={r.company}
+                                                        onError={(e: any) => e.target.src = 'https://cdn-icons-png.flaticon.com/512/780/780614.png'} 
+                                                        className="w-10 h-10 object-contain brightness-200"
+                                                    />
                                                 </div>
-                                                <div>
-                                                    <h4 className="text-white text-sm font-black uppercase italic">{r.company}</h4>
-                                                    <div className="flex items-center gap-4 mt-1">
-                                                        <span className="text-gray-400 text-xs font-bold">{r.departureTime} - {r.arrivalTime}</span>
-                                                        <span className="text-neon-red text-[9px] font-black uppercase">{r.duration}</span>
+                                                <div className="space-y-3 flex-1 min-w-[200px]">
+                                                    <div className="flex items-center gap-3">
+                                                        <span className="text-sm font-black text-white uppercase italic tracking-tight">{r.company}</span>
+                                                        {r.stops === 0 ? (
+                                                            <span className="text-[9px] font-black text-green-500 px-2 py-0.5 bg-green-500/5 border border-green-500/20 rounded-md">DIRECT</span>
+                                                        ) : (
+                                                            <span className="text-[9px] font-black text-neon-red px-2 py-0.5 bg-neon-red/5 border border-neon-red/20 rounded-md uppercase">{r.stops} ESCALE(S)</span>
+                                                        )}
+                                                    </div>
+                                                    <div className="flex items-center gap-6">
+                                                        <div className="text-center">
+                                                            <div className="text-xl font-black text-white">{r.departureTime}</div>
+                                                            <div className="text-[8px] font-bold text-gray-600 uppercase tracking-widest mt-1">Décollage</div>
+                                                        </div>
+                                                        <div className="flex-1 flex flex-col items-center gap-1.5 pt-1">
+                                                            <div className="flex items-center gap-2 text-[9px] font-black text-gray-500 italic">
+                                                                <Clock className="w-3 h-3" /> {r.duration}
+                                                            </div>
+                                                            <div className="h-[2px] w-full bg-white/5 relative">
+                                                                <div className="absolute inset-0 bg-neon-red group-hover:shadow-[0_0_10px_#ff1241]" />
+                                                                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-white rounded-full" />
+                                                            </div>
+                                                        </div>
+                                                        <div className="text-center">
+                                                            <div className="text-xl font-black text-white">{r.arrivalTime}</div>
+                                                            <div className="text-[8px] font-bold text-gray-600 uppercase tracking-widest mt-1">Arrivée</div>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="flex items-center gap-8">
-                                                <div className="text-right">
-                                                    <div className="text-2xl font-display font-black text-white">{r.price} €</div>
-                                                    <div className="text-[8px] font-black text-gray-600 uppercase tracking-widest">TTC / Pers</div>
+
+                                            <div className="flex items-center gap-10 w-full md:w-auto md:text-right border-t md:border-t-0 border-white/5 pt-6 md:pt-0">
+                                                <div className="flex-1">
+                                                    <div className="text-4xl font-display font-black text-white">{r.price} €</div>
+                                                    <div className="text-[8px] font-bold text-gray-600 uppercase tracking-widest mt-1">Taxes Incluses</div>
                                                 </div>
-                                                <button className="bg-white text-black px-6 py-3 rounded-lg text-[10px] font-black uppercase tracking-widest hover:bg-neon-red hover:text-white transition-all">
-                                                    Select
+                                                <button className="px-8 py-4 bg-white text-black rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-neon-red hover:text-white transition-all shadow-xl flex items-center gap-2">
+                                                    RÉSERVER <ExternalLink className="w-3 h-3" />
                                                 </button>
                                             </div>
-                                        </div>
+                                        </motion.div>
                                     ))}
                                 </motion.div>
                             )}
                         </AnimatePresence>
                     </div>
+                </div>
 
-                    <div className="lg:col-span-4 space-y-6">
-                        <div className="bg-[#0c0c0c] border border-white/5 rounded-3xl p-6">
-                            <h3 className="text-white text-lg font-display font-black italic uppercase italic mb-6">Security & IA</h3>
-                            <div className="space-y-6">
+                {/* Sidebar Info */}
+                <div className="lg:col-span-4 space-y-8">
+                    <div className="bg-[#0c0c0c] border border-white/10 rounded-[40px] p-8 md:p-10 space-y-10">
+                        <section className="space-y-6">
+                            <h3 className="text-xl font-display font-black text-white italic uppercase italic">Garanties <span className="text-neon-red">Dropsiders</span></h3>
+                            <div className="space-y-10">
                                 {[
-                                    { title: 'Best Price IA', desc: 'Notre algo compare 400+ compagnies.', icon: ShieldCheck },
-                                    { title: 'Anti-Block', desc: 'Interface compatible avec les navigateurs sécurisés.', icon: Zap }
+                                    { title: 'IA Meta-Search', desc: 'On scanne plus de 400 compagnies et transporteurs simultanément.', icon: ShieldCheck },
+                                    { title: '100% Anti-Block', desc: 'Notre système transite par un Proxy ultra-sécurisé indétectable.', icon: Zap },
+                                    { title: 'Zero Commission', desc: 'Nous ne prenons aucun frais sur ton billet. Prix direct compagnie.', icon: Zap }
                                 ].map((f, i) => (
-                                    <div key={i} className="flex gap-4">
-                                        <div className="w-10 h-10 bg-white/5 rounded-lg flex items-center justify-center shrink-0">
+                                    <div key={i} className="flex gap-5">
+                                        <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 border border-white/5">
                                             <f.icon className="w-5 h-5 text-neon-red" />
                                         </div>
-                                        <div>
-                                            <h4 className="text-white text-xs font-black uppercase">{f.title}</h4>
-                                            <p className="text-gray-500 text-[10px] font-bold leading-relaxed mt-1">{f.desc}</p>
+                                        <div className="pt-1">
+                                            <h4 className="text-xs font-black uppercase text-white tracking-widest">{f.title}</h4>
+                                            <p className="text-gray-500 text-[10px] font-bold leading-relaxed mt-2 uppercase">{f.desc}</p>
                                         </div>
                                     </div>
                                 ))}
                             </div>
-                        </div>
+                        </section>
 
-                        <div className="bg-gradient-to-br from-neon-red/20 to-black border border-neon-red/20 rounded-3xl p-8 relative overflow-hidden group">
-                            <div className="relative z-10">
-                                <h3 className="text-white text-2xl font-display font-black italic uppercase leading-tight">FESTIVAL<br/><span className="text-neon-red">CARPOOL</span></h3>
-                                <p className="text-gray-400 text-xs font-bold mt-4 leading-relaxed">Splits costs and meet your future festival squad.</p>
-                                <button className="mt-8 flex items-center gap-2 text-white text-[10px] font-black uppercase tracking-widest group-hover:gap-4 transition-all">
-                                    Join the ride <ArrowRight className="w-4 h-4 text-neon-red" />
+                        <div className="pt-10 border-t border-white/5">
+                            <div className="bg-gradient-to-br from-neon-red/10 to-transparent border border-neon-red/20 rounded-3xl p-8 relative overflow-hidden group hover:scale-[1.02] transition-all">
+                                <h3 className="text-white text-2xl font-display font-black italic uppercase leading-tight">COMMUNITY<br/><span className="text-neon-red">CARPOOL</span></h3>
+                                <p className="text-gray-500 text-[10px] font-bold mt-4 uppercase tracking-widest">Partage les frais, fais des rencontres.</p>
+                                <button className="mt-8 flex items-center gap-3 text-white text-[10px] font-black uppercase tracking-[0.3em] group-hover:gap-5 transition-all">
+                                    Voir les trajets <ArrowRight className="w-4 h-4 text-neon-red" />
                                 </button>
+                                <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-neon-red/10 blur-3xl rounded-full" />
                             </div>
-                            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-neon-red/20 blur-3xl rounded-full" />
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div className="mt-20">
-                    <CovoitSection />
-                </div>
+            <div className="mt-32">
+                <CovoitSection />
             </div>
         </div>
     );
