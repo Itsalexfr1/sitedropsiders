@@ -1177,13 +1177,14 @@
     "location": "HILVARENBEEK",
     "country": "Pays-Bas",
     "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/1772632572141-decibel_weekend_2026.png",
+    "image": "/uploads/bf4303669c3a7793-decibel_weekend_2026.png",
     "url": "https://www.decibeloutdoor.com/",
     "genre": "Hardcore",
     "month": "AOÛT",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "additionalDates": []
   },
   {
     "id": 284,
