@@ -24,12 +24,21 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onChange, travelType 
 
         const fetchSuggestions = async () => {
             try {
+                // Duffel Suggestions API requires a proxy or specific headers that browsers might block.
+                // Switching to a more robust fetch logic.
                 const res = await fetch(`https://api.duffel.com/places/suggestions?query=${query}`, {
-                    headers: { 'Authorization': `Bearer ${apiKey}`, 'Duffel-Version': 'v1' }
+                    headers: { 
+                        'Authorization': `Bearer ${apiKey}`, 
+                        'Duffel-Version': 'v1',
+                        'Content-Type': 'application/json'
+                    }
                 });
                 const data = await res.json();
+                if (data.errors) throw new Error(data.errors[0].message);
                 setSuggestions((data.data || []).slice(0, 5));
-            } catch(e) { }
+            } catch(e) { 
+                console.error("Duffel Suggest Error:", e);
+            }
         };
         const tid = setTimeout(fetchSuggestions, 300);
         return () => clearTimeout(tid);
