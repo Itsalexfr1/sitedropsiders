@@ -1215,13 +1215,14 @@
     "location": "DARESBURY",
     "country": "Royaume-Uni",
     "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/1772632851660-642817705_1351917203635591_4862403312514678334_n.jpg",
+    "image": "/uploads/39def90be51c4ff7-2026_lineup_released_v0_sex81i.webp",
     "url": "https://creamfields.com",
     "genre": "Multi Styles",
     "month": "AOÛT",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "additionalDates": []
   },
   {
     "id": 286,
