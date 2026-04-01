@@ -1517,11 +1517,27 @@ ${urls.map(u => `  <url>
                 { id: '7', iata_code: 'TLS', name: 'Toulouse Blagnac', city_name: 'Toulouse', country_name: 'France' },
                 { id: '8', iata_code: 'NTE', name: 'Nantes Atlantique', city_name: 'Nautnes', country_name: 'France' },
                 { id: '9', iata_code: 'BOD', name: 'Bordeaux Mérignac', city_name: 'Bordeaux', country_name: 'France' },
-                { id: '10', iata_code: 'MAD', name: 'Madrid Barajas', city_name: 'Madrid', country_name: 'Espagne' },
-                { id: '11', iata_code: 'BCN', name: 'Barcelona El Prat', city_name: 'Barcelone', country_name: 'Espagne' },
-                { id: '12', iata_code: 'LHR', name: 'London Heathrow', city_name: 'Londres', country_name: 'Royaume-Uni' },
-                { id: '13', iata_code: 'AMS', name: 'Amsterdam Schiphol', city_name: 'Amsterdam', country_name: 'Pays-Bas' },
-                { id: '14', iata_code: 'BER', name: 'Berlin Brandenburg', city_name: 'Berlin', country_name: 'Allemagne' }
+                { id: '10', iata_code: 'IBZ', name: 'Ibiza Airport', city_name: 'Ibiza', country_name: 'Espagne' },
+                { id: '11', iata_code: 'LAS', name: 'Las Vegas Mc Carran', city_name: 'Las Vegas', country_name: 'USA' },
+                { id: '12', iata_code: 'JFK', name: 'New York John F. Kennedy', city_name: 'New York', country_name: 'USA' },
+                { id: '13', iata_code: 'EWR', name: 'New York Newark', city_name: 'New York', country_name: 'USA' },
+                { id: '14', iata_code: 'NYC', name: 'New York (Tous)', city_name: 'New York', country_name: 'USA' },
+                { id: '15', iata_code: 'MIA', name: 'Miami International', city_name: 'Miami', country_name: 'USA' },
+                { id: '16', iata_code: 'LAX', name: 'Los Angeles International', city_name: 'Los Angeles', country_name: 'USA' },
+                { id: '17', iata_code: 'MAD', name: 'Madrid Barajas', city_name: 'Madrid', country_name: 'Espagne' },
+                { id: '18', iata_code: 'BCN', name: 'Barcelona El Prat', city_name: 'Barcelone', country_name: 'Espagne' },
+                { id: '19', iata_code: 'LHR', name: 'London Heathrow', city_name: 'Londres', country_name: 'Royaume-Uni' },
+                { id: '20', iata_code: 'LGW', name: 'London Gatwick', city_name: 'Londres', country_name: 'Royaume-Uni' },
+                { id: '21', iata_code: 'AMS', name: 'Amsterdam Schiphol', city_name: 'Amsterdam', country_name: 'Pays-Bas' },
+                { id: '22', iata_code: 'BER', name: 'Berlin Brandenburg', city_name: 'Berlin', country_name: 'Allemagne' },
+                { id: '23', iata_code: 'DXB', name: 'Dubai International', city_name: 'Dubaï', country_name: 'Émirats arabes unis' },
+                { id: '24', iata_code: 'BKK', name: 'Bangkok Suvarnabhumi', city_name: 'Bangkok', country_name: 'Thaïlande' },
+                { id: '25', iata_code: 'HND', name: 'Tokyo Haneda', city_name: 'Tokyo', country_name: 'Japon' },
+                { id: '26', iata_code: 'DUB', name: 'Dublin Airport', city_name: 'Dublin', country_name: 'Irlande' },
+                { id: '27', iata_code: 'LIS', name: 'Lisbon Airport', city_name: 'Lisbonne', country_name: 'Portugal' },
+                { id: '28', iata_code: 'PRG', name: 'Prague Vaclav Havel', city_name: 'Prague', country_name: 'Rép. Tchèque' },
+                { id: '29', iata_code: 'TXL', name: 'Berlin Tegel fallback', city_name: 'Berlin', country_name: 'Allemagne' },
+                { id: '30', iata_code: 'ZRH', name: 'Zurich Airport', city_name: 'Zurich', country_name: 'Suisse' }
             ];
 
             try {
