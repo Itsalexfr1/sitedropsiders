@@ -1,6 +1,6 @@
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Newspaper, Video, Calendar, X, Music, Users, ShoppingBag, Shield, Info, MoreHorizontal, Home, Settings, User } from 'lucide-react';
+import { Newspaper, Video, Calendar, X, Users, ShoppingBag, Shield, Info, MoreHorizontal, Home, Settings, User, Plane } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useState, useEffect } from 'react';
 import settings from '../../data/settings.json';
@@ -58,7 +58,7 @@ export function MobileNavbar() {
 
     const menuItems = [
         // Live moved to center if active
-        { icon: Music, label: t('nav.music'), path: '/musique', color: 'text-neon-green' },
+        { icon: Plane, label: t('nav.voyage'), path: '/voyage', color: 'text-neon-green' },
         { icon: Newspaper, label: t('nav.recaps'), path: '/recaps', color: 'text-neon-purple' },
         { icon: Info, label: t('nav.interviews'), path: '/interviews', color: 'text-neon-blue' },
         { icon: Users, label: t('nav.team'), path: '/team', color: 'text-neon-yellow' },

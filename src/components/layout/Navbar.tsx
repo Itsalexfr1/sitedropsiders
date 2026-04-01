@@ -92,7 +92,7 @@ export function Navbar() {
 
     const navItems = [
         { name: t('nav.news'), path: '/news', color: 'neon-red' },
-        { name: t('nav.music'), path: '/musique', color: 'neon-green' },
+        { name: t('nav.voyage'), path: '/voyage', color: 'neon-green' },
         { name: t('nav.recaps'), path: '/recaps', color: 'neon-purple' },
         { name: t('nav.agenda'), path: '/agenda', color: 'neon-cyan' },
         { name: t('nav.communaute'), path: '/communaute', color: 'neon-pink' },

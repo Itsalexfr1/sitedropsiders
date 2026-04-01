@@ -21,7 +21,7 @@ const Interviews = lazyRetry(() => import('./pages/Interviews').then(m => m.Inte
 const Team = lazyRetry(() => import('./pages/Team').then(m => m.Team));
 const Shop = lazyRetry(() => import('./pages/Shop').then(m => m.Shop));
 const Galerie = lazyRetry(() => import('./pages/Galerie').then(m => m.Galerie));
-const Musique = lazyRetry(() => import('./pages/Musique').then(m => m.Musique));
+const Voyage = lazyRetry(() => import('./pages/Voyage').then(m => m.Voyage));
 const AlbumDetail = lazyRetry(() => import('./pages/AlbumDetail').then(m => m.AlbumDetail));
 const ArticleDetail = lazyRetry(() => import('./pages/ArticleDetail').then(m => m.ArticleDetail));
 const RecapDetail = lazyRetry(() => import('./pages/RecapDetail').then(m => m.RecapDetail));
@@ -138,7 +138,7 @@ const router = createBrowserRouter([
     errorElement: <ErrorFallback />,
     children: [
       { index: true, element: <Home /> },
-      { path: "musique", element: <Musique /> },
+      { path: "voyage", element: <Voyage /> },
       { path: "live", element: <LivePage /> },
       { path: "news", element: <News /> },
       { path: "agenda", element: <Agenda /> },
