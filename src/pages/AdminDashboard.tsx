@@ -9,7 +9,7 @@ import {
     Youtube, CheckCircle2, Loader2, LogOut, Globe, MessageSquare, Pencil,
     ShieldAlert, Shield, Trash2, ExternalLink, Clock, Pin, PinOff, Instagram,
     Bell, Zap, Play, Gamepad2, Upload, Activity, Star, Heart, RotateCcw, Check, Download,
-    Trophy, Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff, FolderOpen
+    Trophy, Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getAuthHeaders, apiFetch } from '../utils/auth';
@@ -28,6 +28,7 @@ import { ShopMenuModal } from '../components/admin/modals/ShopMenuModal';
 import { ScanMenuModal } from '../components/admin/modals/ScanMenuModal';
 import { R2PhotosMenuModal } from '../components/admin/modals/R2PhotosMenuModal';
 import { R2Explorer } from '../components/admin/R2Explorer';
+import { CreatorStudioMenuModal } from '../components/admin/modals/CreatorStudioMenuModal';
 import { Downloader } from './Downloader';
 
 
@@ -153,6 +154,7 @@ export function AdminDashboard() {
     const [maintenanceLoading, setMaintenanceLoading] = useState(false);
     const [bulkYearShift, setBulkYearShift] = useState({ oldYear: '2025', newYear: '2026', type: 'agenda' });
     const [sbCredits, setSbCredits] = useState<{ used: number; max: number; renewal: string } | null>(null);
+    const [isCreatorStudioOpen, setIsCreatorStudioOpen] = useState(false);
 
     const toggleSelection = (key: string) => {
         setSelectedKeys(prev =>
@@ -1444,28 +1446,18 @@ export function AdminDashboard() {
         { title: "Agenda", description: "Programmation", icon: "Calendar", category: "NEWS", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "agenda_events", baseColor: "yellow", columns: 1 },
 
         // STUDIO & ANALYTICS
-        { title: "Social Studio", description: "Studio Visuels", icon: "Instagram", category: "STUDIO", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "social_studio", baseColor: "pink", columns: 1 },
         { title: "Statistiques", description: "Analyse Audience", icon: "BarChart3", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "stats_analytics", baseColor: "cyan", columns: 1 },
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
-        { title: "Tracklists", description: "Vérifier & Valider", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "musique_releases", baseColor: "purple", columns: 1 },
+        { title: "Studio Création", description: "Générateurs Rapides", icon: "Sparkles", category: "STUDIO", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "news", baseColor: "orange", columns: 2 },
+        { title: "Downloader", description: "Outil Médias", icon: "Download", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "all", baseColor: "cyan", columns: 1 },
 
-
-        // JEUX CONCOURS
-        { title: "Quiz & Blind Test", description: "Questions & Musique", icon: "Gamepad2", category: "CONCOURS", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "community_mod", baseColor: "red", columns: 2 },
-        { title: "Concours Insta", description: "Participants Instagram", icon: "Instagram", category: "CONCOURS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "community_mod", baseColor: "pink", columns: 1 },
+        // SHOP & CONTACT
+        { title: "Boutique", description: "Ventes & Produits", icon: "ShoppingBag", category: "SHOP", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 2 },
+        { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "push_newsletter", baseColor: "green", columns: 1 },
+        { title: "Messagerie", description: "Emails & Contact", icon: "Mail", category: "SHOP", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages_contact", baseColor: "orange", columns: 1 },
 
         // GESTION TEAM
         { title: "L'Équipe & Éditeurs", description: "Accès & Membres", icon: "Users", category: "TEAM", link: "#", color: "border-neon-purple/20 hover:border-neon-purple", bg: "bg-neon-purple/5", permission: "all", baseColor: "purple", columns: 2 },
-
-        // SHOP & CONTACT
-        { title: "Boutique", description: "Ventes & Produits", icon: "ShoppingBag", category: "SHOP", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 1 },
-        { title: "Newsletter", description: "Campagnes Mail", icon: "Mail", category: "SHOP", link: "#", color: "border-green-400/20 hover:border-green-400", bg: "bg-green-400/5", permission: "push_newsletter", baseColor: "green", columns: 1 },
-        { title: "Messagerie", description: "Emails & Contact", icon: "Mail", category: "SHOP", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "messages_contact", baseColor: "orange", columns: 1 },
-        { title: "Downloader", description: "Outil Médias", icon: "Download", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "all", baseColor: "cyan", columns: 1 },
-        { title: "Notifications", description: "Push News", icon: "Bell", category: "SHOP", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "push_newsletter", baseColor: "yellow", columns: 1 },
-        { title: "Communauté", description: "Membres, Photos & Quiz", icon: "MessageSquare", category: "CONCOURS", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "community_mod", baseColor: "pink", columns: 2 },
-        { title: "Générateur Publi", description: "Outil Alex", icon: "Pencil", category: "STUDIO", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "alex_only", baseColor: "orange", columns: 1 },
-        { title: "Générateur Express", description: "Mise en page Auto", icon: "Zap", category: "NEWS", link: "#", color: "border-neon-red/20 hover:border-neon-red", bg: "bg-neon-red/5", permission: "news", baseColor: "red", columns: 1 },
 
         // SYSTÈME
         { title: "Bandeau", description: "Annonces Teasing", icon: "Megaphone", category: "ALL", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "superadmin", baseColor: "orange", columns: 1 },
@@ -2581,7 +2573,7 @@ export function AdminDashboard() {
                                         <div className="flex justify-between items-center group">
                                             <h3 className="text-xl font-display font-black text-white uppercase italic flex items-center gap-2">
                                                 <Music className="w-5 h-5 text-neon-pink" />
-                                                Blind <span className="text-neon-pink">Test</span>
+                                                Quizz & <span className="text-neon-pink">Blindtest</span>
                                             </h3>
                                             <button onClick={() => setIsQuizModalOpen(true)} className="p-2 hover:bg-white/10 rounded-xl text-gray-500 hover:text-white transition-all">
                                                 <Settings className="w-4 h-4" />
@@ -2589,32 +2581,159 @@ export function AdminDashboard() {
                                         </div>
                                         <div className="bg-white/5 border border-white/10 rounded-[2rem] p-6 space-y-6">
                                             <div className="space-y-3">
-                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-1">Ajouter Morceau</p>
-                                                <button
-                                                    onClick={() => document.getElementById('blindtest-upload')?.click()}
-                                                    className="w-full h-14 bg-neon-pink/10 hover:bg-neon-pink border border-neon-pink/30 text-neon-pink hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all"
-                                                >
-                                                    <Upload className="w-5 h-5" />
-                                                    Uploader MP3
-                                                </button>
-                                            </div>
-                                            <div className="pt-4 border-t border-white/5">
-                                                <div className="flex justify-between items-center mb-4">
-                                                    <span className="text-[9px] font-black text-gray-400 uppercase tracking-widest">Derniers Quiz</span>
-                                                    <Trophy className="w-3 h-3 text-neon-pink" />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    {allActiveQuizzes.slice(0, 3).map(q => (
-                                                        <div key={q.id} className="p-3 bg-white/[0.03] rounded-xl flex items-center justify-between">
-                                                            <p className="text-[9px] font-bold text-white uppercase truncate">{q.question}</p>
-                                                            <span className="text-[8px] font-black text-neon-pink/50 uppercase">{q.category}</span>
-                                                        </div>
-                                                    ))}
+                                                <p className="text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] px-1">Ajouter Morceau / Quiz</p>
+                                                <div className="flex flex-col gap-2">
+                                                    <button
+                                                        onClick={() => document.getElementById('blindtest-upload')?.click()}
+                                                        className="w-full h-14 bg-neon-pink/10 hover:bg-neon-pink border border-neon-pink/30 text-neon-pink hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all"
+                                                    >
+                                                        <Upload className="w-5 h-5" />
+                                                        Uploader MP3
+                                                    </button>
+                                                    <button
+                                                        onClick={() => setIsQuizModalOpen(true)}
+                                                        className="w-full h-14 bg-neon-red/10 hover:bg-neon-red border border-neon-red/30 text-neon-red hover:text-white rounded-2xl flex items-center justify-center gap-3 font-black uppercase text-[10px] tracking-widest transition-all"
+                                                    >
+                                                        <Gamepad2 className="w-5 h-5" />
+                                                        Manager Quizz
+                                                    </button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
+
+                                    {/* ADDITIONAL TOOLS */}
+                                    <div className="space-y-6">
+                                        <h3 className="text-xl font-display font-black text-white uppercase italic flex items-center gap-2">
+                                            <Sparkles className="w-5 h-5 text-neon-cyan" />
+                                            Autres <span className="text-neon-cyan">Outils</span>
+                                        </h3>
+                                        <div className="grid grid-cols-1 gap-4">
+                                            <button
+                                                onClick={() => setIsTracklistModalOpen(true)}
+                                                className="w-full p-6 bg-white/5 border border-white/10 rounded-[2rem] hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all text-left flex items-center gap-6 group"
+                                            >
+                                                <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                                                    <Music className="w-6 h-6 text-neon-purple" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-white uppercase italic">Tracklists</h4>
+                                                    <p className="text-[9px] text-gray-500 uppercase font-black">Vérifier & Valider</p>
+                                                </div>
+                                            </button>
+
+                                            <button
+                                                onClick={() => {
+                                                    fetchInstagramParticipants();
+                                                    setIsInstagramContestModalOpen(true);
+                                                }}
+                                                className="w-full p-6 bg-white/5 border border-white/10 rounded-[2rem] hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all text-left flex items-center gap-6 group"
+                                            >
+                                                <div className="w-12 h-12 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform">
+                                                    <Instagram className="w-6 h-6 text-neon-pink" />
+                                                </div>
+                                                <div>
+                                                    <h4 className="font-bold text-white uppercase italic">Concours Insta</h4>
+                                                    <p className="text-[9px] text-gray-500 uppercase font-black">Participants & Tirage</p>
+                                                </div>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* COMPTES MEMBRES (Moved from Main) */}
+                                    {(() => {
+                                        const storedUsers: any[] = (() => { try { return JSON.parse(localStorage.getItem('dropsiders_registered_users') || '[]'); } catch { return []; } })();
+                                        if (storedUsers.length === 0) return null;
+                                        return (
+                                            <div className="space-y-6">
+                                                <h3 className="text-xl font-display font-black text-white uppercase italic flex items-center gap-2">
+                                                    <Users className="w-5 h-5 text-neon-cyan" />
+                                                    Comptes <span className="text-neon-cyan">Membres</span>
+                                                </h3>
+                                                <div className="bg-black/40 border border-white/10 rounded-[2rem] p-6 max-h-[400px] overflow-y-auto custom-scrollbar">
+                                                    <div className="space-y-2">
+                                                        {storedUsers.map((u: any, idx: number) => (
+                                                            <div key={u.id || idx} className="flex items-center gap-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 rounded-2xl px-4 py-3 transition-all">
+                                                                <div className="w-8 h-8 rounded-xl bg-neon-cyan/10 border border-neon-cyan/20 flex items-center justify-center shrink-0 overflow-hidden">
+                                                                    {u.avatar ? <img src={u.avatar} alt={u.username} className="w-full h-full object-cover" /> : <User className="w-4 h-4 text-neon-cyan" />}
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <div className="text-[10px] font-black text-white uppercase tracking-widest truncate">{u.username}</div>
+                                                                    <div className="text-[8px] text-gray-500 font-bold truncate">{u.email || '—'}</div>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        );
+                                    })()}
                                 </div>
+                            </div>
+                            
+                            {/* WIKI VOTES (Moved from Main) */}
+                            <div className="mt-12">
+                                {(() => {
+                                    const djVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_djs') || '[]'); } catch { return []; } })());
+                                    const clubVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_clubs') || '[]'); } catch { return []; } })());
+                                    const festVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_festivals') || '[]'); } catch { return []; } })());
+                                    const djR = [...(wikiDjs as any[])].map(d => ({ ...d, tv: djVotes.has(d.id) ? 1 : 0 })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
+                                    const clubR = [...(wikiClubs as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (clubVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
+                                    const festR = [...(wikiFestivals as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (festVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
+                                    const allRanked = wikiTab === 'djs' ? djR : wikiTab === 'clubs' ? clubR : festR;
+                                    const ranked = isWikiExpanded ? allRanked : allRanked.slice(0, 5);
+                                    const topVotes = allRanked[0]?.tv || 1;
+                                    const medals = ['🥇', '🥈', '🥉'];
+                                    return (
+                                        <div className="bg-white/[0.03] border border-white/10 rounded-[3rem] p-10">
+                                            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
+                                                <div>
+                                                    <div className="flex items-center gap-2 mb-1">
+                                                        <Star className="w-4 h-4 text-neon-red fill-current" />
+                                                        <span className="text-neon-red font-black tracking-[0.3em] text-[9px] uppercase">Classement Wiki</span>
+                                                    </div>
+                                                    <h2 className="text-4xl font-display font-black text-white italic uppercase tracking-tighter">Top Votes Communauté</h2>
+                                                </div>
+                                                <div className="flex flex-wrap items-center gap-6">
+                                                    <div className="flex items-center bg-black/40 border border-white/10 rounded-2xl p-1.5 gap-1.5">
+                                                        {(['djs', 'clubs', 'festivals'] as const).map(id => (
+                                                            <button key={id} onClick={() => setWikiTab(id)}
+                                                                className={`px-6 py-3 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all ${wikiTab === id ? 'bg-neon-red text-white shadow-lg shadow-neon-red/20' : 'text-gray-500 hover:text-gray-300'}`}>
+                                                                {id === 'djs' ? '🎧 DJs' : id === 'clubs' ? '🏛️ Clubs' : '🎪 Festivals'}
+                                                            </button>
+                                                        ))}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => setIsWikiExpanded(!isWikiExpanded)}
+                                                        className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center gap-2"
+                                                    >
+                                                        {isWikiExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                                                        {isWikiExpanded ? 'Réduire' : 'Voir Top 50'}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                                                {ranked.length === 0 ? (
+                                                    <div className="col-span-full py-20 text-center text-gray-600 font-black uppercase tracking-widest italic opacity-50">Aucun vote enregistré</div>
+                                                ) : ranked.map((item: any, idx: number) => (
+                                                    <div key={item.id} className="flex items-center gap-4 bg-white/[0.02] hover:bg-white/[0.05] border border-white/5 rounded-3xl p-4 transition-all group">
+                                                        <div className="w-10 h-10 bg-black/40 rounded-2xl flex items-center justify-center shrink-0 border border-white/5 relative">
+                                                            {idx < 3 ? <span className="text-xl relative z-10">{medals[idx]}</span> : <span className="text-xs font-black text-gray-500">#{idx + 1}</span>}
+                                                            <div className="absolute inset-0 bg-neon-red/5 blur-xl group-hover:bg-neon-red/10 transition-colors rounded-full" />
+                                                        </div>
+                                                        <div className="flex-1 min-w-0">
+                                                            <div className="text-[11px] font-black text-white uppercase tracking-tighter truncate group-hover:text-neon-red transition-colors">{item.name}</div>
+                                                            <div className="flex items-center gap-2">
+                                                                <Heart className="w-3 h-3 text-neon-red fill-current opacity-50" />
+                                                                <span className="text-xs font-display font-black text-neon-red italic tracking-tighter">{item.tv} <span className="text-[8px] font-bold text-gray-600 uppercase italic">votes</span></span>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    );
+                                })()}
                             </div>
                         </div>
                     ) : (
@@ -2845,12 +2964,9 @@ export function AdminDashboard() {
                                                         if (pendingPhotosCount > 0) {
                                                             setIsModerationModalOpen(true);
                                                         }
-                                                    } else if (action.title === 'Générateur Publi') {
+                                                    } else if (action.title === 'Studio Création') {
                                                         e.preventDefault();
-                                                        setIsPubliModalOpen(true);
-                                                    } else if (action.title === 'Générateur Express') {
-                                                        e.preventDefault();
-                                                        setIsQuickWizardOpen(true);
+                                                        setIsCreatorStudioOpen(true);
                                                     }
                                                 }}
                                                 className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
@@ -3088,159 +3204,38 @@ export function AdminDashboard() {
                                         </motion.div>
                                     </div>
                                 )}
-                            </AnimatePresence>
-                        </div>
-                    </div>
-                )}
-                </div>
-
-                {/* ─── CLASSEMENT WIKI VOTES ─── */}
-                <div className="mt-32 mb-12">
-                    {(() => {
-                        const djVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_djs') || '[]'); } catch { return []; } })());
-                        const clubVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_clubs') || '[]'); } catch { return []; } })());
-                        const festVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_festivals') || '[]'); } catch { return []; } })());
-                        const djR = [...(wikiDjs as any[])].map(d => ({ ...d, tv: djVotes.has(d.id) ? 1 : 0 })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
-                        const clubR = [...(wikiClubs as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (clubVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
-                        const festR = [...(wikiFestivals as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (festVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
-                        const allRanked = wikiTab === 'djs' ? djR : wikiTab === 'clubs' ? clubR : festR;
-                        const ranked = isWikiExpanded ? allRanked : allRanked.slice(0, 5);
-                        const topVotes = allRanked[0]?.tv || 1;
-                        const medals = ['🥇', '🥈', '🥉'];
-                        return (
-                            <div className="bg-white/[0.03] border border-white/10 rounded-3xl p-6 md:p-8">
-                                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6">
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <Star className="w-4 h-4 text-neon-red fill-current" />
-                                            <span className="text-neon-red font-black tracking-[0.3em] text-[9px] uppercase">Classement</span>
-                                        </div>
-                                        <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Wiki Votes</h2>
-                                        <p className="text-gray-600 text-[9px] font-black uppercase tracking-widest mt-0.5">Top 50 basé on les votes communauté</p>
-                                    </div>
-                                    <div className="flex flex-wrap items-center gap-6">
-                                        <button
-                                            onClick={() => setIsWikiExpanded(!isWikiExpanded)}
-                                            className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-[9px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center gap-2"
-                                        >
-                                            {isWikiExpanded ? (
-                                                <>
-                                                    <ChevronUp className="w-3 h-3" />
-                                                    Réduire
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <ChevronDown className="w-3 h-3" />
-                                                    Voir Tout (Top 50)
-                                                </>
-                                            )}
-                                        </button>
-                                        <div className="flex items-center bg-black/40 border border-white/10 rounded-xl p-1 gap-1">
-                                            {(['djs', 'clubs', 'festivals'] as const).map(id => (
-                                                <button key={id} onClick={() => setWikiTab(id)}
-                                                    className={`px-4 py-2 rounded-lg font-black uppercase tracking-widest text-[9px] transition-all ${wikiTab === id ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-gray-300'}`}>
-                                                    {id === 'djs' ? '🎧 DJs' : id === 'clubs' ? '🏛️ Clubs' : '🎪 Festivals'}
-                                                </button>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    {ranked.length === 0 ? (
-                                        <p className="text-center text-gray-600 text-xs font-black uppercase tracking-widest py-8">Aucun vote pour l'instant</p>
-                                    ) : ranked.map((item: any, idx: number) => (
-                                        <div key={item.id} className="flex items-center gap-3 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 rounded-2xl px-4 py-3 transition-all">
-                                            <div className="w-8 text-center shrink-0">{idx < 3 ? <span className="text-lg">{medals[idx]}</span> : <span className="text-[11px] font-black text-gray-500">#{idx + 1}</span>}</div>
-                                            {item.image && <div className="w-10 h-10 rounded-xl overflow-hidden bg-black shrink-0"><img src={item.image} alt={item.name} className="w-full h-full object-cover" /></div>}
-                                            <div className="flex-1 min-w-0">
-                                                <div className="text-[11px] font-black text-white uppercase tracking-widest truncate">{item.name}</div>
-                                                <div className="text-[9px] text-gray-500 font-bold uppercase">{item.genre || ''}{item.city ? ` · ${item.city}` : ''}</div>
-                                            </div>
-                                            <div className="flex items-center gap-1.5 shrink-0">
-                                                <Heart className="w-3.5 h-3.5 text-neon-red fill-current" />
-                                                <span className="text-sm font-black text-white">{item.tv}</span>
-                                                <span className="text-[9px] font-black text-gray-600 uppercase">vote{item.tv !== 1 ? 's' : ''}</span>
-                                            </div>
-                                            <div className="w-16 h-1 bg-white/5 rounded-full overflow-hidden shrink-0">
-                                                <div className="h-full bg-neon-red rounded-full" style={{ width: `${Math.min(100, (item.tv / topVotes) * 100)}%` }} />
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
                             </div>
-                        );
-                    })()}
-                </div>
 
-                {/* ─── COMPTES MEMBRES ─── */}
-                {(() => {
-                    const storedUsers: any[] = (() => { try { return JSON.parse(localStorage.getItem('dropsiders_registered_users') || '[]'); } catch { return []; } })();
-                    if (storedUsers.length === 0) return null;
-                    return (
-                        <div className="mb-12">
-                            <div className="bg-white/[0.03] border border-white/10 rounded-3xl p-6 md:p-8">
-                                <div className="flex items-center justify-between mb-6">
-                                    <div>
-                                        <div className="flex items-center gap-2 mb-1">
-                                            <Users className="w-4 h-4 text-neon-cyan" />
-                                            <span className="text-neon-cyan font-black tracking-[0.3em] text-[9px] uppercase">Membres</span>
-                                        </div>
-                                        <h2 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Comptes créés</h2>
-                                        <p className="text-gray-600 text-[9px] font-black uppercase tracking-widest mt-0.5">{storedUsers.length} compte{storedUsers.length > 1 ? 's' : ''} enregistré{storedUsers.length > 1 ? 's' : ''}</p>
-                                    </div>
-                                </div>
-                                <div className="space-y-2">
-                                    {storedUsers.map((u: any, idx: number) => (
-                                        <div key={u.id || idx} className="flex items-center gap-4 bg-white/[0.03] hover:bg-white/[0.06] border border-white/5 rounded-2xl px-4 py-3 transition-all">
-                                            <div className="w-10 h-10 rounded-xl bg-neon-cyan/10 border border-neon-cyan/20 flex items-center justify-center shrink-0 overflow-hidden">
-                                                {u.avatar ? <img src={u.avatar} alt={u.username} className="w-full h-full object-cover" /> : <User className="w-5 h-5 text-neon-cyan" />}
-                                            </div>
-                                            <div className="flex-1 min-w-0">
-                                                <div className="text-[11px] font-black text-white uppercase tracking-widest truncate">{u.username}</div>
-                                                <div className="text-[9px] text-gray-500 font-bold">{u.email || '—'}</div>
-                                            </div>
-                                            <div className="flex items-center gap-2 shrink-0">
-                                                {u.provider && (
-                                                    <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${u.provider === 'google' ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20' :
-                                                            u.provider === 'discord' ? 'bg-[#5865F2]/10 text-[#5865F2] border border-[#5865F2]/20' :
-                                                                'bg-white/5 text-gray-400 border border-white/10'
-                                                        }`}>{u.provider}</span>
-                                                )}
-                                                <span className="text-[9px] text-gray-600 font-bold">{u.createdAt ? new Date(u.createdAt).toLocaleDateString('fr-FR') : '—'}</span>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    );
-                })()}
-
-
-                <AnimatePresence>
-                    {isBannerModalOpen && (
-                        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
-                            <motion.div
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                                onClick={() => setIsBannerModalOpen(false)}
-                                className="absolute inset-0 bg-black/90 backdrop-blur-md"
+                            <CreatorStudioMenuModal
+                                isOpen={isCreatorStudioOpen}
+                                onClose={() => setIsCreatorStudioOpen(false)}
+                                onExpress={() => setIsQuickWizardOpen(true)}
+                                onPubli={() => setIsPubliModalOpen(true)}
                             />
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="relative w-full max-w-xl bg-[#111] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl"
-                            >
-                                <div className="p-8 md:p-10">
-                                    <div className="flex items-center justify-between mb-8">
-                                        <div className="flex items-center gap-3">
-                                            <div className="p-3 bg-neon-orange/10 rounded-2xl border border-neon-orange/20">
-                                                <Activity className="w-6 h-6 text-neon-orange" />
-                                            </div>
-                                            <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
-                                                Gestion <span className="text-neon-orange">Bandeau</span>
+
+                            <AnimatePresence>
+                                {isBannerModalOpen && (
+                                    <div className="fixed inset-0 z-[110] flex items-center justify-center p-4">
+                                        <motion.div
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            exit={{ opacity: 0 }}
+                                            onClick={() => setIsBannerModalOpen(false)}
+                                            className="absolute inset-0 bg-black/90 backdrop-blur-md" />
+                                        <motion.div
+                                            initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                            animate={{ opacity: 1, scale: 1, y: 0 }}
+                                            exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                            className="relative w-full max-w-xl bg-[#111] border border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl"
+                                        >
+                                            <div className="p-8 md:p-10">
+                                                <div className="flex items-center justify-between mb-8">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="p-3 bg-neon-orange/10 rounded-2xl border border-neon-orange/20">
+                                                            <Activity className="w-6 h-6 text-neon-orange" />
+                                                        </div>
+                                                        <h2 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">
+                                                            Gestion <span className="text-neon-orange">Bandeau</span>
                                             </h2>
                                         </div>
                                         <button
