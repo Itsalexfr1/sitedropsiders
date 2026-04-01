@@ -1501,6 +1501,49 @@ ${urls.map(u => `  <url>
             }
         }
 
+        if (path === '/api/voyage/airports' && request.method === 'GET') {
+            const query = url.searchParams.get('q');
+            if (!query || query.length < 2) return new Response(JSON.stringify([]), { headers });
+            
+            const DUFFEL_KEY = env.DUFFEL_API_KEY;
+            if (!DUFFEL_KEY) return new Response(JSON.stringify({ error: 'Config error' }), { status: 500, headers });
+            try {
+                const res = await fetch(`https://api.duffel.com/air/airports?search=${encodeURIComponent(query)}`, {
+                    headers: {
+                        'Authorization': `Bearer ${DUFFEL_KEY}`,
+                        'Duffel-Version': 'v1',
+                        'Accept': 'application/json'
+                    }
+                });
+                const data = await res.json();
+                return new Response(JSON.stringify(data.data || []), { headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: 'Proxy error' }), { status: 500, headers });
+            }
+        }
+
+        if (path === '/api/voyage/search' && request.method === 'POST') {
+            const DUFFEL_KEY = env.DUFFEL_API_KEY;
+            if (!DUFFEL_KEY) return new Response(JSON.stringify({ error: 'Config error' }), { status: 500, headers });
+            try {
+                const body = await request.json();
+                const res = await fetch('https://api.duffel.com/air/offer_requests', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': `Bearer ${DUFFEL_KEY}`,
+                        'Duffel-Version': 'v1',
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                return new Response(JSON.stringify(data), { status: res.status, headers });
+            } catch (e) {
+                return new Response(JSON.stringify({ error: 'Proxy error' }), { status: 500, headers });
+            }
+        }
+
         if (path === '/api/analytics/stats' && request.method === 'GET') {
             if (!env.CHAT_KV) return new Response(JSON.stringify({ error: 'KV not configured' }), { status: 500, headers });
 
