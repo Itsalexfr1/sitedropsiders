@@ -5560,5 +5560,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 518,
+    "title": "EDC Week : Josh Baker B2B Kettama B2B Prospa",
+    "date": "2026-05-13",
+    "startDate": "2026-05-13",
+    "endDate": "2026-05-13",
+    "venue": "Liv NightClub",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/6f9f541f02fae3c7-40914867948.jpeg",
+    "url": "https://speakeasygo.com/liv-nightclub---las-vegas/josh-baker-b2b-kettama-b2b-prospa?eid=EVE-EGD8VN",
+    "genre": "Tech House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
