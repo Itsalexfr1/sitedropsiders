@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Trash2, Search, Calendar, FileText, Video, Mic, Music, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon, X, Pencil, Star, ExternalLink, Camera, RefreshCw, ChevronUp, ChevronDown, Save, Instagram } from 'lucide-react';
+import { Trash2, Search, Calendar, FileText, Video, Mic, Music, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Plus, Image as ImageIcon, X, Pencil, Star, ExternalLink, Camera, RefreshCw, ChevronUp, ChevronDown, Save, Instagram, Sparkles } from 'lucide-react';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { ImageUploadModal } from '../components/ImageUploadModal';
 import { SocialSuite } from '../components/SocialSuite';
@@ -115,6 +115,7 @@ export function AdminManage() {
     const [brokenImages, setBrokenImages] = useState<any[]>([]);
     const [showBrokenOnly, setShowBrokenOnly] = useState(false);
     const [imageChangeTarget, setImageChangeTarget] = useState<{ id: number | string, title: string } | null>(null);
+    const [residenceUpdateTarget, setResidenceUpdateTarget] = useState<any | null>(null);
 
     const fetchBrokenImages = async () => {
         try {
@@ -373,7 +374,7 @@ export function AdminManage() {
     };
 
     const handleUpdatePhoto = async (newImageUrl: string | string[]) => {
-        if (!activePhotoId) return;
+        if (!activePhotoId && !residenceUpdateTarget) return;
         let actualUrl = Array.isArray(newImageUrl) ? newImageUrl[0] : newImageUrl;
 
         // Normalisation de l'URL pour éviter les doublons /uploads/uploads/
@@ -391,27 +392,52 @@ export function AdminManage() {
 
         try {
             setLoading(true);
-            let endpoint = '/api/news/update';
-            if (activeTab === 'Recaps') endpoint = '/api/recaps/update';
-            else if (activeTab === 'Agenda') endpoint = '/api/agenda/update';
-            else if (activeTab === 'Communauté') endpoint = '/api/galerie/update';
+            
+            if (residenceUpdateTarget) {
+                const response = await fetch('/api/agenda/update-residence-photos', {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ 
+                        title: residenceUpdateTarget.title, 
+                        location: residenceUpdateTarget.location, 
+                        image: actualUrl 
+                    })
+                });
 
-            const response = await fetch(endpoint, {
-                method: 'POST',
-                headers: getAuthHeaders(),
-                body: JSON.stringify({ id: activePhotoId, image: actualUrl })
-            });
+                if (response.ok) {
+                    // Update all items in local state that match the residence
+                    setItems(prev => prev.map(i => 
+                        (i.title === residenceUpdateTarget.title && i.location === residenceUpdateTarget.location) 
+                        ? { ...i, image: actualUrl } 
+                        : i
+                    ));
+                    setResidenceUpdateTarget(null);
+                    setIsImageModalOpen(false);
+                }
+            } else {
+                let endpoint = '/api/news/update';
+                if (activeTab === 'Recaps') endpoint = '/api/recaps/update';
+                else if (activeTab === 'Agenda') endpoint = '/api/agenda/update';
+                else if (activeTab === 'Communauté') endpoint = '/api/galerie/update';
 
-            if (response.ok) {
-                setItems(prev => prev.map(i => i.id === activePhotoId ? { ...i, image: actualUrl } : i));
-                setIsImageModalOpen(false);
-                fetchBrokenImages();
+                const response = await fetch(endpoint, {
+                    method: 'POST',
+                    headers: getAuthHeaders(),
+                    body: JSON.stringify({ id: activePhotoId, image: actualUrl })
+                });
+
+                if (response.ok) {
+                    setItems(prev => prev.map(i => i.id === activePhotoId ? { ...i, image: actualUrl } : i));
+                    setIsImageModalOpen(false);
+                    fetchBrokenImages();
+                }
             }
         } catch (e: any) {
             console.error('Error updating photo:', e);
         } finally {
             setLoading(false);
             setActivePhotoId(null);
+            setResidenceUpdateTarget(null);
         }
     };
 
@@ -1024,16 +1050,27 @@ export function AdminManage() {
                                                         </button>
                                                     )}
                                                     {(activeTab === 'Interviews' || activeTab === 'Agenda') && (
-                                                        <button
-                                                            onClick={() => {
-                                                                setActivePhotoId(item.id);
-                                                                setIsImageModalOpen(true);
-                                                            }}
-                                                            className={`p-3 text-gray-500 hover:bg-opacity-10 rounded-xl transition-all ${activeTab === 'Agenda' ? 'hover:text-neon-yellow hover:bg-neon-yellow' : 'hover:text-neon-pink hover:bg-neon-pink'}`}
-                                                            title="Changer uniquement la photo"
-                                                        >
-                                                            <Camera className="w-5 h-5" />
-                                                        </button>
+                                                        <div className="flex items-center gap-1">
+                                                            <button
+                                                                onClick={() => {
+                                                                    setActivePhotoId(item.id);
+                                                                    setIsImageModalOpen(true);
+                                                                }}
+                                                                className={`p-3 text-gray-500 hover:bg-opacity-10 rounded-xl transition-all ${activeTab === 'Agenda' ? 'hover:text-neon-yellow hover:bg-neon-yellow/10' : 'hover:text-neon-pink hover:bg-neon-pink/10'}`}
+                                                                title="Changer uniquement la photo"
+                                                            >
+                                                                <Camera className="w-5 h-5" />
+                                                            </button>
+                                                            {activeTab === 'Agenda' && (item.isWeekly || item.type === 'Residence') && (
+                                                                <button
+                                                                    onClick={() => setResidenceUpdateTarget(item)}
+                                                                    className="p-3 text-neon-cyan hover:bg-neon-cyan/10 rounded-xl transition-all"
+                                                                    title="Changer pour TOUTE la résidence"
+                                                                >
+                                                                    <Sparkles className="w-5 h-5" />
+                                                                </button>
+                                                            )}
+                                                        </div>
                                                     )}
                                                     {['News', 'Musique', 'Interviews'].includes(activeTab) && (
                                                         <button
@@ -1179,6 +1216,17 @@ export function AdminManage() {
             />
 
             <AnimatePresence>
+                <ConfirmationModal
+                    isOpen={!!residenceUpdateTarget}
+                    onConfirm={() => setIsImageModalOpen(true)}
+                    onCancel={() => setResidenceUpdateTarget(null)}
+                    title="Modifier la résidence ?"
+                    message={`Voulez-vous changer le flyer pour TOUTES les dates de la résidence "${residenceUpdateTarget?.title || ''}" à ${residenceUpdateTarget?.location || ''} ? Cela affectera tous les événements futurs de cette série.`}
+                    confirmLabel="Changer tout"
+                    cancelLabel="Annuler"
+                    accentColor="neon-cyan"
+                />
+
                 {socialItem && (
                     <SocialSuite
                         title={socialItem.title}
