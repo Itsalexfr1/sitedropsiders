@@ -420,71 +420,79 @@ export function Voyage() {
                                 </div>
                             </div>
 
-                            <div className="flex flex-col md:flex-row gap-10 border-t border-white/5 pt-10">
-                                <div className="flex-1 space-y-6">
-                                    {travelType === 'flight' && (
-                                        <div className="space-y-4">
-                                            <div className="flex items-center gap-2 ml-2">
-                                                <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">{t('voyage.cabin_class')}</span>
-                                                <div className="group relative">
-                                                    <Info className="w-3 h-3 text-gray-600" />
-                                                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-50 p-4 bg-black border border-white/10 rounded-2xl text-[9px] font-bold text-gray-400 uppercase leading-relaxed opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-50 shadow-2xl">
-                                                        {t('voyage.cabin_class_info')}
-                                                    </div>
+                            <div className="mt-10 pt-10 border-t border-white/5 space-y-8">
+                                {travelType === 'flight' && (
+                                    <div className="space-y-4">
+                                        <div className="flex items-center gap-2 ml-2">
+                                            <span className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em]">{t('voyage.cabin_class')}</span>
+                                            <div className="group relative">
+                                                <Info className="w-3.5 h-3.5 text-gray-700 hover:text-gray-400 transition-colors cursor-help" />
+                                                <div className="absolute bottom-full left-0 mb-3 w-64 p-4 bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl text-[10px] font-bold text-gray-300 uppercase leading-relaxed opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50 shadow-2xl">
+                                                    {t('voyage.cabin_class_info')}
                                                 </div>
                                             </div>
-                                            <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                                {[
-                                                    { id: 'economy', label: t('voyage.economy'), emoji: '💺' },
-                                                    { id: 'premium_economy', label: t('voyage.premium_economy'), emoji: '⭐' },
-                                                    { id: 'business', label: t('voyage.business'), emoji: '💎' },
-                                                    { id: 'first', label: t('voyage.first'), emoji: '👑' },
-                                                ].map((cls) => (
-                                                    <button
-                                                        key={cls.id}
-                                                        type="button"
-                                                        onClick={() => { setCabinClass(cls.id); setResults([]); setError(null); }}
-                                                        className={`flex items-center gap-2 px-4 py-3.5 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${
-                                                            cabinClass === cls.id
-                                                                ? 'bg-neon-red/10 border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.1)]'
-                                                                : 'bg-transparent border-white/5 text-gray-600 hover:border-white/10 hover:text-gray-400'
-                                                        }`}
-                                                    >
-                                                        <span>{cls.emoji}</span> {cls.label}
-                                                    </button>
-                                                ))}
-                                            </div>
                                         </div>
-                                    )}
-
-                                    <div className="space-y-4 pt-4">
-                                        <h4 className="text-[10px] font-black uppercase text-gray-600 tracking-[0.3em] ml-2 italic">{t('voyage.source')}</h4>
-                                        <div className="flex flex-wrap gap-2">
-                                            {(travelType === 'flight' ? ['direct', 'google', 'skyscanner', 'kayak', 'liligo'] : ['omio', 'busbud', 'flixbus', 'blablacar']).map((p) => (
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                            {[
+                                                { id: 'economy', label: t('voyage.economy'), emoji: '💺' },
+                                                { id: 'premium_economy', label: t('voyage.premium_economy'), emoji: '⭐' },
+                                                { id: 'business', label: t('voyage.business'), emoji: '💎' },
+                                                { id: 'first', label: t('voyage.first'), emoji: '👑' },
+                                            ].map((cls) => (
                                                 <button
-                                                    key={p}
+                                                    key={cls.id}
                                                     type="button"
-                                                    onClick={() => { travelType === 'flight' ? setFlightProvider(p) : setBusProvider(p); setResults([]); setError(null); }}
-                                                    className={`px-6 py-4 rounded-xl border text-[10px] font-black uppercase tracking-[0.2em] transition-all ${
-                                                        (travelType === 'flight' ? flightProvider : busProvider) === p 
-                                                            ? 'bg-white/10 border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.1)]' 
-                                                            : 'bg-transparent border-white/5 text-gray-600 hover:border-white/10 hover:text-gray-400'
+                                                    onClick={() => { setCabinClass(cls.id); setResults([]); setError(null); }}
+                                                    className={`flex items-center justify-center gap-2 px-4 py-4 rounded-2xl border text-[10px] font-black uppercase tracking-[0.1em] transition-all duration-300 ${
+                                                        cabinClass === cls.id
+                                                            ? 'bg-neon-red/10 border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.15)] scale-[1.02]'
+                                                            : 'bg-white/5 border-white/5 text-gray-600 hover:bg-white/10 hover:border-white/10'
                                                     }`}
                                                 >
-                                                    {p === 'direct' ? `⚡ ${t('voyage.engine_error').split('...')[1] || 'ENGINE'} (FLASH)` : p}
+                                                    <span className="text-sm">{cls.emoji}</span>
+                                                    <span>{cls.label}</span>
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
+                                )}
+
+                                <div className="space-y-4">
+                                    <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em] ml-2 italic">{t('voyage.source')}</h4>
+                                    <div className="flex flex-wrap gap-3">
+                                        {(travelType === 'flight' ? ['direct', 'google', 'skyscanner', 'kayak', 'liligo'] : ['omio', 'busbud', 'flixbus', 'blablacar']).map((p) => (
+                                            <button
+                                                key={p}
+                                                type="button"
+                                                onClick={() => { travelType === 'flight' ? setFlightProvider(p) : setBusProvider(p); setResults([]); setError(null); }}
+                                                className={`px-6 py-4 rounded-xl border text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
+                                                    (travelType === 'flight' ? flightProvider : busProvider) === p 
+                                                        ? 'bg-white/10 border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.15)]' 
+                                                        : 'bg-white/5 border-white/5 text-gray-600 hover:bg-white/10 hover:border-white/10'
+                                                }`}
+                                            >
+                                                {p === 'direct' ? '⚡ MOTEUR FLASH (RECOMMANDÉ)' : p}
+                                            </button>
+                                        ))}
+                                    </div>
                                 </div>
 
-                                <button
-                                    type="submit"
-                                    disabled={isSearching}
-                                    className="w-full md:w-auto px-16 py-7 bg-neon-red text-white rounded-3xl font-black uppercase text-sm tracking-[0.4em] hover:bg-white hover:text-black transition-all duration-500 shadow-[0_0_50px_rgba(255,18,65,0.3)] disabled:opacity-50 flex items-center justify-center gap-4 shrink-0"
-                                >
-                                    {isSearching ? <div className="w-6 h-6 border-2 border-black/20 border-t-black rounded-full animate-spin" /> : <>RECHERCHER <ArrowRight className="w-6 h-6" /></>}
-                                </button>
+                                <div className="pt-6">
+                                    <button
+                                        type="submit"
+                                        disabled={isSearching}
+                                        className="w-full py-7 bg-neon-red text-white rounded-3xl font-black uppercase text-sm tracking-[0.4em] hover:bg-white hover:text-black transition-all duration-500 shadow-[0_0_50px_rgba(255,18,65,0.3)] disabled:opacity-50 flex items-center justify-center gap-4 group"
+                                    >
+                                        {isSearching ? (
+                                            <div className="w-6 h-6 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                                        ) : (
+                                            <>
+                                                {t('voyage.search_btn')} 
+                                                <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
                             </div>
                         </form>
                     </motion.div>
