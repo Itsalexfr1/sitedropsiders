@@ -6320,5 +6320,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 558,
+    "title": "EDC Week : DJ Snake (Hip Hop Set)",
+    "date": "2026-05-18",
+    "startDate": "2026-05-18",
+    "endDate": "2026-05-18",
+    "venue": "Marquee Nightclub",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/dc582bf90cf2efa1-image_1774373860026_8tgoy6o3d.webp",
+    "url": "https://tickets.taogroup.com/e/marquee-nightclub-las-vegas-5-18-2026/tickets",
+    "genre": "Multi Styles",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
