@@ -1308,13 +1308,14 @@
     "location": "GIESBECK",
     "country": "PAYS BAS",
     "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/1772634075248-maxresdefault.jpg",
+    "image": "/uploads/0d990c56f6a4bb2b-5de5f0400e24f029fef813cb737b27.webp",
     "url": "https://www.dreamfields.nl",
     "genre": "Multi Styles",
     "month": "JUILLET",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "additionalDates": []
   },
   {
     "id": 292,
