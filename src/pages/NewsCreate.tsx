@@ -752,6 +752,30 @@ export function NewsCreate() {
         setWidgets(widgets.map(w => w.id === id ? { ...w, content: newContent } : w));
     };
 
+    // Extracted logic for direct insertion without using state
+    const insertImageWidget = (url: string, targetWidgetId?: string, targetIndex?: number, config: any = {}) => {
+        const { aspectRatio = 'auto', alignment = 'center', width = 100 } = config;
+        const aspectClass = aspectRatio && aspectRatio !== 'auto' ? `aspect-[${aspectRatio}]` : '';
+        const imgClass = aspectRatio && aspectRatio !== 'auto' ? 'w-full h-full object-cover' : 'w-full h-auto object-cover';
+        const layoutClasses = "image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group";
+        const sectionWrapperAttribs = `data-align="${alignment}"`;
+        const sectionWrapperStyles = alignment !== 'center' ? `width: ${width}%; max-width: 100%;` : '';
+
+        const content = `<div class="premium-image-float-container" ${sectionWrapperAttribs} style="${sectionWrapperStyles}">
+  <div class="${layoutClasses} ${aspectClass}">
+    <img src="${url}" alt="Image" class="${imgClass} transform group-hover:scale-105 transition-transform duration-700" />
+  </div>
+</div>`;
+
+        if (targetWidgetId) {
+            updateWidget(targetWidgetId, content);
+        } else if (typeof targetIndex === 'number') {
+            addWidget(targetIndex, content);
+        } else {
+            setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content }]);
+        }
+    };
+
     const moveWidgetUp = (index: number) => {
         if (index === 0) return;
         const newWidgets = [...widgets];
@@ -3733,7 +3757,13 @@ ${generateSocialsHtml()}
                                 urls: prev.urls ? prev.urls + '\n' + newUrls : newUrls 
                             }));
                         } else {
-                            setMediaModal(prev => ({ ...prev, url: actualUrl }));
+                            // AUTO-CONFIRM for simple images from gallery
+                            insertImageWidget(actualUrl, mediaModal.widgetId, (mediaModal as any).widgetIndex, {
+                                aspectRatio: mediaModal.aspectRatio,
+                                alignment: mediaModal.alignment,
+                                width: mediaModal.width
+                            });
+                            setMediaModal(prev => ({ ...prev, show: false, url: '' }));
                         }
                         setShowUploadModal(false);
                     } else {
