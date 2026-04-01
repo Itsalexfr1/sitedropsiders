@@ -35,8 +35,9 @@ html = html.replace(/<div style=\"color: #9ca3af;[^>]*>([\s\S]*?)<\/div>/g, (mat
     return `<div style="color: #fff !important; font-size: 16px !important; font-weight: 900 !important; text-transform: uppercase !important; margin-bottom: 15px !important; letter-spacing: 0.25em !important; text-shadow: 0 0 10px rgba(255,255,255,0.4) !important;">${artist}</div>`;
 });
 
-// 4. CLEANUP (Remove the white border if any left)
+// 4. CLEANUP (Remove the white border and adjust margin)
 html = html.replace(/border-l-4 border-white pl-6/g, '');
+html = html.replace(/mb-10/g, 'mb-[57px]');
 
 article.content = html;
 
