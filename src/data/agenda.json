@@ -931,13 +931,15 @@
     "location": "Rothbury",
     "country": "USA",
     "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/1772482819572-6dc3433c-1a44-76fb-4902-def587e46c82.jpg",
+    "image": "/uploads/611e4f7311a7a2cd-2026_ElectricForest_4x5_1.jpg",
     "url": "https://www.electricforest.com",
     "genre": "Multi Styles",
     "month": "JUIN",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "venue": "",
+    "additionalDates": []
   },
   {
     "id": 269,
