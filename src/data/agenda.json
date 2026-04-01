@@ -5864,5 +5864,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 534,
+    "title": "EDC Week : Dj Snake ",
+    "date": "2026-05-15",
+    "startDate": "2026-05-15",
+    "endDate": "2026-05-15",
+    "venue": "Tao Beach",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Events",
+    "image": "/uploads/uploads/c5b7a203ecb969e9-image_1774372729656_817hv5lv4.jpg",
+    "url": "https://tickets.taogroup.com/e/tao-beach-las-vegas-5-15-2026/tickets",
+    "genre": "Big Room",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
