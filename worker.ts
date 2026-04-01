@@ -1543,7 +1543,7 @@ ${urls.map(u => `  <url>
             try {
                 if (DUFFEL_KEY) {
                     const res = await fetch(`https://api.duffel.com/air/airports?search=${encodeURIComponent(query)}`, {
-                        headers: { 'Authorization': `Bearer ${DUFFEL_KEY}`, 'Duffel-Version': 'v1', 'Accept': 'application/json' },
+                        headers: { 'Authorization': `Bearer ${DUFFEL_KEY}`, 'Duffel-Version': 'v2', 'Accept': 'application/json' },
                         signal: AbortSignal.timeout(3000)
                     });
                     const data = await res.json();
@@ -1574,7 +1574,7 @@ ${urls.map(u => `  <url>
                     method: 'POST',
                     headers: {
                         'Authorization': `Bearer ${DUFFEL_KEY}`,
-                        'Duffel-Version': 'v1',
+                        'Duffel-Version': 'v2',
                         'Content-Type': 'application/json',
                         'Accept': 'application/json'
                     },
