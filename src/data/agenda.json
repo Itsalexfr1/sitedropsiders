@@ -1159,13 +1159,14 @@
     "location": "EERSEL",
     "country": "Pays-Bas",
     "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/1772632496807-dominator-festival-2026-e3-strand-17-july-2026-1769768802.image.webp",
+    "image": "/uploads/3566e11f3c2fe9be-dominator_samedi_2026.png",
     "url": "www.dominatorfestival.com/en",
     "genre": "Hardcore",
     "month": "JUILLET",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "additionalDates": []
   },
   {
     "id": 283,
