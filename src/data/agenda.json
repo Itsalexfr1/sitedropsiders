@@ -5845,5 +5845,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 533,
+    "title": "EDC Week : Beatport Fridays presents Lost Frequencies",
+    "date": "2026-05-15",
+    "startDate": "2026-05-15",
+    "endDate": "2026-05-15",
+    "venue": "Marquee",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/2089eed58d437b65-260715_MDC_Beatport_Lost_Frequ.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/kqelwlbp8y7r6ysp",
+    "genre": "Tech House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
