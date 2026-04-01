@@ -235,7 +235,7 @@ export function Voyage() {
 
                 setResults(mappedResults);
             } catch (err: any) {
-                setError("Moteur indisponible. Basculez sur Skyscanner ou Google Flights ci-dessous.");
+                setError(err.message || "Erreur inconnue");
             } finally {
                 setIsSearching(false);
             }
