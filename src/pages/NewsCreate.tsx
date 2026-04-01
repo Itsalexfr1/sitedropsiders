@@ -3709,7 +3709,7 @@ ${generateSocialsHtml()}
                     } else if (uploadTarget.type === 'interview-media') {
                         setInterviewQuestions(prev => prev.map(q => q.id === uploadTarget.interviewBlockId ? { ...q, mediaUrl: actualUrl } : q));
                         setShowUploadModal(false);
-                    } else if (uploadTarget.type === 'widget-edit' as any || uploadTarget.type === 'widget' as any) {
+                    } else if (uploadTarget.type === 'widget-edit' as any) {
                         if (mediaModal.type === 'gallery') {
                             const newUrls = allUrls.join('\n');
                             setMediaModal(prev => ({ 
@@ -3717,8 +3717,8 @@ ${generateSocialsHtml()}
                                 urls: prev.urls ? prev.urls + '\n' + newUrls : newUrls 
                             }));
                         } else {
-                            // AUTO-CONFIRM for simple images from gallery
-                            insertImageWidget(actualUrl, mediaModal.widgetId, (mediaModal as any).widgetIndex, {
+                            // AUTO-CONFIRM for editing existing image from gallery
+                            insertImageWidget(actualUrl, uploadTarget.widgetId, undefined, {
                                 aspectRatio: mediaModal.aspectRatio,
                                 alignment: mediaModal.alignment,
                                 width: mediaModal.width
@@ -3726,10 +3726,13 @@ ${generateSocialsHtml()}
                             setMediaModal(prev => ({ ...prev, show: false, url: '' }));
                         }
                         setShowUploadModal(false);
-                    } else {
-                        // Direct addition (if no modal was open, e.g. quick add)
+                    } else if (uploadTarget.type === 'widget' as any) {
+                        // Direct addition of NEW widget (from plus button or image button)
                         const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  ${mediaTag}\n</div>`;
                         addWidget(uploadTarget.index, imgWidget);
+                        setShowUploadModal(false);
+                    } else {
+                        // Final fallback
                         setShowUploadModal(false);
                     }
                 }}
