@@ -474,17 +474,17 @@ export function AdminDashboard() {
     // GESTION TEAM STATES
     const [teamMembers, setTeamMembers] = useState<any[]>([]);
     const [editors, setEditors] = useState<any[]>([]);
-    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'WIKI' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM' | 'R2'>('ALL');
+    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'WIKI' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM' | 'R2' | 'SOCIAL_STUDIO'>('ALL');
 
     const DASHBOARD_TABS = [
         { id: 'ALL', label: 'Tout' },
         { id: 'NEWS', label: 'Actualités' },
         { id: 'COMMUNAUTÉ', label: 'Communauté' },
+        { id: 'SOCIAL_STUDIO', label: 'Social Studio' },
         { id: 'WIKI', label: 'Wiki' },
         { id: 'STUDIO', label: 'Studio' },
         { id: 'SHOP', label: 'Boutique' },
         { id: 'TEAM', label: 'Équipe' },
-        { id: 'R2', label: 'R2 Cloud' },
     ];
     const [confirmModal, setConfirmModal] = useState<{
         isOpen: boolean,
@@ -1793,8 +1793,11 @@ export function AdminDashboard() {
 
         // Tab selection check
         if (dashboardTab === 'ALL') {
-            // On retire les actions Wiki du flux principal pour l'isolation
-            return action.category?.toUpperCase() !== 'WIKI';
+            // On retire les actions Wiki et Social Studio du flux principal (ils ont leur propre onglet)
+            const cat = action.category?.toUpperCase();
+            if (cat === 'WIKI') return false;
+            if (action.title === 'Social Studio' || action.link === 'social-studio') return false;
+            return true;
         }
 
         if (dashboardTab === 'NEWS') {
@@ -1802,14 +1805,42 @@ export function AdminDashboard() {
             return action.category?.toUpperCase() === 'NEWS' || 
                    action.title === 'Contenu' || 
                    action.title === 'Agenda' || 
-                   action.title === 'News Focus' || 
-                   action.title === 'Social Studio';
+                   action.title === 'News Focus';
+        }
+
+        if (dashboardTab === 'SOCIAL_STUDIO') {
+            return action.title === 'Social Studio' || action.link === 'social-studio' || action.category?.toUpperCase() === 'SOCIAL_STUDIO';
         }
 
         if (dashboardTab === 'R2') return action.title === 'Toutes les Photos';
         if (dashboardTab === 'STUDIO') return action.category?.toUpperCase() === 'STUDIO';
         if (dashboardTab === 'SHOP') return action.category?.toUpperCase() === 'SHOP' || action.title === 'Shop' || action.title === 'Boutique' || action.icon === 'ShoppingBag';
-        if (dashboardTab === 'COMMUNAUTÉ') return action.category?.toUpperCase() === 'CONCOURS' || action.title === 'Communauté' || action.title === 'Quiz & Blind Test' || action.icon === 'MessageSquare';
+
+        if (dashboardTab === 'COMMUNAUTÉ') {
+            // Concours Insta + Quiz & MP3 + Wiki DJ/Festivals/Club + Modération photos + Comptes membres
+            const title = action.title;
+            const cat = action.category?.toUpperCase();
+            // Exclure explicitement R2 et Social Studio
+            if (title === 'Toutes les Photos' || title === 'Social Studio' || action.link === 'social-studio') return false;
+            if (action.icon === 'HardDrive') return false;
+            
+            return cat === 'CONCOURS' ||
+                   title === 'Concours Insta' ||
+                   title === 'Quiz & Blind Test' ||
+                   title === 'Tracklists' ||
+                   title === 'Communauté' ||
+                   title === 'Modération' ||
+                   title === 'Vérifier Photos' ||
+                   title === 'Wiki' ||
+                   title === 'Comptes Membres' ||
+                   title === 'Membres' ||
+                   title === 'Utilisateurs' ||
+                   action.icon === 'MessageSquare' ||
+                   action.icon === 'Globe' ||
+                   action.icon === 'Camera' ||
+                   (action.icon === 'Users' && cat !== 'TEAM');
+        }
+
         if (dashboardTab === 'WIKI') return action.category?.toUpperCase() === 'WIKI' || action.title === 'Wiki' || action.icon === 'Globe';
         if (dashboardTab === 'TEAM') return action.category?.toUpperCase() === 'TEAM' || action.title.includes('Équipe') || action.icon === 'Users';
 
@@ -2095,7 +2126,12 @@ export function AdminDashboard() {
                             return (
                                 <button
                                     key={tab.id}
-                                    onClick={() => setDashboardTab(tab.id as any)}
+                                    onClick={() => {
+                                        if (tab.id === 'SOCIAL_STUDIO') {
+                                            setIsSocialModalOpen(true);
+                                        }
+                                        setDashboardTab(tab.id as any);
+                                    }}
                                     className={`px-6 py-3 rounded-xl font-bold uppercase tracking-widest text-[10px] transition-all whitespace-nowrap ${isActive
                                         ? 'bg-white/10 text-white border border-white/20 shadow-lg'
                                         : 'text-gray-500 hover:text-gray-300'
@@ -4579,52 +4615,88 @@ export function AdminDashboard() {
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 overflow-y-auto max-h-[60vh] pr-2 custom-scrollbar">
+                                    {/* Concours Instagram */}
                                     <button
-                                        onClick={() => { setIsGalerieModalOpen(true); setIsCommunauteModalOpen(false); }}
-                                        className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group lg:col-span-1"
+                                        onClick={() => { setIsCommunauteModalOpen(false); setDashboardTab('COMMUNAUTÉ'); }}
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group relative"
                                     >
-                                        <div className="w-16 h-16 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform">
-                                            <ImageIcon className="w-8 h-8 text-neon-pink" />
+                                        <div className="w-14 h-14 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform">
+                                            <Instagram className="w-7 h-7 text-neon-pink" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-xl font-bold text-white uppercase italic">Albums</h3>
-                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">Galeries Photos</p>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Concours Insta</h3>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">Tirages au sort</p>
                                         </div>
                                     </button>
 
+                                    {/* Quizz & MP3 */}
                                     <button
-                                        onClick={() => { setModerationTab('photos'); setIsModerationModalOpen(true); setIsCommunauteModalOpen(false); }}
-                                        className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group lg:col-span-1 relative"
+                                        onClick={() => { setIsQuizModalOpen(true); setIsCommunauteModalOpen(false); }}
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-green/10 hover:border-neon-green/50 transition-all group relative"
                                     >
-                                        <div className="w-16 h-16 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
-                                            <ShieldAlert className="w-8 h-8 text-neon-red" />
+                                        <div className="w-14 h-14 bg-neon-green/20 rounded-2xl flex items-center justify-center border border-neon-green/30 group-hover:scale-110 transition-transform">
+                                            <Gamepad2 className="w-7 h-7 text-neon-green" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-xl font-bold text-white uppercase italic">Modération</h3>
-                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">Photos Viewers</p>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Quizz & MP3</h3>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">Jeux communautaires</p>
                                         </div>
-                                        {pendingPhotosCount > 0 && (
-                                            <div className="absolute top-4 right-4 w-6 h-6 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
-                                                <span className="text-[10px] font-black text-white">{pendingPhotosCount}</span>
+                                        {pendingQuizzesCount > 0 && (
+                                            <div className="absolute top-3 right-3 w-5 h-5 bg-neon-green rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
+                                                <span className="text-[9px] font-black text-black">{pendingQuizzesCount}</span>
                                             </div>
                                         )}
                                     </button>
 
-                                    {/* Wiki Photos removed as requested (now in Live Dashboard) */}
-
+                                    {/* Wiki DJs, Clubs, Festivals */}
                                     <button
-                                        onClick={() => { fetchDuplicates(); setIsCommunauteModalOpen(false); }}
-                                        className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group lg:col-span-1"
+                                        onClick={() => { setIsCommunauteModalOpen(false); setDashboardTab('WIKI'); }}
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
                                     >
-                                        <div className="w-16 h-16 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
-                                            <ShieldAlert className="w-8 h-8 text-neon-cyan" />
+                                        <div className="w-14 h-14 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform">
+                                            <Globe className="w-7 h-7 text-neon-cyan" />
                                         </div>
                                         <div className="text-center">
-                                            <h3 className="text-xl font-bold text-white uppercase italic">Doublons</h3>
-                                            <p className="text-[10px] text-gray-400 font-bold uppercase tracking-[0.2em] leading-none mt-2">Check R2</p>
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Wiki</h3>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">DJs · Clubs · Festivals</p>
                                         </div>
                                     </button>
+
+                                    {/* Modération Photos Visiteurs */}
+                                    <button
+                                        onClick={() => { setModerationTab('photos'); setIsModerationModalOpen(true); setIsCommunauteModalOpen(false); }}
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group relative"
+                                    >
+                                        <div className="w-14 h-14 bg-neon-red/20 rounded-2xl flex items-center justify-center border border-neon-red/30 group-hover:scale-110 transition-transform">
+                                            <ShieldAlert className="w-7 h-7 text-neon-red" />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Modération</h3>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">Photos Visiteurs</p>
+                                        </div>
+                                        {pendingPhotosCount > 0 && (
+                                            <div className="absolute top-3 right-3 w-5 h-5 bg-neon-red rounded-full flex items-center justify-center border-2 border-[#050505] animate-bounce shadow-lg">
+                                                <span className="text-[9px] font-black text-white">{pendingPhotosCount}</span>
+                                            </div>
+                                        )}
+                                    </button>
+
+                                    {/* Comptes Membres */}
+                                    <Link
+                                        to="/admin/manage?tab=Communaut\u00e9"
+                                        onClick={() => setIsCommunauteModalOpen(false)}
+                                        className="p-6 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-4 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                                    >
+                                        <div className="w-14 h-14 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform">
+                                            <Users className="w-7 h-7 text-neon-purple" />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Membres</h3>
+                                            <p className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-1">Comptes créés</p>
+                                        </div>
+                                    </Link>
+
                                 </div>
                             </motion.div>
                         </div>
