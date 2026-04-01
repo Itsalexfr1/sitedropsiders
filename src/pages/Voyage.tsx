@@ -385,7 +385,7 @@ export function Voyage() {
                                     </div>
                                     <div className="space-y-1">
                                         <h4 className="text-white text-sm font-black uppercase tracking-widest">AIE... MOTEUR INDISPONIBLE</h4>
-                                        <p className="text-sm font-bold text-gray-500 italic">Nous n'avons pas pu trouver de vol via le moteur direct. Basculez sur un partenaire fiable :</p>
+                                        <p className="text-sm font-bold text-gray-500 italic uppercase">DÉTAIL : {error}</p>
                                     </div>
                                 </div>
                                 <div className="flex flex-wrap gap-4 ml-15">
