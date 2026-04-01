@@ -1,6 +1,6 @@
 
 export type TranslationKey =
-    | 'nav.news' | 'nav.recaps' | 'nav.communaute' | 'nav.voyage' | 'nav.interviews' | 'nav.agenda' | 'nav.team' | 'nav.shop' | 'nav.contact' | 'nav.galerie'
+    | 'nav.news' | 'nav.recaps' | 'nav.communaute' | 'nav.voyage' | 'nav.vols' | 'nav.bus' | 'nav.interviews' | 'nav.agenda' | 'nav.team' | 'nav.shop' | 'nav.contact' | 'nav.galerie'
     | 'footer.slogan' | 'footer.desc' | 'footer.community' | 'footer.join' | 'footer.subscribe' | 'footer.subscribe_btn' | 'footer.nav' | 'footer.contact' | 'footer.privacy' | 'footer.terms' | 'footer.cookies' | 'footer.legal' | 'footer.admin' | 'footer.rights'
     | 'home.hero.title' | 'home.hero.subtitle' | 'home.latest_news' | 'home.latest_recaps' | 'home.all_recaps' | 'home.upcoming_events' | 'home.view_more' | 'home.featured' | 'home.hot' | 'home.no_article' | 'home.new' | 'home.all_news' | 'home.view_all_agenda' | 'home.view_full_agenda' | 'home.agenda' | 'home.live_now' | 'home.view_all' | 'home.no_recap' | 'home.recap_badge' | 'home.latest_interviews' | 'home.no_interview' | 'home.interview_badge' | 'home.all_events'
     | 'news.badge' | 'news.title' | 'news.title_span' | 'news.subtitle' | 'news.no_news'
@@ -53,6 +53,8 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'nav.recaps': { fr: 'R\u00e9caps', en: 'Recaps' },
     'nav.communaute': { fr: 'Communaut\u00e9', en: 'Community' },
     'nav.voyage': { fr: 'Voyage', en: 'Travel' },
+    'nav.vols': { fr: 'Vols', en: 'Flights' },
+    'nav.bus': { fr: 'Bus', en: 'Bus' },
     'nav.interviews': { fr: 'Interviews', en: 'Interviews' },
     'nav.agenda': { fr: 'Agenda', en: 'Agenda' },
     'nav.team': { fr: 'Team', en: 'Team' },

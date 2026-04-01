@@ -55,6 +55,8 @@ export function Footer() {
 
     const navItems = [
         { label: t('nav.news'), path: '/news' },
+        { label: t('nav.vols'), path: '/voyage/vols' },
+        { label: t('nav.bus'), path: '/voyage/bus' },
         { label: t('nav.recaps'), path: '/recaps' },
         { label: t('nav.interviews'), path: '/interviews' },
         { label: t('nav.galerie'), path: '/galerie' },

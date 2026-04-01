@@ -139,6 +139,7 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> },
       { path: "voyage", element: <Voyage /> },
+      { path: "voyage/:type", element: <Voyage /> },
       { path: "live", element: <LivePage /> },
       { path: "news", element: <News /> },
       { path: "agenda", element: <Agenda /> },

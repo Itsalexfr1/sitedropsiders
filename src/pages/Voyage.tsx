@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Plane, Bus, Calendar, MapPin, ArrowRightLeft, Navigation, ArrowRight, Zap, Info, ExternalLink, Filter, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useParams, useNavigate } from 'react-router-dom';
 import { CovoitSection } from '../components/community/CovoitSection';
 import { SEO } from '../components/utils/SEO';
 
@@ -114,7 +115,16 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onSelect, travelType 
 };
 
 export function Voyage() {
-    const [travelType, setTravelType] = useState<'flight' | 'bus'>('flight');
+    const { type } = useParams();
+    const navigate = useNavigate();
+    const [travelType, setTravelType] = useState<'flight' | 'bus'>(type === 'bus' ? 'bus' : 'flight');
+    
+    useEffect(() => {
+        if (type === 'bus' || type === 'vols') {
+            setTravelType(type === 'bus' ? 'bus' : 'flight');
+        }
+    }, [type]);
+    
     const [isRoundTrip, setIsRoundTrip] = useState(false);
     
     const [depObj, setDepObj] = useState<{name: string, iata: string}>({name: '', iata: ''});
@@ -280,7 +290,13 @@ export function Voyage() {
                             ].map((t) => (
                                 <button
                                     key={t.id}
-                                    onClick={() => { setTravelType(t.id as any); setResults([]); setError(null); }}
+                                    onClick={() => { 
+                                        const newType = t.id as any;
+                                        setTravelType(newType); 
+                                        setResults([]); 
+                                        setError(null);
+                                        navigate(`/voyage/${newType === 'flight' ? 'vols' : 'bus'}`);
+                                    }}
                                     className={`flex items-center gap-4 px-8 py-3.5 rounded-xl font-black uppercase text-[11px] tracking-widest transition-all ${
                                         travelType === t.id ? 'bg-white text-black shadow-xl' : 'text-gray-500 hover:text-white'
                                     }`}
@@ -472,7 +488,10 @@ export function Voyage() {
                                                 <div className="text-5xl font-display font-black text-white">{r.price}<span className="text-lg ml-1 italic">€</span></div>
                                                 <div className="text-[10px] font-bold text-green-500 uppercase tracking-widest mt-1">PRIX DIRECT ✅</div>
                                             </div>
-                                            <button className="px-8 py-5 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-neon-red hover:text-white transition-all shadow-2xl flex items-center gap-2">
+                                            <button 
+                                                onClick={() => openSearchRedirect('skyscanner')}
+                                                className="px-8 py-5 bg-white text-black rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-neon-red hover:text-white transition-all shadow-2xl flex items-center gap-2"
+                                            >
                                                 VOIR <ExternalLink className="w-3 h-3" />
                                             </button>
                                         </div>
