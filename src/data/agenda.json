@@ -6149,5 +6149,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 549,
+    "title": "EDC Week : The Chainsmokers",
+    "date": "2026-05-16",
+    "startDate": "2026-05-16",
+    "endDate": "2026-05-16",
+    "venue": "XS",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/3054757b7eaabd65-EDC_1080x1350_XS_Chainsmokers_.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/3e9e0jdaqzzdj3g5",
+    "genre": "Big Room",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
