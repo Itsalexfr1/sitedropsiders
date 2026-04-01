@@ -199,9 +199,17 @@ export function Voyage() {
                     })
                 });
 
-                if (!response.ok) throw new Error("Erreur de connexion.");
+                if (!response.ok) {
+                    const errData = await response.json().catch(() => ({}));
+                    const msg = errData.error || errData.errors?.[0]?.message || `Erreur API (${response.status})`;
+                    throw new Error(msg);
+                }
                 const data = await response.json();
-                const offers = data.data.offers || [];
+                
+                // If it's a proxy error from our worker
+                if (data.error) throw new Error(`Proxy: ${data.error}`);
+                
+                const offers = data.data?.offers || [];
 
                 if (offers.length === 0) {
                     setError("Aucun vol direct trouvé via 'Moteur Flash'. Utilise un partenaire ci-dessous.");
