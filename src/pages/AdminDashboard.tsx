@@ -1793,10 +1793,7 @@ export function AdminDashboard() {
 
         // Tab selection check
         if (dashboardTab === 'ALL') {
-            // On retire les actions Wiki et Social Studio du flux principal (ils ont leur propre onglet)
-            const cat = action.category?.toUpperCase();
-            if (cat === 'WIKI') return false;
-            if (action.title === 'Social Studio' || action.link === 'social-studio') return false;
+            // On affiche tout dans la vue principale (sauf si filtrage spécifique demandé)
             return true;
         }
 
