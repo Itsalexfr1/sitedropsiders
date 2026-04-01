@@ -1,7 +1,7 @@
 // Image Upload Modal component with Cloudflare R2 integration
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ArrowUpDown } from 'lucide-react';
+import { Upload, X, Image as ImageIcon, Loader2, CheckCircle2, Film, Crop, Zap, Trash2, Layers, HardDrive, ArrowUpDown, Check } from 'lucide-react';
 import { ImageCropper } from './ImageCropper';
 import { getAuthHeaders } from '../utils/auth';
 
@@ -223,59 +223,43 @@ export function ImageUploadModal({
 
             for (let i = 0; i < toUpload.length; i++) {
                 const item = toUpload[i];
-                let base64: string = '';
-                let filename: string = '';
-                let fileType: string = '';
-
+                
                 if (item.preview && (item.preview.startsWith('/') || item.preview.startsWith('http'))) {
-                    // This is an existing image URL from gallery/cloud, skip upload
                     uploadedUrls.push(item.preview);
                     continue;
                 }
 
                 if (item.file) {
-                    filename = item.file.name;
-                    fileType = item.file.type;
+                    const filename = forceFilename || item.file.name;
+                    let fileType = item.file.type;
+                    let base64 = item.preview;
                     
                     if (fileType.startsWith('image/')) {
-                        // Apply watermark if enabled
                         base64 = await processImage(item.preview);
                         fileType = 'image/jpeg';
-                    } else {
-                        // Video: upload as is
-                        base64 = item.preview;
                     }
-                } else {
-                    // Pre-existing or weird state
-                    base64 = item.preview;
-                    filename = `image-${Date.now()}-${i}.jpg`;
-                    fileType = 'image/jpeg';
-                }
 
-                if (forceFilename) {
-                    filename = forceFilename;
-                }
+                    const response = await fetch('/api/upload', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ filename, content: base64, type: fileType })
+                    });
 
-                const response = await fetch('/api/upload', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ filename, content: base64, type: fileType })
-                });
-
-                const data = await response.json();
-                if (data.success && data.url) {
-                    uploadedUrls.push(data.url);
-                } else {
-                    throw new Error(data.error || 'Upload échoué');
+                    const data = await response.json();
+                    if (data.success && data.url) {
+                        uploadedUrls.push(data.url);
+                    } else {
+                        throw new Error(data.error || 'Upload échoué');
+                    }
                 }
                 
                 setUploadProgress(Math.round(((i + 1) / toUpload.length) * 100));
             }
 
             setStatus('success');
-            setMessage('Média(s) hébergé(s) avec succès !');
+            setMessage('Média(s) prêt(s) !');
             
-            if (onUploadSuccess) {
+            if (onUploadSuccess && uploadedUrls.length > 0) {
                 onUploadSuccess(allowMultiple ? uploadedUrls : uploadedUrls[0]);
             }
 
@@ -284,7 +268,7 @@ export function ImageUploadModal({
                 setStatus('idle');
                 setStep('idle');
                 setSelectedImages([]);
-            }, 1500);
+            }, 1000);
 
         } catch (err: any) {
             console.error('Upload error:', err);
@@ -484,28 +468,60 @@ export function ImageUploadModal({
                                             {r2Loading && r2Photos.length === 0 ? (
                                                 <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-neon-blue" /></div>
                                             ) : (
-                                                <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[50vh] overflow-y-auto no-scrollbar rounded-2xl">
-                                                {r2Photos.map(photo => (
-                                                        <div 
-                                                            key={photo.key} 
-                                                            onClick={() => {
-                                                                setSelectedImages([{ file: null, preview: photo.url }]);
-                                                                setStep('preview');
-                                                            }}
-                                                            className="aspect-square bg-black border border-white/10 rounded-lg overflow-hidden cursor-pointer hover:border-neon-blue transition-colors relative group"
-                                                        >
-                                                            <img src={photo.url} alt="" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
-                                                            <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-md p-1 translate-y-full group-hover:translate-y-0 transition-transform">
-                                                                <span className="text-[6px] text-white block truncate text-center">{photo.key.split('/').pop()}</span>
+                                                <>
+                                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[50vh] overflow-y-auto no-scrollbar rounded-2xl">
+                                                        {r2Photos.map(photo => (
+                                                            <div 
+                                                                key={photo.key} 
+                                                                onClick={() => {
+                                                                    const isSelected = selectedImages.some(img => img.preview === photo.url);
+                                                                    if (allowMultiple) {
+                                                                        if (isSelected) {
+                                                                            setSelectedImages(prev => prev.filter(img => img.preview !== photo.url));
+                                                                        } else {
+                                                                            setSelectedImages(prev => [...prev, { file: null, preview: photo.url }]);
+                                                                        }
+                                                                    } else {
+                                                                        handleUpload([{ file: null, preview: photo.url }]);
+                                                                    }
+                                                                }}
+                                                                className={`aspect-square bg-black border rounded-lg overflow-hidden cursor-pointer transition-all relative group ${selectedImages.some(img => img.preview === photo.url) ? 'border-neon-blue ring-2 ring-neon-blue/40 scale-[0.98]' : 'border-white/10 hover:border-neon-blue'}`}
+                                                            >
+                                                                <img src={photo.url} alt="" className={`w-full h-full object-cover transition-opacity ${selectedImages.some(img => img.preview === photo.url) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`} />
+                                                                
+                                                                {selectedImages.some(img => img.preview === photo.url) && (
+                                                                    <div className="absolute top-2 right-2 w-5 h-5 bg-neon-blue rounded-full flex items-center justify-center shadow-lg animate-in zoom-in duration-200">
+                                                                        <div className="text-[10px] font-black text-black">
+                                                                            {allowMultiple ? selectedImages.findIndex(img => img.preview === photo.url) + 1 : <Check className="w-3 h-3" />}
+                                                                        </div>
+                                                                    </div>
+                                                                )}
+
+                                                                <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-md p-1 translate-y-full group-hover:translate-y-0 transition-transform">
+                                                                    <span className="text-[6px] text-white block truncate text-center">{photo.key.split('/').pop()}</span>
+                                                                </div>
                                                             </div>
+                                                        ))}
+                                                        <div ref={sentinelRef} className="col-span-full h-10 flex items-center justify-center">
+                                                            {r2Loading && <Loader2 className="w-5 h-5 animate-spin text-neon-blue" />}
                                                         </div>
-                                                    ))}
-                                                <div ref={sentinelRef} className="col-span-full h-10 flex items-center justify-center">
-                                                    {r2Loading && <Loader2 className="w-5 h-5 animate-spin text-neon-blue" />}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
+                                                    </div>
+                                                    
+                                                    {allowMultiple && selectedImages.length > 0 && (
+                                                        <div className="mt-4 flex justify-end">
+                                                            <button
+                                                                onClick={() => handleUpload(selectedImages)}
+                                                                disabled={isUploading}
+                                                                className="px-8 py-3 bg-neon-blue text-black font-black uppercase tracking-widest rounded-xl hover:scale-105 active:scale-95 transition-all text-[11px] shadow-lg shadow-neon-blue/20 flex items-center gap-2"
+                                                            >
+                                                                {isUploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Zap className="w-4 h-4" />}
+                                                                Valider la sélection ({selectedImages.length})
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </>
+                                            )}
+                                        </div>
                                     </div>
                                 )}
 

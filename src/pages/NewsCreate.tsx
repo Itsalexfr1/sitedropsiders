@@ -3606,7 +3606,8 @@ ${generateSocialsHtml()}
                                             setUploadTarget({
                                                 type: mediaModal.widgetId ? 'widget-edit' : 'widget',
                                                 widgetId: mediaModal.widgetId,
-                                                initialImage: mediaModal.url
+                                                initialImage: mediaModal.url,
+                                                allowMultiple: mediaModal.type === 'gallery'
                                             });
                                             setShowUploadModal(true);
                                         }}
@@ -3703,8 +3704,10 @@ ${generateSocialsHtml()}
                 isOpen={showUploadModal}
                 onClose={() => setShowUploadModal(false)}
                 initialImage={uploadTarget.initialImage}
+                allowMultiple={(uploadTarget as any).allowMultiple}
                 onUploadSuccess={(url: string | string[]) => {
                     const actualUrl = Array.isArray(url) ? url[0] : url;
+                    const allUrls = Array.isArray(url) ? url : [url];
                     const isVideo = actualUrl.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || actualUrl.includes('/video/upload/');
                     const mediaTag = isVideo
                         ? `<video src="${actualUrl}" autoplay loop muted playsinline class="w-full h-full object-cover"></video>`
@@ -3722,14 +3725,16 @@ ${generateSocialsHtml()}
                     } else if (uploadTarget.type === 'interview-media') {
                         setInterviewQuestions(prev => prev.map(q => q.id === uploadTarget.interviewBlockId ? { ...q, mediaUrl: actualUrl } : q));
                         setShowUploadModal(false);
-                    } else if (uploadTarget.type === 'widget-edit' as any) {
-                        // Crucial fix: instead of overwriting with a default template, just update the MediaModal state
-                        // so the user can Confirm and preserve their ratio/alignment settings
-                        setMediaModal(prev => ({ ...prev, url: actualUrl }));
-                        setShowUploadModal(false);
-                    } else if (uploadTarget.type === 'widget' as any) {
-                        // Also for new widgets, it's better to update the modal if it's already open
-                        setMediaModal(prev => ({ ...prev, url: actualUrl }));
+                    } else if (uploadTarget.type === 'widget-edit' as any || uploadTarget.type === 'widget' as any) {
+                        if (mediaModal.type === 'gallery') {
+                            const newUrls = allUrls.join('\n');
+                            setMediaModal(prev => ({ 
+                                ...prev, 
+                                urls: prev.urls ? prev.urls + '\n' + newUrls : newUrls 
+                            }));
+                        } else {
+                            setMediaModal(prev => ({ ...prev, url: actualUrl }));
+                        }
                         setShowUploadModal(false);
                     } else {
                         // Direct addition (if no modal was open, e.g. quick add)
