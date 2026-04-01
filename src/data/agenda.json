@@ -5465,5 +5465,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 513,
+    "title": "EDC Week : Bassrush presents Ray Volpe",
+    "date": "2026-05-13",
+    "startDate": "2026-05-13",
+    "endDate": "2026-05-13",
+    "venue": "Zouk NightClub",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Events",
+    "image": "/uploads/uploads/9a6f2b8b1a4b5914-ZLV_02614_EDC_WEEK_2026_Ray_Vo.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/0uejh2vrjpc6j99x",
+    "genre": "Drum & Bass",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
