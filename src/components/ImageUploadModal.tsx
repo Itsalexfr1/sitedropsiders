@@ -114,11 +114,12 @@ export function ImageUploadModal({
             const res = await fetch(url, { headers: getAuthHeaders() });
             if (res.ok) {
                 const data = await res.json();
-                if (targetCursor) {
-                    setR2Photos(prev => [...prev, ...data.objects]);
-                } else {
-                    setR2Photos(data.objects || []);
-                }
+                    const processed = (data.objects || []).map((p: any) => ({ ...p, url: p.key.startsWith('http') ? p.key : `/${p.key}` }));
+                    if (targetCursor) {
+                        setR2Photos(prev => [...prev, ...processed]);
+                    } else {
+                        setR2Photos(processed);
+                    }
                 setR2Cursor(data.cursor || null);
             }
         } catch (err) {
