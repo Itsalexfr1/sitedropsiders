@@ -597,9 +597,9 @@ export function NewsCreate() {
         widgetId?: string;
     }>({
         show: false,
-        urls: Array(10).fill(''),
-        videoTitles: Array(10).fill(''),
-        count: 2,
+        urls: Array(50).fill(''),
+        videoTitles: Array(50).fill(''),
+        count: 3,
         layout: 'row',
         title: ''
     });
@@ -2501,14 +2501,15 @@ ${generateSocialsHtml()}
                                                                     const extracted = extractVideoUrls(widget.content);
                                                                     setVideoGroupModal({
                                                                         show: true,
-                                                                        urls: Array(10).fill(''), 
-                                                                        videoTitles: Array(10).fill(''),
+                                                                        urls: Array(50).fill(''), 
+                                                                        videoTitles: Array(50).fill(''),
                                                                         count: extracted.count, 
                                                                         layout: 'row',
                                                                         title: '',
                                                                         widgetId: widget.id
                                                                     });
                                                                 } else if (widget.content.includes('youtube-player-widget')) {
+                                                                    const title = prompt('Artiste de la vidéo');
                                                                     const val = prompt('Nouvelle URL YouTube ou ID');
                                                                     if (!val) return;
                                                                     let id = val;
@@ -2517,7 +2518,8 @@ ${generateSocialsHtml()}
                                                                     } else if (val.includes('youtu.be/')) {
                                                                         id = val.split('youtu.be/')[1];
                                                                     }
-                                                                    const videoWidget = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">\n  <iframe src="https://www.youtube.com/embed/${id}" className="absolute inset-0 w-full h-full" allowFullScreen></iframe>\n</div>`;
+                                                                     const titleHtml = title?.trim() ? `<div class="text-gray-400 text-[10px] font-black uppercase mb-3 tracking-[0.2em]">${title.toUpperCase()}</div>` : '';
+                                                                     const videoWidget = `<div class="youtube-player-widget w-full my-12">\n  ${titleHtml}\n  <div class="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5">\n    <iframe src="https://www.youtube.com/embed/${id}" className="absolute inset-0 w-full h-full" allowFullScreen></iframe>\n  </div>\n</div>`;
                                                                     updateWidget(widget.id, videoWidget);
                                                                 } else if (widget.content.includes('image-premium-wrapper')) {
                                                                     const { url, ratio, alignment, width } = extractSingleImageUrlAndRatio(widget.content);
@@ -2683,7 +2685,7 @@ ${generateSocialsHtml()}
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setVideoGroupModal({ show: true, urls: Array(10).fill(''), videoTitles: Array(10).fill(''), count: 3, layout: 'row', title: '', widgetIndex: index })}
+                                                    onClick={() => setVideoGroupModal({ show: true, urls: Array(50).fill(''), videoTitles: Array(50).fill(''), count: 3, layout: 'row', title: '', widgetIndex: index })}
                                                     className="w-8 h-8 rounded-full bg-red-600/10 border border-red-600/30 text-red-600 flex items-center justify-center hover:bg-red-600/20 transition-all font-bold text-[10px]"
                                                     title="Ajouter un groupe de vidéos (1, 2 ou 3 en ligne)"
                                                 >
@@ -3924,7 +3926,7 @@ ${generateSocialsHtml()}
                             className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl relative scrollbar-hide"
                         >
                             <button
-                                onClick={() => setVideoGroupModal({ show: false, urls: Array(10).fill(''), videoTitles: Array(10).fill(''), count: 2, layout: 'row', title: '' })}
+                                onClick={() => setVideoGroupModal({ show: false, urls: Array(50).fill(''), videoTitles: Array(50).fill(''), count: 3, layout: 'row', title: '' })}
                                 className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
                             >
                                 <X className="w-5 h-5" />
@@ -3958,7 +3960,7 @@ ${generateSocialsHtml()}
                                             <span className="text-sm font-black text-white">{videoGroupModal.count}</span>
                                             <button
                                                 type="button"
-                                                onClick={() => setVideoGroupModal(prev => ({ ...prev, count: Math.min(10, prev.count + 1) }))}
+                                                onClick={() => setVideoGroupModal(prev => ({ ...prev, count: Math.min(50, prev.count + 1) }))}
                                                 className="w-10 h-10 rounded-lg flex items-center justify-center text-white hover:bg-white/5"
                                             >
                                                 <Plus className="w-4 h-4" />
@@ -3971,16 +3973,16 @@ ${generateSocialsHtml()}
                                             <button
                                                 type="button"
                                                 onClick={() => setVideoGroupModal({ ...videoGroupModal, layout: 'row' })}
-                                                className={`flex-1 py-2 rounded-lg text-[9px] font-black transition-all flex items-center justify-center gap-2 ${videoGroupModal.layout === 'row' ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-gray-500 hover:text-white'}`}
+                                                className={`flex-1 py-3 rounded-lg text-[10px] font-black transition-all flex items-center justify-center gap-2 ${videoGroupModal.layout === 'row' ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-gray-500 hover:text-white'}`}
                                             >
-                                                <Columns className="w-3 h-3" /> GRILLE
+                                                <Columns className="w-4 h-4" /> CÔTE À CÔTE
                                             </button>
                                             <button
                                                 type="button"
                                                 onClick={() => setVideoGroupModal({ ...videoGroupModal, layout: 'column' })}
-                                                className={`flex-1 py-2 rounded-lg text-[9px] font-black transition-all flex items-center justify-center gap-2 ${videoGroupModal.layout === 'column' ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-gray-500 hover:text-white'}`}
+                                                className={`flex-1 py-3 rounded-lg text-[10px] font-black transition-all flex items-center justify-center gap-2 ${videoGroupModal.layout === 'column' ? 'bg-red-600 text-white shadow-lg shadow-red-600/20' : 'text-gray-500 hover:text-white'}`}
                                             >
-                                                <List className="w-3 h-3" /> COLONNE
+                                                <List className="w-4 h-4" /> L'UNE SOUS L'AUTRE
                                             </button>
                                         </div>
                                     </div>
@@ -4023,7 +4025,7 @@ ${generateSocialsHtml()}
 
                                 <div className="flex gap-4 pt-4">
                                     <button
-                                        onClick={() => setVideoGroupModal({ show: false, urls: Array(10).fill(''), videoTitles: Array(10).fill(''), count: 2, layout: 'row', title: '' })}
+                                        onClick={() => setVideoGroupModal({ show: false, urls: Array(50).fill(''), videoTitles: Array(50).fill(''), count: 3, layout: 'row', title: '' })}
                                         className="flex-1 py-4 rounded-xl border border-white/10 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
                                     >
                                         Annuler
@@ -4048,15 +4050,15 @@ ${generateSocialsHtml()}
 
                                             const videoItems = processedUrls.map(video => `
     <div className="video-wrapper min-w-[280px] group">
-      ${video.title ? `<div class="text-white text-[10px] font-black uppercase mb-3 text-center tracking-[0.2em] italic border-l-2 border-neon-red pl-2">${video.title}</div>` : ''}
+      ${video.title ? `<div class="text-gray-400 text-[10px] font-black uppercase mb-3 tracking-[0.2em]">${video.title.toUpperCase()}</div>` : ''}
       <div className="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5">
         <iframe src="${video.url}" className="absolute inset-0 w-full h-full" allowFullScreen></iframe>
       </div>
     </div>`).join('');
 
                                             const layoutClass = videoGroupModal.layout === 'row' ? 'md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1';
-                                            const videoGroupClass = `video-group-premium grid ${layoutClass} gap-8 my-12`;
-                                            const titleHtml = videoGroupModal.title?.trim() ? `<h2 class="premium-section-title">${videoGroupModal.title.toUpperCase()}</h2>\n` : '';
+                                            const videoGroupClass = `video-group-premium grid ${layoutClass} gap-10 my-12`;
+                                            const titleHtml = videoGroupModal.title?.trim() ? `<h2 class="text-white text-3xl font-display font-black uppercase italic mb-8 border-l-4 border-white pl-6">${videoGroupModal.title.toUpperCase()}</h2>\n` : '';
                                             const videoWidget = `${titleHtml}<div class="${videoGroupClass}">\n${videoItems}\n</div>`;
 
                                             if (videoGroupModal.widgetId) {
@@ -4066,7 +4068,7 @@ ${generateSocialsHtml()}
                                             } else {
                                                 setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: videoWidget }]);
                                             }
-                                            setVideoGroupModal({ show: false, urls: Array(10).fill(''), videoTitles: Array(10).fill(''), count: 2, layout: 'row', title: '' });
+                                            setVideoGroupModal({ show: false, urls: Array(50).fill(''), videoTitles: Array(50).fill(''), count: 3, layout: 'row', title: '' });
                                         }}
                                         className="flex-1 py-4 rounded-xl bg-red-600 text-white font-bold uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(220,38,38,0.4)] hover:scale-[1.02] active:scale-[0.98] transition-all"
                                     >
