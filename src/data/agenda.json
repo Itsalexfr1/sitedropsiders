@@ -5579,5 +5579,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 519,
+    "title": "EDC Week : Above & Beyond",
+    "date": "2026-05-14",
+    "startDate": "2026-05-14",
+    "endDate": "2026-05-14",
+    "venue": "Palm Tree Beach Club",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Events",
+    "image": "/uploads/uploads/20b18898bc230521-image_1774555296661_ai0wmoojk.jpg",
+    "url": "https://tickets.taogroup.com/e/palm-tree-beach-club-las-vegas-5-14-2026/tickets",
+    "genre": "Trance",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
