@@ -131,6 +131,7 @@ export function Voyage() {
     const [expandedId, setExpandedId] = useState<string | null>(null);
     const [sortType, setSortType] = useState('price');
     const [visibleCount, setVisibleCount] = useState(10);
+    const [cabinClass, setCabinClass] = useState('economy');
     const [searchStatus, setSearchStatus] = useState('');
     const statusMessages = ["Contact de la base de données...", "Scan des compagnies (V2)...", "Comparaison de 4 000+ routes...", "Optimisation des tarifs...", "Vérification des disponibilités..."];
 
@@ -216,7 +217,8 @@ export function Voyage() {
                                 { origin: depCode.toUpperCase(), destination: destCode.toUpperCase(), departure_date: date },
                                 ...(isRoundTrip && returnDate ? [{ origin: destCode.toUpperCase(), destination: depCode.toUpperCase(), departure_date: returnDate }] : [])
                             ],
-                            passengers: [{ type: "adult" }]
+                            passengers: [{ type: "adult" }],
+                            cabin_class: cabinClass
                         }
                     })
                 });
@@ -256,6 +258,7 @@ export function Voyage() {
                             price: parseFloat(offer.total_amount),
                             duration: (slice.duration || '').replace('PT', '').replace('H', 'h ').replace('M', 'm').toLowerCase(),
                             duration_minutes: durationMinutes,
+                            cabin_class: cabinClass,
                             stops: segments.length - 1,
                             stopCodes,
                             departureTime: new Date(segments[0].departing_at).toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'}),
@@ -289,10 +292,12 @@ export function Voyage() {
         setIsSearching(false);
     };
 
+    const cabinClassOrder: Record<string, number> = { first: 0, business: 1, premium_economy: 2, economy: 3 };
     const sortedResults = [...results].sort((a: any, b: any) => {
         if (sortType === 'price') return a.price - b.price;
         if (sortType === 'duration') return a.duration_minutes - b.duration_minutes;
         if (sortType === 'stops') return a.stops - b.stops;
+        if (sortType === 'class') return (cabinClassOrder[a.cabin_class] ?? 9) - (cabinClassOrder[b.cabin_class] ?? 9);
         return 0;
     });
 
@@ -397,6 +402,34 @@ export function Voyage() {
                                     </div>
                                 </div>
                             </div>
+
+                            {/* Cabin Class Selector */}
+                            {travelType === 'flight' && flightProvider === 'direct' && (
+                                <div className="space-y-3">
+                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">CLASSE DE VOL</span>
+                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                        {[
+                                            { id: 'economy', label: 'Économie', emoji: '💺' },
+                                            { id: 'premium_economy', label: 'Premium Éco', emoji: '⭐' },
+                                            { id: 'business', label: 'Business', emoji: '💎' },
+                                            { id: 'first', label: 'Première', emoji: '👑' },
+                                        ].map((cls) => (
+                                            <button
+                                                key={cls.id}
+                                                type="button"
+                                                onClick={() => { setCabinClass(cls.id); setResults([]); setError(null); }}
+                                                className={`flex items-center gap-2 px-4 py-3 rounded-2xl border text-[10px] font-black uppercase tracking-widest transition-all ${
+                                                    cabinClass === cls.id
+                                                        ? 'bg-neon-red/10 border-neon-red text-white'
+                                                        : 'bg-transparent border-white/5 text-gray-600 hover:border-white/10 hover:text-gray-400'
+                                                }`}
+                                            >
+                                                <span>{cls.emoji}</span> {cls.label}
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
 
                             <div className="flex flex-col md:flex-row gap-8 items-center border-t border-white/5 pt-10">
                                 <div className="flex-1 w-full">
@@ -506,10 +539,11 @@ export function Voyage() {
                                     </div>
 
                                     <div className="flex items-center gap-2 bg-white/5 p-1.5 rounded-2xl border border-white/5">
-                                         {[
+                                     {[
                                             { id: 'price', label: t('voyage.sort_price'), icon: Zap },
                                             { id: 'duration', label: t('voyage.sort_duration'), icon: Clock },
-                                            { id: 'stops', label: t('voyage.sort_stops'), icon: Filter }
+                                            { id: 'stops', label: t('voyage.sort_stops'), icon: Filter },
+                                            { id: 'class', label: 'Classe', icon: Navigation }
                                         ].map((s) => (
                                             <button
                                                 key={s.id}
@@ -550,6 +584,19 @@ export function Voyage() {
                                                         <span className={`text-[10px] font-black px-3 py-1 border rounded-lg uppercase tracking-widest ${r.stops === 0 ? 'text-green-500 border-green-500/20 bg-green-500/5' : 'text-neon-red border-neon-red/20 bg-neon-red/5'}`}>
                                                             {r.stops === 0 ? t('voyage.direct') : `${r.stops} ${t('voyage.stops')}`}
                                                         </span>
+                                                        {r.cabin_class && (
+                                                            <span className={`text-[9px] font-black px-3 py-1 border rounded-lg uppercase tracking-widest ${
+                                                                r.cabin_class === 'first' ? 'text-yellow-400 border-yellow-400/20 bg-yellow-400/5' :
+                                                                r.cabin_class === 'business' ? 'text-purple-400 border-purple-400/20 bg-purple-400/5' :
+                                                                r.cabin_class === 'premium_economy' ? 'text-blue-400 border-blue-400/20 bg-blue-400/5' :
+                                                                'text-gray-500 border-gray-700 bg-white/[0.02]'
+                                                            }`}>
+                                                                {r.cabin_class === 'first' ? '👑 Première' :
+                                                                 r.cabin_class === 'business' ? '💎 Business' :
+                                                                 r.cabin_class === 'premium_economy' ? '⭐ Premium Éco' :
+                                                                 '💺 Économie'}
+                                                            </span>
+                                                        )}
                                                     </div>
 
                                                     <div className="flex items-center gap-8">
