@@ -5,18 +5,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { CovoitSection } from '../components/community/CovoitSection';
 import { SEO } from '../components/utils/SEO';
 
-const SkeletonCard = () => (
-    <div className="bg-white/[0.03] border border-white/5 rounded-3xl p-6 h-32 animate-pulse flex items-center justify-between">
-        <div className="flex items-center gap-6">
-            <div className="w-12 h-12 bg-white/5 rounded-xl" />
-            <div className="space-y-2">
-                <div className="w-32 h-4 bg-white/5 rounded" />
-                <div className="w-24 h-3 bg-white/5 rounded" />
-            </div>
-        </div>
-        <div className="w-20 h-8 bg-white/5 rounded" />
-    </div>
-);
 
 const CitySearchInput = ({ placeholder, icon: Icon, value, onSelect, travelType }: any) => {
     const [query, setQuery] = useState('');
