@@ -1112,13 +1112,15 @@
     "location": "SAN BERNARDINO",
     "country": "USA",
     "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/1772627913911-esc_2026_mk_ps_fs_seo_1200x630_r01.webp",
+    "image": "/uploads/aba3e4f92928a2f1-esc_2026_mk_ps_fs_seo_1200x630.webp",
     "url": "https://escapehalloween.com",
     "genre": "Multi Styles",
     "month": "OCTOBRE",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "venue": "",
+    "additionalDates": []
   },
   {
     "id": 281,
