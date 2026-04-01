@@ -5655,5 +5655,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 523,
+    "title": "EDC Week : Bassrush Massive",
+    "date": "2026-05-14",
+    "startDate": "2026-05-14",
+    "endDate": "2026-05-14",
+    "venue": "Virgin Hotels",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Showcase",
+    "image": "/uploads/uploads/b78aa57688436f52-edcw_2026_mk_misc_bassrush_mas.jpg",
+    "url": "https://www.axs.com/fr/artists/1100954/bassrush-massive-tickets",
+    "genre": "Drum & Bass",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
