@@ -5674,5 +5674,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 524,
+    "title": "EDC Week : Harwell B2B Maddix",
+    "date": "2026-05-14",
+    "startDate": "2026-05-14",
+    "endDate": "2026-05-14",
+    "venue": "Downtown Las Vegas Events Center",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Showcase",
+    "image": "/uploads/uploads/8b569054d9354c71-05.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/g9elzgpa62apbny2",
+    "genre": "Techno",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
