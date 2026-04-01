@@ -1186,13 +1186,14 @@
     "location": "ARNHEM",
     "country": "Pays-Bas",
     "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/1772632676122-hardbass_2026.png",
+    "image": "/uploads/01cf361162772ea4-658112762_1517063426644269_647.png",
     "url": "https://www.b2s.nl/en/events/hard-bass/hard-bass-2026/",
     "genre": "Hardstyle",
     "month": "OCTOBRE",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "additionalDates": []
   },
   {
     "id": 285,
