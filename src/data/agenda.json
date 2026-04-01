@@ -1428,13 +1428,14 @@
     "location": "VARSOVIE",
     "country": "POLOGNE",
     "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/1772822490163-csm_astateoftrance2026-1164x600_34dfeded78.jpeg",
+    "image": "/uploads/70844a25768e9b3e-a_state_of_trance_poland_2026_.png",
     "url": "https://festival.astateoftrance.com/poland/",
     "genre": "Trance",
     "month": "JUIN",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "additionalDates": []
   },
   {
     "id": 300,
