@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plane, Bus, Calendar, MapPin, ArrowRightLeft, Navigation, ArrowRight, ShieldCheck, Zap, Info, Clock, ExternalLink, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CovoitSection } from '../components/community/CovoitSection';
@@ -65,7 +65,6 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onChange, travelType 
                     const val = e.target.value;
                     setQuery(val);
                     if(val === '') onChange('');
-                    // For non-flight, we just take the text. For flight, we wait for suggestion click if possible.
                     if(travelType !== 'flight') onChange(val);
                 }}
                 placeholder={placeholder}
@@ -81,8 +80,8 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onChange, travelType 
             <AnimatePresence>
                 {isOpen && suggestions.length > 0 && (
                     <motion.div 
-                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        initial={{ opacity: 0, scale: 0.98 }}
+                        animate={{ opacity: 1, scale: 1 }}
                         exit={{ opacity: 0, scale: 0.98 }}
                         className="absolute top-full left-0 w-full mt-3 bg-[#0c0c0c] border border-white/10 rounded-2xl overflow-hidden z-[110] shadow-[0_20px_60px_rgba(0,0,0,1)] max-h-80 overflow-y-auto"
                     >
@@ -97,7 +96,7 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onChange, travelType 
                                 className="px-5 py-4 hover:bg-white/5 cursor-pointer flex justify-between items-center border-b border-white/5 last:border-0 transition-colors"
                             >
                                 <div className="flex flex-col">
-                                    <span className="text-white text-xs font-black truncate">{s.name}</span>
+                                    <span className="text-white text-xs font-black truncate uppercase">{s.name}</span>
                                     <span className="text-[9px] text-gray-500 font-bold uppercase tracking-[0.2em] mt-0.5">
                                         {s.city_name || s.city?.name} • {s.country_name || s.country?.name}
                                     </span>
@@ -131,6 +130,12 @@ export function Voyage() {
     const [isSearching, setIsSearching] = useState(false);
     const [error, setError] = useState<string | null>(null);
     const [results, setResults] = useState<any[]>([]);
+
+    const covoitRef = useRef<HTMLDivElement>(null);
+
+    const scrollToCovoit = () => {
+        covoitRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
 
     const handleSearch = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -173,14 +178,14 @@ export function Voyage() {
 
                 if (!response.ok) {
                     const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.errors?.[0]?.message || "Une erreur est survenue lors de la recherche.");
+                    throw new Error(errData.errors?.[0]?.message || "Aucun vol direct disponible pour ce trajet via note moteur IA. Utilise un partenaire externe ci-dessous.");
                 }
 
                 const data = await response.json();
                 const offers = data.data.offers || [];
 
                 if (offers.length === 0) {
-                    setError("Aucun vol trouvé pour ces dates/villes. Essaie un partenaire externe ci-dessous.");
+                    setError("Aucun vol trouvé via l'API directe. Essaie un partenaire externe ci-dessous.");
                     return;
                 }
 
@@ -208,7 +213,7 @@ export function Voyage() {
 
                 setResults(mappedResults);
             } catch (err: any) {
-                setError(err.message || "Impossible de contacter le serveur de recherche.");
+                setError(err.message || "Erreur de connexion. Vérifie tes villes de départ/arrivée.");
             } finally {
                 setIsSearching(false);
             }
@@ -238,40 +243,35 @@ export function Voyage() {
 
     return (
         <div className="min-h-screen bg-[#050505] pb-32">
-            <SEO title="Voyage & Comparator | Dropsiders" description="Le comparateur de voyage ultime pour vos festivals. Vols, Bus et Trains au meilleur prix." />
+            <SEO title="Voyage & Comparateur | Dropsiders" description="Le comparateur de voyage ultime pour vos festivals. Vols, Bus et Trains au meilleur prix." />
             
-            {/* Header / Hero */}
             <div className="relative pt-20 pb-12 px-6 overflow-hidden">
-                <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-8 relative z-10">
-                    <div className="space-y-4">
-                        <motion.div
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            className="inline-flex items-center gap-2 px-3 py-1 bg-neon-red/10 border border-neon-red/20 rounded-full mb-2"
-                        >
-                            <Zap className="w-3 h-3 text-neon-red" />
-                            <span className="text-[10px] font-black text-neon-red uppercase tracking-widest italic">IA Travel Search Engine v4.0</span>
-                        </motion.div>
-                        <h1 className="text-5xl md:text-8xl font-display font-black text-white italic uppercase tracking-tighter leading-tight">
-                            WAY TO <span className="text-neon-red outline-text">FESTIVAL</span>
-                        </h1>
-                    </div>
+                <div className="max-w-7xl mx-auto relative z-10">
+                    <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="inline-flex items-center gap-2 px-3 py-1 bg-neon-red/10 border border-neon-red/20 rounded-full mb-6"
+                    >
+                        <Zap className="w-3 h-3 text-neon-red" />
+                        <span className="text-[10px] font-black text-neon-red uppercase tracking-widest italic">Comparateur IA v4.0</span>
+                    </motion.div>
+                    <h1 className="text-5xl md:text-8xl font-display font-black text-white italic uppercase tracking-tighter leading-tight">
+                        DIRECTION <span className="text-neon-red outline-text">FESTIVAL</span>
+                    </h1>
                 </div>
             </div>
 
             <div className="max-w-7xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 mt-4">
-                {/* Search Panel */}
                 <div className="lg:col-span-8">
                     <motion.div 
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="bg-[#0a0a0a] border border-white/10 rounded-[40px] p-8 md:p-12 shadow-2xl relative"
+                        className="bg-[#0a0a0a] border border-white/10 rounded-[40px] p-8 md:p-12 shadow-2xl"
                     >
-                        {/* Transport Type Switcher */}
                         <div className="flex bg-white/5 p-1.5 rounded-2xl w-fit mb-12 border border-white/5">
                             {[
-                                { id: 'flight', icon: Plane, label: 'Avion' },
-                                { id: 'bus', icon: Bus, label: 'Bus / Train / BlaBla' }
+                                { id: 'flight', icon: Plane, label: 'AVION' },
+                                { id: 'bus', icon: Bus, label: 'BUS / TRAIN' }
                             ].map((t) => (
                                 <button
                                     key={t.id}
@@ -288,10 +288,9 @@ export function Voyage() {
                         <form onSubmit={handleSearch} className="space-y-10">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
                                 <div className="space-y-3">
-                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">Départ</span>
-                                    <CitySearchInput placeholder="D'OÙ PARS-TU ?" icon={Navigation} value={departure} onChange={setDeparture} travelType={travelType} />
+                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">DÉPART</span>
+                                    <CitySearchInput placeholder="VILLE OU AÉROPORT" icon={Navigation} value={departure} onChange={setDeparture} travelType={travelType} />
                                 </div>
-                                
                                 <div className="hidden md:flex absolute left-1/2 bottom-5 -translate-x-1/2 z-20">
                                     <button 
                                         type="button"
@@ -301,16 +300,15 @@ export function Voyage() {
                                         <ArrowRightLeft className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
                                     </button>
                                 </div>
-
                                 <div className="space-y-3">
-                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">Destination</span>
-                                    <CitySearchInput placeholder="VERS QUEL FESTIVAL ?" icon={MapPin} value={destination} onChange={setDestination} travelType={travelType} />
+                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">DESTINATION</span>
+                                    <CitySearchInput placeholder="AÉROPORT D'ARRIVÉE" icon={MapPin} value={destination} onChange={setDestination} travelType={travelType} />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div className="space-y-3">
-                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">Aller</span>
+                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">DATE ALLER</span>
                                     <div className="relative group">
                                         <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-red transition-colors" />
                                         <input 
@@ -323,10 +321,7 @@ export function Voyage() {
                                     </div>
                                 </div>
                                 <div className="space-y-3">
-                                    <div className="flex justify-between ml-2">
-                                        <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">Retour</span>
-                                        <span className="text-[10px] font-black uppercase text-gray-600 tracking-[0.2em] italic">(Optionnel)</span>
-                                    </div>
+                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">DATE RETOUR <span className="text-gray-600 italic ml-1">(OPTIONNEL)</span></span>
                                     <div className="relative group">
                                         <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-red transition-colors" />
                                         <input 
@@ -341,7 +336,7 @@ export function Voyage() {
 
                             <div className="flex flex-col md:flex-row gap-6 items-center">
                                 <div className="flex-1 w-full md:w-auto">
-                                    <h4 className="text-[10px] font-black uppercase text-gray-600 tracking-[0.3em] mb-4 ml-2">Sourcing Engine</h4>
+                                    <h4 className="text-[10px] font-black uppercase text-gray-600 tracking-[0.3em] mb-4 ml-2">PARTENAIRES</h4>
                                     <div className="flex flex-wrap gap-2">
                                         {(travelType === 'flight' ? ['direct', 'google', 'skyscanner', 'kayak', 'liligo'] : ['omio', 'busbud', 'flixbus', 'blablacar']).map((p) => (
                                             <button
@@ -352,7 +347,7 @@ export function Voyage() {
                                                     (travelType === 'flight' ? flightProvider : busProvider) === p ? 'bg-white/10 border-white/20 text-white shadow-lg' : 'bg-transparent border-white/5 text-gray-600 hover:text-gray-400'
                                                 }`}
                                             >
-                                                {p === 'direct' ? '⚡ Dropsiders Search' : p}
+                                                {p === 'direct' ? '⚡ MOTEUR DROPSIDERS' : p}
                                             </button>
                                         ))}
                                     </div>
@@ -363,13 +358,12 @@ export function Voyage() {
                                     disabled={isSearching}
                                     className="w-full md:w-auto px-12 py-6 bg-neon-red text-white rounded-2xl font-black uppercase text-xs tracking-[0.3em] hover:bg-white hover:text-black transition-all duration-500 shadow-[0_0_40px_rgba(255,18,65,0.2)] disabled:opacity-50 flex items-center justify-center gap-4 shrink-0"
                                 >
-                                    {isSearching ? <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" /> : <>LANCER LA RECHERCHE <ArrowRight className="w-5 h-5" /></>}
+                                    {isSearching ? <div className="w-5 h-5 border-2 border-black/20 border-t-black rounded-full animate-spin" /> : <>RECHERCHER MAINTENANT <ArrowRight className="w-5 h-5" /></>}
                                 </button>
                             </div>
                         </form>
                     </motion.div>
 
-                    {/* Results Container */}
                     <div className="mt-12 space-y-6">
                         <AnimatePresence mode="wait">
                             {error && (
@@ -398,9 +392,9 @@ export function Voyage() {
                                     className="space-y-4"
                                 >
                                     <div className="flex items-center justify-between mb-8 px-2">
-                                        <h3 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Meilleures Offres</h3>
+                                        <h3 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">MEILLEURES OFFRES</h3>
                                         <div className="flex items-center gap-2 text-[10px] font-black text-neon-red uppercase tracking-widest px-3 py-1 bg-neon-red/5 border border-neon-red/10 rounded-full">
-                                            <Filter className="w-3 h-3" /> Trié par prix
+                                            <Filter className="w-3 h-3" /> TRIÉ PAR PRIX
                                         </div>
                                     </div>
 
@@ -433,20 +427,19 @@ export function Voyage() {
                                                     <div className="flex items-center gap-6">
                                                         <div className="text-center">
                                                             <div className="text-xl font-black text-white">{r.departureTime}</div>
-                                                            <div className="text-[8px] font-bold text-gray-600 uppercase tracking-widest mt-1">Décollage</div>
+                                                            <div className="text-[8px] font-bold text-gray-600 uppercase tracking-widest mt-1">DÉPART</div>
                                                         </div>
                                                         <div className="flex-1 flex flex-col items-center gap-1.5 pt-1">
                                                             <div className="flex items-center gap-2 text-[9px] font-black text-gray-500 italic">
                                                                 <Clock className="w-3 h-3" /> {r.duration}
                                                             </div>
                                                             <div className="h-[2px] w-full bg-white/5 relative">
-                                                                <div className="absolute inset-0 bg-neon-red group-hover:shadow-[0_0_10px_#ff1241]" />
-                                                                <div className="absolute right-0 top-1/2 -translate-y-1/2 w-1.5 h-1.5 bg-white rounded-full" />
+                                                                <div className="absolute inset-0 bg-neon-red" />
                                                             </div>
                                                         </div>
                                                         <div className="text-center">
                                                             <div className="text-xl font-black text-white">{r.arrivalTime}</div>
-                                                            <div className="text-[8px] font-bold text-gray-600 uppercase tracking-widest mt-1">Arrivée</div>
+                                                            <div className="text-[8px] font-bold text-gray-600 uppercase tracking-widest mt-1">ARRIVÉE</div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -455,10 +448,10 @@ export function Voyage() {
                                             <div className="flex items-center gap-10 w-full md:w-auto md:text-right border-t md:border-t-0 border-white/5 pt-6 md:pt-0">
                                                 <div className="flex-1">
                                                     <div className="text-4xl font-display font-black text-white">{r.price} €</div>
-                                                    <div className="text-[8px] font-bold text-gray-600 uppercase tracking-widest mt-1">Taxes Incluses</div>
+                                                    <div className="text-[8px] font-bold text-gray-600 uppercase tracking-widest mt-1 italic">Vols HT / Pers</div>
                                                 </div>
                                                 <button className="px-8 py-4 bg-white text-black rounded-xl font-black uppercase text-[10px] tracking-widest hover:bg-neon-red hover:text-white transition-all shadow-xl flex items-center gap-2">
-                                                    RÉSERVER <ExternalLink className="w-3 h-3" />
+                                                    SÉLECTIONNER <ExternalLink className="w-3 h-3" />
                                                 </button>
                                             </div>
                                         </motion.div>
@@ -469,16 +462,15 @@ export function Voyage() {
                     </div>
                 </div>
 
-                {/* Sidebar Info */}
                 <div className="lg:col-span-4 space-y-8">
                     <div className="bg-[#0c0c0c] border border-white/10 rounded-[40px] p-8 md:p-10 space-y-10">
                         <section className="space-y-6">
-                            <h3 className="text-xl font-display font-black text-white italic uppercase italic">Garanties <span className="text-neon-red">Dropsiders</span></h3>
+                            <h3 className="text-xl font-display font-black text-white italic uppercase">PROTECTION <span className="text-neon-red">DROPSIDERS</span></h3>
                             <div className="space-y-10">
                                 {[
-                                    { title: 'IA Meta-Search', desc: 'On scanne plus de 400 compagnies et transporteurs simultanément.', icon: ShieldCheck },
-                                    { title: '100% Anti-Block', desc: 'Notre système transite par un Proxy ultra-sécurisé indétectable.', icon: Zap },
-                                    { title: 'Zero Commission', desc: 'Nous ne prenons aucun frais sur ton billet. Prix direct compagnie.', icon: Zap }
+                                    { title: 'IA META-SEARCH', desc: 'Scan de plus de 400 compagnies et transporteurs.', icon: ShieldCheck },
+                                    { title: 'SÉCURITÉ ANTI-BLOCK', desc: 'Communication via Proxy sécurisé indétectable.', icon: Zap },
+                                    { title: 'DIRECT PARTENAIRE', desc: 'Nous ne prenons aucun frais. Paiement direct transporteur.', icon: ArrowRight }
                                 ].map((f, i) => (
                                     <div key={i} className="flex gap-5">
                                         <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center shrink-0 border border-white/5">
@@ -494,11 +486,14 @@ export function Voyage() {
                         </section>
 
                         <div className="pt-10 border-t border-white/5">
-                            <div className="bg-gradient-to-br from-neon-red/10 to-transparent border border-neon-red/20 rounded-3xl p-8 relative overflow-hidden group hover:scale-[1.02] transition-all">
-                                <h3 className="text-white text-2xl font-display font-black italic uppercase leading-tight">COMMUNITY<br/><span className="text-neon-red">CARPOOL</span></h3>
-                                <p className="text-gray-500 text-[10px] font-bold mt-4 uppercase tracking-widest">Partage les frais, fais des rencontres.</p>
-                                <button className="mt-8 flex items-center gap-3 text-white text-[10px] font-black uppercase tracking-[0.3em] group-hover:gap-5 transition-all">
-                                    Voir les trajets <ArrowRight className="w-4 h-4 text-neon-red" />
+                            <div className="bg-gradient-to-br from-neon-red/10 to-transparent border border-neon-red/20 rounded-3xl p-8 relative overflow-hidden group">
+                                <h3 className="text-white text-2xl font-display font-black italic uppercase leading-tight">FESTIVAL<br/><span className="text-neon-red">COVOITURAGE</span></h3>
+                                <p className="text-gray-500 text-[10px] font-bold mt-4 uppercase tracking-widest">Partage les frais & voyage ensemble.</p>
+                                <button 
+                                    onClick={scrollToCovoit}
+                                    className="mt-8 flex items-center gap-3 text-white text-[10px] font-black uppercase tracking-[0.3em] hover:text-neon-red transition-all"
+                                >
+                                    REJOINDRE LE TRAJET <ArrowRight className="w-4 h-4 text-neon-red" />
                                 </button>
                                 <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-neon-red/10 blur-3xl rounded-full" />
                             </div>
@@ -507,7 +502,7 @@ export function Voyage() {
                 </div>
             </div>
 
-            <div className="mt-32">
+            <div className="mt-32" ref={covoitRef}>
                 <CovoitSection />
             </div>
         </div>
