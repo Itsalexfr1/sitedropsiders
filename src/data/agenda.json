@@ -6016,5 +6016,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 542,
+    "title": "EDC Week : Wax Motif",
+    "date": "2026-05-15",
+    "startDate": "2026-05-15",
+    "endDate": "2026-05-15",
+    "venue": "Zouk ",
+    "location": "LAS VEGAS",
+    "country": "USA",
+    "type": "Events",
+    "image": "/uploads/uploads/4c15fedfb7f263d0-ZLV_02614_EDC_WEEK_2026_Wax_Mo.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/786eqd43wvq8cf7e",
+    "genre": "Tech House",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
