@@ -110,9 +110,9 @@ export function AdminDashboard() {
         const fetchWikiData = async () => {
             try {
                 const [djs, clubs, fests] = await Promise.all([
-                    fetch('/api/wiki/djs'),
-                    fetch('/api/wiki/clubs'),
-                    fetch('/api/wiki/festivals')
+                    fetch('/api/wiki/list?type=DJS'),
+                    fetch('/api/wiki/list?type=CLUBS'),
+                    fetch('/api/wiki/list?type=FESTIVALS')
                 ]);
                 if (djs.ok) setWikiDjs(await djs.json());
                 if (clubs.ok) setWikiClubs(await clubs.json());
