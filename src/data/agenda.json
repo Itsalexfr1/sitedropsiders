@@ -1290,13 +1290,14 @@
     "location": "RONGY",
     "country": "Belgique",
     "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/1772633903409-so_w_happy_weekend_2026.png",
+    "image": "/uploads/c66ea6e8a60c8ccf-so_w_happy_weekend_2026.png",
     "url": "https://so-whappy.com",
     "genre": "Multi Styles",
     "month": "JUILLET",
     "isWeekly": false,
     "isSoldOut": false,
-    "isLiveDropsiders": false
+    "isLiveDropsiders": false,
+    "additionalDates": []
   },
   {
     "id": 291,
