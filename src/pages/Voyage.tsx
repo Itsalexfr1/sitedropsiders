@@ -3,6 +3,49 @@ import { Plane, Bus, Calendar, MapPin, ArrowRightLeft, Search } from 'lucide-rea
 import { CovoitSection } from '../components/community/CovoitSection';
 import { SEO } from '../components/utils/SEO';
 
+const MAJOR_AIRPORTS = [
+    { name: 'Paris Charles de Gaulle', iata_code: 'CDG', type: 'airport' },
+    { name: 'Paris Orly', iata_code: 'ORY', type: 'airport' },
+    { name: 'London Heathrow', iata_code: 'LHR', type: 'airport' },
+    { name: 'London Gatwick', iata_code: 'LGW', type: 'airport' },
+    { name: 'New York JFK', iata_code: 'JFK', type: 'airport' },
+    { name: 'New York Newark', iata_code: 'EWR', type: 'airport' },
+    { name: 'Los Angeles', iata_code: 'LAX', type: 'airport' },
+    { name: 'Madrid Barajas', iata_code: 'MAD', type: 'airport' },
+    { name: 'Barcelona El Prat', iata_code: 'BCN', type: 'airport' },
+    { name: 'Berlin Brandenburg', iata_code: 'BER', type: 'airport' },
+    { name: 'Brussels', iata_code: 'BRU', type: 'airport' },
+    { name: 'Amsterdam Schiphol', iata_code: 'AMS', type: 'airport' },
+    { name: 'Rome Fiumicino', iata_code: 'FCO', type: 'airport' },
+    { name: 'Lisbon', iata_code: 'LIS', type: 'airport' },
+    { name: 'Montreal Trudeau', iata_code: 'YUL', type: 'airport' },
+    { name: 'Toronto Pearson', iata_code: 'YYZ', type: 'airport' },
+    { name: 'Marseille Provence', iata_code: 'MRS', type: 'airport' },
+    { name: 'Lyon Saint-Exupéry', iata_code: 'LYS', type: 'airport' },
+    { name: 'Nice Côte d’Azur', iata_code: 'NCE', type: 'airport' },
+    { name: 'Toulouse Blagnac', iata_code: 'TLS', type: 'airport' },
+    { name: 'Bordeaux Mérignac', iata_code: 'BOD', type: 'airport' },
+    { name: 'Geneva', iata_code: 'GVA', type: 'airport' },
+    { name: 'Zurich', iata_code: 'ZRH', type: 'airport' },
+    { name: 'Milan Malpensa', iata_code: 'MXP', type: 'airport' },
+    { name: 'Prague', iata_code: 'PRG', type: 'airport' },
+    { name: 'Vienna', iata_code: 'VIE', type: 'airport' },
+    { name: 'Budapest', iata_code: 'BUD', type: 'airport' },
+    { name: 'Marrakech Menara', iata_code: 'RAK', type: 'airport' },
+    { name: 'Casablanca', iata_code: 'CMN', type: 'airport' },
+    { name: 'Tunis Carthage', iata_code: 'TUN', type: 'airport' },
+    { name: 'Dublin', iata_code: 'DUB', type: 'airport' },
+    { name: 'Manchester', iata_code: 'MAN', type: 'airport' },
+    { name: 'Copenhagen', iata_code: 'CPH', type: 'airport' },
+    { name: 'Stockholm Arlanda', iata_code: 'ARN', type: 'airport' },
+    { name: 'Oslo Gardermoen', iata_code: 'OSL', type: 'airport' },
+    { name: 'Helsinki', iata_code: 'HEL', type: 'airport' },
+    { name: 'Istanbul', iata_code: 'IST', type: 'airport' },
+    { name: 'Dubai', iata_code: 'DXB', type: 'airport' },
+    { name: 'Tel Aviv', iata_code: 'TLV', type: 'airport' },
+    { name: 'Montreal', iata_code: 'YUL', type: 'airport' },
+];
+
 const CitySearchInput = ({ placeholder, icon: Icon, value, onChange, travelType }: any) => {
     const [query, setQuery] = useState('');
     const [suggestions, setSuggestions] = useState<any[]>([]);
@@ -13,37 +56,18 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onChange, travelType 
     }, [value, query]);
 
     useEffect(() => {
-        if(query.length < 2 || !isOpen) { setSuggestions([]); return; }
-        if(travelType !== 'flight') {
+        if(query.length < 1 || !isOpen) { setSuggestions([]); return; }
+        
+        if(travelType === 'flight') {
+            const filtered = MAJOR_AIRPORTS.filter(a => 
+                a.name.toLowerCase().includes(query.toLowerCase()) || 
+                a.iata_code.toLowerCase().includes(query.toLowerCase())
+            ).slice(0, 5);
+            setSuggestions(filtered);
+        } else {
             onChange(query);
-            return;
+            setSuggestions([]);
         }
-
-        const p1 = "duffel_live_ZxR68F6QlOhS4zrFGR_n0d9Li";
-        const p2 = "BhGjUd-qw74hIGz5Pz";
-        const apiKey = p1 + p2;
-        if(!apiKey) return;
-
-        const fetchSuggestions = async () => {
-            try {
-                // Duffel Suggestions API requires a proxy or specific headers that browsers might block.
-                // Switching to a more robust fetch logic.
-                const res = await fetch(`https://api.duffel.com/places/suggestions?query=${query}`, {
-                    headers: { 
-                        'Authorization': `Bearer ${apiKey}`, 
-                        'Duffel-Version': 'v1',
-                        'Content-Type': 'application/json'
-                    }
-                });
-                const data = await res.json();
-                if (data.errors) throw new Error(data.errors[0].message);
-                setSuggestions((data.data || []).slice(0, 5));
-            } catch(e) { 
-                console.error("Duffel Suggest Error:", e);
-            }
-        };
-        const tid = setTimeout(fetchSuggestions, 300);
-        return () => clearTimeout(tid);
     }, [query, isOpen, travelType]);
 
     return (
@@ -58,8 +82,10 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onChange, travelType 
                 onFocus={() => setIsOpen(true)}
                 onBlur={() => setTimeout(() => setIsOpen(false), 200)}
                 onChange={(e) => {
-                    setQuery(e.target.value);
-                    if(travelType !== 'flight') onChange(e.target.value);
+                    const val = e.target.value;
+                    setQuery(val);
+                    if(val === '') onChange('');
+                    if(travelType !== 'flight') onChange(val);
                 }}
                 placeholder={placeholder}
                 className="w-full bg-black/40 border border-white/10 rounded-2xl py-4 pl-12 pr-4 text-white focus:outline-none focus:border-neon-cyan transition-all uppercase text-xs font-bold"
@@ -68,15 +94,15 @@ const CitySearchInput = ({ placeholder, icon: Icon, value, onChange, travelType 
                 <div className="absolute top-full left-0 w-full mt-2 bg-[#1a1a1a] border border-neon-cyan/30 rounded-xl overflow-hidden z-50 shadow-[0_0_30px_rgba(0,255,255,0.1)]">
                     {suggestions.map(s => (
                         <div 
-                            key={s.id} 
+                            key={s.iata_code} 
                             onClick={() => {
                                 setQuery(s.name);
                                 onChange(s.iata_code);
                                 setIsOpen(false);
                             }}
-                            className="px-4 py-3 hover:bg-neon-cyan/20 cursor-pointer flex justify-between items-center border-b border-white/5 last:border-0 transition-all"
+                            className="px-4 py-3 hover:bg-neon-cyan/20 cursor-pointer flex justify-between items-center border-b border-white/5 last:border-0 transition-all font-display"
                         >
-                            <span className="text-white text-sm font-bold truncate pr-4">{s.name} <span className="opacity-50">{s.type === 'airport' ? '✈️' : '🏙️'}</span></span>
+                            <span className="text-white text-sm font-bold truncate pr-4">{s.name} <span className="opacity-50">✈️</span></span>
                             <span className="text-neon-cyan text-xs font-black shrink-0 px-2 py-1 bg-neon-cyan/10 rounded-md">{s.iata_code}</span>
                         </div>
                     ))}
