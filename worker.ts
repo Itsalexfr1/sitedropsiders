@@ -2451,7 +2451,7 @@ ${urls.map(u => `  <url>
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
-                const { id, title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek, additionalDates, autoDelete } = body;
+                const { id, title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek, additionalDates } = body;
                 if (!id) return new Response(JSON.stringify({ error: 'Missing ID' }), { status: 400, headers });
 
                 const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig);
@@ -2500,8 +2500,7 @@ ${urls.map(u => `  <url>
                             isWeekly: true,
                             dayOfWeek: dayOfWeek !== undefined ? dayOfWeek : new Date(startDate).getDay(),
                             isSoldOut: isSoldOut !== undefined ? isSoldOut : existing.isSoldOut,
-                            isLiveDropsiders: isLiveDropsiders !== undefined ? isLiveDropsiders : existing.isLiveDropsiders,
-                            autoDelete: autoDelete !== undefined ? autoDelete : existing.autoDelete || false
+                            isLiveDropsiders: isLiveDropsiders !== undefined ? isLiveDropsiders : existing.isLiveDropsiders
                         });
                         currentDate.setDate(currentDate.getDate() + 7);
                     }
@@ -2527,7 +2526,6 @@ ${urls.map(u => `  <url>
                         dayOfWeek: dayOfWeek !== undefined ? dayOfWeek : existing.dayOfWeek,
                         isSoldOut: isSoldOut !== undefined ? isSoldOut : existing.isSoldOut,
                         isLiveDropsiders: isLiveDropsiders !== undefined ? isLiveDropsiders : existing.isLiveDropsiders,
-                        autoDelete: autoDelete !== undefined ? autoDelete : existing.autoDelete || false,
                         additionalDates: additionalDates || existing.additionalDates || []
                     };
                 }
@@ -2535,10 +2533,8 @@ ${urls.map(u => `  <url>
                 // --- AUTO CLEANUP OF PAST EVENTS ---
                 const todayStr = new Date().toISOString().split('T')[0];
                 currentData = currentData.filter(item => {
-                    if (item.autoDelete) {
-                        const end = item.endDate || item.startDate || item.date;
-                        if (end && end < todayStr) return false;
-                    }
+                    const end = item.endDate || item.startDate || item.date;
+                    if (end && end < todayStr) return false;
                     return true;
                 });
 
@@ -2565,7 +2561,7 @@ ${urls.map(u => `  <url>
             const FILE_PATH = 'src/data/agenda.json';
             try {
                 const body = await request.json();
-                const { title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek, additionalDates, autoDelete } = body;
+                const { title, date, startDate, endDate, venue, location, country, type, image, description, url: eventUrl, genre, month, isWeekly, isSoldOut, isLiveDropsiders, dayOfWeek, additionalDates } = body;
                 if (!title) return new Response(JSON.stringify({ error: 'Missing title' }), { status: 400, headers });
 
                 const agendaFile = await fetchGitHubFile(FILE_PATH, gitConfig) || { content: [], sha: null };
@@ -2600,8 +2596,7 @@ ${urls.map(u => `  <url>
                             isWeekly: true,
                             dayOfWeek: dayOfWeek !== undefined ? dayOfWeek : new Date(startDate).getDay(),
                             isSoldOut: isSoldOut || false,
-                            isLiveDropsiders: isLiveDropsiders || false,
-                            autoDelete: autoDelete || false
+                            isLiveDropsiders: isLiveDropsiders || false
                         });
                         currentDate.setDate(currentDate.getDate() + 7);
                     }
@@ -2627,7 +2622,6 @@ ${urls.map(u => `  <url>
                         dayOfWeek: dayOfWeek,
                         isSoldOut: isSoldOut || false,
                         isLiveDropsiders: isLiveDropsiders || false,
-                        autoDelete: autoDelete || false,
                         additionalDates: additionalDates || []
                     };
                     currentData = [...currentData, newItem];
@@ -2636,10 +2630,8 @@ ${urls.map(u => `  <url>
                 // --- AUTO CLEANUP OF PAST EVENTS ---
                 const todayStr2 = new Date().toISOString().split('T')[0];
                 currentData = currentData.filter(item => {
-                    if (item.autoDelete) {
-                        const end = item.endDate || item.startDate || item.date;
-                        if (end && end < todayStr2) return false;
-                    }
+                    const end = item.endDate || item.startDate || item.date;
+                    if (end && end < todayStr2) return false;
                     return true;
                 });
 
@@ -5211,10 +5203,8 @@ ${urls.map(u => `  <url>
         const originalAgendaLength = agendaContent.length;
 
         agendaContent = agendaContent.filter(item => {
-            if (item.autoDelete) {
-                const end = item.endDate || item.startDate || item.date;
-                if (end && end < todayStr) return false;
-            }
+            const end = item.endDate || item.startDate || item.date;
+            if (end && end < todayStr) return false;
             return true;
         });
 
