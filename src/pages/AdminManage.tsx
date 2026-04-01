@@ -114,6 +114,7 @@ export function AdminManage() {
     const [socialItem, setSocialItem] = useState<any | null>(null);
     const [brokenImages, setBrokenImages] = useState<any[]>([]);
     const [showBrokenOnly, setShowBrokenOnly] = useState(false);
+    const [imageChangeTarget, setImageChangeTarget] = useState<{ id: number | string, title: string } | null>(null);
 
     const fetchBrokenImages = async () => {
         try {
@@ -390,7 +391,11 @@ export function AdminManage() {
 
         try {
             setLoading(true);
-            const endpoint = activeTab === 'Recaps' ? '/api/recaps/update' : '/api/news/update';
+            let endpoint = '/api/news/update';
+            if (activeTab === 'Recaps') endpoint = '/api/recaps/update';
+            else if (activeTab === 'Agenda') endpoint = '/api/agenda/update';
+            else if (activeTab === 'Communauté') endpoint = '/api/galerie/update';
+
             const response = await fetch(endpoint, {
                 method: 'POST',
                 headers: getAuthHeaders(),
@@ -868,9 +873,16 @@ export function AdminManage() {
                                                             <Trash2 className="w-5 h-5" />
                                                         </button>
                                                     </td>
-                                                )}
-                                                <td className="px-6 py-4">
-                                                    <div className="w-12 h-12 rounded-lg overflow-hidden bg-black/40 border border-white/10">
+                                                 <td className="px-6 py-4">
+                                                    <div 
+                                                        className={`w-12 h-12 rounded-lg overflow-hidden bg-black/40 border border-white/10 ${activeTab === 'Agenda' ? 'cursor-pointer hover:border-neon-red ring-offset-2 ring-offset-black hover:ring-2 ring-neon-red/30 transition-all' : ''}`}
+                                                        onClick={() => {
+                                                            if (activeTab === 'Agenda') {
+                                                                setImageChangeTarget({ id: item.id, title: item.title });
+                                                            }
+                                                        }}
+                                                        title={activeTab === 'Agenda' ? "Cliquer pour changer l'image" : ""}
+                                                    >
                                                         <AdminThumbnail src={item.image} />
                                                     </div>
                                                 </td>
@@ -1010,13 +1022,13 @@ export function AdminManage() {
                                                             <Pencil className="w-5 h-5" />
                                                         </button>
                                                     )}
-                                                    {activeTab === 'Interviews' && (
+                                                    {(activeTab === 'Interviews' || activeTab === 'Agenda') && (
                                                         <button
                                                             onClick={() => {
                                                                 setActivePhotoId(item.id);
                                                                 setIsImageModalOpen(true);
                                                             }}
-                                                            className="p-3 text-gray-500 hover:text-neon-pink hover:bg-neon-pink/10 rounded-xl transition-all"
+                                                            className={`p-3 text-gray-500 hover:bg-opacity-10 rounded-xl transition-all ${activeTab === 'Agenda' ? 'hover:text-neon-yellow hover:bg-neon-yellow' : 'hover:text-neon-pink hover:bg-neon-pink'}`}
                                                             title="Changer uniquement la photo"
                                                         >
                                                             <Camera className="w-5 h-5" />
@@ -1097,6 +1109,23 @@ export function AdminManage() {
                     </div>
                 )}
             </div>
+
+            <ConfirmationModal
+                isOpen={imageChangeTarget !== null}
+                title="Modifier l'image"
+                message={`Voulez-vous changer l'image de "${imageChangeTarget?.title}" ?`}
+                confirmLabel="Changer l'image"
+                cancelLabel="Annuler"
+                onConfirm={() => {
+                    if (imageChangeTarget) {
+                        setActivePhotoId(imageChangeTarget.id);
+                        setIsImageModalOpen(true);
+                    }
+                    setImageChangeTarget(null);
+                }}
+                onCancel={() => setImageChangeTarget(null)}
+                accentColor="neon-yellow"
+            />
 
             <ConfirmationModal
                 isOpen={deleteTarget !== null}
