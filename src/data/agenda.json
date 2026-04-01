@@ -5883,5 +5883,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 535,
+    "title": "EDC Week : Gryffin",
+    "date": "2026-05-15",
+    "startDate": "2026-05-15",
+    "endDate": "2026-05-15",
+    "venue": "Encore Beach Club",
+    "location": "LAS VEGAS",
+    "country": "ÉTATS-UNIS D'AMÉRIQUE",
+    "type": "Events",
+    "image": "/uploads/uploads/c80d3bea30eb03a1-EDC_1080x1350_EBC_Gryffin_640x.jpg",
+    "url": "https://edcweek.frontgatetickets.com/event/dvxuzlcu5w9frnup",
+    "genre": "Big Room",
+    "month": "MAI",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
