@@ -4178,79 +4178,6 @@ export function AdminDashboard() {
                     )}
                 </AnimatePresence>
 
-                {/* Modal Messagerie */}
-                <AnimatePresence>
-                    {isMessagesModalOpen && (
-                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
-                            <motion.div
-                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                                animate={{ opacity: 1, scale: 1, y: 0 }}
-                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                                className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
-                            >
-                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-orange via-white to-neon-orange" />
-
-                                <div className="flex justify-between items-start mb-12">
-                                    <div>
-                                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
-                                            Gestion <span className="text-neon-orange">Messages</span>
-                                        </h2>
-                                        <p className="text-gray-400 font-medium">Accès directs</p>
-                                    </div>
-                                    <button
-                                        onClick={() => setIsMessagesModalOpen(false)}
-                                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
-                                    >
-                                        <X className="w-6 h-6" />
-                                    </button>
-                                </div>
-
-                                <div className="space-y-4">
-                                    <Link
-                                        to="/admin/messages"
-                                        onClick={() => setIsMessagesModalOpen(false)}
-                                        className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-orange/10 hover:border-neon-orange/50 transition-all group"
-                                    >
-                                        <div className="w-12 h-12 bg-neon-orange/20 rounded-2xl flex items-center justify-center border border-neon-orange/30 group-hover:scale-110 transition-transform flex-shrink-0">
-                                            <Mail className="w-6 h-6 text-neon-orange" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Boîte de réception</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Voir tous les messages</p>
-                                        </div>
-                                    </Link>
-
-                                    <Link
-                                        to="/admin/messages?tab=contact-settings"
-                                        onClick={() => setIsMessagesModalOpen(false)}
-                                        className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-white/10 transition-all group"
-                                    >
-                                        <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform flex-shrink-0">
-                                            <Settings2 className="w-6 h-6 text-white" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Paramètres Contact</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Emails & Destinataires</p>
-                                        </div>
-                                    </Link>
-                                    <Link
-                                        to="/admin/factures"
-                                        onClick={() => setIsMessagesModalOpen(false)}
-                                        className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-pink/10 hover:border-neon-pink/50 transition-all group"
-                                    >
-                                        <div className="w-12 h-12 bg-neon-pink/20 rounded-2xl flex items-center justify-center border border-neon-pink/30 group-hover:scale-110 transition-transform flex-shrink-0">
-                                            <FileText className="w-6 h-6 text-neon-pink" />
-                                        </div>
-                                        <div>
-                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Factures</h3>
-                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer les devis & paiements</p>
-                                        </div>
-                                    </Link>
-                                </div>
-                            </motion.div>
-                        </div>
-                    )}
-                </AnimatePresence>
 
                 {/* Modal Boutique */}
                 <ShopMenuModal 
@@ -4667,7 +4594,7 @@ export function AdminDashboard() {
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                                     <Link
                                         to="/admin/messages"
                                         onClick={() => setIsMessagesModalOpen(false)}
@@ -4687,7 +4614,21 @@ export function AdminDashboard() {
                                         )}
                                     </Link>
 
-                                    {username.toLowerCase() === 'alex' && (
+                                    <Link
+                                        to="/admin/messages?tab=contact-settings"
+                                        onClick={() => setIsMessagesModalOpen(false)}
+                                        className="p-8 bg-white/5 border border-white/10 rounded-[2rem] flex flex-col items-center gap-6 hover:bg-white/10 hover:border-white/50 transition-all group relative"
+                                    >
+                                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center border border-white/10 group-hover:scale-110 transition-transform">
+                                            <Settings2 className="w-8 h-8 text-white" />
+                                        </div>
+                                        <div className="text-center">
+                                            <h3 className="text-xl font-bold text-white uppercase italic">Paramètres Contact</h3>
+                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-[0.2em] leading-none mt-2">Emails & Destinataires</p>
+                                        </div>
+                                    </Link>
+
+                                    {['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr'].includes(username.toLowerCase()) && (
                                         <Link
                                             to="/admin/factures"
                                             onClick={() => setIsMessagesModalOpen(false)}

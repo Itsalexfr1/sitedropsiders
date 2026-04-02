@@ -206,8 +206,12 @@
 
 
 /* --- IMAGES --- */
-.article-premium-wrapper img,
-.article-premium-wrapper picture {
+.article-premium-wrapper .news-page-content-container img,
+.article-premium-wrapper .article-body-premium img,
+.article-body-premium img,
+.article-premium-wrapper .news-page-content-container picture,
+.article-premium-wrapper .article-body-premium picture,
+.article-body-premium picture {
     display: block;
     max-width: 100%;
     height: auto;
@@ -217,7 +221,8 @@
 }
 
 /* Hover effect on images */
-.article-premium-wrapper img:hover {
+.article-premium-wrapper img:hover,
+.article-body-premium img:hover {
     transform: scale(1.02);
     transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 30px 60px -15px rgba(255, 0, 51, 0.2);
@@ -289,17 +294,17 @@
     width: 100% !important;
 }
 
-.grid-cols-2 {
+.grid-photos-premium.grid-cols-2 {
     grid-template-columns: repeat(2, 1fr) !important;
 }
 
-.grid-cols-3 {
+.grid-photos-premium.grid-cols-3 {
     grid-template-columns: repeat(3, 1fr) !important;
 }
 
 @media (max-width: 640px) {
-    .grid-cols-2,
-    .grid-cols-3 {
+    .grid-photos-premium.grid-cols-2,
+    .grid-photos-premium.grid-cols-3 {
         grid-template-columns: 1fr !important;
         gap: 1rem !important;
     }
@@ -310,7 +315,8 @@
 }
 
 /* --- HEADINGS (Inside content) --- */
-.article-premium-wrapper h2 {
+.article-premium-wrapper h2,
+.article-body-premium h2 {
     font-family: var(--font-display, 'Orbitron', monospace);
     font-weight: 800;
     text-transform: uppercase;
@@ -321,14 +327,17 @@
     text-align: center;
 }
 
-.article-premium-wrapper h3 {
+.article-premium-wrapper h3,
+.article-body-premium h3 {
     font-size: 1.5rem;
     color: #e5e7eb;
     /* gray-200 */
     text-align: center;
 }
 
-.article-premium-wrapper .premium-section-title {
+.article-premium-wrapper .premium-section-title,
+.article-body-premium .premium-section-title,
+.premium-section-title {
     color: var(--color-neon-red, #ff0033);
     border-bottom: 2px solid rgba(255, 0, 51, 0.2);
     display: inline-block;
@@ -339,7 +348,8 @@
 }
 
 /* --- LINKS --- */
-.article-premium-wrapper a {
+.article-premium-wrapper a,
+.article-body-premium a {
     color: var(--color-neon-red, #ff0033);
     text-decoration: underline;
     text-underline-offset: 4px;
