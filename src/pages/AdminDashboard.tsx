@@ -66,7 +66,20 @@ export function AdminDashboard() {
     const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
     const [socialLinks, setSocialLinks] = useState({ instagram: '', tiktok: '' });
     const [newsTabs, setNewsTabs] = useState({ all: 'Toutes', news: 'News', musique: 'Musiques', focus: 'Focus de la semaine' });
-    const [navLabels, setNavLabels] = useState({ news: 'News', recaps: 'Récaps', communaute: 'Communauté', voyage: 'Voyage', agenda: 'Agenda', team: 'Team', shop: 'Shop', contact: 'Contact' });
+    const [navLabels, setNavLabels] = useState({ 
+        accueil: 'Accueil',
+        news: 'News', 
+        vols: 'Vols',
+        bus: 'Bus',
+        recaps: 'Récaps', 
+        communaute: 'Communauté', 
+        interviews: 'Interviews',
+        voyage: 'Voyage', 
+        agenda: 'Agenda', 
+        team: 'Team', 
+        shop: 'Shop', 
+        contact: 'Contact' 
+    });
     const [isSavingSocials, setIsSavingSocials] = useState(false);
     const [isThemesModalOpen, setIsThemesModalOpen] = useState(false);
     const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
