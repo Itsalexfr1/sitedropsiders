@@ -6320,5 +6320,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 561,
+    "title": "Ultra Music Festival Miami 2027",
+    "date": "2027-03-26",
+    "startDate": "2027-03-26",
+    "endDate": "2027-03-28",
+    "venue": "Bayfront Park",
+    "location": "MIAMI",
+    "country": "USA",
+    "type": "Festival",
+    "image": "/uploads/uploads/a2eff12639e51739-ultra_miami_27th_ig_post.png",
+    "url": "https://ultramusicfestival.com",
+    "genre": "Multi Styles",
+    "month": "MARS",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
