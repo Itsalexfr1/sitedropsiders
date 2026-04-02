@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video, Settings, User } from 'lucide-react';
+import { X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video, User } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useUser } from '../../context/UserContext';
@@ -13,8 +13,6 @@ import { useTheme } from '../../context/ThemeContext';
 import { getArticleLink, getRecapLink, getAgendaLink, getGalleryLink } from '../../utils/slugify';
 import { FlagIcon } from '../ui/FlagIcon';
 import settings from '../../data/settings.json';
-import { NotificationSettingsModal } from '../NotificationSettingsModal';
-import { Bell } from 'lucide-react';
 
 export function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
@@ -32,7 +30,6 @@ export function Navbar() {
     const [navLabels, setNavLabels] = useState((settings as any).nav_labels || {});
     const isMobile = window.innerWidth < 1024;
     const [isAdmin, setIsAdmin] = useState(false);
-    const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const { isLoggedIn, user } = useUser();
     const [newsData, setNewsData] = useState<any[]>([]);
@@ -284,26 +281,8 @@ export function Navbar() {
                             </button>
                         </div>
 
-                        {/* LE CADRE COMPTE ET NOTIFS - High Visibility */}
+                        {/* LE CADRE COMPTE - High Visibility */}
                         <div className="flex items-center gap-1 bg-gradient-to-r from-neon-red/10 to-neon-purple/10 backdrop-blur-2xl border border-white/20 p-1.5 rounded-[1.5rem] shadow-[0_0_30px_rgba(0,0,0,0.3)] ring-1 ring-white/5 px-2">
-                            {/* Notifications */}
-                            <motion.button
-                                whileHover={{ scale: 1.1 }}
-                                whileTap={{ scale: 0.9 }}
-                                onMouseEnter={playHoverSound}
-                                onClick={() => setIsNotificationModalOpen(true)}
-                                className="p-2.5 text-gray-400 hover:text-neon-red transition-all rounded-xl relative hover:bg-white/10"
-                                title="Notifications"
-                            >
-                                <Bell className="w-5 h-5" />
-                                {'Notification' in window && Notification.permission === 'granted' && (
-                                    <span className="absolute top-2.5 right-2.5 w-2.5 h-2.5 bg-emerald-500 rounded-full border-2 border-dark-bg animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                                )}
-                            </motion.button>
-
-                            {/* Line Separator */}
-                            <div className="w-[1px] h-6 bg-white/10 mx-1" />
-
                             {/* Account Button */}
                             <motion.button
                                 whileHover={{ scale: 1.05 }}
@@ -327,17 +306,6 @@ export function Navbar() {
                                 </span>
                             </motion.button>
 
-                            {/* Settings / Quick Actions */}
-                            <motion.button
-                                whileHover={{ rotate: 90 }}
-                                whileTap={{ scale: 0.9 }}
-                                onMouseEnter={playHoverSound}
-                                onClick={() => navigate('/communaute?tab=NOTIFICATIONS')}
-                                className="p-2.5 text-gray-400 hover:text-neon-red transition-all rounded-xl hover:bg-white/10"
-                                title="Réglages"
-                            >
-                                <Settings className="w-5 h-5" />
-                            </motion.button>
                         </div>
 
                         {isAdmin && (
@@ -551,10 +519,6 @@ export function Navbar() {
                     </motion.div>
                 )}
             </AnimatePresence>
-            <NotificationSettingsModal
-                isOpen={isNotificationModalOpen}
-                onClose={() => setIsNotificationModalOpen(false)}
-            />
             <UserAuthModal
                 isOpen={isUserModalOpen}
                 onClose={() => setIsUserModalOpen(false)}

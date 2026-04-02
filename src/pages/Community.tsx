@@ -6,7 +6,7 @@ import {
     Music, Shield, Palette, Megaphone, Lock,
     RefreshCw, X, Heart, Ticket, Euro,
     Flame, Search, Filter, Globe,
-    Share2, MessageSquare, Wand2, Bell, Instagram, Users as UsersIcon
+    Share2, MessageSquare, Wand2, Instagram, Users as UsersIcon
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { twMerge } from 'tailwind-merge';
@@ -15,11 +15,9 @@ import { QuizSection } from '../components/community/QuizSection';
 import { AvisSection } from '../components/community/AvisSection';
 import { GuideSection } from '../components/community/GuideSection';
 import { CovoitSection } from '../components/community/CovoitSection';
-import { AlertsSection } from '../components/community/AlertsSection';
 import { DjNameGenerator } from '../components/community/DjNameGenerator';
 import { PlaylistSharing } from '../components/community/PlaylistSharing';
 import { TrackIdForum } from '../components/community/TrackIdForum';
-import { NotificationSettings } from '../components/community/NotificationSettings';
 import { useUser } from '../context/UserContext';
 import { useEffect } from 'react';
 
@@ -267,7 +265,7 @@ export function Community() {
     const navigate = useNavigate();
 
     // --- TAB TYPE UPDATE ---
-    type TabType = 'WALL' | 'UPLOADS' | 'CONCOURS' | 'GAME' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'ALERTS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB' | 'NOTIFICATIONS';
+    type TabType = 'WALL' | 'UPLOADS' | 'CONCOURS' | 'GAME' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB';
     const [activeTab, setActiveTab] = useState<TabType>('WALL');
     const location = useLocation();
 
@@ -275,7 +273,7 @@ export function Community() {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const tab = params.get('tab');
-        if (tab && ['WALL', 'UPLOADS', 'CONCOURS', 'GAME', 'AVIS', 'GUIDE', 'COVOIT', 'ALERTS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB', 'NOTIFICATIONS'].includes(tab)) {
+        if (tab && ['WALL', 'UPLOADS', 'CONCOURS', 'GAME', 'AVIS', 'GUIDE', 'COVOIT', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB'].includes(tab)) {
             setActiveTab(tab as TabType);
         }
     }, [location.search]);
@@ -940,7 +938,6 @@ export function Community() {
                                 { id: 'TRACK_ID',      icon: Music,        label: 'TrackID',           multiline: false },
                                 { id: 'PLAYLISTS',     icon: Share2,       label: 'Mixs',              multiline: false },
                                 { id: 'LAB',           icon: Wand2,        label: 'Lab',               multiline: false },
-                                { id: 'NOTIFICATIONS', icon: Bell,         label: 'Alertes',           multiline: false },
                             ] as any[]).filter(tab => !tab.hidden).map((tab) => (
                                 <button
                                     key={tab.id}
@@ -2111,24 +2108,7 @@ export function Community() {
                             </motion.div>
                         )}
 
-                        {(activeTab === 'NOTIFICATIONS' || activeTab === 'ALERTS') && (
-                            <motion.div
-                                key="notifications"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                                className="space-y-16"
-                            >
-                                <NotificationSettings />
-                                <div className="pt-16 border-t border-white/10">
-                                    <div className="text-center mb-12">
-                                        <h3 className="text-2xl font-black text-white italic uppercase tracking-tighter">Alertes Email <span className="text-neon-cyan">Festivals</span></h3>
-                                        <p className="text-gray-400 text-[10px] font-bold uppercase tracking-widest mt-2">Planifiez vos surveillances pour ne rater aucun lineup</p>
-                                    </div>
-                                    <AlertsSection />
-                                </div>
-                            </motion.div>
-                        )}
+
 
                         {activeTab === 'PLAYLISTS' && (
                             <motion.div

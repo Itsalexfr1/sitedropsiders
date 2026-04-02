@@ -3,9 +3,6 @@ import { Sun, Moon, Search } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
 import { useLanguage } from '../../context/LanguageContext';
 import { FlagIcon } from '../ui/FlagIcon';
-import { useState } from 'react';
-import { NotificationSettingsModal } from '../NotificationSettingsModal';
-import { Bell } from 'lucide-react';
 
 interface MobileHeaderProps {
     onOpenSearch: () => void;
@@ -14,7 +11,7 @@ interface MobileHeaderProps {
 export function MobileHeader({ onOpenSearch }: MobileHeaderProps) {
     const { isDarkMode, toggleTheme } = useTheme();
     const { language, setLanguage } = useLanguage();
-    const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+
 
     return (
         <header className="fixed top-0 left-0 right-0 pt-safe bg-dark-bg/80 backdrop-blur-md z-[120] border-b border-white/10 lg:hidden shadow-[0_10px_30px_rgba(0,0,0,0.5)]">
@@ -47,16 +44,7 @@ export function MobileHeader({ onOpenSearch }: MobileHeaderProps) {
                     {isDarkMode ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                 </button>
 
-                {/* Notifications Button */}
-                <button
-                    onClick={() => setIsNotificationModalOpen(true)}
-                    className="p-1.5 text-gray-400 hover:text-neon-red transition-colors rounded-lg hover:bg-white/5 relative"
-                >
-                    <Bell className="w-5 h-5" />
-                    {'Notification' in window && Notification.permission === 'granted' && (
-                        <span className="absolute top-1 right-1 w-2 h-2 bg-emerald-500 rounded-full" />
-                    )}
-                </button>
+
 
                 <div className="w-px h-4 bg-white/20" />
 
@@ -79,10 +67,7 @@ export function MobileHeader({ onOpenSearch }: MobileHeaderProps) {
                 </div>
                 </div>
             </div>
-            <NotificationSettingsModal
-                isOpen={isNotificationModalOpen}
-                onClose={() => setIsNotificationModalOpen(false)}
-            />
+
         </header>
     );
 }
