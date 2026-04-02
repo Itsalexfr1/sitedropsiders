@@ -1,9 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
+// @ts-ignore
 import QRCodeStyling from 'qr-code-styling';
 
 export function QrCodePage() {
     const qrRef = useRef<HTMLDivElement>(null);
-    const qrCode = useRef<QRCodeStyling>();
+    const qrCode = useRef<any>(null);
 
     useEffect(() => {
         qrCode.current = new QRCodeStyling({
