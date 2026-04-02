@@ -87,7 +87,9 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
         };
 
         fetchSettings();
-        const interval = setInterval(fetchSettings, 5000);
+        const interval = setInterval(() => {
+            if (document.visibilityState === 'visible') fetchSettings();
+        }, 5000);
         return () => clearInterval(interval);
     }, []);
 
@@ -120,7 +122,9 @@ export function AgendaWidget({ maxItems = 6, accentColor = 'cyan', resolvedColor
             } catch (err: any) { }
         };
         fetchViewers();
-        const intv = setInterval(fetchViewers, 20000);
+        const intv = setInterval(() => {
+            if (document.visibilityState === 'visible') fetchViewers();
+        }, 20000);
         return () => clearInterval(intv);
     }, [takeoverEnabled, takeoverSettings?.youtubeId]);
 

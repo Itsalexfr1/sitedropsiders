@@ -1359,7 +1359,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }
 
         try {
-            const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=dc6zaTOxFJmzC&q=${encodeURIComponent(query)}&limit=12&rating=g`);
+            const apiKey = import.meta.env.VITE_GIPHY_API_KEY || '';
+            const res = await fetch(`https://api.giphy.com/v1/gifs/search?api_key=${apiKey}&q=${encodeURIComponent(query)}&limit=12&rating=g`);
             const data = await res.json();
             if (data.data) {
                 // Utilisation du format i.giphy.com/${id}.gif qui est plus robuste

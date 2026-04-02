@@ -1,8 +1,8 @@
 // @ts-nocheck
 import webpush from 'web-push';
 
-const VAPID_PUB = 'BKmdLFZTHT-FOkztW1GCCZ0A1V7lcaB6tQAwb5UTIxwOQ8T9PSRrEXADlq1gJ11ft2-P_PzhEDVJdcLFS4pWuEU';
-const VAPID_PRI = 'n2uvSqlfHshW622OW0rSHK0o-BZVfIYtUccZIHMUcAM';
+const VAPID_PUB = '';
+const VAPID_PRI = '';
 
 async function sendPushNotification(env, payload, filterFn = null) {
     if (!env.CHAT_KV) {
@@ -88,12 +88,24 @@ const WIKI_DJS_PATH = 'src/data/wiki_djs.json';
 const WIKI_CLUBS_PATH = 'src/data/wiki_clubs.json';
 const WIKI_FESTIVALS_PATH = 'src/data/wiki_festivals.json';
 
+// Simple un-expiring cache per isolate for performance
+const githubCache = new Map();
+
 async function fetchGitHubFile(filePath, config) {
     const { OWNER, REPO, TOKEN } = config;
     if (!TOKEN) return null;
+    
+    // Check in-memory cache first
+    const cacheKey = `${OWNER}/${REPO}/${filePath}`;
+    // If we want a 60s cache:
+    const cached = githubCache.get(cacheKey);
+    if (cached && (Date.now() - cached.time < 60000)) {
+        return cached.data;
+    }
+
     const getUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}?t=${Date.now()}`;
     const response = await fetch(getUrl, {
-        headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json', 'Cache-Control': 'no-cache' }
+        headers: { 'Authorization': `Bearer ${TOKEN}`, 'User-Agent': 'Cloudflare-Worker', 'Accept': 'application/vnd.github.v3+json' }
     });
     const fileData = await response.json();
     if (!response.ok) {
@@ -118,7 +130,10 @@ async function fetchGitHubFile(filePath, config) {
                 .replace(/Ã /g, 'à').replace(/Ã©/g, 'é').replace(/Ã¨/g, 'è')
                 .replace(/Â /g, ' ').replace(/â€™/g, "'");
         }
-        return { content: JSON.parse(content), sha: fileData.sha, rawData: fileData };
+        const result = { content: JSON.parse(content), sha: fileData.sha, rawData: fileData };
+        // Save to cache
+        githubCache.set(cacheKey, { time: Date.now(), data: result });
+        return result;
     } catch (e) {
         return { content: [], sha: fileData.sha, rawData: fileData };
     }
@@ -329,7 +344,7 @@ ${urls.map(u => `  <url>
 
         // --- API: SCRAPINGBEE CREDITS PROXY ---
         if (path === '/api/proxy-scrapingbee-usage' && request.method === 'GET') {
-            const SB_KEY = env.SCRAPINGBEE_API_KEY || 'GNOH62OMJTZUVJCH4ITXB4CANAIV0250UHXI9WR4QH1M93XMR96WOBP2057PHLEH8C7RIFRSBPXN4RYV';
+            const SB_KEY = env.SCRAPINGBEE_API_KEY || '';
             try {
                 const sbRes = await fetch(`https://app.scrapingbee.com/api/v1/usage?api_key=${SB_KEY}`);
                 if (!sbRes.ok) return new Response(JSON.stringify({ error: 'ScrapingBee API error' }), { status: 502, headers });
@@ -450,7 +465,7 @@ ${urls.map(u => `  <url>
             const takeover = settingsFile?.content?.takeover || {};
 
             // 2. Try AudD (Simple and effective)
-            const auddToken = takeover.auddToken || '0707d622c51645acc2e4fa26ed64538d';
+            const auddToken = takeover.auddToken || env.AUDD_TOKEN || '';
             if (auddToken) {
                 const auddForm = new FormData();
                 auddForm.append('api_token', auddToken);
