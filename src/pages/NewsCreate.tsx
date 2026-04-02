@@ -423,7 +423,7 @@ export function NewsCreate() {
         width: 100
     });
     const [showUploadModal, setShowUploadModal] = useState(false);
-    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo1' | 'duo2' | 'interview-media', index?: number, widgetId?: string, interviewBlockId?: string, initialImage?: string, allowMultiple?: boolean }>({ type: 'main' });
+    const [uploadTarget, setUploadTarget] = useState<{ type: 'main' | 'widget' | 'widget-edit' | 'duo-image' | 'interview-media', index?: number, widgetId?: string, interviewBlockId?: string, initialImage?: string, allowMultiple?: boolean }>({ type: 'main' });
     const [isFeatured, setIsFeatured] = useState(false);
     const [showVideo, setShowVideo] = useState(type !== 'Interview' || (type === 'Interview' && (searchParams.get('subtype') === 'video')));
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
@@ -439,7 +439,7 @@ export function NewsCreate() {
         soundcloud: '',
         beatport: ''
     });
-    const [duoModal, setDuoModal] = useState({ show: false, url1: '', url2: '', widgetIndex: undefined as number | undefined, widgetId: undefined as string | undefined, aspectRatio: '3/4' });
+    const [duoModal, setDuoModal] = useState({ show: false, urls: ['', ''], widgetIndex: undefined as number | undefined, widgetId: undefined as string | undefined, aspectRatio: '3/4' });
     const [isLoading, setIsLoading] = useState(isEditing && !editingItem);
     const [suggestedTitles, setSuggestedTitles] = useState<string[]>([]);
     const [videoStartTime, setVideoStartTime] = useState<number>(0);
@@ -2223,7 +2223,7 @@ ${generateSocialsHtml()}
                                     </button>
                                     <button
                                         type="button"
-                                        onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
+                                        onClick={() => setDuoModal({ show: true, urls: ['', ''], widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
                                         className="whitespace-nowrap flex items-center gap-2 px-3 py-2 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-full hover:bg-neon-purple/30 transition-all font-bold uppercase tracking-widest text-[9px]"
                                     >
                                         <Columns className="w-3 h-3" /> Duo
@@ -2488,8 +2488,7 @@ ${generateSocialsHtml()}
                                                                     const extracted = extractDuoUrls(widget.content);
                                                                     setDuoModal({
                                                                         show: true,
-                                                                        url1: extracted.urls[0] || '',
-                                                                        url2: extracted.urls[1] || '',
+                                                                        urls: extracted.urls,
                                                                         widgetIndex: undefined,
                                                                         widgetId: widget.id,
                                                                         aspectRatio: extracted.ratio
@@ -2687,7 +2686,7 @@ ${generateSocialsHtml()}
                                                 </button>
                                                 <button
                                                     type="button"
-                                                    onClick={() => setDuoModal({ show: true, url1: '', url2: '', widgetIndex: index, widgetId: undefined, aspectRatio: '3/4' })}
+                                                    onClick={() => setDuoModal({ show: true, urls: ['', ''], widgetIndex: index, widgetId: undefined, aspectRatio: '3/4' })}
                                                     className="w-8 h-8 rounded-full bg-neon-purple/10 border border-neon-purple/30 text-neon-purple flex items-center justify-center hover:bg-neon-purple/20 transition-all"
                                                     title="Ajouter un Duo Photo ici"
                                                 >
@@ -3731,6 +3730,12 @@ ${generateSocialsHtml()}
                         const imgWidget = `<div class="image-premium-wrapper w-full relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12 group">\n  ${mediaTag}\n</div>`;
                         addWidget(uploadTarget.index, imgWidget);
                         setShowUploadModal(false);
+                    } else if (uploadTarget.type === 'duo-image' as any) {
+                        const actualUrl = Array.isArray(url) ? url[0] : url;
+                        const newUrls = [...duoModal.urls];
+                        newUrls[uploadTarget.index!] = actualUrl;
+                        setDuoModal(prev => ({ ...prev, urls: newUrls }));
+                        setShowUploadModal(false);
                     } else {
                         // Final fallback
                         setShowUploadModal(false);
@@ -3739,10 +3744,10 @@ ${generateSocialsHtml()}
                 onClear={() => {
                     if (uploadTarget.type === 'main') {
                         setImageUrl('');
-                    } else if (uploadTarget.type === 'duo1' as any) {
-                        setDuoModal(prev => ({ ...prev, url1: '' }));
-                    } else if (uploadTarget.type === 'duo2' as any) {
-                        setDuoModal(prev => ({ ...prev, url2: '' }));
+                    } else if (uploadTarget.type === 'duo-image' as any) {
+                        const newUrls = [...duoModal.urls];
+                        newUrls[uploadTarget.index!] = '';
+                        setDuoModal(prev => ({ ...prev, urls: newUrls }));
                     } else if (uploadTarget.type === 'interview-media') {
                         setInterviewQuestions(prev => prev.map(q => q.id === uploadTarget.interviewBlockId ? { ...q, mediaUrl: '' } : q));
                     } else if (uploadTarget.type === 'widget-edit' as any) {
@@ -3754,7 +3759,7 @@ ${generateSocialsHtml()}
                 accentColor={type === 'Interview' ? 'neon-purple' : 'neon-red'}
             />
 
-            {/* Duo Photos Modal */}
+            {/* Duo/Grid Photos Modal */}
             <AnimatePresence>
                 {duoModal.show && (
                     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
@@ -3762,89 +3767,72 @@ ${generateSocialsHtml()}
                             initial={{ opacity: 0, scale: 0.95 }}
                             animate={{ opacity: 1, scale: 1 }}
                             exit={{ opacity: 0, scale: 0.95 }}
-                            className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-md w-full shadow-2xl relative"
+                            className="bg-dark-bg border border-white/10 rounded-3xl p-8 max-w-xl w-full shadow-2xl relative"
                         >
                             <button
-                                onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
+                                onClick={() => setDuoModal({ show: false, urls: ['', ''], widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
                                 className="absolute top-4 right-4 p-2 text-gray-500 hover:text-white transition-colors"
                             >
                                 <X className="w-5 h-5" />
                             </button>
 
-                            <h3 className="text-xl font-display font-black text-white uppercase italic mb-6">Ajouter Duo Photos</h3>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Image Gauche (URL)</label>
-                                    <div className="flex gap-2">
-                                        <div className="flex-1 relative group/input">
-                                            <input
-                                                type="text"
-                                                value={duoModal.url1}
-                                                onChange={e => setDuoModal({ ...duoModal, url1: e.target.value })}
-                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 pr-10 text-white outline-none focus:border-neon-purple transition-all"
-                                                placeholder="https://..."
-                                                autoFocus
-                                            />
-                                            {duoModal.url1 && (
+                            <h2 className="text-xl font-display font-black text-white uppercase italic mb-6">Ajouter Duo/Grid Photos</h2>
+                            <div className="space-y-6 max-h-[60vh] overflow-y-auto pr-2 no-scrollbar">
+                                {duoModal.urls.map((url, idx) => (
+                                    <div key={idx} className="p-4 bg-white/[0.02] border border-white/5 rounded-2xl">
+                                        <div className="flex items-center justify-between mb-2">
+                                            <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest">Image {idx + 1} (URL)</label>
+                                            {duoModal.urls.length > 2 && (
                                                 <button
-                                                    type="button"
-                                                    onClick={() => setDuoModal({ ...duoModal, url1: '' })}
-                                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500 transition-colors"
-                                                    title="Effacer"
+                                                    onClick={() => {
+                                                        const newUrls = duoModal.urls.filter((_, i) => i !== idx);
+                                                        setDuoModal({ ...duoModal, urls: newUrls });
+                                                    }}
+                                                    className="text-red-500 hover:text-red-400 p-1 transition-colors"
                                                 >
                                                     <Trash2 className="w-3.5 h-3.5" />
                                                 </button>
                                             )}
                                         </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setUploadTarget({ type: 'duo1' as any, initialImage: duoModal.url1 });
-                                                setShowUploadModal(true);
-                                            }}
-                                            className="px-4 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-xl font-bold text-[10px] uppercase hover:bg-neon-purple/30 transition-all font-black"
-                                        >
-                                            Upload
-                                        </button>
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Image Droite (URL)</label>
-                                    <div className="flex gap-2">
-                                        <div className="flex-1 relative group/input">
-                                            <input
-                                                type="text"
-                                                value={duoModal.url2}
-                                                onChange={e => setDuoModal({ ...duoModal, url2: e.target.value })}
-                                                className="w-full bg-black/40 border border-white/10 rounded-xl p-3 pr-10 text-white outline-none focus:border-neon-purple transition-all"
-                                                placeholder="https://..."
-                                            />
-                                            {duoModal.url2 && (
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setDuoModal({ ...duoModal, url2: '' })}
-                                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 text-gray-500 hover:text-red-500 transition-colors"
-                                                    title="Effacer"
-                                                >
-                                                    <Trash2 className="w-3.5 h-3.5" />
-                                                </button>
-                                            )}
+                                        <div className="flex gap-2">
+                                            <div className="flex-1 relative group/input">
+                                                <input
+                                                    type="text"
+                                                    value={url}
+                                                    onChange={e => {
+                                                        const newUrls = [...duoModal.urls];
+                                                        newUrls[idx] = e.target.value;
+                                                        setDuoModal({ ...duoModal, urls: newUrls });
+                                                    }}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl p-3 pr-10 text-white outline-none focus:border-neon-purple transition-all text-xs"
+                                                    placeholder="https://..."
+                                                />
+                                            </div>
+                                            <button
+                                                type="button"
+                                                onClick={() => {
+                                                    setUploadTarget({ type: 'duo-image' as any, index: idx, initialImage: url });
+                                                    setShowUploadModal(true);
+                                                }}
+                                                className="px-4 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-xl font-bold text-[10px] uppercase hover:bg-neon-purple/30 transition-all font-black"
+                                            >
+                                                Upload
+                                            </button>
                                         </div>
-                                        <button
-                                            type="button"
-                                            onClick={() => {
-                                                setUploadTarget({ type: 'duo2' as any, initialImage: duoModal.url2 });
-                                                setShowUploadModal(true);
-                                            }}
-                                            className="px-4 bg-neon-purple/20 border border-neon-purple/30 text-neon-purple rounded-xl font-bold text-[10px] uppercase hover:bg-neon-purple/30 transition-all font-black"
-                                        >
-                                            Upload
-                                        </button>
                                     </div>
-                                </div>
+                                ))}
+
+                                {duoModal.urls.length < 6 && (
+                                    <button
+                                        onClick={() => setDuoModal({ ...duoModal, urls: [...duoModal.urls, ''] })}
+                                        className="w-full py-4 rounded-xl border border-dashed border-white/10 text-gray-500 hover:text-white hover:border-white/20 transition-all flex items-center justify-center gap-2 text-[10px] font-black uppercase tracking-widest"
+                                    >
+                                        <Plus className="w-4 h-4" /> Ajouter une image
+                                    </button>
+                                )}
 
                                 <div>
-                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Format du duo</label>
+                                    <label className="block text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Format des images</label>
                                     <div className="grid grid-cols-3 gap-2">
                                         {['1/1', '3/4', '16/9'].map(ratio => (
                                             <button
@@ -3860,36 +3848,44 @@ ${generateSocialsHtml()}
                                 </div>
                                 <div className="flex gap-4 pt-4">
                                     <button
-                                        onClick={() => setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
+                                        onClick={() => setDuoModal({ show: false, urls: ['', ''], widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' })}
                                         className="flex-1 py-3 rounded-xl border border-white/10 text-gray-500 font-bold uppercase tracking-widest text-[10px] hover:bg-white/5 transition-all"
                                     >
                                         Annuler
                                     </button>
                                     <button
                                         onClick={() => {
-                                            if (!duoModal.url1 || !duoModal.url2) return;
+                                            const activeUrls = duoModal.urls.filter(u => u.trim());
+                                            if (activeUrls.length < 2) return;
 
-                                            const isV1 = duoModal.url1.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || duoModal.url1.includes('/video/upload/');
-                                            const isV2 = duoModal.url2.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || duoModal.url2.includes('/video/upload/');
+                                            const mediaItems = activeUrls.map((url, idx) => {
+                                                const isV = url.toLowerCase().match(/\.(mp4|webm|ogg|mov)$/) || url.includes('/video/upload/');
+                                                return isV
+                                                    ? `<video src="${url}" autoplay loop muted playsinline class="w-full aspect-[${duoModal.aspectRatio}] object-cover"></video>`
+                                                    : `<img src="${url}" alt="Grid item ${idx + 1}" class="w-full aspect-[${duoModal.aspectRatio}] object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
+                                            });
 
-                                            const media1 = isV1
-                                                ? `<video src="${duoModal.url1}" autoplay loop muted playsinline class="w-full aspect-[${duoModal.aspectRatio}] object-cover"></video>`
-                                                : `<img src="${duoModal.url1}" alt="Portrait 1" class="w-full aspect-[${duoModal.aspectRatio}] object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
+                                            // Determine layout classes based on item count
+                                            let layoutClasses = "duo-photos-premium flex flex-row gap-4 my-12";
+                                            let itemClasses = "image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group flex-1";
+                                            
+                                            if (activeUrls.length > 2) {
+                                                // Grid layout for 3+ items
+                                                const gridCols = activeUrls.length === 2 ? 'grid-cols-2' : activeUrls.length === 3 ? 'grid-cols-3' : activeUrls.length === 4 ? 'grid-cols-2' : 'grid-cols-3';
+                                                layoutClasses = `grid-photos-premium grid ${gridCols} gap-4 my-12`;
+                                                itemClasses = "image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group";
+                                            }
 
-                                            const media2 = isV2
-                                                ? `<video src="${duoModal.url2}" autoplay loop muted playsinline class="w-full aspect-[${duoModal.aspectRatio}] object-cover"></video>`
-                                                : `<img src="${duoModal.url2}" alt="Portrait 2" class="w-full aspect-[${duoModal.aspectRatio}] object-cover transform group-hover:scale-105 transition-transform duration-700" />`;
-
-                                            const duoWidget = `<div class="duo-photos-premium flex flex-row gap-4 my-12">\n  <div class="image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group flex-1">\n    ${media1}\n  </div>\n  <div class="image-premium-wrapper relative rounded-3xl overflow-hidden shadow-2xl border border-white/5 group flex-1">\n    ${media2}\n  </div>\n</div>`;
+                                            const gridWidget = `<div class="${layoutClasses}">\n  ${mediaItems.map(m => `<div class="${itemClasses}">\n    ${m}\n  </div>`).join('\n  ')}\n</div>`;
 
                                             if (duoModal.widgetId) {
-                                                updateWidget(duoModal.widgetId, duoWidget);
+                                                updateWidget(duoModal.widgetId, gridWidget);
                                             } else if (duoModal.widgetIndex !== undefined) {
-                                                addWidget(duoModal.widgetIndex, duoWidget);
+                                                addWidget(duoModal.widgetIndex, gridWidget);
                                             } else {
-                                                setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: duoWidget }]);
+                                                setWidgets([...widgets, { id: Math.random().toString(36).substr(2, 9), content: gridWidget }]);
                                             }
-                                            setDuoModal({ show: false, url1: '', url2: '', widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' });
+                                            setDuoModal({ show: false, urls: ['', ''], widgetIndex: undefined, widgetId: undefined, aspectRatio: '3/4' });
                                         }}
                                         className="flex-1 py-3 rounded-xl bg-neon-purple text-white font-bold uppercase tracking-widest text-[10px] shadow-[0_0_15px_rgba(189,0,255,0.4)] hover:scale-105 transition-all"
                                     >
