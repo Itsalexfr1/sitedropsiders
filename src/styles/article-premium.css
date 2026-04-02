@@ -499,13 +499,13 @@
     }
 
     .article-body-premium p {
-        font-size: 1.5rem; /* Augmenté de 50% (1rem * 1.5) */
+        font-size: 0.95rem; /* Reduced text by 50% */
         line-height: 1.7;
         margin-bottom: 25px !important;
     }
 
     .article-premium-wrapper h1.premium-h1 {
-        font-size: 2.5rem !important;
+        font-size: 1.75rem !important; /* Reduced title size */
     }
 
     .article-premium-wrapper .drop-cap,

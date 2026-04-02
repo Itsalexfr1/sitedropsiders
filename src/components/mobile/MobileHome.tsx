@@ -3,6 +3,8 @@ import { Newspaper, TrendingUp, Calendar, MapPin, Play, MessageSquare, Camera } 
 import { getArticleLink, getAgendaLink, getRecapLink, getGalleryLink } from '../../utils/slugify';
 import { resolveImageUrl } from '../../utils/image';
 import { useLanguage } from '../../context/LanguageContext';
+import { translateText } from '../../utils/translate';
+import { standardizeContent } from '../../utils/standardizer';
 import { useMemo, useState, useEffect } from 'react';
 
 export function MobileHome() {
@@ -11,6 +13,7 @@ export function MobileHome() {
     const [agendaData, setAgendaData] = useState<any[]>([]);
     const [recapsData, setRecapsData] = useState<any[]>([]);
     const [galerieData, setGalerieData] = useState<any[]>([]);
+    const [translatedTitles, setTranslatedTitles] = useState<Record<string, string>>({});
 
     useEffect(() => {
         const fetchAll = async () => {
@@ -101,6 +104,22 @@ export function MobileHome() {
             .slice(0, 8);
     }, [agendaData]);
 
+    useEffect(() => {
+        if (language === 'en') {
+            const items = [...featuredNews, ...newsHighlight, ...recapsHighlight, ...upcomingEvents, ...interviewsHighlight];
+            Promise.all(
+                items.map((item: any) =>
+                    translateText(item.title, 'en').then(translated => ({ id: `${item.contentType || 'item'}-${item.id}`, title: translated }))
+                )
+            ).then(results => {
+                const titleMap: Record<string, string> = { ...translatedTitles };
+                results.forEach((res: any) => {
+                    titleMap[res.id] = res.title;
+                });
+                setTranslatedTitles(titleMap);
+            });
+        }
+    }, [language, featuredNews, newsHighlight, recapsHighlight, upcomingEvents, interviewsHighlight]);
 
 
     return (
@@ -138,9 +157,10 @@ export function MobileHome() {
                                 <span className="text-xs font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
-                                <h3 className="text-2xl sm:text-3xl font-display font-black text-white italic leading-[1.1] uppercase line-clamp-4 drop-shadow-2xl">
-                                    {news.title}
-                                </h3>
+                                <h3 
+                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white italic leading-[1.1] uppercase line-clamp-4 drop-shadow-2xl group-active:text-neon-red transition-colors"
+                                    dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[`item-${news.id}`] || news.title) : news.title) }}
+                                />
                             </div>
                         </Link>
                     ))}
@@ -179,7 +199,10 @@ export function MobileHome() {
                                 <span className="text-xs font-black text-neon-red uppercase tracking-[0.2em]">{news.category}</span>
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
-                                <h3 className="text-2xl sm:text-3xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl">{news.title}</h3>
+                                <h3 
+                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl group-active:text-neon-red transition-colors"
+                                    dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[`item-${news.id}`] || news.title) : news.title) }}
+                                />
                                 <div className="flex items-center gap-3 text-white/60">
                                     <div className="w-2 h-2 bg-white/40 rounded-full" />
                                     <span className="text-xs font-bold uppercase tracking-widest">{news.date}</span>
@@ -225,9 +248,10 @@ export function MobileHome() {
                                 <div className="w-2 h-2 bg-neon-cyan rounded-full animate-pulse shadow-[0_0_10px_rgba(34,211,238,0.8)]" />
                                 {new Date(event.date || event.startDate || 0).toLocaleDateString(language === 'fr' ? 'fr-FR' : 'en-US', { day: '2-digit', month: 'short' }).toUpperCase()}
                             </div>
-                            <h3 className="text-2xl font-black text-white uppercase italic mb-6 leading-[1.1] relative z-10 drop-shadow-2xl line-clamp-3">
-                                {event.title}
-                            </h3>
+                            <h3 
+                                className="text-[1.25rem] sm:text-2xl font-black text-white uppercase italic mb-6 leading-[1.1] relative z-10 drop-shadow-2xl line-clamp-3 group-active:text-neon-cyan transition-colors"
+                                dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[`item-${event.id}`] || event.title) : event.title) }}
+                            />
                             <div className="flex items-center gap-3 text-gray-200 relative z-10 bg-dark-bg/40 w-fit px-4 py-3 rounded-2xl backdrop-blur-md border border-white/10 shadow-lg">
                                 <MapPin className="w-5 h-5 text-neon-cyan" />
                                 <span className="text-xs font-black uppercase truncate max-w-[200px]">{event.location}</span>
@@ -280,7 +304,10 @@ export function MobileHome() {
                             </div>
 
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
-                                <h3 className="text-2xl sm:text-3xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl">{recap.title}</h3>
+                                <h3 
+                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl group-active:text-neon-purple transition-colors"
+                                    dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[`${recap.contentType}-${recap.id}`] || recap.title) : recap.title) }}
+                                />
                                 <div className="flex items-center gap-3 text-white/60">
                                     <div className="w-2 h-2 bg-white/40 rounded-full" />
                                     <span className="text-xs font-bold uppercase tracking-widest">
@@ -329,7 +356,10 @@ export function MobileHome() {
                                 <span className="text-xs font-black text-neon-blue uppercase tracking-[0.2em]">{interview.category}</span>
                             </div>
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
-                                <h3 className="text-2xl sm:text-3xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl">{interview.title}</h3>
+                                <h3 
+                                    className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl group-active:text-neon-blue transition-colors"
+                                    dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[`item-${interview.id}`] || interview.title) : interview.title) }}
+                                />
                                 <div className="flex items-center gap-3 text-white/60">
                                     <div className="w-2 h-2 bg-white/40 rounded-full" />
                                     <span className="text-xs font-bold uppercase tracking-widest">{interview.date}</span>
