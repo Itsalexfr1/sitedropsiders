@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Edit2, Loader2, Filter, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Edit2, Loader2, Filter, ArrowRight, Calendar, Film } from 'lucide-react';
 import { useHoverSound } from '../hooks/useHoverSound';
 import { useLanguage } from '../context/LanguageContext';
 import { getArticleLink } from '../utils/slugify';
@@ -32,10 +32,12 @@ export function News() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [activeTab, setActiveTab] = useState<TabKey>('all');
     const [tabs, setTabs] = useState(DEFAULT_TABS);
+    const [agendaData, setAgendaData] = useState<any[]>([]);
+    const [recapsData, setRecapsData] = useState<any[]>([]);
 
     useEffect(() => {
         setIsAdmin(localStorage.getItem('admin_auth') === 'true');
-        
+
         const fetchNews = async () => {
             try {
                 const res = await fetch('/api/news');
@@ -65,7 +67,35 @@ export function News() {
             }
         };
         fetchSettings();
+
+        const fetchAgenda = async () => {
+            try {
+                const res = await fetch('/api/agenda');
+                if (res.ok) {
+                    const data = await res.json();
+                    const now = new Date();
+                    const upcoming = (Array.isArray(data) ? data : [])
+                        .filter((e: any) => e.startDate && new Date(e.startDate) >= now)
+                        .sort((a: any, b: any) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime())
+                        .slice(0, 3);
+                    setAgendaData(upcoming);
+                }
+            } catch (e) { /* silent */ }
+        };
+        fetchAgenda();
+
+        const fetchRecaps = async () => {
+            try {
+                const res = await fetch('/api/recaps');
+                if (res.ok) {
+                    const data = await res.json();
+                    setRecapsData((Array.isArray(data) ? data : []).slice(0, 3));
+                }
+            } catch (e) { /* silent */ }
+        };
+        fetchRecaps();
     }, []);
+
     const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
 
     const handleEdit = async (item: any) => {
@@ -92,11 +122,8 @@ export function News() {
 
     const handlePrefetch = (id: number | string) => {
         try {
-            // Fetch content in background to populate browser cache
             fetch(`/api/news/content?id=${id}`);
-        } catch (e) {
-            // Ignore prefetch errors
-        }
+        } catch (e) { }
     };
 
     const articlesPerPage = 8;
@@ -104,23 +131,19 @@ export function News() {
     const [translatedTitles, setTranslatedTitles] = useState<Record<number, string>>({});
     const [translatedSummaries, setTranslatedSummaries] = useState<Record<number, string>>({});
 
-    // All news/musique/focus articles (base pool)
     const baseNews = useMemo(() => {
-        // Safe check for newsData being an array
         if (!Array.isArray(newsData)) return [];
-
         return newsData
             .filter((item: any) => {
                 if (!item) return false;
-                // Removed the restrictive 'today' filter to ensure all published news are visible
                 const cat = (item.category || '').toLowerCase();
-                return cat.includes('news') || 
-                       cat.includes('musique') || 
-                       cat.includes('music') || 
-                       cat.includes('actu') || 
-                       cat.includes('festival') || 
-                       cat.includes('artist') ||
-                       item.isFocus;
+                return cat.includes('news') ||
+                    cat.includes('musique') ||
+                    cat.includes('music') ||
+                    cat.includes('actu') ||
+                    cat.includes('festival') ||
+                    cat.includes('artist') ||
+                    item.isFocus;
             })
             .sort((a, b) => {
                 const dateA = new Date(a.date).getTime();
@@ -129,7 +152,6 @@ export function News() {
             });
     }, [newsData]);
 
-    // Filter based on current tab
     const filteredNews = useMemo(() => {
         if (activeTab === 'all') return baseNews;
         if (activeTab === 'news') return baseNews.filter((item: any) => {
@@ -144,7 +166,6 @@ export function News() {
         return baseNews;
     }, [activeTab, baseNews]);
 
-    // Reset page when tab changes
     useEffect(() => {
         setCurrentPage(1);
     }, [activeTab]);
@@ -181,7 +202,6 @@ export function News() {
     }, [language, currentPage, filteredNews]);
 
     const totalPages = Math.ceil(filteredNews.length / articlesPerPage);
-
     const startIndex = (currentPage - 1) * articlesPerPage;
     const currentArticles = filteredNews.slice(startIndex, startIndex + articlesPerPage);
 
@@ -214,13 +234,235 @@ export function News() {
         })
     };
 
+    // Hero news: first featured or most recent article
+    const heroArticle = useMemo(() => {
+        const featured = baseNews.find((a: any) => a.isFocus || a.isFeatured);
+        return featured || baseNews[0];
+    }, [baseNews]);
+
+    // Other news for mobile scroll: all except hero
+    const otherNews = useMemo(() => {
+        if (!heroArticle) return baseNews.slice(0, 12);
+        return baseNews.filter((a: any) => a.id !== heroArticle.id).slice(0, 12);
+    }, [baseNews, heroArticle]);
+
     return (
         <>
             <SEO
                 title="Actualités Festivals"
                 description="Toute l'actualité des festivals EDM, Techno et House. News, sorties et exclusivités."
             />
-            <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 pt-24 pb-12 sm:pt-12">
+
+            {/* ══════════════════════════════════════════
+                MOBILE LAYOUT (hidden on md+)
+            ══════════════════════════════════════════ */}
+            <div className="md:hidden min-h-screen pb-28">
+
+                {/* Logo */}
+                <div className="flex justify-center pt-16 pb-4 px-4">
+                    <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
+                        <img
+                            src="/Logo.png"
+                            alt="DROPSIDERS"
+                            className="h-10 w-auto object-contain"
+                        />
+                    </Link>
+                </div>
+
+                {/* ── Section : NEWS À LA UNE ── */}
+                <div className="px-4 mb-6">
+                    <div className="flex items-center gap-2 mb-3">
+                        <div className="w-1 h-5 bg-neon-red rounded-full" />
+                        <span className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em]">
+                            News à la une
+                        </span>
+                    </div>
+
+                    {heroArticle ? (
+                        <Link to={getArticleLink(heroArticle)} onMouseEnter={() => handlePrefetch(heroArticle.id)} className="block relative rounded-3xl overflow-hidden aspect-[16/9] group">
+                            <img
+                                src={resolveImageUrl(heroArticle.image || heroArticle.cover)}
+                                alt={heroArticle.title}
+                                className="w-full h-full object-cover transition-transform duration-700 group-active:scale-105"
+                                onError={(e) => {
+                                    (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                }}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/50 to-transparent" />
+                            {isAdmin && (
+                                <button
+                                    onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEdit(heroArticle); }}
+                                    disabled={loadingEditId === heroArticle.id}
+                                    className="absolute top-3 right-3 z-20 p-2 bg-black/60 backdrop-blur-md rounded-xl border border-neon-cyan/50 text-neon-cyan disabled:opacity-50"
+                                >
+                                    {loadingEditId === heroArticle.id ? <Loader2 className="w-4 h-4 animate-spin" /> : <Edit2 className="w-4 h-4" />}
+                                </button>
+                            )}
+                            <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+                                <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border backdrop-blur-md mb-2 inline-block ${heroArticle.isFocus ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30' : 'bg-neon-red/20 text-neon-red border-neon-red/30'}`}>
+                                    {heroArticle.isFocus ? '⭐ FOCUS' : heroArticle.category}
+                                </span>
+                                <h2
+                                    className="text-xl font-display font-black text-white italic uppercase leading-tight tracking-tight line-clamp-3"
+                                    dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[heroArticle.id] || heroArticle.title) }}
+                                />
+                                <span className="text-white/50 text-[10px] font-bold mt-1 block">{heroArticle.date?.split('T')[0]}</span>
+                            </div>
+                        </Link>
+                    ) : (
+                        <div className="rounded-3xl bg-white/5 border border-white/10 aspect-[16/9] flex items-center justify-center">
+                            <Loader2 className="w-8 h-8 text-white/20 animate-spin" />
+                        </div>
+                    )}
+                </div>
+
+                {/* ── Section : AUTRES NEWS (scroll horizontal) ── */}
+                <div className="mb-6">
+                    <div className="flex items-center justify-between px-4 mb-3">
+                        <div className="flex items-center gap-2">
+                            <div className="w-1 h-5 bg-white/40 rounded-full" />
+                            <span className="text-[10px] font-black text-white/70 uppercase tracking-[0.3em]">
+                                Autres News
+                            </span>
+                        </div>
+                        <Link to="/news" className="text-[9px] font-black text-neon-red uppercase tracking-widest flex items-center gap-1">
+                            Voir tout <ArrowRight className="w-3 h-3" />
+                        </Link>
+                    </div>
+
+                    <div className="flex overflow-x-auto no-scrollbar gap-3 px-4 snap-x snap-mandatory">
+                        {otherNews.length > 0 ? otherNews.map((item: any) => (
+                            <Link
+                                key={item.id}
+                                to={getArticleLink(item)}
+                                onMouseEnter={() => handlePrefetch(item.id)}
+                                className="relative flex-shrink-0 w-[55vw] snap-center rounded-2xl overflow-hidden aspect-[3/4] group"
+                            >
+                                <img
+                                    src={resolveImageUrl(item.image || item.cover)}
+                                    alt={item.title}
+                                    className="w-full h-full object-cover transition-transform duration-500 group-active:scale-105"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                    }}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/40 to-transparent" />
+                                {isAdmin && (
+                                    <button
+                                        onClick={(e) => { e.preventDefault(); e.stopPropagation(); handleEdit(item); }}
+                                        disabled={loadingEditId === item.id}
+                                        className="absolute top-2 right-2 z-20 p-1.5 bg-black/60 backdrop-blur-md rounded-lg border border-neon-cyan/50 text-neon-cyan disabled:opacity-50"
+                                    >
+                                        {loadingEditId === item.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <Edit2 className="w-3 h-3" />}
+                                    </button>
+                                )}
+                                <div className="absolute bottom-0 left-0 right-0 p-3 z-10">
+                                    <span className={`text-[8px] font-black px-2 py-0.5 rounded-md border backdrop-blur-md mb-1.5 inline-block ${(item.category || '').toLowerCase().includes('musique') ? 'bg-neon-green/20 text-neon-green border-neon-green/30' : 'bg-neon-red/20 text-neon-red border-neon-red/30'}`}>
+                                        {item.category}
+                                    </span>
+                                    <h3
+                                        className="text-sm font-display font-black text-white italic uppercase leading-tight line-clamp-3"
+                                        dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
+                                    />
+                                </div>
+                            </Link>
+                        )) : (
+                            Array.from({ length: 4 }).map((_, i) => (
+                                <div key={i} className="flex-shrink-0 w-[55vw] snap-center rounded-2xl bg-white/5 border border-white/10 aspect-[3/4] animate-pulse" />
+                            ))
+                        )}
+                    </div>
+                </div>
+
+                {/* ── Section : AGENDA ── */}
+                <div className="px-4 mb-6">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <Calendar className="w-4 h-4 text-neon-green" />
+                            <span className="text-[10px] font-black text-neon-green uppercase tracking-[0.3em]">
+                                Agenda
+                            </span>
+                        </div>
+                        <Link to="/agenda" className="text-[9px] font-black text-neon-green uppercase tracking-widest flex items-center gap-1">
+                            Voir tout <ArrowRight className="w-3 h-3" />
+                        </Link>
+                    </div>
+
+                    <div className="space-y-2">
+                        {agendaData.length > 0 ? agendaData.map((event: any) => (
+                            <Link key={event.id} to="/agenda" className="flex items-center gap-3 p-3 rounded-2xl bg-white/[0.03] border border-white/5 active:bg-white/10 transition-colors">
+                                {event.image ? (
+                                    <img src={resolveImageUrl(event.image)} alt={event.name} className="w-12 h-12 rounded-xl object-cover flex-shrink-0" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                                ) : (
+                                    <div className="w-12 h-12 rounded-xl bg-neon-green/10 border border-neon-green/20 flex items-center justify-center flex-shrink-0">
+                                        <Calendar className="w-5 h-5 text-neon-green" />
+                                    </div>
+                                )}
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-white text-sm font-black uppercase truncate">{event.name || event.title}</p>
+                                    <p className="text-gray-500 text-[10px] font-bold">{event.startDate?.split('T')[0]} {event.location ? `• ${event.location}` : ''}</p>
+                                </div>
+                                <ArrowRight className="w-4 h-4 text-white/20 flex-shrink-0" />
+                            </Link>
+                        )) : (
+                            <Link to="/agenda" className="flex items-center justify-center gap-3 p-4 rounded-2xl bg-neon-green/5 border border-neon-green/15 active:bg-neon-green/10 transition-colors">
+                                <Calendar className="w-5 h-5 text-neon-green" />
+                                <span className="text-neon-green text-sm font-black uppercase tracking-wider">Voir l'agenda complet</span>
+                                <ArrowRight className="w-4 h-4 text-neon-green" />
+                            </Link>
+                        )}
+                    </div>
+                </div>
+
+                {/* ── Section : RECAPS ── */}
+                <div className="px-4 mb-4">
+                    <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                            <Film className="w-4 h-4 text-neon-purple" />
+                            <span className="text-[10px] font-black text-neon-purple uppercase tracking-[0.3em]">
+                                Recaps
+                            </span>
+                        </div>
+                        <Link to="/recaps" className="text-[9px] font-black text-neon-purple uppercase tracking-widest flex items-center gap-1">
+                            Voir tout <ArrowRight className="w-3 h-3" />
+                        </Link>
+                    </div>
+
+                    <div className="flex overflow-x-auto no-scrollbar gap-3 snap-x snap-mandatory">
+                        {recapsData.length > 0 ? recapsData.map((recap: any) => (
+                            <Link
+                                key={recap.id}
+                                to={`/recaps/${recap.id}`}
+                                className="relative flex-shrink-0 w-[55vw] snap-center rounded-2xl overflow-hidden aspect-video group"
+                            >
+                                <img
+                                    src={resolveImageUrl(recap.image || recap.cover)}
+                                    alt={recap.title}
+                                    className="w-full h-full object-cover"
+                                    onError={(e) => {
+                                        (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
+                                    }}
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                                <div className="absolute bottom-0 left-0 right-0 p-3">
+                                    <p className="text-white text-xs font-black uppercase line-clamp-2 italic">{recap.title}</p>
+                                </div>
+                            </Link>
+                        )) : (
+                            <Link to="/recaps" className="flex-shrink-0 w-full flex items-center justify-center gap-3 p-4 rounded-2xl bg-purple-500/5 border border-purple-500/15 active:bg-purple-500/10 transition-colors">
+                                <Film className="w-5 h-5 text-neon-purple" />
+                                <span className="text-neon-purple text-sm font-black uppercase tracking-wider">Voir les récaps</span>
+                                <ArrowRight className="w-4 h-4 text-neon-purple" />
+                            </Link>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            {/* ══════════════════════════════════════════
+                DESKTOP LAYOUT (hidden on mobile) — INCHANGÉ
+            ══════════════════════════════════════════ */}
+            <div className="hidden md:block w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 pt-24 pb-12 sm:pt-12">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -332,41 +574,11 @@ export function News() {
                                                     )}
                                                 </button>
                                             )}
-                                            <Link 
-                                                to={getArticleLink(item)} 
+                                            <Link
+                                                to={getArticleLink(item)}
                                                 className="absolute inset-0 md:static block w-full h-full"
                                                 onMouseEnter={() => handlePrefetch(item.id)}
                                             >
-                                                {/* Mobile Variant */}
-                                                <div className="absolute inset-0 md:hidden">
-                                                        <img
-                                                            src={resolveImageUrl(item.image || item.cover)}
-                                                            alt={item.title}
-                                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-                                                            onError={(e) => {
-                                                                (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1514525253344-f814d074e015?q=80&w=1933&auto=format&fit=crop';
-                                                            }}
-                                                        />
-                                                    <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
-                                                    <div className="absolute inset-0 p-6 flex flex-col justify-end text-left z-10">
-                                                        <div className="flex items-center justify-between mb-4">
-                                                            <span className={`text-[10px] font-black px-3 py-1.5 rounded-xl border backdrop-blur-md ${item.isFocus
-                                                                ? 'bg-yellow-500/20 text-yellow-500 border-yellow-500/30'
-                                                                : (item.category || '').toLowerCase() === 'musique'
-                                                                    ? 'bg-neon-green/20 text-neon-green border-neon-green/30'
-                                                                    : 'bg-neon-red/20 text-neon-red border-neon-red/30'
-                                                                }`}>
-                                                                {item.isFocus ? t('article_detail.focus').toUpperCase() : item.category}
-                                                            </span>
-                                                            <span className="text-white/60 text-[10px] font-black uppercase tracking-widest">{item.date}</span>
-                                                        </div>
-                                                        <h2
-                                                            className="text-2xl sm:text-3xl font-display font-black text-white italic uppercase leading-tight tracking-tight line-clamp-4 shadow-black drop-shadow-lg"
-                                                            dangerouslySetInnerHTML={{ __html: standardizeContent(translatedTitles[item.id] || item.title) }}
-                                                        />
-                                                    </div>
-                                                </div>
-
                                                 {/* Desktop Variant */}
                                                 <div className="hidden md:flex flex-col h-full overflow-hidden">
                                                     <div className="h-64 overflow-hidden bg-black/40 relative">
@@ -448,6 +660,7 @@ export function News() {
                     onPageChange={handlePageChange}
                 />
             </div>
+
             <AdminEditBar
                 pageName="News & Articles"
                 pageActions={[
