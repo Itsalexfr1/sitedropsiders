@@ -17,6 +17,7 @@ export function MobileNavbar() {
     const [isAdmin, setIsAdmin] = useState(false);
     const [isUserModalOpen, setIsUserModalOpen] = useState(false);
     const { isLoggedIn, user } = useUser();
+    const [navLabels, setNavLabels] = useState((settings as any).nav_labels || {});
 
     useEffect(() => {
         const auth = localStorage.getItem('admin_auth');
@@ -29,6 +30,9 @@ export function MobileNavbar() {
                     const data = await response.json();
                     setTakeoverEnabled(data.takeover?.enabled || false);
                     setTakeoverStatus(data.takeover?.status || 'off');
+                    if (data.nav_labels) {
+                        setNavLabels(data.nav_labels);
+                    }
                 }
             } catch (e) { }
         };
@@ -38,16 +42,16 @@ export function MobileNavbar() {
     const isLiveActive = takeoverEnabled && takeoverStatus === 'live';
 
     const mainItems = [
-        { icon: Home, label: 'Accueil', path: '/' },
-        { icon: Newspaper, label: 'News', path: '/news' },
+        { icon: Home, label: navLabels.accueil || 'Accueil', path: '/' },
+        { icon: Newspaper, label: navLabels.news || 'News', path: '/news' },
         {
             icon: isLiveActive ? Video : Users,
-            label: isLiveActive ? 'LIVE' : 'Communaute',
+            label: isLiveActive ? 'LIVE' : (navLabels.communaute || 'Communaute'),
             path: isLiveActive ? '/live' : '/communaute',
             isCenter: true,
             color: isLiveActive ? 'neon-red' : 'neon-pink'
         },
-        { icon: Calendar, label: 'Agenda', path: '/agenda' },
+        { icon: Calendar, label: navLabels.agenda || 'Agenda', path: '/agenda' },
         {
             icon: MoreHorizontal,
             label: 'Plus',
@@ -58,11 +62,11 @@ export function MobileNavbar() {
 
     const menuItems = [
         // Live moved to center if active
-        { icon: Plane, label: t('nav.voyage'), path: '/voyage', color: 'text-neon-green' },
-        { icon: Newspaper, label: t('nav.recaps'), path: '/recaps', color: 'text-neon-purple' },
-        { icon: Info, label: t('nav.interviews'), path: '/interviews', color: 'text-neon-blue' },
-        { icon: Users, label: t('nav.team'), path: '/team', color: 'text-neon-yellow' },
-        { icon: ShoppingBag, label: t('nav.shop'), path: '/shop', color: 'text-neon-red' },
+        { icon: Plane, label: navLabels.voyage || t('nav.voyage'), path: '/voyage', color: 'text-neon-green' },
+        { icon: Newspaper, label: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'text-neon-purple' },
+        { icon: Info, label: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'text-neon-blue' },
+        { icon: Users, label: navLabels.team || t('nav.team'), path: '/team', color: 'text-neon-yellow' },
+        { icon: ShoppingBag, label: navLabels.shop || t('nav.shop'), path: '/shop', color: 'text-neon-red' },
         { icon: Settings, label: 'Alertes', path: '/communaute?tab=NOTIFICATIONS', color: 'text-neon-cyan' },
         { icon: User, label: isLoggedIn ? (user?.username || 'Compte') : 'Compte', path: '#', onClick: () => setIsUserModalOpen(true), color: isLoggedIn ? 'text-neon-red shadow-[0_0_15px_rgba(255,0,51,0.4)]' : 'text-gray-400' },
         ...(isAdmin ? [{ icon: Shield, label: 'Admin', path: '/admin', color: 'text-white' }] : [])

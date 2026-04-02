@@ -29,6 +29,7 @@ export function Navbar() {
     const [shopPasswordProtected, setShopPasswordProtected] = useState((settings as any).shop_password_protected || false);
     const [takeoverEnabled, setTakeoverEnabled] = useState(settings.takeover?.enabled || false);
     const [takeoverSettings, setTakeoverSettings] = useState(settings.takeover);
+    const [navLabels, setNavLabels] = useState((settings as any).nav_labels || {});
     const isMobile = window.innerWidth < 1024;
     const [isAdmin, setIsAdmin] = useState(false);
     const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
@@ -82,6 +83,9 @@ export function Navbar() {
                         setTakeoverEnabled(data.takeover.enabled);
                         setTakeoverSettings(data.takeover);
                     }
+                    if (data.nav_labels) {
+                        setNavLabels(data.nav_labels);
+                    }
                 }
             } catch (e: any) {
                 // Keep default
@@ -91,15 +95,15 @@ export function Navbar() {
     }, []);
 
     const navItems = [
-        { name: t('nav.news'), path: '/news', color: 'neon-red' },
-        { name: t('nav.vols'), path: '/voyage/vols', color: 'neon-green' },
-        { name: t('nav.bus'), path: '/voyage/bus', color: 'neon-green' },
-        { name: t('nav.recaps'), path: '/recaps', color: 'neon-purple' },
-        { name: t('nav.agenda'), path: '/agenda', color: 'neon-cyan' },
-        { name: t('nav.communaute'), path: '/communaute', color: 'neon-pink' },
-        { name: t('nav.interviews'), path: '/interviews', color: 'neon-blue' },
-        { name: t('nav.team'), path: '/team', color: 'neon-yellow' },
-        ...(shopEnabled && !shopPasswordProtected ? [{ name: t('nav.shop'), path: '/shop', color: 'neon-red' }] : []),
+        { name: navLabels.news || t('nav.news'), path: '/news', color: 'neon-red' },
+        { name: navLabels.vols || t('nav.vols'), path: '/voyage/vols', color: 'neon-green' },
+        { name: navLabels.bus || t('nav.bus'), path: '/voyage/bus', color: 'neon-green' },
+        { name: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'neon-purple' },
+        { name: navLabels.agenda || t('nav.agenda'), path: '/agenda', color: 'neon-cyan' },
+        { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-pink' },
+        { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'neon-blue' },
+        { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-yellow' },
+        ...(shopEnabled && !shopPasswordProtected ? [{ name: navLabels.shop || t('nav.shop'), path: '/shop', color: 'neon-red' }] : []),
         ...(((takeoverEnabled && (takeoverSettings as any)?.status === 'live')) && ((takeoverSettings as any)?.showInNavbar !== false) ? [{
             name: 'LIVE',
             path: '/live',

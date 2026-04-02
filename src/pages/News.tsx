@@ -16,7 +16,7 @@ import { Plus, FileText } from 'lucide-react';
 
 type TabKey = 'all' | 'news' | 'musique' | 'focus';
 
-const TABS: { key: TabKey; label: string; activeClass: string; inactiveClass: string }[] = [
+const DEFAULT_TABS: { key: TabKey; label: string; activeClass: string; inactiveClass: string }[] = [
     { key: 'all', label: 'Toutes', activeClass: 'bg-white text-black shadow-[0_0_20px_rgba(255,255,255,0.3)]', inactiveClass: 'text-white/40 border-white/10 hover:border-white/30 hover:text-white' },
     { key: 'news', label: 'News', activeClass: 'bg-neon-red text-white shadow-[0_0_20px_rgba(255,17,17,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-red/40 hover:text-neon-red' },
     { key: 'musique', label: 'Musiques', activeClass: 'bg-neon-green text-white shadow-[0_0_20px_rgba(17,255,17,0.4)]', inactiveClass: 'text-white/40 border-white/10 hover:border-neon-green/40 hover:text-neon-green' },
@@ -31,6 +31,7 @@ export function News() {
     const [direction, setDirection] = useState(0);
     const [isAdmin, setIsAdmin] = useState(false);
     const [activeTab, setActiveTab] = useState<TabKey>('all');
+    const [tabs, setTabs] = useState(DEFAULT_TABS);
 
     useEffect(() => {
         setIsAdmin(localStorage.getItem('admin_auth') === 'true');
@@ -46,6 +47,24 @@ export function News() {
             }
         };
         fetchNews();
+
+        const fetchSettings = async () => {
+            try {
+                const res = await fetch('/api/settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.news_tabs) {
+                        setTabs(prev => prev.map(tab => ({
+                            ...tab,
+                            label: data.news_tabs[tab.key] || tab.label
+                        })));
+                    }
+                }
+            } catch (e) {
+                console.error('Error fetching settings:', e);
+            }
+        };
+        fetchSettings();
     }, []);
     const [loadingEditId, setLoadingEditId] = useState<number | null>(null);
 
@@ -235,7 +254,7 @@ export function News() {
                             <Filter className="w-4 h-4" />
                             <span className="text-[10px] font-black uppercase tracking-[0.2em]">{t('galerie.filter_by')}</span>
                         </div>
-                        {TABS.map((tab) => {
+                        {tabs.map((tab) => {
                             const isActive = activeTab === tab.key;
                             return (
                                 <motion.button

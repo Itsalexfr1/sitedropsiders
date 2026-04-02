@@ -64,6 +64,11 @@ export function AdminDashboard() {
     const [isEditorsModalOpen, setIsEditorsModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
+    const [socialLinks, setSocialLinks] = useState({ instagram: '', tiktok: '' });
+    const [newsTabs, setNewsTabs] = useState({ all: 'Toutes', news: 'News', musique: 'Musiques', focus: 'Focus de la semaine' });
+    const [navLabels, setNavLabels] = useState({ news: 'News', recaps: 'Récaps', communaute: 'Communauté', voyage: 'Voyage', agenda: 'Agenda', team: 'Team', shop: 'Shop', contact: 'Contact' });
+    const [isSavingSocials, setIsSavingSocials] = useState(false);
+    const [isThemesModalOpen, setIsThemesModalOpen] = useState(false);
     const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
     const [moderationTab, setModerationTab] = useState<'photos' | 'wiki'>('photos');
     const [isPubliModalOpen, setIsPubliModalOpen] = useState(false);
@@ -163,6 +168,26 @@ export function AdminDashboard() {
     };
 
     useEffect(() => {
+        const fetchSettings = async () => {
+            try {
+                const res = await fetch('/api/settings');
+                if (res.ok) {
+                    const data = await res.json();
+                    if (data.socials) {
+                        setSocialLinks(data.socials);
+                    }
+                    if (data.news_tabs) {
+                        setNewsTabs(data.news_tabs);
+                    }
+                    if (data.nav_labels) {
+                        setNavLabels(data.nav_labels);
+                    }
+                }
+            } catch (e) {
+                console.error("Failed to fetch settings", e);
+            }
+        };
+
         const fetchSbCredits = async () => {
             try {
                 const res = await fetch('/api/proxy-scrapingbee-usage');
@@ -174,6 +199,8 @@ export function AdminDashboard() {
                 // Silence - not critical
             }
         };
+
+        fetchSettings();
         fetchSbCredits();
     }, []);
 
@@ -233,6 +260,31 @@ export function AdminDashboard() {
             console.error("Failed to delete objects", e);
         } finally {
             setIsR2Loading(false);
+        }
+    };
+
+    const handleSaveSocials = async () => {
+        setIsSavingSocials(true);
+        try {
+            const res = await apiFetch('/api/settings/update', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({
+                    socials: socialLinks,
+                    news_tabs: newsTabs,
+                    nav_labels: navLabels
+                })
+            });
+            if (res.ok) {
+                setGlobalAlert({ message: "Settings updated successfully!", type: 'info' });
+            } else {
+                setGlobalAlert({ message: "Error updating settings.", type: 'danger' });
+            }
+        } catch (e) {
+            console.error(e);
+            setGlobalAlert({ message: "Network error.", type: 'danger' });
+        } finally {
+            setIsSavingSocials(false);
         }
     };
 
@@ -4233,6 +4285,176 @@ export function AdminDashboard() {
                                             <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Gérer les sections & le live</p>
                                         </div>
                                     </Link>
+
+                                    <button
+                                        onClick={() => {
+                                            setIsThemesModalOpen(true);
+                                            setIsAccueilModalOpen(false);
+                                        }}
+                                        className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-purple/10 hover:border-neon-purple/50 transition-all group"
+                                    >
+                                        <div className="w-12 h-12 bg-neon-purple/20 rounded-2xl flex items-center justify-center border border-neon-purple/30 group-hover:scale-110 transition-transform flex-shrink-0">
+                                            <Pencil className="w-6 h-6 text-neon-purple" />
+                                        </div>
+                                        <div>
+                                            <h3 className="text-xl font-bold text-white uppercase italic mb-1">Noms des Thèmes</h3>
+                                            <p className="text-xs text-gray-500 font-bold uppercase tracking-widest">Modifier les labels en haut de page</p>
+                                        </div>
+                                    </button>
+
+                                    <div className="p-6 bg-white/5 border border-white/10 rounded-3xl space-y-6">
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <Instagram className="w-5 h-5 text-neon-pink" />
+                                            <h3 className="text-lg font-bold text-white uppercase italic">Liens Sociaux</h3>
+                                        </div>
+                                        
+                                        <div className="space-y-4">
+                                            <div>
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2 px-1">Instagram (@handle ou lien complet)</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={socialLinks.instagram}
+                                                    onChange={e => setSocialLinks({ ...socialLinks, instagram: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-bold focus:border-neon-pink transition-all"
+                                                    placeholder="dropsiders.eu"
+                                                />
+                                            </div>
+                                            <div>
+                                                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2 px-1">TikTok (@handle ou lien complet)</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={socialLinks.tiktok}
+                                                    onChange={e => setSocialLinks({ ...socialLinks, tiktok: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-bold focus:border-neon-cyan transition-all"
+                                                    placeholder="@dropsiders.eu"
+                                                />
+                                            </div>
+                                            
+                                            <button 
+                                                onClick={handleSaveSocials}
+                                                disabled={isSavingSocials}
+                                                className="w-full py-4 bg-neon-blue text-white font-black uppercase italic tracking-[0.2em] text-[11px] rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+                                            >
+                                                {isSavingSocials ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                                                METTRE À JOUR LES RÉSEAUX
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </motion.div>
+                        </div>
+                    )}
+                </AnimatePresence>
+
+                {/* Modal Thèmes/Labels */}
+                <AnimatePresence>
+                    {isThemesModalOpen && (
+                        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/90 backdrop-blur-xl">
+                            <motion.div
+                                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                                animate={{ opacity: 1, scale: 1, y: 0 }}
+                                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                                className="bg-dark-bg border border-white/10 rounded-[3rem] p-10 max-w-xl w-full shadow-2xl relative overflow-hidden"
+                            >
+                                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-purple via-white to-neon-purple" />
+
+                                <div className="flex justify-between items-start mb-12">
+                                    <div>
+                                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter mb-2">
+                                            Labels <span className="text-neon-purple">& Thèmes</span>
+                                        </h2>
+                                        <p className="text-gray-400 font-medium">Renommer les catégories du site</p>
+                                    </div>
+                                    <button
+                                        onClick={() => setIsThemesModalOpen(false)}
+                                        className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"
+                                    >
+                                        <X className="w-6 h-6" />
+                                    </button>
+                                </div>
+
+                                <div className="space-y-6">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2 px-1">Toutes les actus</label>
+                                            <input 
+                                                type="text" 
+                                                value={newsTabs.all}
+                                                onChange={e => setNewsTabs({ ...newsTabs, all: e.target.value })}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-bold focus:border-neon-purple transition-all"
+                                                placeholder="Toutes"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2 px-1">News</label>
+                                            <input 
+                                                type="text" 
+                                                value={newsTabs.news}
+                                                onChange={e => setNewsTabs({ ...newsTabs, news: e.target.value })}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-bold focus:border-neon-purple transition-all"
+                                                placeholder="News"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2 px-1">Musiques</label>
+                                            <input 
+                                                type="text" 
+                                                value={newsTabs.musique}
+                                                onChange={e => setNewsTabs({ ...newsTabs, musique: e.target.value })}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-bold focus:border-neon-purple transition-all"
+                                                placeholder="Musiques"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block mb-2 px-1">Focus</label>
+                                            <input 
+                                                type="text" 
+                                                value={newsTabs.focus}
+                                                onChange={e => setNewsTabs({ ...newsTabs, focus: e.target.value })}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-sm font-bold focus:border-neon-purple transition-all"
+                                                placeholder="Focus de la semaine"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    <button 
+                                        onClick={handleSaveSocials}
+                                        disabled={isSavingSocials}
+                                        className="w-full py-4 bg-neon-purple text-white font-black uppercase italic tracking-[0.2em] text-[11px] rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 mt-4 shadow-[0_0_20px_rgba(191,0,255,0.3)] shadow-neon-purple/20"
+                                    >
+                                        {isSavingSocials ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                                        ENREGISTRER LES MODIFICATIONS
+                                    </button>
+                                </div>
+                                
+                                <div className="mt-8 pt-8 border-t border-white/5 space-y-6">
+                                    <div className="flex items-center gap-3 mb-2">
+                                        <LayoutDashboard className="w-5 h-5 text-neon-blue" />
+                                        <h3 className="text-xl font-bold text-white uppercase italic">Navigation Principale</h3>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4">
+                                        {Object.entries(navLabels).map(([key, value]) => (
+                                            <div key={key}>
+                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest block mb-2 px-1">{key}</label>
+                                                <input 
+                                                    type="text" 
+                                                    value={value}
+                                                    onChange={e => setNavLabels({ ...navLabels, [key]: e.target.value })}
+                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white text-xs font-bold focus:border-neon-blue transition-all"
+                                                />
+                                            </div>
+                                        ))}
+                                    </div>
+                                    
+                                    <button 
+                                        onClick={handleSaveSocials}
+                                        disabled={isSavingSocials}
+                                        className="w-full py-4 bg-neon-blue text-white font-black uppercase italic tracking-[0.2em] text-[11px] rounded-2xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 mt-2 shadow-[0_0_20px_rgba(0,186,255,0.2)] shadow-neon-blue/20"
+                                    >
+                                        {isSavingSocials ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                                        ENREGISTRER LA NAVIGATION
+                                    </button>
                                 </div>
                             </motion.div>
                         </div>

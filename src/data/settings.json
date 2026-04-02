@@ -36,6 +36,22 @@
   },
   "shop_password": "",
   "kit_media_password": "dropsiders",
+  "news_tabs": {
+    "all": "Toutes",
+    "news": "News",
+    "musique": "Musiques",
+    "focus": "Focus de la semaine"
+  },
+  "nav_labels": {
+    "news": "News",
+    "recaps": "Récaps",
+    "communaute": "Communauté",
+    "voyage": "Voyage",
+    "agenda": "Agenda",
+    "team": "Team",
+    "shop": "Shop",
+    "contact": "Contact"
+  },
   "announcement_banner": {
     "enabled": true,
     "text": "BIENVENUE SUR DROPSIDERS V2 - LA PLATEFORME INTERACTIVE  CONSACRÉE AUX FESTIVALS ET A LA MUSIQUE ELECTRONIQUE - RECRUTEMENT OUVERT ",
