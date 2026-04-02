@@ -56,6 +56,7 @@ const Contact = lazyRetry(() => import('./pages/Contact').then(m => m.Contact));
 const PhotoSubmission = lazyRetry(() => import('./pages/PhotoSubmission').then(m => m.PhotoSubmission));
 const SocialStudioPage = lazyRetry(() => import('./pages/SocialStudioPage').then(m => m.SocialStudioPage));
 const Community = lazyRetry(() => import('./pages/Community').then(m => m.Community));
+const QrCodePage = lazyRetry(() => import('./pages/QrCodePage').then(m => m.QrCodePage));
 
 function ErrorFallback() {
   return (
@@ -162,6 +163,7 @@ const router = createBrowserRouter([
       { path: "kit-media", element: <KitMedia /> },
       { path: "clips", element: <ClipsPage /> },
       { path: "contact", element: <Contact /> },
+      { path: "qr", element: <QrCodePage /> },
 
       // Admin Routes
       { path: "admin", element: <AdminDashboard /> },
