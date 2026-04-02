@@ -1309,7 +1309,7 @@ ${urlList.map(u => `  <div class="aspect-square relative overflow-hidden rounded
     };
 
     const handleSubmit = async (_publishNow = false, scheduleDate?: string) => {
-        let finalDate = scheduleDate || (_publishNow ? new Date().toISOString().slice(0, 16) : date);
+        let finalDate = scheduleDate || ((_publishNow && !isEditing) ? new Date().toISOString().slice(0, 16) : date);
 
         const isInterviewVideo = type === 'Interview' && interviewSubtype === 'video';
 
