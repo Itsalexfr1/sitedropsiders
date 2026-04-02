@@ -126,9 +126,9 @@
 }
 
 .article-body-premium p {
-    font-size: 0.95rem; /* Reduced from 1.125rem */
-    line-height: 1.6; /* Reduced from 1.8 */
-    margin-bottom: 35px !important; /* Reduced from 45px */
+    font-size: 1.425rem; /* Augmenté de 50% (0.95rem * 1.5) */
+    line-height: 1.8;
+    margin-bottom: 35px !important;
     color: #d1d5db;
     font-weight: 300;
     text-align: center !important;
@@ -157,6 +157,7 @@
 }
 
 .article-body-premium li {
+    font-size: 1.425rem; /* Augmenté de 50% */
     text-align: center !important;
     list-style: none;
     margin-bottom: 12px;
@@ -460,8 +461,8 @@
     }
 
     .article-body-premium p {
-        font-size: 1rem;
-        line-height: 1.6;
+        font-size: 1.5rem; /* Augmenté de 50% (1rem * 1.5) */
+        line-height: 1.7;
         margin-bottom: 25px !important;
     }
 
