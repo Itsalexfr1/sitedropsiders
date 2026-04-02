@@ -440,7 +440,7 @@ export function NewsCreate() {
         beatport: ''
     });
     const [duoModal, setDuoModal] = useState({ show: false, urls: ['', ''], widgetIndex: undefined as number | undefined, widgetId: undefined as string | undefined, aspectRatio: '3/4' });
-    const [isLoading, setIsLoading] = useState(isEditing && !editingItem);
+    const [isLoading, setIsLoading] = useState(isEditing);
     const [suggestedTitles, setSuggestedTitles] = useState<string[]>([]);
     const [videoStartTime, setVideoStartTime] = useState<number>(0);
     const [videoAutoplay, setVideoAutoplay] = useState<boolean>(false);
@@ -1604,7 +1604,7 @@ ${generateSocialsHtml()}
                                     <div className="flex items-center gap-2 px-3 py-1 bg-white/5 border border-white/10 rounded-full backdrop-blur-md">
                                         <User className="w-3 h-3 text-gray-500" />
                                         <span className="text-[9px] font-black text-white/60 uppercase tracking-widest">
-                                            Éditeur : <span style={getAuthorTextStyle(((editorsData as any[]).find(e => e.name === author)?.username || author).toLowerCase())}>{author}</span>
+                                            Éditeur : <span style={getAuthorTextStyle(((editorsData as any[]).find(e => e.name === author)?.username || author || '').toLowerCase())}>{author}</span>
                                         </span>
                                         {isAuthorConfirmed ? (
                                             <CheckCircle2 className="w-3 h-3 text-neon-green ml-1" />
