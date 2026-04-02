@@ -6301,5 +6301,24 @@
     "isSoldOut": false,
     "isLiveDropsiders": false,
     "additionalDates": []
+  },
+  {
+    "id": 560,
+    "title": "ANOTR",
+    "date": "2026-06-14",
+    "startDate": "2026-06-14",
+    "endDate": "2026-06-14",
+    "venue": "UNVRS",
+    "location": "IBIZA",
+    "country": "ESPAGNE",
+    "type": "Events",
+    "image": "/uploads/uploads/bdb774d2b460bfe9-d9e43a82_d29f_405f_9605_225f03.webp",
+    "url": "https://www.unvrs.com/events/2026/anotr?utm_source=ActiveCampaign&utm_medium=email&utm_campaign=UNVRS+-+ANOTR+LAUNCH+PARTY&utm_content=ANOTR+For+One+Night+Only",
+    "genre": "Tech House",
+    "month": "JUIN",
+    "isWeekly": false,
+    "isSoldOut": false,
+    "isLiveDropsiders": false,
+    "additionalDates": []
   }
 ]
