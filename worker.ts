@@ -3245,7 +3245,7 @@ ${urls.map(u => `  <url>
             if (!BREVO_KEY) return new Response(JSON.stringify({ error: 'Brevo API Key missing' }), { status: 500, headers });
             try {
                 const body = await request.json().catch(() => ({}));
-                const { to, from, name, subject, message } = body;
+                const { to, from, name, subject, message, lang } = body;
                 if (!to || !subject || !message) {
                     return new Response(JSON.stringify({ error: 'Missing required fields (to, subject, message)' }), { status: 400, headers });
                 }
@@ -3277,13 +3277,13 @@ ${urls.map(u => `  <url>
                                     <div style="margin-top:40px; background:#000000; border:1px solid #333333; border-top:4px solid #ff0033; border-radius:18px; overflow:hidden; box-shadow: 0 10px 40px rgba(0,0,0,0.8);">
                                         <div style="padding:25px 10px; text-align:center;">
                                             <div style="color:#ffffff; font-size:15px; font-weight:900; font-family:'Arial Black', sans-serif; text-transform:uppercase; font-style:italic; margin-bottom:8px; letter-spacing:-0.5px;">
-                                                Cordialement,<br>
-                                                L'équipe <span style="color:#ff0033;">Dropsiders</span>
+                                                ${lang === 'EN' ? 'Best regards,' : 'Cordialement,'}<br>
+                                                ${lang === 'EN' ? 'The <span style="color:#ff0033;">Dropsiders</span> Team' : "L'équipe <span style=\"color:#ff0033;\">Dropsiders</span>"}
                                             </div>
                                             
                                             <!-- CATEGORIES BAR -->
                                             <div style="color:#ff0033; font-size:7.5px; font-weight:900; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:20px; border-bottom:1px solid #222; padding-bottom:12px; line-height:1.4; white-space: nowrap;">
-                                                NEWS&nbsp;·&nbsp;RÉCAPS&nbsp;·&nbsp;INTERVIEWS&nbsp;·&nbsp;CONCOURS
+                                                ${lang === 'EN' ? 'NEWS&nbsp;·&nbsp;RECAPS&nbsp;·&nbsp;INTERVIEWS&nbsp;·&nbsp;CONTESTS' : 'NEWS&nbsp;·&nbsp;RÉCAPS&nbsp;·&nbsp;INTERVIEWS&nbsp;·&nbsp;CONCOURS'}
                                             </div>
                                             
                                             <!-- ACTIONS GRID -->
@@ -3316,7 +3316,7 @@ ${urls.map(u => `  <url>
                                 </div>
                                 <div style="background:#000000; padding:18px; text-align:center; border-top:1px solid #222;">
                                     <p style="color:#333; font-size:8px; margin:0; font-weight:bold; letter-spacing:1px; text-transform:uppercase;">
-                                        DROPSIDERS · TOUTE L'ACTU DES FESTIVALS
+                                        ${lang === 'EN' ? 'DROPSIDERS · COMPREHENSIVE FESTIVAL COVERAGE' : "DROPSIDERS · TOUTE L'ACTU DES FESTIVALS"}
                                     </p>
                                 </div>
                             </div>

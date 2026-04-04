@@ -148,7 +148,8 @@ export function AdminMessages() {
                     from: senderEmail,
                     name: isNewMail ? 'Partenaire' : selected?.name,
                     subject: isNewMail ? mailSubject : `Re: ${selected?.subject}`,
-                    message: replyBody
+                    message: replyBody,
+                    lang: accreditationLang
                 })
             });
 
@@ -892,27 +893,25 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                         </div>
                                     )}
 
-                                    {isNewMail && (
-                                        <div className="flex items-center justify-between">
-                                            <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">
-                                                Langue :
-                                            </span>
-                                            <div className="flex bg-black/40 rounded-lg p-1 border border-white/5">
-                                                <button
-                                                    onClick={() => setAccreditationLang('FR')}
-                                                    className={`px-3 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'FR' ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
-                                                >
-                                                    FR
-                                                </button>
-                                                <button
-                                                    onClick={() => setAccreditationLang('EN')}
-                                                    className={`px-3 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'EN' ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
-                                                >
-                                                    EN
-                                                </button>
-                                            </div>
+                                    <div className="flex items-center justify-between">
+                                        <span className="text-[10px] font-black uppercase text-gray-500 tracking-widest">
+                                            Langue :
+                                        </span>
+                                        <div className="flex bg-black/40 rounded-lg p-1 border border-white/5">
+                                            <button
+                                                onClick={() => setAccreditationLang('FR')}
+                                                className={`px-3 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'FR' ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                FR
+                                            </button>
+                                            <button
+                                                onClick={() => setAccreditationLang('EN')}
+                                                className={`px-3 py-1 text-[9px] font-black rounded-md transition-all ${accreditationLang === 'EN' ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
+                                            >
+                                                EN
+                                            </button>
                                         </div>
-                                    )}
+                                    </div>
 
                                     {isNewMail && (isAccreditationMode || isPhotoAccreditationMode || isInterviewMode) && (
                                         <div className={`p-4 border rounded-2xl space-y-4 ${isAccreditationMode ? 'bg-neon-purple/5 border-neon-purple/20' : isPhotoAccreditationMode ? 'bg-neon-blue/5 border-neon-blue/20' : 'bg-neon-red/5 border-neon-red/20'}`}>
@@ -1022,9 +1021,9 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                     </div>
                                                     <div className="mt-8 bg-black border border-white/10 border-t-4 border-t-neon-red rounded-xl overflow-hidden p-4">
                                                         <div className="text-white text-[10px] font-black italic uppercase text-center">
-                                                            Cordialement, <br />
+                                                            {accreditationLang === 'EN' ? 'Best regards,' : 'Cordialement,'} <br />
                                                             {signatureName && <span className="text-gray-400 block mb-1 text-[9px] normal-case">{signatureName}</span>}
-                                                            L'équipe <span className="text-neon-red">Dropsiders</span>
+                                                            {accreditationLang === 'EN' ? 'The ' : 'L\'équipe '} <span className="text-neon-red">Dropsiders</span>{accreditationLang === 'EN' ? ' Team' : ''}
                                                         </div>
                                                     </div>
                                                 </div>
