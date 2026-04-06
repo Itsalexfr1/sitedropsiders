@@ -4,7 +4,7 @@
   "shop_password_protected": false,
   "shop_password_image": "",
   "takeover": {
-    "enabled": true,
+    "enabled": false,
     "youtubeId": "FLdsxiIQYhY",
     "title": "ULTRA MUSIC FESTIVAL",
     "moderators": "",
