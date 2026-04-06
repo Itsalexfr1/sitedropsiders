@@ -4,7 +4,7 @@
   "shop_password_protected": false,
   "shop_password_image": "",
   "takeover": {
-    "enabled": false,
+    "enabled": true,
     "youtubeId": "FLdsxiIQYhY",
     "title": "ULTRA MUSIC FESTIVAL",
     "moderators": "",
@@ -28,7 +28,7 @@
     "showInAgenda": true,
     "startDate": "2026-03-28T20:30",
     "endDate": "2026-03-29T10:00",
-    "status": "off"
+    "status": "edit"
   },
   "socials": {
     "instagram": "dropsiders.eu",
