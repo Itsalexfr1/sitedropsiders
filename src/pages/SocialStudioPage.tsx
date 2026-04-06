@@ -3,7 +3,7 @@ import { SocialSuite } from '../components/SocialSuite';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { ChevronLeft, Instagram, Zap, Smartphone, Image as ImageIcon } from 'lucide-react';
-import { getAuthHeaders, isSuperAdmin } from '../utils/auth';
+import { isSuperAdmin } from '../utils/auth';
 
 export function SocialStudioPage() {
     const navigate = useNavigate();
