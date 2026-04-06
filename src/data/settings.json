@@ -4,9 +4,9 @@
   "shop_password_protected": false,
   "shop_password_image": "",
   "takeover": {
-    "enabled": false,
+    "enabled": true,
     "youtubeId": "FLdsxiIQYhY",
-    "title": "ULTRA MUSIC FESTIVAL",
+    "title": "coachella week end 1",
     "moderators": "",
     "lineup": "[]",
     "tickerType": "news",
@@ -26,9 +26,72 @@
     "autoMessageInterval": 60,
     "pinnedMessage": "",
     "showInAgenda": true,
-    "startDate": "2026-03-28T20:30",
-    "endDate": "2026-03-29T10:00",
-    "status": "edit"
+    "startDate": "",
+    "endDate": "",
+    "status": "edit",
+    "isOnline": false,
+    "auddToken": "0707d622c51645acc2e4fa26ed64538d",
+    "streams": [
+      {
+        "id": "vpk9ayvh0",
+        "name": "MAIBSTAGE",
+        "youtubeId": "2NA7XUw51oo"
+      },
+      {
+        "id": "szw0f45va",
+        "name": "QUASAR",
+        "youtubeId": "1KANGsDaRvw"
+      },
+      {
+        "id": "m86ei0637",
+        "name": "GOBI",
+        "youtubeId": "4C5p1tdRv6c"
+      },
+      {
+        "id": "g0bezm5z3",
+        "name": "MOJAVE",
+        "youtubeId": "HJVG2Ck3uuk"
+      },
+      {
+        "id": "5r9eavfl2",
+        "name": "OUTDOOR THEATER",
+        "youtubeId": "MdUBm8G41ZU"
+      },
+      {
+        "id": "3xchco5vz",
+        "name": "SAHARA",
+        "youtubeId": "NlrpPqb0vwo"
+      },
+      {
+        "id": "jlcjk46bh",
+        "name": "SONORA",
+        "youtubeId": "OGNPnQViI3g"
+      }
+    ],
+    "activeStreamId": "",
+    "instagramLink": "",
+    "tiktokLink": "",
+    "youtubeLink": "",
+    "twitterLink": "",
+    "sponsorText": "LIVE RENDU POSSIBLE GRÂCE À NOS PARTENAIRES !",
+    "sponsorLink": "https://dropsiders.fr",
+    "showSponsorBanner": false,
+    "bannedWords": "",
+    "dropsAmount": 10,
+    "dropsInterval": 5,
+    "lots": [],
+    "botCommands": [
+      {
+        "command": "!insta",
+        "response": "Suivez-nous sur @dropsiders.fr !"
+      },
+      {
+        "command": "!lineup",
+        "response": "La lineup est disponible dans l'onglet PLANNING."
+      }
+    ],
+    "festivalLogo": "",
+    "tracklist": "[]"
   },
   "socials": {
     "instagram": "dropsiders.eu",
