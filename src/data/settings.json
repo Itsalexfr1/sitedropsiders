@@ -83,7 +83,7 @@
     "botCommands": [
       {
         "command": "!insta",
-        "response": "Suivez-nous sur @dropsiders.fr !"
+        "response": "Suivez-nous sur @dropsiders.eu !"
       },
       {
         "command": "!lineup",
