@@ -1,4 +1,4 @@
-﻿[
+[
   {
     "username": "alex",
     "password": "b64:MjAyNg==",
@@ -123,11 +123,11 @@
     "name": "Tanguy",
     "permissions": [
       "news_focus",
-      "all",
       "musique_releases",
       "interviews_video",
       "recaps_festivals",
       "agenda_events",
+      "wiki_dropsiders",
       "social_studio",
       "live",
       "community_mod"
