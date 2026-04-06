@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { 
     Navigation, MapPin, Calendar, ArrowRight, Zap, Info, Clock, 
     TrendingDown, Share2, ExternalLink, ChevronDown, Plane, Bus, ArrowRightLeft, HelpCircle, Users
@@ -151,8 +151,6 @@ export function Voyage() {
         }
     }, [isSearching]);
 
-    const covoitRef = useRef<HTMLDivElement>(null);
-    const scrollToCovoit = () => covoitRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
 
     const openSearchRedirect = (provider: string) => {
         const depCode = depObj.iata || depObj.name;
@@ -835,7 +833,7 @@ export function Voyage() {
                         </section>
 
                         <div className="pt-10 border-t border-white/5">
-                            <div className="bg-gradient-to-br from-neon-red/10 to-transparent border border-neon-red/20 rounded-[32px] p-8 group relative overflow-hidden cursor-pointer" onClick={scrollToCovoit}>
+                            <div className="bg-gradient-to-br from-neon-red/10 to-transparent border border-neon-red/20 rounded-[32px] p-8 group relative overflow-hidden cursor-pointer" onClick={() => { setTravelType('covoit'); window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
                                 <h3 className="text-white text-2xl font-display font-black italic uppercase leading-tight">COVOITURAGE<br/><span className="text-neon-red">FESTIVAL</span></h3>
                                 <p className="text-gray-500 text-[10px] font-bold mt-4 uppercase tracking-[0.2em]">Partage les frais & voyage ensemble.</p>
                                 <button className="mt-8 flex items-center gap-3 text-white text-[10px] font-black uppercase tracking-[0.4em] hover:text-neon-red transition-all">
@@ -848,9 +846,6 @@ export function Voyage() {
                 </div>
             </div>
 
-            <div className="mt-32" ref={covoitRef}>
-                <CovoitSection />
-            </div>
         </div>
     );
 }
