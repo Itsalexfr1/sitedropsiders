@@ -85,6 +85,8 @@ export function AdminMessages() {
     const [isInterviewMode, setIsInterviewMode] = useState(false);
     const [djName, setDjName] = useState('');
     const [interviewType, setInterviewType] = useState<'Vidéo' | 'Écrite'>('Vidéo');
+    const [interviewDate, setInterviewDate] = useState('');
+    const [interviewFestival, setInterviewFestival] = useState('');
 
     const showNotif = (type: 'success' | 'error', msg: string) => {
         setNotification({ type, msg });
@@ -335,17 +337,20 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
         }
     };
 
-    const getInterviewTemplate = (lang: 'FR' | 'EN', dj: string, type: string, name: string) => {
+    const getInterviewTemplate = (lang: 'FR' | 'EN', dj: string, type: string, date: string, festival: string, name: string) => {
         if (lang === 'FR') {
             return `Bonjour,
 
 Dropsiders est un média immersif de référence dédié à la culture électronique. Nous souhaiterions vous proposer une interview exclusive pour mettre en avant l'artiste :
 
 ARTISTE : ${dj || "[NOM DE L'ARTISTE]"}
+FESTIVAL : ${festival || "[NOM DU FESTIVAL]"}
+DATE : ${date || "[DATE]"}
 FORMAT : Interview ${type}
 
 Travailler avec Dropsiders, c'est bénéficier d'une vitrine premium et "carrée" :
 - Articles interactifs haute performance (lecteur audio IA, design immersif).
+- Découvrez nos dernières interviews ici : https://dropsiders.fr/interviews
 - Visibilité accrue via notre Agenda et notre nouvel espace Communauté (Votes, Avis).
 - Promotion ciblée sur nos réseaux sociaux (Instagram, TikTok).
 - Audience de passionnés et de professionnels ultra-engagés.
@@ -360,10 +365,13 @@ ${name ? name + '\n' : ''}L'équipe Dropsiders.`;
 Dropsiders is a leading immersive media dedicated to electronic culture. We would like to propose an exclusive interview to highlight the artist:
 
 ARTIST: ${dj || "[ARTIST NAME]"}
+FESTIVAL: ${festival || "[FESTIVAL NAME]"}
+DATE: ${date || "[DATE]"}
 FORMAT: ${type} Interview
 
 Partnering with Dropsiders means benefiting from a premium and professional showcase:
 - High-performance interactive articles (AI audio player, immersive design).
+- Check out our latest interviews here: https://dropsiders.fr/interviews
 - Increased visibility through our Agenda and our new Community hub (Votes, Reviews).
 - Targeted promotion on our social networks (Instagram, TikTok).
 - Highly engaged audience of fans and industry professionals.
@@ -397,13 +405,14 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                 setMailSubject(`PHOTO ACCREDITATION REQUEST${festivalPart} - DROPSIDERS`);
             }
         } else if (isInterviewMode) {
-            setReplyBody(getInterviewTemplate(accreditationLang, djName, interviewType, currentName));
+            setReplyBody(getInterviewTemplate(accreditationLang, djName, interviewType, interviewDate, interviewFestival, currentName));
             const djPart = djName ? ` - ${djName.toUpperCase()}` : '';
+            const festPart = interviewFestival ? ` @ ${interviewFestival.toUpperCase()}` : '';
             if (accreditationLang === 'FR') {
-                setMailSubject(`DEMANDE INTERVIEW ${interviewType.toUpperCase()}${djPart} - DROPSIDERS`);
+                setMailSubject(`DEMANDE INTERVIEW ${interviewType.toUpperCase()}${djPart}${festPart} - DROPSIDERS`);
             } else {
                 const typeEN = interviewType === 'Vidéo' ? 'VIDEO' : 'WRITTEN';
-                setMailSubject(`${typeEN} INTERVIEW REQUEST${djPart} - DROPSIDERS`);
+                setMailSubject(`${typeEN} INTERVIEW REQUEST${djPart}${festPart} - DROPSIDERS`);
             }
         } else {
             // Standard press release
@@ -414,7 +423,7 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                 setMailSubject('Dropsiders V2: New media platform & interactive agenda! 🎙️');
             }
         }
-    }, [isAccreditationMode, isPhotoAccreditationMode, isInterviewMode, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, djName, interviewType, accreditationLang, isNewMail, signatureName]);
+    }, [isAccreditationMode, isPhotoAccreditationMode, isInterviewMode, festivalName, festivalDates, photoFirstName, photoLastName, photoPortfolio, djName, interviewType, interviewDate, interviewFestival, accreditationLang, isNewMail, signatureName]);
 
     const unreadCount = messages.filter(m => !m.read).length;
 
@@ -465,6 +474,8 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                 setPhotoLastName('');
                                 setPhotoPortfolio('');
                                 setDjName('');
+                                setInterviewDate('');
+                                setInterviewFestival('');
                                 setReplyBody(getPressReleaseTemplate('FR', ''));
                                 setReplyModal(true);
                             }}
@@ -971,28 +982,52 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                                     )}
                                                 </>
                                             ) : (
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                    <div className="space-y-1">
-                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Artiste / DJ</label>
-                                                        <input
-                                                            type="text"
-                                                            value={djName}
-                                                            onChange={(e) => setDjName(e.target.value)}
-                                                            className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-red"
-                                                        />
+                                                <div className="space-y-4">
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Artiste / DJ</label>
+                                                            <input
+                                                                type="text"
+                                                                value={djName}
+                                                                onChange={(e) => setDjName(e.target.value)}
+                                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-red"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Format</label>
+                                                            <div className="flex bg-black/40 rounded-xl p-1 border border-white/5">
+                                                                {['Vidéo', 'Écrite'].map((t) => (
+                                                                    <button
+                                                                        key={t}
+                                                                        onClick={() => setInterviewType(t as any)}
+                                                                        className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${interviewType === t ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
+                                                                    >
+                                                                        {t}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <div className="space-y-1">
-                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Format</label>
-                                                        <div className="flex bg-black/40 rounded-xl p-1 border border-white/5">
-                                                            {['Vidéo', 'Écrite'].map((t) => (
-                                                                <button
-                                                                    key={t}
-                                                                    onClick={() => setInterviewType(t as any)}
-                                                                    className={`flex-1 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${interviewType === t ? 'bg-neon-red text-white' : 'text-gray-500 hover:text-white'}`}
-                                                                >
-                                                                    {t}
-                                                                </button>
-                                                            ))}
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Festival / Lieu</label>
+                                                            <input
+                                                                type="text"
+                                                                value={interviewFestival}
+                                                                onChange={(e) => setInterviewFestival(e.target.value)}
+                                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-red"
+                                                                placeholder="Tomorrowland, Paris, etc."
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-1">
+                                                            <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Date / Créneau</label>
+                                                            <input
+                                                                type="text"
+                                                                value={interviewDate}
+                                                                onChange={(e) => setInterviewDate(e.target.value)}
+                                                                className="w-full bg-black/60 border border-white/10 rounded-xl px-3 py-2 text-sm text-white outline-none focus:border-neon-red"
+                                                                placeholder="Samedi 12 Juillet - 18h"
+                                                            />
                                                         </div>
                                                     </div>
                                                 </div>
