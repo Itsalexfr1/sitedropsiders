@@ -70,7 +70,6 @@ export function AdminDashboard() {
         accueil: 'Accueil',
         news: 'News', 
         vols: 'Vols',
-        bus: 'Bus',
         recaps: 'Récaps', 
         communaute: 'Communauté', 
         interviews: 'Interviews',

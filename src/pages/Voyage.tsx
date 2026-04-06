@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { 
     Navigation, MapPin, Calendar, ArrowRight, Zap, Info, Clock, 
-    TrendingDown, Share2, ExternalLink, ChevronDown, Plane, Bus, ArrowRightLeft, HelpCircle 
+    TrendingDown, Share2, ExternalLink, ChevronDown, Plane, Bus, ArrowRightLeft, HelpCircle, Users
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useParams, useNavigate } from 'react-router-dom';
@@ -110,11 +110,11 @@ export function Voyage() {
     const { type } = useParams();
     const { t } = useLanguage();
     const navigate = useNavigate();
-    const [travelType, setTravelType] = useState<'flight' | 'bus'>(type === 'bus' ? 'bus' : 'flight');
+    const [travelType, setTravelType] = useState<'flight' | 'bus' | 'covoit'>(type === 'bus' ? 'bus' : (type === 'covoit' ? 'covoit' : 'flight'));
     
     useEffect(() => {
-        if (type === 'bus' || type === 'vols') {
-            setTravelType(type === 'bus' ? 'bus' : 'flight');
+        if (type === 'bus' || type === 'vols' || type === 'covoit') {
+            setTravelType(type === 'bus' ? 'bus' : (type === 'covoit' ? 'covoit' : 'flight'));
         }
     }, [type]);
     
@@ -179,6 +179,8 @@ export function Voyage() {
                 case 'liligo': url = `https://www.liligo.fr/recherche-vol?departureCode=${depCode}&destinationCode=${destCode}&departureDate=${date}${isRoundTrip ? '&returnDate='+returnDate : ''}`; break;
                 case 'kayak': default: url = `https://www.kayak.fr/flights/${depCode}-${destCode}/${date}${isRoundTrip ? '/'+returnDate : ''}`; break;
             }
+        } else if (travelType === 'covoit') {
+            url = `https://www.blablacar.fr/search?fn=${depCode}&tn=${destCode}&db=${date}`;
         } else {
             switch(provider) {
                 case 'busbud': url = `https://www.busbud.com/fr/search/${depCode}/${destCode}/${date}`; break;
@@ -348,7 +350,8 @@ export function Voyage() {
                         <div className="flex bg-white/5 p-1.5 rounded-2xl w-fit mb-12 border border-white/5">
                             {[
                                 { id: 'flight', icon: Plane, label: 'AVION' },
-                                { id: 'bus', icon: Bus, label: 'BUS / TRAIN' }
+                                { id: 'bus', icon: Bus, label: 'BUS / TRAIN' },
+                                { id: 'covoit', icon: Users, label: 'COVOITURAGE' }
                             ].map((t) => (
                                 <button
                                     key={t.id}
@@ -357,7 +360,8 @@ export function Voyage() {
                                         setTravelType(newType); 
                                         setResults([]); 
                                         setError(null);
-                                        navigate(`/voyage/${newType === 'flight' ? 'vols' : 'bus'}`);
+                                        const pathMap: any = { flight: 'vols', bus: 'bus', covoit: 'covoiturage' };
+                                        navigate(`/voyage/${pathMap[newType] || 'vols'}`);
                                     }}
                                     className={`flex items-center gap-4 px-8 py-3.5 rounded-xl font-black uppercase text-[11px] tracking-widest transition-all ${
                                         travelType === t.id ? 'bg-white text-black shadow-xl' : 'text-gray-500 hover:text-white'
@@ -368,133 +372,139 @@ export function Voyage() {
                             ))}
                         </div>
 
-                        <form onSubmit={handleSearch} className="space-y-10">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
-                                <div className="space-y-3">
-                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">DÉPART</span>
-                                    <CitySearchInput placeholder="VILLE OU AÉROPORT" icon={Navigation} value={depObj.iata} onSelect={setDepObj} travelType={travelType} />
-                                </div>
-                                <div className="hidden md:flex absolute left-1/2 bottom-5 -translate-x-1/2 z-20">
-                                    <button 
-                                        type="button"
-                                        onClick={() => { const d = depObj; setDepObj(destObj); setDestObj(d); }}
-                                        className="w-12 h-12 bg-black border-2 border-white/10 rounded-full flex items-center justify-center text-white hover:border-neon-red hover:text-neon-red transition-all group scale-90 shadow-2xl"
-                                    >
-                                        <ArrowRightLeft className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
-                                    </button>
-                                </div>
-                                <div className="space-y-3">
-                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">DESTINATION</span>
-                                    <CitySearchInput placeholder="DESTINATION" icon={MapPin} value={destObj.iata} onSelect={setDestObj} travelType={travelType} />
-                                </div>
+                        {travelType === 'covoit' ? (
+                            <div className="mt-4">
+                                <CovoitSection />
                             </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div className="space-y-3">
-                                    <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">DATE ALLER</span>
-                                    <div className="relative group">
-                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-red transition-colors" />
-                                        <input 
-                                            type="date" 
-                                            required
-                                            value={date}
-                                            onChange={(e) => setDate(e.target.value)}
-                                            className="w-full bg-black/40 border border-white/10 rounded-2xl py-4.5 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red/40 transition-all font-black text-xs [color-scheme:dark]"
-                                        />
+                        ) : (
+                            <form onSubmit={handleSearch} className="space-y-10">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
+                                    <div className="space-y-3">
+                                        <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">DÉPART</span>
+                                        <CitySearchInput placeholder="VILLE OU AÉROPORT" icon={Navigation} value={depObj.iata} onSelect={setDepObj} travelType={travelType} />
+                                    </div>
+                                    <div className="hidden md:flex absolute left-1/2 bottom-5 -translate-x-1/2 z-20">
+                                        <button 
+                                            type="button"
+                                            onClick={() => { const d = depObj; setDepObj(destObj); setDestObj(d); }}
+                                            className="w-12 h-12 bg-black border-2 border-white/10 rounded-full flex items-center justify-center text-white hover:border-neon-red hover:text-neon-red transition-all group scale-90 shadow-2xl"
+                                        >
+                                            <ArrowRightLeft className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
+                                        </button>
+                                    </div>
+                                    <div className="space-y-3">
+                                        <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">DESTINATION</span>
+                                        <CitySearchInput placeholder="DESTINATION" icon={MapPin} value={destObj.iata} onSelect={setDestObj} travelType={travelType} />
                                     </div>
                                 </div>
-                                <div className="space-y-3">
-                                    <div className="flex justify-between items-center ml-2">
-                                        <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">DATE RETOUR</span>
-                                        <span className="text-[9px] font-black uppercase text-gray-600 tracking-[0.1em] italic">Optionnel</span>
+
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-3">
+                                        <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">DATE ALLER</span>
+                                        <div className="relative group">
+                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-red transition-colors" />
+                                            <input 
+                                                type="date" 
+                                                required
+                                                value={date}
+                                                onChange={(e) => setDate(e.target.value)}
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl py-4.5 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red/40 transition-all font-black text-xs [color-scheme:dark]"
+                                            />
+                                        </div>
                                     </div>
-                                    <div className="relative group">
-                                        <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-red transition-colors" />
-                                        <input 
-                                            type="date" 
-                                            value={returnDate}
-                                            onChange={(e) => { setReturnDate(e.target.value); setIsRoundTrip(!!e.target.value); }}
-                                            className="w-full bg-black/40 border border-white/10 rounded-2xl py-4.5 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red/40 transition-all font-black text-xs [color-scheme:dark]"
-                                        />
+                                    <div className="space-y-3">
+                                        <div className="flex justify-between items-center ml-2">
+                                            <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em]">DATE RETOUR</span>
+                                            <span className="text-[9px] font-black uppercase text-gray-600 tracking-[0.1em] italic">Optionnel</span>
+                                        </div>
+                                        <div className="relative group">
+                                            <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600 group-focus-within:text-neon-red transition-colors" />
+                                            <input 
+                                                type="date" 
+                                                value={returnDate}
+                                                onChange={(e) => { setReturnDate(e.target.value); setIsRoundTrip(!!e.target.value); }}
+                                                className="w-full bg-black/40 border border-white/10 rounded-2xl py-4.5 pl-12 pr-4 text-white focus:outline-none focus:border-neon-red/40 transition-all font-black text-xs [color-scheme:dark]"
+                                            />
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
 
-                            <div className="mt-10 pt-10 border-t border-white/5 space-y-8">
-                                {travelType === 'flight' && (
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-2 ml-2">
-                                            <span className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em]">{t('voyage.cabin_class')}</span>
-                                            <div className="group relative">
-                                                <Info className="w-3.5 h-3.5 text-gray-700 hover:text-gray-400 transition-colors cursor-help" />
-                                                <div className="absolute bottom-full left-0 mb-3 w-64 p-4 bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl text-[10px] font-bold text-gray-300 uppercase leading-relaxed opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50 shadow-2xl">
-                                                    {t('voyage.cabin_class_info')}
+                                <div className="mt-10 pt-10 border-t border-white/5 space-y-8">
+                                    {travelType === 'flight' && (
+                                        <div className="space-y-4">
+                                            <div className="flex items-center gap-2 ml-2">
+                                                <span className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em]">{t('voyage.cabin_class')}</span>
+                                                <div className="group relative">
+                                                    <Info className="w-3.5 h-3.5 text-gray-700 hover:text-gray-400 transition-colors cursor-help" />
+                                                    <div className="absolute bottom-full left-0 mb-3 w-64 p-4 bg-black/90 backdrop-blur-xl border border-white/10 rounded-2xl text-[10px] font-bold text-gray-300 uppercase leading-relaxed opacity-0 group-hover:opacity-100 transition-all pointer-events-none z-50 shadow-2xl">
+                                                        {t('voyage.cabin_class_info')}
+                                                    </div>
                                                 </div>
                                             </div>
+                                            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                                {[
+                                                    { id: 'economy', label: t('voyage.economy'), emoji: '💺' },
+                                                    { id: 'premium_economy', label: t('voyage.premium_economy'), emoji: '⭐' },
+                                                    { id: 'business', label: t('voyage.business'), emoji: '💎' },
+                                                    { id: 'first', label: t('voyage.first'), emoji: '👑' },
+                                                ].map((cls) => (
+                                                    <button
+                                                        key={cls.id}
+                                                        type="button"
+                                                        onClick={() => { setCabinClass(cls.id); setResults([]); setError(null); }}
+                                                        className={`flex items-center justify-center gap-2 px-4 py-4 rounded-2xl border text-[10px] font-black uppercase tracking-[0.1em] transition-all duration-300 ${
+                                                            cabinClass === cls.id
+                                                                ? 'bg-neon-red/10 border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.15)] scale-[1.02]'
+                                                                : 'bg-white/5 border-white/5 text-gray-600 hover:bg-white/10 hover:border-white/10'
+                                                        }`}
+                                                    >
+                                                        <span className="text-sm">{cls.emoji}</span>
+                                                        <span>{cls.label}</span>
+                                                    </button>
+                                                ))}
+                                            </div>
                                         </div>
-                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                                            {[
-                                                { id: 'economy', label: t('voyage.economy'), emoji: '💺' },
-                                                { id: 'premium_economy', label: t('voyage.premium_economy'), emoji: '⭐' },
-                                                { id: 'business', label: t('voyage.business'), emoji: '💎' },
-                                                { id: 'first', label: t('voyage.first'), emoji: '👑' },
-                                            ].map((cls) => (
+                                    )}
+
+                                    <div className="space-y-4">
+                                        <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em] ml-2 italic">{t('voyage.source')}</h4>
+                                        <div className="flex flex-wrap gap-3">
+                                            {(travelType === 'flight' ? ['direct', 'google', 'skyscanner', 'kayak', 'liligo'] : ['omio', 'busbud', 'flixbus', 'blablacar']).map((p) => (
                                                 <button
-                                                    key={cls.id}
+                                                    key={p}
                                                     type="button"
-                                                    onClick={() => { setCabinClass(cls.id); setResults([]); setError(null); }}
-                                                    className={`flex items-center justify-center gap-2 px-4 py-4 rounded-2xl border text-[10px] font-black uppercase tracking-[0.1em] transition-all duration-300 ${
-                                                        cabinClass === cls.id
-                                                            ? 'bg-neon-red/10 border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.15)] scale-[1.02]'
+                                                    onClick={() => { travelType === 'flight' ? setFlightProvider(p) : setBusProvider(p); setResults([]); setError(null); }}
+                                                    className={`px-6 py-4 rounded-xl border text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
+                                                        (travelType === 'flight' ? flightProvider : busProvider) === p 
+                                                            ? 'bg-white/10 border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.15)]' 
                                                             : 'bg-white/5 border-white/5 text-gray-600 hover:bg-white/10 hover:border-white/10'
                                                     }`}
                                                 >
-                                                    <span className="text-sm">{cls.emoji}</span>
-                                                    <span>{cls.label}</span>
+                                                    {p === 'direct' ? '⚡ MOTEUR FLASH (RECOMMANDÉ)' : p}
                                                 </button>
                                             ))}
                                         </div>
                                     </div>
-                                )}
 
-                                <div className="space-y-4">
-                                    <h4 className="text-[10px] font-black uppercase text-gray-500 tracking-[0.2em] ml-2 italic">{t('voyage.source')}</h4>
-                                    <div className="flex flex-wrap gap-3">
-                                        {(travelType === 'flight' ? ['direct', 'google', 'skyscanner', 'kayak', 'liligo'] : ['omio', 'busbud', 'flixbus', 'blablacar']).map((p) => (
-                                            <button
-                                                key={p}
-                                                type="button"
-                                                onClick={() => { travelType === 'flight' ? setFlightProvider(p) : setBusProvider(p); setResults([]); setError(null); }}
-                                                className={`px-6 py-4 rounded-xl border text-[10px] font-black uppercase tracking-[0.2em] transition-all duration-300 ${
-                                                    (travelType === 'flight' ? flightProvider : busProvider) === p 
-                                                        ? 'bg-white/10 border-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.15)]' 
-                                                        : 'bg-white/5 border-white/5 text-gray-600 hover:bg-white/10 hover:border-white/10'
-                                                }`}
-                                            >
-                                                {p === 'direct' ? '⚡ MOTEUR FLASH (RECOMMANDÉ)' : p}
-                                            </button>
-                                        ))}
+                                    <div className="pt-6">
+                                        <button
+                                            type="submit"
+                                            disabled={isSearching}
+                                            className="w-full py-7 bg-neon-red text-white rounded-3xl font-black uppercase text-sm tracking-[0.4em] hover:bg-white hover:text-black transition-all duration-500 shadow-[0_0_50px_rgba(255,18,65,0.3)] disabled:opacity-50 flex items-center justify-center gap-4 group"
+                                        >
+                                            {isSearching ? (
+                                                <div className="w-6 h-6 border-2 border-black/20 border-t-black rounded-full animate-spin" />
+                                            ) : (
+                                                <>
+                                                    {t('voyage.search_btn')} 
+                                                    <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+                                                </>
+                                            )}
+                                        </button>
                                     </div>
                                 </div>
-
-                                <div className="pt-6">
-                                    <button
-                                        type="submit"
-                                        disabled={isSearching}
-                                        className="w-full py-7 bg-neon-red text-white rounded-3xl font-black uppercase text-sm tracking-[0.4em] hover:bg-white hover:text-black transition-all duration-500 shadow-[0_0_50px_rgba(255,18,65,0.3)] disabled:opacity-50 flex items-center justify-center gap-4 group"
-                                    >
-                                        {isSearching ? (
-                                            <div className="w-6 h-6 border-2 border-black/20 border-t-black rounded-full animate-spin" />
-                                        ) : (
-                                            <>
-                                                {t('voyage.search_btn')} 
-                                                <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
-                                            </>
-                                        )}
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
+                            </form>
+                        )}
                     </motion.div>
 
                     <AnimatePresence mode="wait">

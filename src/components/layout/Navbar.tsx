@@ -94,7 +94,6 @@ export function Navbar() {
     const navItems = [
         { name: navLabels.news || t('nav.news'), path: '/news', color: 'neon-red' },
         { name: navLabels.vols || t('nav.vols'), path: '/voyage/vols', color: 'neon-green' },
-        { name: navLabels.bus || t('nav.bus'), path: '/voyage/bus', color: 'neon-green' },
         { name: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'neon-purple' },
         { name: navLabels.agenda || t('nav.agenda'), path: '/agenda', color: 'neon-cyan' },
         { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-pink' },

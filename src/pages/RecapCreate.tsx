@@ -963,7 +963,10 @@ export function RecapCreate() {
     };
 
     const handleSubmit = async (e?: React.FormEvent | React.MouseEvent | any, publishNow = false, scheduleDate?: string) => {
-        if (e && (e as any).preventDefault) (e as any).preventDefault();
+        if (e) {
+            if (typeof e.preventDefault === 'function') e.preventDefault();
+            if (typeof e.stopPropagation === 'function') e.stopPropagation();
+        }
 
         let finalDate = scheduleDate || date;
         if (publishNow) {
@@ -2857,6 +2860,7 @@ export function RecapCreate() {
 
                                 <div className="space-y-4 pt-4 border-t border-white/5">
                                     <button
+                                        type="button"
                                         onClick={(e) => {
                                             setShowScheduleModal(false);
                                             handleSubmit(e, false);
