@@ -370,12 +370,19 @@ export function Voyage() {
                             ))}
                         </div>
 
-                        {travelType === 'covoit' ? (
-                            <div className="mt-4">
-                                <CovoitSection />
-                            </div>
-                        ) : (
-                            <form onSubmit={handleSearch} className="space-y-10">
+                        <AnimatePresence mode="wait">
+                            <motion.div
+                                key={travelType}
+                                initial={{ opacity: 0, x: 20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                exit={{ opacity: 0, x: -20 }}
+                                transition={{ duration: 0.3 }}
+                                className="mt-4"
+                            >
+                                {travelType === 'covoit' ? (
+                                    <CovoitSection />
+                                ) : (
+                                    <form onSubmit={handleSearch} className="space-y-10">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 relative">
                                     <div className="space-y-3">
                                         <span className="text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] ml-2">DÉPART</span>
@@ -501,9 +508,11 @@ export function Voyage() {
                                         </button>
                                     </div>
                                 </div>
-                            </form>
-                        )}
-                    </motion.div>
+                                </form>
+                            )}
+                        </motion.div>
+                    </AnimatePresence>
+                </motion.div>
 
                     <AnimatePresence mode="wait">
                         {error && (
