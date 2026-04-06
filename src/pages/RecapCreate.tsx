@@ -294,6 +294,75 @@ export function RecapCreate() {
     const [isLoading, setIsLoading] = useState(isEditing && !editingItem);
     const [loadError, setLoadError] = useState<string | null>(null);
 
+    // AUTO-SAVE SYSTEM
+    useEffect(() => {
+        if (isEditing) return;
+        
+        const draftData = {
+            title,
+            date,
+            festival,
+            locationInput,
+            country,
+            youtubeId,
+            year,
+            coverImage,
+            author,
+            festivalSocials,
+            artistSocials,
+            widgets,
+            timestamp: Date.now()
+        };
+
+        const timer = setTimeout(() => {
+            if (title || widgets.length > 1 || coverImage) {
+                localStorage.setItem('recap_draft', JSON.stringify(draftData));
+                setHasDraft(true);
+            }
+        }, 2000);
+
+        return () => clearTimeout(timer);
+    }, [title, date, festival, locationInput, country, youtubeId, year, coverImage, author, festivalSocials, artistSocials, widgets, isEditing]);
+
+    const [hasDraft, setHasDraft] = useState(false);
+    useEffect(() => {
+        const saved = localStorage.getItem('recap_draft');
+        if (saved && !isEditing) setHasDraft(true);
+    }, [isEditing]);
+
+    const restoreDraft = () => {
+        const saved = localStorage.getItem('recap_draft');
+        if (saved) {
+            try {
+                const draft = JSON.parse(saved);
+                setTitle(draft.title || '');
+                setDate(draft.date || '');
+                setFestival(draft.festival || '');
+                setLocationInput(draft.locationInput || '');
+                setCountry(draft.country || '');
+                setYoutubeId(draft.youtubeId || '');
+                setYear(draft.year || '');
+                setCoverImage(draft.coverImage || '');
+                if (draft.author) setAuthor(draft.author);
+                if (draft.festivalSocials) setFestivalSocials(draft.festivalSocials);
+                if (draft.artistSocials) setArtistSocials(draft.artistSocials);
+                if (draft.widgets) setWidgets(draft.widgets);
+                
+                setStatus('success');
+                setMessage('Brouillon restauré !');
+                setHasDraft(false);
+                setTimeout(() => setStatus('idle'), 3000);
+            } catch (e) {
+                console.error("Draft restoration failed", e);
+            }
+        }
+    };
+
+    const clearDraft = () => {
+        localStorage.removeItem('recap_draft');
+        setHasDraft(false);
+    };
+
     // Fetch item if missing from state but ID is present
     useEffect(() => {
         const id = searchParams.get('id');
@@ -1064,6 +1133,7 @@ export function RecapCreate() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
             if (!isEditing) {
+                clearDraft();
                 setTitle('');
                 setWidgets([{ id: 'initial-' + Math.random().toString(36).substr(2, 9), content: '<h2 class="premium-section-title">TITRE DU RÉCAP</h2>' }]);
                 setCoverImage('');
@@ -1241,6 +1311,37 @@ export function RecapCreate() {
                 </div>
 
                 <div className="bg-white/5 backdrop-blur-xl rounded-3xl border border-white/10 p-8">
+
+                    {/* Restore Draft Banner */}
+                    {hasDraft && !isEditing && (
+                        <div className="mb-8 p-6 bg-neon-cyan/5 border border-neon-cyan/20 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-4 animate-in fade-in slide-in-from-top-4 duration-500 shadow-[0_0_30px_rgba(0,255,255,0.05)]">
+                            <div className="flex items-center gap-4">
+                                <div className="w-10 h-10 bg-neon-cyan/10 rounded-full flex items-center justify-center">
+                                    <Clock className="w-5 h-5 text-neon-cyan" />
+                                </div>
+                                <div>
+                                    <h4 className="text-white text-xs font-black uppercase tracking-widest">Brouillon détecté</h4>
+                                    <p className="text-[10px] text-gray-500 font-bold uppercase mt-0.5">Un travail non publié a été trouvé dans votre navigateur.</p>
+                                </div>
+                            </div>
+                            <div className="flex gap-3 w-full md:w-auto">
+                                <button
+                                    type="button"
+                                    onClick={restoreDraft}
+                                    className="flex-1 md:flex-none px-6 py-2.5 bg-neon-cyan text-black font-black text-[10px] rounded-xl uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-lg shadow-neon-cyan/20"
+                                >
+                                    Restaurer
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={clearDraft}
+                                    className="flex-1 md:flex-none px-6 py-2.5 bg-white/5 border border-white/10 text-gray-500 font-bold text-[10px] rounded-xl uppercase tracking-widest hover:bg-white/10 transition-all"
+                                >
+                                    Ignorer
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
                     <form onSubmit={handleSubmit} className="space-y-6">
 
