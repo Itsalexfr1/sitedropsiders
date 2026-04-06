@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Mail, Trash2, Reply, Send, X, User, Clock, MessageSquare, CheckCircle, AlertCircle, Inbox, Plus, Archive, FileText, Video } from 'lucide-react';
-import { getAuthHeaders } from '../utils/auth';
+import { getAuthHeaders, isSuperAdmin } from '../utils/auth';
 import editorsData from '../data/editors.json';
 
 const EDITOR_COLORS = ['#FF1241', '#00FFFF', '#BF00FF', '#39FF14', '#FFF01F', '#FF5E00', '#E91E63', '#2196F3', '#FF9800', '#4CAF50'];
@@ -38,7 +38,8 @@ export function AdminMessages() {
     
     // Permission check
     const storedPermissions = useMemo(() => JSON.parse(localStorage.getItem('admin_permissions') || '[]'), []);
-    const isAlex = localStorage.getItem('admin_user') === 'alex' || localStorage.getItem('admin_user') === 'contact@dropsiders.fr';
+    const adminUser = localStorage.getItem('admin_user');
+    const isAlex = isSuperAdmin(adminUser);
     const canAccess = isAlex || storedPermissions.includes('all') || storedPermissions.includes('messages');
 
     useEffect(() => {

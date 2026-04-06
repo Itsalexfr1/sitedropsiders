@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { UserPlus, Trash2, Shield, User, Lock, ArrowLeft, Loader2, Save, X, Pencil, RefreshCw, CheckCircle2, AlertCircle } from 'lucide-react';
 import { ConfirmationModal } from '../components/ConfirmationModal';
 import { Link, useNavigate } from 'react-router-dom';
-import { getAuthHeaders, apiFetch } from '../utils/auth';
+import { getAuthHeaders, apiFetch, isSuperAdmin } from '../utils/auth';
 import { StarField } from '../components/ui/StarField';
 
 interface Editor {
@@ -136,7 +136,7 @@ export function AdminEditors() {
 
     useEffect(() => {
         const user = localStorage.getItem('admin_user');
-        if (user !== 'alex') {
+        if (!isSuperAdmin(user)) {
             navigate('/admin');
             return;
         }

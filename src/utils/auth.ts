@@ -54,3 +54,10 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
 
     return response;
 };
+
+export const isSuperAdmin = (user: string | null) => {
+    if (!user) return false;
+    const normalized = user.toLowerCase();
+    const admins = ['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr', 'tanguy', 'tanguyf'];
+    return admins.includes(normalized);
+};

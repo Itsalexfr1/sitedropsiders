@@ -370,7 +370,7 @@ export function Voyage() {
                             ))}
                         </div>
 
-                        <AnimatePresence mode="wait">
+                        <AnimatePresence mode="popLayout">
                             <motion.div
                                 key={travelType}
                                 initial={{ opacity: 0, x: 20 }}

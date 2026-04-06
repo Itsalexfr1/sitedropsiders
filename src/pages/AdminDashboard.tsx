@@ -12,7 +12,7 @@ import {
     Settings, Camera, HardDrive, MapPin, Sparkles, Eye, ImageOff
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { getAuthHeaders, apiFetch } from '../utils/auth';
+import { getAuthHeaders, apiFetch, isSuperAdmin } from '../utils/auth';
 import { uploadFile } from '../utils/uploadService';
 import { translateText } from '../utils/translate';
 import { SocialSuite } from '../components/SocialSuite';
@@ -1703,7 +1703,7 @@ export function AdminDashboard() {
 
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
     const adminUser = (localStorage.getItem('admin_user') || '').toLowerCase();
-    const isAlex = adminUser === 'alex' || adminUser === 'alexf' || adminUser === 'itsalexfr1' || adminUser === 'contact@dropsiders.fr';
+    const isAlex = isSuperAdmin(adminUser);
 
     const hasPermission = (p: string) => {
         if (p === 'alex_only') return isAlex;

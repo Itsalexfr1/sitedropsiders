@@ -84,13 +84,6 @@ export function CovoitSection() {
         c.departure.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    if (loading) {
-        return (
-            <div className="flex justify-center py-20">
-                <div className="w-8 h-8 border-2 border-neon-red border-t-transparent rounded-full animate-spin" />
-            </div>
-        );
-    }
 
     return (
         <div className="space-y-8">
@@ -126,7 +119,11 @@ export function CovoitSection() {
                 )}
             </div>
 
-            {activeTab === 'browse' ? (
+            {loading ? (
+                <div className="flex justify-center py-20">
+                    <div className="w-8 h-8 border-2 border-neon-red border-t-transparent rounded-full animate-spin" />
+                </div>
+            ) : activeTab === 'browse' ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredCovoits.length === 0 ? (
                         <div className="col-span-full text-center py-32 bg-white/5 rounded-[40px] border border-white/10">
