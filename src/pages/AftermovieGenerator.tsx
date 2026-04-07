@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
-    ChevronLeft, Upload, Music, Trash2, 
+    ChevronLeft, ChevronRight, Upload, Music, Trash2, 
     RefreshCw, Film, Play, List, Sparkles, Zap, Plus, X, Download
 } from 'lucide-react';
 import { isSuperAdmin } from '../utils/auth';
@@ -25,7 +25,7 @@ export function VideoStudioGenerator() {
     const [isGenerating, setIsGenerating] = useState(false);
     const [progress, setProgress] = useState(0);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
-    const [activeFilter, setActiveFilter] = useState<'none' | 'neon' | 'vhs' | 'glitch'>('neon');
+    const [activeFilter, setActiveFilter] = useState<'none' | 'neon' | 'vhs' | 'glitch' | 'pro_mix'>('pro_mix');
     const [targetDuration, setTargetDuration] = useState<number>(30);
     const [bpm, setBpm] = useState(128);
     const [isRecapMode, setIsRecapMode] = useState(false);
@@ -108,6 +108,22 @@ export function VideoStudioGenerator() {
             const clip = prev.find(c => c.id === id);
             if (clip) URL.revokeObjectURL(clip.blobUrl);
             return prev.filter(c => c.id !== id);
+        });
+    };
+
+    const moveClip = (index: number, direction: 'up' | 'down') => {
+        setClips(prev => {
+            if (direction === 'up' && index > 0) {
+                const newClips = [...prev];
+                [newClips[index - 1], newClips[index]] = [newClips[index], newClips[index - 1]];
+                return newClips;
+            }
+            if (direction === 'down' && index < prev.length - 1) {
+                const newClips = [...prev];
+                [newClips[index], newClips[index + 1]] = [newClips[index + 1], newClips[index]];
+                return newClips;
+            }
+            return prev;
         });
     };
 
@@ -255,8 +271,14 @@ export function VideoStudioGenerator() {
                             
                             ctx.save();
                             
+                            const isProMix = activeFilter === 'pro_mix';
+                            const doGlitch = (activeFilter === 'glitch' && beatPower > 0.6) || (isProMix && beatPower > 0.85 && (Math.floor(globalElapsed / beatInterval) % 4 === 0));
+                            const doVhsBase = activeFilter === 'vhs' || (isProMix && elapsedInClip > clipTime - 0.6);
+                            const doNeonStyle = activeFilter === 'neon' || isProMix;
+                            const doVhsNoise = activeFilter === 'vhs' || (isProMix && elapsedInClip > clipTime - 0.6);
+
                             try {
-                                if (activeFilter === 'glitch' && beatPower > 0.6) {
+                                if (doGlitch) {
                                     // Base video
                                     ctx.drawImage(videoEl, dx, dy, dw, dh);
                                     
@@ -280,7 +302,7 @@ export function VideoStudioGenerator() {
                                     ctx.drawImage(videoEl, dx + offset, dy, dw, dh);
                                     ctx.restore();
 
-                                } else if (activeFilter === 'vhs') {
+                                } else if (doVhsBase) {
                                     // VHS Base + Bleeding
                                     ctx.drawImage(videoEl, dx, dy, dw, dh);
                                     ctx.globalCompositeOperation = 'screen';
@@ -301,7 +323,7 @@ export function VideoStudioGenerator() {
                             // Filtres colorimétriques & superpositions
                             ctx.globalCompositeOperation = 'source-over';
 
-                            if (activeFilter === 'neon') {
+                            if (doNeonStyle) {
                                 const grad = ctx.createLinearGradient(0, 0, w, h);
                                 if (isRecapMode) {
                                     grad.addColorStop(0, 'rgba(0, 240, 255, 0.25)');
@@ -321,7 +343,9 @@ export function VideoStudioGenerator() {
                                 ctx.globalCompositeOperation = 'multiply';
                                 ctx.fillStyle = vignette;
                                 ctx.fillRect(0, 0, w, h);
-                            } else if (activeFilter === 'vhs') {
+                            } 
+                            
+                            if (doVhsNoise) {
                                 ctx.globalCompositeOperation = 'source-over';
                                 ctx.fillStyle = 'rgba(0,0,0,0.12)';
                                 for(let y = 0; y < h; y += 4) ctx.fillRect(0, y, w, 1);
@@ -427,9 +451,15 @@ export function VideoStudioGenerator() {
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                                 {clips.map((clip, index) => (
                                     <div key={clip.id} className="relative group rounded-2xl overflow-hidden aspect-[4/3] bg-black border border-white/10 shadow-lg">
-                                        <video src={clip.blobUrl} className="w-full h-full object-cover opacity-60" />
-                                        <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 rounded-md text-[8px] font-black italic tracking-tighter">#{index+1}</div>
-                                        <button onClick={() => removeClip(clip.id)} className="absolute top-2 right-2 p-1.5 bg-red-500/20 hover:bg-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all text-white"><Trash2 className="w-3 h-3" /></button>
+                                        <video src={clip.blobUrl} className="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />
+                                        <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 rounded-md text-[8px] font-black italic tracking-tighter shadow-md z-10 text-white">#{index+1}</div>
+                                        
+                                        <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
+                                            {index > 0 && <button onClick={() => moveClip(index, 'up')} className="p-2 bg-black/40 hover:bg-white/20 backdrop-blur-md rounded-full text-white pointer-events-auto border border-white/10 hover:border-white/30 transition-all"><ChevronLeft className="w-4 h-4" /></button>}
+                                            {index < clips.length - 1 && <button onClick={() => moveClip(index, 'down')} className="p-2 bg-black/40 hover:bg-white/20 backdrop-blur-md rounded-full text-white pointer-events-auto border border-white/10 hover:border-white/30 transition-all"><ChevronRight className="w-4 h-4" /></button>}
+                                        </div>
+
+                                        <button onClick={() => removeClip(clip.id)} className="absolute top-2 right-2 p-1.5 bg-red-500/20 hover:bg-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all z-20 text-white"><Trash2 className="w-3 h-3" /></button>
                                     </div>
                                 ))}
                             </div>
@@ -456,6 +486,7 @@ export function VideoStudioGenerator() {
                             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-7 flex items-center gap-3"><Zap className="w-4 h-4 text-neon-yellow" /> Styles & FX Spéciaux</h3>
                             <div className="space-y-4">
                                 {[
+                                    { id: 'pro_mix', label: 'Mix Club (Pro)', icon: Zap, color: 'text-neon-yellow' },
                                     { id: 'neon', label: 'Dropsiders Color', icon: Sparkles, color: themeColor }, 
                                     { id: 'vhs', label: 'Vintage VHS', icon: Film, color: 'text-neon-purple' }, 
                                     { id: 'glitch', label: 'Glitch Sync', icon: RefreshCw, color: 'text-neon-cyan' }
