@@ -2568,6 +2568,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <optgroup label="🌍 Europe (Aucun décalage)">
                                                             <option value={0}>🇫🇷 Heure Française (Tomorrowland, ASOT, Defqon.1 etc.)</option>
                                                         </optgroup>
+                                                        <optgroup label="🇬🇧 Royaume-Uni (-1h)">
+                                                            <option value={1}>Londres / Creamfields / Printworks</option>
+                                                        </optgroup>
                                                         <optgroup label="🌴 US - Côte Est (Miami / NY | -5h)">
                                                             <option value={5}>Ultra Music Festival Miami</option>
                                                             <option value={5}>Lost Lands (Ohio)</option>
@@ -2587,11 +2590,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             <option value={-8}>Ultra Japan / EDC Japon (+8h)</option>
                                                             <option value={-7}>Knockout Outdoor (Sydney | +7h)</option>
                                                         </optgroup>
-                                                        <optgroup label="⚙️ Manuel / Autres (Hiver)">
-                                                            <option value={6}>🇺🇸 Côte Est (Hiver | -6h)</option>
-                                                            <option value={9}>🇺🇸 Côte Ouest (Hiver | -9h)</option>
-                                                            <option value={7}>🇺🇸 Centre (Hiver | -7h)</option>
-                                                            <option value={1}>🇬🇧 Royaume-Uni (-1h)</option>
+                                                        <optgroup label="⚙️ Manuel (Hiver aux US)">
+                                                            <option value={6}>🇺🇸 Côte Est (Hiver : Nov-Mars | -6h)</option>
+                                                            <option value={9}>🇺🇸 Côte Ouest (Hiver : Nov-Mars | -9h)</option>
+                                                            <option value={7}>🇺🇸 Centre (Hiver : Nov-Mars | -7h)</option>
                                                         </optgroup>
                                                     </select>
                                                 </div>
