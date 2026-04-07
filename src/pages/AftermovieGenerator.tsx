@@ -47,22 +47,50 @@ export function VideoStudioGenerator() {
         img.onload = () => { dropsidersLogo.current = img; };
     }, []);
 
-    const handleVideoImport = (files: FileList | null) => {
+    const handleVideoImport = async (files: FileList | null) => {
         if (!files) return;
         const newClips: Clip[] = [];
-        Array.from(files).forEach(file => {
+        let rejectedCount = 0;
+
+        for (const file of Array.from(files)) {
             const isVideo = file.type.startsWith('video/') || file.name.toLowerCase().endsWith('.mov');
-            if (!isVideo) return;
+            if (!isVideo) continue;
+            
             const url = URL.createObjectURL(file);
-            newClips.push({
-                id: Math.random().toString(36).substr(2, 9),
-                blobUrl: url,
-                file: file,
-                duration: 0,
-                title: file.name
-            });
-        });
-        setClips(prev => [...prev, ...newClips]);
+            
+            try {
+                const duration = await new Promise<number>((resolve, reject) => {
+                    const video = document.createElement('video');
+                    video.preload = 'metadata';
+                    video.onloadedmetadata = () => resolve(video.duration);
+                    video.onerror = reject;
+                    video.src = url;
+                });
+
+                if (duration >= 10) {
+                    newClips.push({
+                        id: Math.random().toString(36).substr(2, 9),
+                        blobUrl: url,
+                        file: file,
+                        duration: duration,
+                        title: file.name
+                    });
+                } else {
+                    URL.revokeObjectURL(url);
+                    rejectedCount++;
+                }
+            } catch (e) {
+                URL.revokeObjectURL(url);
+            }
+        }
+        
+        if (rejectedCount > 0) {
+            alert(`${rejectedCount} vidéo(s) ignorée(s) car la durée est inférieure à 10 secondes.`);
+        }
+
+        if (newClips.length > 0) {
+            setClips(prev => [...prev, ...newClips]);
+        }
     };
 
     const handleMusicImport = (e: React.ChangeEvent<HTMLInputElement>) => {
