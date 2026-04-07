@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     ChevronLeft, Upload, Music, Trash2, 
-    RefreshCw, Film, Play, List, Sparkles, Zap, Plus, X
+    RefreshCw, Film, Play, List, Sparkles, Zap, Plus, X, Download
 } from 'lucide-react';
 import { isSuperAdmin } from '../utils/auth';
 
@@ -258,6 +258,11 @@ export function VideoStudioGenerator() {
                         </div>
                     </div>
                     <div className="flex gap-4">
+                        {previewUrl && (
+                            <a href={previewUrl} download={`dropsiders_video_${videoFormat}_${targetDuration}s.webm`} className="bg-white/10 border border-white/20 text-white px-8 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.25em] hover:bg-white/20 transition-all flex items-center gap-3">
+                                <Download className="w-5 h-5" /> Télécharger
+                            </a>
+                        )}
                         <button onClick={generateVideo} disabled={clips.length === 0 || isGenerating} className={`${themeBtn} px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.25em] ${themeShadow} hover:scale-105 transition-all disabled:opacity-30 disabled:hover:scale-100 flex items-center gap-3`}>
                             {isGenerating ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Film className="w-5 h-5" />}
                             {isGenerating ? `Génération ${progress}%` : 'Lancer le rendu pro'}
