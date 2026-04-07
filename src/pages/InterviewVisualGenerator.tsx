@@ -178,11 +178,13 @@ export function InterviewVisualGenerator() {
             ctx.fillRect(blockX, blockY, labelFontSize * 0.4, labelFontSize * 1.2);
 
             ctx.fillStyle = '#ffffff';
+            ctx.textBaseline = 'alphabetic';
             ctx.fillText('INTERVIEW', blockX + labelFontSize * 0.7, blockY + labelFontSize);
 
             // Artist name
             const nameFontSize = Math.round(h * 0.13);
             ctx.font = `900 italic ${nameFontSize}px 'Arial Black', Arial, sans-serif`;
+            ctx.textBaseline = 'top'; 
             ctx.fillStyle = '#ffffff';
             const nameUpper = artistName.toUpperCase();
             // Word wrap
@@ -202,7 +204,7 @@ export function InterviewVisualGenerator() {
             lines.push(line);
 
             const lineH = nameFontSize * 1.05;
-            const nameY = blockY + labelFontSize * 3.5; // Increased gap to avoid overlap
+            const nameY = blockY + labelFontSize * 2.2; // Adjusted position with top baseline
             lines.forEach((l, i) => {
                 ctx.fillText(l, blockX, nameY + i * lineH);
             });
@@ -242,7 +244,8 @@ export function InterviewVisualGenerator() {
             ctx.font = `900 ${labelFontSize}px 'Arial Black', Arial, sans-serif`;
             ctx.fillStyle = '#ff0033';
             ctx.textAlign = 'center';
-            ctx.fillText('— INTERVIEW —', cx, topY + h * 0.12); // Slightly more gap below logo
+            ctx.textBaseline = 'top';
+            ctx.fillText('— INTERVIEW —', cx, topY + h * 0.08); // Remonté (0.08 au lieu de 0.10)
 
             // Artist name — large bottom center
             const nameFontSize = Math.round(h * 0.11);
@@ -269,6 +272,7 @@ export function InterviewVisualGenerator() {
 
             // URL bottom
             ctx.textAlign = 'center';
+            ctx.textBaseline = 'alphabetic';
             ctx.font = `900 ${Math.round(h * 0.022)}px Arial, sans-serif`;
             ctx.fillStyle = 'rgba(255,255,255,0.35)';
             ctx.fillText('dropsiders.fr', cx, h - h * 0.04);
