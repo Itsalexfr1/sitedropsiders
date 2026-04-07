@@ -689,6 +689,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [newLineupItem, setNewLineupItem] = useState<LineupItem>({
         id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', instagram2: '', instagram3: '', image: ''
     });
+    const [eventTimezoneOffset, setEventTimezoneOffset] = useState<number>(0);
     const [planningActiveDay, setPlanningActiveDay] = useState<string>('');
     const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
 
@@ -708,7 +709,48 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             return;
         }
 
-        const item = { ...newLineupItem, id: editingLineupId || ID.unique() };
+        const parseRawTime = (timeStr: string) => {
+            let cleaned = timeStr.trim().toLowerCase();
+            const isPM = cleaned.includes('pm') || cleaned.includes(' p.m');
+            cleaned = cleaned.replace('am', '').replace('pm', '').replace(' a.m', '').replace(' p.m', '').trim();
+            cleaned = cleaned.replace('.', ':').replace('h', ':');
+
+            let [hStr, mStr] = cleaned.split(':');
+            let h = parseInt(hStr || '0', 10);
+            let m = parseInt(mStr || '0', 10);
+            if (isNaN(h)) h = 0;
+            if (isNaN(m)) m = 0;
+            if (isPM && h < 12) h += 12;
+            if (!isPM && h === 12) h = 0;
+            return { h, m };
+        };
+
+        const localStart = parseRawTime(newLineupItem.startTime);
+        const localEnd = parseRawTime(newLineupItem.endTime);
+
+        const applyOffset = (dateStr: string, hour: number, min: number, offsetHours: number, nextDay: boolean) => {
+            const [year, month, day] = dateStr.split('-').map(Number);
+            const dt = new Date(year, month - 1, day, hour, min, 0);
+            if (nextDay) dt.setDate(dt.getDate() + 1);
+            dt.setHours(dt.getHours() + offsetHours);
+
+            const newDate = `${dt.getFullYear()}-${(dt.getMonth() + 1).toString().padStart(2, '0')}-${dt.getDate().toString().padStart(2, '0')}`;
+            const newTime = `${dt.getHours().toString().padStart(2, '0')}:${dt.getMinutes().toString().padStart(2, '0')}`;
+            return { newDate, newTime };
+        };
+
+        const isNextDayLocal = localEnd.h < localStart.h;
+
+        const startConverted = applyOffset(newLineupItem.day, localStart.h, localStart.m, eventTimezoneOffset, false);
+        const endConverted = applyOffset(newLineupItem.day, localEnd.h, localEnd.m, eventTimezoneOffset, isNextDayLocal);
+
+        const item = { 
+            ...newLineupItem, 
+            id: editingLineupId || ID.unique(),
+            day: startConverted.newDate,
+            startTime: startConverted.newTime,
+            endTime: endConverted.newTime
+        };
         let next;
         if (editingLineupId) {
             next = lineupItems.map(i => i.id === editingLineupId ? item : i);
@@ -2514,6 +2556,26 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">{editingLineupId ? 'Modifier Session' : 'Nouvelle Session'}</h3>
                                                         <p className="text-[10px] text-gray-500 font-bold uppercase">Ajoutez un artiste au planning du takeover</p>
                                                     </div>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Fuseau Horaire Local (Conversion auto vers FR Heure)</label>
+                                                    <select 
+                                                        value={eventTimezoneOffset} 
+                                                        onChange={e => setEventTimezoneOffset(Number(e.target.value))} 
+                                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
+                                                    >
+                                                        <option value={0}>🇫🇷 Heure Française (Paris)</option>
+                                                        <option value={6}>🇺🇸 Miami / New York (Hiver : Nov-Mars | -6h)</option>
+                                                        <option value={5}>🇺🇸 Miami / New York (Été : Mars-Nov | -5h)</option>
+                                                        <option value={9}>🇺🇸 Los Angeles / Vegas (Hiver : Nov-Mars | -9h)</option>
+                                                        <option value={8}>🇺🇸 Los Angeles / Vegas (Été : Mars-Nov | -8h)</option>
+                                                        <option value={7}>🇺🇸 Chicago / Texas (Hiver : Nov-Mars | -7h)</option>
+                                                        <option value={6}>🇺🇸 Chicago / Texas (Été : Mars-Nov | -6h)</option>
+                                                        <option value={-8}>🇯🇵 Tokyo (+8h)</option>
+                                                        <option value={-7}>🇦🇺 Sydney (+7h)</option>
+                                                        <option value={1}>🇬🇧 Londres (-1h)</option>
+                                                    </select>
                                                 </div>
 
                                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
