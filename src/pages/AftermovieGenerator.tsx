@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
     ChevronLeft, ChevronRight, Upload, Music, Trash2, 
-    RefreshCw, Film, Play, List, Sparkles, Zap, Plus, X, Download
+    RefreshCw, Film, Play, List, Sparkles, Zap, Plus, X, Download, AlertTriangle
 } from 'lucide-react';
 import { isSuperAdmin } from '../utils/auth';
 
@@ -21,8 +21,18 @@ export function VideoStudioGenerator() {
     const isAuthorized = storedPermissions.includes('all') || storedPermissions.includes('social') || isSuperAdmin(adminUser);
 
     const [clips, setClips] = useState<Clip[]>([]);
+    const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
     const [music, setMusic] = useState<{ blobUrl: string; file: File } | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
+    const [alertMessage, setAlertMessage] = useState<string | null>(null);
+
+    const alertTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const showAlert = (message: string) => {
+        setAlertMessage(message);
+        if (alertTimeout.current) clearTimeout(alertTimeout.current);
+        alertTimeout.current = setTimeout(() => setAlertMessage(null), 5000);
+    };
     const [progress, setProgress] = useState(0);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [activeFilter, setActiveFilter] = useState<'none' | 'neon' | 'vhs' | 'glitch' | 'pro_mix'>('pro_mix');
@@ -87,7 +97,7 @@ export function VideoStudioGenerator() {
         }
         
         if (rejectedCount > 0) {
-            alert(`${rejectedCount} vidéo(s) ignorée(s) car la durée est inférieure à 10 secondes.`);
+            showAlert(`${rejectedCount} vidéo(s) ignorée(s) car la durée est inférieure à 10 secondes.`);
         }
 
         if (newClips.length > 0) {
@@ -125,6 +135,37 @@ export function VideoStudioGenerator() {
             }
             return prev;
         });
+    };
+
+    const handleDragStart = (e: React.DragEvent, index: number) => {
+        setDraggedIndex(index);
+        e.dataTransfer.effectAllowed = 'move';
+    };
+
+    const handleDragOver = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        if (dragOverIndex !== index) {
+            setDragOverIndex(index);
+        }
+    };
+
+    const handleDragLeave = () => {
+        setDragOverIndex(null);
+    };
+
+    const handleDrop = (e: React.DragEvent, index: number) => {
+        e.preventDefault();
+        setDragOverIndex(null);
+        if (draggedIndex !== null && draggedIndex !== index) {
+            setClips(prev => {
+                const newClips = [...prev];
+                const [draggedClip] = newClips.splice(draggedIndex, 1);
+                newClips.splice(index, 0, draggedClip);
+                return newClips;
+            });
+        }
+        setDraggedIndex(null);
     };
 
     const generateVideo = async () => {
@@ -198,7 +239,7 @@ export function VideoStudioGenerator() {
         recorder.onstop = () => {
             if (chunks.length === 0) {
                 console.error("Aucune donnée enregistrée !");
-                alert("Erreur: Le rendu a été bloqué par votre navigateur. Gardez cette page ouverte et visible pendant la génération.");
+                showAlert("Erreur: Le rendu a été bloqué par votre navigateur. Gardez cette page ouverte et visible pendant la génération.");
             }
             const blob = new Blob(chunks, { type: blobMimeType });
             setPreviewUrl(URL.createObjectURL(blob));
@@ -400,6 +441,14 @@ export function VideoStudioGenerator() {
 
     return (
         <div className="min-h-screen bg-[#050505] text-white">
+            {alertMessage && (
+                <div className="fixed top-8 left-1/2 -translate-x-1/2 z-[100] px-6 py-4 bg-red-500/10 border border-red-500/30 backdrop-blur-xl rounded-2xl shadow-[0_0_30px_rgba(255,0,51,0.2)] flex items-center gap-4 transition-all duration-300">
+                    <AlertTriangle className="w-5 h-5 text-neon-red" />
+                    <p className="text-[10px] font-black uppercase tracking-widest text-white">{alertMessage}</p>
+                    <button onClick={() => setAlertMessage(null)} className="p-1.5 hover:bg-white/10 rounded-lg transition-colors ml-4"><X className="w-4 h-4 text-gray-400 hover:text-white" /></button>
+                </div>
+            )}
+            
             <div className="max-w-7xl mx-auto px-6 py-12">
                 <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12">
                     <div>
@@ -450,8 +499,20 @@ export function VideoStudioGenerator() {
                             </div>
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                                 {clips.map((clip, index) => (
-                                    <div key={clip.id} className="relative group rounded-2xl overflow-hidden aspect-[4/3] bg-black border border-white/10 shadow-lg">
-                                        <video src={clip.blobUrl} className="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity" />
+                                    <div 
+                                        key={clip.id} 
+                                        draggable
+                                        onDragStart={(e) => handleDragStart(e, index)}
+                                        onDragOver={(e) => handleDragOver(e, index)}
+                                        onDragLeave={handleDragLeave}
+                                        onDrop={(e) => handleDrop(e, index)}
+                                        className={`relative group rounded-2xl overflow-hidden aspect-[4/3] bg-black border cursor-grab active:cursor-grabbing transition-all ${
+                                            draggedIndex === index ? 'opacity-50 scale-95 border-white/30' : 
+                                            dragOverIndex === index ? `border-neon-cyan border-2 scale-105 z-10 ${themeShadow}` : 
+                                            'border-white/10 shadow-lg'
+                                        }`}
+                                    >
+                                        <video src={clip.blobUrl} className="w-full h-full object-cover opacity-60 group-hover:opacity-40 transition-opacity pointer-events-none" />
                                         <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 rounded-md text-[8px] font-black italic tracking-tighter shadow-md z-10 text-white">#{index+1}</div>
                                         
                                         <div className="absolute inset-0 flex items-center justify-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity z-10 pointer-events-none">
