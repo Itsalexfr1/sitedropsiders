@@ -2566,15 +2566,15 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
                                                     >
                                                         <option value={0}>🇫🇷 Heure Française (Paris)</option>
-                                                        <option value={6}>🇺🇸 Miami / New York (Hiver : Nov-Mars | -6h)</option>
-                                                        <option value={5}>🇺🇸 Miami / New York (Été : Mars-Nov | -5h)</option>
-                                                        <option value={9}>🇺🇸 Los Angeles / Vegas (Hiver : Nov-Mars | -9h)</option>
-                                                        <option value={8}>🇺🇸 Los Angeles / Vegas (Été : Mars-Nov | -8h)</option>
-                                                        <option value={7}>🇺🇸 Chicago / Texas (Hiver : Nov-Mars | -7h)</option>
-                                                        <option value={6}>🇺🇸 Chicago / Texas (Été : Mars-Nov | -6h)</option>
-                                                        <option value={-8}>🇯🇵 Tokyo (+8h)</option>
-                                                        <option value={-7}>🇦🇺 Sydney (+7h)</option>
-                                                        <option value={1}>🇬🇧 Londres (-1h)</option>
+                                                        <option value={6}>🇺🇸 EST - Eastern Standard Time (Miami / NY Hiver | -6h)</option>
+                                                        <option value={5}>🇺🇸 EDT - Eastern Daylight Time (Miami / NY Été | -5h)</option>
+                                                        <option value={9}>🇺🇸 PST - Pacific Standard Time (Vegas / LA Hiver | -9h)</option>
+                                                        <option value={8}>🇺🇸 PDT - Pacific Daylight Time (Vegas / LA Été | -8h)</option>
+                                                        <option value={7}>🇺🇸 CST - Central Standard Time (Chicago / Texas Hiver | -7h)</option>
+                                                        <option value={6}>🇺🇸 CDT - Central Daylight Time (Chicago / Texas Été | -6h)</option>
+                                                        <option value={-8}>🇯🇵 JST - Japan Standard Time (Tokyo | +8h)</option>
+                                                        <option value={-7}>🇦🇺 AEDT - Australian Time (Sydney | +7h)</option>
+                                                        <option value={1}>🇬🇧 GMT / BST - British Time (Londres | -1h)</option>
                                                     </select>
                                                 </div>
 

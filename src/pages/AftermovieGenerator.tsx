@@ -45,7 +45,7 @@ export function VideoStudioGenerator() {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const dropsidersLogo = useRef<HTMLImageElement | null>(null);
 
-    const DURATIONS = [30, 60, 90, 120, 150, 180, 210];
+    const DURATIONS = [30, 60, 90, 120, 150, 180, 210, 240, 270, 300];
     const themeColor = isRecapMode ? 'text-neon-cyan' : 'text-neon-red';
     const themeBg = isRecapMode ? 'bg-neon-cyan/20 border-neon-cyan' : 'bg-neon-red/20 border-neon-red';
     const themeBtn = isRecapMode ? 'bg-neon-cyan text-black' : 'bg-neon-red text-white';
