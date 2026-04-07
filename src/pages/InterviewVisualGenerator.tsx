@@ -31,6 +31,8 @@ export function InterviewVisualGenerator() {
     const [artistName, setArtistName]     = useState('');
     const [artistPhoto, setArtistPhoto]   = useState<string | null>(null);
     const [artistLogo, setArtistLogo]     = useState<string | null>(null);
+    const [festivalName, setFestivalName] = useState('');
+    const [festivalLogo, setFestivalLogo] = useState<string | null>(null);
     const [activeFormat, setActiveFormat] = useState<Format>('youtube');
     const [previewUrl, setPreviewUrl]     = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
@@ -38,6 +40,7 @@ export function InterviewVisualGenerator() {
 
     const photoInputRef = useRef<HTMLInputElement>(null);
     const logoInputRef  = useRef<HTMLInputElement>(null);
+    const festivalLogoRef = useRef<HTMLInputElement>(null);
     const canvasRef     = useRef<HTMLCanvasElement>(null);
 
     // Load Dropsiders logo
@@ -70,7 +73,7 @@ export function InterviewVisualGenerator() {
        GENERATE CANVAS
     ───────────────────────────────────── */
     const generate = useCallback(async (fmt: Format) => {
-        if (!artistPhoto || !artistName.trim()) return;
+        if (!artistPhoto || (!artistName.trim() && !artistLogo)) return;
         setIsGenerating(true);
 
         const { w, h } = FORMATS[fmt];
@@ -234,6 +237,31 @@ export function InterviewVisualGenerator() {
             ctx.fillText('dropsiders.fr', logoCenterX, h - h * 0.04);
             ctx.textAlign = 'left';
 
+            // ── Festival Info (YouTube Top Right) ──
+            if (festivalName || festivalLogo) {
+                const festY = h * 0.08;
+                const festX = w - w * 0.05;
+                ctx.textAlign = 'right';
+                if (festivalLogo) {
+                    try {
+                        const fLogo = await loadImage(festivalLogo);
+                        const flh = h * 0.08;
+                        const flw = flh * (fLogo.width / fLogo.height);
+                        ctx.drawImage(fLogo, festX - flw, festY, flw, flh);
+                        if (festivalName) {
+                            ctx.font = `900 ${h * 0.02}px Arial, sans-serif`;
+                            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+                            ctx.fillText(festivalName.toUpperCase(), festX, festY + flh + 15);
+                        }
+                    } catch(_) {}
+                } else {
+                    ctx.font = `900 ${h * 0.03}px 'Arial Black', Arial, sans-serif`;
+                    ctx.fillStyle = '#ff0033';
+                    ctx.fillText(festivalName.toUpperCase(), festX, festY);
+                }
+                ctx.textAlign = 'left';
+            }
+
         } else {
             // ─── INSTAGRAM layout ───
             const cx   = w / 2;
@@ -295,6 +323,25 @@ export function InterviewVisualGenerator() {
             ctx.fillStyle = 'rgba(255,255,255,0.35)';
             ctx.fillText('dropsiders.fr', cx, h - h * 0.04);
             ctx.textAlign = 'left';
+
+            // ── Festival Info (Instagram Top Left) ──
+            if (festivalName || festivalLogo) {
+                const festY = h * 0.05;
+                const festX = w * 0.05;
+                ctx.textAlign = 'left';
+                if (festivalLogo) {
+                    try {
+                        const fLogo = await loadImage(festivalLogo);
+                        const flh = h * 0.06;
+                        const flw = flh * (fLogo.width / fLogo.height);
+                        ctx.drawImage(fLogo, festX, festY, flw, flh);
+                    } catch(_) {}
+                } else {
+                    ctx.font = `900 ${h * 0.02}px Arial, sans-serif`;
+                    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                    ctx.fillText(festivalName.toUpperCase(), festX, festY + h * 0.02);
+                }
+            }
         }
 
         // ── 7. Corner logo (only if not used as hero) ──
@@ -319,7 +366,7 @@ export function InterviewVisualGenerator() {
         setPreviewUrl(url);
         setIsGenerating(false);
         return url;
-    }, [artistPhoto, artistName, artistLogo, dropsidersLogo]);
+    }, [artistPhoto, artistName, artistLogo, dropsidersLogo, festivalName, festivalLogo]);
 
     const handleGenerate = () => { generate(activeFormat); };
 
@@ -487,6 +534,42 @@ export function InterviewVisualGenerator() {
                                 >
                                     <Upload className="w-5 h-5" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Importer un logo</span>
+                                </button>
+                            )}
+                        </div>
+
+                        {/* Festival info (new) */}
+                        <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-3">
+                                Festival / Événement
+                            </label>
+                            <input
+                                type="text"
+                                value={festivalName}
+                                onChange={(e) => setFestivalName(e.target.value)}
+                                placeholder="Nom du festival (optionnel)"
+                                className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white text-sm font-bold uppercase tracking-widest mb-4 focus:border-neon-red transition-all"
+                            />
+                            <input
+                                ref={festivalLogoRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0], setFestivalLogo)}
+                            />
+                            {festivalLogo ? (
+                                <div className="flex items-center gap-4 p-4 bg-black/30 rounded-2xl border border-white/5">
+                                    <img src={festivalLogo} alt="Festival Logo" className="h-10 w-10 object-contain" />
+                                    <p className="text-[9px] font-black uppercase text-gray-400 flex-1">Logo Festival</p>
+                                    <button onClick={() => setFestivalLogo(null)} className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-all"><Trash2 className="w-3 h-3 text-red-500" /></button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => festivalLogoRef.current?.click()}
+                                    className="w-full py-3 rounded-xl border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-3 text-gray-500 text-[10px] uppercase font-black tracking-widest"
+                                >
+                                    <Image className="w-4 h-4" />
+                                    Logo Festival (Optionnel)
                                 </button>
                             )}
                         </div>

@@ -14,7 +14,7 @@ interface Clip {
     title: string;
 }
 
-export function AftermovieGenerator() {
+export function RecapGenerator() {
     const navigate = useNavigate();
     const adminUser = localStorage.getItem('admin_user');
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
@@ -215,14 +215,14 @@ export function AftermovieGenerator() {
                             Retour Studio
                         </button>
                         <h1 className="text-5xl font-display font-black uppercase italic tracking-tighter">
-                            Aftermovie <span className="text-neon-red">Maker</span>
+                            Récap <span className="text-neon-cyan">Vidéo</span>
                         </h1>
-                        <p className="text-gray-500 text-[10px] uppercase font-black tracking-[0.3em] mt-2">Mode Autonome / Beat Sync v2.0</p>
+                        <p className="text-gray-500 text-[10px] uppercase font-black tracking-[0.3em] mt-2">Format Actu / News v2.0</p>
                     </div>
                     <div className="flex gap-4">
-                        <button onClick={generateAftermovie} disabled={clips.length === 0 || isGenerating} className="bg-neon-red text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_0_25px_rgba(255,0,51,0.3)] hover:scale-105 transition-all disabled:opacity-30 flex items-center gap-3">
+                        <button onClick={generateAftermovie} disabled={clips.length === 0 || isGenerating} className="bg-neon-cyan text-black px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_0_25px_rgba(0,255,255,0.3)] hover:scale-105 transition-all disabled:opacity-30 flex items-center gap-3">
                             {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Film className="w-4 h-4" />}
-                            {isGenerating ? `Génération ${progress}%` : 'Lancer le rendu pro'}
+                            {isGenerating ? `Génération ${progress}%` : 'Lancer le récap pro'}
                         </button>
                     </div>
                 </div>
