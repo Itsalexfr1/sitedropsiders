@@ -80,7 +80,9 @@ export function VideoStudioGenerator() {
                     rejectedCount++;
                 }
             } catch (e) {
+                console.error("Erreur d'import vidéo pour", file.name, e);
                 URL.revokeObjectURL(url);
+                rejectedCount++;
             }
         }
         
@@ -139,7 +141,17 @@ export function VideoStudioGenerator() {
         }
 
         const combinedStream = new MediaStream([...stream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
-        const recorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 8000000 });
+        
+        let options: MediaRecorderOptions = { videoBitsPerSecond: 8000000 };
+        if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
+            options.mimeType = 'video/webm;codecs=vp9';
+        } else if (MediaRecorder.isTypeSupported('video/webm')) {
+            options.mimeType = 'video/webm';
+        } else if (MediaRecorder.isTypeSupported('video/mp4')) {
+            options.mimeType = 'video/mp4';
+        }
+
+        const recorder = new MediaRecorder(combinedStream, options);
 
         const chunks: Blob[] = [];
         recorder.ondataavailable = e => chunks.push(e.data);
