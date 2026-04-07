@@ -8,7 +8,7 @@ import {
     BarChart3, Clock, Sword, Crown, Maximize2, Minimize2,
     Trophy, Stars, Heart, Timer, ShieldAlert, Calendar, Edit2, Edit3,
     Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
-    Search, ChevronUp, ChevronDown, Camera, Check, Coins, Shield
+    Search, ChevronUp, ChevronDown, ChevronLeft, Camera, Check, Coins, Shield
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
