@@ -26,7 +26,7 @@ export function RecapGenerator() {
     const [progress, setProgress] = useState(0);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [activeFilter, setActiveFilter] = useState<'none' | 'neon' | 'vhs' | 'glitch'>('neon');
-    const [targetDuration, setTargetDuration] = useState<15 | 30 | 60>(15);
+    const [targetDuration, setTargetDuration] = useState<15 | 30 | 60 | 180 | 300>(15);
     const [bpm, setBpm] = useState(128);
     const showLogo = true;
 
@@ -44,7 +44,8 @@ export function RecapGenerator() {
         if (!files) return;
         const newClips: Clip[] = [];
         Array.from(files).forEach(file => {
-            if (!file.type.startsWith('video/')) return;
+            const isVideo = file.type.startsWith('video/') || file.name.toLowerCase().endsWith('.mov');
+            if (!isVideo) return;
             const url = URL.createObjectURL(file);
             newClips.push({
                 id: Math.random().toString(36).substr(2, 9),
@@ -242,7 +243,7 @@ export function RecapGenerator() {
                             <div className="flex items-center justify-between mb-8">
                                 <h3 className="text-xs font-black uppercase tracking-[0.2em] flex items-center gap-3"><List className="w-4 h-4 text-neon-red" /> Clips ({clips.length})</h3>
                                 <button onClick={() => document.getElementById('video-upload')?.click()} className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/5"><Plus className="w-4 h-4 text-gray-500" /></button>
-                                <input id="video-upload" type="file" multiple accept="video/*" className="hidden" onChange={(e) => handleVideoImport(e.target.files)} />
+                                <input id="video-upload" type="file" multiple accept="video/*,.mov" className="hidden" onChange={(e) => handleVideoImport(e.target.files)} />
                             </div>
                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                                 {clips.map((clip, index) => (
@@ -259,9 +260,9 @@ export function RecapGenerator() {
                     <div className="space-y-6">
                         <div className="bg-white/[0.04] border border-white/10 rounded-[2rem] p-8 backdrop-blur-xl">
                             <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-6 flex items-center gap-3"><Music className="w-4 h-4 text-neon-cyan" /> Audio & Rythme</h3>
-                            <div className="grid grid-cols-3 gap-2 mb-6">
-                                {[15, 30, 60].map(d => (
-                                    <button key={d} onClick={() => setTargetDuration(d as any)} className={`py-3 rounded-xl border text-[10px] font-black ${targetDuration === d ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>{d}s</button>
+                            <div className="grid grid-cols-5 gap-2 mb-6">
+                                {[15, 30, 60, 180, 300].map(d => (
+                                    <button key={d} onClick={() => setTargetDuration(d as any)} className={`py-3 rounded-xl border text-[10px] font-black ${targetDuration === d ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>{d < 60 ? d + 's' : (d / 60) + 'm'}</button>
                                 ))}
                             </div>
                             {music ? <div className="p-4 bg-neon-cyan/5 border border-neon-cyan/20 rounded-2xl flex items-center gap-3"><Music className="w-4 h-4 text-neon-cyan" /><p className="text-[10px] font-black uppercase tracking-tight truncate flex-1">{music.file.name}</p><button onClick={() => setMusic(null)} className="text-red-400"><X className="w-4 h-4" /></button></div> : 
