@@ -1517,8 +1517,6 @@ export function AdminDashboard() {
         { title: "Spotify", description: "Top 10 Hebdo", icon: "Music", category: "STUDIO", link: "#", color: "border-neon-green/20 hover:border-neon-green", bg: "bg-neon-green/5", permission: "musique_releases", baseColor: "green", columns: 1 },
         { title: "Studio Création", description: "Générateurs Rapides", icon: "Sparkles", category: "STUDIO", link: "#", color: "border-neon-orange/20 hover:border-neon-orange", bg: "bg-neon-orange/5", permission: "news", baseColor: "orange", columns: 2 },
         { title: "Social Studio", description: "Générateur de Visuels", icon: "Paintbrush", category: "SOCIAL_STUDIO", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "all", baseColor: "pink", columns: 2 },
-        { title: "Downloader", description: "Outil Médias", icon: "Download", category: "STUDIO", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "all", baseColor: "cyan", columns: 1 },
-        { title: "Générateur QR Code", description: "Outil Marketing", icon: "Zap", category: "STUDIO", link: "/qr", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "all", baseColor: "cyan", columns: 1 },
 
         // SHOP & CONTACT
         { title: "Boutique", description: "Ventes & Produits", icon: "ShoppingBag", category: "SHOP", link: "#", color: "border-neon-pink/20 hover:border-neon-pink", bg: "bg-neon-pink/5", permission: "shop", baseColor: "pink", columns: 2 },
@@ -3019,6 +3017,9 @@ export function AdminDashboard() {
                                                     } else if (action.link === 'social-studio' || action.title === 'Social Studio') {
                                                         e.preventDefault();
                                                         setIsSocialModalOpen(true);
+                                                    } else if (action.link === '/interview-visuals' || action.title === 'Visuels Interviews') {
+                                                        e.preventDefault();
+                                                        navigate('/interview-visuals');
                                                     } else if (action.link === 'downloader' || action.title === 'Downloader') {
                                                         e.preventDefault();
                                                         setIsDownloaderOpen(true);
@@ -3316,6 +3317,7 @@ export function AdminDashboard() {
                                 onClose={() => setIsCreatorStudioOpen(false)}
                                 onExpress={() => setIsQuickWizardOpen(true)}
                                 onPubli={() => setIsPubliModalOpen(true)}
+                                onDownloader={() => setIsDownloaderOpen(true)}
                             />
 
                             <AnimatePresence>

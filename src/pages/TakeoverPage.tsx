@@ -1969,20 +1969,25 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         </div>
 
                         {settings.streams && settings.streams.length > 1 && (
-                            <div className="flex lg:absolute lg:left-1/2 lg:-translate-x-1/2 gap-1 p-1 bg-white/5 border-t lg:border-t-0 border-white/5 overflow-x-auto no-scrollbar py-2 lg:py-1">
-                                {settings.streams.map((s: any, idx: number) => (
-                                    <button
-                                        key={s.id}
-                                        onClick={() => {
-                                            setSettings(prev => ({ ...prev, activeStreamId: s.id }));
-                                            setActiveStage(`stage${idx + 1}` as any);
-                                        }}
-                                        className={`px-3 py-1.5 lg:px-4 lg:py-2 rounded-lg lg:rounded-xl text-[7px] lg:text-[10px] font-black uppercase transition-all flex items-center gap-1.5 shrink-0 ${settings.activeStreamId === s.id ? 'bg-neon-red text-white shadow-[0_0_15px_rgba(255,0,51,0.4)]' : 'text-gray-400 hover:text-white hover:bg-white/10'}`}
-                                    >
-                                        <Video className="w-2.5 h-2.5 lg:w-3.5 lg:h-3.5 shrink-0" />
-                                        <span className="truncate max-w-[60px] lg:max-w-none">{s.name}</span>
-                                    </button>
-                                ))}
+                            <div className="flex lg:absolute lg:left-1/2 lg:-translate-x-1/2 gap-0 border-t lg:border-t-0 border-white/5 overflow-x-auto no-scrollbar">
+                                {settings.streams.map((s: any, idx: number) => {
+                                    const isActive = settings.activeStreamId === s.id;
+                                    return (
+                                        <button
+                                            key={s.id}
+                                            onClick={() => {
+                                                setSettings(prev => ({ ...prev, activeStreamId: s.id }));
+                                                setActiveStage(`stage${idx + 1}` as any);
+                                            }}
+                                            className={`relative px-3 py-2 lg:px-5 lg:py-3 text-[7px] lg:text-[10px] font-black uppercase flex items-center gap-1.5 shrink-0 border-b-2 transition-colors duration-150 ${isActive ? 'text-white border-neon-red' : 'text-gray-500 border-transparent hover:text-gray-300 hover:border-white/20'}`}
+                                        >
+                                            {isActive && (
+                                                <span className="w-1.5 h-1.5 lg:w-2 lg:h-2 bg-neon-red rounded-none shrink-0" style={{ boxShadow: '0 0 6px rgba(255,0,51,0.8)' }} />
+                                            )}
+                                            <span className="truncate max-w-[60px] lg:max-w-none">{s.name}</span>
+                                        </button>
+                                    );
+                                })}
                             </div>
                         )}
 
