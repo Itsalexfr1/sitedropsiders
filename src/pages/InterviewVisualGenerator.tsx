@@ -457,21 +457,47 @@ export function InterviewVisualGenerator() {
                             </div>
                         </div>
 
-                        {/* Artist name */}
+                        {/* Artist Info Group */}
                         <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-3">
-                                Nom de l'artiste <span className="text-neon-red">*</span>
+                                Artiste <span className="text-neon-red">*</span>
                             </label>
+                            
+                            {/* Name Input */}
                             <input
                                 type="text"
                                 value={artistName}
                                 onChange={(e) => setArtistName(e.target.value)}
-                                placeholder="Ex: Charlotte de Witte"
-                                className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white text-lg font-black italic tracking-tight focus:outline-none focus:border-neon-red transition-all placeholder:text-gray-600"
+                                placeholder="Nom de l'artiste"
+                                className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white text-lg font-black italic tracking-tight focus:outline-none focus:border-neon-red transition-all placeholder:text-gray-600 mb-4"
                             />
+
+                            {/* Logo Upload inside same block */}
+                            <input
+                                ref={logoInputRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0], setArtistLogo)}
+                            />
+                            {artistLogo ? (
+                                <div className="flex items-center gap-4 p-4 bg-black/30 rounded-2xl border border-white/5">
+                                    <img src={artistLogo} alt="Logo" className="h-10 w-10 object-contain" />
+                                    <p className="text-[10px] font-black uppercase text-gray-400 flex-1">Logo Artiste</p>
+                                    <button onClick={() => setArtistLogo(null)} className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-all text-red-500"><Trash2 className="w-3 h-3" /></button>
+                                </div>
+                            ) : (
+                                <button
+                                    onClick={() => logoInputRef.current?.click()}
+                                    className="w-full py-3 rounded-xl border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-3 text-gray-500 text-[10px] uppercase font-black tracking-widest"
+                                >
+                                    <Upload className="w-4 h-4" />
+                                    Logo Artiste (Optionnel)
+                                </button>
+                            )}
                         </div>
 
-                        {/* Artist photo */}
+                        {/* Artist photo (keep separate as it's the main visual element) */}
                         <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-3">
                                 Photo de l'artiste <span className="text-neon-red">*</span>
@@ -499,41 +525,6 @@ export function InterviewVisualGenerator() {
                                     <Upload className="w-8 h-8" />
                                     <span className="text-[10px] font-black uppercase tracking-widest">Importer une photo</span>
                                     <span className="text-[9px] text-gray-600">PNG, JPG, WEBP</span>
-                                </button>
-                            )}
-                        </div>
-
-                        {/* Artist logo (optional) */}
-                        <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-1">
-                                Logo de l'artiste
-                            </label>
-                            <p className="text-[9px] text-gray-600 uppercase tracking-widest mb-3">Optionnel — de préférence PNG transparent</p>
-                            <input
-                                ref={logoInputRef}
-                                type="file"
-                                accept="image/*"
-                                className="hidden"
-                                onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0], setArtistLogo)}
-                            />
-                            {artistLogo ? (
-                                <div className="flex items-center gap-4 p-4 bg-black/30 rounded-2xl border border-white/5">
-                                    <img src={artistLogo} alt="Logo" className="h-14 w-14 object-contain" />
-                                    <div className="flex-1">
-                                        <p className="text-white text-[10px] font-black uppercase tracking-widest">Logo importé</p>
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button onClick={() => logoInputRef.current?.click()} className="p-2 bg-white/10 rounded-xl hover:bg-white/20 transition-all"><RefreshCw className="w-4 h-4 text-white" /></button>
-                                        <button onClick={() => setArtistLogo(null)} className="p-2 bg-red-500/10 rounded-xl hover:bg-red-500/20 transition-all"><Trash2 className="w-4 h-4 text-red-400" /></button>
-                                    </div>
-                                </div>
-                            ) : (
-                                <button
-                                    onClick={() => logoInputRef.current?.click()}
-                                    className="w-full py-4 rounded-2xl border-2 border-dashed border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-3 text-gray-500 hover:text-white"
-                                >
-                                    <Upload className="w-5 h-5" />
-                                    <span className="text-[10px] font-black uppercase tracking-widest">Importer un logo</span>
                                 </button>
                             )}
                         </div>
