@@ -409,11 +409,11 @@ export function InterviewVisualGenerator() {
             {/* Nav */}
             <div className="fixed top-4 left-4 z-50">
                 <button
-                    onClick={() => navigate(-1)}
-                    className="flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-2xl text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all backdrop-blur-md"
+                    onClick={() => navigate('/admin')}
+                    className="flex items-center gap-2 px-6 py-3 bg-black/60 border border-white/10 rounded-2xl text-white text-[10px] font-black uppercase tracking-[0.2em] hover:bg-white/10 hover:border-red-500/50 transition-all backdrop-blur-md shadow-2xl group"
                 >
-                    <ChevronLeft className="w-4 h-4" />
-                    Retour
+                    <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    Tableau de Bord
                 </button>
             </div>
 

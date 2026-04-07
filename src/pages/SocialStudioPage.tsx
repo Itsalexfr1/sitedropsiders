@@ -78,6 +78,16 @@ export function SocialStudioPage() {
 
     return (
         <div className="min-h-screen bg-black">
+            <div className="flex fixed top-4 right-4 lg:top-8 lg:right-8 z-[210] items-center gap-6">
+                <button
+                    onClick={() => navigate('/admin')}
+                    className="p-3 lg:p-4 bg-white/10 hover:bg-neon-pink/20 text-white rounded-2xl border border-white/20 transition-all flex items-center gap-3 font-black text-[10px] uppercase tracking-widest group shadow-[0_0_20px_rgba(255,0,255,0.1)]"
+                >
+                    <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                    TABLEAU ADMIN
+                </button>
+            </div>
+            
             <div className="flex fixed top-4 left-4 lg:top-8 lg:left-8 z-[210] items-center gap-6">
                 <button
                     onClick={() => navigate('/')}
