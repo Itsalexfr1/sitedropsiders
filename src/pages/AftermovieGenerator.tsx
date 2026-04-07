@@ -175,7 +175,9 @@ export function VideoStudioGenerator() {
                         const elapsedInClip = (now - clipStartTime) / 1000;
                         const globalElapsed = totalTimeElapsed + elapsedInClip;
 
-                        if (videoEl.paused || videoEl.ended || elapsedInClip >= clipTime) {
+                        // On a enlevé `videoEl.paused ||` car la lecture est asynchrone
+                        // et renvoyait `true` au tout début, coupant la génération instantanément.
+                        if (videoEl.ended || elapsedInClip >= clipTime) {
                             totalTimeElapsed += elapsedInClip;
                             resolve();
                             return;
