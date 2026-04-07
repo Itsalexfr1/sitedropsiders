@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Music, ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
+import { Music, ArrowLeft, Save, Loader2, CheckCircle2, AlertCircle, Trash2, Plus } from 'lucide-react';
 import { Link, useBlocker } from 'react-router-dom';
 import { getAuthHeaders } from '../utils/auth';
 import { ConfirmationModal } from '../components/ConfirmationModal';
@@ -106,7 +106,7 @@ export function AdminSpotify() {
                             <h1 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
                                 Gestion <span className="text-neon-green">Spotify</span>
                             </h1>
-                            <p className="text-gray-400">Configurez les 4 playlists de la page d'accueil</p>
+                            <p className="text-gray-400">Configurez ou supprimez vos playlists d'accueil</p>
                         </div>
                     </div>
                 </div>
@@ -143,6 +143,16 @@ export function AdminSpotify() {
                                         </div>
                                         <h3 className="text-white font-display font-bold uppercase italic">{playlist.title || `Playlist ${index + 1}`}</h3>
                                     </div>
+                                    <button 
+                                        onClick={() => {
+                                            setPlaylists((prev: any[]) => prev.filter((p: any) => p.id !== playlist.id));
+                                            setHasChanges(true);
+                                        }}
+                                        className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-500 rounded-lg transition-colors group"
+                                        title="Supprimer la playlist"
+                                    >
+                                        <Trash2 className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                    </button>
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -218,7 +228,18 @@ export function AdminSpotify() {
                         ))}
                     </div>
 
-                    <div className="pt-8">
+                    <div className="pt-8 flex flex-col gap-4">
+                        <button
+                            onClick={() => {
+                                const newId = playlists.length > 0 ? Math.max(...playlists.map((p: any) => p.id)) + 1 : 1;
+                                setPlaylists((prev: any[]) => [...prev, { id: newId, title: `PLAYLIST ${newId}`, url: '', color: '#1DB954' }]);
+                                setHasChanges(true);
+                            }}
+                            className="w-full py-4 border-2 border-dashed border-white/10 text-gray-400 font-display font-black text-lg uppercase italic tracking-tighter rounded-2xl hover:bg-white/5 hover:border-white/20 transition-all flex items-center justify-center gap-3"
+                        >
+                            <Plus className="w-6 h-6" /> Ajouter un encart Playlist dynamique
+                        </button>
+
                         <button
                             onClick={handleSave}
                             disabled={status === 'loading'}
