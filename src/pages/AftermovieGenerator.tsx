@@ -40,6 +40,10 @@ export function VideoStudioGenerator() {
     const [bpm, setBpm] = useState(128);
     const [isRecapMode, setIsRecapMode] = useState(false);
     const [videoFormat, setVideoFormat] = useState<'youtube' | 'reel'>('youtube');
+    const [musicStart, setMusicStart] = useState(0);
+    const [musicEnd, setMusicEnd] = useState(30);
+    const [musicMaxDuration, setMusicMaxDuration] = useState(0);
+    const [alignToMusic, setAlignToMusic] = useState(true);
     const showLogo = true;
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -109,7 +113,16 @@ export function VideoStudioGenerator() {
         const file = e.target.files?.[0];
         if (file && file.type.startsWith('audio/')) {
             if (music) URL.revokeObjectURL(music.blobUrl);
-            setMusic({ blobUrl: URL.createObjectURL(file), file: file });
+            const url = URL.createObjectURL(file);
+            setMusic({ blobUrl: url, file: file });
+            
+            const audio = new Audio(url);
+            audio.onloadedmetadata = () => {
+                setMusicMaxDuration(audio.duration);
+                setMusicStart(0);
+                setMusicEnd(Math.min(audio.duration, targetDuration));
+                setAlignToMusic(true);
+            };
         }
     };
 
@@ -197,6 +210,7 @@ export function VideoStudioGenerator() {
             const dest = audioContext.createMediaStreamDestination();
             const musicEl = new Audio(music.blobUrl);
             musicEl.crossOrigin = "anonymous";
+            musicEl.currentTime = musicStart;
             const musicSource = audioContext.createMediaElementSource(musicEl);
             musicSource.connect(dest);
             musicSource.connect(audioContext.destination);
@@ -264,7 +278,8 @@ export function VideoStudioGenerator() {
         document.body.appendChild(videoEl);
 
 
-        const clipTime = targetDuration / clips.length;
+        const activeDuration = (alignToMusic && music) ? (musicEnd - musicStart) : targetDuration;
+        const clipTime = activeDuration / clips.length;
         const beatInterval = 60 / bpm;
         let totalTimeElapsed = 0;
 
@@ -541,6 +556,49 @@ export function VideoStudioGenerator() {
                                 <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Tempo de sync (BPM)</span>
                                 <input type="number" value={bpm} onChange={e => setBpm(parseInt(e.target.value) || 128)} className={`w-16 bg-transparent text-right font-black italic ${themeColor} focus:outline-none text-lg`} />
                             </div>
+
+                            {music && (
+                                <div className="mt-8 pt-8 border-t border-white/5 space-y-6">
+                                    <div className="flex items-center justify-between">
+                                        <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-500">Sync Audio (Range)</h4>
+                                        <button 
+                                            onClick={() => setAlignToMusic(!alignToMusic)}
+                                            className={`px-3 py-1 rounded-full text-[8px] font-black border transition-all ${alignToMusic ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-600'}`}
+                                        >
+                                            {alignToMusic ? 'DURÉE FIXÉE SUR AUDIO' : 'DURÉE MANUELLE'}
+                                        </button>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-4">
+                                        <div className="space-y-2">
+                                            <label className="text-[9px] font-black text-gray-600 uppercase">Début (Sec)</label>
+                                            <input 
+                                                type="number" 
+                                                value={musicStart} 
+                                                min={0} 
+                                                max={musicEnd - 1}
+                                                onChange={e => setMusicStart(Math.max(0, Number(e.target.value)))}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-black italic focus:border-neon-cyan outline-none transition-all"
+                                            />
+                                        </div>
+                                        <div className="space-y-2">
+                                            <label className="text-[9px] font-black text-gray-600 uppercase">Fin (Sec)</label>
+                                            <input 
+                                                type="number" 
+                                                value={musicEnd} 
+                                                min={musicStart + 1}
+                                                max={musicMaxDuration}
+                                                onChange={e => setMusicEnd(Math.min(musicMaxDuration, Number(e.target.value)))}
+                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-black italic focus:border-neon-cyan outline-none transition-all"
+                                            />
+                                        </div>
+                                    </div>
+                                    <div className="bg-black/40 p-4 rounded-2xl border border-white/5 flex items-center justify-between">
+                                        <span className="text-[9px] font-black text-gray-600 uppercase">Durée Totale Vidéo</span>
+                                        <span className={`text-sm font-black italic ${themeColor}`}>{Math.round(alignToMusic ? (musicEnd - musicStart) : targetDuration)}s</span>
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <div className="bg-white/[0.04] border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-xl">
