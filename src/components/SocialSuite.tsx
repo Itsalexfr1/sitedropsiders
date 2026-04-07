@@ -9,6 +9,27 @@ import {
 import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
 
+const FESTIVAL_TIMEZONES = [
+    { group: "🌍 Europe (Aucun décalage)", options: [{ label: "🇫🇷 Heure Française", offset: 0 }] },
+    { group: "🇬🇧 Royaume-Uni (-1h)", options: [{ label: "Londres / Creamfields", offset: 1 }] },
+    { group: "🌴 US - Côte Est (Miami / NY | -5h)", options: [
+        { label: "Ultra Miami / Lost Lands (Été)", offset: 5 },
+        { label: "Miami / NY (Hiver)", offset: 6 }
+    ]},
+    { group: "🎡 US - Côte Ouest (Vegas / LA | -8h)", options: [
+        { label: "EDC LV / Coachella / Day Trip (Été)", offset: 8 },
+        { label: "Vegas / LA (Hiver)", offset: 9 }
+    ]},
+    { group: "🤠 US - Centre (Chicago / Texas | -6h)", options: [
+        { label: "Lollapalooza / Ubbi Dubbi (Été)", offset: 6 },
+        { label: "Chicago / Texas (Hiver)", offset: 7 }
+    ]},
+    { group: "🌏 Asie & Océanie", options: [
+        { label: "Japon / Tokyo (+8h)", offset: -8 },
+        { label: "Sydney (+7h)", offset: -7 }
+    ]}
+];
+
 
 interface SocialSuiteProps {
     title: string;
@@ -69,6 +90,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [retouchPath, setRetouchPath] = useState<{ x: number, y: number }[]>([]);
     const [isDrawing, setIsDrawing] = useState(false);
     const [brushSize, setBrushSize] = useState(35);
+    const [planningTimezoneOffset, setPlanningTimezoneOffset] = useState<number>(0);
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -1198,6 +1220,31 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         </div>
     );
 
+    const handleConvertPlanningTimes = () => {
+        if (planningTimezoneOffset === 0) return;
+        const next = planningItems.map(item => {
+            let cleaned = item.time.trim().toLowerCase();
+            const isPM = cleaned.includes('pm') || cleaned.includes(' p.m');
+            cleaned = cleaned.replace('am', '').replace('pm', '').replace(' a.m', '').replace(' p.m', '').trim();
+            cleaned = cleaned.replace('.', ':').replace('h', ':');
+
+            let [hStr, mStr] = cleaned.split(':');
+            let h = parseInt(hStr || '0', 10);
+            let m = parseInt(mStr || '0', 10);
+            if (isNaN(h)) h = 0;
+            if (isNaN(m)) m = 0;
+            if (isPM && h < 12) h += 12;
+            if (!isPM && h === 12) h = 0;
+
+            h = (h + planningTimezoneOffset) % 24;
+            if (h < 0) h += 24;
+            
+            return { ...item, time: `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}` };
+        });
+        setPlanningItems(next);
+        setPlanningTimezoneOffset(0);
+    };
+
     const planningEditor = (
         <div className="space-y-3">
             <input 
@@ -1206,6 +1253,29 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 placeholder="TITRE (ex: LINE-UP)" 
                 className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs mb-2" 
             />
+            <div className="flex gap-2 mb-2">
+                <select 
+                    value={planningTimezoneOffset} 
+                    onChange={e => setPlanningTimezoneOffset(Number(e.target.value))}
+                    className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-[10px] text-gray-400 font-bold outline-none focus:border-neon-cyan transition-all"
+                >
+                    <option value={0}>SÉLECTIONNER LE FUSEAU LOCAL DU FESTIVAL</option>
+                    {FESTIVAL_TIMEZONES.map(group => (
+                        <optgroup key={group.group} label={group.group}>
+                            {group.options.map(opt => (
+                                <option key={opt.label} value={opt.offset}>{opt.label}</option>
+                            ))}
+                        </optgroup>
+                    ))}
+                </select>
+                <button 
+                    onClick={handleConvertPlanningTimes}
+                    disabled={planningTimezoneOffset === 0}
+                    className={`px-4 bg-neon-cyan/20 border border-neon-cyan/30 rounded-xl text-[9px] font-black uppercase text-neon-cyan transition-all ${planningTimezoneOffset === 0 ? 'opacity-30' : 'hover:bg-neon-cyan hover:text-black shadow-[0_0_15px_rgba(0,255,255,0.2)]'}`}
+                >
+                    CONVERTIR EN FR
+                </button>
+            </div>
             <input 
                 value={planningDate} 
                 onChange={e => setPlanningDate(e.target.value)} 
