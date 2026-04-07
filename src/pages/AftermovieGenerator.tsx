@@ -44,6 +44,7 @@ export function VideoStudioGenerator() {
     const [musicEnd, setMusicEnd] = useState(30);
     const [musicMaxDuration, setMusicMaxDuration] = useState(0);
     const [alignToMusic, setAlignToMusic] = useState(true);
+    const [outroClip, setOutroClip] = useState<Clip | null>(null);
     const showLogo = true;
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -106,6 +107,33 @@ export function VideoStudioGenerator() {
 
         if (newClips.length > 0) {
             setClips(prev => [...prev, ...newClips]);
+        }
+    };
+
+    const handleOutroImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        const isVideo = file.type.startsWith('video/') || file.name.toLowerCase().endsWith('.mov');
+        if (!isVideo) return;
+        
+        const url = URL.createObjectURL(file);
+        try {
+            const duration = await new Promise<number>((resolve, reject) => {
+                const video = document.createElement('video');
+                video.preload = 'metadata';
+                video.onloadedmetadata = () => resolve(video.duration);
+                video.onerror = reject;
+                video.src = url;
+            });
+            setOutroClip({
+                id: 'outro',
+                blobUrl: url,
+                file: file,
+                duration: duration,
+                title: file.name
+            });
+        } catch (e) {
+            URL.revokeObjectURL(url);
         }
     };
 
@@ -211,9 +239,19 @@ export function VideoStudioGenerator() {
             const musicEl = new Audio(music.blobUrl);
             musicEl.crossOrigin = "anonymous";
             musicEl.currentTime = musicStart;
+            
+            const gainNode = audioContext.createGain();
             const musicSource = audioContext.createMediaElementSource(musicEl);
-            musicSource.connect(dest);
-            musicSource.connect(audioContext.destination);
+            musicSource.connect(gainNode);
+            gainNode.connect(dest);
+            gainNode.connect(audioContext.destination);
+
+            const activeDuration = (alignToMusic && music) ? (musicEnd - musicStart) : targetDuration;
+            const fadeTime = 2.5; // seconds
+            const startTime = audioContext.currentTime + Math.max(0, activeDuration - fadeTime);
+            gainNode.gain.setValueAtTime(1, startTime);
+            gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + activeDuration);
+
             musicEl.play();
             mixedStream = new MediaStream([...stream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
         } else {
@@ -279,13 +317,14 @@ export function VideoStudioGenerator() {
 
 
         const activeDuration = (alignToMusic && music) ? (musicEnd - musicStart) : targetDuration;
-        const clipTime = activeDuration / clips.length;
+        const finalClips = outroClip ? [...clips, outroClip] : [...clips];
+        const clipTime = activeDuration / finalClips.length;
         const beatInterval = 60 / bpm;
         let totalTimeElapsed = 0;
 
-        for (let i = 0; i < clips.length; i++) {
-            const clip = clips[i];
-            setProgress(Math.round((i / clips.length) * 100));
+        for (let i = 0; i < finalClips.length; i++) {
+            const clip = finalClips[i];
+            setProgress(Math.round((i / finalClips.length) * 100));
             
             await new Promise<void>((resolve) => {
                 videoEl.src = clip.blobUrl;
@@ -599,6 +638,32 @@ export function VideoStudioGenerator() {
                                     </div>
                                 </div>
                             )}
+
+                            <div className="mt-8 pt-8 border-t border-white/5 space-y-4">
+                                <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-500 flex items-center gap-2">
+                                    <Film className="w-3 h-3" /> Outro Automatique
+                                </h4>
+                                {outroClip ? (
+                                    <div className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-2xl group">
+                                        <div className="w-12 h-12 rounded-lg bg-black overflow-hidden shrink-0">
+                                            <video src={outroClip.blobUrl} className="w-full h-full object-cover opacity-50" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-[9px] font-black uppercase text-white truncate">{outroClip.title}</p>
+                                            <p className="text-[8px] font-bold text-gray-500 uppercase">Vidéo de fin active</p>
+                                        </div>
+                                        <button onClick={() => setOutroClip(null)} className="p-2 bg-red-500/10 text-red-500 rounded-xl opacity-0 group-hover:opacity-100 transition-all">
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <label className="flex flex-col items-center justify-center p-6 border-2 border-dashed border-white/5 rounded-[2rem] cursor-pointer hover:bg-white/[0.02] hover:border-white/10 transition-all group">
+                                        <input type="file" accept="video/*,.mov" className="hidden" onChange={handleOutroImport} />
+                                        <Plus className="w-6 h-6 text-gray-600 mb-2 group-hover:text-neon-cyan transition-colors" />
+                                        <span className="text-[9px] font-black uppercase tracking-widest text-gray-600">Ajouter une Outro</span>
+                                    </label>
+                                )}
+                            </div>
                         </div>
 
                         <div className="bg-white/[0.04] border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-xl">
