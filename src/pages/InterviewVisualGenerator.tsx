@@ -162,7 +162,7 @@ export function InterviewVisualGenerator() {
             ctx.restore();
         } catch (_) { /* skip photo if error */ }
 
-        // ── 6. Left side content block ──
+        // ── 6. content block ──
         if (fmt === 'youtube') {
             const blockX  = w * 0.05;
             const blockY  = h * 0.08;
@@ -172,47 +172,51 @@ export function InterviewVisualGenerator() {
             const labelFontSize = Math.round(h * 0.045);
             ctx.font = `900 ${labelFontSize}px 'Arial Black', Arial, sans-serif`;
             ctx.letterSpacing = '6px';
+            ctx.textBaseline = 'alphabetic';
 
             // Red rectangle before label
             ctx.fillStyle = '#ff0033';
             ctx.fillRect(blockX, blockY, labelFontSize * 0.4, labelFontSize * 1.2);
 
             ctx.fillStyle = '#ffffff';
-            ctx.textBaseline = 'alphabetic';
             ctx.fillText('INTERVIEW', blockX + labelFontSize * 0.7, blockY + labelFontSize);
 
-            // Artist name
-            const nameFontSize = Math.round(h * 0.13);
-            ctx.font = `900 italic ${nameFontSize}px 'Arial Black', Arial, sans-serif`;
-            ctx.textBaseline = 'top'; 
-            ctx.fillStyle = '#ffffff';
-            const nameUpper = artistName.toUpperCase();
-            // Word wrap
-            const maxW = blockW;
-            const words = nameUpper.split(' ');
-            let line = '';
-            const lines: string[] = [];
-            for (const word of words) {
-                const testLine = line + (line ? ' ' : '') + word;
-                if (ctx.measureText(testLine).width > maxW && line) {
-                    lines.push(line);
-                    line = word;
-                } else {
-                    line = testLine;
+            const nameY = blockY + labelFontSize * 2.2;
+
+            if (artistLogo) {
+                try {
+                    const logoImg = await loadImage(artistLogo);
+                    const lw = blockW * 0.85;
+                    const lh = lw * (logoImg.height / logoImg.width);
+                    const maxH = h * 0.45;
+                    const finalH = Math.min(lh, maxH);
+                    const finalW = finalH * (logoImg.width / logoImg.height);
+                    ctx.drawImage(logoImg, blockX, nameY, finalW, finalH);
+                    ctx.fillStyle = '#ff0033';
+                    ctx.fillRect(blockX, nameY + finalH + 20, finalW * 0.35, 6);
+                } catch (_) { /* fallback handled by logic below if needed */ }
+            } else {
+                const nameFontSize = Math.round(h * 0.13);
+                ctx.font = `900 italic ${nameFontSize}px 'Arial Black', Arial, sans-serif`;
+                ctx.textBaseline = 'top'; 
+                ctx.fillStyle = '#ffffff';
+                const nameUpper = artistName.toUpperCase();
+                const maxW = blockW;
+                const words = nameUpper.split(' ');
+                let line = '';
+                const lines: string[] = [];
+                for (const word of words) {
+                    const testLine = line + (line ? ' ' : '') + word;
+                    if (ctx.measureText(testLine).width > maxW && line) { lines.push(line); line = word; }
+                    else line = testLine;
                 }
+                lines.push(line);
+                const lineH = nameFontSize * 1.05;
+                lines.forEach((l, i) => ctx.fillText(l, blockX, nameY + i * lineH));
+                const textW = Math.min(ctx.measureText(lines[0]).width, maxW);
+                ctx.fillStyle = '#ff0033';
+                ctx.fillRect(blockX, nameY + lines.length * lineH + 10, textW * 0.35, 6);
             }
-            lines.push(line);
-
-            const lineH = nameFontSize * 1.05;
-            const nameY = blockY + labelFontSize * 2.2; // Adjusted position with top baseline
-            lines.forEach((l, i) => {
-                ctx.fillText(l, blockX, nameY + i * lineH);
-            });
-
-            // Red underline
-            const textW = Math.min(ctx.measureText(lines[0]).width, maxW);
-            ctx.fillStyle = '#ff0033';
-            ctx.fillRect(blockX, nameY + lines.length * lineH + 8, textW * 0.35, 6);
 
             // Dropsiders logo
             let currentLogoW = 0;
@@ -222,14 +226,14 @@ export function InterviewVisualGenerator() {
                 ctx.drawImage(dropsidersLogo, blockX, h - logoH - h * 0.07, currentLogoW, logoH);
             }
 
-            // "dropsiders.fr" text — centered under the logo
+            // URL bottom
             const tagFontSize = Math.round(h * 0.028);
             ctx.font = `900 ${tagFontSize}px Arial, sans-serif`;
             ctx.fillStyle = 'rgba(255,255,255,0.4)';
             ctx.textAlign = 'center';
             const logoCenterX = currentLogoW > 0 ? (blockX + currentLogoW / 2) : blockX;
             ctx.fillText('dropsiders.fr', logoCenterX, h - h * 0.04);
-            ctx.textAlign = 'left'; // Reset alignment
+            ctx.textAlign = 'left';
 
         } else {
             // ─── INSTAGRAM layout ───
@@ -249,30 +253,42 @@ export function InterviewVisualGenerator() {
             ctx.fillStyle = '#ff0033';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
-            ctx.fillText('— INTERVIEW —', cx, topY + h * 0.08); // Remonté (0.08 au lieu de 0.10)
+            ctx.fillText('— INTERVIEW —', cx, topY + h * 0.08);
 
-            // Artist name — large bottom center
-            const nameFontSize = Math.round(h * 0.11);
-            ctx.font = `900 italic ${nameFontSize}px 'Arial Black', Arial, sans-serif`;
-            ctx.fillStyle = '#ffffff';
-            const nameUpper = artistName.toUpperCase();
-            const words = nameUpper.split(' ');
-            let line = '';
-            const lines: string[] = [];
-            const maxW = w * 0.86;
-            for (const word of words) {
-                const testLine = line + (line ? ' ' : '') + word;
-                if (ctx.measureText(testLine).width > maxW && line) { lines.push(line); line = word; }
-                else line = testLine;
-            }
-            lines.push(line);
-            const lineH = nameFontSize * 1.05;
             const nameY = h * 0.78;
-            lines.forEach((l, i) => ctx.fillText(l, cx, nameY + i * lineH));
+            ctx.fillStyle = '#ffffff';
 
-            // Red underline center
-            ctx.fillStyle = '#ff0033';
-            ctx.fillRect(cx - 50, nameY + lines.length * lineH + 10, 100, 5);
+            if (artistLogo) {
+                try {
+                    const logoImg = await loadImage(artistLogo);
+                    const lw = w * 0.75;
+                    const lh = lw * (logoImg.height / logoImg.width);
+                    const maxH = h * 0.20;
+                    const finalH = Math.min(lh, maxH);
+                    const finalW = finalH * (logoImg.width / logoImg.height);
+                    ctx.drawImage(logoImg, cx - finalW / 2, nameY, finalW, finalH);
+                    ctx.fillStyle = '#ff0033';
+                    ctx.fillRect(cx - 50, nameY + finalH + 15, 100, 5);
+                } catch (_) { /* fallback */ }
+            } else {
+                const nameFontSize = Math.round(h * 0.11);
+                ctx.font = `900 italic ${nameFontSize}px 'Arial Black', Arial, sans-serif`;
+                const nameUpper = artistName.toUpperCase();
+                const words = nameUpper.split(' ');
+                let line = '';
+                const lines: string[] = [];
+                const maxW = w * 0.86;
+                for (const word of words) {
+                    const testLine = line + (line ? ' ' : '') + word;
+                    if (ctx.measureText(testLine).width > maxW && line) { lines.push(line); line = word; }
+                    else line = testLine;
+                }
+                lines.push(line);
+                const lineH = nameFontSize * 1.05;
+                lines.forEach((l, i) => ctx.fillText(l, cx, nameY + i * lineH));
+                ctx.fillStyle = '#ff0033';
+                ctx.fillRect(cx - 50, nameY + lines.length * lineH + 15, 100, 5);
+            }
 
             // URL bottom
             ctx.textAlign = 'center';
@@ -283,26 +299,9 @@ export function InterviewVisualGenerator() {
             ctx.textAlign = 'left';
         }
 
-        // ── 7. Artist logo (optional) ──
-        if (artistLogo) {
-            try {
-                const logoImg = await loadImage(artistLogo);
-                if (fmt === 'youtube') {
-                    const lh = h * 0.12;
-                    const lw = lh * (logoImg.width / logoImg.height);
-                    // Top right
-                    ctx.globalAlpha = 0.85;
-                    ctx.drawImage(logoImg, w - lw - w * 0.03, h * 0.05, lw, lh);
-                    ctx.globalAlpha = 1;
-                } else {
-                    const lh = h * 0.10;
-                    const lw = lh * (logoImg.width / logoImg.height);
-                    ctx.globalAlpha = 0.85;
-                    ctx.drawImage(logoImg, w - lw - w * 0.04, h - lh - h * 0.04, lw, lh);
-                    ctx.globalAlpha = 1;
-                }
-            } catch (_) { /* skip */ }
-        }
+        // ── 7. Corner logo (only if not used as hero) ──
+        // Removed to avoid clutter if using logo as main element
+
 
         // ── 8. Corner accent ──
         ctx.save();
