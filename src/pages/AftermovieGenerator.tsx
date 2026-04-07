@@ -29,6 +29,7 @@ export function VideoStudioGenerator() {
     const [targetDuration, setTargetDuration] = useState<number>(30);
     const [bpm, setBpm] = useState(128);
     const [isRecapMode, setIsRecapMode] = useState(false);
+    const [videoFormat, setVideoFormat] = useState<'youtube' | 'reel'>('youtube');
     const showLogo = true;
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -89,10 +90,12 @@ export function VideoStudioGenerator() {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d', { alpha: false })!;
-        canvas.width = 1280;
-        canvas.height = 720;
-        const w = canvas.width;
-        const h = canvas.height;
+        
+        // Define dimensions based on format
+        const w = videoFormat === 'youtube' ? 1280 : 720;
+        const h = videoFormat === 'youtube' ? 720 : 1280;
+        canvas.width = w;
+        canvas.height = h;
 
         const stream = canvas.captureStream(30);
         const audioContext = new AudioContext();
@@ -218,9 +221,12 @@ export function VideoStudioGenerator() {
                         <h1 className="text-5xl md:text-6xl font-display font-black uppercase italic tracking-tighter">
                             {isRecapMode ? 'Récap' : 'Aftermovie'} <span className={themeColor}>Studio</span>
                         </h1>
-                        <div className="flex items-center gap-3 mt-5">
+                        <div className="flex flex-wrap items-center gap-3 mt-5">
                             <button onClick={() => setIsRecapMode(false)} className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all ${!isRecapMode ? 'bg-neon-red text-white shadow-lg' : 'bg-white/5 text-gray-500 border border-white/5'}`}>Aftermovie</button>
                             <button onClick={() => setIsRecapMode(true)} className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all ${isRecapMode ? 'bg-neon-cyan text-black shadow-lg' : 'bg-white/5 text-gray-500 border border-white/5'}`}>Récap Actu</button>
+                            <div className="w-px h-4 bg-white/10 mx-2 hidden md:block" />
+                            <button onClick={() => setVideoFormat('youtube')} className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all ${videoFormat === 'youtube' ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-500 border border-white/5'}`}>16:9 YT</button>
+                            <button onClick={() => setVideoFormat('reel')} className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all ${videoFormat === 'reel' ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-500 border border-white/5'}`}>9:16 Reel</button>
                         </div>
                     </div>
                     <div className="flex gap-4">
@@ -233,7 +239,7 @@ export function VideoStudioGenerator() {
 
                 <div className="grid lg:grid-cols-[1fr_450px] gap-10">
                     <div className="space-y-8">
-                        <div className="aspect-video bg-black/40 border border-white/10 rounded-[2.5rem] overflow-hidden relative shadow-2xl">
+                        <div className={`bg-black/40 border border-white/10 rounded-[2.5rem] overflow-hidden relative shadow-2xl transition-all duration-500 ${videoFormat === 'youtube' ? 'aspect-video w-full' : 'aspect-[9/16] w-full max-w-[360px] mx-auto'}`}>
                             {previewUrl ? <video src={previewUrl} controls className="w-full h-full" /> : 
                             <div className="w-full h-full flex flex-col items-center justify-center text-gray-600 gap-4">
                                 <Play className="w-8 h-8 opacity-20" />
