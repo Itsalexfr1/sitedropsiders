@@ -37,6 +37,7 @@ export function InterviewVisualGenerator() {
     const [previewUrl, setPreviewUrl]     = useState<string | null>(null);
     const [isGenerating, setIsGenerating] = useState(false);
     const [dropsidersLogo, setDropsidersLogo] = useState<HTMLImageElement | null>(null);
+    const [visualMode, setVisualMode]     = useState<'interview' | 'recap'>('interview');
 
     const photoInputRef = useRef<HTMLInputElement>(null);
     const logoInputRef  = useRef<HTMLInputElement>(null);
@@ -182,7 +183,7 @@ export function InterviewVisualGenerator() {
             ctx.fillRect(blockX, blockY, labelFontSize * 0.4, labelFontSize * 1.2);
 
             ctx.fillStyle = '#ffffff';
-            ctx.fillText('INTERVIEW', blockX + labelFontSize * 0.7, blockY + labelFontSize);
+            ctx.fillText(visualMode === 'interview' ? 'INTERVIEW' : 'RÉCAP VIDÉO', blockX + labelFontSize * 0.7, blockY + labelFontSize);
 
             const nameY = blockY + labelFontSize * 2.2;
 
@@ -280,7 +281,7 @@ export function InterviewVisualGenerator() {
             ctx.fillStyle = '#ff0033';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
-            ctx.fillText('— INTERVIEW —', cx, topY + h * 0.08);
+            ctx.fillText(visualMode === 'interview' ? '— INTERVIEW —' : '— RÉCAP VIDÉO —', cx, topY + h * 0.08);
 
             const nameY = h * 0.78;
             ctx.fillStyle = '#ffffff';
@@ -424,16 +425,25 @@ export function InterviewVisualGenerator() {
                         <span className="text-neon-red font-black uppercase tracking-widest text-[10px]">Visual Generator</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter mb-3">
-                        Interview <span className="text-neon-red">Visuals</span>
+                        {visualMode === 'recap' ? 'Récap' : 'Interview'} <span className={visualMode === 'recap' ? 'text-neon-cyan' : 'text-neon-red'}>Visuals</span>
                     </h1>
                     <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">
-                        Génère tes visuels YouTube &amp; Instagram en 1 clic
+                        Génère tes miniatures YouTube & Instagram
                     </p>
                 </motion.div>
 
                 <div className="grid lg:grid-cols-[420px_1fr] gap-8">
                     {/* ─── LEFT : CONTROLS ─── */}
                     <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
+
+                        {/* Mode selector */}
+                        <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-4">Type de création</label>
+                            <div className="grid grid-cols-2 gap-3">
+                                <button onClick={() => setVisualMode('interview')} className={`py-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${visualMode === 'interview' ? 'bg-neon-red/15 border-neon-red/50 text-neon-red shadow-[0_0_20px_rgba(255,0,51,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>Interview</button>
+                                <button onClick={() => setVisualMode('recap')} className={`py-4 rounded-2xl border font-black text-[10px] uppercase tracking-widest transition-all ${visualMode === 'recap' ? 'bg-neon-cyan/15 border-neon-cyan/50 text-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.15)]' : 'bg-white/5 border-white/10 text-gray-400 hover:border-white/20 hover:text-white'}`}>Récap Vidéo</button>
+                            </div>
+                        </div>
 
                         {/* Format selector */}
                         <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
