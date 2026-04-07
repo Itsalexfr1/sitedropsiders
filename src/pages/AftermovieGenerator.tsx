@@ -141,17 +141,23 @@ export function VideoStudioGenerator() {
         }
 
         const combinedStream = new MediaStream([...stream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
-        
         let options: MediaRecorderOptions = { videoBitsPerSecond: 8000000 };
         if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
             options.mimeType = 'video/webm;codecs=vp9';
+        } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
+            options.mimeType = 'video/webm;codecs=vp8';
         } else if (MediaRecorder.isTypeSupported('video/webm')) {
             options.mimeType = 'video/webm';
         } else if (MediaRecorder.isTypeSupported('video/mp4')) {
             options.mimeType = 'video/mp4';
         }
-
-        const recorder = new MediaRecorder(combinedStream, options);
+        
+        let recorder: MediaRecorder;
+        try {
+            recorder = new MediaRecorder(combinedStream, options);
+        } catch (e) {
+            recorder = new MediaRecorder(combinedStream);
+        }
 
         const chunks: Blob[] = [];
         recorder.ondataavailable = e => chunks.push(e.data);
@@ -162,13 +168,20 @@ export function VideoStudioGenerator() {
             if (audioContext.state !== 'closed') audioContext.close();
         };
 
-        recorder.start();
+        recorder.start(100);
 
         const videoEl = document.createElement('video');
         videoEl.muted = true;
         videoEl.playsInline = true;
-        videoEl.style.position = 'fixed';
-        videoEl.style.left = '-9999px';
+        videoEl.crossOrigin = "anonymous";
+        videoEl.style.position = 'absolute';
+        videoEl.style.opacity = '0.01';
+        videoEl.style.width = '10px';
+        videoEl.style.height = '10px';
+        videoEl.style.top = '0';
+        videoEl.style.left = '0';
+        videoEl.style.pointerEvents = 'none';
+        videoEl.style.zIndex = '-1';
         document.body.appendChild(videoEl);
 
 
@@ -358,7 +371,7 @@ export function VideoStudioGenerator() {
                     </div>
                 </div>
             </div>
-            <canvas ref={canvasRef} className="fixed -left-[9999px] top-0 pointer-events-none" />
+            <canvas ref={canvasRef} className="absolute pointer-events-none -z-10 w-[10px] h-[10px]" style={{ opacity: 0.01 }} />
         </div>
     );
 }
