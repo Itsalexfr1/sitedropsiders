@@ -215,17 +215,21 @@ export function InterviewVisualGenerator() {
             ctx.fillRect(blockX, nameY + lines.length * lineH + 8, textW * 0.35, 6);
 
             // Dropsiders logo
+            let currentLogoW = 0;
             if (dropsidersLogo) {
                 const logoH = h * 0.09;
-                const logoW = logoH * (dropsidersLogo.width / dropsidersLogo.height);
-                ctx.drawImage(dropsidersLogo, blockX, h - logoH - h * 0.07, logoW, logoH);
+                currentLogoW = logoH * (dropsidersLogo.width / dropsidersLogo.height);
+                ctx.drawImage(dropsidersLogo, blockX, h - logoH - h * 0.07, currentLogoW, logoH);
             }
 
-            // "dropsiders.fr" text
+            // "dropsiders.fr" text — centered under the logo
             const tagFontSize = Math.round(h * 0.028);
             ctx.font = `900 ${tagFontSize}px Arial, sans-serif`;
             ctx.fillStyle = 'rgba(255,255,255,0.4)';
-            ctx.fillText('dropsiders.fr', blockX, h - h * 0.04);
+            ctx.textAlign = 'center';
+            const logoCenterX = currentLogoW > 0 ? (blockX + currentLogoW / 2) : blockX;
+            ctx.fillText('dropsiders.fr', logoCenterX, h - h * 0.04);
+            ctx.textAlign = 'left'; // Reset alignment
 
         } else {
             // ─── INSTAGRAM layout ───
