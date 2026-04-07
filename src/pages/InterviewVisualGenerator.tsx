@@ -202,7 +202,7 @@ export function InterviewVisualGenerator() {
             lines.push(line);
 
             const lineH = nameFontSize * 1.05;
-            const nameY = blockY + labelFontSize * 1.8;
+            const nameY = blockY + labelFontSize * 3.5; // Increased gap to avoid overlap
             lines.forEach((l, i) => {
                 ctx.fillText(l, blockX, nameY + i * lineH);
             });
@@ -242,7 +242,7 @@ export function InterviewVisualGenerator() {
             ctx.font = `900 ${labelFontSize}px 'Arial Black', Arial, sans-serif`;
             ctx.fillStyle = '#ff0033';
             ctx.textAlign = 'center';
-            ctx.fillText('— INTERVIEW —', cx, topY + h * 0.10);
+            ctx.fillText('— INTERVIEW —', cx, topY + h * 0.12); // Slightly more gap below logo
 
             // Artist name — large bottom center
             const nameFontSize = Math.round(h * 0.11);
@@ -268,6 +268,7 @@ export function InterviewVisualGenerator() {
             ctx.fillRect(cx - 50, nameY + lines.length * lineH + 10, 100, 5);
 
             // URL bottom
+            ctx.textAlign = 'center';
             ctx.font = `900 ${Math.round(h * 0.022)}px Arial, sans-serif`;
             ctx.fillStyle = 'rgba(255,255,255,0.35)';
             ctx.fillText('dropsiders.fr', cx, h - h * 0.04);
