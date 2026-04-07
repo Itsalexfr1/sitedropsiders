@@ -155,6 +155,10 @@ export function VideoStudioGenerator() {
         const videoEl = document.createElement('video');
         videoEl.muted = true;
         videoEl.playsInline = true;
+        videoEl.style.position = 'fixed';
+        videoEl.style.left = '-9999px';
+        document.body.appendChild(videoEl);
+
 
         const clipTime = targetDuration / clips.length;
         const beatInterval = 60 / bpm;
@@ -235,7 +239,9 @@ export function VideoStudioGenerator() {
         recorder.stop();
         videoEl.pause();
         videoEl.src = "";
+        document.body.removeChild(videoEl);
     };
+
 
     if (!isAuthorized) return <div className="p-20 text-white text-center font-black">ACCÈS REFUSÉ</div>;
 
@@ -332,7 +338,7 @@ export function VideoStudioGenerator() {
                     </div>
                 </div>
             </div>
-            <canvas ref={canvasRef} className="hidden" />
+            <canvas ref={canvasRef} className="fixed -left-[9999px] top-0 pointer-events-none" />
         </div>
     );
 }
