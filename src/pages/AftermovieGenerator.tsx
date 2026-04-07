@@ -127,45 +127,67 @@ export function VideoStudioGenerator() {
         canvas.width = w;
         canvas.height = h;
 
+        // Dessiner un fond noir initial pour forcer le canvas à s'activer en mémoire avant la capture
+        ctx.fillStyle = '#000';
+        ctx.fillRect(0, 0, w, h);
+
         const stream = canvas.captureStream(30);
-        const audioContext = new AudioContext();
-        const dest = audioContext.createMediaStreamDestination();
+        let mixedStream: MediaStream;
+        let audioContext: AudioContext | null = null;
         
         if (music) {
+            audioContext = new AudioContext();
+            const dest = audioContext.createMediaStreamDestination();
             const musicEl = new Audio(music.blobUrl);
             musicEl.crossOrigin = "anonymous";
             const musicSource = audioContext.createMediaElementSource(musicEl);
             musicSource.connect(dest);
             musicSource.connect(audioContext.destination);
             musicEl.play();
+            mixedStream = new MediaStream([...stream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
+        } else {
+            mixedStream = new MediaStream([...stream.getVideoTracks()]);
         }
 
-        const combinedStream = new MediaStream([...stream.getVideoTracks(), ...dest.stream.getAudioTracks()]);
         let options: MediaRecorderOptions = { videoBitsPerSecond: 8000000 };
+        let blobMimeType = 'video/webm';
+        
         if (MediaRecorder.isTypeSupported('video/webm;codecs=vp9')) {
             options.mimeType = 'video/webm;codecs=vp9';
+            blobMimeType = 'video/webm';
         } else if (MediaRecorder.isTypeSupported('video/webm;codecs=vp8')) {
             options.mimeType = 'video/webm;codecs=vp8';
+            blobMimeType = 'video/webm';
         } else if (MediaRecorder.isTypeSupported('video/webm')) {
             options.mimeType = 'video/webm';
+            blobMimeType = 'video/webm';
         } else if (MediaRecorder.isTypeSupported('video/mp4')) {
             options.mimeType = 'video/mp4';
+            blobMimeType = 'video/mp4';
         }
         
         let recorder: MediaRecorder;
         try {
-            recorder = new MediaRecorder(combinedStream, options);
+            recorder = new MediaRecorder(mixedStream, options);
         } catch (e) {
-            recorder = new MediaRecorder(combinedStream);
+            recorder = new MediaRecorder(mixedStream);
         }
 
         const chunks: Blob[] = [];
-        recorder.ondataavailable = e => chunks.push(e.data);
+        recorder.ondataavailable = e => {
+            if (e.data && e.data.size > 0) {
+                chunks.push(e.data);
+            }
+        };
         recorder.onstop = () => {
-            const blob = new Blob(chunks, { type: 'video/webm' });
+            if (chunks.length === 0) {
+                console.error("Aucune donnée enregistrée !");
+                alert("Erreur: Le rendu a été bloqué par votre navigateur. Gardez cette page ouverte et visible pendant la génération.");
+            }
+            const blob = new Blob(chunks, { type: blobMimeType });
             setPreviewUrl(URL.createObjectURL(blob));
             setIsGenerating(false);
-            if (audioContext.state !== 'closed') audioContext.close();
+            if (audioContext && audioContext.state !== 'closed') audioContext.close();
         };
 
         recorder.start(100);
@@ -174,14 +196,14 @@ export function VideoStudioGenerator() {
         videoEl.muted = true;
         videoEl.playsInline = true;
         videoEl.crossOrigin = "anonymous";
-        videoEl.style.position = 'absolute';
+        videoEl.style.position = 'fixed';
         videoEl.style.opacity = '0.01';
-        videoEl.style.width = '10px';
-        videoEl.style.height = '10px';
-        videoEl.style.top = '0';
-        videoEl.style.left = '0';
+        videoEl.style.width = '200px';
+        videoEl.style.height = '200px';
+        videoEl.style.bottom = '0';
+        videoEl.style.right = '0';
         videoEl.style.pointerEvents = 'none';
-        videoEl.style.zIndex = '-1';
+        videoEl.style.zIndex = '50';
         document.body.appendChild(videoEl);
 
 
@@ -371,7 +393,7 @@ export function VideoStudioGenerator() {
                     </div>
                 </div>
             </div>
-            <canvas ref={canvasRef} className="absolute pointer-events-none -z-10 w-[10px] h-[10px]" style={{ opacity: 0.01 }} />
+            <canvas ref={canvasRef} className="fixed bottom-0 right-0 pointer-events-none z-50 w-[200px] h-[200px]" style={{ opacity: 0.01 }} />
         </div>
     );
 }
