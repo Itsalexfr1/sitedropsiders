@@ -2036,6 +2036,13 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         {/* Desktop Only Buttons moved to a container */}
                         <div className="hidden lg:flex items-center gap-4 ml-auto">
                             <button
+                                onClick={() => navigate('/')}
+                                className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-gray-400 text-[10px] font-black uppercase tracking-[0.2em] hover:text-white hover:bg-white/10 transition-all group"
+                            >
+                                <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
+                                RETOUR AU SITE
+                            </button>
+                            <button
                                 onClick={() => {
                                     if (isMod) {
                                         setShowAdminPanel(true);
