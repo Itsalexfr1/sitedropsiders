@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-    X, Settings, Users, MessageSquare, Send, Zap, Video,
+    X, Settings, Users, MessageSquare, Send, Zap,
     Save, AlertCircle, Music, Trash2, Plus,
     Pin, Star, ShieldCheck, Ban, Megaphone, User,
     BarChart3, Clock, Sword, Crown, Maximize2, Minimize2,
