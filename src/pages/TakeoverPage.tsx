@@ -2569,7 +2569,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             <option value={0}>🇫🇷 Heure Française (Tomorrowland, ASOT, Defqon.1 etc.)</option>
                                                         </optgroup>
                                                         <optgroup label="🇬🇧 Royaume-Uni (-1h)">
-                                                            <option value={1}>Londres / Creamfields / Printworks</option>
+                                                            <option value={1}>Londres / Creamfields / Drumsheds</option>
                                                         </optgroup>
                                                         <optgroup label="🌴 US - Côte Est (Miami / NY | -5h)">
                                                             <option value={5}>Ultra Music Festival Miami</option>
