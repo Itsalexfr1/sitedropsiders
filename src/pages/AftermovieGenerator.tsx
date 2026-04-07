@@ -234,54 +234,128 @@ export function VideoStudioGenerator() {
                                 return;
                             }
 
-                            ctx.fillStyle = '#000';
+                            const timeSinceBeat = globalElapsed % beatInterval;
+                            const beatPower = Math.max(0, 1 - (timeSinceBeat / 0.3)); // Décroissance douce du beat (300ms)
+
+                            ctx.fillStyle = '#050505';
                             ctx.fillRect(0, 0, w, h);
 
                             const vRatio = videoEl.videoWidth / videoEl.videoHeight || (16/9);
                             const cRatio = w / h;
-                            let dw = w, dh = h, dx = 0, dy = 0;
-                            if (vRatio > cRatio) { dw = h * vRatio; dx = (w - dw) / 2; }
-                            else { dh = w / vRatio; dy = (h - dh) / 2; }
+                            let baseDw = w, baseDh = h;
+                            if (vRatio > cRatio) { baseDw = h * vRatio; }
+                            else { baseDh = w / vRatio; }
+
+                            // Pumping effect rythmique
+                            const scale = 1 + (beatPower * 0.03); 
+                            const dw = baseDw * scale;
+                            const dh = baseDh * scale;
+                            const dx = (w - dw) / 2;
+                            const dy = (h - dh) / 2;
                             
-                            const isBeat = (globalElapsed % beatInterval) < 0.05;
-                            const shake = isBeat ? (Math.random() - 0.5) * 10 : 0;
+                            ctx.save();
                             
                             try {
-                                ctx.drawImage(videoEl, dx + shake, dy + shake, dw, dh);
+                                if (activeFilter === 'glitch' && beatPower > 0.6) {
+                                    // Base video
+                                    ctx.drawImage(videoEl, dx, dy, dw, dh);
+                                    
+                                    // Glitch RGB Split
+                                    ctx.globalCompositeOperation = 'screen';
+                                    ctx.globalAlpha = 0.4;
+                                    ctx.drawImage(videoEl, dx - 15, dy, dw, dh); // Cyan shift
+                                    ctx.drawImage(videoEl, dx + 15, dy, dw, dh); // Red shift
+                                    
+                                    ctx.globalAlpha = 1;
+                                    ctx.globalCompositeOperation = 'source-over';
+                                    
+                                    // Slicing offset horizontal
+                                    const sliceY = Math.random() * h;
+                                    const sliceH = 40 + Math.random() * 80;
+                                    const offset = (Math.random() - 0.5) * 60;
+                                    ctx.save();
+                                    ctx.beginPath();
+                                    ctx.rect(0, sliceY, w, sliceH);
+                                    ctx.clip();
+                                    ctx.drawImage(videoEl, dx + offset, dy, dw, dh);
+                                    ctx.restore();
+
+                                } else if (activeFilter === 'vhs') {
+                                    // VHS Base + Bleeding
+                                    ctx.drawImage(videoEl, dx, dy, dw, dh);
+                                    ctx.globalCompositeOperation = 'screen';
+                                    ctx.globalAlpha = 0.25;
+                                    ctx.drawImage(videoEl, dx - 6, dy, dw, dh);
+                                    ctx.drawImage(videoEl, dx + 6, dy, dw, dh);
+                                    ctx.globalAlpha = 1;
+                                    ctx.globalCompositeOperation = 'source-over';
+                                } else {
+                                    // Default / Neon
+                                    ctx.drawImage(videoEl, dx, dy, dw, dh);
+                                }
                             } catch (e) {
-                                // Si le navigateur ne gère pas le codec (ex: HEVC iPhone sur Opera), drawImage plante.
-                                // On dessine un fond d'attente pour ne pas crasher la boucle.
                                 ctx.fillStyle = '#111';
-                                ctx.fillRect(dx + shake, dy + shake, dw, dh);
+                                ctx.fillRect(dx, dy, dw, dh);
                             }
+
+                            // Filtres colorimétriques & superpositions
+                            ctx.globalCompositeOperation = 'source-over';
 
                             if (activeFilter === 'neon') {
-                                ctx.save();
-                                ctx.globalCompositeOperation = 'screen';
-                                ctx.fillStyle = isRecapMode ? 'rgba(0,255,255,0.08)' : 'rgba(255,0,51,0.08)';
+                                const grad = ctx.createLinearGradient(0, 0, w, h);
+                                if (isRecapMode) {
+                                    grad.addColorStop(0, 'rgba(0, 240, 255, 0.25)');
+                                    grad.addColorStop(1, 'rgba(0, 100, 255, 0.0)');
+                                } else {
+                                    grad.addColorStop(0, 'rgba(255, 0, 51, 0.25)');
+                                    grad.addColorStop(1, 'rgba(100, 0, 20, 0.0)');
+                                }
+                                ctx.globalCompositeOperation = 'overlay';
+                                ctx.fillStyle = grad;
                                 ctx.fillRect(0, 0, w, h);
-                                ctx.restore();
+
+                                // Vignette sombre
+                                const vignette = ctx.createRadialGradient(w/2, h/2, h*0.4, w/2, h/2, h*0.85);
+                                vignette.addColorStop(0, 'rgba(0,0,0,0)');
+                                vignette.addColorStop(1, 'rgba(0,0,0,0.6)');
+                                ctx.globalCompositeOperation = 'multiply';
+                                ctx.fillStyle = vignette;
+                                ctx.fillRect(0, 0, w, h);
                             } else if (activeFilter === 'vhs') {
-                                ctx.save();
-                                ctx.globalAlpha = 0.12;
-                                ctx.fillStyle = (Math.floor(globalElapsed * 10) % 2 === 0) ? '#ff00ff' : '#00ffff';
-                                ctx.fillRect(0, Math.random() * h, w, 2);
-                                ctx.restore();
+                                ctx.globalCompositeOperation = 'source-over';
+                                ctx.fillStyle = 'rgba(0,0,0,0.12)';
+                                for(let y = 0; y < h; y += 4) ctx.fillRect(0, y, w, 1);
+                                
+                                const trackY = (globalElapsed * 200) % h;
+                                ctx.fillStyle = 'rgba(255,255,255,0.05)';
+                                ctx.fillRect(0, trackY, w, 30);
                             }
 
-                        if (showLogo && dropsidersLogo.current) {
-                            const lw = 100;
-                            const lh = lw * (dropsidersLogo.current.height / dropsidersLogo.current.width);
-                            ctx.globalAlpha = 0.7;
-                            ctx.drawImage(dropsidersLogo.current, w - lw - 30, 30, lw, lh);
-                            ctx.globalAlpha = 1;
-                        }
+                            ctx.globalCompositeOperation = 'source-over';
 
-                        if (elapsedInClip < 0.15 || isBeat) {
-                            const alpha = isBeat ? 0.3 : (1 - elapsedInClip * 6);
-                            ctx.fillStyle = `rgba(255,255,255,${alpha})`;
-                            ctx.fillRect(0, 0, w, h);
-                        }
+                            // Transitions harmonieuses (Fondu doux + flash rythmique léger)
+                            if (elapsedInClip < 0.4) {
+                                const fade = 1 - (elapsedInClip / 0.4);
+                                ctx.fillStyle = `rgba(5, 5, 5, ${fade})`;
+                                ctx.fillRect(0, 0, w, h);
+                            }
+                            
+                            if (beatPower > 0.8 && activeFilter !== 'vhs') {
+                                const flash = (beatPower - 0.8) * 0.3; 
+                                ctx.globalCompositeOperation = 'screen';
+                                ctx.fillStyle = `rgba(255, 255, 255, ${flash})`;
+                                ctx.fillRect(0, 0, w, h);
+                                ctx.globalCompositeOperation = 'source-over';
+                            }
+
+                            if (showLogo && dropsidersLogo.current) {
+                                const lw = videoFormat === 'youtube' ? 120 : 90;
+                                const lh = lw * (dropsidersLogo.current.height / dropsidersLogo.current.width);
+                                ctx.globalAlpha = 0.85;
+                                ctx.drawImage(dropsidersLogo.current, w - lw - 30, 30, lw, lh);
+                            }
+
+                            ctx.restore();
 
                         requestAnimationFrame(drawFrame);
                     };
