@@ -171,48 +171,56 @@ export function VideoStudioGenerator() {
             await new Promise<void>((resolve) => {
                 videoEl.src = clip.blobUrl;
                 videoEl.onloadeddata = () => {
-                    videoEl.play();
-                    let clipStartTime = Date.now();
-                    
-                    const drawFrame = () => {
-                        const now = Date.now();
-                        const elapsedInClip = (now - clipStartTime) / 1000;
-                        const globalElapsed = totalTimeElapsed + elapsedInClip;
-
-                        // On a enlevé `videoEl.paused ||` car la lecture est asynchrone
-                        // et renvoyait `true` au tout début, coupant la génération instantanément.
-                        if (videoEl.ended || elapsedInClip >= clipTime) {
-                            totalTimeElapsed += elapsedInClip;
-                            resolve();
-                            return;
-                        }
-
-                        ctx.fillStyle = '#000';
-                        ctx.fillRect(0, 0, w, h);
-
-                        const vRatio = videoEl.videoWidth / videoEl.videoHeight;
-                        const cRatio = w / h;
-                        let dw = w, dh = h, dx = 0, dy = 0;
-                        if (vRatio > cRatio) { dw = h * vRatio; dx = (w - dw) / 2; }
-                        else { dh = w / vRatio; dy = (h - dh) / 2; }
+                        videoEl.play().catch(e => console.warn('Video play prevented:', e));
+                        let clipStartTime = Date.now();
                         
-                        const isBeat = (globalElapsed % beatInterval) < 0.05;
-                        const shake = isBeat ? (Math.random() - 0.5) * 10 : 0;
-                        ctx.drawImage(videoEl, dx + shake, dy + shake, dw, dh);
+                        const drawFrame = () => {
+                            const now = Date.now();
+                            const elapsedInClip = (now - clipStartTime) / 1000;
+                            const globalElapsed = totalTimeElapsed + elapsedInClip;
 
-                        if (activeFilter === 'neon') {
-                            ctx.save();
-                            ctx.globalCompositeOperation = 'screen';
-                            ctx.fillStyle = isRecapMode ? 'rgba(0,255,255,0.08)' : 'rgba(255,0,51,0.08)';
+                            // On se fie uniquement au chronomètre pour forcer le respect de la durée, 
+                            // ignorant si la vidéo plante ou dit avoir "terminé"
+                            if (elapsedInClip >= clipTime) {
+                                totalTimeElapsed += elapsedInClip;
+                                resolve();
+                                return;
+                            }
+
+                            ctx.fillStyle = '#000';
                             ctx.fillRect(0, 0, w, h);
-                            ctx.restore();
-                        } else if (activeFilter === 'vhs') {
-                            ctx.save();
-                            ctx.globalAlpha = 0.12;
-                            ctx.fillStyle = (Math.floor(globalElapsed * 10) % 2 === 0) ? '#ff00ff' : '#00ffff';
-                            ctx.fillRect(0, Math.random() * h, w, 2);
-                            ctx.restore();
-                        }
+
+                            const vRatio = videoEl.videoWidth / videoEl.videoHeight || (16/9);
+                            const cRatio = w / h;
+                            let dw = w, dh = h, dx = 0, dy = 0;
+                            if (vRatio > cRatio) { dw = h * vRatio; dx = (w - dw) / 2; }
+                            else { dh = w / vRatio; dy = (h - dh) / 2; }
+                            
+                            const isBeat = (globalElapsed % beatInterval) < 0.05;
+                            const shake = isBeat ? (Math.random() - 0.5) * 10 : 0;
+                            
+                            try {
+                                ctx.drawImage(videoEl, dx + shake, dy + shake, dw, dh);
+                            } catch (e) {
+                                // Si le navigateur ne gère pas le codec (ex: HEVC iPhone sur Opera), drawImage plante.
+                                // On dessine un fond d'attente pour ne pas crasher la boucle.
+                                ctx.fillStyle = '#111';
+                                ctx.fillRect(dx + shake, dy + shake, dw, dh);
+                            }
+
+                            if (activeFilter === 'neon') {
+                                ctx.save();
+                                ctx.globalCompositeOperation = 'screen';
+                                ctx.fillStyle = isRecapMode ? 'rgba(0,255,255,0.08)' : 'rgba(255,0,51,0.08)';
+                                ctx.fillRect(0, 0, w, h);
+                                ctx.restore();
+                            } else if (activeFilter === 'vhs') {
+                                ctx.save();
+                                ctx.globalAlpha = 0.12;
+                                ctx.fillStyle = (Math.floor(globalElapsed * 10) % 2 === 0) ? '#ff00ff' : '#00ffff';
+                                ctx.fillRect(0, Math.random() * h, w, 2);
+                                ctx.restore();
+                            }
 
                         if (showLogo && dropsidersLogo.current) {
                             const lw = 100;
