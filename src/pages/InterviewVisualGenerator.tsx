@@ -289,9 +289,9 @@ export function InterviewVisualGenerator() {
             if (artistLogo) {
                 try {
                     const logoImg = await loadImage(artistLogo);
-                    const lw = w * 0.75;
+                    const lw = w * 0.60; // Réduit en largeur (de 0.75 à 0.60)
                     const lh = lw * (logoImg.height / logoImg.width);
-                    const finalH = Math.min(lh, h * 0.16); // Réduit de 0.20 à 0.16 pour éviter tout chevauchement
+                    const finalH = Math.min(lh, h * 0.12); // Réduit en hauteur max (de 0.16 à 0.12)
                     const finalW = finalH * (logoImg.width / logoImg.height);
                     ctx.drawImage(logoImg, cx - finalW / 2, nameY, finalW, finalH);
                     ctx.fillStyle = '#ff0033';
@@ -468,7 +468,8 @@ export function InterviewVisualGenerator() {
                         </div>
 
                         {/* Artist Info Group */}
-                        <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
+                        {visualMode === 'interview' && (
+                            <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-3">
                                 Artiste <span className="text-neon-red">*</span>
                             </label>
@@ -506,11 +507,12 @@ export function InterviewVisualGenerator() {
                                 </button>
                             )}
                         </div>
+                        )}
 
-                        {/* Artist photo (keep separate as it's the main visual element) */}
+                        {/* Person photo (keep separate as it's the main visual element) */}
                         <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-3">
-                                Photo de l'artiste <span className="text-neon-red">*</span>
+                                {visualMode === 'interview' ? "Photo de l'artiste" : "Photo de couverture"} <span className="text-neon-red">*</span>
                             </label>
                             <input
                                 ref={photoInputRef}
@@ -579,7 +581,7 @@ export function InterviewVisualGenerator() {
                         <div className="grid grid-cols-2 gap-3">
                             <button
                                 onClick={handleGenerate}
-                                disabled={!artistPhoto || !artistName.trim() || isGenerating}
+                                disabled={!artistPhoto || (visualMode === 'interview' && !artistName.trim()) || isGenerating}
                                 className="flex items-center justify-center gap-2 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                                 <Eye className="w-4 h-4" />
@@ -587,7 +589,7 @@ export function InterviewVisualGenerator() {
                             </button>
                             <button
                                 onClick={handleDownload}
-                                disabled={!artistPhoto || !artistName.trim() || isGenerating}
+                                disabled={!artistPhoto || (visualMode === 'interview' && !artistName.trim()) || isGenerating}
                                 className="flex items-center justify-center gap-2 py-4 bg-neon-red text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-red/80 transition-all shadow-[0_0_20px_rgba(255,0,51,0.3)] disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                                 <Download className="w-4 h-4" />
