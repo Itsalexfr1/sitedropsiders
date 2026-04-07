@@ -2565,16 +2565,34 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         onChange={e => setEventTimezoneOffset(Number(e.target.value))} 
                                                         className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
                                                     >
-                                                        <option value={0}>🇫🇷 Heure Française (Paris)</option>
-                                                        <option value={6}>🇺🇸 EST - Eastern Standard Time (Miami / NY Hiver | -6h)</option>
-                                                        <option value={5}>🇺🇸 EDT - Eastern Daylight Time (Miami / NY Été | -5h)</option>
-                                                        <option value={9}>🇺🇸 PST - Pacific Standard Time (Vegas / LA Hiver | -9h)</option>
-                                                        <option value={8}>🇺🇸 PDT - Pacific Daylight Time (Vegas / LA Été | -8h)</option>
-                                                        <option value={7}>🇺🇸 CST - Central Standard Time (Chicago / Texas Hiver | -7h)</option>
-                                                        <option value={6}>🇺🇸 CDT - Central Daylight Time (Chicago / Texas Été | -6h)</option>
-                                                        <option value={-8}>🇯🇵 JST - Japan Standard Time (Tokyo | +8h)</option>
-                                                        <option value={-7}>🇦🇺 AEDT - Australian Time (Sydney | +7h)</option>
-                                                        <option value={1}>🇬🇧 GMT / BST - British Time (Londres | -1h)</option>
+                                                        <optgroup label="🌍 Europe (Aucun décalage)">
+                                                            <option value={0}>🇫🇷 Heure Française (Tomorrowland, ASOT, Defqon.1 etc.)</option>
+                                                        </optgroup>
+                                                        <optgroup label="🌴 US - Côte Est (Miami / NY | -5h)">
+                                                            <option value={5}>Ultra Music Festival Miami</option>
+                                                            <option value={5}>Lost Lands (Ohio)</option>
+                                                            <option value={5}>EDC Orlando / EDSea</option>
+                                                        </optgroup>
+                                                        <optgroup label="🎡 US - Côte Ouest (Vegas / LA | -8h)">
+                                                            <option value={8}>EDC Las Vegas</option>
+                                                            <option value={8}>Coachella</option>
+                                                            <option value={8}>Day Trip Festival (Los Angeles)</option>
+                                                            <option value={8}>Escape Halloween / Beyond Wonderland</option>
+                                                        </optgroup>
+                                                        <optgroup label="🤠 US - Centre (Chicago / Texas | -6h)">
+                                                            <option value={6}>Lollapalooza Chicago</option>
+                                                            <option value={6}>Ubbi Dubbi (Texas)</option>
+                                                        </optgroup>
+                                                        <optgroup label="🌏 Asie & Océanie">
+                                                            <option value={-8}>Ultra Japan / EDC Japon (+8h)</option>
+                                                            <option value={-7}>Knockout Outdoor (Sydney | +7h)</option>
+                                                        </optgroup>
+                                                        <optgroup label="⚙️ Manuel / Autres (Hiver)">
+                                                            <option value={6}>🇺🇸 Côte Est (Hiver | -6h)</option>
+                                                            <option value={9}>🇺🇸 Côte Ouest (Hiver | -9h)</option>
+                                                            <option value={7}>🇺🇸 Centre (Hiver | -7h)</option>
+                                                            <option value={1}>🇬🇧 Royaume-Uni (-1h)</option>
+                                                        </optgroup>
                                                     </select>
                                                 </div>
 
