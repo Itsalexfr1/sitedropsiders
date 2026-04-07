@@ -58,6 +58,7 @@ const SocialStudioPage = lazyRetry(() => import('./pages/SocialStudioPage').then
 const Community = lazyRetry(() => import('./pages/Community').then(m => m.Community));
 const QrCodePage = lazyRetry(() => import('./pages/QrCodePage').then(m => m.QrCodePage));
 const InterviewVisualGenerator = lazyRetry(() => import('./pages/InterviewVisualGenerator').then(m => m.InterviewVisualGenerator));
+const AftermovieGenerator = lazyRetry(() => import('./pages/AftermovieGenerator').then(m => m.AftermovieGenerator));
 
 function ErrorFallback() {
   return (
@@ -181,6 +182,8 @@ const router = createBrowserRouter([
       { path: "admin/banner", element: <ProtectedRoute><AdminBanner /></ProtectedRoute> },
       { path: "social-studio", element: <ProtectedRoute><SocialStudioPage /></ProtectedRoute> },
       { path: "interview-visuals", element: <ProtectedRoute><InterviewVisualGenerator /></ProtectedRoute> },
+      { path: "aftermovie", element: <ProtectedRoute><AftermovieGenerator /></ProtectedRoute> },
+      { path: "qr", element: <ProtectedRoute><QrCodePage /></ProtectedRoute> },
 
       { path: "newsletter", element: <Newsletter /> },
       { path: "unsubscribe", element: <Unsubscribe /> },

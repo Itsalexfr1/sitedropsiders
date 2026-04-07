@@ -188,12 +188,11 @@ export function InterviewVisualGenerator() {
                     const logoImg = await loadImage(artistLogo);
                     const lw = blockW * 0.85;
                     const lh = lw * (logoImg.height / logoImg.width);
-                    const maxH = h * 0.45;
-                    const finalH = Math.min(lh, maxH);
+                    const finalH = Math.min(lh, h * 0.35); // Réduit de 0.45 à 0.35
                     const finalW = finalH * (logoImg.width / logoImg.height);
                     ctx.drawImage(logoImg, blockX, nameY, finalW, finalH);
                     ctx.fillStyle = '#ff0033';
-                    ctx.fillRect(blockX, nameY + finalH + 20, finalW * 0.35, 6);
+                    ctx.fillRect(blockX, nameY + finalH + 15, finalW * 0.35, 6);
                 } catch (_) { /* fallback handled by logic below if needed */ }
             } else {
                 const nameFontSize = Math.round(h * 0.13);
@@ -263,12 +262,11 @@ export function InterviewVisualGenerator() {
                     const logoImg = await loadImage(artistLogo);
                     const lw = w * 0.75;
                     const lh = lw * (logoImg.height / logoImg.width);
-                    const maxH = h * 0.20;
-                    const finalH = Math.min(lh, maxH);
+                    const finalH = Math.min(lh, h * 0.16); // Réduit de 0.20 à 0.16 pour éviter tout chevauchement
                     const finalW = finalH * (logoImg.width / logoImg.height);
                     ctx.drawImage(logoImg, cx - finalW / 2, nameY, finalW, finalH);
                     ctx.fillStyle = '#ff0033';
-                    ctx.fillRect(cx - 50, nameY + finalH + 15, 100, 5);
+                    ctx.fillRect(cx - 50, nameY + finalH + 12, 100, 5);
                 } catch (_) { /* fallback */ }
             } else {
                 const nameFontSize = Math.round(h * 0.11);
