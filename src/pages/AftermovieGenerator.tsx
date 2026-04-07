@@ -22,7 +22,11 @@ function WaveformVisualizer({ blobUrl, start, end, duration, onChange }: {
     onChange: (s: number, e: number) => void 
 }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const [peaks, setPeaks] = useState<number[]>([]);
+    const [isPlaying, setIsPlaying] = useState(false);
+    const audioRef = useRef<HTMLAudioElement | null>(null);
+    const [dragging, setDragging] = useState<'start' | 'end' | null>(null);
 
     useEffect(() => {
         const decodeAndGeneratePeaks = async () => {
@@ -71,36 +75,80 @@ function WaveformVisualizer({ blobUrl, start, end, duration, onChange }: {
         });
     }, [peaks, start, end, duration]);
 
+    const handleTogglePlay = () => {
+        if (isPlaying) {
+            audioRef.current?.pause();
+            setIsPlaying(false);
+        } else {
+            if (!audioRef.current) {
+                audioRef.current = new Audio(blobUrl);
+            }
+            audioRef.current.currentTime = start;
+            audioRef.current.play();
+            setIsPlaying(true);
+            
+            const check = setInterval(() => {
+                if (!audioRef.current || audioRef.current.currentTime >= end || audioRef.current.paused) {
+                    audioRef.current?.pause();
+                    setIsPlaying(false);
+                    clearInterval(check);
+                }
+            }, 100);
+        }
+    };
+
+    const handleMouseMove = (e: React.MouseEvent) => {
+        if (!dragging || !containerRef.current) return;
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = Math.max(0, Math.min(e.clientX - rect.left, rect.width));
+        const time = (x / rect.width) * duration;
+        
+        if (dragging === 'start') {
+            onChange(Math.min(time, end - 1), end);
+        } else {
+            onChange(start, Math.max(time, start + 1));
+        }
+    };
+
     return (
-        <div className="relative h-24 bg-black/40 border border-white/5 rounded-2xl overflow-hidden group">
-            <canvas ref={canvasRef} width={500} height={100} className="w-full h-full" />
+        <div 
+            ref={containerRef}
+            className="relative h-28 bg-black/40 border border-white/5 rounded-2xl overflow-hidden group select-none cursor-crosshair"
+            onMouseMove={handleMouseMove}
+            onMouseUp={() => setDragging(null)}
+            onMouseLeave={() => setDragging(null)}
+        >
+            <canvas ref={canvasRef} width={500} height={112} className="w-full h-full" />
             
             {/* Range Controls */}
             <div className="absolute inset-x-0 top-0 bottom-0 pointer-events-none">
                 {/* Visual markers */}
-                <div className="absolute top-0 bottom-0 border-l-2 border-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.5)] z-10" style={{ left: `${(start / duration) * 100}%` }}>
-                    <div className="absolute top-0 left-0 bg-neon-cyan text-black text-[8px] font-black px-1 py-0.5 rounded-br-md">IN</div>
+                <div 
+                    className="absolute top-0 bottom-0 w-1 bg-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.8)] z-30 pointer-events-auto cursor-col-resize" 
+                    style={{ left: `${(start / duration) * 100}%` }}
+                    onMouseDown={() => setDragging('start')}
+                >
+                    <div className="absolute top-2 left-0 bg-neon-cyan text-black text-[8px] font-black px-1.5 py-1 rounded-r-md">IN</div>
                 </div>
-                <div className="absolute top-0 bottom-0 border-l-2 border-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.5)] z-10" style={{ left: `${(end / duration) * 100}%` }}>
-                    <div className="absolute top-0 right-0 bg-neon-cyan text-black text-[8px] font-black px-1 py-0.5 rounded-bl-md">OUT</div>
+                <div 
+                    className="absolute top-0 bottom-0 w-1 bg-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.8)] z-30 pointer-events-auto cursor-col-resize" 
+                    style={{ left: `${(end / duration) * 100}%` }}
+                    onMouseDown={() => setDragging('end')}
+                >
+                    <div className="absolute top-2 right-0 bg-neon-cyan text-black text-[8px] font-black px-1.5 py-1 rounded-l-md">OUT</div>
                 </div>
                 {/* Tint unselected areas */}
-                <div className="absolute inset-y-0 left-0 bg-black/60" style={{ width: `${(start / duration) * 100}%` }} />
-                <div className="absolute inset-y-0 right-0 bg-black/60" style={{ left: `${(end / duration) * 100}%` }} />
+                <div className="absolute inset-y-0 left-0 bg-black/80 backdrop-blur-[1px]" style={{ width: `${(start / duration) * 100}%` }} />
+                <div className="absolute inset-y-0 right-0 bg-black/80 backdrop-blur-[1px]" style={{ left: `${(end / duration) * 100}%` }} />
             </div>
 
-            <input 
-                type="range" min={0} max={duration} step={0.1} value={start}
-                onChange={e => onChange(Math.min(Number(e.target.value), end - 1), end)}
-                className="absolute inset-x-0 bottom-0 h-full opacity-0 cursor-pointer z-20 pointer-events-auto"
-                style={{ clipPath: `inset(0 ${100 - (start/duration)*100}% 0 0)` }}
-            />
-            <input 
-                type="range" min={0} max={duration} step={0.1} value={end}
-                onChange={e => onChange(start, Math.max(Number(e.target.value), start + 1))}
-                className="absolute inset-x-0 top-0 h-full opacity-0 cursor-pointer z-20 pointer-events-auto"
-                style={{ clipPath: `inset(0 0 0 ${(end/duration)*100}%)` }}
-            />
+            {/* Play Button Overlay */}
+            <button 
+                onClick={handleTogglePlay}
+                className="absolute bottom-2 left-1/2 -translate-x-1/2 z-40 p-2 bg-white/10 hover:bg-neon-cyan hover:text-black rounded-full border border-white/20 transition-all backdrop-blur-md"
+            >
+                {isPlaying ? <X className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+            </button>
         </div>
     );
 }
