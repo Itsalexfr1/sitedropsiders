@@ -178,10 +178,10 @@ export function VideoStudioGenerator() {
                         }
 
                         if (showLogo && dropsidersLogo.current) {
-                            const lw = 150;
+                            const lw = 100;
                             const lh = lw * (dropsidersLogo.current.height / dropsidersLogo.current.width);
-                            ctx.globalAlpha = 0.8;
-                            ctx.drawImage(dropsidersLogo.current, w - lw - 40, 40, lw, lh);
+                            ctx.globalAlpha = 0.7;
+                            ctx.drawImage(dropsidersLogo.current, w - lw - 30, 30, lw, lh);
                             ctx.globalAlpha = 1;
                         }
 
