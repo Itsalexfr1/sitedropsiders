@@ -393,7 +393,7 @@ export function InterviewVisualGenerator() {
             <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">
                 <div className="text-center space-y-4">
                     <p className="text-red-500 font-black uppercase tracking-widest text-sm">Accès restreint</p>
-                    <button onClick={() => navigate('/admin')} className="text-gray-400 text-xs font-bold hover:text-white transition-colors">← Retour</button>
+                    <button onClick={() => navigate(-1)} className="text-gray-400 text-xs font-bold hover:text-white transition-colors">← Retour</button>
                 </div>
             </div>
         );
@@ -409,11 +409,11 @@ export function InterviewVisualGenerator() {
             {/* Nav */}
             <div className="fixed top-4 left-4 z-50">
                 <button
-                    onClick={() => navigate('/admin')}
+                    onClick={() => navigate(-1)}
                     className="flex items-center gap-2 px-4 py-2.5 bg-white/5 border border-white/10 rounded-2xl text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all backdrop-blur-md"
                 >
                     <ChevronLeft className="w-4 h-4" />
-                    Admin
+                    Retour
                 </button>
             </div>
 
