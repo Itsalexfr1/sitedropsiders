@@ -14,6 +14,97 @@ interface Clip {
     title: string;
 }
 
+function WaveformVisualizer({ blobUrl, start, end, duration, onChange }: { 
+    blobUrl: string; 
+    start: number; 
+    end: number; 
+    duration: number; 
+    onChange: (s: number, e: number) => void 
+}) {
+    const canvasRef = useRef<HTMLCanvasElement>(null);
+    const [peaks, setPeaks] = useState<number[]>([]);
+
+    useEffect(() => {
+        const decodeAndGeneratePeaks = async () => {
+            try {
+                const response = await fetch(blobUrl);
+                const arrayBuffer = await response.arrayBuffer();
+                const audioCtx = new (window.AudioContext || (window as any).webkitAudioContext)();
+                const audioBuffer = await audioCtx.decodeAudioData(arrayBuffer);
+                const channelData = audioBuffer.getChannelData(0);
+                const step = Math.ceil(channelData.length / 500);
+                const newPeaks = [];
+                for (let i = 0; i < 500; i++) {
+                    let max = 0;
+                    for (let j = 0; j < step; j++) {
+                        const val = Math.abs(channelData[i * step + j]);
+                        if (val > max) max = val;
+                    }
+                    newPeaks.push(max);
+                }
+                setPeaks(newPeaks);
+                audioCtx.close();
+            } catch (e) {
+                console.error("Waveform decode failed", e);
+            }
+        };
+        decodeAndGeneratePeaks();
+    }, [blobUrl]);
+
+    useEffect(() => {
+        if (!canvasRef.current || peaks.length === 0) return;
+        const canvas = canvasRef.current;
+        const ctx = canvas.getContext('2d')!;
+        const w = canvas.width;
+        const h = canvas.height;
+        ctx.clearRect(0, 0, w, h);
+        
+        const barWidth = w / peaks.length;
+        peaks.forEach((peak, i) => {
+            const x = i * barWidth;
+            const barHeight = peak * h * 0.8;
+            const time = (i / peaks.length) * duration;
+            const isActive = time >= start && time <= end;
+            
+            ctx.fillStyle = isActive ? '#00f0ff' : 'rgba(255, 255, 255, 0.1)';
+            ctx.fillRect(x, (h - barHeight) / 2, barWidth - 1, barHeight);
+        });
+    }, [peaks, start, end, duration]);
+
+    return (
+        <div className="relative h-24 bg-black/40 border border-white/5 rounded-2xl overflow-hidden group">
+            <canvas ref={canvasRef} width={500} height={100} className="w-full h-full" />
+            
+            {/* Range Controls */}
+            <div className="absolute inset-x-0 top-0 bottom-0 pointer-events-none">
+                {/* Visual markers */}
+                <div className="absolute top-0 bottom-0 border-l-2 border-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.5)] z-10" style={{ left: `${(start / duration) * 100}%` }}>
+                    <div className="absolute top-0 left-0 bg-neon-cyan text-black text-[8px] font-black px-1 py-0.5 rounded-br-md">IN</div>
+                </div>
+                <div className="absolute top-0 bottom-0 border-l-2 border-neon-cyan shadow-[0_0_15px_rgba(0,240,255,0.5)] z-10" style={{ left: `${(end / duration) * 100}%` }}>
+                    <div className="absolute top-0 right-0 bg-neon-cyan text-black text-[8px] font-black px-1 py-0.5 rounded-bl-md">OUT</div>
+                </div>
+                {/* Tint unselected areas */}
+                <div className="absolute inset-y-0 left-0 bg-black/60" style={{ width: `${(start / duration) * 100}%` }} />
+                <div className="absolute inset-y-0 right-0 bg-black/60" style={{ left: `${(end / duration) * 100}%` }} />
+            </div>
+
+            <input 
+                type="range" min={0} max={duration} step={0.1} value={start}
+                onChange={e => onChange(Math.min(Number(e.target.value), end - 1), end)}
+                className="absolute inset-x-0 bottom-0 h-full opacity-0 cursor-pointer z-20 pointer-events-auto"
+                style={{ clipPath: `inset(0 ${100 - (start/duration)*100}% 0 0)` }}
+            />
+            <input 
+                type="range" min={0} max={duration} step={0.1} value={end}
+                onChange={e => onChange(start, Math.max(Number(e.target.value), start + 1))}
+                className="absolute inset-x-0 top-0 h-full opacity-0 cursor-pointer z-20 pointer-events-auto"
+                style={{ clipPath: `inset(0 0 0 ${(end/duration)*100}%)` }}
+            />
+        </div>
+    );
+}
+
 export function VideoStudioGenerator() {
     const navigate = useNavigate();
     const adminUser = localStorage.getItem('admin_user');
@@ -608,30 +699,28 @@ export function VideoStudioGenerator() {
                                         </button>
                                     </div>
                                     
+                                    <WaveformVisualizer 
+                                        blobUrl={music.blobUrl}
+                                        start={musicStart}
+                                        end={musicEnd}
+                                        duration={musicMaxDuration}
+                                        onChange={(s, e) => {
+                                            setMusicStart(s);
+                                            setMusicEnd(e);
+                                        }}
+                                    />
+
                                     <div className="grid grid-cols-2 gap-4">
-                                        <div className="space-y-2">
-                                            <label className="text-[9px] font-black text-gray-600 uppercase">Début (Sec)</label>
-                                            <input 
-                                                type="number" 
-                                                value={musicStart} 
-                                                min={0} 
-                                                max={musicEnd - 1}
-                                                onChange={e => setMusicStart(Math.max(0, Number(e.target.value)))}
-                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-black italic focus:border-neon-cyan outline-none transition-all"
-                                            />
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-3">
+                                            <p className="text-[8px] font-black text-gray-500 uppercase mb-1">DÉBUT</p>
+                                            <p className="text-sm font-black text-white italic">{Math.floor(musicStart / 60)}:{(musicStart % 60).toFixed(1).padStart(4, '0')}</p>
                                         </div>
-                                        <div className="space-y-2">
-                                            <label className="text-[9px] font-black text-gray-600 uppercase">Fin (Sec)</label>
-                                            <input 
-                                                type="number" 
-                                                value={musicEnd} 
-                                                min={musicStart + 1}
-                                                max={musicMaxDuration}
-                                                onChange={e => setMusicEnd(Math.min(musicMaxDuration, Number(e.target.value)))}
-                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-white font-black italic focus:border-neon-cyan outline-none transition-all"
-                                            />
+                                        <div className="bg-white/5 border border-white/10 rounded-xl p-3 text-right">
+                                            <p className="text-[8px] font-black text-gray-500 uppercase mb-1">FIN</p>
+                                            <p className="text-sm font-black text-white italic">{Math.floor(musicEnd / 60)}:{(musicEnd % 60).toFixed(1).padStart(4, '0')}</p>
                                         </div>
                                     </div>
+
                                     <div className="bg-black/40 p-4 rounded-2xl border border-white/5 flex items-center justify-between">
                                         <span className="text-[9px] font-black text-gray-600 uppercase">Durée Totale Vidéo</span>
                                         <span className={`text-sm font-black italic ${themeColor}`}>{Math.round(alignToMusic ? (musicEnd - musicStart) : targetDuration)}s</span>
