@@ -14,7 +14,7 @@ interface Clip {
     title: string;
 }
 
-export function AftermovieGenerator() {
+export function VideoStudioGenerator() {
     const navigate = useNavigate();
     const adminUser = localStorage.getItem('admin_user');
     const storedPermissions = JSON.parse(localStorage.getItem('admin_permissions') || '[]');
@@ -26,14 +26,20 @@ export function AftermovieGenerator() {
     const [progress, setProgress] = useState(0);
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
     const [activeFilter, setActiveFilter] = useState<'none' | 'neon' | 'vhs' | 'glitch'>('neon');
-    const [targetDuration, setTargetDuration] = useState<15 | 30 | 60 | 180 | 300>(15);
+    const [targetDuration, setTargetDuration] = useState<number>(30);
     const [bpm, setBpm] = useState(128);
+    const [isRecapMode, setIsRecapMode] = useState(false);
     const showLogo = true;
 
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const dropsidersLogo = useRef<HTMLImageElement | null>(null);
 
-    // Initial load logo
+    const DURATIONS = [30, 60, 90, 120, 150, 180, 210];
+    const themeColor = isRecapMode ? 'text-neon-cyan' : 'text-neon-red';
+    const themeBg = isRecapMode ? 'bg-neon-cyan/20 border-neon-cyan' : 'bg-neon-red/20 border-neon-red';
+    const themeBtn = isRecapMode ? 'bg-neon-cyan text-black' : 'bg-neon-red text-white';
+    const themeShadow = isRecapMode ? 'shadow-[0_0_25px_rgba(0,255,255,0.3)]' : 'shadow-[0_0_25px_rgba(255,0,51,0.3)]';
+
     useEffect(() => {
         const img = new window.Image();
         img.src = '/Logo.png';
@@ -74,7 +80,7 @@ export function AftermovieGenerator() {
         });
     };
 
-    const generateAftermovie = async () => {
+    const generateVideo = async () => {
         if (clips.length === 0) return;
         setIsGenerating(true);
         setProgress(0);
@@ -144,27 +150,23 @@ export function AftermovieGenerator() {
                             return;
                         }
 
-                        // 1. Draw Background
                         ctx.fillStyle = '#000';
                         ctx.fillRect(0, 0, w, h);
 
-                        // 2. Video Draw
                         const vRatio = videoEl.videoWidth / videoEl.videoHeight;
                         const cRatio = w / h;
                         let dw = w, dh = h, dx = 0, dy = 0;
                         if (vRatio > cRatio) { dw = h * vRatio; dx = (w - dw) / 2; }
                         else { dh = w / vRatio; dy = (h - dh) / 2; }
                         
-                        // Shake effect near end of clip or on beat
                         const isBeat = (globalElapsed % beatInterval) < 0.05;
                         const shake = isBeat ? (Math.random() - 0.5) * 10 : 0;
                         ctx.drawImage(videoEl, dx + shake, dy + shake, dw, dh);
 
-                        // 3. Filters
                         if (activeFilter === 'neon') {
                             ctx.save();
                             ctx.globalCompositeOperation = 'screen';
-                            ctx.fillStyle = 'rgba(255,0,51,0.08)';
+                            ctx.fillStyle = isRecapMode ? 'rgba(0,255,255,0.08)' : 'rgba(255,0,51,0.08)';
                             ctx.fillRect(0, 0, w, h);
                             ctx.restore();
                         } else if (activeFilter === 'vhs') {
@@ -175,7 +177,6 @@ export function AftermovieGenerator() {
                             ctx.restore();
                         }
 
-                        // 4. Branding
                         if (showLogo && dropsidersLogo.current) {
                             const lw = 150;
                             const lh = lw * (dropsidersLogo.current.height / dropsidersLogo.current.width);
@@ -184,7 +185,6 @@ export function AftermovieGenerator() {
                             ctx.globalAlpha = 1;
                         }
 
-                        // 5. BEAT SYNC FLASH & CLIP TRANSITION
                         if (elapsedInClip < 0.15 || isBeat) {
                             const alpha = isBeat ? 0.3 : (1 - elapsedInClip * 6);
                             ctx.fillStyle = `rgba(255,255,255,${alpha})`;
@@ -209,39 +209,42 @@ export function AftermovieGenerator() {
     return (
         <div className="min-h-screen bg-[#050505] text-white">
             <div className="max-w-7xl mx-auto px-6 py-12">
-                <div className="flex items-center justify-between mb-12">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-8 mb-12">
                     <div>
                         <button onClick={() => navigate('/admin')} className="mb-4 text-gray-500 hover:text-white flex items-center gap-2 text-[10px] font-black uppercase tracking-widest transition-colors group">
                             <ChevronLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
                             Retour Studio
                         </button>
-                        <h1 className="text-5xl font-display font-black uppercase italic tracking-tighter">
-                            Aftermovie <span className="text-neon-red">Maker</span>
+                        <h1 className="text-5xl md:text-6xl font-display font-black uppercase italic tracking-tighter">
+                            {isRecapMode ? 'Récap' : 'Aftermovie'} <span className={themeColor}>Studio</span>
                         </h1>
-                        <p className="text-gray-500 text-[10px] uppercase font-black tracking-[0.3em] mt-2">Mode Autonome / Beat Sync v2.0</p>
+                        <div className="flex items-center gap-3 mt-5">
+                            <button onClick={() => setIsRecapMode(false)} className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all ${!isRecapMode ? 'bg-neon-red text-white shadow-lg' : 'bg-white/5 text-gray-500 border border-white/5'}`}>Aftermovie</button>
+                            <button onClick={() => setIsRecapMode(true)} className={`px-5 py-2.5 rounded-full text-[10px] font-black uppercase tracking-[0.2em] transition-all ${isRecapMode ? 'bg-neon-cyan text-black shadow-lg' : 'bg-white/5 text-gray-500 border border-white/5'}`}>Récap Actu</button>
+                        </div>
                     </div>
                     <div className="flex gap-4">
-                        <button onClick={generateAftermovie} disabled={clips.length === 0 || isGenerating} className="bg-neon-red text-white px-8 py-4 rounded-2xl text-[10px] font-black uppercase tracking-[0.2em] shadow-[0_0_25px_rgba(255,0,51,0.3)] hover:scale-105 transition-all disabled:opacity-30 flex items-center gap-3">
-                            {isGenerating ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Film className="w-4 h-4" />}
+                        <button onClick={generateVideo} disabled={clips.length === 0 || isGenerating} className={`${themeBtn} px-10 py-5 rounded-2xl text-[10px] font-black uppercase tracking-[0.25em] ${themeShadow} hover:scale-105 transition-all disabled:opacity-30 disabled:hover:scale-100 flex items-center gap-3`}>
+                            {isGenerating ? <RefreshCw className="w-5 h-5 animate-spin" /> : <Film className="w-5 h-5" />}
                             {isGenerating ? `Génération ${progress}%` : 'Lancer le rendu pro'}
                         </button>
                     </div>
                 </div>
 
-                <div className="grid lg:grid-cols-[1fr_400px] gap-10">
+                <div className="grid lg:grid-cols-[1fr_450px] gap-10">
                     <div className="space-y-8">
                         <div className="aspect-video bg-black/40 border border-white/10 rounded-[2.5rem] overflow-hidden relative shadow-2xl">
                             {previewUrl ? <video src={previewUrl} controls className="w-full h-full" /> : 
                             <div className="w-full h-full flex flex-col items-center justify-center text-gray-600 gap-4">
                                 <Play className="w-8 h-8 opacity-20" />
-                                <p className="text-[10px] font-black uppercase tracking-widest">Prévisualisation HD</p>
+                                <p className="text-[10px] font-black uppercase tracking-widest">Prévisualisation Vidéo Studio</p>
                             </div>}
-                            {isGenerating && <div className="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center gap-6"><div className="text-3xl font-display font-black italic">{progress}%</div><p className="text-[10px] font-black uppercase tracking-[0.4em] text-neon-red animate-pulse">Sync au tempo...</p></div>}
+                            {isGenerating && <div className="absolute inset-0 bg-black/80 backdrop-blur-md flex flex-col items-center justify-center gap-6"><div className="text-4xl font-display font-black italic">{progress}%</div><p className={`text-[10px] font-black uppercase tracking-[0.4em] ${themeColor} animate-pulse`}>Sync au tempo...</p></div>}
                         </div>
 
-                        <div className="bg-white/[0.02] border border-white/5 rounded-[2rem] p-8">
+                        <div className="bg-white/[0.02] border border-white/5 rounded-[2.5rem] p-8">
                             <div className="flex items-center justify-between mb-8">
-                                <h3 className="text-xs font-black uppercase tracking-[0.2em] flex items-center gap-3"><List className="w-4 h-4 text-neon-red" /> Clips ({clips.length})</h3>
+                                <h3 className={`text-xs font-black uppercase tracking-[0.2em] flex items-center gap-3`}><List className={`w-4 h-4 ${themeColor}`} /> Clips Vidéos ({clips.length})</h3>
                                 <button onClick={() => document.getElementById('video-upload')?.click()} className="p-2.5 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/5"><Plus className="w-4 h-4 text-gray-500" /></button>
                                 <input id="video-upload" type="file" multiple accept="video/*,.mov" className="hidden" onChange={(e) => handleVideoImport(e.target.files)} />
                             </div>
@@ -249,7 +252,7 @@ export function AftermovieGenerator() {
                                 {clips.map((clip, index) => (
                                     <div key={clip.id} className="relative group rounded-2xl overflow-hidden aspect-[4/3] bg-black border border-white/10 shadow-lg">
                                         <video src={clip.blobUrl} className="w-full h-full object-cover opacity-60" />
-                                        <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 rounded-md text-[8px] font-black italic">#{index+1}</div>
+                                        <div className="absolute top-2 left-2 px-2 py-1 bg-black/60 rounded-md text-[8px] font-black italic tracking-tighter">#{index+1}</div>
                                         <button onClick={() => removeClip(clip.id)} className="absolute top-2 right-2 p-1.5 bg-red-500/20 hover:bg-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all text-white"><Trash2 className="w-3 h-3" /></button>
                                     </div>
                                 ))}
@@ -258,26 +261,30 @@ export function AftermovieGenerator() {
                     </div>
 
                     <div className="space-y-6">
-                        <div className="bg-white/[0.04] border border-white/10 rounded-[2rem] p-8 backdrop-blur-xl">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-6 flex items-center gap-3"><Music className="w-4 h-4 text-neon-cyan" /> Audio & Rythme</h3>
-                            <div className="grid grid-cols-5 gap-2 mb-6">
-                                {[15, 30, 60, 180, 300].map(d => (
-                                    <button key={d} onClick={() => setTargetDuration(d as any)} className={`py-3 rounded-xl border text-[10px] font-black ${targetDuration === d ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/10 text-gray-400'}`}>{d < 60 ? d + 's' : (d / 60) + 'm'}</button>
+                        <div className="bg-white/[0.04] border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-xl transition-all">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-7 flex items-center gap-3"><Music className={`w-4 h-4 ${isRecapMode ? 'text-neon-cyan' : 'text-neon-red'}`} /> Durée & Rythme</h3>
+                            <div className="grid grid-cols-4 gap-2 mb-8">
+                                {DURATIONS.map(d => (
+                                    <button key={d} onClick={() => setTargetDuration(d)} className={`py-3.5 rounded-xl border text-[10px] font-black transition-all ${targetDuration === d ? `${themeBg} ${themeColor}` : 'bg-white/5 border-white/10 text-gray-500 hover:border-white/20'}`}>{d}s</button>
                                 ))}
                             </div>
-                            {music ? <div className="p-4 bg-neon-cyan/5 border border-neon-cyan/20 rounded-2xl flex items-center gap-3"><Music className="w-4 h-4 text-neon-cyan" /><p className="text-[10px] font-black uppercase tracking-tight truncate flex-1">{music.file.name}</p><button onClick={() => setMusic(null)} className="text-red-400"><X className="w-4 h-4" /></button></div> : 
-                                <label className="w-full flex flex-col items-center justify-center p-6 border-2 border-dashed border-white/5 rounded-[1.5rem] cursor-pointer hover:bg-white/[0.02] transition-all"><input type="file" accept="audio/*" className="hidden" onChange={handleMusicImport} /><Upload className="w-6 h-6 text-gray-600 mb-2" /><span className="text-[9px] font-black uppercase text-gray-600">Audio Track</span></label>}
-                            <div className="mt-6 flex items-center justify-between p-4 bg-white/5 rounded-2xl">
-                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Tempo (BPM)</span>
-                                <input type="number" value={bpm} onChange={e => setBpm(parseInt(e.target.value))} className="w-16 bg-transparent text-right font-black italic text-neon-cyan focus:outline-none" />
+                            {music ? <div className={`p-4 ${isRecapMode ? 'bg-neon-cyan/5 border-neon-cyan/20' : 'bg-neon-red/5 border-neon-red/20'} border rounded-2xl flex items-center gap-4 transition-colors`}><Music className={`w-4 h-4 ${themeColor}`} /><p className="text-[9px] font-black uppercase tracking-tight truncate flex-1">{music.file.name}</p><button onClick={() => setMusic(null)} className="text-red-400 hover:scale-110 transition-transform"><X className="w-4 h-4" /></button></div> : 
+                                <label className="w-full flex flex-col items-center justify-center p-8 border-2 border-dashed border-white/5 rounded-[2rem] cursor-pointer hover:bg-white/[0.02] hover:border-white/10 transition-all group"><input type="file" accept="audio/*" className="hidden" onChange={handleMusicImport} /><Upload className="w-7 h-7 text-gray-600 mb-3 group-hover:text-gray-400 group-hover:-translate-y-1 transition-all" /><span className="text-[9px] font-black uppercase tracking-widest text-gray-600 group-hover:text-gray-400">Importer Audio</span></label>}
+                            <div className="mt-8 flex items-center justify-between p-5 bg-black/40 border border-white/5 rounded-2xl shadow-inner">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Tempo de sync (BPM)</span>
+                                <input type="number" value={bpm} onChange={e => setBpm(parseInt(e.target.value) || 128)} className={`w-16 bg-transparent text-right font-black italic ${themeColor} focus:outline-none text-lg`} />
                             </div>
                         </div>
 
-                        <div className="bg-white/[0.04] border border-white/10 rounded-[2rem] p-8 backdrop-blur-xl">
-                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-6 flex items-center gap-3"><Zap className="w-4 h-4 text-neon-yellow" /> Styles & FX</h3>
-                            <div className="space-y-3">
-                                {[{ id: 'neon', label: 'Dropsiders Neon', icon: Sparkles, color: 'text-neon-red' }, { id: 'vhs', label: 'Vintage VHS', icon: Film, color: 'text-neon-purple' }, { id: 'glitch', label: 'Glitch Sync', icon: RefreshCw, color: 'text-neon-cyan' }].map(f => (
-                                    <button key={f.id} onClick={() => setActiveFilter(f.id as any)} className={`w-full p-4 rounded-2xl border flex items-center gap-4 transition-all ${activeFilter === f.id ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/5 opacity-50'}`}><f.icon className={`w-4 h-4 ${f.color}`} /><span className="text-[10px] font-black uppercase tracking-widest">{f.label}</span></button>
+                        <div className="bg-white/[0.04] border border-white/10 rounded-[2.5rem] p-8 backdrop-blur-xl">
+                            <h3 className="text-[10px] font-black uppercase tracking-[0.3em] mb-7 flex items-center gap-3"><Zap className="w-4 h-4 text-neon-yellow" /> Styles & FX Spéciaux</h3>
+                            <div className="space-y-4">
+                                {[
+                                    { id: 'neon', label: 'Dropsiders Color', icon: Sparkles, color: themeColor }, 
+                                    { id: 'vhs', label: 'Vintage VHS', icon: Film, color: 'text-neon-purple' }, 
+                                    { id: 'glitch', label: 'Glitch Sync', icon: RefreshCw, color: 'text-neon-cyan' }
+                                ].map(f => (
+                                    <button key={f.id} onClick={() => setActiveFilter(f.id as any)} className={`w-full p-5 rounded-2xl border flex items-center gap-4 transition-all ${activeFilter === f.id ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/5 opacity-40 hover:opacity-100'}`}><f.icon className={`w-5 h-5 ${f.color}`} /><span className="text-[10px] font-black uppercase tracking-[0.2em]">{f.label}</span></button>
                                 ))}
                             </div>
                         </div>

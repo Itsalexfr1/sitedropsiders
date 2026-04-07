@@ -83,7 +83,7 @@ export function CreatorStudioMenuModal({ isOpen, onClose, onExpress, onPubli, on
                                 </div>
                             </button>
 
-                            {/* Aftermovie Maker */}
+                            {/* Video Studio (Aftermovie & Recap) */}
                             <button
                                 onClick={() => { navigate('/aftermovie'); onClose(); }}
                                 className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-red/10 hover:border-neon-red/50 transition-all group"
@@ -92,22 +92,8 @@ export function CreatorStudioMenuModal({ isOpen, onClose, onExpress, onPubli, on
                                     <Video className="w-6 h-6 text-neon-red" />
                                 </div>
                                 <div className="text-left">
-                                    <h3 className="text-lg font-bold text-white uppercase italic mb-1">Aftermovie Studio</h3>
-                                    <p className="text-[9px] text-gray-500 font-black uppercase tracking-widest leading-relaxed">Générateur de séquences festivals</p>
-                                </div>
-                            </button>
-
-                            {/* Récap Vidéo Maker */}
-                            <button
-                                onClick={() => { navigate('/recap-video'); onClose(); }}
-                                className="w-full p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center gap-6 hover:bg-neon-cyan/10 hover:border-neon-cyan/50 transition-all group"
-                            >
-                                <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center border border-neon-cyan/30 group-hover:scale-110 transition-transform flex-shrink-0">
-                                    <Video className="w-6 h-6 text-neon-cyan" />
-                                </div>
-                                <div className="text-left">
-                                    <h3 className="text-lg font-bold text-white uppercase italic mb-1">Récap Vidéo</h3>
-                                    <p className="text-[9px] text-gray-500 font-black uppercase tracking-widest leading-relaxed">Format court Actu & News</p>
+                                    <h3 className="text-lg font-bold text-white uppercase italic mb-1">Video Studio</h3>
+                                    <p className="text-[9px] text-gray-500 font-black uppercase tracking-widest leading-relaxed">Aftermovies & Récaps Festivals</p>
                                 </div>
                             </button>
 
