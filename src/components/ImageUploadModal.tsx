@@ -470,7 +470,7 @@ export function ImageUploadModal({
                                                 <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-neon-blue" /></div>
                                             ) : (
                                                 <>
-                                                    <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-2 max-h-[50vh] overflow-y-auto no-scrollbar rounded-2xl">
+                                                    <div className="grid grid-cols-2 xs:grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-3 max-h-[50vh] overflow-y-auto no-scrollbar rounded-2xl p-1 w-full">
                                                         {r2Photos.map(photo => (
                                                             <div 
                                                                 key={photo.key} 
@@ -486,25 +486,30 @@ export function ImageUploadModal({
                                                                         handleUpload([{ file: null, preview: photo.url }]);
                                                                     }
                                                                 }}
-                                                                className={`aspect-square bg-black border rounded-lg overflow-hidden cursor-pointer transition-all relative group ${selectedImages.some(img => img.preview === photo.url) ? 'border-neon-blue ring-2 ring-neon-blue/40 scale-[0.98]' : 'border-white/10 hover:border-neon-blue'}`}
+                                                                className={`aspect-square w-full min-h-[60px] bg-black border rounded-xl overflow-hidden cursor-pointer transition-all relative group shadow-sm ${selectedImages.some(img => img.preview === photo.url) ? 'border-neon-blue ring-2 ring-neon-blue/40 scale-[0.98]' : 'border-white/10 hover:border-neon-blue/50 hover:bg-white/5'}`}
                                                             >
-                                                                <img src={photo.url} alt="" className={`w-full h-full object-cover transition-opacity ${selectedImages.some(img => img.preview === photo.url) ? 'opacity-100' : 'opacity-80 group-hover:opacity-100'}`} />
+                                                                <img 
+                                                                    src={photo.url} 
+                                                                    alt="" 
+                                                                    className={`w-full h-full object-cover transition-all duration-300 ${selectedImages.some(img => img.preview === photo.url) ? 'opacity-100 scale-110' : 'opacity-70 group-hover:opacity-100 group-hover:scale-105'}`} 
+                                                                    loading="lazy"
+                                                                />
                                                                 
                                                                 {selectedImages.some(img => img.preview === photo.url) && (
-                                                                    <div className="absolute top-2 right-2 w-5 h-5 bg-neon-blue rounded-full flex items-center justify-center shadow-lg animate-in zoom-in duration-200">
+                                                                    <div className="absolute top-2 right-2 w-6 h-6 bg-neon-blue rounded-full flex items-center justify-center shadow-lg animate-in zoom-in duration-200 z-10">
                                                                         <div className="text-[10px] font-black text-black">
-                                                                            {allowMultiple ? selectedImages.findIndex(img => img.preview === photo.url) + 1 : <Check className="w-3 h-3" />}
+                                                                            {allowMultiple ? selectedImages.findIndex(img => img.preview === photo.url) + 1 : <Check className="w-4 h-4" />}
                                                                         </div>
                                                                     </div>
                                                                 )}
 
-                                                                <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-md p-1 translate-y-full group-hover:translate-y-0 transition-transform">
-                                                                    <span className="text-[6px] text-white block truncate text-center">{photo.key.split('/').pop()}</span>
+                                                                <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-md p-1.5 translate-y-full group-hover:translate-y-0 transition-transform duration-200">
+                                                                    <span className="text-[7px] font-bold text-white block truncate text-center uppercase tracking-tight">{photo.key.split('/').pop()}</span>
                                                                 </div>
                                                             </div>
                                                         ))}
-                                                        <div ref={sentinelRef} className="col-span-full h-10 flex items-center justify-center">
-                                                            {r2Loading && <Loader2 className="w-5 h-5 animate-spin text-neon-blue" />}
+                                                        <div ref={sentinelRef} className="col-span-full h-20 flex items-center justify-center">
+                                                            {r2Loading && <Loader2 className="w-6 h-6 animate-spin text-neon-blue" />}
                                                         </div>
                                                     </div>
                                                     
