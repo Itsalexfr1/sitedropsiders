@@ -84,9 +84,18 @@ export function RecapDetail() {
         .filter((item: any) => item.id !== recap.id)
         .slice(0, 3);
 
-    // Navigation - Sort by date desc to match list page
-    const allRecaps = (recapsData as any[])
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+    // Navigation - Sort by year and date desc to match list page
+    const allRecaps = [...(recapsData as any[])]
+        .sort((a, b) => {
+            const yearA = Number(a.year) || new Date(a.date).getFullYear();
+            const yearB = Number(b.year) || new Date(b.date).getFullYear();
+            
+            if (yearB !== yearA) return yearB - yearA;
+            
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+        });
     const currentIndex = allRecaps.findIndex((item: any) => item.id === recap.id);
     const previousRecap = currentIndex < allRecaps.length - 1 ? allRecaps[currentIndex + 1] : null; // Older
     const nextRecap = currentIndex > 0 ? allRecaps[currentIndex - 1] : null; // Newer

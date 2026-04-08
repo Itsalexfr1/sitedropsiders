@@ -103,10 +103,19 @@ export function ArticleDetail() {
         .filter(item => item.id !== article.id && item.category === article.category)
         .slice(0, 3);
 
-    // Navigation prev/next — same category, sorted by date desc (same as list page)
-    const categoryArticles = newsData
+    // Navigation prev/next — same category, sorted by year and date desc (same as list page)
+    const categoryArticles = [...newsData]
         .filter(item => item.category === article.category)
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+        .sort((a, b) => {
+            const yearA = Number(a.year) || new Date(a.date).getFullYear();
+            const yearB = Number(b.year) || new Date(b.date).getFullYear();
+            
+            if (yearB !== yearA) return yearB - yearA;
+            
+            const dateA = new Date(a.date).getTime();
+            const dateB = new Date(b.date).getTime();
+            return (isNaN(dateB) ? 0 : dateB) - (isNaN(dateA) ? 0 : dateA);
+        });
     const currentIndex = categoryArticles.findIndex(item => item.id === article.id);
     const previousArticle = currentIndex < categoryArticles.length - 1 ? categoryArticles[currentIndex + 1] : null;
     const nextArticle = currentIndex > 0 ? categoryArticles[currentIndex - 1] : null;
@@ -134,3 +143,5 @@ export function ArticleDetail() {
         </>
     );
 }
+
+export default ArticleDetail;
