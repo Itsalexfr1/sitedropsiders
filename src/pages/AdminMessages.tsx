@@ -57,10 +57,16 @@ export function AdminMessages() {
     const [replyError, setReplyError] = useState('');
     const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
     const [notification, setNotification] = useState<{ type: 'success' | 'error', msg: string } | null>(null);
-    const [mailboxTab, setMailboxTab] = useState<'inbox' | 'sent'>('inbox');
+    const [mailboxTab, setMailboxTab] = useState<'inbox' | 'sent' | 'archived'>('inbox');
     const [sentMessages, setSentMessages] = useState<{ id: string; to: string; subject: string; body: string; date: string; signer: string }[]>(() => {
         try { return JSON.parse(localStorage.getItem('dropsiders_sent_messages') || '[]'); } catch { return []; }
     });
+    const [archivedMessages, setArchivedMessages] = useState<ContactMessage[]>(() => {
+        try { return JSON.parse(localStorage.getItem('dropsiders_archived_messages') || '[]'); } catch { return []; }
+    });
+
+    const [selectedSent, setSelectedSent] = useState<{ id: string; to: string; subject: string; body: string; date: string; signer: string } | null>(null);
+    const [selectedArchived, setSelectedArchived] = useState<ContactMessage | null>(null);
 
     // New States for Custom Emails
     const [isNewMail, setIsNewMail] = useState(false);
@@ -126,15 +132,54 @@ export function AdminMessages() {
     };
 
     const handleDelete = async (id: string) => {
-        await fetch('/api/contacts/delete', {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify({ id })
-        });
-        setMessages(prev => prev.filter(m => m.id !== id));
-        if (selected?.id === id) setSelected(null);
+        if (mailboxTab === 'inbox') {
+            await fetch('/api/contacts/delete', {
+                method: 'POST',
+                headers: getAuthHeaders(),
+                body: JSON.stringify({ id })
+            });
+            setMessages(prev => prev.filter(m => m.id !== id));
+            if (selected?.id === id) setSelected(null);
+        } else if (mailboxTab === 'sent') {
+            const next = sentMessages.filter(m => m.id !== id);
+            setSentMessages(next);
+            localStorage.setItem('dropsiders_sent_messages', JSON.stringify(next));
+            if (selectedSent?.id === id) setSelectedSent(null);
+        } else if (mailboxTab === 'archived') {
+            const next = archivedMessages.filter(m => m.id !== id);
+            setArchivedMessages(next);
+            localStorage.setItem('dropsiders_archived_messages', JSON.stringify(next));
+            if (selectedArchived?.id === id) setSelectedArchived(null);
+        }
+
         setDeleteConfirm(null);
         showNotif('success', 'Message supprimé.');
+    };
+
+    const handleArchive = (msg: ContactMessage) => {
+        // Remove from inbox
+        setMessages(prev => prev.filter(m => m.id !== msg.id));
+        // Add to archives
+        setArchivedMessages(prev => {
+            const next = [msg, ...prev];
+            localStorage.setItem('dropsiders_archived_messages', JSON.stringify(next));
+            return next;
+        });
+        setSelected(null);
+        showNotif('success', 'Message archivé.');
+    };
+
+    const handleUnarchive = (msg: ContactMessage) => {
+        // Remove from archives
+        setArchivedMessages(prev => {
+            const next = prev.filter(m => m.id !== msg.id);
+            localStorage.setItem('dropsiders_archived_messages', JSON.stringify(next));
+            return next;
+        });
+        // Add back to inbox (at current position, or just at top)
+        setMessages(prev => [msg, ...prev]);
+        setSelectedArchived(null);
+        showNotif('success', 'Message restauré dans la boîte de réception.');
     };
 
     const handleReply = async () => {
@@ -526,12 +571,15 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                 {/* LEFT: Message List */}
                 <div className={`${selected ? 'hidden md:flex' : 'flex'} w-full md:w-96 border-r border-white/5 flex-shrink-0 flex-col bg-white/[0.015]`}>
                     {/* Inbox / Sent tabs */}
-                    <div className="flex border-b border-white/5 shrink-0">
-                        <button onClick={() => setMailboxTab('inbox')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${mailboxTab === 'inbox' ? 'text-white border-b-2 border-neon-red' : 'text-gray-600 hover:text-white'}`}>
+                    <div className="flex border-b border-white/5 shrink-0 overflow-x-auto no-scrollbar">
+                        <button onClick={() => { setMailboxTab('inbox'); setSelectedSent(null); setSelectedArchived(null); }} className={`flex-1 min-w-[100px] py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${mailboxTab === 'inbox' ? 'text-white border-b-2 border-neon-red' : 'text-gray-600 hover:text-white'}`}>
                             <Inbox className="w-3.5 h-3.5" /> Reçus <span className={`px-1.5 py-0.5 rounded-full text-[9px] ${unreadCount > 0 ? 'bg-neon-red text-white' : 'bg-white/10 text-gray-500'}`}>{messages.length}</span>
                         </button>
-                        <button onClick={() => setMailboxTab('sent')} className={`flex-1 py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${mailboxTab === 'sent' ? 'text-white border-b-2 border-neon-cyan' : 'text-gray-600 hover:text-white'}`}>
-                            <Archive className="w-3.5 h-3.5" /> Envoyés <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-white/10 text-gray-500">{sentMessages.length}</span>
+                        <button onClick={() => { setMailboxTab('sent'); setSelected(null); setSelectedArchived(null); }} className={`flex-1 min-w-[100px] py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${mailboxTab === 'sent' ? 'text-white border-b-2 border-neon-cyan' : 'text-gray-600 hover:text-white'}`}>
+                            <Send className="w-3.5 h-3.5" /> Envoyés <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-white/10 text-gray-500">{sentMessages.length}</span>
+                        </button>
+                        <button onClick={() => { setMailboxTab('archived'); setSelected(null); setSelectedSent(null); }} className={`flex-1 min-w-[100px] py-3 text-[10px] font-black uppercase tracking-widest flex items-center justify-center gap-2 transition-all ${mailboxTab === 'archived' ? 'text-white border-b-2 border-neon-purple' : 'text-gray-600 hover:text-white'}`}>
+                            <Archive className="w-3.5 h-3.5" /> Archivés <span className="px-1.5 py-0.5 rounded-full text-[9px] bg-white/10 text-gray-500">{archivedMessages.length}</span>
                         </button>
                     </div>
                     <div className="flex-1 overflow-y-auto">
@@ -548,7 +596,11 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                             ) : (
                                 <div className="divide-y divide-white/5">
                                     {sentMessages.map(msg => (
-                                        <div key={msg.id} className="p-4 hover:bg-white/5 transition-all cursor-default">
+                                        <div
+                                            key={msg.id}
+                                            onClick={() => setSelectedSent(msg)}
+                                            className={`p-4 hover:bg-white/5 transition-all cursor-pointer relative ${selectedSent?.id === msg.id ? 'bg-white/5 border-l-2 border-neon-cyan' : 'border-l-2 border-transparent'}`}
+                                        >
                                             <div className="flex items-center justify-between mb-1">
                                                 <span className="text-[10px] font-black text-neon-cyan uppercase truncate">{msg.to}</span>
                                                 <span className="text-[9px] text-gray-600 flex-shrink-0 ml-2">{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
@@ -557,6 +609,43 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                                             <p className="text-xs text-gray-500 truncate mt-0.5">{msg.body.slice(0, 60)}...</p>
                                             <span className="text-[9px] text-gray-600 mt-1 block">Signataire : {msg.signer}</span>
                                         </div>
+                                    ))}
+                                </div>
+                            )
+                        ) : mailboxTab === 'archived' ? (
+                            archivedMessages.length === 0 ? (
+                                <div className="flex flex-col items-center justify-center h-64 gap-4 text-gray-600">
+                                    <Archive className="w-12 h-12 opacity-20" />
+                                    <p className="text-sm font-bold uppercase tracking-widest">Aucun message archivé</p>
+                                </div>
+                            ) : (
+                                <div className="divide-y divide-white/5">
+                                    {archivedMessages.map(msg => (
+                                        <motion.div
+                                            key={msg.id}
+                                            initial={{ opacity: 0 }}
+                                            animate={{ opacity: 1 }}
+                                            onClick={() => setSelectedArchived(msg)}
+                                            className={`p-4 cursor-pointer transition-all hover:bg-white/5 relative ${selectedArchived?.id === msg.id ? 'bg-white/5 border-l-2 border-neon-purple' : 'border-l-2 border-transparent'}`}
+                                        >
+                                            <div className="flex items-start gap-3">
+                                                <div className="w-9 h-9 rounded-full flex items-center justify-center text-sm font-black flex-shrink-0 bg-white/5 text-gray-500">
+                                                    {msg.name.charAt(0).toUpperCase()}
+                                                </div>
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-center justify-between gap-1">
+                                                        <span className="text-sm truncate text-gray-400 font-medium">{msg.name}</span>
+                                                        <span className="text-[10px] text-gray-600 flex-shrink-0">{new Date(msg.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}</span>
+                                                    </div>
+                                                    <div className="flex items-center gap-2 mt-0.5">
+                                                        <span className={`text-[8px] md:text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded border truncate max-w-full block md:inline ${getSubjectColor(msg.subject)}`}>
+                                                            {msg.subject}
+                                                        </span>
+                                                    </div>
+                                                    <p className="text-xs md:text-sm truncate mt-2 font-medium text-white/40">{msg.message}</p>
+                                                </div>
+                                            </div>
+                                        </motion.div>
                                     ))}
                                 </div>
                             )
@@ -608,17 +697,17 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                 </div>
 
                 {/* RIGHT: Message Detail */}
-                <div className={`${selected ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto flex-col bg-white/[0.04] border-l border-white/5`}>
-                    {selected ? (
+                <div className={`${(selected || selectedSent || selectedArchived) ? 'flex' : 'hidden md:flex'} flex-1 overflow-y-auto flex-col bg-white/[0.04] border-l border-white/5`}>
+                    {(selected || selectedSent || selectedArchived) ? (
                         <motion.div
-                            key={selected.id}
+                            key={selected?.id || selectedSent?.id || selectedArchived?.id}
                             initial={{ opacity: 0, x: 20 }}
                             animate={{ opacity: 1, x: 0 }}
                             className="p-4 md:p-8 max-w-full"
                         >
                             {/* Mobile Back Button */}
                             <button
-                                onClick={() => setSelected(null)}
+                                onClick={() => { setSelected(null); setSelectedSent(null); setSelectedArchived(null); }}
                                 className="md:hidden flex items-center gap-2 text-neon-cyan hover:text-white mb-6 p-2 bg-neon-cyan/5 border border-neon-cyan/10 rounded-xl uppercase text-[10px] font-black tracking-widest transition-all active:scale-95 w-fit"
                             >
                                 <ArrowLeft className="w-4 h-4" /> Retour à la liste
@@ -627,51 +716,74 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
                             <div className="flex flex-col lg:flex-row lg:items-start justify-between mb-8 gap-6">
                                 <div>
                                     <div className="flex items-center gap-3 mb-2">
-                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${getSubjectColor(selected.subject)}`}>
-                                            {selected.subject}
+                                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest border ${(selected || selectedArchived) ? getSubjectColor((selected || selectedArchived)!.subject) : 'text-neon-cyan border-neon-cyan/20 bg-neon-cyan/5'}`}>
+                                            {(selected || selectedArchived)?.subject || 'MESSAGE ENVOYÉ'}
                                         </span>
                                     </div>
-                                    <h2 className="text-xl md:text-2xl font-display font-black text-white italic uppercase tracking-tight mb-1">{selected.name}</h2>
+                                    <h2 className="text-xl md:text-2xl font-display font-black text-white italic uppercase tracking-tight mb-1">{(selected || selectedArchived)?.name || selectedSent?.to}</h2>
                                     <div className="flex flex-wrap items-center gap-3 text-sm text-gray-400">
                                         <div className="flex items-center gap-1.5">
                                             <User className="w-3.5 h-3.5" />
-                                            <span className="font-bold text-white">{selected.name}</span>
+                                            <span className="font-bold text-white">{(selected || selectedArchived)?.name || `De : ${selectedSent?.signer}`}</span>
                                         </div>
                                         <span className="text-gray-700">·</span>
                                         <div className="flex items-center gap-1.5">
                                             <Mail className="w-3.5 h-3.5" />
-                                            <a href={`mailto:${selected.email}`} className="text-neon-cyan hover:underline">{selected.email}</a>
+                                            <a href={`mailto:${(selected || selectedArchived)?.email || selectedSent?.to}`} className="text-neon-cyan hover:underline">{(selected || selectedArchived)?.email || selectedSent?.to}</a>
                                         </div>
                                         <span className="text-gray-700">·</span>
                                         <div className="flex items-center gap-1.5 text-gray-600">
                                             <Clock className="w-3.5 h-3.5" />
-                                            <span>{new Date(selected.date).toLocaleString('fr-FR')}</span>
+                                            <span>{new Date((selected || selectedArchived || selectedSent)!.date).toLocaleString('fr-FR')}</span>
                                         </div>
                                     </div>
                                 </div>
                                 <div className="flex items-center gap-2 flex-shrink-0 w-full lg:w-auto">
+                                    {(selected || selectedArchived) && (
+                                        <button
+                                            onClick={() => {
+                                                setIsNewMail(false);
+                                                const sig = `\n\n\n`;
+                                                setReplyBody(sig);
+                                                setReplyModal(true);
+                                                // Set cursor at beginning
+                                                setTimeout(() => {
+                                                    const textarea = document.querySelector('textarea');
+                                                    if (textarea) {
+                                                        textarea.focus();
+                                                        textarea.setSelectionRange(0, 0);
+                                                    }
+                                                }, 100);
+                                            }}
+                                            className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl hover:bg-neon-cyan/20 transition-all text-xs font-black uppercase"
+                                        >
+                                            <Reply className="w-4 h-4" />
+                                            Répondre
+                                        </button>
+                                    )}
+
+                                    {selected && (
+                                        <button
+                                            onClick={() => handleArchive(selected)}
+                                            className="flex items-center gap-2 px-4 py-2 bg-neon-purple/10 border border-neon-purple/30 text-neon-purple rounded-xl hover:bg-neon-purple/20 transition-all text-xs font-black uppercase"
+                                            title="Archiver"
+                                        >
+                                            <Archive className="w-4 h-4" />
+                                        </button>
+                                    )}
+
+                                    {selectedArchived && (
+                                        <button
+                                            onClick={() => handleUnarchive(selectedArchived)}
+                                            className="flex items-center gap-2 px-4 py-2 bg-neon-green/10 border border-neon-green/30 text-neon-green rounded-xl hover:bg-neon-green/20 transition-all text-xs font-black uppercase"
+                                            title="Désarchiver"
+                                        >
+                                            <Inbox className="w-4 h-4" />
+                                        </button>
+                                    )}
+
                                     <button
-                                        onClick={() => {
-                                            setIsNewMail(false);
-                                            const sig = `\n\n\n`;
-                                            setReplyBody(sig);
-                                            setReplyModal(true);
-                                            // Set cursor at beginning
-                                            setTimeout(() => {
-                                                const textarea = document.querySelector('textarea');
-                                                if (textarea) {
-                                                    textarea.focus();
-                                                    textarea.setSelectionRange(0, 0);
-                                                }
-                                            }, 100);
-                                        }}
-                                        className="flex items-center gap-2 px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl hover:bg-neon-cyan/20 transition-all text-xs font-black uppercase"
-                                    >
-                                        <Reply className="w-4 h-4" />
-                                        Répondre
-                                    </button>
-                                    <button
-                                        onClick={() => setDeleteConfirm(selected.id)}
+                                        onClick={() => setDeleteConfirm((selected || selectedSent || selectedArchived)!.id)}
                                         className="flex items-center gap-2 px-4 py-2 bg-neon-red/10 border border-neon-red/30 text-neon-red rounded-xl hover:bg-neon-red/20 transition-all text-xs font-black uppercase"
                                     >
                                         <Trash2 className="w-4 h-4" />
@@ -681,10 +793,10 @@ ${name ? name + '\n' : ''}The Dropsiders Team.`;
 
                             {/* Message Body */}
                             <div className="bg-white/[0.03] border border-white/5 rounded-2xl p-6">
-                                <p className="text-gray-300 leading-relaxed whitespace-pre-wrap text-sm">{selected.message}</p>
+                                <p className="text-gray-300 leading-relaxed whitespace-pre-wrap text-sm">{(selected || selectedArchived)?.message || selectedSent?.body}</p>
                             </div>
 
-                            {selected.replied && (
+                            {(selected || selectedArchived)?.replied && (
                                 <div className="mt-4 flex items-center gap-2 text-neon-cyan/60 text-xs font-bold">
                                     <Reply className="w-4 h-4" />
                                     Vous avez déjà répondu à ce message.
