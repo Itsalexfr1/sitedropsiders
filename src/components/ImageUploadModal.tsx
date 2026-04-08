@@ -470,7 +470,7 @@ export function ImageUploadModal({
                                                 <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-neon-blue" /></div>
                                             ) : (
                                                 <>
-                                                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 max-h-[60vh] overflow-y-auto no-scrollbar rounded-2xl p-2 w-full">
+                                                    <div className="flex flex-wrap gap-6 max-h-[70vh] overflow-y-auto no-scrollbar rounded-3xl p-4 w-full justify-center">
                                                         {r2Photos.map(photo => (
                                                             <div 
                                                                 key={photo.key} 
@@ -486,7 +486,8 @@ export function ImageUploadModal({
                                                                         handleUpload([{ file: null, preview: photo.url }]);
                                                                     }
                                                                 }}
-                                                                className={`aspect-square w-full min-h-[120px] bg-black border rounded-2xl overflow-hidden cursor-pointer transition-all relative group shadow-lg ${selectedImages.some(img => img.preview === photo.url) ? 'border-neon-blue ring-4 ring-neon-blue/20 scale-[0.98]' : 'border-white/10 hover:border-white/30 hover:bg-white/5'}`}
+                                                                style={{ aspectRatio: '1/1' }}
+                                                                className={`w-[calc(50%-12px)] sm:w-[calc(33.33%-16px)] bg-black border rounded-[32px] overflow-hidden cursor-pointer transition-all relative group shadow-2xl ${selectedImages.some(img => img.preview === photo.url) ? 'border-neon-blue ring-8 ring-neon-blue/10 scale-[0.96]' : 'border-white/10 hover:border-white/40 hover:scale-[1.02] hover:z-10'}`}
                                                             >
                                                                 <img 
                                                                     src={photo.url} 
