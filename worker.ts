@@ -144,8 +144,7 @@ async function saveGitHubFile(filePath, content, message, sha, config) {
     if (!TOKEN) return { ok: false, error: 'GITHUB_TOKEN is missing' };
     const putUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
     const encodedContent = utf8Encode(JSON.stringify(content, null, 2));
-    const skipTags = " [skip ci] [CF-Pages-Skip]";
-    const finalMessage = message.includes(skipTags) ? message : message + skipTags;
+    const finalMessage = message;
     
     const response = await fetch(putUrl, {
         method: 'PUT',
