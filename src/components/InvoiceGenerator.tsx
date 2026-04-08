@@ -35,7 +35,7 @@ interface Sender {
 const DEFAULT_SENDER: Sender = {
     name: 'CUENCA ALEXANDRE',
     siret: '805 131 828 00010',
-    address: '123 Rue de la Musique, 75001 Paris',
+    address: '411 Rue de Bouillargue, 30000 Nîmes',
     email: 'alexlight3034@icloud.com',
     phone: '07 62 05 45 89',
     legal: 'Auto-entrepreneur – TVA non applicable, art. 293 B du CGI',
@@ -840,7 +840,7 @@ export function InvoiceGenerator() {
                                     <div className="grid grid-cols-2 gap-3">
                                         <div>
                                             <label className={labelCls}>Code Postal / Ville</label>
-                                            <input value={ncCity} onChange={e => setNcCity(e.target.value)} placeholder="75001 Paris" className={inputCls} />
+                                            <input value={ncCity} onChange={e => setNcCity(e.target.value)} placeholder="30000 Nîmes" className={inputCls} />
                                         </div>
                                         <div>
                                             <label className={labelCls}>Email</label>
@@ -914,7 +914,7 @@ export function InvoiceGenerator() {
                                 {[
                                     { label: 'Nom / Raison sociale', key: 'name', placeholder: 'CUENCA ALEXANDRE' },
                                     { label: 'SIRET', key: 'siret', placeholder: '805 131 828 00010' },
-                                    { label: 'Adresse complète', key: 'address', placeholder: '1 Rue de la Musique, 75001 Paris' },
+                                    { label: 'Adresse complète', key: 'address', placeholder: '411 Rue de Bouillargue, 30000 Nîmes' },
                                     { label: 'Email professionnel', key: 'email', placeholder: 'alexlight3034@icloud.com' },
                                     { label: 'Téléphone', key: 'phone', placeholder: '07 62 05 45 89' },
                                     { label: 'Mention légale TVA', key: 'legal', placeholder: 'Auto-entrepreneur – TVA non applicable, art. 293 B du CGI' },

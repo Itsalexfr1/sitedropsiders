@@ -11,7 +11,7 @@ interface Sender { name: string; siret: string; address: string; email: string; 
 
 const DEFAULT_SENDER: Sender = {
     name: 'CUENCA ALEXANDRE', siret: '805 131 828 00010',
-    address: '123 Rue de la Musique, 75001 Paris',
+    address: '411 Rue de Bouillargue, 30000 Nîmes',
     email: 'alexlight3034@icloud.com', phone: '07 62 05 45 89',
     legal: 'Auto-entrepreneur – TVA non applicable, art. 293 B du CGI',
 };
@@ -565,7 +565,7 @@ export function InvoiceGeneratorMobile() {
                     <input value={clientAddress} onChange={e => setClientAddress(e.target.value)} placeholder="12 rue des Lilas" className={INPUT} />
                 </Field>
                 <Field label="Ville / Code postal">
-                    <input value={clientCity} onChange={e => setClientCity(e.target.value)} placeholder="Paris, 75001" className={INPUT} />
+                    <input value={clientCity} onChange={e => setClientCity(e.target.value)} placeholder="30000 Nîmes" className={INPUT} />
                 </Field>
                 <Field label="Email">
                     <input type="email" value={clientEmail} onChange={e => setClientEmail(e.target.value)} placeholder="client@exemple.com" className={INPUT} />
