@@ -111,7 +111,7 @@
     float: left;
     font-family: var(--font-display, 'Orbitron', monospace);
     font-weight: 900;
-    font-size: 100px;
+    font-size: 60px; /* Réduit de 40% (100px * 0.6) */
     line-height: 0.8;
     padding-right: 12px;
     padding-top: 8px;
@@ -126,7 +126,7 @@
 }
 
 .article-body-premium p {
-    font-size: 1.425rem; /* Augmenté de 50% (0.95rem * 1.5) */
+    font-size: 0.855rem; /* Réduit de 40% (1.425rem * 0.6) */
     line-height: 1.8;
     margin-bottom: 35px !important;
     color: #d1d5db;
@@ -157,7 +157,7 @@
 }
 
 .article-body-premium li {
-    font-size: 1.425rem; /* Augmenté de 50% */
+    font-size: 0.855rem; /* Réduit de 40% (1.425rem * 0.6) */
     text-align: center !important;
     list-style: none;
     margin-bottom: 12px;
@@ -375,7 +375,7 @@
     padding-left: 1.5rem;
     margin: 3rem 0;
     font-style: italic;
-    font-size: 1.25rem;
+    font-size: 0.75rem; /* Réduit de 40% (1.25rem * 0.6) */
     color: white;
     background: rgba(255, 255, 255, 0.03);
     padding: 2rem;
@@ -499,7 +499,7 @@
     }
 
     .article-body-premium p {
-        font-size: 0.95rem; /* Reduced text by 50% */
+        font-size: 0.85rem; /* Reduced text */
         line-height: 1.7;
         margin-bottom: 25px !important;
     }
@@ -510,7 +510,7 @@
 
     .article-premium-wrapper .drop-cap,
     .article-body-premium .drop-cap {
-        font-size: 60px;
+        font-size: 36px; /* Réduit de 40% (60px * 0.6) */
         line-height: 1;
         padding-top: 4px;
     }
