@@ -110,12 +110,18 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
     const [translatedNextTitle, setTranslatedNextTitle] = useState<string>('');
 
     // Handle Translations
+    const [isTranslating, setIsTranslating] = useState(false);
+
     useEffect(() => {
         if (language === 'en') {
+            setIsTranslating(true);
             // Translate main article
             if (article) {
                 translateText(article.title, 'en').then(setTranslatedTitle);
-                translateHTML(content, 'en').then(setTranslatedBody);
+                translateHTML(content, 'en').then((translated) => {
+                    setTranslatedBody(translated);
+                    setIsTranslating(false);
+                });
             }
 
             // Translate related articles
@@ -142,6 +148,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
             }
 
         } else {
+            setIsTranslating(false);
             setTranslatedTitle(article?.title || '');
             setTranslatedBody('');
             setTranslatedRelatedTitles({});
@@ -400,11 +407,11 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
         const festSocialsContainer = doc.querySelector('.festival-socials-premium');
         let festivalSocials: { platform: string, url: string }[] = [];
-        let festivalLabel = "LE FESTIVAL";
+        let festivalLabel = language === 'en' ? "THE FESTIVAL" : "LE FESTIVAL";
         if (festSocialsContainer) {
             const h3 = festSocialsContainer.querySelector('h3');
             if (h3) {
-                festivalLabel = h3.textContent?.replace(/SUIVEZ\s+/i, '').trim() || "LE FESTIVAL";
+                festivalLabel = h3.textContent?.replace(/SUIVEZ\s+/i, '').replace(/FOLLOW\s+/i, '').trim() || (language === 'en' ? "THE FESTIVAL" : "LE FESTIVAL");
             }
             festivalSocials = Array.from(festSocialsContainer.querySelectorAll('a')).map(a => ({
                 platform: a.getAttribute('data-platform') || '',
@@ -677,10 +684,20 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                         {/* Title */}
                         {!isInterview && (
-                            <h1
-                                className="text-3xl sm:text-4xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-[0.9] drop-shadow-2xl premium-h1"
-                                dangerouslySetInnerHTML={{ __html: standardizeText(displayTitle) }}
-                            />
+                            <>
+                                {isTranslating && (
+                                    <div className="mb-6 py-3 px-4 bg-neon-red/10 border border-neon-red/20 rounded-2xl flex items-center gap-3 animate-pulse">
+                                        <div className="w-2 h-2 rounded-full bg-neon-red animate-ping" />
+                                        <span className="text-[10px] font-black text-neon-red uppercase tracking-widest">
+                                            {language === 'en' ? 'Translating content...' : 'Traduction en cours...'}
+                                        </span>
+                                    </div>
+                                )}
+                                <h1
+                                    className="text-3xl sm:text-4xl md:text-7xl font-display font-black text-white uppercase italic tracking-tighter leading-[0.9] drop-shadow-2xl premium-h1"
+                                    dangerouslySetInnerHTML={{ __html: standardizeText(displayTitle) }}
+                                />
+                            </>
                         )}
                     </div>
                 </div>
@@ -730,7 +747,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                             <div className="inline-block px-4 py-2 bg-neon-red/10 border border-neon-red/20 rounded-lg group/label relative overflow-hidden">
                                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/label:translate-x-full transition-transform duration-1000" />
                                                 <h3 className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em] relative z-10">
-                                                    SUIVEZ {artistLabel}
+                                                    {language === 'en' ? 'FOLLOW' : 'SUIVEZ'} {artistLabel}
                                                 </h3>
                                             </div>
                                         </div>
@@ -760,7 +777,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                             <div className="inline-block px-4 py-2 bg-neon-cyan/10 border border-neon-cyan/20 rounded-lg group/label relative overflow-hidden">
                                                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover/label:translate-x-full transition-transform duration-1000" />
                                                 <h3 className="text-[10px] font-black text-neon-cyan uppercase tracking-[0.3em] relative z-10">
-                                                    SUIVEZ {festivalLabel}
+                                                    {language === 'en' ? 'FOLLOW' : 'SUIVEZ'} {festivalLabel}
                                                 </h3>
                                             </div>
                                         </div>

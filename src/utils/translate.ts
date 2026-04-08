@@ -1,8 +1,16 @@
-// Simple translation utility using Google Translate API (free tier)
+const translationCache: Record<string, string> = {};
 const GOOGLE_TRANSLATE_API = 'https://translate.googleapis.com/translate_a/single';
 
 export async function translateText(text: string, targetLang: string): Promise<string> {
-    if (!text || targetLang === 'fr') return text;
+    const trimmed = text.trim();
+    if (!trimmed || targetLang === 'fr') return text;
+    
+    // Check if it's just numbers or symbols
+    if (!/[a-zA-Z]/.test(trimmed)) return text;
+    
+    // Check cache
+    const cacheKey = `${targetLang}:${trimmed}`;
+    if (translationCache[cacheKey]) return translationCache[cacheKey];
 
     try {
         const params = new URLSearchParams({
@@ -10,14 +18,17 @@ export async function translateText(text: string, targetLang: string): Promise<s
             sl: 'fr',
             tl: targetLang,
             dt: 't',
-            q: text
+            q: trimmed
         });
 
         const response = await fetch(`${GOOGLE_TRANSLATE_API}?${params}`);
+        if (!response.ok) throw new Error(`Translate API error: ${response.status}`);
+        
         const data = await response.json();
-
         if (data && data[0]) {
-            return data[0].map((item: any) => item[0]).join('');
+            const translated = data[0].map((item: any) => item[0]).join('');
+            translationCache[cacheKey] = translated;
+            return translated;
         }
 
         return text;
@@ -30,30 +41,30 @@ export async function translateText(text: string, targetLang: string): Promise<s
 export async function translateHTML(html: string, targetLang: string): Promise<string> {
     if (!html || targetLang === 'fr') return html;
 
-    // Extract text from HTML and translate
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
 
     const textNodes: { node: Node; originalText: string }[] = [];
-
-    // Find all text nodes
-    const walker = document.createTreeWalker(
-        tempDiv,
-        NodeFilter.SHOW_TEXT,
-        null
-    );
+    const walker = document.createTreeWalker(tempDiv, NodeFilter.SHOW_TEXT, null);
 
     let node;
     while ((node = walker.nextNode())) {
-        if (node.textContent && node.textContent.trim()) {
-            textNodes.push({ node, originalText: node.textContent });
+        const content = node.textContent?.trim();
+        if (content && content.length > 1 && /[a-zA-Z]/.test(content)) {
+            textNodes.push({ node, originalText: node.textContent || '' });
         }
     }
 
-    // Translate all text nodes
-    for (const { node, originalText } of textNodes) {
-        const translated = await translateText(originalText, targetLang);
-        node.textContent = translated;
+    // Translate in parallel chunks to avoid overwhelming the API but stay fast
+    const CHUNK_SIZE = 10;
+    for (let i = 0; i < textNodes.length; i += CHUNK_SIZE) {
+        const chunk = textNodes.slice(i, i + CHUNK_SIZE);
+        await Promise.all(
+            chunk.map(async ({ node, originalText }) => {
+                const translated = await translateText(originalText, targetLang);
+                node.textContent = translated;
+            })
+        );
     }
 
     return tempDiv.innerHTML;

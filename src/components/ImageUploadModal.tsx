@@ -470,7 +470,7 @@ export function ImageUploadModal({
                                                 <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-neon-blue" /></div>
                                             ) : (
                                                 <>
-                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-12 max-h-[70vh] overflow-y-auto no-scrollbar rounded-3xl p-8 w-full">
+                                                    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 md:gap-6 max-h-[70vh] overflow-y-auto no-scrollbar rounded-3xl p-4 w-full">
                                                         {r2Photos.map(photo => (
                                                             <div 
                                                                 key={photo.key} 
@@ -486,7 +486,7 @@ export function ImageUploadModal({
                                                                         handleUpload([{ file: null, preview: photo.url }]);
                                                                     }
                                                                 }}
-                                                                className={`relative w-full aspect-square min-h-[250px] bg-black border-4 rounded-[48px] overflow-hidden cursor-pointer transition-all duration-300 group shadow-2xl ${selectedImages.some(img => img.preview === photo.url) ? 'border-neon-blue ring-[12px] ring-neon-blue/20 scale-[0.95]' : 'border-white/5 hover:border-white/20 hover:scale-[1.02]'}`}
+                                                                className={`relative w-full aspect-square bg-[#111] border-2 rounded-2xl md:rounded-[2rem] overflow-hidden cursor-pointer transition-all duration-300 group shadow-lg ${selectedImages.some(img => img.preview === photo.url) ? 'border-neon-blue ring-4 ring-neon-blue/20 scale-[0.98]' : 'border-white/5 hover:border-white/10 hover:scale-[1.02]'}`}
                                                             >
                                                                 <img 
                                                                     src={photo.url} 

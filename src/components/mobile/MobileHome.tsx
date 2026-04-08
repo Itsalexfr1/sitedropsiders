@@ -109,7 +109,7 @@ export function MobileHome() {
             const items = [...featuredNews, ...newsHighlight, ...recapsHighlight, ...upcomingEvents, ...interviewsHighlight];
             Promise.all(
                 items.map((item: any) =>
-                    translateText(item.title, 'en').then(translated => ({ id: `${item.contentType || 'item'}-${item.id}`, title: translated }))
+                    translateText(item.title, 'en').then(translated => ({ id: `${item.id}`, title: translated }))
                 )
             ).then(results => {
                 const titleMap: Record<string, string> = { ...translatedTitles };
@@ -159,7 +159,7 @@ export function MobileHome() {
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 
                                     className="text-[1.25rem] sm:text-2xl font-display font-black text-white italic leading-[1.1] uppercase line-clamp-4 drop-shadow-2xl group-active:text-neon-red transition-colors"
-                                    dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[`item-${news.id}`] || news.title) : news.title) }}
+                                    dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[news.id] || news.title) : news.title) }}
                                 />
                             </div>
                         </Link>
@@ -201,7 +201,7 @@ export function MobileHome() {
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 
                                     className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl group-active:text-neon-red transition-colors"
-                                    dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[`item-${news.id}`] || news.title) : news.title) }}
+                                    dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[news.id] || news.title) : news.title) }}
                                 />
                                 <div className="flex items-center gap-3 text-white/60">
                                     <div className="w-2 h-2 bg-white/40 rounded-full" />
@@ -250,7 +250,7 @@ export function MobileHome() {
                             </div>
                             <h3 
                                 className="text-[1.25rem] sm:text-2xl font-black text-white uppercase italic mb-6 leading-[1.1] relative z-10 drop-shadow-2xl line-clamp-3 group-active:text-neon-cyan transition-colors"
-                                dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[`item-${event.id}`] || event.title) : event.title) }}
+                                dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[event.id] || event.title) : event.title) }}
                             />
                             <div className="flex items-center gap-3 text-gray-200 relative z-10 bg-dark-bg/40 w-fit px-4 py-3 rounded-2xl backdrop-blur-md border border-white/10 shadow-lg">
                                 <MapPin className="w-5 h-5 text-neon-cyan" />
@@ -306,7 +306,7 @@ export function MobileHome() {
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 
                                     className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl group-active:text-neon-purple transition-colors"
-                                    dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[`${recap.contentType}-${recap.id}`] || recap.title) : recap.title) }}
+                                    dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[recap.id] || recap.title) : recap.title) }}
                                 />
                                 <div className="flex items-center gap-3 text-white/60">
                                     <div className="w-2 h-2 bg-white/40 rounded-full" />
@@ -358,7 +358,7 @@ export function MobileHome() {
                             <div className="absolute bottom-0 left-0 right-0 p-8 flex flex-col gap-4 z-10">
                                 <h3 
                                     className="text-[1.25rem] sm:text-2xl font-display font-black text-white uppercase italic leading-[1.1] line-clamp-4 drop-shadow-2xl group-active:text-neon-blue transition-colors"
-                                    dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[`item-${interview.id}`] || interview.title) : interview.title) }}
+                                    dangerouslySetInnerHTML={{ __html: standardizeContent(language === 'en' ? (translatedTitles[interview.id] || interview.title) : interview.title) }}
                                 />
                                 <div className="flex items-center gap-3 text-white/60">
                                     <div className="w-2 h-2 bg-white/40 rounded-full" />
