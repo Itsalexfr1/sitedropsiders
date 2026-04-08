@@ -8,6 +8,7 @@ import {
 } from 'lucide-react';
 import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
+import recapsData from '../data/recaps.json';
 
 const FESTIVAL_TIMEZONES = [
     { group: "🌍 Europe (Aucun décalage)", options: [{ label: "🇫🇷 Heure Française", offset: 0 }] },
@@ -75,6 +76,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [isVideoRecording, setIsVideoRecording] = useState(false);
     const [visualsList, setVisualsList] = useState<string[]>([]);
     const [isDownloaderOpen, setIsDownloaderOpen] = useState(false);
+    const [isRecapPickerOpen, setIsRecapPickerOpen] = useState(false);
     // InShot-style: active bottom panel and format modal
     const [activePanel, setActivePanel] = useState<string | null>(null);
     const [showFormatModal, setShowFormatModal] = useState(true);
@@ -1402,6 +1404,60 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         </AnimatePresence>
     );
 
+    const recapPickerModal = (
+        <AnimatePresence>
+            {isRecapPickerOpen && (
+                <div className="fixed inset-0 z-[300] flex items-center justify-center p-6 bg-black/90 backdrop-blur-2xl">
+                    <motion.div initial={{ opacity: 0, scale: 0.9, y: 20 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                        className="bg-[#0a0a0a] border border-white/10 rounded-[3rem] p-8 max-w-4xl w-full shadow-2xl relative overflow-hidden h-[80vh] flex flex-col">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-neon-purple via-pink-500 to-neon-red" />
+                        <div className="flex justify-between items-start mb-8">
+                            <div>
+                                <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-1">Importer un <span className="text-neon-purple">Récap Écrit</span></h2>
+                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Sélectionnez un article pour générer le visuel</p>
+                            </div>
+                            <button onClick={() => setIsRecapPickerOpen(false)} className="p-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-2xl text-gray-400 hover:text-white transition-all"><X className="w-5 h-5" /></button>
+                        </div>
+                        
+                        <div className="flex-1 overflow-y-auto pr-2 custom-scrollbar">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {recapsData.slice(0, 30).map((recap: any) => (
+                                    <button 
+                                        key={recap.id}
+                                        onClick={() => {
+                                            const cleanTitle = fixEncoding(recap.title).replace(/^Rcap\s*:\s*/i, '').replace(/^Rcap\s*:\s*/i, '').replace(/^Récap\s*:\s*/i, '');
+                                            const cleanSummary = fixEncoding(recap.summary || '').split('. ')[0] + '.';
+                                            setCustomText(`${cleanTitle.toUpperCase()}\n\n${cleanSummary.toUpperCase()}`);
+                                            setBgImage(recap.image);
+                                            setBgVideo(null);
+                                            setTheme('RECAP');
+                                            setIsRecapPickerOpen(false);
+                                        }}
+                                        className="group relative flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-3xl hover:bg-white/10 hover:border-white/20 transition-all text-left"
+                                    >
+                                        <div className="w-20 h-20 rounded-2xl overflow-hidden flex-shrink-0 border border-white/10">
+                                            <img src={recap.image} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-[10px] font-black text-neon-purple uppercase tracking-widest mb-1">{recap.festival || 'FESTIVAL'}</p>
+                                            <h3 className="text-white font-black uppercase italic tracking-tighter text-sm line-clamp-1 mb-1">{fixEncoding(recap.title)}</h3>
+                                            <p className="text-[9px] text-gray-500 font-medium line-clamp-2 leading-relaxed">{fixEncoding(recap.summary || '')}</p>
+                                        </div>
+                                        <div className="absolute right-4 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <div className="w-8 h-8 rounded-full bg-neon-purple text-white flex items-center justify-center">
+                                                <Plus className="w-4 h-4" />
+                                            </div>
+                                        </div>
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
+        </AnimatePresence>
+    );
+
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[200] bg-black/95 backdrop-blur-3xl">
 
@@ -1447,6 +1503,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             <button onClick={() => setIsDownloaderOpen(true)} className="w-full py-2.5 border border-dashed border-white/10 rounded-xl flex items-center justify-center gap-2 text-gray-400 text-[9px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                 <LinkIcon className="w-3.5 h-3.5 group-hover:text-neon-cyan transition-colors" />
                                 Télécharger Vidéo/Photo (URL)
+                            </button>
+                            <button onClick={() => setIsRecapPickerOpen(true)} className="w-full py-2.5 bg-neon-purple/10 border border-neon-purple/30 rounded-xl flex items-center justify-center gap-2 text-neon-purple text-[9px] font-black uppercase hover:bg-neon-purple/20 transition-all group">
+                                <PlusCircle className="w-3.5 h-3.5" />
+                                Importer un RÉCAP ÉCRIT
                             </button>
                             <button onClick={() => setIsRetouchMode(!isRetouchMode)} className={`w-full py-2 bg-neon-cyan/10 border rounded-xl flex items-center justify-center gap-2 text-neon-cyan text-[9px] font-black uppercase hover:bg-neon-cyan/20 transition-all group ${isRetouchMode ? 'border-neon-cyan shadow-[0_0_20px_rgba(0,255,255,0.2)]' : 'border-neon-cyan/20'}`}>
                                 <Wand2 className="w-3.5 h-3.5" /> Nettoyage Photo (Outil IA Local)
@@ -1822,6 +1882,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                             <button onClick={() => { setActivePanel(null); setIsDownloaderOpen(true); }} className="w-full py-4 border border-dashed border-white/10 rounded-2xl flex items-center justify-center gap-2 text-gray-400 text-[10px] font-black uppercase hover:border-white/30 hover:text-white transition-all bg-white/5 group">
                                                 <LinkIcon className="w-4 h-4 group-hover:text-neon-cyan transition-colors" />Télécharger Vidéo/Photo (URL)
                                             </button>
+                                            <button onClick={() => { setActivePanel(null); setIsRecapPickerOpen(true); }} className="w-full py-4 bg-neon-purple/10 border border-neon-purple/30 rounded-2xl flex items-center justify-center gap-2 text-neon-purple text-[10px] font-black uppercase hover:bg-neon-purple/20 transition-all group">
+                                                <PlusCircle className="w-4 h-4" />Importer un RÉCAP ÉCRIT
+                                            </button>
                                             <button onClick={() => setShowText(!showText)} className={`w-full py-4 border rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${!showText ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white hover:border-white/30'}`}>
                                                 <Eraser className="w-4 h-4" /> Gomme (Masquer le texte) : {!showText ? 'ACTIVE' : 'OFF'}
                                             </button>
@@ -1996,6 +2059,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
             {/* Shared downloader modal (visible on both) */}
             {downloaderModal}
+            {recapPickerModal}
 
             {/* Local Error Banner */}
             <AnimatePresence>
