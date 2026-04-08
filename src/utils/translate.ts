@@ -39,7 +39,7 @@ export async function translateText(text: string, targetLang: string): Promise<s
 }
 
 export async function translateHTML(html: string, targetLang: string): Promise<string> {
-    if (!html || targetLang === 'fr') return html;
+    if (!html || !html.trim() || targetLang === 'fr') return html;
 
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = html;
@@ -50,13 +50,19 @@ export async function translateHTML(html: string, targetLang: string): Promise<s
     let node;
     while ((node = walker.nextNode())) {
         const content = node.textContent?.trim();
-        if (content && content.length > 1 && /[a-zA-Z]/.test(content)) {
+        // Include accented French characters in the detection regex
+        if (content && content.length > 1 && /[a-zA-ZÀ-ÿ]/.test(content)) {
             textNodes.push({ node, originalText: node.textContent || '' });
         }
     }
 
-    // Translate in parallel chunks to avoid overwhelming the API but stay fast
-    const CHUNK_SIZE = 10;
+    if (textNodes.length === 0) return html;
+
+    // Smaller chunks + delay between chunks to avoid rate-limiting on the free API
+    // (the title works because it's 1 call; the body fails because it's N parallel calls)
+    const CHUNK_SIZE = 3;
+    const DELAY_MS = 250;
+
     for (let i = 0; i < textNodes.length; i += CHUNK_SIZE) {
         const chunk = textNodes.slice(i, i + CHUNK_SIZE);
         await Promise.all(
@@ -65,6 +71,10 @@ export async function translateHTML(html: string, targetLang: string): Promise<s
                 node.textContent = translated;
             })
         );
+        // Small pause between chunks to respect API rate limits
+        if (i + CHUNK_SIZE < textNodes.length) {
+            await new Promise(resolve => setTimeout(resolve, DELAY_MS));
+        }
     }
 
     return tempDiv.innerHTML;
