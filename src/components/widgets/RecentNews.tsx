@@ -15,20 +15,35 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
     const [newsData, setNewsData] = useState<any[]>([]);
 
     useEffect(() => {
-        const fetchNews = async () => {
+        const fetchData = async () => {
             try {
-                const response = await fetch('/api/news');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (Array.isArray(data) && data.length > 0) {
-                        setNewsData(data);
+                const [newsRes, recapsRes] = await Promise.all([
+                    fetch('/api/news'),
+                    fetch('/api/recaps')
+                ]);
+
+                let combinedData: any[] = [];
+
+                if (newsRes.ok) {
+                    const news = await newsRes.json();
+                    if (Array.isArray(news)) combinedData = [...combinedData, ...news];
+                }
+
+                if (recapsRes.ok) {
+                    const recaps = await recapsRes.json();
+                    if (Array.isArray(recaps)) {
+                        // Filter "written" recaps only (those with non-empty summary or content)
+                        const writtenRecaps = recaps.filter(r => (r.summary && r.summary.trim().length > 10) || (r.content && r.content.trim().length > 10));
+                        combinedData = [...combinedData, ...writtenRecaps];
                     }
                 }
+
+                setNewsData(combinedData);
             } catch (err) {
-                console.error('Failed to fetch news for recent widget:', err);
+                console.error('Failed to fetch data for recent widget:', err);
             }
         };
-        fetchNews();
+        fetchData();
     }, []);
 
     const recentNews = useMemo(() => {
@@ -42,7 +57,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
         // Logical fallback to identify which one is in the Hero slot
         const heroItem = featured || all.filter((item: any) => {
             const cat = (item.category || '').toLowerCase();
-            return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('focus');
+            return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('focus') || cat.includes('recap');
         })[0];
 
         return all
@@ -51,7 +66,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                 if (heroItem && item.id === heroItem.id) return false;
 
                 const cat = (item.category || '').toLowerCase();
-                return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('focus');
+                return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('focus') || cat.includes('recap');
             })
             .slice(0, 8);
     }, [newsData]);

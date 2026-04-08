@@ -37,8 +37,12 @@ export function extractIdFromSlug(slug: string | undefined): number | string | n
 
 export function getArticleLink(article: { id: number | string; title: string; category?: string }): string {
     const slug = generateSlug(article.title, article.id);
-    const isInterview = article.category?.toLowerCase().includes('interview');
-    return isInterview ? `/interviews/${slug}` : `/news/${slug}`;
+    const category = (article.category || '').toLowerCase();
+    
+    if (category.includes('interview')) return `/interviews/${slug}`;
+    if (category.includes('recap')) return `/recaps/${slug}`;
+    
+    return `/news/${slug}`;
 }
 
 export function getRecapLink(recap: { id: number | string; title: string }): string {

@@ -14,20 +14,35 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
     const [newsData, setNewsData] = useState<any[]>([]);
 
     useEffect(() => {
-        const fetchNews = async () => {
+        const fetchData = async () => {
             try {
-                const response = await fetch('/api/news');
-                if (response.ok) {
-                    const data = await response.json();
-                    if (Array.isArray(data) && data.length > 0) {
-                        setNewsData(data);
+                const [newsRes, recapsRes] = await Promise.all([
+                    fetch('/api/news'),
+                    fetch('/api/recaps')
+                ]);
+
+                let combinedData: any[] = [];
+
+                if (newsRes.ok) {
+                    const news = await newsRes.json();
+                    if (Array.isArray(news)) combinedData = [...combinedData, ...news];
+                }
+
+                if (recapsRes.ok) {
+                    const recaps = await recapsRes.json();
+                    if (Array.isArray(recaps)) {
+                        // Filter "written" recaps only (those with non-empty summary or content)
+                        const writtenRecaps = recaps.filter(r => (r.summary && r.summary.trim().length > 10) || (r.content && r.content.trim().length > 10));
+                        combinedData = [...combinedData, ...writtenRecaps];
                     }
                 }
+
+                setNewsData(combinedData);
             } catch (err) {
-                console.error('Failed to fetch news for featured widget:', err);
+                console.error('Failed to fetch data for featured widget:', err);
             }
         };
-        fetchNews();
+        fetchData();
     }, []);
 
     const heroNews = useMemo(() => {
@@ -48,6 +63,7 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
                    cat.includes('actu') || 
                    cat.includes('festival') || 
                    cat.includes('artist') ||
+                   cat.includes('recap') ||
                    item.isFocus || 
                    cat.includes('focus');
         });
