@@ -142,6 +142,11 @@ async function fetchGitHubFile(filePath, config) {
 async function saveGitHubFile(filePath, content, message, sha, config) {
     const { OWNER, REPO, TOKEN } = config;
     if (!TOKEN) return { ok: false, error: 'GITHUB_TOKEN is missing' };
+    
+    // Invalidate cache immediately to ensure next fetch is fresh
+    const cacheKey = `${OWNER}/${REPO}/${filePath}`;
+    githubCache.delete(cacheKey);
+
     const putUrl = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${filePath}`;
     const encodedContent = utf8Encode(JSON.stringify(content, null, 2));
     const finalMessage = message;
@@ -3218,7 +3223,7 @@ ${urls.map(u => `  <url>
                 const file = await fetchGitHubFile(CONTACTS_PATH, gitConfig) || { content: [], sha: null };
                 const contacts = Array.isArray(file.content) ? file.content : [];
                 const updated = contacts.map(c => c.id === id ? { ...c, read: true } : c);
-                await saveGitHubFile(CONTACTS_PATH, updated, `Mark read: ${id} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
+                await saveGitHubFile(CONTACTS_PATH, updated, `Mark read: ${id}`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
@@ -3232,7 +3237,7 @@ ${urls.map(u => `  <url>
                 const file = await fetchGitHubFile(CONTACTS_PATH, gitConfig) || { content: [], sha: null };
                 const contacts = Array.isArray(file.content) ? file.content : [];
                 const updated = contacts.filter(c => c.id !== id);
-                await saveGitHubFile(CONTACTS_PATH, updated, `Delete contact: ${id} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
+                await saveGitHubFile(CONTACTS_PATH, updated, `Delete contact: ${id}`, file.sha, gitConfig);
                 return new Response(JSON.stringify({ success: true }), { status: 200, headers });
             } catch (e) {
                 return new Response(JSON.stringify({ error: e.message }), { status: 500, headers });
@@ -3355,7 +3360,7 @@ ${urls.map(u => `  <url>
                         toEmails.includes(c.email.toLowerCase()) ? { ...c, replied: true, read: true } : c
                     );
 
-                    await saveGitHubFile(CONTACTS_PATH, updatedContacts, `Reply sent to: ${to} [skip ci] [CF-Pages-Skip]`, file.sha, gitConfig);
+                    await saveGitHubFile(CONTACTS_PATH, updatedContacts, `Reply sent to: ${to}`, file.sha, gitConfig);
                 } catch (e) {
                     console.error('Failed to mark replied in DB:', e);
                     // We don't return error here because the email WAS sent successfully
