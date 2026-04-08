@@ -84,23 +84,27 @@ export function SpotifyWidget({
         };
     }, []);
 
+    const activePlaylists = playlists.filter(p => p.url);
+
+    if (activePlaylists.length === 0) return null;
+
     return (
         <div className="space-y-2">
             {showTitle && (
-                <h3 className="text-2xl font-display font-bold text-white flex items-center md:justify-center gap-3">
+                <h3 className="text-2xl font-display font-bold text-white flex items-center md:center gap-3">
                     <span
                         className="w-2 h-2 rounded-full animate-pulse"
                         style={{
-                            backgroundColor: playlists[0]?.color || color,
-                            boxShadow: `0 0 15px ${playlists[0]?.color || color}`
+                            backgroundColor: activePlaylists[0]?.color || color,
+                            boxShadow: `0 0 15px ${activePlaylists[0]?.color || color}`
                         }}
                     />
                     {t('home.playlists_title')}
                 </h3>
             )}
 
-            <div className="flex gap-16 overflow-x-auto py-4 px-6 sm:px-12 snap-x no-scrollbar md:justify-center relative z-10">
-                {playlists.map((playlist) => {
+            <div className={`flex gap-8 md:gap-16 overflow-x-auto py-8 px-6 sm:px-12 snap-x no-scrollbar relative z-10 ${activePlaylists.length <= 3 ? 'md:justify-center' : ''}`}>
+                {activePlaylists.map((playlist) => {
                     const isPlaying = playingWidget === playlist.id;
                     return (
                         <motion.div
@@ -115,9 +119,9 @@ export function SpotifyWidget({
                             transition={{ duration: 0.2, ease: 'easeOut' }}
                             onMouseEnter={() => { hoveredRef.current = playlist.id; }}
                             onMouseLeave={() => { hoveredRef.current = null; }}
-                            className={`flex-none w-[75vw] sm:w-[${itemWidth}] md:w-[${itemWidth}] relative group rounded-[32px] snap-center transition-all duration-500 p-3 bg-white/[0.03] backdrop-blur-md border border-white/10 shadow-2xl`}
+                            className={`flex-none relative group rounded-[32px] snap-center transition-all duration-500 p-3 bg-white/[0.03] backdrop-blur-md border border-white/10 shadow-2xl`}
                             style={{
-                                width: window.innerWidth > 640 ? itemWidth : '75vw',
+                                width: `max(280px, min(85vw, ${itemWidth}))`,
                                 borderColor: isPlaying ? playlist.color : 'rgba(255,255,255,0.1)',
                                 boxShadow: isPlaying ? `0 0 40px ${playlist.color}40, inset 0 0 20px ${playlist.color}20` : 'none'
                             }}
