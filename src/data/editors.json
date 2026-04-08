@@ -122,6 +122,16 @@
     "password": "2026",
     "name": "Tanguy",
     "permissions": [
+      "publications",
+      "create",
+      "news",
+      "musique",
+      "interviews",
+      "recaps",
+      "agenda",
+      "community",
+      "social",
+      "messages",
       "news_focus",
       "musique_releases",
       "interviews_video",
@@ -134,4 +144,5 @@
     ],
     "created": "2026-03-26T09:21:25.364Z"
   }
+
 ]
