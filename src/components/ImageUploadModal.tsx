@@ -470,7 +470,7 @@ export function ImageUploadModal({
                                                 <div className="py-20 flex justify-center"><Loader2 className="w-8 h-8 animate-spin text-neon-blue" /></div>
                                             ) : (
                                                 <>
-                                                    <div className="flex flex-wrap gap-6 max-h-[70vh] overflow-y-auto no-scrollbar rounded-3xl p-4 w-full justify-center">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-12 max-h-[70vh] overflow-y-auto no-scrollbar rounded-3xl p-8 w-full">
                                                         {r2Photos.map(photo => (
                                                             <div 
                                                                 key={photo.key} 
@@ -486,31 +486,29 @@ export function ImageUploadModal({
                                                                         handleUpload([{ file: null, preview: photo.url }]);
                                                                     }
                                                                 }}
-                                                                style={{ aspectRatio: '1/1' }}
-                                                                className={`w-[calc(50%-12px)] sm:w-[calc(33.33%-16px)] bg-black border rounded-[32px] overflow-hidden cursor-pointer transition-all relative group shadow-2xl ${selectedImages.some(img => img.preview === photo.url) ? 'border-neon-blue ring-8 ring-neon-blue/10 scale-[0.96]' : 'border-white/10 hover:border-white/40 hover:scale-[1.02] hover:z-10'}`}
+                                                                className={`relative w-full aspect-square min-h-[250px] bg-black border-4 rounded-[48px] overflow-hidden cursor-pointer transition-all duration-300 group shadow-2xl ${selectedImages.some(img => img.preview === photo.url) ? 'border-neon-blue ring-[12px] ring-neon-blue/20 scale-[0.95]' : 'border-white/5 hover:border-white/20 hover:scale-[1.02]'}`}
                                                             >
                                                                 <img 
                                                                     src={photo.url} 
                                                                     alt="" 
-                                                                    className={`w-full h-full object-cover transition-all duration-300 ${selectedImages.some(img => img.preview === photo.url) ? 'opacity-100 scale-110' : 'opacity-70 group-hover:opacity-100 group-hover:scale-105'}`} 
-                                                                    loading="lazy"
+                                                                    className={`absolute inset-0 w-full h-full object-cover transition-all duration-700 ${selectedImages.some(img => img.preview === photo.url) ? 'opacity-100 scale-110' : 'opacity-70 group-hover:opacity-100 group-hover:scale-110'}`} 
                                                                 />
                                                                 
                                                                 {selectedImages.some(img => img.preview === photo.url) && (
-                                                                    <div className="absolute top-2 right-2 w-6 h-6 bg-neon-blue rounded-full flex items-center justify-center shadow-lg animate-in zoom-in duration-200 z-10">
-                                                                        <div className="text-[10px] font-black text-black">
-                                                                            {allowMultiple ? selectedImages.findIndex(img => img.preview === photo.url) + 1 : <Check className="w-4 h-4" />}
+                                                                    <div className="absolute top-6 right-6 w-10 h-10 bg-neon-blue rounded-full flex items-center justify-center shadow-2xl animate-in zoom-in duration-300 z-20">
+                                                                        <div className="text-sm font-black text-black">
+                                                                            {allowMultiple ? selectedImages.findIndex(img => img.preview === photo.url) + 1 : <Check className="w-5 h-5" strokeWidth={4} />}
                                                                         </div>
                                                                     </div>
                                                                 )}
 
-                                                                <div className="absolute inset-x-0 bottom-0 bg-black/80 backdrop-blur-md p-1.5 translate-y-full group-hover:translate-y-0 transition-transform duration-200">
-                                                                    <span className="text-[7px] font-bold text-white block truncate text-center uppercase tracking-tight">{photo.key.split('/').pop()}</span>
+                                                                <div className="absolute inset-x-0 bottom-0 bg-black/90 backdrop-blur-xl p-4 translate-y-full group-hover:translate-y-0 transition-transform duration-500 border-t border-white/10">
+                                                                    <span className="text-[10px] font-black text-white block truncate text-center uppercase tracking-[0.2em]">{photo.key.split('/').pop()}</span>
                                                                 </div>
                                                             </div>
                                                         ))}
-                                                        <div ref={sentinelRef} className="col-span-full h-20 flex items-center justify-center">
-                                                            {r2Loading && <Loader2 className="w-6 h-6 animate-spin text-neon-blue" />}
+                                                        <div ref={sentinelRef} className="col-span-full h-32 flex items-center justify-center">
+                                                            {r2Loading && <Loader2 className="w-10 h-10 animate-spin text-neon-blue" />}
                                                         </div>
                                                     </div>
                                                     
