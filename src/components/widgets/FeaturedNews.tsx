@@ -31,8 +31,17 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
                 if (recapsRes.ok) {
                     const recaps = await recapsRes.json();
                     if (Array.isArray(recaps)) {
-                        // Filter "written" recaps only (those with non-empty summary or content)
-                        const writtenRecaps = recaps.filter(r => (r.summary && r.summary.trim().length > 10) || (r.content && r.content.trim().length > 10));
+                        // Filter "written" recaps only
+                        const writtenRecaps = recaps
+                            .filter(r => (r.summary && r.summary.trim().length > 10) || (r.content && r.content.trim().length > 10))
+                            .map(r => {
+                                let title = r.title || "";
+                                // Check if it already has the prefix
+                                if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
+                                    title = `Récap : ${title}`;
+                                }
+                                return { ...r, title: title.toUpperCase() };
+                            });
                         combinedData = [...combinedData, ...writtenRecaps];
                     }
                 }

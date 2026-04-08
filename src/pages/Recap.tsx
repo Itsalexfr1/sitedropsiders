@@ -59,6 +59,13 @@ export function Recap() {
         if (mainMode === 'WRITTEN') {
             const base = (recapsData as any[])
                 .filter(item => item) // Suppression du filtre 'today' pour tout afficher
+                .map(item => {
+                    let title = item.title || "";
+                    if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
+                        title = `Récap : ${title}`;
+                    }
+                    return { ...item, title: title.toUpperCase() };
+                })
                 .sort((a, b) => {
                     const yearA = Number(a.year) || new Date(a.date).getFullYear();
                     const yearB = Number(b.year) || new Date(b.date).getFullYear();
@@ -72,6 +79,13 @@ export function Recap() {
             // Photos (Official only)
             const base = (galerieData as any[])
                 .filter(item => !item.isCommunity && !(item.category || '').toLowerCase().includes('communauté'))
+                .map(item => {
+                    let title = item.title || "";
+                    if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
+                        title = `Récap : ${title}`;
+                    }
+                    return { ...item, title: title.toUpperCase() };
+                })
                 .sort((a, b) => {
                     const yearA = Number(a.year) || new Date(a.date).getFullYear();
                     const yearB = Number(b.year) || new Date(b.date).getFullYear();

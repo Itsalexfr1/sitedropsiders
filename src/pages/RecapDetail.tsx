@@ -27,7 +27,17 @@ export function RecapDetail() {
             try {
                 const res = await fetch('/api/recaps');
                 if (res.ok) {
-                    setRecapsData(await res.json());
+                    const data = await res.json();
+                    if (Array.isArray(data)) {
+                        const formatted = data.map(item => {
+                            let title = item.title || "";
+                            if (!title.toLowerCase().startsWith('récap') && !title.toLowerCase().startsWith('recap')) {
+                                title = `Récap : ${title}`;
+                            }
+                            return { ...item, title: title.toUpperCase() };
+                        });
+                        setRecapsData(formatted);
+                    }
                 }
             } catch (e) {
                 console.error('Error fetching recaps:', e);
