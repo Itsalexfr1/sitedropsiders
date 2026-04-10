@@ -68,7 +68,7 @@
         "youtubeId": "OGNPnQViI3g"
       }
     ],
-    "activeStreamId": "",
+    "activeStreamId": "vpk9ayvh0",
     "instagramLink": "",
     "tiktokLink": "",
     "youtubeLink": "",
@@ -81,10 +81,10 @@
     "dropsInterval": 5,
     "lots": [],
     "botCommands": [
-        {
-          "command": "!insta",
-          "response": "Suivez-nous sur @dropsiders.eu !"
-        },
+      {
+        "command": "!insta",
+        "response": "Suivez-nous sur @dropsiders.eu !"
+      },
       {
         "command": "!lineup",
         "response": "La lineup est disponible dans l'onglet PLANNING."
