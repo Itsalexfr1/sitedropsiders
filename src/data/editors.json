@@ -3,6 +3,7 @@
     "username": "alex",
     "password": "b64:MjAyNg==",
     "name": "Alex",
+    "session_id": "alex-admin-session-2026",
     "permissions": [
       "publications",
       "messages",
