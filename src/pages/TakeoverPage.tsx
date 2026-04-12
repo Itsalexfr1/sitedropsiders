@@ -726,22 +726,37 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [bulkCropIndex, setBulkCropIndex] = useState<number | null>(null);
     const [autoRemoveFinished, setAutoRemoveFinished] = useState(() => localStorage.getItem('lineup_auto_remove') === 'true');
 
-    const parseBulkSchedule = (text: string): { startTime: string; artist: string }[] => {
+    const parseBulkSchedule = (text: string): { startTime: string; endTime?: string; artist: string }[] => {
         const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-        const results: { startTime: string; artist: string }[] = [];
-        // Matches patterns like: "4:00pm - Artist", "16:00 - Artist", "16h00 - Artist"
-        const regex = /^(\d{1,2})[:\s.h]?(\d{2})?\s*(am|pm)?\s*[-–—]\s*(.+)$/i;
+        const results: { startTime: string; endTime?: string; artist: string }[] = [];
+        // Matches "16:00 - 17:00 - Artist" or "16:00 - Artist"
+        const regex = /^(\d{1,2})[:\s.h]?(\d{2})?\s*(am|pm)?\s*[-–—]\s*(?:(\d{1,2})[:\s.h]?(\d{2})?\s*(am|pm)?\s*)?[-–—]?\s*(.+)$/i;
+        
         for (const line of lines) {
             const m = line.match(regex);
             if (!m) continue;
-            let h = parseInt(m[1], 10);
-            const min = parseInt(m[2] || '0', 10);
-            const period = (m[3] || '').toLowerCase();
-            const artist = m[4].trim();
-            if (period === 'pm' && h < 12) h += 12;
-            if (period === 'am' && h === 12) h = 0;
-            const startTime = `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
-            results.push({ startTime, artist });
+            
+            // Start Time
+            let h1 = parseInt(m[1], 10);
+            const m1 = parseInt(m[2] || '0', 10);
+            const p1 = (m[3] || '').toLowerCase();
+            if (p1 === 'pm' && h1 < 12) h1 += 12;
+            if (p1 === 'am' && h1 === 12) h1 = 0;
+            const startTime = `${h1.toString().padStart(2, '0')}:${m1.toString().padStart(2, '0')}`;
+            
+            // End Time (optional)
+            let endTime: string | undefined = undefined;
+            if (m[4]) {
+                let h2 = parseInt(m[4], 10);
+                const m2 = parseInt(m[5] || '0', 10);
+                const p2 = (m[6] || '').toLowerCase();
+                if (p2 === 'pm' && h2 < 12) h2 += 12;
+                if (p2 === 'am' && h2 === 12) h2 = 0;
+                endTime = `${h2.toString().padStart(2, '0')}:${m2.toString().padStart(2, '0')}`;
+            }
+            
+            const artist = m[7].trim();
+            results.push({ startTime, endTime, artist });
         }
         return results;
     };
@@ -757,14 +772,22 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             return;
         }
         const newItems: LineupItem[] = bulkPreview.map((entry, idx) => {
-            // End time = start of next slot, or start + 1h for last
+            // End time = parsed endTime OR start of next slot, OR start + 1h for last
             const nextEntry = bulkPreview[idx + 1];
-            const rawEndH = nextEntry
-                ? parseInt(nextEntry.startTime.split(':')[0], 10)
-                : parseInt(entry.startTime.split(':')[0], 10) + 1;
-            const rawEndM = nextEntry
-                ? parseInt(nextEntry.startTime.split(':')[1], 10)
-                : parseInt(entry.startTime.split(':')[1], 10);
+            let rawEndH, rawEndM;
+
+            if (entry.endTime) {
+                const parts = entry.endTime.split(':');
+                rawEndH = parseInt(parts[0], 10);
+                rawEndM = parseInt(parts[1], 10);
+            } else {
+                rawEndH = nextEntry
+                    ? parseInt(nextEntry.startTime.split(':')[0], 10)
+                    : parseInt(entry.startTime.split(':')[0], 10) + 1;
+                rawEndM = nextEntry
+                    ? parseInt(nextEntry.startTime.split(':')[1], 10)
+                    : parseInt(entry.startTime.split(':')[1], 10);
+            }
 
             // Apply timezone offset (same logic as individual form)
             const applyOff = (dateStr: string, h: number, m: number, off: number, nextDay: boolean) => {
@@ -2935,7 +2958,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     {bulkPreview.map((entry, idx) => {
                                                                         const next = bulkPreview[idx + 1];
                                                                         const [hh, mm] = entry.startTime.split(':').map(Number);
-                                                                        const endTime = next ? next.startTime : `${((hh + 1) % 24).toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
+                                                                        const autoEnd = next ? next.startTime : `${((hh + 1) % 24).toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
+                                                                        const displayEnd = entry.endTime || autoEnd;
                                                                         return (
                                                                             <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl group relative overflow-hidden transition-all ${
                                                                                 entry.image
@@ -2948,7 +2972,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                                         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent pointer-events-none" />
                                                                                     </>
                                                                                 )}
-                                                                                <span className="text-neon-cyan font-mono text-xs font-black shrink-0 relative z-10">{entry.startTime}–{endTime}</span>
+                                                                                <span className="text-neon-cyan font-mono text-xs font-black shrink-0 relative z-10">{entry.startTime}–{displayEnd}</span>
                                                                                 <span className="text-white text-xs font-black uppercase truncate relative z-10 flex-1">{entry.artist}</span>
                                                                                 <label
                                                                                     htmlFor={`bulk-img-${idx}`}
