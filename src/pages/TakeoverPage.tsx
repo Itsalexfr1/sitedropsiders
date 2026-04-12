@@ -699,6 +699,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [bulkStage, setBulkStage] = useState('');
     const [bulkDate, setBulkDate] = useState('');
     const [bulkPreview, setBulkPreview] = useState<{ startTime: string; artist: string; image?: string }[]>([]);
+    const [bulkCropIndex, setBulkCropIndex] = useState<number | null>(null);
     const [autoRemoveFinished, setAutoRemoveFinished] = useState(() => localStorage.getItem('lineup_auto_remove') === 'true');
 
     const parseBulkSchedule = (text: string): { startTime: string; artist: string }[] => {
@@ -2834,7 +2835,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                                         const reader = new FileReader();
                                                                                         reader.onload = ev => {
                                                                                             const dataUrl = ev.target?.result as string;
-                                                                                            setBulkPreview(prev => prev.map((item, i) => i === idx ? { ...item, image: dataUrl } : item));
+                                                                                            setBulkCropIndex(idx);
+                                                                                            setCropImageSrc(dataUrl);
                                                                                         };
                                                                                         reader.readAsDataURL(file);
                                                                                     }}
@@ -4747,6 +4749,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         if (editingLineupId === 'FESTIVAL_LOGO') {
                             setEditFestivalLogo(croppedImage);
                             setEditingLineupId(null);
+                        } else if (bulkCropIndex !== null) {
+                            setBulkPreview(prev => prev.map((item, i) => i === bulkCropIndex ? { ...item, image: croppedImage } : item));
+                            setBulkCropIndex(null);
                         } else {
                             setNewLineupItem({ ...newLineupItem, id: editingLineupId || '', image: croppedImage });
                         }
@@ -4755,6 +4760,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     onCancel={() => {
                         setCropImageSrc(null);
                         if (editingLineupId === 'FESTIVAL_LOGO') setEditingLineupId(null);
+                        if (bulkCropIndex !== null) setBulkCropIndex(null);
                     }}
                 />
             )}
