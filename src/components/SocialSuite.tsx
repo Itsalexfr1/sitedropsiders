@@ -206,11 +206,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         return () => cancelAnimationFrame(frame);
     }, [theme, isVideoRecording]);
 
-    const generateImage = async () => {
+    const generateImage = async (targetTab?: TabType) => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
         if (!ctx) return;
+
+        const effectiveTab = targetTab || activeTab;
 
         try {
             let img: HTMLImageElement | null = null;
@@ -222,8 +224,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             }
 
             canvas.width = 1080;
-            canvas.height = activeTab === 'REEL' ? 1920 : 1350;
-            const safeSize = activeTab === 'PUBLICATION' ? 1050 : 1080;
+            canvas.height = effectiveTab === 'REEL' ? 1920 : 1350;
+            const safeSize = effectiveTab === 'PUBLICATION' ? 1050 : 1080;
             const safeTop = (canvas.height - safeSize) / 2;
             const safeBottom = safeTop + safeSize;
 
@@ -421,7 +423,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 // 2. The "LIVE" Indicator (Ultra minimal)
                 ctx.save();
-                const badgeY = activeTab === 'PUBLICATION' ? 140 : 280;
+                const badgeY = effectiveTab === 'PUBLICATION' ? 140 : 280;
 
                 const pulse = (Math.sin(Date.now() / 400) + 1) / 2;
 
@@ -535,7 +537,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.restore();
             } else if (theme === 'PLANNING') {
                 const centerX = canvas.width / 2;
-                const topY = activeTab === 'PUBLICATION' ? 340 : 660;
+                const topY = effectiveTab === 'PUBLICATION' ? 340 : 660;
 
                 ctx.save();
                 ctx.shadowColor = 'rgba(0,0,0,0.8)';
@@ -561,8 +563,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.restore();
 
                 // List items (compact block)
-                const startY = topY + (activeTab === 'PUBLICATION' ? 190 : 230);
-                const spacing = activeTab === 'PUBLICATION' ? 58 : 78;
+                const startY = topY + (effectiveTab === 'PUBLICATION' ? 190 : 230);
+                const spacing = effectiveTab === 'PUBLICATION' ? 58 : 78;
                 planningItems.forEach((item, i) => {
                     const y = startY + (i * spacing);
                     if (y > canvas.height - 120) return;
@@ -627,7 +629,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 });
 
             } else {
-                const fontSize = activeTab === 'PUBLICATION' ? 55 : 78; const lineHeight = fontSize * 1.15;
+                const fontSize = effectiveTab === 'PUBLICATION' ? 55 : 78; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
                 const paragraphs = customText.toUpperCase().split('\n');
                 const lines: string[] = [];
@@ -644,18 +646,18 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     }
                     lines.push(currentLine.trim());
                 }
-                const labelY = activeTab === 'PUBLICATION' ? 880 : safeBottom - 450;
+                const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
                 const startY = labelY + 130;
                 const labelText = ('label' in activeData) ? (activeData as any).label : theme;
-                const labelW = ctx.measureText(labelText).width + (activeTab === 'PUBLICATION' ? 80 : 50);
+                const labelW = ctx.measureText(labelText).width + (effectiveTab === 'PUBLICATION' ? 80 : 50);
 
                 ctx.save();
                 ctx.globalAlpha = 0.9;
                 ctx.fillStyle = activeData.color;
                 const rectX = (canvas.width - labelW) / 2;
-                const rectY = labelY - (activeTab === 'PUBLICATION' ? 52 : 42);
+                const rectY = labelY - (effectiveTab === 'PUBLICATION' ? 52 : 42);
                 const rectW = labelW;
-                const rectH = activeTab === 'PUBLICATION' ? 80 : 65;
+                const rectH = effectiveTab === 'PUBLICATION' ? 80 : 65;
                 const radius = 20; // Slightly smaller radius for smaller box
 
                 ctx.beginPath();
@@ -664,7 +666,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 ctx.globalAlpha = 1;
                 ctx.fillStyle = labelText === 'MUSIQUE' ? '#000' : '#FFF';
-                const labelFontSize = activeTab === 'PUBLICATION' ? 42 : 35;
+                const labelFontSize = effectiveTab === 'PUBLICATION' ? 42 : 35;
                 ctx.font = `900 italic ${labelFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 ctx.textBaseline = 'middle';
                 ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 4);
@@ -690,7 +692,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     return segments;
                 };
 
-                const maxLines = activeTab === 'PUBLICATION' ? 8 : 10;
+                const maxLines = effectiveTab === 'PUBLICATION' ? 8 : 10;
                 lines.slice(0, maxLines).forEach((line, i) => {
                     if (line !== '') {
                         const yPos = startY + (i * lineHeight);
@@ -1142,10 +1144,42 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 setActivePanel(null);
                 setTimeout(() => setIsDownloading(false), 1000);
             }, 'image/png');
-        } catch (err) {
-            console.error('Export failed:', err);
-            alert("Erreur d'exportation inattendue.");
-            setTimeout(() => setIsDownloading(false), 1000);
+        }
+    };
+    
+    const downloadBoth = async () => {
+        if (!canvasRef.current) return;
+        setIsDownloading(true);
+        try {
+            // 1. STORY
+            await generateImage('REEL');
+            const storyData = canvasRef.current!.toDataURL('image/png');
+            const a = document.createElement('a');
+            a.href = storyData;
+            a.download = `STORY-${theme.toLowerCase().replace(/\s+/g, '-')}.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            // Small delay to ensure browser handles dual download
+            await new Promise(r => setTimeout(r, 600));
+
+            // 2. POST
+            await generateImage('PUBLICATION');
+            const postData = canvasRef.current!.toDataURL('image/png');
+            const b = document.createElement('a');
+            b.href = postData;
+            b.download = `POST-${theme.toLowerCase().replace(/\s+/g, '-')}.png`;
+            document.body.appendChild(b);
+            b.click();
+            document.body.removeChild(b);
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setTimeout(() => {
+                setIsDownloading(false);
+                generateImage();
+            }, 1000);
         }
     };
 
@@ -1474,6 +1508,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             <button onClick={startVideoRecording} disabled={isVideoRecording}
                 className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}>
                 <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo (${theme})`}
+            </button>
+            <button onClick={downloadBoth} disabled={isDownloading} className="w-full py-2.5 bg-white text-black rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan transition-all shadow-lg active:scale-95 group">
+                <Layers className="w-3.5 h-3.5 group-hover:rotate-12 transition-transform" /> PACK COMPLET ( <span className="text-neon-red">POST</span> + <span className="text-neon-cyan">STORY</span> )
             </button>
         </div>
     );
