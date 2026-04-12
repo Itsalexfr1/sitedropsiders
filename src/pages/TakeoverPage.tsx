@@ -730,21 +730,40 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [editingBulkTime, setEditingBulkTime] = useState<{ index: number; start: string; end: string } | null>(null);
 
     const timezonePresets = [
-        { id: 'fr', label: '🇫🇷 Heure Française (pas de conversion)', offset: 0, group: '🌍 Europe' },
-        { id: 'uk', label: 'Londres / Creamfields / Drumsheds', offset: 1, group: '🇬🇧 Royaume-Uni (-1h)' },
-        { id: 'us-east-miami', label: 'Ultra Music Festival Miami / NY', offset: 6, group: '🌴 US - Côte Est (Miami / NY | -6h)' },
-        { id: 'us-east-lost', label: 'Lost Lands (Ohio)', offset: 6, group: '🌴 US - Côte Est (Ohio | -6h)' },
-        { id: 'us-east-orlando', label: 'EDC Orlando / EDSea', offset: 6, group: '🌴 US - Côte Est (Florida | -6h)' },
-        { id: 'us-west-vegas', label: 'EDC Las Vegas', offset: 9, group: '🎡 US - Côte Ouest (Vegas / LA | -9h)' },
-        { id: 'us-west-coachella', label: 'Coachella', offset: 9, group: '🎡 US - Côte Ouest (Vegas / LA | -9h)' },
-        { id: 'us-west-la', label: 'Day Trip Festival (Los Angeles)', offset: 9, group: '🎡 US - Côte Ouest (Vegas / LA | -9h)' },
-        { id: 'us-central-chicago', label: 'Lollapalooza Chicago', offset: 7, group: '🤠 US - Centre (-7h)' },
-        { id: 'us-central-texas', label: 'Ubbi Dubbi (Texas)', offset: 7, group: '🤠 US - Centre (-7h)' },
+        { id: 'fr', label: '🇫🇷 Heure Française (pas de conversion)', tz: 'Europe/Paris', group: '🌍 Europe' },
+        { id: 'uk', label: 'Londres / Creamfields / Drumsheds', tz: 'Europe/London', group: '🇬🇧 Royaume-Uni' },
+        { id: 'us-east-miami', label: 'Ultra Music Festival Miami / NY', tz: 'America/New_York', group: '🌴 US - Côte Est' },
+        { id: 'us-east-lost', label: 'Lost Lands (Ohio)', tz: 'America/New_York', group: '🌴 US - Côte Est' },
+        { id: 'us-east-orlando', label: 'EDC Orlando / EDSea', tz: 'America/New_York', group: '🌴 US - Côte Est' },
+        { id: 'us-west-vegas', label: 'EDC Las Vegas', tz: 'America/Los_Angeles', group: '🎡 US - Côte Ouest' },
+        { id: 'us-west-coachella', label: 'Coachella', tz: 'America/Los_Angeles', group: '🎡 US - Côte Ouest' },
+        { id: 'us-west-la', label: 'Day Trip Festival (Los Angeles)', tz: 'America/Los_Angeles', group: '🎡 US - Côte Ouest' },
+        { id: 'us-central-chicago', label: 'Lollapalooza Chicago', tz: 'America/Chicago', group: '🤠 US - Centre' },
+        { id: 'us-central-texas', label: 'Ubbi Dubbi (Texas)', tz: 'America/Chicago', group: '🤠 US - Centre' },
     ];
+
+    const calculateDynamicOffset = (dateStr: string, tzId: string) => {
+        try {
+            if (tzId === 'Europe/Paris') return 0;
+            // On crée une date de référence à midi pour éviter les chevauchements de bordure de jour
+            const testDate = new Date(`${dateStr || new Date().toISOString().split('T')[0]}T12:00:00Z`);
+            
+            const parisStr = testDate.toLocaleString('en-US', { timeZone: 'Europe/Paris', hour12: false });
+            const targetStr = testDate.toLocaleString('en-US', { timeZone: tzId, hour12: false });
+            
+            const pDate = new Date(parisStr);
+            const tDate = new Date(targetStr);
+            
+            return Math.round((pDate.getTime() - tDate.getTime()) / (1000 * 60 * 60));
+        } catch (e) {
+            return 0;
+        }
+    };
 
     const eventTimezoneOffset = (() => {
         const preset = timezonePresets.find(p => p.id === selectedTimezoneId);
-        if (preset) return preset.offset;
+        if (preset) return calculateDynamicOffset(bulkDate || newLineupItem.day, preset.tz);
+        
         if (selectedTimezoneId === 'm1') return 1;
         if (selectedTimezoneId === 'm2') return 2;
         if (selectedTimezoneId === 'm-1') return -1;
@@ -2897,8 +2916,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                                         <div className="space-y-2">
                                                             <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">
-                                                                Fuseau horaire local
-                                                                {eventTimezoneOffset !== 0 && <span className="ml-2 text-amber-400 font-bold">({eventTimezoneOffset > 0 ? '+' : ''}{eventTimezoneOffset}h → heure FR)</span>}
+                                                                Fuseau Horaire (Auto-détection Saison)
+                                                                {eventTimezoneOffset !== 0 && <span className="ml-2 text-neon-cyan font-bold">(Calculé : {eventTimezoneOffset > 0 ? '+' : ''}{eventTimezoneOffset}h)</span>}
                                                             </label>
                                                             <select
                                                                 value={selectedTimezoneId}
@@ -3080,7 +3099,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 </div>
 
                                                 <div className="space-y-2">
-                                                    <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Fuseau Horaire Local (Conversion auto vers FR Heure)</label>
+                                                    <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">
+                                                        Fuseau Horaire (Auto-détection Saison)
+                                                        {eventTimezoneOffset !== 0 && <span className="ml-2 text-neon-cyan font-bold">(Calculé : {eventTimezoneOffset > 0 ? '+' : ''}{eventTimezoneOffset}h)</span>}
+                                                    </label>
                                                     <select 
                                                         value={selectedTimezoneId} 
                                                         onChange={e => setSelectedTimezoneId(e.target.value)} 
