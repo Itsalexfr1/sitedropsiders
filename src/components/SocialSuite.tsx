@@ -117,7 +117,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const dragControls = useDragControls();
     const [isTakeoverLoading, setIsTakeoverLoading] = useState(false);
     const [takeoverData, setTakeoverData] = useState<{ lineup: any[], streams: any[] } | null>(null);
-    const [selectedTakeoverStage, setSelectedTakeoverStage] = useState<string>('');
 
     // Detect mobile vs desktop (lg breakpoint = 1024px) — JS-based to avoid canvasRef conflict
     const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
@@ -1295,7 +1294,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         setPlanningItems(items);
         setCustomText(`LINE-UP ${stageMatch.toUpperCase()}`);
         
-        const [y, m, d] = day.split('-');
+        const [, m, d] = day.split('-');
         const dateNames = ['JAN', 'FEV', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUIL', 'AOUT', 'SEPT', 'OCT', 'NOV', 'DEC'];
         setPlanningDate(`${d} ${dateNames[parseInt(m) - 1] || '??'}`);
         
