@@ -1254,9 +1254,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         try {
             const resp = await fetch('/api/takeover-settings');
             const data = await resp.json();
-            if (data.settings && data.settings.lineup) {
+            if (data.settings && data.lineup) {
                 setTakeoverData({
-                    lineup: data.settings.lineup,
+                    lineup: data.lineup,
                     streams: data.settings.streams || []
                 });
             } else {
