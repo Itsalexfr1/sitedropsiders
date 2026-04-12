@@ -2996,8 +2996,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             Importer {bulkPreview.length > 0 ? `(${bulkPreview.length} artiste${bulkPreview.length > 1 ? 's' : ''})` : ''} dans le planning
                                                         </button>
                                                     </div>
-                                                )}
-                                            </div>
+                                                </div>
+                                            )}
+                                        </div>
 
                                             <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6" id="planning-form">
                                                 <div className="flex items-center gap-4">
