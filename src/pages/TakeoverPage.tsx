@@ -724,6 +724,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [bulkDate, setBulkDate] = useState('');
     const [bulkPreview, setBulkPreview] = useState<{ startTime: string; endTime?: string; artist: string; image?: string }[]>([]);
     const [bulkCropIndex, setBulkCropIndex] = useState<number | null>(null);
+    const [bulkRequireEndTime, setBulkRequireEndTime] = useState(false);
     const [autoRemoveFinished, setAutoRemoveFinished] = useState(() => localStorage.getItem('lineup_auto_remove') === 'true');
 
     const parseBulkSchedule = (text: string): { startTime: string; endTime?: string; artist: string }[] => {
@@ -770,6 +771,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         if (missingPhotos.length > 0) {
             showNotification(`📷 Photo obligatoire — ${missingPhotos.length} artiste(s) sans photo`, 'error');
             return;
+        }
+
+        if (bulkRequireEndTime) {
+            const missingEndTimes = bulkPreview.filter(e => !e.endTime);
+            if (missingEndTimes.length > 0) {
+                showNotification(`⏰ Heure de fin manquante pour ${missingEndTimes.length} artiste(s)`, 'error');
+                return;
+            }
         }
         const newItems: LineupItem[] = bulkPreview.map((entry, idx) => {
             // End time = parsed endTime OR start of next slot, OR start + 1h for last
@@ -2910,29 +2919,35 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                                         <div className="space-y-4">
                                                             <div className="flex gap-4">
-                                                                <div className="flex-1 space-y-1">
-                                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Scène du Scan (Optionnel)</label>
-                                                                    <select
-                                                                        value={scanStage}
-                                                                        onChange={e => setScanStage(e.target.value)}
-                                                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
-                                                                    >
-                                                                        <option value="">NOM DE LA SCÈNE...</option>
-                                                                        {editStreams.map(s => <option key={s.id} value={s.name.toUpperCase()}>{s.name.toUpperCase()}</option>)}
-                                                                    </select>
+                                                                    <div className="flex-1 space-y-1">
+                                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Scène du Scan (Optionnel)</label>
+                                                                        <select
+                                                                            value={scanStage}
+                                                                            onChange={e => setScanStage(e.target.value)}
+                                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
+                                                                        >
+                                                                            <option value="">NOM DE LA SCÈNE...</option>
+                                                                            {editStreams.map(s => <option key={s.id} value={s.name.toUpperCase()}>{s.name.toUpperCase()}</option>)}
+                                                                        </select>
+                                                                    </div>
+                                                                    <div className="flex flex-col justify-end gap-2">
+                                                                        <button 
+                                                                            onClick={() => setBulkRequireEndTime(!bulkRequireEndTime)}
+                                                                            className={`px-4 py-1.5 rounded-lg text-[8px] font-black uppercase transition-all border ${bulkRequireEndTime ? 'bg-amber-500/20 border-amber-500/50 text-amber-500' : 'bg-white/5 border-white/10 text-gray-500'}`}
+                                                                        >
+                                                                            {bulkRequireEndTime ? '🔒 Fin Obligatoire' : '🔓 Fin Optionnelle'}
+                                                                        </button>
+                                                                        <button 
+                                                                            onClick={() => (document.getElementById('poster-scan') as HTMLInputElement)?.click()}
+                                                                            disabled={isScanningImage}
+                                                                            className={`px-6 h-[44px] bg-purple-500/20 border border-purple-500/30 rounded-xl flex items-center gap-3 text-[10px] font-black uppercase text-purple-300 transition-all ${isScanningImage ? 'opacity-50' : 'hover:bg-purple-500/30'}`}
+                                                                        >
+                                                                            {isScanningImage ? <Timer className="w-4 h-4 animate-spin" /> : <Scan className="w-4 h-4" />}
+                                                                            {isScanningImage ? `Analyse ${scanProgress}%` : 'Scanner une affiche'}
+                                                                        </button>
+                                                                        <input id="poster-scan" type="file" accept="image/*" onChange={handleImageOCR} className="hidden" onClick={(e) => (e.target as any).value = null} />
+                                                                    </div>
                                                                 </div>
-                                                                <div className="flex items-end">
-                                                                    <button 
-                                                                        onClick={() => (document.getElementById('poster-scan') as HTMLInputElement)?.click()}
-                                                                        disabled={isScanningImage}
-                                                                        className={`px-6 h-[44px] bg-purple-500/20 border border-purple-500/30 rounded-xl flex items-center gap-3 text-[10px] font-black uppercase text-purple-300 transition-all ${isScanningImage ? 'opacity-50' : 'hover:bg-purple-500/30'}`}
-                                                                    >
-                                                                        {isScanningImage ? <Timer className="w-4 h-4 animate-spin" /> : <Scan className="w-4 h-4" />}
-                                                                        {isScanningImage ? `Analyse ${scanProgress}%` : 'Scanner une affiche'}
-                                                                    </button>
-                                                                    <input id="poster-scan" type="file" accept="image/*" onChange={handleImageOCR} className="hidden" onClick={(e) => (e.target as any).value = null} />
-                                                                </div>
-                                                            </div>
 
                                                             <div className="space-y-2">
                                                                 <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">
@@ -2972,7 +2987,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                                         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent pointer-events-none" />
                                                                                     </>
                                                                                 )}
-                                                                                <span className="text-neon-cyan font-mono text-xs font-black shrink-0 relative z-10">{entry.startTime}–{displayEnd}</span>
+                                                                                <span className={`font-mono text-xs font-black shrink-0 relative z-10 ${entry.endTime ? 'text-neon-cyan' : 'text-amber-500/70 italic'}`}>
+                                                                                    {entry.startTime}–{displayEnd}
+                                                                                    {!entry.endTime && <span className="ml-1 text-[7px] opacity-50 uppercase tracking-tighter">(Est.)</span>}
+                                                                                </span>
                                                                                 <span className="text-white text-xs font-black uppercase truncate relative z-10 flex-1">{entry.artist}</span>
                                                                                 <label
                                                                                     htmlFor={`bulk-img-${idx}`}
