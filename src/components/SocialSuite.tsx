@@ -1254,13 +1254,23 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         try {
             const resp = await fetch('/api/takeover-settings');
             const data = await resp.json();
-            if (data.settings && data.lineup) {
+            
+            // The API returns settings at the root, and lineup is a stringified JSON
+            let parsedLineup = [];
+            if (data.lineup) {
+                try {
+                    const l = typeof data.lineup === 'string' ? JSON.parse(data.lineup) : data.lineup;
+                    parsedLineup = Array.isArray(l) ? l : [];
+                } catch (e) { console.error(e); }
+            }
+
+            if (parsedLineup.length > 0 || (data.streams && data.streams.length > 0)) {
                 setTakeoverData({
-                    lineup: data.lineup,
-                    streams: data.settings.streams || []
+                    lineup: parsedLineup,
+                    streams: data.streams || []
                 });
             } else {
-              setErrorMessage("Aucune donnée Live Takeover trouvée.");
+              setErrorMessage("Aucune donnée de planning trouvée.");
             }
         } catch (e) {
             console.error(e);
