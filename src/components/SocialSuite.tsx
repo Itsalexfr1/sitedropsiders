@@ -427,7 +427,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 // Red glowing dot
                 ctx.beginPath();
-                ctx.arc(centerX - 80, badgeY, 6 + (pulse * 2), 0, Math.PI * 2);
+                ctx.arc(centerX - 95, badgeY, 6 + (pulse * 2), 0, Math.PI * 2);
                 ctx.fillStyle = '#ff0033';
                 ctx.shadowColor = '#ff0033';
                 ctx.shadowBlur = 15;
@@ -440,7 +440,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.font = '600 24px "Montserrat", sans-serif';
                 ctx.letterSpacing = "8px";
                 ctx.shadowBlur = 0;
-                ctx.fillText('EN DIRECT', centerX - 55, badgeY);
+                ctx.fillText('EN DIRECT', centerX - 70, badgeY);
                 ctx.restore();
 
                 // 3. MAIN TITLE: "TAKEOVER" (Sleek, Wide, High-End)
@@ -454,9 +454,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.shadowColor = `rgba(${activeData.grad}, 0.6)`;
                 ctx.shadowBlur = 30;
 
-                ctx.font = '900 italic 95px "Montserrat", sans-serif';
-                ctx.letterSpacing = "10px";
-                ctx.fillText('LIVESTREAM', centerX + 5, takeoverY); // offset for letterSpacing centering
+                ctx.font = '900 110px "Montserrat", sans-serif';
+                ctx.letterSpacing = "12px";
+                ctx.fillText('LIVESTREAM', centerX + 6, takeoverY); // offset for letterSpacing centering
                 ctx.restore();
 
                 // 4. DECORATIVE LINE (Always visible)
@@ -467,7 +467,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 gradLine.addColorStop(0.5, `rgb(${activeData.grad})`);
                 gradLine.addColorStop(1, 'rgba(255,255,255,0)');
                 ctx.fillStyle = gradLine;
-                ctx.fillRect(centerX - lineW, infoY, lineW * 2, 2);
+                ctx.fillRect(centerX - lineW, infoY, lineW * 2, 1);
 
                 // 5. INFO SECTION (Minimalist floating typography)
                 if (customText) {
