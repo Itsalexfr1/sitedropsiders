@@ -732,14 +732,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const timezonePresets = [
         { id: 'fr', label: '🇫🇷 Heure Française (pas de conversion)', offset: 0, group: '🌍 Europe' },
         { id: 'uk', label: 'Londres / Creamfields / Drumsheds', offset: 1, group: '🇬🇧 Royaume-Uni (-1h)' },
-        { id: 'us-east-miami', label: 'Ultra Music Festival Miami / NY', offset: 5, group: '🌴 US - Côte Est (-5h)' },
-        { id: 'us-east-lost', label: 'Lost Lands (Ohio)', offset: 5, group: '🌴 US - Côte Est (-5h)' },
-        { id: 'us-east-orlando', label: 'EDC Orlando / EDSea', offset: 5, group: '🌴 US - Côte Est (-5h)' },
-        { id: 'us-west-vegas', label: 'EDC Las Vegas', offset: 8, group: '🎡 US - Côte Ouest (-8h)' },
-        { id: 'us-west-coachella', label: 'Coachella', offset: 8, group: '🎡 US - Côte Ouest (-8h)' },
-        { id: 'us-west-la', label: 'Day Trip Festival (Los Angeles)', offset: 8, group: '🎡 US - Côte Ouest (-8h)' },
-        { id: 'us-central-chicago', label: 'Lollapalooza Chicago', offset: 6, group: '🤠 US - Centre (-6h)' },
-        { id: 'us-central-texas', label: 'Ubbi Dubbi (Texas)', offset: 6, group: '🤠 US - Centre (-6h)' },
+        { id: 'us-east-miami', label: 'Ultra Music Festival Miami / NY', offset: 6, group: '🌴 US - Côte Est (Miami / NY | -6h)' },
+        { id: 'us-east-lost', label: 'Lost Lands (Ohio)', offset: 6, group: '🌴 US - Côte Est (Ohio | -6h)' },
+        { id: 'us-east-orlando', label: 'EDC Orlando / EDSea', offset: 6, group: '🌴 US - Côte Est (Florida | -6h)' },
+        { id: 'us-west-vegas', label: 'EDC Las Vegas', offset: 9, group: '🎡 US - Côte Ouest (Vegas / LA | -9h)' },
+        { id: 'us-west-coachella', label: 'Coachella', offset: 9, group: '🎡 US - Côte Ouest (Vegas / LA | -9h)' },
+        { id: 'us-west-la', label: 'Day Trip Festival (Los Angeles)', offset: 9, group: '🎡 US - Côte Ouest (Vegas / LA | -9h)' },
+        { id: 'us-central-chicago', label: 'Lollapalooza Chicago', offset: 7, group: '🤠 US - Centre (-7h)' },
+        { id: 'us-central-texas', label: 'Ubbi Dubbi (Texas)', offset: 7, group: '🤠 US - Centre (-7h)' },
     ];
 
     const eventTimezoneOffset = (() => {
