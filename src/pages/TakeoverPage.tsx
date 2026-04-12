@@ -72,6 +72,8 @@ interface TakeoverSettings {
     tracklist?: string;
     bannedWords?: string;
     festivalLogo?: string;
+    moderators?: string[];
+    bannedPseudos?: string[];
 }
 
 interface TrackItem {
@@ -113,7 +115,15 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const isSpecialAdmin = storedPseudo && ['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr', 'contact@dropsiders.fr'].includes(storedPseudo.toLowerCase());
     const userRole: 'admin' | 'mod' | 'user' = (isAdmin || isSpecialAdmin) ? 'admin' : 'user';
-    const isMod = userRole !== 'user';
+    const isMod = useMemo(() => {
+        const currentPs = (storedPseudo || '').toUpperCase();
+        return userRole !== 'user' || moderators.includes(currentPs);
+    }, [userRole, storedPseudo, moderators]);
+
+    const isUserBanned = useMemo(() => {
+        const currentPs = (storedPseudo || '').toUpperCase();
+        return isBanned || bannedPseudos.includes(currentPs);
+    }, [isBanned, storedPseudo, bannedPseudos]);
     const [showAdminPanel, setShowAdminPanel] = useState(false);
     const [activeChatTab, setActiveChatTab] = useState('chat');
     const [newMessage, setNewMessage] = useState('');
@@ -692,6 +702,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [eventTimezoneOffset, setEventTimezoneOffset] = useState<number>(0);
     const [planningActiveDay, setPlanningActiveDay] = useState<string>('');
     const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
+    const [moderators, setModerators] = useState<string[]>([]);
+    const [bannedPseudos, setBannedPseudos] = useState<string[]>([]);
+    const [newModo, setNewModo] = useState('');
+    const [newBanned, setNewBanned] = useState('');
+    const [showCustomDuration, setShowCustomDuration] = useState(false);
 
     // Bulk Import states
     const [showBulkImport, setShowBulkImport] = useState(false);
@@ -898,7 +913,9 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 botCommands: botCommands,
                 festivalLogo: editFestivalLogo,
                 lineup: JSON.stringify(lineupItems),
-                tracklist: JSON.stringify(tracklist)
+                tracklist: JSON.stringify(tracklist),
+                moderators,
+                bannedPseudos
             };
             await fetch('/api/takeover-settings', {
                 method: 'POST',
@@ -3096,12 +3113,32 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                         <p className="text-[8px] text-gray-500 font-bold uppercase italic">Affichage des Sondages & Quiz</p>
                                                     </div>
                                                 </div>
-                                                <select value={interactivityDuration} onChange={e => setInteractivityDuration(Number(e.target.value))} className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-black text-white outline-none focus:border-neon-purple">
-                                                    <option value={15}>15 SECONDES</option>
-                                                    <option value={30}>30 SECONDES</option>
+                                                <select value={showCustomDuration ? "custom" : interactivityDuration} onChange={e => {
+                                                    if (e.target.value === "custom") {
+                                                        setShowCustomDuration(true);
+                                                    } else {
+                                                        setShowCustomDuration(false);
+                                                        setInteractivityDuration(Number(e.target.value));
+                                                    }
+                                                }} className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-xs font-black text-white outline-none focus:border-neon-purple">
                                                     <option value={60}>1 MINUTE</option>
                                                     <option value={120}>2 MINUTES</option>
+                                                    <option value={180}>3 MINUTES</option>
+                                                    <option value={300}>5 MINUTES</option>
+                                                    <option value="custom">PERSONNALISÉ</option>
                                                 </select>
+                                                {showCustomDuration && (
+                                                    <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-xl px-2">
+                                                        <input 
+                                                            type="number" 
+                                                            value={interactivityDuration} 
+                                                            onChange={e => setInteractivityDuration(Number(e.target.value))} 
+                                                            className="w-16 bg-transparent text-xs font-black text-white p-2 outline-none"
+                                                            placeholder="SEC"
+                                                        />
+                                                        <span className="text-[8px] font-black text-gray-500 mr-1">SEC</span>
+                                                    </div>
+                                                )}
                                             </div>
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -3155,7 +3192,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     <div className="p-8 bg-neon-red/5 border border-neon-red/20 rounded-[2.5rem] space-y-6">
                                                         <div className="flex items-center gap-3">
                                                             <Shield className="w-6 h-6 text-neon-red" />
-                                                            <h3 className="text-sm font-black text-white uppercase tracking-widest">Admin Chat</h3>
+                                                            <h3 className="text-sm font-black text-white uppercase tracking-widest">Admin Chat & Modération</h3>
                                                         </div>
                                                         <div className="grid grid-cols-2 gap-4">
                                                             <button onClick={clearChat} className="py-4 bg-red-600/10 border border-red-500/30 text-red-500 rounded-xl font-black uppercase text-[10px] hover:bg-red-500 hover:text-white transition-all">Vider Chat</button>
@@ -3175,6 +3212,63 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             >
                                                                 {slowModeEnabled ? 'LENT ACTIVÉ' : 'MODE LENT'}
                                                             </button>
+                                                        </div>
+
+                                                        {/* Moderation quick list */}
+                                                        <div className="grid grid-cols-2 gap-6 pt-4 border-t border-white/5">
+                                                            <div className="space-y-4">
+                                                                <h4 className="text-[10px] font-black text-neon-cyan uppercase tracking-widest">🛡️ Modérateurs</h4>
+                                                                <div className="flex gap-2">
+                                                                    <input type="text" placeholder="PSEUDO" value={newModo} onChange={e => setNewModo(e.target.value.toUpperCase())} className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" />
+                                                                    <button onClick={() => { if(newModo) { setModerators([...moderators, newModo]); setNewModo(''); }}} className="px-3 bg-neon-cyan text-black rounded-lg text-[10px] font-black">+</button>
+                                                                </div>
+                                                                <div className="max-h-[100px] overflow-y-auto pr-2 custom-scrollbar space-y-1">
+                                                                    {moderators.map((m, i) => (
+                                                                        <div key={i} className="flex justify-between items-center p-2 bg-white/5 rounded-lg border border-white/5">
+                                                                            <span className="text-[9px] font-bold text-white uppercase">{m}</span>
+                                                                            <button onClick={() => setModerators(moderators.filter((_, idx) => idx !== i))} className="text-gray-600 hover:text-red-500"><X className="w-3 h-3" /></button>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                            <div className="space-y-4">
+                                                                <h4 className="text-[10px] font-black text-neon-red uppercase tracking-widest">🚫 Bannis</h4>
+                                                                <div className="flex gap-2">
+                                                                    <input type="text" placeholder="PSEUDO" value={newBanned} onChange={e => setNewBanned(e.target.value.toUpperCase())} className="flex-1 bg-black/40 border border-white/10 rounded-lg px-3 py-2 text-[10px] text-white" />
+                                                                    <button onClick={() => { if(newBanned) { setBannedPseudos([...bannedPseudos, newBanned]); setNewBanned(''); }}} className="px-3 bg-neon-red text-white rounded-lg text-[10px] font-black">+</button>
+                                                                </div>
+                                                                <div className="max-h-[100px] overflow-y-auto pr-2 custom-scrollbar space-y-1">
+                                                                    {bannedPseudos.map((p, i) => (
+                                                                        <div key={i} className="flex justify-between items-center p-2 bg-white/5 rounded-lg border border-white/5">
+                                                                            <span className="text-[9px] font-bold text-white uppercase">{p}</span>
+                                                                            <button onClick={() => setBannedPseudos(bannedPseudos.filter((_, idx) => idx !== i))} className="text-gray-600 hover:text-red-500"><X className="w-3 h-3" /></button>
+                                                                        </div>
+                                                                    ))}
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* NEW SECTION: Bot Commands moved here for quick access */}
+                                                    <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                        <div className="flex items-center gap-3">
+                                                            <MessageSquare className="w-6 h-6 text-neon-cyan" />
+                                                            <h3 className="text-sm font-black text-white uppercase tracking-widest">Commandes Bot</h3>
+                                                        </div>
+                                                        <div className="grid grid-cols-1 gap-4">
+                                                            <div className="space-y-3">
+                                                                <input type="text" placeholder="!COMMANDE" value={newCmd.command} onChange={e => setNewCmd({ ...newCmd, command: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-[10px] text-white outline-none focus:border-neon-cyan" />
+                                                                <textarea placeholder="RÉPONSE" value={newCmd.response} onChange={e => setNewCmd({ ...newCmd, response: e.target.value })} className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-[10px] text-white min-h-[50px]" />
+                                                                <button onClick={() => { if (newCmd.command) { setBotCommands([...botCommands, { command: newCmd.command, response: newCmd.response }]); setNewCmd({ command: '', response: '' }); } }} className="w-full py-3 bg-neon-cyan text-black font-black text-[10px] rounded-xl uppercase">Ajouter la commande</button>
+                                                            </div>
+                                                            <div className="max-h-[200px] overflow-y-auto pr-2 custom-scrollbar scroll-smooth grid grid-cols-2 gap-2">
+                                                                {botCommands.map((cmd, idx) => (
+                                                                    <div key={idx} className="flex justify-between items-center p-2.5 bg-white/5 rounded-xl border border-white/5 hover:border-white/10 transition-all">
+                                                                        <span className="text-neon-cyan font-black text-[9px] uppercase tracking-tighter truncate max-w-[100px]">{cmd.command}</span>
+                                                                        <button onClick={() => setBotCommands(botCommands.filter((_, i) => i !== idx))} className="text-gray-600 hover:text-red-500"><Trash2 className="w-3 h-3" /></button>
+                                                                    </div>
+                                                                ))}
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -4301,12 +4395,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     )}
                                     <input
                                         type="text"
-                                        value={isBanned ? "VOUS ÊTES BANNI" : newMessage}
+                                        value={isUserBanned ? "VOUS ÊTES BANNI" : newMessage}
                                         onChange={e => setNewMessage(e.target.value)}
-                                        disabled={isBanned}
+                                        disabled={isUserBanned}
                                         onKeyDown={e => e.key === 'Enter' && handleSendMessage(newMessage)}
-                                        placeholder={isBanned ? "ACCÈS REFUSÉ..." : slowModeEnabled && !isMod ? "MODE LENT ACTIF..." : "VOTRE MESSAGE..."}
-                                        className={`flex-1 bg-transparent text-xs font-bold outline-none uppercase tracking-wider ${isBanned ? 'text-red-500' : 'text-white placeholder:text-gray-600'}`}
+                                        placeholder={isUserBanned ? "ACCÈS REFUSÉ..." : slowModeEnabled && !isMod ? "MODE LENT ACTIF..." : "VOTRE MESSAGE..."}
+                                        className={`flex-1 bg-transparent text-xs font-bold outline-none uppercase tracking-wider ${isUserBanned ? 'text-red-500' : 'text-white placeholder:text-gray-600'}`}
                                     />
                                     <button onClick={() => setShowGifPicker(!showGifPicker)} className="p-2 text-gray-500 hover:text-white transition-all">
                                         <Stars className="w-4 h-4" />
