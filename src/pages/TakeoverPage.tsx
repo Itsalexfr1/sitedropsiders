@@ -2891,74 +2891,102 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                                 {showBulkImport && (
                                                     <div className="space-y-5 border-t border-white/5 pt-6">
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div className="space-y-2">
-                                                                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Date de la journée</label>
-                                                                <input
-                                                                    type="date"
-                                                                    value={bulkDate}
-                                                                    onChange={e => setBulkDate(e.target.value)}
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
-                                                                />
-                                                            </div>
-                                                            <div className="space-y-2">
-                                                                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Scène</label>
-                                                                <select
-                                                                    value={bulkStage}
-                                                                    onChange={e => setBulkStage(e.target.value)}
-                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
-                                                                >
-                                                                    <option value="">CHOISIR SCÈNE</option>
-                                                                    {editStreams.map(s => <option key={s.id} value={s.name.toUpperCase()}>{s.name.toUpperCase()}</option>)}
-                                                                </select>
-                                                            </div>
-                                                        </div>
-
-                                                        <div className="space-y-2">
-                                                            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">
-                                                                Fuseau Horaire (Auto-détection Saison)
-                                                                {eventTimezoneOffset !== 0 && <span className="ml-2 text-neon-cyan font-bold">(Calculé : {eventTimezoneOffset > 0 ? '+' : ''}{eventTimezoneOffset}h)</span>}
-                                                            </label>
-                                                            <select
-                                                                value={selectedTimezoneId}
-                                                                onChange={e => setSelectedTimezoneId(e.target.value)}
-                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
-                                                            >
-                                                                {Array.from(new Set(timezonePresets.map(p => p.group))).map(group => (
-                                                                    <optgroup key={group} label={group}>
-                                                                        {timezonePresets.filter(p => p.group === group).map(p => (
-                                                                            <option key={p.id} value={p.id}>{p.label}</option>
-                                                                        ))}
-                                                                    </optgroup>
-                                                                ))}
-                                                                <optgroup label="⚙️ Manuel">
-                                                                    <option value="m1">+1h</option>
-                                                                    <option value="m2">+2h</option>
-                                                                    <option value="m-1">-1h</option>
-                                                                </optgroup>
-                                                            </select>
-                                                        </div>
-
+                                                        {/* ÉTAPE 1 : INFOS DE BASE */}
                                                         <div className="space-y-4">
-                                                            <div className="flex gap-4">
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${bulkDate && bulkStage ? 'bg-green-500 text-white' : 'bg-purple-500 text-white'}`}>1</span>
+                                                                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Infos de base</span>
+                                                            </div>
+                                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 ml-7">
+                                                                <div className="space-y-2">
+                                                                    <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Date de la journée</label>
+                                                                    <input
+                                                                        type="date"
+                                                                        value={bulkDate}
+                                                                        onChange={e => setBulkDate(e.target.value)}
+                                                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
+                                                                    />
+                                                                </div>
+                                                                <div className="space-y-2">
+                                                                    <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Scène</label>
+                                                                    <select
+                                                                        value={bulkStage}
+                                                                        onChange={e => setBulkStage(e.target.value)}
+                                                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
+                                                                    >
+                                                                        <option value="">CHOISIR SCÈNE</option>
+                                                                        {editStreams.map(s => <option key={s.id} value={s.name.toUpperCase()}>{s.name.toUpperCase()}</option>)}
+                                                                    </select>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* ÉTAPE 2 : RÉGLAGES TEMPS */}
+                                                        <div className={`space-y-4 transition-all ${(!bulkDate || !bulkStage) ? 'opacity-20 pointer-events-none' : ''}`}>
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${selectedTimezoneId ? 'bg-green-500 text-white' : 'bg-purple-500 text-white'}`}>2</span>
+                                                                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Réglages Temps</span>
+                                                            </div>
+                                                            <div className="space-y-4 ml-7">
+                                                                <div className="space-y-2">
+                                                                    <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">
+                                                                        Fuseau Horaire (Auto-détection Saison)
+                                                                        {eventTimezoneOffset !== 0 && <span className="ml-2 text-neon-cyan font-bold">(Calculé : {eventTimezoneOffset > 0 ? '+' : ''}{eventTimezoneOffset}h)</span>}
+                                                                    </label>
+                                                                    <select
+                                                                        value={selectedTimezoneId}
+                                                                        onChange={e => setSelectedTimezoneId(e.target.value)}
+                                                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
+                                                                    >
+                                                                        {Array.from(new Set(timezonePresets.map(p => p.group))).map(group => (
+                                                                            <optgroup key={group} label={group}>
+                                                                                {timezonePresets.filter(p => p.group === group).map(p => (
+                                                                                    <option key={p.id} value={p.id}>{p.label}</option>
+                                                                                ))}
+                                                                            </optgroup>
+                                                                        ))}
+                                                                        <optgroup label="⚙️ Manuel">
+                                                                            <option value="m1">+1h</option>
+                                                                            <option value="m2">+2h</option>
+                                                                            <option value="m-1">-1h</option>
+                                                                        </optgroup>
+                                                                    </select>
+                                                                </div>
+                                                                <div className="flex items-center gap-3 bg-white/5 p-4 rounded-xl border border-white/5">
+                                                                    <button 
+                                                                        onClick={() => setBulkRequireEndTime(!bulkRequireEndTime)}
+                                                                        className={`shrink-0 px-4 py-2 rounded-lg text-[10px] font-black uppercase transition-all border ${bulkRequireEndTime ? 'bg-amber-500/20 border-amber-500/50 text-amber-500' : 'bg-white/5 border-white/10 text-gray-400'}`}
+                                                                    >
+                                                                        {bulkRequireEndTime ? '🔒 Fin Obligatoire' : '🔓 Fin Optionnelle'}
+                                                                    </button>
+                                                                    <p className="text-[10px] text-gray-500 font-bold leading-tight">
+                                                                        {bulkRequireEndTime 
+                                                                            ? "L'importation sera bloquée si une heure de fin est manquante dans le texte."
+                                                                            : "Si l'heure de fin manque, elle sera estimée selon le set suivant."}
+                                                                    </p>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+
+                                                        {/* ÉTAPE 3 : CONTENU */}
+                                                        <div className={`space-y-4 transition-all ${(!bulkDate || !bulkStage) ? 'opacity-20 pointer-events-none' : ''}`}>
+                                                            <div className="flex items-center gap-2 mb-1">
+                                                                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-black ${bulkText.length > 5 ? 'bg-green-500 text-white' : 'bg-purple-500 text-white'}`}>3</span>
+                                                                <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Contenu (Texte ou Image)</span>
+                                                            </div>
+                                                            <div className="space-y-4 ml-7">
+                                                                <div className="flex gap-4">
                                                                     <div className="flex-1 space-y-1">
-                                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Scène du Scan (Optionnel)</label>
-                                                                        <select
+                                                                        <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Nom du stage pour le scan</label>
+                                                                        <input
+                                                                            type="text"
                                                                             value={scanStage}
                                                                             onChange={e => setScanStage(e.target.value)}
-                                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
-                                                                        >
-                                                                            <option value="">NOM DE LA SCÈNE...</option>
-                                                                            {editStreams.map(s => <option key={s.id} value={s.name.toUpperCase()}>{s.name.toUpperCase()}</option>)}
-                                                                        </select>
+                                                                            placeholder="STAGE NAME..."
+                                                                            className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white uppercase font-black"
+                                                                        />
                                                                     </div>
-                                                                    <div className="flex flex-col justify-end gap-2">
-                                                                        <button 
-                                                                            onClick={() => setBulkRequireEndTime(!bulkRequireEndTime)}
-                                                                            className={`px-4 py-1.5 rounded-lg text-[8px] font-black uppercase transition-all border ${bulkRequireEndTime ? 'bg-amber-500/20 border-amber-500/50 text-amber-500' : 'bg-white/5 border-white/10 text-gray-500'}`}
-                                                                        >
-                                                                            {bulkRequireEndTime ? '🔒 Fin Obligatoire' : '🔓 Fin Optionnelle'}
-                                                                        </button>
+                                                                    <div className="flex flex-col justify-end">
                                                                         <button 
                                                                             onClick={() => (document.getElementById('poster-scan') as HTMLInputElement)?.click()}
                                                                             disabled={isScanningImage}
@@ -2971,105 +2999,109 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     </div>
                                                                 </div>
 
-                                                            <div className="space-y-2">
-                                                                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">
-                                                                    Planning à coller
-                                                                </label>
                                                                 <textarea
-                                                                rows={8}
-                                                                value={bulkText}
-                                                                onChange={e => {
-                                                                    setBulkText(e.target.value);
-                                                                    setBulkPreview(parseBulkSchedule(e.target.value));
-                                                                }}
-                                                                placeholder={`Collez ici le planning, une ligne par artiste :\n4:00pm - Tijuana Panthers\n4:45pm - Wet Leg`}
-                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white font-mono resize-none outline-none focus:border-purple-500/50 transition-all"
-                                                            />
+                                                                    rows={6}
+                                                                    value={bulkText}
+                                                                    onChange={e => {
+                                                                        setBulkText(e.target.value);
+                                                                        setBulkPreview(parseBulkSchedule(e.target.value));
+                                                                    }}
+                                                                    placeholder={`Exemple :\n16:00 - 17:00 Tijuana Panthers\n17:00 - 18:00 Wet Leg`}
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-4 text-xs text-white font-mono resize-none outline-none focus:border-purple-500/50 transition-all"
+                                                                />
+                                                            </div>
                                                         </div>
 
-                                                        {/* Preview */}
+                                                        {/* ÉTAPE 4 : VALIDATION */}
                                                         {bulkPreview.length > 0 && (
-                                                            <div className="space-y-2">
-                                                                <p className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Aperçu — {bulkPreview.length} session(s) détectée(s) <span className="text-gray-600 font-normal normal-case tracking-normal">· cliquez 📷 pour ajouter une photo</span></p>
-                                                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                                                                    {bulkPreview.map((entry, idx) => {
-                                                                        const next = bulkPreview[idx + 1];
-                                                                        const [hh, mm] = entry.startTime.split(':').map(Number);
-                                                                        const autoEnd = next ? next.startTime : `${((hh + 1) % 24).toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
-                                                                        const displayEnd = entry.endTime || autoEnd;
-                                                                        return (
-                                                                            <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl group relative overflow-hidden transition-all ${
-                                                                                entry.image
-                                                                                    ? 'bg-purple-500/10 border border-purple-500/20'
-                                                                                    : 'bg-red-500/10 border border-red-500/40'
-                                                                            }`}>
-                                                                                {entry.image && (
-                                                                                    <>
-                                                                                        <img src={entry.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 pointer-events-none" />
-                                                                                        <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent pointer-events-none" />
-                                                                                    </>
-                                                                                )}
-                                                                                <div className="flex flex-col relative z-10">
-                                                                                    <span 
-                                                                                        onClick={() => {
-                                                                                            setEditingBulkTime({
-                                                                                                index: idx,
-                                                                                                start: entry.startTime,
-                                                                                                end: displayEnd
-                                                                                            });
-                                                                                        }}
-                                                                                        className={`font-mono text-[10px] font-black cursor-pointer hover:underline decoration-dotted ${entry.endTime ? 'text-neon-cyan' : 'text-amber-500/70 italic'}`}
+                                                            <div className="space-y-4 pt-4 border-t border-white/5">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <span className="w-5 h-5 rounded-full bg-neon-cyan text-black flex items-center justify-center text-[10px] font-black">4</span>
+                                                                    <span className="text-[10px] font-black text-white/40 uppercase tracking-widest">Aperçu & Validation</span>
+                                                                </div>
+                                                                
+                                                                <div className="space-y-2 ml-7">
+                                                                    <p className="text-[10px] font-black text-gray-600 uppercase tracking-widest pl-1">Aperçu — {bulkPreview.length} session(s) détectée(s)</p>
+                                                                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
+                                                                        {bulkPreview.map((entry, idx) => {
+                                                                            const next = bulkPreview[idx + 1];
+                                                                            const [hh, mm] = entry.startTime.split(':').map(Number);
+                                                                            const autoEnd = next ? next.startTime : `${((hh + 1) % 24).toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
+                                                                            const displayEnd = entry.endTime || autoEnd;
+                                                                            return (
+                                                                                <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl group relative overflow-hidden transition-all ${
+                                                                                    entry.image
+                                                                                        ? 'bg-purple-500/10 border border-purple-500/20'
+                                                                                        : 'bg-red-500/10 border border-red-500/40'
+                                                                                }`}>
+                                                                                    {entry.image && (
+                                                                                        <>
+                                                                                            <img src={entry.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 pointer-events-none" />
+                                                                                            <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent pointer-events-none" />
+                                                                                        </>
+                                                                                    )}
+                                                                                    <div className="flex flex-col relative z-10">
+                                                                                        <span 
+                                                                                            onClick={() => {
+                                                                                                setEditingBulkTime({
+                                                                                                    index: idx,
+                                                                                                    start: entry.startTime,
+                                                                                                    end: displayEnd
+                                                                                                });
+                                                                                            }}
+                                                                                            className={`font-mono text-[10px] font-black cursor-pointer hover:underline decoration-dotted ${entry.endTime ? 'text-neon-cyan' : 'text-amber-500/70 italic'}`}
+                                                                                        >
+                                                                                            {entry.startTime}–{displayEnd}
+                                                                                            {!entry.endTime && <span className="ml-1 text-[7px] opacity-50 uppercase tracking-tighter">(Est.)</span>}
+                                                                                        </span>
+                                                                                        {eventTimezoneOffset !== 0 && (() => {
+                                                                                            const [sh, sm] = entry.startTime.split(':').map(Number);
+                                                                                            const [eh, em] = displayEnd.split(':').map(Number);
+                                                                                            const frS = `${((sh + eventTimezoneOffset) % 24).toString().padStart(2, '0')}:${sm.toString().padStart(2, '0')}`;
+                                                                                            const frE = `${((eh + eventTimezoneOffset) % 24).toString().padStart(2, '0')}:${em.toString().padStart(2, '0')}`;
+                                                                                            return (
+                                                                                                <span className="text-[10px] font-black text-purple-400 uppercase tracking-tighter leading-none flex items-center gap-1 mt-0.5">
+                                                                                                    <Globe className="w-2.5 h-2.5" />
+                                                                                                    FR: {frS}–{frE}
+                                                                                                </span>
+                                                                                            );
+                                                                                        })()}
+                                                                                    </div>
+                                                                                    <span className="text-white text-xs font-black uppercase truncate relative z-10 flex-1">{entry.artist}</span>
+                                                                                    <label
+                                                                                        htmlFor={`bulk-img-${idx}`}
+                                                                                        className={`relative z-10 shrink-0 w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all ${
+                                                                                            entry.image
+                                                                                                ? 'bg-neon-cyan/20 border border-neon-cyan/40'
+                                                                                                : 'bg-white/10 border border-white/10 hover:border-purple-400/60'
+                                                                                        }`}
                                                                                     >
-                                                                                        {entry.startTime}–{displayEnd}
-                                                                                        {!entry.endTime && <span className="ml-1 text-[7px] opacity-50 uppercase tracking-tighter">(Est.)</span>}
-                                                                                    </span>
-                                                                                    {eventTimezoneOffset !== 0 && (() => {
-                                                                                        const [sh, sm] = entry.startTime.split(':').map(Number);
-                                                                                        const [eh, em] = displayEnd.split(':').map(Number);
-                                                                                        const frS = `${((sh + eventTimezoneOffset) % 24).toString().padStart(2, '0')}:${sm.toString().padStart(2, '0')}`;
-                                                                                        const frE = `${((eh + eventTimezoneOffset) % 24).toString().padStart(2, '0')}:${em.toString().padStart(2, '0')}`;
-                                                                                        return (
-                                                                                            <span className="text-[10px] font-black text-purple-400 uppercase tracking-tighter leading-none flex items-center gap-1 mt-0.5">
-                                                                                                <Globe className="w-2.5 h-2.5" />
-                                                                                                FR: {frS}–{frE}
-                                                                                            </span>
-                                                                                        );
-                                                                                    })()}
+                                                                                        {entry.image
+                                                                                            ? <img src={entry.image} alt="" className="w-full h-full object-cover rounded-lg" />
+                                                                                            : <Camera className="w-3.5 h-3.5 text-gray-400" />}
+                                                                                    </label>
+                                                                                    <input
+                                                                                        id={`bulk-img-${idx}`}
+                                                                                        type="file"
+                                                                                        accept="image/*"
+                                                                                        className="hidden"
+                                                                                        onChange={e => {
+                                                                                            const file = e.target.files?.[0];
+                                                                                            if (file) {
+                                                                                                const reader = new FileReader();
+                                                                                                reader.onload = ev => {
+                                                                                                    const dataUrl = ev.target?.result as string;
+                                                                                                    setBulkCropIndex(idx);
+                                                                                                    setCropImageSrc(dataUrl);
+                                                                                                };
+                                                                                                reader.readAsDataURL(file);
+                                                                                            }
+                                                                                        }}
+                                                                                    />
                                                                                 </div>
-                                                                                <span className="text-white text-xs font-black uppercase truncate relative z-10 flex-1">{entry.artist}</span>
-                                                                                <label
-                                                                                    htmlFor={`bulk-img-${idx}`}
-                                                                                    className={`relative z-10 shrink-0 w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all ${
-                                                                                        entry.image
-                                                                                            ? 'bg-neon-cyan/20 border border-neon-cyan/40'
-                                                                                            : 'bg-white/10 border border-white/10 hover:border-purple-400/60'
-                                                                                    }`}
-                                                                                >
-                                                                                    {entry.image
-                                                                                        ? <img src={entry.image} alt="" className="w-full h-full object-cover rounded-lg" />
-                                                                                        : <Camera className="w-3.5 h-3.5 text-gray-400" />}
-                                                                                </label>
-                                                                                <input
-                                                                                    id={`bulk-img-${idx}`}
-                                                                                    type="file"
-                                                                                    accept="image/*"
-                                                                                    className="hidden"
-                                                                                    onChange={e => {
-                                                                                        const file = e.target.files?.[0];
-                                                                                        if (file) {
-                                                                                            const reader = new FileReader();
-                                                                                            reader.onload = ev => {
-                                                                                                const dataUrl = ev.target?.result as string;
-                                                                                                setBulkCropIndex(idx);
-                                                                                                setCropImageSrc(dataUrl);
-                                                                                            };
-                                                                                            reader.readAsDataURL(file);
-                                                                                        }
-                                                                                    }}
-                                                                                />
-                                                                            </div>
-                                                                        );
-                                                                    })}
+                                                                            );
+                                                                        })}
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         )}
