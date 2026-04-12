@@ -645,12 +645,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         ctx.shadowBlur = 20;
 
                         ctx.font = '900 italic 28px "Montserrat", sans-serif';
-                        ctx.letterSpacing = "8px";
-                        ctx.fillText('RENDEZ-VOUS SUR', centerX, textY - 25);
-
-                        ctx.font = '900 italic 42px "Montserrat", sans-serif';
-                        ctx.letterSpacing = "8px";
-                        ctx.fillText('DROPSIDERS.FR/LIVE', centerX, textY + 25);
+                        ctx.letterSpacing = "6px";
+                        ctx.fillText('RENDEZ-VOUS SUR DROPSIDERS.FR/LIVE', centerX, textY);
                         ctx.restore();
                     }
                 }
