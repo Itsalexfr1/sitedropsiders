@@ -699,6 +699,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [bulkStage, setBulkStage] = useState('');
     const [bulkDate, setBulkDate] = useState('');
     const [bulkPreview, setBulkPreview] = useState<{ startTime: string; artist: string; image?: string }[]>([]);
+    const [autoRemoveFinished, setAutoRemoveFinished] = useState(() => localStorage.getItem('lineup_auto_remove') === 'true');
 
     const parseBulkSchedule = (text: string): { startTime: string; artist: string }[] => {
         const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
@@ -733,18 +734,36 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         const newItems: LineupItem[] = bulkPreview.map((entry, idx) => {
             // End time = start of next slot, or start + 1h for last
             const nextEntry = bulkPreview[idx + 1];
-            let endTime: string;
-            if (nextEntry) {
-                endTime = nextEntry.startTime;
-            } else {
-                const [hh, mm] = entry.startTime.split(':').map(Number);
-                endTime = `${((hh + 1) % 24).toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
-            }
+            const rawEndH = nextEntry
+                ? parseInt(nextEntry.startTime.split(':')[0], 10)
+                : parseInt(entry.startTime.split(':')[0], 10) + 1;
+            const rawEndM = nextEntry
+                ? parseInt(nextEntry.startTime.split(':')[1], 10)
+                : parseInt(entry.startTime.split(':')[1], 10);
+
+            // Apply timezone offset (same logic as individual form)
+            const applyOff = (dateStr: string, h: number, m: number, off: number, nextDay: boolean) => {
+                const [y, mo, d] = dateStr.split('-').map(Number);
+                const dt = new Date(y, mo - 1, d, h, m, 0);
+                if (nextDay) dt.setDate(dt.getDate() + 1);
+                dt.setHours(dt.getHours() + off);
+                const nd = `${dt.getFullYear()}-${(dt.getMonth() + 1).toString().padStart(2, '0')}-${dt.getDate().toString().padStart(2, '0')}`;
+                const nt = `${dt.getHours().toString().padStart(2, '0')}:${dt.getMinutes().toString().padStart(2, '0')}`;
+                return { nd, nt };
+            };
+
+            const [sh, sm] = entry.startTime.split(':').map(Number);
+            const isNextDay = rawEndH >= 24;
+            const adjEndH = rawEndH % 24;
+
+            const startConv = applyOff(bulkDate, sh, sm, eventTimezoneOffset, false);
+            const endConv = applyOff(bulkDate, adjEndH, rawEndM, eventTimezoneOffset, isNextDay || (rawEndH < sh));
+
             return {
                 id: ID.unique(),
-                day: bulkDate,
-                startTime: entry.startTime,
-                endTime,
+                day: startConv.nd,
+                startTime: startConv.nt,
+                endTime: endConv.nt,
                 artist: entry.artist.toUpperCase(),
                 stage: bulkStage.toUpperCase(),
                 instagram: '',
@@ -760,12 +779,30 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         setShowBulkImport(false);
     };
 
+    // ⏰ Auto-remove finished artists
+    useEffect(() => {
+        if (!autoRemoveFinished) return;
+        const check = () => {
+            const now = new Date();
+            const nowMins = now.getHours() * 60 + now.getMinutes();
+            const todayStr = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
+            setLineupItems(prev => prev.filter(item => {
+                if (item.day !== todayStr) return true; // keep future/past days
+                const [eh, em] = (item.endTime || '00:00').split(':').map(Number);
+                const endMins = eh * 60 + em;
+                return nowMins < endMins; // keep if not finished yet
+            }));
+        };
+        check();
+        const interval = setInterval(check, 60000);
+        return () => clearInterval(interval);
+    }, [autoRemoveFinished]);
+
     const extractYoutubeId = (url: string) => {
         if (!url) return '';
         const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w-]{11})/);
         return match ? match[1] : url.trim();
     };
-
     const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({
         show: false, message: '', type: 'success'
     });
@@ -2680,6 +2717,55 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             </div>
                                                         </div>
 
+                                                        {/* Timezone selector shared with individual form */}
+                                                        <div className="space-y-2">
+                                                            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">
+                                                                Fuseau horaire local
+                                                                {eventTimezoneOffset !== 0 && <span className="ml-2 text-amber-400 font-bold">({eventTimezoneOffset > 0 ? '+' : ''}{eventTimezoneOffset}h → heure FR)</span>}
+                                                            </label>
+                                                            <select
+                                                                value={eventTimezoneOffset}
+                                                                onChange={e => setEventTimezoneOffset(Number(e.target.value))}
+                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
+                                                            >
+                                                                <optgroup label="🌍 Europe (Aucun décalage)">
+                                                                    <option value={0}>🇫🇷 Heure Française (pas de conversion)</option>
+                                                                </optgroup>
+                                                                <optgroup label="🇬🇧 Royaume-Uni (-1h)">
+                                                                    <option value={1}>Londres / Creamfields / Drumsheds</option>
+                                                                </optgroup>
+                                                                <optgroup label="🌴 US - Côte Est (Miami / NY | -5h)">
+                                                                    <option value={5}>Ultra Music Festival Miami</option>
+                                                                    <option value={5}>Lost Lands (Ohio)</option>
+                                                                    <option value={5}>EDC Orlando / EDSea</option>
+                                                                </optgroup>
+                                                                <optgroup label="🎡 US - Côte Ouest (Vegas / LA | -8h)">
+                                                                    <option value={8}>EDC Las Vegas</option>
+                                                                    <option value={8}>Coachella</option>
+                                                                    <option value={8}>Day Trip Festival (Los Angeles)</option>
+                                                                </optgroup>
+                                                                <optgroup label="🤠 US - Centre (Chicago / Texas | -6h)">
+                                                                    <option value={6}>Lollapalooza Chicago</option>
+                                                                    <option value={6}>Ubbi Dubbi (Texas)</option>
+                                                                </optgroup>
+                                                                <optgroup label="⚙️ Manuel">
+                                                                    <option value={1}>+1h</option>
+                                                                    <option value={2}>+2h</option>
+                                                                    <option value={3}>+3h</option>
+                                                                    <option value={4}>+4h</option>
+                                                                    <option value={5}>+5h</option>
+                                                                    <option value={6}>+6h</option>
+                                                                    <option value={7}>+7h</option>
+                                                                    <option value={8}>+8h</option>
+                                                                    <option value={9}>+9h</option>
+                                                                    <option value={-1}>-1h</option>
+                                                                    <option value={-2}>-2h</option>
+                                                                    <option value={-7}>-7h (+7h)</option>
+                                                                    <option value={-8}>-8h (+8h)</option>
+                                                                </optgroup>
+                                                            </select>
+                                                        </div>
+
                                                         <div className="space-y-2">
                                                             <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">
                                                                 Planning à coller
@@ -2894,6 +2980,31 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
 
                                             <div className="space-y-4">
+                                                {/* Auto-remove toggle */}
+                                                <div className="flex items-center justify-between p-4 bg-white/5 border border-white/10 rounded-2xl">
+                                                    <div className="flex items-center gap-3">
+                                                        <Timer className="w-4 h-4 text-amber-400" />
+                                                        <div>
+                                                            <p className="text-xs font-black text-white uppercase tracking-widest">Suppression automatique</p>
+                                                            <p className="text-[10px] text-gray-500">Retire les artistes du jour quand leur set est terminé</p>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => {
+                                                            const next = !autoRemoveFinished;
+                                                            setAutoRemoveFinished(next);
+                                                            localStorage.setItem('lineup_auto_remove', next.toString());
+                                                            showNotification(next ? '⏰ Suppression auto activée' : 'Suppression auto désactivée', 'success');
+                                                        }}
+                                                        className={`relative w-12 h-6 rounded-full transition-all duration-300 ${
+                                                            autoRemoveFinished ? 'bg-amber-500' : 'bg-white/10'
+                                                        }`}
+                                                    >
+                                                        <span className={`absolute top-1 w-4 h-4 bg-white rounded-full shadow transition-all duration-300 ${
+                                                            autoRemoveFinished ? 'left-7' : 'left-1'
+                                                        }`} />
+                                                    </button>
+                                                </div>
                                                 {lineupItems.map((item, i) => (
                                                     <div key={item.id || i} className="p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between group hover:border-white/20 transition-all relative overflow-hidden">
                                                         {item.image && (
