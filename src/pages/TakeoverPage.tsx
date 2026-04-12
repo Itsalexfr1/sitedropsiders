@@ -2989,22 +2989,29 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                                         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent pointer-events-none" />
                                                                                     </>
                                                                                 )}
-                                                                                <span 
-                                                                                    onClick={() => {
-                                                                                        const newStart = prompt("Heure de début (HH:MM) :", entry.startTime);
-                                                                                        const newEnd = prompt("Heure de fin (HH:MM) :", displayEnd);
-                                                                                        if (newStart || newEnd) {
-                                                                                            const next = [...bulkPreview];
-                                                                                            if (newStart) next[idx].startTime = newStart;
-                                                                                            if (newEnd) next[idx].endTime = newEnd;
-                                                                                            setBulkPreview(next);
-                                                                                        }
-                                                                                    }}
-                                                                                    className={`font-mono text-xs font-black shrink-0 relative z-10 cursor-pointer hover:underline decoration-dotted ${entry.endTime ? 'text-neon-cyan' : 'text-amber-500/70 italic'}`}
-                                                                                >
-                                                                                    {entry.startTime}–{displayEnd}
-                                                                                    {!entry.endTime && <span className="ml-1 text-[7px] opacity-50 uppercase tracking-tighter">(Est.)</span>}
-                                                                                </span>
+                                                                                <div className="flex flex-col relative z-10">
+                                                                                    <span 
+                                                                                        onClick={() => {
+                                                                                            const newStart = prompt("Heure de début (HH:MM) :", entry.startTime);
+                                                                                            const newEnd = prompt("Heure de fin (HH:MM) :", displayEnd);
+                                                                                            if (newStart || newEnd) {
+                                                                                                const next = [...bulkPreview];
+                                                                                                if (newStart) next[idx].startTime = newStart;
+                                                                                                if (newEnd) next[idx].endTime = newEnd;
+                                                                                                setBulkPreview(next);
+                                                                                            }
+                                                                                        }}
+                                                                                        className={`font-mono text-[10px] font-black cursor-pointer hover:underline decoration-dotted ${entry.endTime ? 'text-neon-cyan' : 'text-amber-500/70 italic'}`}
+                                                                                    >
+                                                                                        {entry.startTime}–{displayEnd}
+                                                                                        {!entry.endTime && <span className="ml-1 text-[7px] opacity-50 uppercase tracking-tighter">(Est.)</span>}
+                                                                                    </span>
+                                                                                    {eventTimezoneOffset !== 0 && (
+                                                                                        <span className="text-[9px] font-black text-white/40 uppercase tracking-tighter leading-none">
+                                                                                            FR: {(parseInt(entry.startTime.split(':')[0], 10) + eventTimezoneOffset) % 24}:{(entry.startTime.split(':')[1])}
+                                                                                        </span>
+                                                                                    )}
+                                                                                </div>
                                                                                 <span className="text-white text-xs font-black uppercase truncate relative z-10 flex-1">{entry.artist}</span>
                                                                                 <label
                                                                                     htmlFor={`bulk-img-${idx}`}
