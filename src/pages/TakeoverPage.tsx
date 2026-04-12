@@ -722,7 +722,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [bulkText, setBulkText] = useState('');
     const [bulkStage, setBulkStage] = useState('');
     const [bulkDate, setBulkDate] = useState('');
-    const [bulkPreview, setBulkPreview] = useState<{ startTime: string; artist: string; image?: string }[]>([]);
+    const [bulkPreview, setBulkPreview] = useState<{ startTime: string; endTime?: string; artist: string; image?: string }[]>([]);
     const [bulkCropIndex, setBulkCropIndex] = useState<number | null>(null);
     const [autoRemoveFinished, setAutoRemoveFinished] = useState(() => localStorage.getItem('lineup_auto_remove') === 'true');
 
