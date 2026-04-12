@@ -725,7 +725,30 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [bulkPreview, setBulkPreview] = useState<{ startTime: string; endTime?: string; artist: string; image?: string }[]>([]);
     const [bulkCropIndex, setBulkCropIndex] = useState<number | null>(null);
     const [bulkRequireEndTime, setBulkRequireEndTime] = useState(false);
+    const [selectedTimezoneId, setSelectedTimezoneId] = useState<string>('fr');
     const [autoRemoveFinished, setAutoRemoveFinished] = useState(() => localStorage.getItem('lineup_auto_remove') === 'true');
+
+    const timezonePresets = [
+        { id: 'fr', label: '🇫🇷 Heure Française (pas de conversion)', offset: 0, group: '🌍 Europe' },
+        { id: 'uk', label: 'Londres / Creamfields / Drumsheds', offset: 1, group: '🇬🇧 Royaume-Uni (-1h)' },
+        { id: 'us-east-miami', label: 'Ultra Music Festival Miami / NY', offset: 5, group: '🌴 US - Côte Est (-5h)' },
+        { id: 'us-east-lost', label: 'Lost Lands (Ohio)', offset: 5, group: '🌴 US - Côte Est (-5h)' },
+        { id: 'us-east-orlando', label: 'EDC Orlando / EDSea', offset: 5, group: '🌴 US - Côte Est (-5h)' },
+        { id: 'us-west-vegas', label: 'EDC Las Vegas', offset: 8, group: '🎡 US - Côte Ouest (-8h)' },
+        { id: 'us-west-coachella', label: 'Coachella', offset: 8, group: '🎡 US - Côte Ouest (-8h)' },
+        { id: 'us-west-la', label: 'Day Trip Festival (Los Angeles)', offset: 8, group: '🎡 US - Côte Ouest (-8h)' },
+        { id: 'us-central-chicago', label: 'Lollapalooza Chicago', offset: 6, group: '🤠 US - Centre (-6h)' },
+        { id: 'us-central-texas', label: 'Ubbi Dubbi (Texas)', offset: 6, group: '🤠 US - Centre (-6h)' },
+    ];
+
+    const eventTimezoneOffset = (() => {
+        const preset = timezonePresets.find(p => p.id === selectedTimezoneId);
+        if (preset) return preset.offset;
+        if (selectedTimezoneId === 'm1') return 1;
+        if (selectedTimezoneId === 'm2') return 2;
+        if (selectedTimezoneId === 'm-1') return -1;
+        return 0;
+    })();
 
     const parseBulkSchedule = (text: string): { startTime: string; endTime?: string; artist: string }[] => {
         const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
@@ -2877,42 +2900,21 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                 {eventTimezoneOffset !== 0 && <span className="ml-2 text-amber-400 font-bold">({eventTimezoneOffset > 0 ? '+' : ''}{eventTimezoneOffset}h → heure FR)</span>}
                                                             </label>
                                                             <select
-                                                                value={eventTimezoneOffset}
-                                                                onChange={e => setEventTimezoneOffset(Number(e.target.value))}
+                                                                value={selectedTimezoneId}
+                                                                onChange={e => setSelectedTimezoneId(e.target.value)}
                                                                 className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
                                                             >
-                                                                <optgroup label="🌍 Europe (Aucun décalage)">
-                                                                    <option value={0}>🇫🇷 Heure Française (pas de conversion)</option>
-                                                                </optgroup>
-                                                                <optgroup label="🇬🇧 Royaume-Uni (-1h)">
-                                                                    <option value={1}>Londres / Creamfields / Drumsheds</option>
-                                                                </optgroup>
-                                                                <optgroup label="🌴 US - Côte Est (Miami / NY | -5h)">
-                                                                    <option value={5}>Ultra Music Festival Miami</option>
-                                                                    <option value={5}>Lost Lands (Ohio)</option>
-                                                                    <option value={5}>EDC Orlando / EDSea</option>
-                                                                </optgroup>
-                                                                <optgroup label="🎡 US - Côte Ouest (Vegas / LA | -8h)">
-                                                                    <option value={8}>EDC Las Vegas</option>
-                                                                    <option value={8}>Coachella</option>
-                                                                    <option value={8}>Day Trip Festival (Los Angeles)</option>
-                                                                </optgroup>
-                                                                <optgroup label="🤠 US - Centre (Chicago / Texas | -6h)">
-                                                                    <option value={6}>Lollapalooza Chicago</option>
-                                                                    <option value={6}>Ubbi Dubbi (Texas)</option>
-                                                                </optgroup>
+                                                                {Array.from(new Set(timezonePresets.map(p => p.group))).map(group => (
+                                                                    <optgroup key={group} label={group}>
+                                                                        {timezonePresets.filter(p => p.group === group).map(p => (
+                                                                            <option key={p.id} value={p.id}>{p.label}</option>
+                                                                        ))}
+                                                                    </optgroup>
+                                                                ))}
                                                                 <optgroup label="⚙️ Manuel">
-                                                                    <option value={1}>+1h</option>
-                                                                    <option value={2}>+2h</option>
-                                                                    <option value={3}>+3h</option>
-                                                                    <option value={4}>+4h</option>
-                                                                    <option value={5}>+5h</option>
-                                                                    <option value={6}>+6h</option>
-                                                                    <option value={7}>+7h</option>
-                                                                    <option value={8}>+8h</option>
-                                                                    <option value={9}>+9h</option>
-                                                                    <option value={-1}>-1h</option>
-                                                                    <option value={-2}>-2h</option>
+                                                                    <option value="m1">+1h</option>
+                                                                    <option value="m2">+2h</option>
+                                                                    <option value="m-1">-1h</option>
                                                                 </optgroup>
                                                             </select>
                                                         </div>
@@ -2987,7 +2989,19 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                                         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent pointer-events-none" />
                                                                                     </>
                                                                                 )}
-                                                                                <span className={`font-mono text-xs font-black shrink-0 relative z-10 ${entry.endTime ? 'text-neon-cyan' : 'text-amber-500/70 italic'}`}>
+                                                                                <span 
+                                                                                    onClick={() => {
+                                                                                        const newStart = prompt("Heure de début (HH:MM) :", entry.startTime);
+                                                                                        const newEnd = prompt("Heure de fin (HH:MM) :", displayEnd);
+                                                                                        if (newStart || newEnd) {
+                                                                                            const next = [...bulkPreview];
+                                                                                            if (newStart) next[idx].startTime = newStart;
+                                                                                            if (newEnd) next[idx].endTime = newEnd;
+                                                                                            setBulkPreview(next);
+                                                                                        }
+                                                                                    }}
+                                                                                    className={`font-mono text-xs font-black shrink-0 relative z-10 cursor-pointer hover:underline decoration-dotted ${entry.endTime ? 'text-neon-cyan' : 'text-amber-500/70 italic'}`}
+                                                                                >
                                                                                     {entry.startTime}–{displayEnd}
                                                                                     {!entry.endTime && <span className="ml-1 text-[7px] opacity-50 uppercase tracking-tighter">(Est.)</span>}
                                                                                 </span>
