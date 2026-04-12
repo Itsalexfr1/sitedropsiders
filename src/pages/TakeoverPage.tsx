@@ -693,6 +693,73 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [planningActiveDay, setPlanningActiveDay] = useState<string>('');
     const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
 
+    // Bulk Import states
+    const [showBulkImport, setShowBulkImport] = useState(false);
+    const [bulkText, setBulkText] = useState('');
+    const [bulkStage, setBulkStage] = useState('');
+    const [bulkDate, setBulkDate] = useState('');
+    const [bulkPreview, setBulkPreview] = useState<{ startTime: string; artist: string; image?: string }[]>([]);
+
+    const parseBulkSchedule = (text: string): { startTime: string; artist: string }[] => {
+        const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+        const results: { startTime: string; artist: string }[] = [];
+        // Matches patterns like: "4:00pm - Artist", "16:00 - Artist", "16h00 - Artist"
+        const regex = /^(\d{1,2})[:\s.h]?(\d{2})?\s*(am|pm)?\s*[-–—]\s*(.+)$/i;
+        for (const line of lines) {
+            const m = line.match(regex);
+            if (!m) continue;
+            let h = parseInt(m[1], 10);
+            const min = parseInt(m[2] || '0', 10);
+            const period = (m[3] || '').toLowerCase();
+            const artist = m[4].trim();
+            if (period === 'pm' && h < 12) h += 12;
+            if (period === 'am' && h === 12) h = 0;
+            const startTime = `${h.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+            results.push({ startTime, artist });
+        }
+        return results;
+    };
+
+    const handleBulkImport = () => {
+        if (!bulkStage || !bulkDate || bulkPreview.length === 0) {
+            showNotification('Veuillez remplir la date, la scène et coller un planning', 'error');
+            return;
+        }
+        const missingPhotos = bulkPreview.filter(e => !e.image);
+        if (missingPhotos.length > 0) {
+            showNotification(`📷 Photo obligatoire — ${missingPhotos.length} artiste(s) sans photo`, 'error');
+            return;
+        }
+        const newItems: LineupItem[] = bulkPreview.map((entry, idx) => {
+            // End time = start of next slot, or start + 1h for last
+            const nextEntry = bulkPreview[idx + 1];
+            let endTime: string;
+            if (nextEntry) {
+                endTime = nextEntry.startTime;
+            } else {
+                const [hh, mm] = entry.startTime.split(':').map(Number);
+                endTime = `${((hh + 1) % 24).toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
+            }
+            return {
+                id: ID.unique(),
+                day: bulkDate,
+                startTime: entry.startTime,
+                endTime,
+                artist: entry.artist.toUpperCase(),
+                stage: bulkStage.toUpperCase(),
+                instagram: '',
+                instagram2: '',
+                instagram3: '',
+                image: entry.image || ''
+            };
+        });
+        setLineupItems(prev => [...prev, ...newItems]);
+        showNotification(`✅ ${newItems.length} artiste(s) importé(s) !`, 'success');
+        setBulkText('');
+        setBulkPreview([]);
+        setShowBulkImport(false);
+    };
+
     const extractYoutubeId = (url: string) => {
         if (!url) return '';
         const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/))([\w-]{11})/);
@@ -2563,6 +2630,148 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         </div>
                                     ) : adminActiveTab === 'planning' ? (
                                         <div className="space-y-10 animate-in fade-in duration-500">
+
+                                            {/* ── BULK IMPORT PANEL ── */}
+                                            <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-12 h-12 bg-purple-500/20 rounded-2xl flex items-center justify-center">
+                                                            <Zap className="w-6 h-6 text-purple-400" />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tighter">Import groupé</h3>
+                                                            <p className="text-[10px] text-gray-500 font-bold uppercase">Collez un planning entier d'une scène en un clic</p>
+                                                        </div>
+                                                    </div>
+                                                    <button
+                                                        onClick={() => { setShowBulkImport(v => !v); setBulkPreview([]); }}
+                                                        className={`px-5 py-2.5 rounded-xl text-[10px] font-black uppercase transition-all ${
+                                                            showBulkImport
+                                                                ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30'
+                                                                : 'bg-white/5 text-gray-400 hover:text-white border border-white/10'
+                                                        }`}
+                                                    >
+                                                        {showBulkImport ? '✕ Fermer' : '+ Ouvrir'}
+                                                    </button>
+                                                </div>
+
+                                                {showBulkImport && (
+                                                    <div className="space-y-5 border-t border-white/5 pt-6">
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div className="space-y-2">
+                                                                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Date de la journée</label>
+                                                                <input
+                                                                    type="date"
+                                                                    value={bulkDate}
+                                                                    onChange={e => setBulkDate(e.target.value)}
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
+                                                                />
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Scène</label>
+                                                                <select
+                                                                    value={bulkStage}
+                                                                    onChange={e => setBulkStage(e.target.value)}
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
+                                                                >
+                                                                    <option value="">CHOISIR SCÈNE</option>
+                                                                    {editStreams.map(s => <option key={s.id} value={s.name.toUpperCase()}>{s.name.toUpperCase()}</option>)}
+                                                                </select>
+                                                            </div>
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">
+                                                                Planning à coller
+                                                                <span className="text-gray-600 font-normal normal-case tracking-normal ml-2">— ex : 4:00pm - Wet Leg</span>
+                                                            </label>
+                                                            <textarea
+                                                                rows={8}
+                                                                value={bulkText}
+                                                                onChange={e => {
+                                                                    setBulkText(e.target.value);
+                                                                    setBulkPreview(parseBulkSchedule(e.target.value));
+                                                                }}
+                                                                placeholder={`Collez ici le planning, une ligne par artiste :\n4:00pm - Tijuana Panthers\n4:45pm - Wet Leg\n6:10pm - Major Lazer\n7:50pm - Young Thug\n9:55pm - KAROL G`}
+                                                                className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white font-mono resize-none outline-none focus:border-purple-500/50 transition-all"
+                                                            />
+                                                        </div>
+
+                                                        {/* Preview */}
+                                                        {bulkPreview.length > 0 && (
+                                                            <div className="space-y-2">
+                                                                <p className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Aperçu — {bulkPreview.length} session(s) détectée(s) <span className="text-gray-600 font-normal normal-case tracking-normal">· cliquez 📷 pour ajouter une photo</span></p>
+                                                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
+                                                                    {bulkPreview.map((entry, idx) => {
+                                                                        const next = bulkPreview[idx + 1];
+                                                                        const [hh, mm] = entry.startTime.split(':').map(Number);
+                                                                        const endTime = next ? next.startTime : `${((hh + 1) % 24).toString().padStart(2, '0')}:${mm.toString().padStart(2, '0')}`;
+                                                                        return (
+                                                                            <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl group relative overflow-hidden transition-all ${
+                                                                                entry.image
+                                                                                    ? 'bg-purple-500/10 border border-purple-500/20'
+                                                                                    : 'bg-red-500/10 border border-red-500/40'
+                                                                            }`}>
+                                                                                {/* Background thumbnail */}
+                                                                                {entry.image && (
+                                                                                    <>
+                                                                                        <img src={entry.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 pointer-events-none" />
+                                                                                        <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent pointer-events-none" />
+                                                                                    </>
+                                                                                )}
+                                                                                {/* Time */}
+                                                                                <span className="text-neon-cyan font-mono text-xs font-black shrink-0 relative z-10">{entry.startTime}–{endTime}</span>
+                                                                                {/* Artist name */}
+                                                                                <span className="text-white text-xs font-black uppercase truncate relative z-10 flex-1">{entry.artist}</span>
+                                                                                {/* Photo upload button */}
+                                                                                <label
+                                                                                    htmlFor={`bulk-img-${idx}`}
+                                                                                    className={`relative z-10 shrink-0 w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all ${
+                                                                                        entry.image
+                                                                                            ? 'bg-neon-cyan/20 border border-neon-cyan/40'
+                                                                                            : 'bg-white/10 border border-white/10 hover:border-purple-400/60'
+                                                                                    }`}
+                                                                                    title={entry.image ? 'Changer la photo' : 'Ajouter une photo'}
+                                                                                >
+                                                                                    {entry.image
+                                                                                        ? <img src={entry.image} alt="" className="w-full h-full object-cover rounded-lg" />
+                                                                                        : <Camera className="w-3.5 h-3.5 text-gray-400" />}
+                                                                                </label>
+                                                                                <input
+                                                                                    id={`bulk-img-${idx}`}
+                                                                                    type="file"
+                                                                                    accept="image/*"
+                                                                                    className="hidden"
+                                                                                    onChange={e => {
+                                                                                        const file = e.target.files?.[0];
+                                                                                        if (!file) return;
+                                                                                        const reader = new FileReader();
+                                                                                        reader.onload = ev => {
+                                                                                            const dataUrl = ev.target?.result as string;
+                                                                                            setBulkPreview(prev => prev.map((item, i) => i === idx ? { ...item, image: dataUrl } : item));
+                                                                                        };
+                                                                                        reader.readAsDataURL(file);
+                                                                                    }}
+                                                                                />
+                                                                            </div>
+                                                                        );
+                                                                    })}
+                                                                </div>
+                                                            </div>
+                                                        )}
+
+                                                        <button
+                                                            onClick={handleBulkImport}
+                                                            disabled={bulkPreview.length === 0 || !bulkDate || !bulkStage || bulkPreview.some(e => !e.image)}
+                                                            className="w-full py-4 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black uppercase rounded-2xl transition-all shadow-xl shadow-purple-500/20 flex items-center justify-center gap-3"
+                                                        >
+                                                            <Zap className="w-5 h-5" />
+                                                            Importer {bulkPreview.length > 0 ? `(${bulkPreview.length} artiste${bulkPreview.length > 1 ? 's' : ''})` : ''} dans le planning
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+
                                             <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6" id="planning-form">
                                                 <div className="flex items-center gap-4">
                                                     <div className="w-12 h-12 bg-neon-cyan/20 rounded-2xl flex items-center justify-center">

@@ -21,8 +21,8 @@ export function QrCodePage() {
             },
             imageOptions: {
                 crossOrigin: "anonymous",
-                margin: 20,
-                imageSize: 0.4,
+                margin: 15,
+                imageSize: 0.55,
                 hideBackgroundDots: true // This natively creates a black hole behind the logo
             },
             cornersSquareOptions: {
