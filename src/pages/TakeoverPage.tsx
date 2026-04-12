@@ -869,6 +869,51 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         showNotification(editingLineupId ? 'Session modifiée' : 'Session ajoutée', 'success');
     };
 
+    const handleGlobalSave = async () => {
+        setIsSaving(true);
+        try {
+            const updated = {
+                ...settings,
+                title: editTitle,
+                streams: editStreams,
+                activeStreamId: editActiveStreamId,
+                tickerText: editAnnText,
+                showTickerBanner: editAnnEnabled,
+                status: editStatus,
+                startDate: editStartDate,
+                endDate: editEndDate,
+                tickerBgColor: editTickerBg,
+                tickerTextColor: editTickerTextC,
+                instagramLink: editInsta,
+                tiktokLink: editTiktok,
+                youtubeLink: editYoutube,
+                twitterLink: editTwitter,
+                sponsorText: editSponsorText,
+                sponsorLink: editSponsorLink,
+                showSponsorBanner: editShowSponsorBanner,
+                bannedWords: editBannedWords,
+                dropsAmount: editDropsAmount,
+                dropsInterval: editDropsInterval,
+                lots: dropsLots,
+                botCommands: botCommands,
+                festivalLogo: editFestivalLogo,
+                lineup: JSON.stringify(lineupItems),
+                tracklist: JSON.stringify(tracklist)
+            };
+            await fetch('/api/takeover-settings', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(updated)
+            });
+            setSettings(updated);
+            showNotification('Configuration enregistrée !', 'success');
+        } catch (e) {
+            showNotification('Erreur lors de la sauvegarde', 'error');
+        } finally {
+            setIsSaving(false);
+        }
+    };
+
     useEffect(() => {
         const init = async () => {
             fetchSettings();
@@ -2614,50 +2659,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             {/* SAUVEGARDE GLOBALE */}
                                             <div className="pt-8 mb-12">
                                                 <button 
-                                                    onClick={async () => {
-                                                        try {
-                                                            setIsSaving(true);
-                                                            const updated = { 
-                                                                ...settings, 
-                                                                title: editTitle, 
-                                                                streams: editStreams, 
-                                                                activeStreamId: editActiveStreamId, 
-                                                                tickerText: editAnnText, 
-                                                                showTickerBanner: editAnnEnabled, 
-                                                                status: editStatus, 
-                                                                startDate: editStartDate,
-                                                                endDate: editEndDate,
-                                                                tickerBgColor: editTickerBg, 
-                                                                tickerTextColor: editTickerTextC, 
-                                                                instagramLink: editInsta, 
-                                                                tiktokLink: editTiktok, 
-                                                                youtubeLink: editYoutube, 
-                                                                twitterLink: editTwitter, 
-                                                                sponsorText: editSponsorText, 
-                                                                sponsorLink: editSponsorLink, 
-                                                                showSponsorBanner: editShowSponsorBanner, 
-                                                                bannedWords: editBannedWords,
-                                                                dropsAmount: editDropsAmount,
-                                                                dropsInterval: editDropsInterval,
-                                                                lots: dropsLots,
-                                                                botCommands: botCommands,
-                                                                festivalLogo: editFestivalLogo,
-                                                                lineup: JSON.stringify(lineupItems),
-                                                                tracklist: JSON.stringify(tracklist)
-                                                            };
-                                                            await fetch('/api/takeover-settings', {
-                                                                method: 'POST',
-                                                                headers: { 'Content-Type': 'application/json' },
-                                                                body: JSON.stringify(updated)
-                                                            });
-                                                            setSettings(updated);
-                                                            showNotification('Configuration enregistrée !', 'success');
-                                                        } catch (e) {
-                                                            showNotification('Erreur lors de la sauvegarde', 'error');
-                                                        } finally {
-                                                            setIsSaving(false);
-                                                        }
-                                                    }}
+                                                    onClick={handleGlobalSave}
                                                     disabled={isSaving}
                                                     className={`w-full py-6 bg-neon-cyan text-black font-black uppercase rounded-3xl transition-all shadow-2xl flex items-center justify-center gap-4 ${isSaving ? 'opacity-50' : 'hover:scale-[1.02] active:scale-95 shadow-neon-cyan/20 cursor-pointer'}`}
                                                 >
@@ -2667,7 +2669,16 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             </div>
                                         </div>
                                     ) : adminActiveTab === 'planning' ? (
-                                        <div className="space-y-10 animate-in fade-in duration-500">
+                                        <div className="space-y-6 animate-in fade-in duration-500">
+                                            {/* Quick Save Planning Button */}
+                                            <button 
+                                                onClick={handleGlobalSave}
+                                                disabled={isSaving}
+                                                className={`w-full py-5 bg-gradient-to-r from-neon-cyan/80 to-blue-600/80 text-white font-black uppercase rounded-3xl transition-all shadow-xl flex items-center justify-center gap-3 ${isSaving ? 'opacity-50' : 'hover:scale-[1.01] active:scale-95 shadow-neon-cyan/10 cursor-pointer'}`}
+                                            >
+                                                {isSaving ? <Timer className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+                                                {isSaving ? 'SAUVEGARDE...' : 'Enregistrer le Planning'}
+                                            </button>
 
                                             {/* ── BULK IMPORT PANEL ── */}
                                             <div className="p-8 bg-white/5 border border-white/10 rounded-[2.5rem] space-y-6">
