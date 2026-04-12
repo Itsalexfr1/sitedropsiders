@@ -727,6 +727,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [bulkRequireEndTime, setBulkRequireEndTime] = useState(false);
     const [selectedTimezoneId, setSelectedTimezoneId] = useState<string>('fr');
     const [autoRemoveFinished, setAutoRemoveFinished] = useState(() => localStorage.getItem('lineup_auto_remove') === 'true');
+    const [editingBulkTime, setEditingBulkTime] = useState<{ index: number; start: string; end: string } | null>(null);
 
     const timezonePresets = [
         { id: 'fr', label: '🇫🇷 Heure Française (pas de conversion)', offset: 0, group: '🌍 Europe' },
@@ -2992,14 +2993,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                                 <div className="flex flex-col relative z-10">
                                                                                     <span 
                                                                                         onClick={() => {
-                                                                                            const newStart = prompt("Heure de début (HH:MM) :", entry.startTime);
-                                                                                            const newEnd = prompt("Heure de fin (HH:MM) :", displayEnd);
-                                                                                            if (newStart || newEnd) {
-                                                                                                const next = [...bulkPreview];
-                                                                                                if (newStart) next[idx].startTime = newStart;
-                                                                                                if (newEnd) next[idx].endTime = newEnd;
-                                                                                                setBulkPreview(next);
-                                                                                            }
+                                                                                            setEditingBulkTime({
+                                                                                                index: idx,
+                                                                                                start: entry.startTime,
+                                                                                                end: displayEnd
+                                                                                            });
                                                                                         }}
                                                                                         className={`font-mono text-[10px] font-black cursor-pointer hover:underline decoration-dotted ${entry.endTime ? 'text-neon-cyan' : 'text-amber-500/70 italic'}`}
                                                                                     >
@@ -5034,6 +5032,81 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     onCancel={() => setOcrImage(null)}
                 />
             )}
+
+            {/* Custom Time Edit Modal */}
+            <AnimatePresence>
+                {editingBulkTime && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[600] flex items-center justify-center p-6 bg-black/80 backdrop-blur-md"
+                    >
+                        <motion.div
+                            initial={{ scale: 0.9, y: 20 }}
+                            animate={{ scale: 1, y: 0 }}
+                            exit={{ scale: 0.9, y: 20 }}
+                            className="w-full max-w-sm bg-[#0a0a0a] border border-white/10 rounded-[2.5rem] p-8 shadow-2xl relative overflow-hidden"
+                        >
+                            <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-neon-cyan/5 pointer-events-none" />
+                            
+                            <div className="relative z-10 space-y-6 text-center">
+                                <div className="flex flex-col items-center gap-4">
+                                    <div className="w-16 h-16 bg-purple-600/20 rounded-[1.5rem] flex items-center justify-center">
+                                        <Clock className="w-8 h-8 text-purple-400" />
+                                    </div>
+                                    <div>
+                                        <h3 className="text-2xl font-display font-black text-white uppercase italic tracking-tighter">Heure du Set</h3>
+                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">{bulkPreview[editingBulkTime.index]?.artist}</p>
+                                    </div>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Début</label>
+                                        <input 
+                                            type="time" 
+                                            value={editingBulkTime.start}
+                                            onChange={e => setEditingBulkTime({ ...editingBulkTime, start: e.target.value })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-xl font-mono text-white outline-none focus:border-purple-500 transition-all font-black text-center"
+                                        />
+                                    </div>
+                                    <div className="space-y-2">
+                                        <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest block">Fin</label>
+                                        <input 
+                                            type="time" 
+                                            value={editingBulkTime.end}
+                                            onChange={e => setEditingBulkTime({ ...editingBulkTime, end: e.target.value })}
+                                            className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-4 text-xl font-mono text-white outline-none focus:border-neon-cyan/50 transition-all font-black text-center"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="flex gap-3 pt-4">
+                                    <button 
+                                        onClick={() => setEditingBulkTime(null)}
+                                        className="flex-1 py-4 bg-white/5 text-white font-black uppercase rounded-2xl border border-white/10 hover:bg-white/10 transition-all text-sm tracking-widest"
+                                    >
+                                        NON
+                                    </button>
+                                    <button 
+                                        onClick={() => {
+                                            const next = [...bulkPreview];
+                                            next[editingBulkTime.index].startTime = editingBulkTime.start;
+                                            next[editingBulkTime.index].endTime = editingBulkTime.end;
+                                            setBulkPreview(next);
+                                            setEditingBulkTime(null);
+                                        }}
+                                        className="flex-[1.5] py-4 bg-purple-600 hover:bg-purple-500 text-white font-black uppercase rounded-2xl transition-all shadow-xl shadow-purple-500/20 text-sm tracking-widest"
+                                    >
+                                        VALIDER
+                                    </button>
+                                </div>
+                            </div>
+                        </motion.div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </div>
     );
 };
