@@ -115,6 +115,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const isSpecialAdmin = storedPseudo && ['alex', 'alexf', 'itsalexfr1', 'contact@dropsiders.fr', 'contact@dropsiders.fr'].includes(storedPseudo.toLowerCase());
     const userRole: 'admin' | 'mod' | 'user' = (isAdmin || isSpecialAdmin) ? 'admin' : 'user';
+
+    // Moderation States
+    const [moderators, setModerators] = useState<string[]>([]);
+    const [bannedPseudos, setBannedPseudos] = useState<string[]>([]);
+    const [isBanned, setIsBanned] = useState(false);
+
     const isMod = useMemo(() => {
         const currentPs = (storedPseudo || '').toUpperCase();
         return userRole !== 'user' || moderators.includes(currentPs);
@@ -177,7 +183,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     // Chat State
     const [chatMessages, setChatMessages] = useState<any[]>([]);
     const [userCountry, setUserCountry] = useState('FR');
-    const [isBanned, setIsBanned] = useState(false);
     const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
     const [slowModeEnabled, setSlowModeEnabled] = useState(false);
     const [lastMessageTime, setLastMessageTime] = useState(0);
@@ -702,11 +707,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [eventTimezoneOffset, setEventTimezoneOffset] = useState<number>(0);
     const [planningActiveDay, setPlanningActiveDay] = useState<string>('');
     const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
-    const [moderators, setModerators] = useState<string[]>([]);
-    const [bannedPseudos, setBannedPseudos] = useState<string[]>([]);
     const [newModo, setNewModo] = useState('');
     const [newBanned, setNewBanned] = useState('');
     const [showCustomDuration, setShowCustomDuration] = useState(false);
+    const [isScanningImage, setIsScanningImage] = useState(false);
+    const [isScanningImage, setIsScanningImage] = useState(false);
+    const [scanProgress, setScanProgress] = useState(0);
 
     // Bulk Import states
     const [showBulkImport, setShowBulkImport] = useState(false);
@@ -1438,7 +1444,71 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         showNotification('Connexion réussie !', 'success');
     };
 
-    const handleAddSet = async () => {
+    const handleImageOCR = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setIsScanningImage(true);
+        setScanProgress(0);
+
+        try {
+            const result = await Tesseract.recognize(file, 'eng+fra', {
+                logger: m => {
+                    if (m.status === 'recognizing text') {
+                        setScanProgress(Math.floor(m.progress * 100));
+                    }
+                }
+            });
+
+            const text = result.data.text;
+            console.log("OCR Debug:", text);
+
+            // Basic parsing logic for festival posters
+            const lines = text.split('\n');
+            const foundArtists: string[] = [];
+            
+            // Regex to match times like 4:00-4:35 or 4:00 - 4:45
+            const timeRangeRegex = /(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})/;
+
+            let currentText = '';
+            lines.forEach(line => {
+                const trimmed = line.trim();
+                if (!trimmed) return;
+
+                const timeMatch = trimmed.match(timeRangeRegex);
+                if (timeMatch) {
+                    // We found a time, the text before it (or above it) is likely the artist
+                    const artist = currentText.trim() || trimmed.replace(timeMatch[0], '').trim();
+                    if (artist && artist.length > 2) {
+                        foundArtists.push(`${timeMatch[1]} - ${artist}`);
+                    }
+                    currentText = ''; // reset for next artist
+                } else {
+                    // Accumulate text above the time
+                    if (trimmed.length > 2 && !trimmed.match(/^\d+$/)) {
+                        currentText += ' ' + trimmed;
+                    }
+                }
+            });
+
+            if (foundArtists.length > 0) {
+                const newText = (bulkText ? bulkText + '\n' : '') + foundArtists.join('\n');
+                setBulkText(newText);
+                setBulkPreview(parseBulkSchedule(newText));
+                showNotification(`${foundArtists.length} artistes détectés !`, 'success');
+            } else {
+                showNotification("Aucun artiste détecté. Essayez de copier le texte manuellement.", 'warning');
+            }
+        } catch (error) {
+            console.error(error);
+            showNotification("Erreur lors de l'analyse de l'image", 'error');
+        } finally {
+            setIsScanningImage(false);
+            setScanProgress(0);
+        }
+    };
+
+    const handleGlobalSave = async () => {
         if (!newSetArtist) return;
         const nextSet: TracklistSet = {
             id: Date.now().toString(),
@@ -2746,7 +2816,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             </div>
                                                         </div>
 
-                                                        {/* Timezone selector shared with individual form */}
                                                         <div className="space-y-2">
                                                             <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">
                                                                 Fuseau horaire local
@@ -2789,17 +2858,25 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     <option value={9}>+9h</option>
                                                                     <option value={-1}>-1h</option>
                                                                     <option value={-2}>-2h</option>
-                                                                    <option value={-7}>-7h (+7h)</option>
-                                                                    <option value={-8}>-8h (+8h)</option>
                                                                 </optgroup>
                                                             </select>
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">
-                                                                Planning à coller
-                                                                <span className="text-gray-600 font-normal normal-case tracking-normal ml-2">— ex : 4:00pm - Wet Leg</span>
-                                                            </label>
+                                                            <div className="flex items-center justify-between">
+                                                                <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">
+                                                                    Planning à coller
+                                                                </label>
+                                                                <button 
+                                                                    onClick={() => (document.getElementById('poster-scan') as HTMLInputElement)?.click()}
+                                                                    disabled={isScanningImage}
+                                                                    className={`flex items-center gap-2 text-[10px] font-black uppercase text-purple-400 hover:text-purple-300 transition-all ${isScanningImage ? 'opacity-50' : ''}`}
+                                                                >
+                                                                    {isScanningImage ? <Timer className="w-3 h-3 animate-spin" /> : <Scan className="w-3 h-3" />}
+                                                                    {isScanningImage ? `Analyse ${scanProgress}%` : 'Scanner une affiche'}
+                                                                </button>
+                                                                <input id="poster-scan" type="file" accept="image/*" onChange={handleImageOCR} className="hidden" />
+                                                            </div>
                                                             <textarea
                                                                 rows={8}
                                                                 value={bulkText}
@@ -2807,7 +2884,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                     setBulkText(e.target.value);
                                                                     setBulkPreview(parseBulkSchedule(e.target.value));
                                                                 }}
-                                                                placeholder={`Collez ici le planning, une ligne par artiste :\n4:00pm - Tijuana Panthers\n4:45pm - Wet Leg\n6:10pm - Major Lazer\n7:50pm - Young Thug\n9:55pm - KAROL G`}
+                                                                placeholder={`Collez ici le planning, une ligne par artiste :\n4:00pm - Tijuana Panthers\n4:45pm - Wet Leg`}
                                                                 className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white font-mono resize-none outline-none focus:border-purple-500/50 transition-all"
                                                             />
                                                         </div>
@@ -2827,18 +2904,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                                     ? 'bg-purple-500/10 border border-purple-500/20'
                                                                                     : 'bg-red-500/10 border border-red-500/40'
                                                                             }`}>
-                                                                                {/* Background thumbnail */}
                                                                                 {entry.image && (
                                                                                     <>
                                                                                         <img src={entry.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15 pointer-events-none" />
                                                                                         <div className="absolute inset-0 bg-gradient-to-r from-black/70 to-transparent pointer-events-none" />
                                                                                     </>
                                                                                 )}
-                                                                                {/* Time */}
                                                                                 <span className="text-neon-cyan font-mono text-xs font-black shrink-0 relative z-10">{entry.startTime}–{endTime}</span>
-                                                                                {/* Artist name */}
                                                                                 <span className="text-white text-xs font-black uppercase truncate relative z-10 flex-1">{entry.artist}</span>
-                                                                                {/* Photo upload button */}
                                                                                 <label
                                                                                     htmlFor={`bulk-img-${idx}`}
                                                                                     className={`relative z-10 shrink-0 w-8 h-8 rounded-lg flex items-center justify-center cursor-pointer transition-all ${
@@ -2846,7 +2919,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                                             ? 'bg-neon-cyan/20 border border-neon-cyan/40'
                                                                                             : 'bg-white/10 border border-white/10 hover:border-purple-400/60'
                                                                                     }`}
-                                                                                    title={entry.image ? 'Changer la photo' : 'Ajouter une photo'}
                                                                                 >
                                                                                     {entry.image
                                                                                         ? <img src={entry.image} alt="" className="w-full h-full object-cover rounded-lg" />
@@ -2859,14 +2931,15 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                                     className="hidden"
                                                                                     onChange={e => {
                                                                                         const file = e.target.files?.[0];
-                                                                                        if (!file) return;
-                                                                                        const reader = new FileReader();
-                                                                                        reader.onload = ev => {
-                                                                                            const dataUrl = ev.target?.result as string;
-                                                                                            setBulkCropIndex(idx);
-                                                                                            setCropImageSrc(dataUrl);
-                                                                                        };
-                                                                                        reader.readAsDataURL(file);
+                                                                                        if (file) {
+                                                                                            const reader = new FileReader();
+                                                                                            reader.onload = ev => {
+                                                                                                const dataUrl = ev.target?.result as string;
+                                                                                                setBulkCropIndex(idx);
+                                                                                                setCropImageSrc(dataUrl);
+                                                                                            };
+                                                                                            reader.readAsDataURL(file);
+                                                                                        }
                                                                                     }}
                                                                                 />
                                                                             </div>
@@ -3682,7 +3755,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <div className="mt-4 pt-4 border-t border-white/5 flex items-center justify-between">
                                         <p className="text-[8px] font-black text-gray-500 uppercase tracking-widest">Répondez par 1, 2, 3 ou 4 dans le chat</p>
                                         {userHasAnswered && (
-                                            <span className="text-[8px] font-black text-neon-cyan uppercase">Participation enregistrée ✅</span>
+                                            <span className="text-[8px] font-black text-neon-cyan uppercase">Participation enregistrée ✅ </span>
                                         )}
                                     </div>
                                 </motion.div>
