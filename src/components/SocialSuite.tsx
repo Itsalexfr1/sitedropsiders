@@ -467,7 +467,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 gradLine.addColorStop(0.5, `rgb(${activeData.grad})`);
                 gradLine.addColorStop(1, 'rgba(255,255,255,0)');
                 ctx.fillStyle = gradLine;
-                ctx.fillRect(centerX - lineW, infoY, lineW * 2, 1);
+                ctx.fillRect(centerX - lineW, infoY, lineW * 2, 2);
 
                 // 5. INFO SECTION (Minimalist floating typography)
                 if (customText) {
