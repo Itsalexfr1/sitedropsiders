@@ -641,11 +641,16 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         ctx.textAlign = 'center';
                         ctx.textBaseline = 'middle';
                         ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
-                        ctx.font = '900 italic 42px "Montserrat", sans-serif';
-                        ctx.letterSpacing = "8px";
                         ctx.shadowColor = 'rgba(0,0,0,0.9)';
                         ctx.shadowBlur = 20;
-                        ctx.fillText('DROPSIDERS.FR/LIVE', centerX, textY);
+
+                        ctx.font = '900 italic 28px "Montserrat", sans-serif';
+                        ctx.letterSpacing = "8px";
+                        ctx.fillText('RENDEZ-VOUS SUR', centerX, textY - 25);
+
+                        ctx.font = '900 italic 42px "Montserrat", sans-serif';
+                        ctx.letterSpacing = "8px";
+                        ctx.fillText('DROPSIDERS.FR/LIVE', centerX, textY + 25);
                         ctx.restore();
                     }
                 }
