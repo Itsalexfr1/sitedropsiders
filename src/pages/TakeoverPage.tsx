@@ -3004,11 +3004,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                                         {entry.startTime}–{displayEnd}
                                                                                         {!entry.endTime && <span className="ml-1 text-[7px] opacity-50 uppercase tracking-tighter">(Est.)</span>}
                                                                                     </span>
-                                                                                    {eventTimezoneOffset !== 0 && (
-                                                                                        <span className="text-[9px] font-black text-white/40 uppercase tracking-tighter leading-none">
-                                                                                            FR: {(parseInt(entry.startTime.split(':')[0], 10) + eventTimezoneOffset) % 24}:{(entry.startTime.split(':')[1])}
-                                                                                        </span>
-                                                                                    )}
+                                                                                    {eventTimezoneOffset !== 0 && (() => {
+                                                                                        const [sh, sm] = entry.startTime.split(':').map(Number);
+                                                                                        const [eh, em] = displayEnd.split(':').map(Number);
+                                                                                        const frS = `${((sh + eventTimezoneOffset) % 24).toString().padStart(2, '0')}:${sm.toString().padStart(2, '0')}`;
+                                                                                        const frE = `${((eh + eventTimezoneOffset) % 24).toString().padStart(2, '0')}:${em.toString().padStart(2, '0')}`;
+                                                                                        return (
+                                                                                            <span className="text-[10px] font-black text-purple-400 uppercase tracking-tighter leading-none flex items-center gap-1 mt-0.5">
+                                                                                                <Globe className="w-2.5 h-2.5" />
+                                                                                                FR: {frS}–{frE}
+                                                                                            </span>
+                                                                                        );
+                                                                                    })()}
                                                                                 </div>
                                                                                 <span className="text-white text-xs font-black uppercase truncate relative z-10 flex-1">{entry.artist}</span>
                                                                                 <label
