@@ -628,24 +628,24 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.restore();
                 });
 
-                // Display logo in the remaining empty space if there is enough room
-                if (logoRef.current && planningItems.length > 0) {
+                // Display link in the remaining empty space if there is enough room
+                if (planningItems.length > 0) {
                     const lastY = startY + ((planningItems.length - 1) * spacing);
                     const remainingSpaceStart = lastY + spacing;
                     const remainingHeight = canvas.height - remainingSpaceStart;
                     
-                    if (remainingHeight > 200) { // Only if there's significant space
+                    if (remainingHeight > 150) { // Only if there's significant space
                         ctx.save();
-                        const logoW = 350; // Large, prominent logo
-                        const logoH = (logoRef.current.height * logoW) / logoRef.current.width;
-                        const logoX = centerX - (logoW / 2);
-                        // Center vertically in the remaining space (slightly adjusted up)
-                        const logoY = remainingSpaceStart + (remainingHeight / 2) - (logoH / 2) - 30;
+                        const textY = remainingSpaceStart + (remainingHeight / 2) - 20; // Center vertically in the remaining space
                         
-                        ctx.globalAlpha = 0.8;
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                        ctx.font = '900 italic 42px "Montserrat", sans-serif';
+                        ctx.letterSpacing = "8px";
                         ctx.shadowColor = 'rgba(0,0,0,0.9)';
-                        ctx.shadowBlur = 25;
-                        ctx.drawImage(logoRef.current, logoX, logoY, logoW, logoH);
+                        ctx.shadowBlur = 20;
+                        ctx.fillText('DROPSIDERS.FR/LIVE', centerX, textY);
                         ctx.restore();
                     }
                 }
