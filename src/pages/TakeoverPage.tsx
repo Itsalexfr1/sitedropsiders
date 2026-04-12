@@ -812,10 +812,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             const nowMins = now.getHours() * 60 + now.getMinutes();
             const todayStr = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
             setLineupItems(prev => prev.filter(item => {
-                if (item.day !== todayStr) return true; // keep future/past days
-                const [eh, em] = (item.endTime || '00:00').split(':').map(Number);
-                const endMins = eh * 60 + em;
-                return nowMins < endMins; // keep if not finished yet
+                // Supprimer si c'est un jour passé
+                if (item.day < todayStr) return false;
+                
+                // Si c'est aujourd'hui, vérifier l'heure
+                if (item.day === todayStr) {
+                    const [eh, em] = (item.endTime || '00:00').split(':').map(Number);
+                    const endMins = eh * 60 + em;
+                    return nowMins < endMins;
+                }
+                
+                // Garder le futur
+                return true;
             }));
         };
         check();
@@ -2156,7 +2164,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const planMulti = planDays.length > 1;
     const nowLocal = new Date();
     const currentDayStr = `${nowLocal.getFullYear()}-${String(nowLocal.getMonth() + 1).padStart(2, '0')}-${String(nowLocal.getDate()).padStart(2, '0')}`;
-    const planActive = planningActiveDay || (planDays.includes(currentDayStr) ? currentDayStr : planDays[0]) || '';
+    const planActive = planningActiveDay || (
+        planDays.includes(currentDayStr) ? currentDayStr : 
+        (currentDayStr > (planDays[planDays.length - 1] || '') ? planDays[planDays.length - 1] : planDays[0])
+    ) || '';
     const planItems = (planMulti ? normalizedLineup.filter(i => i.logicalDay === planActive) : normalizedLineup)
         .filter(i => {
             // Filter by activeStage (mapping stage1 -> index 0 of streams name, or literal match)
