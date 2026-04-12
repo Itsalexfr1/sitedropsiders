@@ -8,8 +8,10 @@ import {
     BarChart3, Clock, Sword, Crown, Maximize2, Minimize2,
     Trophy, Stars, Heart, Timer, ShieldAlert, Calendar, Edit2, Edit3,
     Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
-    Search, ChevronUp, ChevronDown, ChevronLeft, Camera, Check, Coins, Shield
+    Search, ChevronUp, ChevronDown, ChevronLeft, Camera, Check, Coins, Shield,
+    Scan, Wand2
 } from 'lucide-react';
+import Tesseract from 'tesseract.js';
 import confetti from 'canvas-confetti';
 import { Client, Databases, ID, Query } from 'appwrite';
 import { FlagIcon } from '../components/ui/FlagIcon';
@@ -710,7 +712,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [newModo, setNewModo] = useState('');
     const [newBanned, setNewBanned] = useState('');
     const [showCustomDuration, setShowCustomDuration] = useState(false);
-    const [isScanningImage, setIsScanningImage] = useState(false);
     const [isScanningImage, setIsScanningImage] = useState(false);
     const [scanProgress, setScanProgress] = useState(0);
 
@@ -1453,7 +1454,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
         try {
             const result = await Tesseract.recognize(file, 'eng+fra', {
-                logger: m => {
+                logger: (m: any) => {
                     if (m.status === 'recognizing text') {
                         setScanProgress(Math.floor(m.progress * 100));
                     }
@@ -1463,28 +1464,23 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             const text = result.data.text;
             console.log("OCR Debug:", text);
 
-            // Basic parsing logic for festival posters
             const lines = text.split('\n');
             const foundArtists: string[] = [];
-            
-            // Regex to match times like 4:00-4:35 or 4:00 - 4:45
             const timeRangeRegex = /(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})/;
 
             let currentText = '';
-            lines.forEach(line => {
+            lines.forEach((line: string) => {
                 const trimmed = line.trim();
                 if (!trimmed) return;
 
                 const timeMatch = trimmed.match(timeRangeRegex);
                 if (timeMatch) {
-                    // We found a time, the text before it (or above it) is likely the artist
                     const artist = currentText.trim() || trimmed.replace(timeMatch[0], '').trim();
                     if (artist && artist.length > 2) {
                         foundArtists.push(`${timeMatch[1]} - ${artist}`);
                     }
-                    currentText = ''; // reset for next artist
+                    currentText = '';
                 } else {
-                    // Accumulate text above the time
                     if (trimmed.length > 2 && !trimmed.match(/^\d+$/)) {
                         currentText += ' ' + trimmed;
                     }
@@ -1497,18 +1493,18 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 setBulkPreview(parseBulkSchedule(newText));
                 showNotification(`${foundArtists.length} artistes détectés !`, 'success');
             } else {
-                showNotification("Aucun artiste détecté. Essayez de copier le texte manuellement.", 'warning');
+                showNotification("Aucun artiste détecté.", 'error');
             }
         } catch (error) {
             console.error(error);
-            showNotification("Erreur lors de l'analyse de l'image", 'error');
+            showNotification("Erreur lors de l'analyse", 'error');
         } finally {
             setIsScanningImage(false);
             setScanProgress(0);
         }
     };
 
-    const handleGlobalSave = async () => {
+    const handleAddSet = async () => {
         if (!newSetArtist) return;
         const nextSet: TracklistSet = {
             id: Date.now().toString(),
@@ -2954,7 +2950,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             disabled={bulkPreview.length === 0 || !bulkDate || !bulkStage || bulkPreview.some(e => !e.image)}
                                                             className="w-full py-4 bg-purple-600 hover:bg-purple-500 disabled:opacity-40 disabled:cursor-not-allowed text-white font-black uppercase rounded-2xl transition-all shadow-xl shadow-purple-500/20 flex items-center justify-center gap-3"
                                                         >
-                                                            <Zap className="w-5 h-5" />
+                                                            <Wand2 className="w-5 h-5" />
                                                             Importer {bulkPreview.length > 0 ? `(${bulkPreview.length} artiste${bulkPreview.length > 1 ? 's' : ''})` : ''} dans le planning
                                                         </button>
                                                     </div>
