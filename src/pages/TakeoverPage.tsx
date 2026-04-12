@@ -706,7 +706,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [newLineupItem, setNewLineupItem] = useState<LineupItem>({
         id: '', day: '', startTime: '', endTime: '', artist: '', stage: '', instagram: '', instagram2: '', instagram3: '', image: ''
     });
-    const [eventTimezoneOffset, setEventTimezoneOffset] = useState<number>(0);
+
     const [planningActiveDay, setPlanningActiveDay] = useState<string>('');
     const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
     const [newModo, setNewModo] = useState('');
@@ -3077,39 +3077,21 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 <div className="space-y-2">
                                                     <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">Fuseau Horaire Local (Conversion auto vers FR Heure)</label>
                                                     <select 
-                                                        value={eventTimezoneOffset} 
-                                                        onChange={e => setEventTimezoneOffset(Number(e.target.value))} 
+                                                        value={selectedTimezoneId} 
+                                                        onChange={e => setSelectedTimezoneId(e.target.value)} 
                                                         className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
                                                     >
-                                                        <optgroup label="🌍 Europe (Aucun décalage)">
-                                                            <option value={0}>🇫🇷 Heure Française (Tomorrowland, ASOT, Defqon.1 etc.)</option>
-                                                        </optgroup>
-                                                        <optgroup label="🇬🇧 Royaume-Uni (-1h)">
-                                                            <option value={1}>Londres / Creamfields / Drumsheds</option>
-                                                        </optgroup>
-                                                        <optgroup label="🌴 US - Côte Est (Miami / NY | -5h)">
-                                                            <option value={5}>Ultra Music Festival Miami</option>
-                                                            <option value={5}>Lost Lands (Ohio)</option>
-                                                            <option value={5}>EDC Orlando / EDSea</option>
-                                                        </optgroup>
-                                                        <optgroup label="🎡 US - Côte Ouest (Vegas / LA | -8h)">
-                                                            <option value={8}>EDC Las Vegas</option>
-                                                            <option value={8}>Coachella</option>
-                                                            <option value={8}>Day Trip Festival (Los Angeles)</option>
-                                                            <option value={8}>Escape Halloween / Beyond Wonderland</option>
-                                                        </optgroup>
-                                                        <optgroup label="🤠 US - Centre (Chicago / Texas | -6h)">
-                                                            <option value={6}>Lollapalooza Chicago</option>
-                                                            <option value={6}>Ubbi Dubbi (Texas)</option>
-                                                        </optgroup>
-                                                        <optgroup label="🌏 Asie & Océanie">
-                                                            <option value={-8}>Ultra Japan / EDC Japon (+8h)</option>
-                                                            <option value={-7}>Knockout Outdoor (Sydney | +7h)</option>
-                                                        </optgroup>
-                                                        <optgroup label="⚙️ Manuel (Hiver aux US)">
-                                                            <option value={6}>🇺🇸 Côte Est (Hiver : Nov-Mars | -6h)</option>
-                                                            <option value={9}>🇺🇸 Côte Ouest (Hiver : Nov-Mars | -9h)</option>
-                                                            <option value={7}>🇺🇸 Centre (Hiver : Nov-Mars | -7h)</option>
+                                                        {Array.from(new Set(timezonePresets.map(p => p.group))).map(group => (
+                                                            <optgroup key={group} label={group}>
+                                                                {timezonePresets.filter(p => p.group === group).map(p => (
+                                                                    <option key={p.id} value={p.id}>{p.label}</option>
+                                                                ))}
+                                                            </optgroup>
+                                                        ))}
+                                                        <optgroup label="⚙️ Manuel">
+                                                            <option value="m1">+1h</option>
+                                                            <option value="m2">+2h</option>
+                                                            <option value="m-1">-1h</option>
                                                         </optgroup>
                                                     </select>
                                                 </div>
