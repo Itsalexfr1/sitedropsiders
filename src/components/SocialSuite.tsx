@@ -454,12 +454,22 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.shadowColor = `rgba(${activeData.grad}, 0.6)`;
                 ctx.shadowBlur = 30;
 
-                ctx.font = '900 95px "Orbitron", sans-serif';
-                ctx.letterSpacing = "15px";
-                ctx.fillText('TAKEOVER', centerX + 7, takeoverY); // offset for letterSpacing centering
+                ctx.font = '900 italic 95px "Montserrat", sans-serif';
+                ctx.letterSpacing = "10px";
+                ctx.fillText('LIVESTREAM', centerX + 5, takeoverY); // offset for letterSpacing centering
                 ctx.restore();
 
-                // 4. INFO SECTION (Minimalist floating typography)
+                // 4. DECORATIVE LINE (Always visible)
+                const infoY = centerY + 80;
+                const lineW = 300;
+                const gradLine = ctx.createLinearGradient(centerX - lineW, 0, centerX + lineW, 0);
+                gradLine.addColorStop(0, 'rgba(255,255,255,0)');
+                gradLine.addColorStop(0.5, `rgb(${activeData.grad})`);
+                gradLine.addColorStop(1, 'rgba(255,255,255,0)');
+                ctx.fillStyle = gradLine;
+                ctx.fillRect(centerX - lineW, infoY, lineW * 2, 2);
+
+                // 5. INFO SECTION (Minimalist floating typography)
                 if (customText) {
                     const lines = customText.split('\n').filter(l => l.trim() !== '');
                     const mainInfo = lines[0]?.toUpperCase() || '';
@@ -467,16 +477,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     const extraInfo = lines[2]?.toUpperCase() || '';
 
                     ctx.save();
-                    const infoY = centerY + 80;
-
-                    // Delicate elegant divider line
-                    const lineW = 300;
-                    const gradLine = ctx.createLinearGradient(centerX - lineW, 0, centerX + lineW, 0);
-                    gradLine.addColorStop(0, 'rgba(255,255,255,0)');
-                    gradLine.addColorStop(0.5, `rgb(${activeData.grad})`);
-                    gradLine.addColorStop(1, 'rgba(255,255,255,0)');
-                    ctx.fillStyle = gradLine;
-                    ctx.fillRect(centerX - lineW, infoY, lineW * 2, 2);
 
                     // Texts
                     ctx.textAlign = 'center';
