@@ -8,7 +8,7 @@ import {
     BarChart3, Clock, Sword, Crown, Maximize2, Minimize2,
     Trophy, Stars, Heart, Timer, ShieldAlert, Calendar, Edit2, Edit3,
     Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
-    Search, ChevronUp, ChevronDown, ChevronLeft, Camera, Check, Coins, Shield,
+    Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Camera, Check, Coins, Shield,
     Scan, Wand2, Globe
 } from 'lucide-react';
 import Tesseract from 'tesseract.js';
@@ -728,6 +728,27 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [selectedTimezoneId, setSelectedTimezoneId] = useState<string>('fr');
     const [autoRemoveFinished, setAutoRemoveFinished] = useState(() => localStorage.getItem('lineup_auto_remove') === 'true');
     const [editingBulkTime, setEditingBulkTime] = useState<{ index: number; start: string; end: string } | null>(null);
+    const [bulkDateFrom, setBulkDateFrom] = useState('');
+    const [bulkDateTo, setBulkDateTo] = useState('');
+
+    const handleBulkDateChange = () => {
+        if (!bulkDateFrom || !bulkDateTo) {
+            setToast({ show: true, message: 'Veuillez remplir les deux dates (De -> Vers)', type: 'error' });
+            return;
+        }
+        const count = lineupItems.filter(i => i.day === bulkDateFrom).length;
+        if (count === 0) {
+            setToast({ show: true, message: 'Aucun artiste trouvé à cette date', type: 'error' });
+            return;
+        }
+        setLineupItems(prev => prev.map(item => 
+            item.day === bulkDateFrom ? { ...item, day: bulkDateTo } : item
+        ));
+        setToast({ show: true, message: `✅ ${count} artistes déplacés du ${bulkDateFrom} au ${bulkDateTo}`, type: 'success' });
+        setBulkDateFrom('');
+        setBulkDateTo('');
+    };
+
 
     const timezonePresets = [
         { id: 'fr', label: '🇫🇷 Heure Française (pas de conversion)', tz: 'Europe/Paris', group: '🌍 Europe' },
@@ -3249,6 +3270,35 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             autoRemoveFinished ? 'left-7' : 'left-1'
                                                         }`} />
                                                     </button>
+                                                </div>
+
+                                                {/* MODIFIER DATES GROUPÉES */}
+                                                <div className="p-5 bg-purple-500/10 border border-purple-500/20 rounded-2xl space-y-3">
+                                                    <div className="flex items-center gap-2">
+                                                        <Calendar className="w-4 h-4 text-purple-400" />
+                                                        <p className="text-[10px] font-black text-white uppercase tracking-widest">Modifier les dates par lot</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex-1 space-y-1">
+                                                            <label className="text-[8px] font-bold text-gray-500 uppercase ml-1 block">De (Date à corriger)</label>
+                                                            <input type="date" value={bulkDateFrom} onChange={e => setBulkDateFrom(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-[10px] text-white outline-none focus:border-purple-500/50 transition-all font-mono" />
+                                                        </div>
+                                                        <div className="flex flex-col justify-end pb-2.5">
+                                                            <ChevronRight className="w-4 h-4 text-gray-600" />
+                                                        </div>
+                                                        <div className="flex-1 space-y-1">
+                                                            <label className="text-[8px] font-bold text-gray-500 uppercase ml-1 block">Vers (Nouvelle date)</label>
+                                                            <input type="date" value={bulkDateTo} onChange={e => setBulkDateTo(e.target.value)} className="w-full bg-black/40 border border-white/10 rounded-xl px-3 py-2.5 text-[10px] text-white outline-none focus:border-purple-500/50 transition-all font-mono" />
+                                                        </div>
+                                                        <div className="flex flex-col justify-end">
+                                                            <button 
+                                                                onClick={handleBulkDateChange}
+                                                                className="px-6 py-2.5 bg-purple-600 hover:bg-purple-500 text-white text-[10px] font-black uppercase rounded-xl transition-all shadow-lg shadow-purple-500/20 hover:scale-[1.02] active:scale-95 whitespace-nowrap"
+                                                            >
+                                                                Mettre à jour
+                                                            </button>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                                 {lineupItems.map((item, i) => (
                                                     <div key={item.id || i} className="p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between group hover:border-white/20 transition-all relative overflow-hidden">
