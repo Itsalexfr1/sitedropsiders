@@ -229,7 +229,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const isPopout = new URLSearchParams(window.location.search).get('popout') === 'true';
 
-    const [activeStage, setActiveStage] = useState<'stage1' | 'stage2' | 'stage3' | 'stage4' | 'stage5' | 'stage6'>('stage1');
+    const [activeStage, setActiveStage] = useState<string>('stage1');
     const [viewMode, setViewMode] = useState<'single' | 'grid'>('single');
     const [gridCount, setGridCount] = useState<number>(4);
 
@@ -2204,14 +2204,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         
         // Stage filtering
         const itemStage = item.stage.toUpperCase();
-        const stageMapping: Record<string, string> = {
-            'stage1': (settings.streams?.[0]?.name || 'STAGE 1').toUpperCase(),
-            'stage2': (settings.streams?.[1]?.name || 'STAGE 2').toUpperCase(),
-            'stage3': (settings.streams?.[2]?.name || 'STAGE 3').toUpperCase(),
-            'stage4': (settings.streams?.[4]?.name || 'STAGE 4').toUpperCase(),
-            'stage5': (settings.streams?.[5]?.name || 'STAGE 5').toUpperCase(),
-            'stage6': (settings.streams?.[6]?.name || 'STAGE 6').toUpperCase()
-        };
+        const stageMapping: Record<string, string> = {};
+        settings.streams?.forEach((s: any, idx: number) => {
+            stageMapping[`stage${idx + 1}`] = (s.name || `STAGE ${idx + 1}`).toUpperCase();
+        });
+
         const targetStageName = stageMapping[activeStage as string] || activeStage.toUpperCase();
         if (itemStage !== targetStageName && itemStage !== activeStage.toUpperCase()) return false;
 
@@ -2257,14 +2254,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             const itemStage = i.stage.toUpperCase();
             
             // Map stage1, stage2... to stream indices if needed, or just match names
-            const stageMapping: Record<string, string> = {
-                'stage1': (settings.streams?.[0]?.name || 'STAGE 1').toUpperCase(),
-                'stage2': (settings.streams?.[1]?.name || 'STAGE 2').toUpperCase(),
-                'stage3': (settings.streams?.[2]?.name || 'STAGE 3').toUpperCase(),
-                'stage4': (settings.streams?.[3]?.name || 'STAGE 4').toUpperCase(),
-                'stage5': (settings.streams?.[4]?.name || 'STAGE 5').toUpperCase(),
-                'stage6': (settings.streams?.[5]?.name || 'STAGE 6').toUpperCase()
-            };
+            const stageMapping: Record<string, string> = {};
+            settings.streams?.forEach((s: any, idx: number) => {
+                stageMapping[`stage${idx + 1}`] = (s.name || `STAGE ${idx + 1}`).toUpperCase();
+            });
+
 
             const targetStageName = stageMapping[activeStage as string] || activeStage.toUpperCase();
             return itemStage === targetStageName || itemStage === activeStage.toUpperCase();
@@ -2416,7 +2410,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                         onChange={(e) => setGridCount(Number(e.target.value))}
                                         className="bg-black/40 border border-white/10 rounded-lg px-2 text-[10px] font-black text-white outline-none focus:border-neon-cyan"
                                     >
-                                        {[1, 2, 3, 4, 5, 6].map(n => (
+                                        {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(n => (
                                             <option key={n} value={n}>{n} STAGES</option>
                                         ))}
                                     </select>
@@ -2555,20 +2549,31 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 );
                             })()
                         ) : (
-                            <div className={`grid h-full w-full gap-1 p-1 bg-black ${gridCount === 1 ? 'grid-cols-1' : gridCount === 2 ? 'grid-cols-2' : gridCount <= 4 ? 'grid-cols-2' : 'grid-cols-3'}`}>
-                                {settings.streams?.slice(0, gridCount).map((s: any, idx: number) => (
-                                    <div key={s.id} className="relative group overflow-hidden bg-black border border-white/5 rounded-lg">
-                                        <iframe
-                                            className="w-full h-full border-none"
-                                            src={`https://www.youtube.com/embed/${s.youtubeId}?autoplay=${idx === 0 ? 1 : 0}&mute=${idx === 0 ? 0 : 1}&rel=0&modestbranding=1`}
-                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                            allowFullScreen
-                                        />
-                                        <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-md text-[8px] font-black text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
-                                            {s.name}
+                            <div className={`grid h-full w-full gap-1 p-1 bg-black ${gridCount === 1 ? 'grid-cols-1' : gridCount === 2 ? 'grid-cols-2' : gridCount <= 4 ? 'grid-cols-2' : gridCount <= 6 ? 'grid-cols-3' : gridCount <= 8 ? 'grid-cols-4' : 'grid-cols-5'}`}>
+                                {Array.from({ length: gridCount }).map((_, idx) => {
+                                    const s = settings.streams?.[idx];
+                                    return (
+                                        <div key={s?.id || `empty-${idx}`} className="relative group overflow-hidden bg-black/20 border border-white/5 rounded-xl flex items-center justify-center">
+                                            {s ? (
+                                                <>
+                                                    <iframe
+                                                        className="w-full h-full border-none"
+                                                        src={`https://www.youtube.com/embed/${s.youtubeId}?autoplay=${idx === 0 ? 1 : 0}&mute=${idx === 0 ? 0 : 1}&rel=0&modestbranding=1`}
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                        allowFullScreen
+                                                    />
+                                                    <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-md text-[8px] font-black text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
+                                                        {s.name}
+                                                    </div>
+                                                </>
+                                            ) : (
+                                                <div className="opacity-10">
+                                                    <img src="/Logo.png" className="w-16 grayscale brightness-200" alt="Logo" />
+                                                </div>
+                                            )}
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         )}
                     </div>

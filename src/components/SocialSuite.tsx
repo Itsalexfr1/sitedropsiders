@@ -115,6 +115,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const [selection, setSelection] = useState({ start: 0, end: 0 });
     const dragControls = useDragControls();
+    const [isTakeoverLoading, setIsTakeoverLoading] = useState(false);
+    const [takeoverData, setTakeoverData] = useState<{ lineup: any[], streams: any[] } | null>(null);
+    const [selectedTakeoverStage, setSelectedTakeoverStage] = useState<string>('');
 
     // Detect mobile vs desktop (lg breakpoint = 1024px) — JS-based to avoid canvasRef conflict
     const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
@@ -1247,6 +1250,58 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         setPlanningTimezoneOffset(0);
     };
 
+    const fetchTakeover = async () => {
+        setIsTakeoverLoading(true);
+        try {
+            const resp = await fetch('/api/takeover-settings');
+            const data = await resp.json();
+            if (data.settings && data.settings.lineup) {
+                setTakeoverData({
+                    lineup: data.settings.lineup,
+                    streams: data.settings.streams || []
+                });
+            } else {
+              setErrorMessage("Aucune donnée Live Takeover trouvée.");
+            }
+        } catch (e) {
+            console.error(e);
+            setErrorMessage("Erreur lors de la récupération du Live Takeover");
+        } finally {
+            setIsTakeoverLoading(false);
+        }
+    };
+
+    const handleImportFromTakeover = (stageMatch: string, day: string) => {
+        if (!takeoverData) return;
+        
+        const filtered = takeoverData.lineup
+            .filter(item => {
+                const itemStage = (item.stage || '').toUpperCase();
+                const target = stageMatch.toUpperCase();
+                return (itemStage === target) && item.day === day;
+            })
+            .sort((a, b) => (a.startTime || '').localeCompare(b.startTime || ''));
+
+        if (filtered.length === 0) {
+            setErrorMessage(`Aucun artiste trouvé sur ${stageMatch} le ${day}`);
+            return;
+        }
+
+        const items = filtered.map(item => ({
+            time: item.startTime || '00:00',
+            artist: item.artist || 'INCONNU'
+        }));
+
+        setPlanningItems(items);
+        setCustomText(`LINE-UP ${stageMatch.toUpperCase()}`);
+        
+        const [y, m, d] = day.split('-');
+        const dateNames = ['JAN', 'FEV', 'MARS', 'AVRIL', 'MAI', 'JUIN', 'JUIL', 'AOUT', 'SEPT', 'OCT', 'NOV', 'DEC'];
+        setPlanningDate(`${d} ${dateNames[parseInt(m) - 1] || '??'}`);
+        
+        setTakeoverData(null);
+    };
+
     const planningEditor = (
         <div className="space-y-3">
             <input 
@@ -1282,8 +1337,47 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 value={planningDate} 
                 onChange={e => setPlanningDate(e.target.value)} 
                 placeholder="DATE (ex: 21 MARS - 28 MARS)" 
-                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase text-[10px] mb-4" 
+                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white font-bold uppercase text-[10px] mb-2" 
             />
+
+            <div className="border border-white/10 bg-black/20 rounded-xl p-3 mb-4 space-y-3">
+                <div className="flex items-center justify-between">
+                    <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Live Takeover Import</span>
+                    <button 
+                        onClick={fetchTakeover}
+                        disabled={isTakeoverLoading}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg text-[9px] font-black uppercase text-white hover:bg-white/10 transition-all"
+                    >
+                        {isTakeoverLoading ? <RotateCcw className="w-3 h-3 animate-spin" /> : <Layers className="w-3 h-3" />}
+                        {takeoverData ? 'Actualiser' : 'Charger les données'}
+                    </button>
+                </div>
+
+                {takeoverData && (
+                    <div className="grid grid-cols-1 gap-2 p-2 bg-white/5 rounded-lg border border-white/5 animate-in fade-in slide-in-from-top-2">
+                        <p className="text-[8px] font-black text-gray-500 uppercase px-1 mb-1">Sélectionnez une stage & date :</p>
+                        <div className="max-h-[150px] overflow-y-auto space-y-1 custom-scrollbar">
+                            {Array.from(new Set(takeoverData.lineup.map(l => `${l.stage}:${l.day}`)))
+                                .sort()
+                                .map(key => {
+                                    const [st, dy] = key.split(':');
+                                    return (
+                                        <button 
+                                            key={key}
+                                            onClick={() => handleImportFromTakeover(st, dy)}
+                                            className="w-full px-3 py-2 bg-white/5 hover:bg-neon-cyan/20 border border-white/5 hover:border-neon-cyan/30 rounded-lg text-left transition-all group"
+                                        >
+                                            <div className="flex justify-between items-center">
+                                                <span className="text-[10px] font-black text-white group-hover:text-neon-cyan uppercase">{st || 'STAGE INCONNUE'}</span>
+                                                <span className="text-[9px] font-bold text-gray-500">{dy}</span>
+                                            </div>
+                                        </button>
+                                    );
+                                })}
+                        </div>
+                    </div>
+                )}
+            </div>
             <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar">
                 {planningItems.map((item, i) => (
                     <div key={i} className="flex gap-2 items-center">
