@@ -2567,8 +2567,12 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     </div>
                                                 </>
                                             ) : (
-                                                <div className="opacity-10">
-                                                    <img src="/Logo.png" className="w-16 grayscale brightness-200" alt="Logo" />
+                                                <div className="absolute inset-0 flex items-center justify-center bg-[#050505]">
+                                                    <img 
+                                                        src="/Logo.png" 
+                                                        className="w-28 opacity-40 grayscale hover:opacity-80 transition-opacity drop-shadow-[0_0_20px_rgba(255,255,255,0.1)]" 
+                                                        alt="Dropsiders" 
+                                                    />
                                                 </div>
                                             )}
                                         </div>
