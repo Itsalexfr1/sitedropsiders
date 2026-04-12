@@ -9,7 +9,7 @@ import {
     Trophy, Stars, Heart, Timer, ShieldAlert, Calendar, Edit2, Edit3,
     Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
     Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Camera, Check, Coins, Shield,
-    Scan, Wand2, Globe
+    Scan, Wand2, Globe, Volume2, VolumeX
 } from 'lucide-react';
 import Tesseract from 'tesseract.js';
 import confetti from 'canvas-confetti';
@@ -138,6 +138,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [isHighlightChecked, setIsHighlightChecked] = useState(false);
     const [highlightColor, setHighlightColor] = useState('#f59e0b');
     const [isConnected, setIsConnected] = useState(!!localStorage.getItem('chat_pseudo'));
+    const [activeAudioIdx, setActiveAudioIdx] = useState(0);
     const [pingAudio] = useState(new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3'));
 
     const renderMessageContent = (content: string) => {
@@ -2555,16 +2556,22 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     return (
                                         <div key={s?.id || `empty-${idx}`} className="relative group overflow-hidden bg-black/20 border border-white/5 rounded-xl flex items-center justify-center">
                                             {s ? (
-                                                <>
                                                     <iframe
                                                         className="w-full h-full border-none"
-                                                        src={`https://www.youtube.com/embed/${s.youtubeId}?autoplay=${idx === 0 ? 1 : 0}&mute=${idx === 0 ? 0 : 1}&rel=0&modestbranding=1`}
+                                                        src={`https://www.youtube.com/embed/${s.youtubeId}?autoplay=${idx === activeAudioIdx ? 1 : 0}&mute=${idx === activeAudioIdx ? 0 : 1}&rel=0&modestbranding=1`}
                                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                         allowFullScreen
                                                     />
                                                     <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-md text-[8px] font-black text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
                                                         {s.name}
                                                     </div>
+                                                    <button 
+                                                        onClick={() => setActiveAudioIdx(idx)}
+                                                        className={`absolute top-2 right-2 p-1.5 rounded-lg border transition-all ${idx === activeAudioIdx ? 'bg-neon-green/20 border-neon-green text-neon-green shadow-[0_0_15px_rgba(57,255,20,0.4)] opacity-100' : 'bg-black/60 border-white/10 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-white'}`}
+                                                        title={idx === activeAudioIdx ? "Son activé" : "Activer le son"}
+                                                    >
+                                                        {idx === activeAudioIdx ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                                                    </button>
                                                 </>
                                             ) : (
                                                 <div className="absolute inset-0 flex items-center justify-center bg-[#050505]">
