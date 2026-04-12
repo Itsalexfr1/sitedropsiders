@@ -628,6 +628,28 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.restore();
                 });
 
+                // Display logo in the remaining empty space if there is enough room
+                if (logoRef.current && planningItems.length > 0) {
+                    const lastY = startY + ((planningItems.length - 1) * spacing);
+                    const remainingSpaceStart = lastY + spacing;
+                    const remainingHeight = canvas.height - remainingSpaceStart;
+                    
+                    if (remainingHeight > 200) { // Only if there's significant space
+                        ctx.save();
+                        const logoW = 350; // Large, prominent logo
+                        const logoH = (logoRef.current.height * logoW) / logoRef.current.width;
+                        const logoX = centerX - (logoW / 2);
+                        // Center vertically in the remaining space (slightly adjusted up)
+                        const logoY = remainingSpaceStart + (remainingHeight / 2) - (logoH / 2) - 30;
+                        
+                        ctx.globalAlpha = 0.8;
+                        ctx.shadowColor = 'rgba(0,0,0,0.9)';
+                        ctx.shadowBlur = 25;
+                        ctx.drawImage(logoRef.current, logoX, logoY, logoW, logoH);
+                        ctx.restore();
+                    }
+                }
+
             } else {
                 const fontSize = effectiveTab === 'PUBLICATION' ? 55 : 78; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
