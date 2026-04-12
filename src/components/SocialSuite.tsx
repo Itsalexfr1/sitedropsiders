@@ -1144,6 +1144,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 setActivePanel(null);
                 setTimeout(() => setIsDownloading(false), 1000);
             }, 'image/png');
+        } catch (err) {
+            console.error('Export failed:', err);
+            alert("Erreur d'exportation inattendue.");
+            setTimeout(() => setIsDownloading(false), 1000);
         }
     };
     
