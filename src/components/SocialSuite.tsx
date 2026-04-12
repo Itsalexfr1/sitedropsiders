@@ -242,6 +242,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
             }
 
+            if (theme === 'PLANNING') {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
+
             if (!showText) return; 
 
             const activeData = activeColor;
@@ -541,7 +546,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '900 75px "Orbitron", sans-serif';
                 ctx.letterSpacing = "12px";
-                ctx.fillText(customText || 'LINE-UP', centerX, topY + 40);
+                ctx.fillText((customText || 'LINE-UP').toUpperCase(), centerX, topY + 40);
 
                 // Date below title - Utilisation de Montserrat (Police du site)
                 ctx.fillStyle = `rgb(${activeData.grad})`;
