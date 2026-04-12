@@ -714,6 +714,8 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [showCustomDuration, setShowCustomDuration] = useState(false);
     const [isScanningImage, setIsScanningImage] = useState(false);
     const [scanProgress, setScanProgress] = useState(0);
+    const [ocrImage, setOcrImage] = useState<string | null>(null);
+    const [scanStage, setScanStage] = useState('');
 
     // Bulk Import states
     const [showBulkImport, setShowBulkImport] = useState(false);
@@ -1445,15 +1447,21 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         showNotification('Connexion réussie !', 'success');
     };
 
-    const handleImageOCR = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageOCR = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (ev) => setOcrImage(ev.target?.result as string);
+        reader.readAsDataURL(file);
+    };
 
+    const handleOcrCropComplete = async (croppedImage: string) => {
+        setOcrImage(null);
         setIsScanningImage(true);
         setScanProgress(0);
 
         try {
-            const result = await Tesseract.recognize(file, 'eng+fra', {
+            const result = await Tesseract.recognize(croppedImage, 'eng+fra', {
                 logger: (m: any) => {
                     if (m.status === 'recognizing text') {
                         setScanProgress(Math.floor(m.progress * 100));
@@ -1466,18 +1474,26 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
             const lines = text.split('\n');
             const foundArtists: string[] = [];
-            const timeRangeRegex = /(\d{1,2}:\d{2})\s*[-–—]\s*(\d{1,2}:\d{2})/;
+            const timeRangeRegex = /(\d{1,2}:\d{2})\s*([-–\D—]+)\s*(\d{1,2}:\d{2})/; // Improved regex for various dashes
 
             let currentText = '';
             lines.forEach((line: string) => {
                 const trimmed = line.trim();
                 if (!trimmed) return;
 
-                const timeMatch = trimmed.match(timeRangeRegex);
+                // Cleanup common OCR artifacts
+                const cleanLine = trimmed.replace(/[|] /g, '');
+
+                const timeMatch = cleanLine.match(timeRangeRegex);
                 if (timeMatch) {
-                    const artist = currentText.trim() || trimmed.replace(timeMatch[0], '').trim();
+                    let artist = currentText.trim();
+                    if (!artist) {
+                        // Sometimes the artist is on the same line as time
+                        artist = cleanLine.replace(timeMatch[0], '').trim();
+                    }
                     if (artist && artist.length > 2) {
-                        foundArtists.push(`${timeMatch[1]} - ${artist}`);
+                        const lineText = `${timeMatch[1]} - ${artist}`;
+                        foundArtists.push(scanStage ? `[${scanStage}] ${lineText}` : lineText);
                     }
                     currentText = '';
                 } else {
@@ -1493,7 +1509,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                 setBulkPreview(parseBulkSchedule(newText));
                 showNotification(`${foundArtists.length} artistes détectés !`, 'success');
             } else {
-                showNotification("Aucun artiste détecté.", 'error');
+                showNotification("Aucun artiste détecté. Cadrez bien les horaires.", 'error');
             }
         } catch (error) {
             console.error(error);
@@ -2858,22 +2874,37 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                             </select>
                                                         </div>
 
-                                                        <div className="space-y-2">
-                                                            <div className="flex items-center justify-between">
+                                                        <div className="space-y-4">
+                                                            <div className="flex gap-4">
+                                                                <div className="flex-1 space-y-1">
+                                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest pl-1">Scène du Scan (Optionnel)</label>
+                                                                    <select
+                                                                        value={scanStage}
+                                                                        onChange={e => setScanStage(e.target.value)}
+                                                                        className="w-full bg-black/40 border border-white/10 rounded-xl px-4 py-3 text-xs text-white"
+                                                                    >
+                                                                        <option value="">NOM DE LA SCÈNE...</option>
+                                                                        {editStreams.map(s => <option key={s.id} value={s.name.toUpperCase()}>{s.name.toUpperCase()}</option>)}
+                                                                    </select>
+                                                                </div>
+                                                                <div className="flex items-end">
+                                                                    <button 
+                                                                        onClick={() => (document.getElementById('poster-scan') as HTMLInputElement)?.click()}
+                                                                        disabled={isScanningImage}
+                                                                        className={`px-6 h-[44px] bg-purple-500/20 border border-purple-500/30 rounded-xl flex items-center gap-3 text-[10px] font-black uppercase text-purple-300 transition-all ${isScanningImage ? 'opacity-50' : 'hover:bg-purple-500/30'}`}
+                                                                    >
+                                                                        {isScanningImage ? <Timer className="w-4 h-4 animate-spin" /> : <Scan className="w-4 h-4" />}
+                                                                        {isScanningImage ? `Analyse ${scanProgress}%` : 'Scanner une affiche'}
+                                                                    </button>
+                                                                    <input id="poster-scan" type="file" accept="image/*" onChange={handleImageOCR} className="hidden" onClick={(e) => (e.target as any).value = null} />
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="space-y-2">
                                                                 <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest pl-1">
                                                                     Planning à coller
                                                                 </label>
-                                                                <button 
-                                                                    onClick={() => (document.getElementById('poster-scan') as HTMLInputElement)?.click()}
-                                                                    disabled={isScanningImage}
-                                                                    className={`flex items-center gap-2 text-[10px] font-black uppercase text-purple-400 hover:text-purple-300 transition-all ${isScanningImage ? 'opacity-50' : ''}`}
-                                                                >
-                                                                    {isScanningImage ? <Timer className="w-3 h-3 animate-spin" /> : <Scan className="w-3 h-3" />}
-                                                                    {isScanningImage ? `Analyse ${scanProgress}%` : 'Scanner une affiche'}
-                                                                </button>
-                                                                <input id="poster-scan" type="file" accept="image/*" onChange={handleImageOCR} className="hidden" />
-                                                            </div>
-                                                            <textarea
+                                                                <textarea
                                                                 rows={8}
                                                                 value={bulkText}
                                                                 onChange={e => {
@@ -4936,6 +4967,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         if (editingLineupId === 'FESTIVAL_LOGO') setEditingLineupId(null);
                         if (bulkCropIndex !== null) setBulkCropIndex(null);
                     }}
+                />
+            )}
+
+            {ocrImage && (
+                <ImageCropper
+                    image={ocrImage}
+                    onCropComplete={handleOcrCropComplete}
+                    onCancel={() => setOcrImage(null)}
                 />
             )}
         </div>
