@@ -9,7 +9,7 @@ import {
     Trophy, Stars, Heart, Timer, ShieldAlert, Calendar, Edit2, Edit3,
     Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
     Search, ChevronUp, ChevronDown, ChevronLeft, Camera, Check, Coins, Shield,
-    Scan, Wand2
+    Scan, Wand2, Globe
 } from 'lucide-react';
 import Tesseract from 'tesseract.js';
 import confetti from 'canvas-confetti';
