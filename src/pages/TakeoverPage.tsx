@@ -2556,6 +2556,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     return (
                                         <div key={s?.id || `empty-${idx}`} className="relative group overflow-hidden bg-black/20 border border-white/5 rounded-xl flex items-center justify-center">
                                             {s ? (
+                                                <>
                                                     <iframe
                                                         className="w-full h-full border-none"
                                                         src={`https://www.youtube.com/embed/${s.youtubeId}?autoplay=${idx === activeAudioIdx ? 1 : 0}&mute=${idx === activeAudioIdx ? 0 : 1}&rel=0&modestbranding=1`}
