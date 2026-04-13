@@ -843,8 +843,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'right';
                 ctx.textBaseline = 'bottom';
                 ctx.font = '900 italic 45px "Montserrat", sans-serif';
-                ctx.fillStyle = '#fff';
-                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.fillStyle = theme === 'MUSIQUE' ? '#000000' : '#ffffff';
+                ctx.shadowColor = theme === 'MUSIQUE' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.8)';
                 ctx.shadowBlur = 10;
                 ctx.fillText('>>', canvas.width - 40, canvas.height - 10);
                 ctx.restore();
@@ -855,8 +855,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'bottom';
                 ctx.font = '900 italic 24px "Montserrat", sans-serif'; // Réduit de 40% (40px -> 24px)
-                ctx.fillStyle = '#fff';
-                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.fillStyle = theme === 'MUSIQUE' ? '#000000' : '#ffffff';
+                ctx.shadowColor = theme === 'MUSIQUE' ? 'rgba(255,255,255,0.3)' : 'rgba(0,0,0,0.8)';
                 ctx.shadowBlur = 10;
                 ctx.fillText('ARTICLE COMPLET SUR DROPSIDERS.FR', 40, canvas.height - 10);
                 ctx.restore();
