@@ -758,9 +758,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const fontSize = 55; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
                 
-                const textToRender = theme === 'HIGHLIGHTS' 
-                    ? `${highlightsArtists}${highlightsArtists && highlightsFestival ? '\n' : ''}${highlightsFestival}${highlightsLocation ? '\n' + highlightsLocation : ''}`.trim()
-                    : customText;
+                const textToRender = customText;
                     
                 const paragraphs = textToRender.toUpperCase().split('\n');
                 const lines: string[] = [];
