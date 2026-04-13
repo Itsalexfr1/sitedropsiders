@@ -88,6 +88,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [showText, setShowText] = useState(true);
     const [planningItems, setPlanningItems] = useState<{ time: string; artist: string }[]>(Array.from({ length: 8 }, () => ({ time: '00:00', artist: 'ARTISTE' })));
     const [planningDate, setPlanningDate] = useState('21 MARS - 28 MARS');
+    const [highlightsFestival, setHighlightsFestival] = useState('');
+    const [highlightsArtists, setHighlightsArtists] = useState('');
     const [isRetouchMode, setIsRetouchMode] = useState(false);
     const [retouchPath, setRetouchPath] = useState<{ x: number, y: number }[]>([]);
     const [isDrawing, setIsDrawing] = useState(false);
@@ -654,7 +656,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             } else {
                 const fontSize = effectiveTab === 'PUBLICATION' ? 55 : 78; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
-                const paragraphs = customText.toUpperCase().split('\n');
+                
+                const textToRender = theme === 'HIGHLIGHTS' 
+                    ? `${highlightsFestival}${highlightsFestival && highlightsArtists ? '\n' : ''}${highlightsArtists}`.trim()
+                    : customText;
+                    
+                const paragraphs = textToRender.toUpperCase().split('\n');
                 const lines: string[] = [];
                 ctx.font = `900 italic ${fontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 const stripTags = (s: string) => s.replace(/\[[CB]:[^\]]+\]|\[\/[CB]\]/gi, '');
@@ -919,7 +926,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -1522,6 +1529,44 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         </div>
     );
 
+    const highlightsEditor = (
+        <div className="space-y-3">
+            <span className="text-[10px] font-black text-gray-500 uppercase">Festivals</span>
+            <input 
+                value={highlightsFestival} 
+                onChange={e => setHighlightsFestival(e.target.value)} 
+                placeholder="FESTIVAL(S) (ex: TOMORROWLAND)" 
+                className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white text-sm font-black italic focus:border-cyan-500 outline-none transition-all uppercase mb-2" 
+            />
+            <span className="text-[10px] font-black text-gray-500 uppercase">Artistes</span>
+            <textarea
+                value={highlightsArtists}
+                onChange={e => setHighlightsArtists(e.target.value)}
+                placeholder="ARTISTES..."
+                spellCheck={true}
+                className="w-full h-24 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm font-bold italic resize-none focus:border-cyan-500 outline-none transition-all shadow-inner shadow-black font-sans uppercase break-words"
+            />
+            <div className="grid grid-cols-2 gap-4 pt-2">
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black text-gray-500 uppercase">Couleur Texte</label>
+                    <div className="flex gap-2 items-center">
+                        <input type="color" value={textColor} onMouseDown={(e) => e.stopPropagation()} onChange={e => setTextColor(e.target.value)} className="w-10 h-10 rounded-lg bg-transparent border-none cursor-pointer" />
+                    </div>
+                </div>
+                <div className="space-y-2">
+                    <label className="text-[9px] font-black text-gray-500 uppercase">Fond Texte</label>
+                    <div className="flex gap-2 items-center">
+                        <input type="color" value={textBgColor === 'transparent' ? '#000000' : textBgColor} onMouseDown={(e) => e.stopPropagation()} onChange={e => setTextBgColor(e.target.value)} className="w-10 h-10 rounded-lg bg-transparent border-none cursor-pointer" />
+                        <button onMouseDown={(e) => e.preventDefault()} onClick={() => setTextBgColor('transparent')}
+                            className={`px-2 py-1 rounded-md text-[8px] font-bold uppercase transition-all ${textBgColor === 'transparent' ? 'bg-white/20 text-white' : 'bg-white/5 text-gray-500 hover:text-white'}`}>
+                            Aucun
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
     const exportButtons = (
         <div className="space-y-2">
             {activeTab === 'PUBLICATION' && (
@@ -1712,6 +1757,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Horaires Planning</span>{planningEditor}</>
                             ) : theme.startsWith('TOP 5') ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>{top5Editor}</>
+                            ) : theme === 'HIGHLIGHTS' ? (
+                                <>{highlightsEditor}</>
                             ) : (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
                             )}
@@ -2039,7 +2086,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                 {activePanel === 'texte' && (
                                     <div className="px-6 pb-8">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
-                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : textEditor}
+                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : textEditor}
                                     </div>
                                 )}
 
