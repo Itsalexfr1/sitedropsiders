@@ -662,34 +662,36 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 }
 
             } else if (theme === 'TRACKLIST') {
-                // Sleek Top Gradient for logo readability
-                const topGrad = ctx.createLinearGradient(0, 0, 0, 350);
-                topGrad.addColorStop(0, 'rgba(0,0,0,0.8)');
-                topGrad.addColorStop(0.5, 'rgba(0,0,0,0.4)');
-                topGrad.addColorStop(1, 'rgba(0,0,0,0)');
-                ctx.fillStyle = topGrad;
-                ctx.fillRect(0, 0, canvas.width, 350);
+                // Top white banner
+                ctx.save();
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, 180);
                 
-                // Draw Dropsiders White Logo (Premium)
+                // Draw Dropsiders White Logo (Inverted to black)
                 if (logoRef.current) {
                     const logo = logoRef.current;
-                    const lw = 350; // Elegant size
+                    const lw = 500;
                     const lh = (logo.height * lw) / logo.width;
                     
-                    ctx.save();
-                    ctx.shadowColor = 'rgba(0,0,0,0.6)';
-                    ctx.shadowBlur = 15;
-                    ctx.drawImage(logo, (canvas.width - lw) / 2, 70);
-                    ctx.restore();
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = lw;
+                    tempCanvas.height = lh;
+                    const tCtx = tempCanvas.getContext('2d');
+                    if (tCtx) {
+                        tCtx.drawImage(logo, 0, 0, lw, lh);
+                        tCtx.globalCompositeOperation = 'source-in';
+                        tCtx.fillStyle = '#0a0a0a';
+                        tCtx.fillRect(0, 0, lw, lh);
+                        ctx.drawImage(tempCanvas, (canvas.width - lw) / 2, 90 - lh / 2);
+                    }
                 }
+                ctx.restore();
 
                 if (customText) {
                     const lines = customText.split('\n').filter(l => l.trim() !== '');
                     const badgeText = lines[3] ? lines[3].toUpperCase() : null;
                     
-                    if (badgeText && logoRef.current) {
-                        const lw = 350;
-                        const lh = (logoRef.current.height * lw) / logoRef.current.width;
+                    if (badgeText) {
                         ctx.save();
                         ctx.textAlign = 'center';
                         ctx.font = '900 22px "Orbitron", sans-serif';
@@ -697,51 +699,29 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         ctx.fillStyle = activeData.color;
                         ctx.shadowColor = 'rgba(0,0,0,0.8)';
                         ctx.shadowBlur = 10;
-                        ctx.fillText(badgeText, canvas.width / 2, 70 + lh + 45);
+                        ctx.fillText(badgeText, canvas.width / 2, 230);
                         ctx.restore();
                     }
                     
                     const texts = [
                         { text: (lines[0] || '').toUpperCase(), font: '900 95px "Montserrat", sans-serif', color: activeData.color },
                         { text: (lines[1] || '').toUpperCase(), font: '900 65px "Montserrat", sans-serif', color: textColor === '#ffffff' ? '#00f0ff' : textColor },
-                        { text: (lines[2] || '').toUpperCase(), font: '900 italic 45px "Montserrat", sans-serif', color: 'rgba(255,255,255,0.7)' },
+                        { text: (lines[2] || '').toUpperCase(), font: '900 italic 45px "Montserrat", sans-serif', color: '#ffffff' },
                     ];
 
                     ctx.save();
                     ctx.textAlign = 'center';
                     
                     let currY = effectiveTab === 'PUBLICATION' ? canvas.height - 180 : safeBottom - 180;
-                    currY -= texts.length * 80; 
-                    
-                    const bgGrad = ctx.createLinearGradient(0, currY - 140, 0, canvas.height);
-                    bgGrad.addColorStop(0, 'rgba(0,0,0,0)');
-                    bgGrad.addColorStop(0.4, 'rgba(0,0,0,0.7)');
-                    bgGrad.addColorStop(1, 'rgba(0,0,0,0.95)');
-                    ctx.fillStyle = bgGrad;
-                    ctx.fillRect(0, currY - 140, canvas.width, canvas.height - (currY - 140));
+                    currY -= texts.length * 85; 
 
                     texts.forEach((item, i) => {
                         ctx.font = item.font;
                         ctx.fillStyle = item.color;
-                        ctx.shadowColor = 'rgba(0,0,0,0.9)';
+                        ctx.shadowColor = 'rgba(0,0,0,0.8)';
                         ctx.shadowBlur = 15;
                         ctx.shadowOffsetY = 4;
-                        
-                        let yPos = currY + (i * 85);
-                        
-                        // Add a sleek line between the artist and festival
-                        if (i === 1 && lines[0] && lines[1]) {
-                            ctx.save();
-                            ctx.fillStyle = activeData.color;
-                            ctx.shadowColor = activeData.color;
-                            ctx.shadowBlur = 10;
-                            ctx.fillRect(canvas.width / 2 - 50, yPos - 55, 100, 4);
-                            ctx.restore();
-                        }
-                        
-                        if (i > 0) yPos += 20; 
-                        
-                        ctx.fillText(item.text, canvas.width / 2, yPos);
+                        ctx.fillText(item.text, canvas.width / 2, currY + (i * 85));
                     });
                     
                     ctx.restore();
