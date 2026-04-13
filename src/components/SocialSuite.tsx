@@ -748,8 +748,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.save();
                     ctx.textAlign = 'center';
                     
-                    // Animation logic
-                    const elapsed = isVideoRecording ? (Date.now() - recordingStartTimeRef.current) / 1000 : 1.5; // Default to finished state if not recording
+                    // Animation logic: Loop in preview, start from 0 in recording
+                    const elapsed = isVideoRecording 
+                        ? (Date.now() - recordingStartTimeRef.current) / 1000 
+                        : (Date.now() % 5000) / 1000; // Loop every 5 seconds in preview
                     
                     let currY = 1480; 
 
@@ -795,8 +797,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.save();
                 ctx.textAlign = 'center';
                 
-                // Animation logic
-                const elapsed = isVideoRecording ? (Date.now() - recordingStartTimeRef.current) / 1000 : 1.5;
+                // Animation logic: Loop in preview, start from 0 in recording
+                const elapsed = isVideoRecording 
+                    ? (Date.now() - recordingStartTimeRef.current) / 1000 
+                    : (Date.now() % 5000) / 1000; // Loop every 5 seconds in preview
                 
                 // Positioned at the bottom
                 let currY = 1480; 
@@ -1213,8 +1217,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
             const initialBlob = new Blob(chunks, { type: mimeType });
             
-            // On mobile, if transparent, force WebM as MOV transparency is often not supported
-            if ((isTransparent && !(bgImage || bgVideo) && isMobile) || initialBlob.type.includes('mp4') || isMobile) {
+            // On PC we always use FFmpeg to ensure .MOV format
+            // On mobile, we bypass FFmpeg for performance, but we will force the .mov extension in the UI if possible
+            if (isMobile) {
                 const url = URL.createObjectURL(initialBlob);
                 setIsVideoRecording(false);
                 setRecordingProgress(0);
@@ -2536,7 +2541,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             <div className="w-full space-y-3">
                                 <button
                                     onClick={async () => {
-                                        const extension = readyVideoBlob.type.includes('quicktime') || readyVideoBlob.type.includes('mov') ? 'mov' : readyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+                                        // Force .mov extension for iPhone compatibility even if blob is different (Safari/Files will handle it)
+                                        const isMOVRequested = true; 
+                                        const extension = isMOVRequested ? 'mov' : (readyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm');
                                         const fileName = `dropsiders-${theme.replace(/ /g, '-')}.${extension}`;
                                         const file = new File([readyVideoBlob], fileName, { type: readyVideoBlob.type });
 
@@ -2573,7 +2580,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                                 <button
                                     onClick={() => {
-                                        const extension = readyVideoBlob.type.includes('quicktime') || readyVideoBlob.type.includes('mov') ? 'mov' : readyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+                                        const isMOVRequested = true;
+                                        const extension = isMOVRequested ? 'mov' : (readyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm');
                                         const fileName = `dropsiders-${theme.replace(/ /g, '-')}.${extension}`;
                                         const a = document.createElement('a');
                                         a.href = readyVideoUrl;
