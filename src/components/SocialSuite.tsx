@@ -102,7 +102,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [planningTimezoneOffset, setPlanningTimezoneOffset] = useState<number>(0);
     const [isConverting, setIsConverting] = useState(false);
     const [conversionProgress, setConversionProgress] = useState(0);
-    const [isTransparent, setIsTransparent] = useState(false);
+    const [isTransparent, setIsTransparent] = useState(true);
     const ffmpegRef = useRef<any>(null);
 
     // Selected Music Style state
