@@ -727,7 +727,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [bulkCropIndex, setBulkCropIndex] = useState<number | null>(null);
     const [bulkRequireEndTime, setBulkRequireEndTime] = useState(false);
     const [selectedTimezoneId, setSelectedTimezoneId] = useState<string>('fr');
-    const [autoRemoveFinished, setAutoRemoveFinished] = useState(() => localStorage.getItem('lineup_auto_remove') === 'true');
+    const [autoRemoveFinished, setAutoRemoveFinished] = useState(() => {
+        const saved = localStorage.getItem('lineup_auto_remove');
+        return saved !== null ? saved === 'true' : true;
+    });
     const [editingBulkTime, setEditingBulkTime] = useState<{ index: number; start: string; end: string } | null>(null);
     const [bulkDateFrom, setBulkDateFrom] = useState('');
     const [bulkDateTo, setBulkDateTo] = useState('');
