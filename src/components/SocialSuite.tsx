@@ -9,7 +9,9 @@ import {
 import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
 import recapsData from '../data/recaps.json';
+// @ts-ignore
 import { FFmpeg } from '@ffmpeg/ffmpeg';
+// @ts-ignore
 import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
 const FESTIVAL_TIMEZONES = [
