@@ -738,12 +738,23 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.restore();
 
                 if (customText) {
-                    const lines = customText.split('\n'); // No filter to keep index alignment
+                    const lines = customText.split('\n');
                     
+                    const maxWidth = 960; // Max horizontal width before shrinking
+                    
+                    const getFontSize = (text: string, base: number) => {
+                        ctx.font = `900 ${base}px "Montserrat", sans-serif`;
+                        const width = ctx.measureText(text).width;
+                        if (width > maxWidth) {
+                            return Math.floor(base * (maxWidth / width));
+                        }
+                        return base;
+                    };
+
                     const texts = [
-                        { text: (lines[0] || '').toUpperCase(), font: '900 90px "Montserrat", sans-serif', color: '#ff0033' },
-                        { text: (lines[1] || '').toUpperCase(), font: '900 60px "Montserrat", sans-serif', color: '#ffffff' },
-                        { text: (lines[2] || '').toUpperCase(), font: '900 36px "Orbitron", sans-serif', color: '#ffffff' },
+                        { text: (lines[0] || '').toUpperCase(), size: 90, color: '#ff0033' },
+                        { text: (lines[1] || '').toUpperCase(), size: 60, color: '#ffffff' },
+                        { text: (lines[2] || '').toUpperCase(), size: 36, color: '#ffffff', isOrbitron: true },
                     ];
 
                     ctx.save();
@@ -752,22 +763,23 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     // Animation logic: Loop in preview, start from 0 in recording
                     const elapsed = isVideoRecording 
                         ? (Date.now() - recordingStartTimeRef.current) / 1000 
-                        : (Date.now() % 5000) / 1000; // Loop every 5 seconds in preview
+                        : (Date.now() % 5000) / 1000;
                     
                     let currY = 1480; 
 
                     texts.forEach((item, i) => {
                         ctx.save();
-                        ctx.font = item.font;
+                        const dynamicSize = getFontSize(item.text, item.size);
+                        ctx.font = item.isOrbitron ? `900 ${dynamicSize}px "Orbitron", sans-serif` : `900 ${dynamicSize}px "Montserrat", sans-serif`;
                         ctx.fillStyle = item.color;
                         ctx.shadowColor = 'rgba(0,0,0,0.8)';
                         ctx.shadowBlur = 15;
                         ctx.shadowOffsetY = 4;
-                        if (i === 2) ctx.letterSpacing = '10px';
+                        if (item.isOrbitron) ctx.letterSpacing = '10px';
                         else ctx.letterSpacing = '0px';
                         
                         let yPos = currY + (i * 85);
-                        if (i === 2) yPos -= 5; 
+                        if (item.isOrbitron) yPos -= 5; 
                         
                         let xOff = 0;
                         let yOff = 0;
@@ -815,28 +827,39 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.save();
                 ctx.textAlign = 'center';
                 
+                const maxWidth = 960;
+                const getFontSize = (text: string, base: number, font: string) => {
+                    ctx.font = `900 ${base}px "${font}", sans-serif`;
+                    const width = ctx.measureText(text).width;
+                    if (width > maxWidth) {
+                        return Math.floor(base * (maxWidth / width));
+                    }
+                    return base;
+                };
+
                 // Animation logic: Loop in preview, start from 0 in recording
                 const elapsed = isVideoRecording 
                     ? (Date.now() - recordingStartTimeRef.current) / 1000 
-                    : (Date.now() % 5000) / 1000; // Loop every 5 seconds in preview
+                    : (Date.now() % 5000) / 1000;
                 
                 // Positioned at the bottom
                 let currY = 1480; 
                 const texts = [
-                    { text: (lines[0] || '').toUpperCase(), font: '900 90px "Montserrat", sans-serif', color: '#ffffff' },
-                    { text: (lines[1] || '').toUpperCase(), font: '900 60px "Montserrat", sans-serif', color: activeData.color },
-                    { text: (lines[2] || '').toUpperCase(), font: '900 36px "Orbitron", sans-serif', color: '#ffffff' },
+                    { text: (lines[0] || '').toUpperCase(), size: 90, color: '#ffffff', font: 'Montserrat' },
+                    { text: (lines[1] || '').toUpperCase(), size: 60, color: activeData.color, font: 'Montserrat' },
+                    { text: (lines[2] || '').toUpperCase(), size: 36, color: '#ffffff', font: 'Orbitron', isOrbitron: true },
                 ];
 
                 texts.forEach((item, i) => {
                     if (!item.text) return;
                     ctx.save();
-                    ctx.font = item.font;
+                    const dynamicSize = getFontSize(item.text, item.size, item.font);
+                    ctx.font = `900 ${dynamicSize}px "${item.font}", sans-serif`;
                     ctx.fillStyle = item.color;
                     ctx.shadowColor = 'rgba(0,0,0,0.8)';
                     ctx.shadowBlur = 15;
                     ctx.shadowOffsetY = 4;
-                    if (i === 2) ctx.letterSpacing = '10px';
+                    if (item.isOrbitron) ctx.letterSpacing = '10px';
                     else ctx.letterSpacing = '0px';
                     
                     let yPos = currY + (i * 85);
