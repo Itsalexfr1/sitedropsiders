@@ -1213,9 +1213,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
             const initialBlob = new Blob(chunks, { type: mimeType });
             
-            // If active transparency or mobile, use WebM directly (MP4 doesn't support transparency)
-            // On mobile, Safari will natively record MP4 if it can, but if it gives WebM, we keep it if transparent
-            if ((isTransparent && !(bgImage || bgVideo)) || initialBlob.type.includes('mp4') || isMobile) {
+            // On mobile, if transparent, force WebM as MOV transparency is often not supported
+            if ((isTransparent && !(bgImage || bgVideo) && isMobile) || initialBlob.type.includes('mp4') || isMobile) {
                 const url = URL.createObjectURL(initialBlob);
                 setIsVideoRecording(false);
                 setRecordingProgress(0);
@@ -1248,27 +1247,38 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 await ffmpeg.writeFile('input.webm', await fetchFile(initialBlob));
                 
-                // Optimized for Instagram & iPhone: H.264 High Profile + yuv420p + AAC
-                await ffmpeg.exec([
-                    '-i', 'input.webm',
-                    '-c:v', 'libx264',
-                    '-preset', 'superfast', // Better balance than ultrafast
-                    '-crf', '22',
-                    '-pix_fmt', 'yuv420p', // CRITICAL: Fix for iPhone saving issues
-                    '-profile:v', 'high',
-                    '-level', '4.1',
-                    '-tune', 'stillimage', // Optimized for text/static graphics
-                    '-c:a', 'aac',
-                    '-b:a', '128k',
-                    'output.mp4'
-                ]);
+                const isTransparentMode = isTransparent && !(bgImage || bgVideo);
+                
+                if (isTransparentMode) {
+                    // Optimized for Professional Editing (Preserve Alpha)
+                    await ffmpeg.exec([
+                        '-i', 'input.webm',
+                        '-c:v', 'qtrle', // QuickTime Animation codec (Supports Alpha)
+                        'output.mov'
+                    ]);
+                } else {
+                    // Optimized for Instagram & iPhone: H.264 High Profile + yuv420p + AAC
+                    await ffmpeg.exec([
+                        '-i', 'input.webm',
+                        '-c:v', 'libx264',
+                        '-preset', 'superfast',
+                        '-crf', '22',
+                        '-pix_fmt', 'yuv420p',
+                        '-profile:v', 'high',
+                        '-level', '4.1',
+                        '-tune', 'stillimage',
+                        '-c:a', 'aac',
+                        '-b:a', '128k',
+                        'output.mov'
+                    ]);
+                }
 
-                const data: any = await ffmpeg.readFile('output.mp4');
-                const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
-                const url = URL.createObjectURL(mp4Blob);
+                const data: any = await ffmpeg.readFile('output.mov');
+                const movBlob = new Blob([data.buffer], { type: 'video/quicktime' });
+                const url = URL.createObjectURL(movBlob);
 
                 setIsConverting(false);
-                setReadyVideoBlob(mp4Blob);
+                setReadyVideoBlob(movBlob);
                 setReadyVideoUrl(url);
                 setActivePanel(null);
 
@@ -1872,14 +1882,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
     const exportButtons = (
         <div className="space-y-2">
-            {activeTab === 'PUBLICATION' && (
-                <div className="grid grid-cols-2 gap-2">
-                    <button onClick={addVisualToList} className="py-2.5 bg-white/5 border border-white/10 text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter</button>
-                    <button onClick={downloadSingle} disabled={isDownloading} className="py-2.5 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all">
-                        <Download className="w-3.5 h-3.5" /> Télécharger PNG
-                    </button>
-                </div>
-            )}
+            <div className="grid grid-cols-2 gap-2">
+                <button onClick={addVisualToList} className="py-2.5 bg-white/5 border border-white/10 text-white rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-white/10 transition-all"><PlusCircle className="w-3.5 h-3.5" /> Ajouter</button>
+                <button onClick={downloadSingle} disabled={isDownloading} className="py-2.5 bg-neon-cyan/10 border border-neon-cyan/30 text-neon-cyan rounded-xl text-[9px] font-black uppercase flex items-center justify-center gap-2 hover:bg-neon-cyan/20 transition-all">
+                    <Download className="w-3.5 h-3.5" /> {activeTab === 'REEL' ? 'PNG (Frame)' : 'Télécharger PNG'}
+                </button>
+            </div>
             <button onClick={startVideoRecording} disabled={isVideoRecording}
                 className={`w-full py-2.5 rounded-xl text-[10px] font-black uppercase flex items-center justify-center gap-2 transition-all ${isVideoRecording ? 'bg-red-500/20 text-red-500 animate-pulse' : 'bg-neon-red/10 border border-neon-red/30 text-neon-red hover:bg-neon-red/20'}`}>
                 <Video className="w-4 h-4" /> {isVideoRecording ? 'CAPTURE EN COURS...' : `Générer Vidéo (${theme})`}
@@ -2518,7 +2526,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             <div className="w-full space-y-3">
                                 <button
                                     onClick={async () => {
-                                        const extension = readyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+                                        const extension = readyVideoBlob.type.includes('quicktime') || readyVideoBlob.type.includes('mov') ? 'mov' : readyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
                                         const fileName = `dropsiders-${theme.replace(/ /g, '-')}.${extension}`;
                                         const file = new File([readyVideoBlob], fileName, { type: readyVideoBlob.type });
 
@@ -2555,7 +2563,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                                 <button
                                     onClick={() => {
-                                        const extension = readyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
+                                        const extension = readyVideoBlob.type.includes('quicktime') || readyVideoBlob.type.includes('mov') ? 'mov' : readyVideoBlob.type.includes('mp4') ? 'mp4' : 'webm';
                                         const fileName = `dropsiders-${theme.replace(/ /g, '-')}.${extension}`;
                                         const a = document.createElement('a');
                                         a.href = readyVideoUrl;
