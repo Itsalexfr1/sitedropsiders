@@ -687,17 +687,17 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     const lines = customText.split('\n'); // No filter to keep index alignment
                     
                     const texts = [
-                        { text: (lines[0] || '').toUpperCase(), font: '900 95px "Montserrat", sans-serif', color: '#ff0033' },
-                        { text: (lines[1] || '').toUpperCase(), font: '900 65px "Montserrat", sans-serif', color: '#ffffff' },
-                        { text: (lines[2] || '').toUpperCase(), font: '900 32px "Orbitron", sans-serif', color: '#ffffff' },
+                        { text: (lines[0] || '').toUpperCase(), font: '900 80px "Montserrat", sans-serif', color: '#ff0033' },
+                        { text: (lines[1] || '').toUpperCase(), font: '900 45px "Montserrat", sans-serif', color: '#ffffff' },
+                        { text: (lines[2] || '').toUpperCase(), font: '900 24px "Orbitron", sans-serif', color: '#ffffff' },
                     ];
 
                     ctx.save();
                     ctx.textAlign = 'center';
                     
                     // Center grid on 1080x1920 reel is between Y=420 and Y=1500.
-                    // Setting start Y to ~1250 ensures all 3 lines fit elegantly within the grid square without looking too low.
-                    let currY = 1250; 
+                    // Lowered to 1320 for a more balanced look while ensuring line 3 (at ~1450) stays safe.
+                    let currY = 1320; 
 
                     texts.forEach((item, i) => {
                         ctx.font = item.font;
@@ -708,8 +708,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         if (i === 2) ctx.letterSpacing = '10px';
                         else ctx.letterSpacing = '0px';
                         
-                        let yPos = currY + (i * 85);
-                        if (i === 2) yPos -= 10; // Slightly nudge the third line closer because the font is smaller
+                        let yPos = currY + (i * 65);
+                        if (i === 2) yPos -= 5; 
                         
                         ctx.fillText(item.text, canvas.width / 2, yPos);
                     });
