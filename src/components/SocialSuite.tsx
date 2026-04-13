@@ -103,6 +103,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [isConverting, setIsConverting] = useState(false);
     const [conversionProgress, setConversionProgress] = useState(0);
     const [isTransparent, setIsTransparent] = useState(true);
+    const [showBottomLogo, setShowBottomLogo] = useState(false);
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
 
@@ -786,6 +787,23 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         ctx.fillText(item.text, (canvas.width / 2) + xOff, yPos + yOff);
                         ctx.restore();
                     });
+
+                    // FOOTER LOGO (Hidden in Insta Grid)
+                    if (showBottomLogo && logoRef.current) {
+                        const elapsed = isVideoRecording ? (Date.now() - recordingStartTimeRef.current) / 1000 : 1.5;
+                        const duration = 0.8;
+                        const delay = 0.6; // Last to arrive
+                        const t = Math.max(0, Math.min(1, (elapsed - delay) / duration));
+                        const ease = 1 - Math.pow(1 - t, 3);
+                        
+                        ctx.save();
+                        ctx.globalAlpha = t;
+                        const logoW = 120;
+                        const logoH = (logoRef.current.height / logoRef.current.width) * logoW;
+                        const logoY = 1780 - (20 * (1 - ease)); // Slight slide up
+                        ctx.drawImage(logoRef.current, (canvas.width / 2) - (logoW / 2), logoY, logoW, logoH);
+                        ctx.restore();
+                    }
                     
                     ctx.restore();
                 }
@@ -838,6 +856,23 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.fillText(item.text, (canvas.width / 2) + xOff, yPos + yOff);
                     ctx.restore();
                 });
+
+                // FOOTER LOGO (Hidden in Insta Grid)
+                if (showBottomLogo && logoRef.current) {
+                    const elapsed = isVideoRecording ? (Date.now() - recordingStartTimeRef.current) / 1000 : 1.5;
+                    const duration = 0.8;
+                    const delay = 0.6;
+                    const t = Math.max(0, Math.min(1, (elapsed - delay) / duration));
+                    const ease = 1 - Math.pow(1 - t, 3);
+                    
+                    ctx.save();
+                    ctx.globalAlpha = t;
+                    const logoW = 120;
+                    const logoH = (logoRef.current.height / logoRef.current.width) * logoW;
+                    const logoY = 1780 - (20 * (1 - ease));
+                    ctx.drawImage(logoRef.current, (canvas.width / 2) - (logoW / 2), logoY, logoW, logoH);
+                    ctx.restore();
+                }
                 
                 ctx.restore();
             } else {
@@ -1111,7 +1146,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent, showBottomLogo]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -1832,6 +1867,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     </div>
                 </div>
             </div>
+            <button 
+                onClick={() => setShowBottomLogo(!showBottomLogo)}
+                className={`w-full py-3 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-2 ${showBottomLogo ? 'bg-white/20 text-white border border-white' : 'bg-white/5 text-gray-500 border border-white/10'}`}
+            >
+                {showBottomLogo ? '✅ LOGO BAS ACTIVÉ (CACHÉ GRILLE)' : '❌ LOGO BAS DÉSACTIVÉ'}
+            </button>
         </div>
     );
 
@@ -1881,6 +1922,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     placeholder="EX: SAN DIEGO, USA, 2026" 
                     className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold uppercase text-[10px] focus:border-white/40 outline-none transition-all shadow-md" 
                 />
+                <button 
+                    onClick={() => setShowBottomLogo(!showBottomLogo)}
+                    className={`w-full py-3 rounded-xl text-[9px] font-black uppercase transition-all flex items-center justify-center gap-2 ${showBottomLogo ? 'bg-white/20 text-white border border-white' : 'bg-white/5 text-gray-500 border border-white/10'}`}
+                >
+                    {showBottomLogo ? '✅ LOGO BAS ACTIVÉ (CACHÉ GRILLE)' : '❌ LOGO BAS DÉSACTIVÉ'}
+                </button>
             </div>
             <p className="text-[9px] text-white/30 italic px-1 pt-1">
                 Design automatisé : L1 en rouge, L2 en blanc gras, L3 en blanc Orbitron.
