@@ -128,6 +128,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         return () => window.removeEventListener('resize', onResize);
     }, []);
 
+    // Disable body scroll while SocialStudio is open
+    useEffect(() => {
+        document.body.style.overflow = 'hidden';
+        return () => { document.body.style.overflow = ''; };
+    }, []);
+
+
     const togglePanel = (panel: string) => setActivePanel(prev => prev === panel ? null : panel);
 
 
