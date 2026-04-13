@@ -680,22 +680,30 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.shadowColor = 'rgba(0,0,0,0.6)';
                     ctx.shadowBlur = 15;
                     ctx.drawImage(logo, (canvas.width - lw) / 2, 70);
-                    
-                    // Add a subtle "TRACK ID" badge underneath
-                    ctx.textAlign = 'center';
-                    ctx.font = '900 22px "Orbitron", sans-serif';
-                    ctx.letterSpacing = "8px";
-                    ctx.fillStyle = activeData.color;
-                    ctx.fillText('TRACK ID', canvas.width / 2, 70 + lh + 45);
                     ctx.restore();
                 }
 
                 if (customText) {
                     const lines = customText.split('\n').filter(l => l.trim() !== '');
+                    const badgeText = lines[3] ? lines[3].toUpperCase() : null;
+                    
+                    if (badgeText && logoRef.current) {
+                        const lw = 350;
+                        const lh = (logoRef.current.height * lw) / logoRef.current.width;
+                        ctx.save();
+                        ctx.textAlign = 'center';
+                        ctx.font = '900 22px "Orbitron", sans-serif';
+                        ctx.letterSpacing = "8px";
+                        ctx.fillStyle = activeData.color;
+                        ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                        ctx.shadowBlur = 10;
+                        ctx.fillText(badgeText, canvas.width / 2, 70 + lh + 45);
+                        ctx.restore();
+                    }
                     
                     const texts = [
                         { text: (lines[0] || '').toUpperCase(), font: '900 95px "Montserrat", sans-serif', color: activeData.color },
-                        { text: (lines[1] || '').toUpperCase(), font: '900 65px "Montserrat", sans-serif', color: '#ffffff' },
+                        { text: (lines[1] || '').toUpperCase(), font: '900 65px "Montserrat", sans-serif', color: textColor === '#ffffff' ? '#00f0ff' : textColor },
                         { text: (lines[2] || '').toUpperCase(), font: '900 italic 45px "Montserrat", sans-serif', color: 'rgba(255,255,255,0.7)' },
                     ];
 
