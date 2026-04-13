@@ -689,19 +689,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 if (customText) {
                     const lines = customText.split('\n').filter(l => l.trim() !== '');
-                    const badgeText = lines[3] ? lines[3].toUpperCase() : null;
-                    
-                    if (badgeText) {
-                        ctx.save();
-                        ctx.textAlign = 'center';
-                        ctx.font = '900 22px "Orbitron", sans-serif';
-                        ctx.letterSpacing = "8px";
-                        ctx.fillStyle = activeData.color;
-                        ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                        ctx.shadowBlur = 10;
-                        ctx.fillText(badgeText, canvas.width / 2, 230);
-                        ctx.restore();
-                    }
                     
                     const texts = [
                         { text: (lines[0] || '').toUpperCase(), font: '900 95px "Montserrat", sans-serif', color: activeData.color },
