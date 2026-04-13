@@ -103,6 +103,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [isConverting, setIsConverting] = useState(false);
     const [conversionProgress, setConversionProgress] = useState(0);
     const [isTransparent, setIsTransparent] = useState(true);
+    const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
 
     // Selected Music Style state
@@ -747,10 +748,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.save();
                     ctx.textAlign = 'center';
                     
-                    // Lowered further (was 1320) to hit the bottom of the grid as requested
+                    // Animation logic
+                    const elapsed = isVideoRecording ? (Date.now() - recordingStartTimeRef.current) / 1000 : 1.5; // Default to finished state if not recording
+                    
                     let currY = 1480; 
 
                     texts.forEach((item, i) => {
+                        ctx.save();
                         ctx.font = item.font;
                         ctx.fillStyle = item.color;
                         ctx.shadowColor = 'rgba(0,0,0,0.8)';
@@ -759,11 +763,26 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         if (i === 2) ctx.letterSpacing = '10px';
                         else ctx.letterSpacing = '0px';
                         
-                        // Increased spacing (was 65) to match larger font sizes
                         let yPos = currY + (i * 85);
                         if (i === 2) yPos -= 5; 
                         
-                        ctx.fillText(item.text, canvas.width / 2, yPos);
+                        let xOff = 0;
+                        let yOff = 0;
+                        let alpha = 1;
+
+                        const duration = 0.8;
+                        const delay = i * 0.2;
+                        const t = Math.max(0, Math.min(1, (elapsed - delay) / duration));
+                        const ease = 1 - Math.pow(1 - t, 3); // Ease out cubic
+
+                        if (i === 0) xOff = -600 * (1 - ease); // From Left
+                        else if (i === 1) xOff = 600 * (1 - ease); // From Right
+                        else if (i === 2) yOff = 200 * (1 - ease); // From Bottom
+                        alpha = t;
+
+                        ctx.globalAlpha = alpha;
+                        ctx.fillText(item.text, (canvas.width / 2) + xOff, yPos + yOff);
+                        ctx.restore();
                     });
                     
                     ctx.restore();
@@ -776,6 +795,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.save();
                 ctx.textAlign = 'center';
                 
+                // Animation logic
+                const elapsed = isVideoRecording ? (Date.now() - recordingStartTimeRef.current) / 1000 : 1.5;
+                
                 // Positioned at the bottom
                 let currY = 1480; 
                 const texts = [
@@ -786,6 +808,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 texts.forEach((item, i) => {
                     if (!item.text) return;
+                    ctx.save();
                     ctx.font = item.font;
                     ctx.fillStyle = item.color;
                     ctx.shadowColor = 'rgba(0,0,0,0.8)';
@@ -795,7 +818,21 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     else ctx.letterSpacing = '0px';
                     
                     let yPos = currY + (i * 85);
-                    ctx.fillText(item.text, canvas.width / 2, yPos);
+
+                    let xOff = 0;
+                    let yOff = 0;
+                    const duration = 0.8;
+                    const delay = i * 0.2;
+                    const t = Math.max(0, Math.min(1, (elapsed - delay) / duration));
+                    const ease = 1 - Math.pow(1 - t, 3);
+
+                    if (i === 0) xOff = -600 * (1 - ease); 
+                    else if (i === 1) xOff = 600 * (1 - ease); 
+                    else if (i === 2) yOff = 200 * (1 - ease);
+                    
+                    ctx.globalAlpha = t;
+                    ctx.fillText(item.text, (canvas.width / 2) + xOff, yPos + yOff);
+                    ctx.restore();
                 });
                 
                 ctx.restore();
@@ -1110,6 +1147,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         const canvas = canvasRef.current;
         if (!canvas) return;
         setIsVideoRecording(true);
+        recordingStartTimeRef.current = Date.now();
 
         const formats = [
             'video/mp4;codecs=h264',
@@ -1175,8 +1213,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
             const initialBlob = new Blob(chunks, { type: mimeType });
             
-            // If it's already mp4 or we are on mobile, use it directly
-            if (initialBlob.type.includes('mp4') || isMobile) {
+            // If active transparency or mobile, use WebM directly (MP4 doesn't support transparency)
+            // On mobile, Safari will natively record MP4 if it can, but if it gives WebM, we keep it if transparent
+            if ((isTransparent && !(bgImage || bgVideo)) || initialBlob.type.includes('mp4') || isMobile) {
                 const url = URL.createObjectURL(initialBlob);
                 setIsVideoRecording(false);
                 setRecordingProgress(0);
@@ -2610,7 +2649,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em] max-w-[280px] leading-relaxed">
                             {isConverting 
                                 ? "Conversion en format Instagram (H.264) spécial PC. Merci de patienter." 
-                                : `Capture du réel (${recordingTimeLeft}s restantes). Ne pas quitter.`}
+                                : isTransparent && !(bgImage || bgVideo)
+                                    ? `Capture avec transparence activée. Finalisation...`
+                                    : `Capture du réel (${recordingTimeLeft}s restantes). Ne pas quitter.`}
                         </p>
                     </motion.div>
                 )}
