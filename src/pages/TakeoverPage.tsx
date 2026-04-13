@@ -31,12 +31,12 @@ interface LineupItem {
     image?: string;
 }
 
-interface StreamItem {
     id: string;
     name: string;
     youtubeId: string;
     currentTrack?: string;
     overrideArtist?: string;
+    isExternalLink?: boolean;
 }
 
 interface TakeoverSettings {
@@ -2584,11 +2584,48 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                     <div className="absolute inset-0 z-0">
                         {viewMode === 'single' ? (
                             (() => {
-                                const activeYtId = settings.streams?.find((s: any) => s.id === settings.activeStreamId)?.youtubeId || settings.youtubeId;
+                                const activeStream = settings.streams?.find((s: any) => s.id === settings.activeStreamId);
+                                const activeYtId = activeStream?.youtubeId || settings.youtubeId;
+                                const isExternal = activeStream?.isExternalLink;
+
+                                if (isExternal && activeYtId) {
+                                    const videoId = extractYoutubeId(activeYtId);
+                                    return (
+                                        <div className="w-full h-full bg-black flex flex-col items-center justify-center p-8 text-center bg-gradient-to-b from-black via-zinc-900 to-black">
+                                            <div className="relative group cursor-pointer max-w-2xl w-full" onClick={() => window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank')}>
+                                                <div className="absolute inset-0 bg-neon-red/20 blur-3xl opacity-50 group-hover:opacity-100 transition-opacity" />
+                                                <div className="relative aspect-video rounded-3xl overflow-hidden border border-white/10 shadow-2xl">
+                                                    <img 
+                                                        src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`} 
+                                                        className="w-full h-full object-cover grayscale opacity-50 group-hover:grayscale-0 group-hover:opacity-100 transition-all duration-700 scale-105 group-hover:scale-100" 
+                                                        alt="YouTube Preview"
+                                                    />
+                                                    <div className="absolute inset-0 bg-black/60 flex flex-col items-center justify-center gap-6 group-hover:bg-black/40 transition-colors">
+                                                        <div className="w-20 h-20 rounded-full bg-white/10 backdrop-blur-md border border-white/20 flex items-center justify-center group-hover:bg-neon-red group-hover:border-neon-red transition-all duration-500 shadow-[0_0_30px_rgba(255,0,51,0)] group-hover:shadow-[0_0_50px_rgba(255,0,51,0.5)]">
+                                                            <svg className="w-8 h-8 text-white fill-current translate-x-1" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <h3 className="text-xl font-display font-black text-white italic tracking-tighter uppercase whitespace-pre-wrap">{activeStream?.name || settings.title}</h3>
+                                                            <p className="text-gray-400 text-[10px] font-black uppercase tracking-[0.3em]">FLUX RÉSERVÉ À YOUTUBE</p>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <button 
+                                                onClick={() => window.open(`https://www.youtube.com/watch?v=${videoId}`, '_blank')}
+                                                className="mt-12 px-8 py-4 bg-neon-red rounded-2xl flex items-center gap-4 text-white font-black italic tracking-tighter hover:bg-white hover:text-black transition-all duration-300 shadow-[0_0_30px_rgba(255,0,51,0.3)]"
+                                            >
+                                                <span className="text-lg">REGARDER SUR YOUTUBE</span>
+                                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                            </button>
+                                        </div>
+                                    );
+                                }
+
                                 return activeYtId ? (
                                     <iframe 
                                         className="w-full h-full border-none" 
-                                        src={`https://www.youtube-nocookie.com/embed/${extractYoutubeId(activeYtId)}?autoplay=1&mute=0&rel=0&modestbranding=1&origin=${window.location.origin}`} 
+                                        src={`https://www.youtube.com/embed/${extractYoutubeId(activeYtId)}?autoplay=1&mute=0&rel=0&modestbranding=1&origin=${window.location.origin}`} 
                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                         allowFullScreen 
                                     />
@@ -2608,24 +2645,43 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     return (
                                         <div key={s?.id || `empty-${idx}`} className="relative group overflow-hidden bg-black/20 border border-white/5 rounded-xl flex items-center justify-center">
                                             {s ? (
-                                                <>
-                                                    <iframe
-                                                        className="w-full h-full border-none"
-                                                        src={`https://www.youtube-nocookie.com/embed/${extractYoutubeId(s.youtubeId)}?autoplay=${idx === activeAudioIdx ? 1 : 0}&mute=${idx === activeAudioIdx ? 0 : 1}&rel=0&modestbranding=1&origin=${window.location.origin}`}
-                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                                        allowFullScreen
-                                                    />
-                                                    <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-md text-[8px] font-black text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
-                                                        {s.name}
+                                                s.isExternalLink ? (
+                                                    <div className="relative group w-full h-full overflow-hidden bg-black/40 flex flex-col items-center justify-center p-4 cursor-pointer" onClick={() => window.open(`https://www.youtube.com/watch?v=${extractYoutubeId(s.youtubeId)}`, '_blank')}>
+                                                        <img 
+                                                            src={`https://img.youtube.com/vi/${extractYoutubeId(s.youtubeId)}/0.jpg`} 
+                                                            className="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:opacity-40 transition-opacity grayscale" 
+                                                            alt=""
+                                                        />
+                                                        <div className="relative z-10 flex flex-col items-center gap-3">
+                                                            <div className="w-12 h-12 rounded-full bg-neon-red/20 border border-neon-red/30 flex items-center justify-center text-neon-red group-hover:bg-neon-red group-hover:text-white transition-all">
+                                                                <svg className="w-6 h-6 fill-current" viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg>
+                                                            </div>
+                                                            <div className="text-center">
+                                                                <div className="text-[10px] font-black text-white uppercase italic truncate max-w-[150px]">{s.name}</div>
+                                                                <div className="text-[7px] font-black text-gray-500 uppercase tracking-widest mt-1">LIEN EXTERNE</div>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                    <button 
-                                                        onClick={() => setActiveAudioIdx(idx)}
-                                                        className={`absolute top-2 right-2 p-1.5 rounded-lg border transition-all ${idx === activeAudioIdx ? 'bg-neon-green/20 border-neon-green text-neon-green shadow-[0_0_15px_rgba(57,255,20,0.4)] opacity-100' : 'bg-black/60 border-white/10 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-white'}`}
-                                                        title={idx === activeAudioIdx ? "Son activé" : "Activer le son"}
-                                                    >
-                                                        {idx === activeAudioIdx ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
-                                                    </button>
-                                                </>
+                                                ) : (
+                                                    <>
+                                                        <iframe
+                                                            className="w-full h-full border-none"
+                                                            src={`https://www.youtube.com/embed/${extractYoutubeId(s.youtubeId)}?autoplay=${idx === activeAudioIdx ? 1 : 0}&mute=${idx === activeAudioIdx ? 0 : 1}&rel=0&modestbranding=1&origin=${window.location.origin}`}
+                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                            allowFullScreen
+                                                        />
+                                                        <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-md text-[8px] font-black text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
+                                                            {s.name}
+                                                        </div>
+                                                        <button 
+                                                            onClick={(e) => { e.stopPropagation(); setActiveAudioIdx(idx); }}
+                                                            className={`absolute top-2 right-2 p-1.5 rounded-lg border transition-all ${idx === activeAudioIdx ? 'bg-neon-green/20 border-neon-green text-neon-green shadow-[0_0_15px_rgba(57,255,20,0.4)] opacity-100' : 'bg-black/60 border-white/10 text-gray-400 opacity-0 group-hover:opacity-100 hover:text-white'}`}
+                                                            title={idx === activeAudioIdx ? "Son activé" : "Activer le son"}
+                                                        >
+                                                            {idx === activeAudioIdx ? <Volume2 className="w-4 h-4" /> : <VolumeX className="w-4 h-4" />}
+                                                        </button>
+                                                    </>
+                                                )
                                             ) : (
                                                 <div className="absolute inset-0 flex items-center justify-center bg-[#050505]">
                                                     <img 
@@ -2864,8 +2920,21 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                                             ns[idx].name = e.target.value.toUpperCase();
                                                                             setEditStreams(ns);
                                                                         }} className="flex-1 bg-transparent border-none text-[10px] font-black text-white p-0 outline-none" placeholder="NOM STAGE" />
-                                                                        <button onClick={() => setEditActiveStreamId(stream.id)} className={`px-2 py-1 rounded text-[8px] font-black ${editActiveStreamId === stream.id ? 'bg-neon-purple text-white' : 'text-gray-500 hover:text-white'}`}>ACTIF</button>
-                                                                        <button onClick={() => setEditStreams(editStreams.filter(s => s.id !== stream.id))} className="text-gray-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                                        <div className="flex items-center gap-2">
+                                                                            <button 
+                                                                                onClick={() => {
+                                                                                    const ns = [...editStreams];
+                                                                                    ns[idx].isExternalLink = !ns[idx].isExternalLink;
+                                                                                    setEditStreams(ns);
+                                                                                }} 
+                                                                                className={`px-3 py-1 rounded-xl text-[8px] font-black border transition-all ${stream.isExternalLink ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.3)]' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                                                                title="Détourner vers YouTube (flux protégés)"
+                                                                            >
+                                                                                {stream.isExternalLink ? 'MODE LIEN 🔗' : 'MODE INTEGRÉ 📺'}
+                                                                            </button>
+                                                                            <button onClick={() => setEditActiveStreamId(stream.id)} className={`px-2 py-1 rounded text-[8px] font-black ${editActiveStreamId === stream.id ? 'bg-neon-purple text-white' : 'text-gray-500 hover:text-white'}`}>ACTIF</button>
+                                                                            <button onClick={() => setEditStreams(editStreams.filter(s => s.id !== stream.id))} className="text-gray-600 hover:text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                                                                        </div>
                                                                     </div>
                                                                     <div className="space-y-2">
                                                                         <input type="text" value={stream.youtubeId} onChange={e => {
