@@ -1279,14 +1279,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 setReadyVideoBlob(movBlob);
                 setReadyVideoUrl(url);
                 setActivePanel(null);
-            } catch (err: any) {
-                console.error("FFmpeg error:", err);
-                setErrorMessage("Erreur lors de l'optimisation MOV. Essayez de rafraîchir.");
-                setIsConverting(false);
-            }
-
             } catch (err) {
                 console.error("FFmpeg Error:", err);
+                setErrorMessage("Erreur lors de l'optimisation MOV. Essayez de rafraîchir.");
                 setIsConverting(false);
                 // Fallback to initial webm if conversion fails
                 const url = URL.createObjectURL(initialBlob);
