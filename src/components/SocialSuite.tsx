@@ -684,7 +684,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 ctx.restore();
 
                 if (customText) {
-                    const lines = customText.split('\n').filter(l => l.trim() !== '');
+                    const lines = customText.split('\n'); // No filter to keep index alignment
                     
                     const texts = [
                         { text: (lines[0] || '').toUpperCase(), font: '900 95px "Montserrat", sans-serif', color: '#ff0033' },
@@ -1631,6 +1631,55 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         </div>
     );
 
+    const tracklistEditor = (
+        <div className="space-y-4">
+            <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Ligne 1 : Artiste</label>
+                <input 
+                    value={customText.split('\n')[0] || ''} 
+                    onChange={e => {
+                        const lines = customText.split('\n');
+                        lines[0] = e.target.value;
+                        setCustomText(lines.join('\n'));
+                    }} 
+                    placeholder="EX: ODD MOB" 
+                    className="w-full bg-white/10 border border-white/20 rounded-2xl p-4 text-white font-black italic uppercase text-sm focus:border-neon-red outline-none transition-all shadow-xl" 
+                />
+            </div>
+            <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Ligne 2 : Festival</label>
+                <input 
+                    value={customText.split('\n')[1] || ''} 
+                    onChange={e => {
+                        const lines = customText.split('\n');
+                        while (lines.length < 2) lines.push('');
+                        lines[1] = e.target.value;
+                        setCustomText(lines.join('\n'));
+                    }} 
+                    placeholder="EX: CRSSD FESTIVAL" 
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-black italic uppercase text-sm focus:border-white/40 outline-none transition-all shadow-lg" 
+                />
+            </div>
+            <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-500 uppercase tracking-widest pl-1">Ligne 3 : Ville, Pays, Année</label>
+                <input 
+                    value={customText.split('\n')[2] || ''} 
+                    onChange={e => {
+                        const lines = customText.split('\n');
+                        while (lines.length < 3) lines.push('');
+                        lines[2] = e.target.value;
+                        setCustomText(lines.join('\n'));
+                    }} 
+                    placeholder="EX: SAN DIEGO, USA, 2026" 
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-white font-bold uppercase text-[10px] focus:border-white/40 outline-none transition-all shadow-md" 
+                />
+            </div>
+            <p className="text-[9px] text-white/30 italic px-1 pt-1">
+                Design automatisé : L1 en rouge, L2 en blanc gras, L3 en blanc Orbitron.
+            </p>
+        </div>
+    );
+
     const exportButtons = (
         <div className="space-y-2">
             {activeTab === 'PUBLICATION' && (
@@ -1823,6 +1872,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Éléments du Top 5</span>{top5Editor}</>
                             ) : theme === 'HIGHLIGHTS' ? (
                                 <>{highlightsEditor}</>
+                            ) : theme === 'TRACKLIST' ? (
+                                <><span className="text-[10px] font-black text-gray-500 uppercase">Détails Tracklist</span>{tracklistEditor}</>
                             ) : (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
                             )}
@@ -2150,7 +2201,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                 {activePanel === 'texte' && (
                                     <div className="px-6 pb-8">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
-                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : textEditor}
+                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : textEditor}
                                     </div>
                                 )}
 
