@@ -9,6 +9,8 @@ import {
 import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
 import recapsData from '../data/recaps.json';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile, toBlobURL } from '@ffmpeg/util';
 
 const FESTIVAL_TIMEZONES = [
     { group: "🌍 Europe (Aucun décalage)", options: [{ label: "🇫🇷 Heure Française", offset: 0 }] },
@@ -96,6 +98,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [isDrawing, setIsDrawing] = useState(false);
     const [brushSize, setBrushSize] = useState(35);
     const [planningTimezoneOffset, setPlanningTimezoneOffset] = useState<number>(0);
+    const [isConverting, setIsConverting] = useState(false);
+    const [conversionProgress, setConversionProgress] = useState(0);
+    const ffmpegRef = useRef<any>(null);
 
     // Selected Music Style state
     const [themeColor, setThemeColor] = useState<typeof STYLE_PRESETS[0] | null>(null);
@@ -1128,14 +1133,71 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 return;
             }
 
-            const blob = new Blob(chunks, { type: mimeType });
-            const url = URL.createObjectURL(blob);
+            const initialBlob = new Blob(chunks, { type: mimeType });
+            
+            // If it's already mp4 or we are on mobile, use it directly
+            if (initialBlob.type.includes('mp4') || isMobile) {
+                const url = URL.createObjectURL(initialBlob);
+                setIsVideoRecording(false);
+                setRecordingProgress(0);
+                setReadyVideoBlob(initialBlob);
+                setReadyVideoUrl(url);
+                setActivePanel(null);
+                return;
+            }
 
-            setIsVideoRecording(false);
-            setRecordingProgress(0);
-            setReadyVideoBlob(blob);
-            setReadyVideoUrl(url);
-            setActivePanel(null); // Close export panel
+            // --- FFMPEG CONVERSION START ---
+            try {
+                setIsVideoRecording(false);
+                setIsConverting(true);
+                setConversionProgress(0);
+
+                if (!ffmpegRef.current) {
+                    const ffmpeg = new FFmpeg();
+                    const baseURL = 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd';
+                    await ffmpeg.load({
+                        coreURL: await toBlobURL(`${baseURL}/ffmpeg-core.js`, 'text/javascript'),
+                        wasmURL: await toBlobURL(`${baseURL}/ffmpeg-core.wasm`, 'application/wasm'),
+                    });
+                    ffmpegRef.current = ffmpeg;
+                }
+
+                const ffmpeg = ffmpegRef.current;
+                ffmpeg.on('progress', ({ progress }: any) => {
+                    setConversionProgress(Math.round(progress * 100));
+                });
+
+                await ffmpeg.writeFile('input.webm', await fetchFile(initialBlob));
+                
+                // Optimized for Instagram: H.264 + AAC
+                await ffmpeg.exec([
+                    '-i', 'input.webm',
+                    '-c:v', 'libx264',
+                    '-preset', 'ultrafast',
+                    '-crf', '22',
+                    '-c:a', 'aac',
+                    '-b:a', '128k',
+                    'output.mp4'
+                ]);
+
+                const data: any = await ffmpeg.readFile('output.mp4');
+                const mp4Blob = new Blob([data.buffer], { type: 'video/mp4' });
+                const url = URL.createObjectURL(mp4Blob);
+
+                setIsConverting(false);
+                setReadyVideoBlob(mp4Blob);
+                setReadyVideoUrl(url);
+                setActivePanel(null);
+
+            } catch (err) {
+                console.error("FFmpeg Error:", err);
+                setIsConverting(false);
+                // Fallback to initial webm if conversion fails
+                const url = URL.createObjectURL(initialBlob);
+                setReadyVideoBlob(initialBlob);
+                setReadyVideoUrl(url);
+                setActivePanel(null);
+            }
         };
 
         recorder.start(1000);
@@ -2020,34 +2082,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                 />
 
                                 <AnimatePresence>
-                                    {isVideoRecording && (
-                                        <motion.div
-                                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-                                            className="absolute inset-0 bg-black/80 backdrop-blur-sm flex flex-col items-center justify-center p-8 text-center"
-                                        >
-                                            <div className="w-full max-w-xs space-y-6">
-                                                <div className="relative w-32 h-32 mx-auto">
-                                                    <svg className="w-full h-full -rotate-90">
-                                                        <circle cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent" className="text-white/10" />
-                                                        <motion.circle
-                                                            cx="64" cy="64" r="58" stroke="currentColor" strokeWidth="8" fill="transparent"
-                                                            className="text-neon-red"
-                                                            strokeDasharray={364.4}
-                                                            strokeDashoffset={364.4 - (364.4 * recordingProgress) / 100}
-                                                        />
-                                                    </svg>
-                                                    <div className="absolute inset-0 flex flex-col items-center justify-center">
-                                                        <span className="text-2xl font-black italic text-white">{recordingTimeLeft}S</span>
-                                                        <span className="text-[8px] font-black text-white/50 uppercase tracking-widest">Restant</span>
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <h3 className="text-white font-black uppercase italic tracking-tighter">Génération en cours</h3>
-                                                    <p className="text-[9px] text-white/40 font-bold uppercase tracking-widest">Veuillez ne pas quitter cette page</p>
-                                                </div>
-                                            </div>
-                                        </motion.div>
-                                    )}
+                                    {/* The global overlay at the end of the file handles desktop and mobile now */}
                                 </AnimatePresence>
                             </div>
                         </div>
@@ -2290,7 +2325,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         )}
                     </AnimatePresence>
 
-                    {/* Export panel */}
+                    {/* Export panel logic remains, progress overlay moved to global */}
                     <AnimatePresence>
                         {activePanel === 'export' && (
                             <motion.div key="export"
@@ -2360,12 +2395,18 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             <h2 className="text-2xl font-black text-white italic uppercase mb-2 text-center leading-none">VIDÉO PRÊTE !</h2>
                             <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-4 text-center">Enregistrez-la pour vos réseaux</p>
 
-                            {readyVideoBlob && readyVideoBlob.type.includes('webm') && (
+                            {readyVideoBlob && readyVideoBlob.type.includes('webm') && !isMobile && (
                                 <div className="mb-6 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl">
                                     <p className="text-[9px] text-yellow-500 font-black uppercase tracking-widest text-center leading-relaxed">
-                                        ⚠️ FORMAT WEBM (CHROME/ANDROID)<br/>
-                                        Instagram n'accepte que le MP4. Utilisez un iPhone/Safari ou convertissez ce fichier en MP4 avant de le poster.
+                                        ⚠️ FORMAT WEBM DÉTECTÉ<br/>
+                                        Si le téléchargement MP4 a échoué, utilisez un iPhone/Safari pour un export direct, ou convertissez ce fichier.
                                     </p>
+                                </div>
+                            )}
+
+                            {readyVideoBlob && readyVideoBlob.type.includes('mp4') && (
+                                <div className="mb-6 p-2 bg-green-500/10 border border-green-500/20 rounded-2xl">
+                                    <p className="text-[9px] text-green-500 font-black uppercase tracking-widest text-center">✅ FORMAT MP4 COMPATIBLE INSTAGRAM</p>
                                 </div>
                             )}
 
@@ -2470,6 +2511,46 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         >
                             <X className="w-5 h-5 text-gray-500" />
                         </button>
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {/* Global Progress Overlay (Desktop & Mobile) */}
+            <AnimatePresence mode="wait">
+                {(isVideoRecording || isConverting) && (
+                    <motion.div 
+                        initial={{ opacity: 0 }} 
+                        animate={{ opacity: 1 }} 
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[600] bg-black/90 backdrop-blur-2xl flex flex-col items-center justify-center p-8 text-center"
+                    >
+                        <div className="relative w-48 h-48 mb-10">
+                            {/* Circular Progress */}
+                            <svg className="w-full h-full transform -rotate-90">
+                                <circle cx="96" cy="96" r="90" stroke="#FFFFFF0a" strokeWidth="6" fill="transparent" />
+                                <circle 
+                                    cx="96" cy="96" r="90" stroke="#FF0033" strokeWidth="8" fill="transparent"
+                                    strokeDasharray={565}
+                                    strokeDashoffset={565 - (565 * (isVideoRecording ? recordingProgress : conversionProgress)) / 100}
+                                    strokeLinecap="round"
+                                    className="transition-all duration-300 shadow-[0_0_15px_rgba(255,0,51,0.5)]"
+                                />
+                            </svg>
+                            <div className="absolute inset-0 flex flex-col items-center justify-center">
+                                <span className="text-5xl font-black text-white leading-none tracking-tighter">
+                                    {(isVideoRecording ? recordingProgress : conversionProgress).toFixed(0)}%
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <h3 className="text-2xl font-black text-white italic uppercase mb-3">
+                            {isConverting ? "OPTIMISATION MP4..." : "ENREGISTREMENT..."}
+                        </h3>
+                        <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em] max-w-[280px] leading-relaxed">
+                            {isConverting 
+                                ? "Conversion en format Instagram (H.264) spécial PC. Merci de patienter." 
+                                : `Capture du réel (${recordingTimeLeft}s restantes). Ne pas quitter.`}
+                        </p>
                     </motion.div>
                 )}
             </AnimatePresence>
