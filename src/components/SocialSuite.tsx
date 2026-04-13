@@ -90,6 +90,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [planningDate, setPlanningDate] = useState('21 MARS - 28 MARS');
     const [highlightsFestival, setHighlightsFestival] = useState('');
     const [highlightsArtists, setHighlightsArtists] = useState('');
+    const [highlightsLocation, setHighlightsLocation] = useState('');
     const [isRetouchMode, setIsRetouchMode] = useState(false);
     const [retouchPath, setRetouchPath] = useState<{ x: number, y: number }[]>([]);
     const [isDrawing, setIsDrawing] = useState(false);
@@ -194,8 +195,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     };
 
     useEffect(() => {
-        if (activeTab === 'REEL') setTheme('TOP 5 ARTISTE');
-        else setTheme('NEWS');
+        if (activeTab === 'REEL') {
+            // Only set default if current theme is not a Reel-specific theme
+            if (theme !== 'TRACKLIST' && theme !== 'INTRO' && !theme.startsWith('TOP 5')) {
+                setTheme('TRACKLIST');
+            }
+        } else {
+            setTheme('NEWS');
+        }
         setThemeColor(null);
     }, [activeTab]);
 
@@ -687,17 +694,16 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     const lines = customText.split('\n'); // No filter to keep index alignment
                     
                     const texts = [
-                        { text: (lines[0] || '').toUpperCase(), font: '900 80px "Montserrat", sans-serif', color: '#ff0033' },
-                        { text: (lines[1] || '').toUpperCase(), font: '900 45px "Montserrat", sans-serif', color: '#ffffff' },
-                        { text: (lines[2] || '').toUpperCase(), font: '900 24px "Orbitron", sans-serif', color: '#ffffff' },
+                        { text: (lines[0] || '').toUpperCase(), font: '900 90px "Montserrat", sans-serif', color: '#ff0033' },
+                        { text: (lines[1] || '').toUpperCase(), font: '900 60px "Montserrat", sans-serif', color: '#ffffff' },
+                        { text: (lines[2] || '').toUpperCase(), font: '900 36px "Orbitron", sans-serif', color: '#ffffff' },
                     ];
 
                     ctx.save();
                     ctx.textAlign = 'center';
                     
-                    // Center grid on 1080x1920 reel is between Y=420 and Y=1500.
-                    // Lowered to 1320 for a more balanced look while ensuring line 3 (at ~1450) stays safe.
-                    let currY = 1320; 
+                    // Lowered further (was 1320) to hit the bottom of the grid as requested
+                    let currY = 1480; 
 
                     texts.forEach((item, i) => {
                         ctx.font = item.font;
@@ -708,7 +714,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         if (i === 2) ctx.letterSpacing = '10px';
                         else ctx.letterSpacing = '0px';
                         
-                        let yPos = currY + (i * 65);
+                        // Increased spacing (was 65) to match larger font sizes
+                        let yPos = currY + (i * 85);
                         if (i === 2) yPos -= 5; 
                         
                         ctx.fillText(item.text, canvas.width / 2, yPos);
@@ -716,12 +723,43 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     
                     ctx.restore();
                 }
+            } else if (theme === 'HIGHLIGHTS') {
+                // Specialized high-end rendering for Highlights (similar to Tracklist but with Blue theme)
+                const lines = [highlightsArtists, highlightsFestival, highlightsLocation];
+                const activeData = activeColor;
+
+                ctx.save();
+                ctx.textAlign = 'center';
+                
+                // Positioned at the bottom
+                let currY = 1480; 
+                const texts = [
+                    { text: (lines[0] || '').toUpperCase(), font: '900 90px "Montserrat", sans-serif', color: '#ffffff' },
+                    { text: (lines[1] || '').toUpperCase(), font: '900 60px "Montserrat", sans-serif', color: activeData.color },
+                    { text: (lines[2] || '').toUpperCase(), font: '900 36px "Orbitron", sans-serif', color: '#ffffff' },
+                ];
+
+                texts.forEach((item, i) => {
+                    if (!item.text) return;
+                    ctx.font = item.font;
+                    ctx.fillStyle = item.color;
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 15;
+                    ctx.shadowOffsetY = 4;
+                    if (i === 2) ctx.letterSpacing = '10px';
+                    else ctx.letterSpacing = '0px';
+                    
+                    let yPos = currY + (i * 85);
+                    ctx.fillText(item.text, canvas.width / 2, yPos);
+                });
+                
+                ctx.restore();
             } else {
                 const fontSize = 55; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
                 
                 const textToRender = theme === 'HIGHLIGHTS' 
-                    ? `${highlightsFestival}${highlightsFestival && highlightsArtists ? '\n' : ''}${highlightsArtists}`.trim()
+                    ? `${highlightsArtists}${highlightsArtists && highlightsFestival ? '\n' : ''}${highlightsFestival}${highlightsLocation ? '\n' + highlightsLocation : ''}`.trim()
                     : customText;
                     
                 const paragraphs = textToRender.toUpperCase().split('\n');
@@ -989,7 +1027,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -1595,6 +1633,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
     const highlightsEditor = (
         <div className="space-y-3">
+            <span className="text-[10px] font-black text-gray-500 uppercase">Artistes</span>
+            <textarea
+                value={highlightsArtists}
+                onChange={e => setHighlightsArtists(e.target.value)}
+                placeholder="ARTISTES..."
+                spellCheck={true}
+                className="w-full h-16 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm font-bold italic resize-none focus:border-cyan-500 outline-none transition-all shadow-inner shadow-black font-sans uppercase break-words mb-2"
+            />
             <span className="text-[10px] font-black text-gray-500 uppercase">Festivals</span>
             <input 
                 value={highlightsFestival} 
@@ -1602,13 +1648,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 placeholder="FESTIVAL(S) (ex: TOMORROWLAND)" 
                 className="w-full bg-white/10 border border-white/20 rounded-xl p-3 text-white text-sm font-black italic focus:border-cyan-500 outline-none transition-all uppercase mb-2" 
             />
-            <span className="text-[10px] font-black text-gray-500 uppercase">Artistes</span>
-            <textarea
-                value={highlightsArtists}
-                onChange={e => setHighlightsArtists(e.target.value)}
-                placeholder="ARTISTES..."
-                spellCheck={true}
-                className="w-full h-24 bg-white/5 border border-white/10 rounded-xl p-3 text-white text-sm font-bold italic resize-none focus:border-cyan-500 outline-none transition-all shadow-inner shadow-black font-sans uppercase break-words"
+            <span className="text-[10px] font-black text-gray-500 uppercase">Lieu et Date</span>
+            <input 
+                value={highlightsLocation} 
+                onChange={e => setHighlightsLocation(e.target.value)} 
+                placeholder="LIEU, PAYS, ANNÉE (ex: PARIS, FRANCE, 2026)" 
+                className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-cyan-500 outline-none transition-all" 
             />
             <div className="grid grid-cols-2 gap-4 pt-2">
                 <div className="space-y-2">
