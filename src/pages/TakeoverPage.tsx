@@ -901,32 +901,76 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         setShowBulkImport(false);
     };
 
-    // ⏰ Auto-remove finished artists
+    // ⏰ Auto-remove finished artists & Persist
     useEffect(() => {
-        if (!autoRemoveFinished) return;
-        const check = () => {
+        if (!autoRemoveFinished || !isAdmin) return;
+        
+        const checkAndCleanup = async () => {
             const now = new Date();
             const nowMins = now.getHours() * 60 + now.getMinutes();
             const todayStr = `${now.getFullYear()}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getDate().toString().padStart(2, '0')}`;
-            setLineupItems(prev => prev.filter(item => {
-                // Supprimer si c'est un jour passé
-                if (item.day < todayStr) return false;
+            
+            let removedCount = 0;
+            const cleanedLineup = lineupItems.filter(item => {
+                if (!item.day || !item.endTime) return true;
                 
-                // Si c'est aujourd'hui, vérifier l'heure
-                if (item.day === todayStr) {
-                    const [eh, em] = (item.endTime || '00:00').split(':').map(Number);
-                    const endMins = eh * 60 + em;
-                    return nowMins < endMins;
+                // Si le jour est strictement passé
+                if (item.day < todayStr) {
+                    removedCount++;
+                    return false;
                 }
                 
-                // Garder le futur
+                // Si c'est aujourd'hui, vérifier l'heure de fin
+                if (item.day === todayStr) {
+                    const [sh, sm] = (item.startTime || '00:00').replace(/[h.]/g, ':').split(':').map(Number);
+                    const [eh, em] = (item.endTime || '00:00').replace(/[h.]/g, ':').split(':').map(Number);
+                    
+                    let endMins = eh * 60 + em;
+                    let startMins = sh * 60 + sm;
+                    
+                    // Gestion du passage à minuit (ex: 23:00 -> 01:00)
+                    // Si l'heure de fin est inférieure à l'heure de début, 
+                    // cela signifie que le set se termine le lendemain matin.
+                    if (endMins < startMins) {
+                        // Le set n'est pas encore fini car il se finit demain
+                        return true; 
+                    }
+                    
+                    if (nowMins >= endMins) {
+                        removedCount++;
+                        return false;
+                    }
+                }
                 return true;
-            }));
+            });
+
+            if (removedCount > 0) {
+                console.log(`[CLEANUP] Removing ${removedCount} finished artists...`);
+                setLineupItems(cleanedLineup);
+                
+                // Persist to server if we are admin
+                try {
+                    const currentSettings = {
+                        ...settings,
+                        lineup: JSON.stringify(cleanedLineup)
+                    };
+                    await fetch('/api/takeover-settings', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(currentSettings)
+                    });
+                    setSettings(currentSettings);
+                    showNotification(`${removedCount} artiste(s) terminé(s) supprimé(s) automatiquement.`, 'info');
+                } catch (err) {
+                    console.error("Auto-cleanup save failed", err);
+                }
+            }
         };
-        check();
-        const interval = setInterval(check, 60000);
+
+        const interval = setInterval(checkAndCleanup, 60000); // Check every minute
+        checkAndCleanup();
         return () => clearInterval(interval);
-    }, [autoRemoveFinished]);
+    }, [autoRemoveFinished, isAdmin, lineupItems, settings]);
 
     const extractYoutubeId = (url: string) => {
         if (!url) return '';
