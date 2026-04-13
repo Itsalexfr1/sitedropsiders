@@ -1247,36 +1247,29 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 const ffmpeg = ffmpegRef.current;
                 ffmpeg.on('progress', ({ progress }: any) => {
-                    setConversionProgress(Math.round(progress * 100));
+                    setConversionProgress(Math.min(99, Math.round(progress * 100)));
                 });
 
                 await ffmpeg.writeFile('input.webm', await fetchFile(initialBlob));
                 
                 const isTransparentMode = isTransparent && !(bgImage || bgVideo);
                 
-                if (isTransparentMode) {
-                    // Optimized for Professional Editing (Preserve Alpha)
-                    await ffmpeg.exec([
-                        '-i', 'input.webm',
-                        '-c:v', 'qtrle', // QuickTime Animation codec (Supports Alpha)
-                        'output.mov'
-                    ]);
-                } else {
-                    // Optimized for Instagram & iPhone: H.264 High Profile + yuv420p + AAC
-                    await ffmpeg.exec([
-                        '-i', 'input.webm',
-                        '-c:v', 'libx264',
-                        '-preset', 'superfast',
-                        '-crf', '22',
-                        '-pix_fmt', 'yuv420p',
-                        '-profile:v', 'high',
-                        '-level', '4.1',
-                        '-tune', 'stillimage',
-                        '-c:a', 'aac',
-                        '-b:a', '128k',
-                        'output.mov'
-                    ]);
-                }
+                // Optimized MOV export (H.264)
+                // Note: True transparency in MOV (ProRes/qtrle) is too heavy for browser WASM memory (hits 2GB limit).
+                // We use high-compatibility H.264 (.mov) for all exports.
+                await ffmpeg.exec([
+                    '-i', 'input.webm',
+                    '-c:v', 'libx264',
+                    '-preset', 'ultrafast', // Switch back to ultrafast for stability/speed during debug
+                    '-crf', '22',
+                    '-pix_fmt', 'yuv420p',
+                    '-profile:v', 'high',
+                    '-level', '4.1',
+                    '-tune', 'stillimage',
+                    '-c:a', 'aac',
+                    '-b:a', '128k',
+                    'output.mov'
+                ]);
 
                 const data: any = await ffmpeg.readFile('output.mov');
                 const movBlob = new Blob([data.buffer], { type: 'video/quicktime' });
@@ -1286,6 +1279,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 setReadyVideoBlob(movBlob);
                 setReadyVideoUrl(url);
                 setActivePanel(null);
+            } catch (err: any) {
+                console.error("FFmpeg error:", err);
+                setErrorMessage("Erreur lors de l'optimisation MOV. Essayez de rafraîchir.");
+                setIsConverting(false);
+            }
 
             } catch (err) {
                 console.error("FFmpeg Error:", err);
@@ -2670,11 +2668,11 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         </div>
                         
                         <h3 className="text-2xl font-black text-white italic uppercase mb-3">
-                            {isConverting ? "OPTIMISATION MP4..." : "ENREGISTREMENT..."}
+                            {isConverting ? "OPTIMISATION MOV..." : "ENREGISTREMENT..."}
                         </h3>
                         <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.3em] max-w-[280px] leading-relaxed">
                             {isConverting 
-                                ? "Conversion en format Instagram (H.264) spécial PC. Merci de patienter." 
+                                ? "Conversion en format MOV (H.264) compatible iPhone. Merci de patienter." 
                                 : isTransparent && !(bgImage || bgVideo)
                                     ? `Capture avec transparence activée. Finalisation...`
                                     : `Capture du réel (${recordingTimeLeft}s restantes). Ne pas quitter.`}
