@@ -102,6 +102,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const [planningTimezoneOffset, setPlanningTimezoneOffset] = useState<number>(0);
     const [isConverting, setIsConverting] = useState(false);
     const [conversionProgress, setConversionProgress] = useState(0);
+    const [isTransparent, setIsTransparent] = useState(false);
     const ffmpegRef = useRef<any>(null);
 
     // Selected Music Style state
@@ -122,6 +123,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
     const logoRef = useRef<HTMLImageElement | null>(null);
+    const imageCacheRef = useRef<Record<string, HTMLImageElement>>({});
     const textAreaRef = useRef<HTMLTextAreaElement>(null);
     const [selection, setSelection] = useState({ start: 0, end: 0 });
     const dragControls = useDragControls();
@@ -241,10 +243,18 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         try {
             let img: HTMLImageElement | null = null;
             if (bgImage) {
-                img = new Image();
-                img.crossOrigin = "anonymous";
-                img.src = bgImage;
-                await new Promise((res, rej) => { img!.onload = res; img!.onerror = rej; });
+                if (imageCacheRef.current[bgImage]) {
+                    img = imageCacheRef.current[bgImage];
+                } else {
+                    const imgObj = new Image();
+                    imgObj.crossOrigin = "anonymous";
+                    imgObj.src = bgImage;
+                    imgObj.onload = () => {
+                        imageCacheRef.current[bgImage] = imgObj;
+                        generateImage();
+                    };
+                    img = null;
+                }
             }
 
             canvas.width = 1080;
@@ -264,8 +274,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const y = (canvas.height - img.height * scale) / 2;
                 ctx.drawImage(img, x, y, img.width * scale, img.height * scale);
             } else {
-                ctx.fillStyle = '#111';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                if (!isTransparent) {
+                    ctx.fillStyle = '#111';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                } else {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
             }
 
             if (theme === 'PLANNING') {
@@ -357,8 +371,17 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const currentItem = top5Items[currentPreviewIndex];
                 let itemPhotoImg: HTMLImageElement | null = null;
                 if (currentItem.photo) {
-                    itemPhotoImg = new Image();
-                    itemPhotoImg.src = currentItem.photo;
+                    if (imageCacheRef.current[currentItem.photo]) {
+                        itemPhotoImg = imageCacheRef.current[currentItem.photo];
+                    } else {
+                        const imgObj = new Image();
+                        imgObj.src = currentItem.photo;
+                        imgObj.onload = () => { 
+                            imageCacheRef.current[currentItem.photo!] = imgObj;
+                            generateImage(); 
+                        };
+                        itemPhotoImg = null; // Will draw on next frame
+                    }
                 }
 
                 if (itemPhotoImg || img) {
@@ -370,8 +393,12 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.translate(centerX, centerY); ctx.rotate(rotation);
                     const targetImg = itemPhotoImg || img;
                     if (targetImg) {
-                        const scale = Math.max((radius * 2) / targetImg.width, (radius * 2) / targetImg.height);
-                        ctx.drawImage(targetImg, -(targetImg.width * scale) / 2, -(targetImg.height * scale) / 2, targetImg.width * scale, targetImg.height * scale);
+                        try {
+                            const scale = Math.max((radius * 2) / targetImg.width, (radius * 2) / targetImg.height);
+                            ctx.drawImage(targetImg, -(targetImg.width * scale) / 2, -(targetImg.height * scale) / 2, targetImg.width * scale, targetImg.height * scale);
+                        } catch (e) {
+                            // If drawing fails (e.g. image not ready), skip
+                        }
                     }
                     ctx.restore();
                     ctx.beginPath(); ctx.arc(centerX, centerY, 45, 0, Math.PI * 2); ctx.fillStyle = '#0a0a0a'; ctx.fill();
@@ -397,9 +424,20 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const itemX = 100 + slideX;
 
                 if (item.photo) {
-                    const photoImg = new Image();
-                    photoImg.src = item.photo;
-                    if (photoImg.complete || photoImg.width > 0) {
+                    let photoImg: HTMLImageElement | null = null;
+                    if (imageCacheRef.current[item.photo]) {
+                        photoImg = imageCacheRef.current[item.photo];
+                    } else {
+                        const imgObj = new Image();
+                        imgObj.src = item.photo;
+                        imgObj.onload = () => { 
+                            imageCacheRef.current[item.photo!] = imgObj;
+                            generateImage(); 
+                        };
+                        photoImg = null;
+                    }
+
+                    if (photoImg && (photoImg.complete || photoImg.width > 0)) {
                         ctx.save();
                         ctx.shadowColor = 'rgba(0,0,0,0.5)';
                         ctx.shadowBlur = 30;
@@ -1032,7 +1070,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             anim = requestAnimationFrame(loop);
         } else { generateImage(); }
         return () => cancelAnimationFrame(anim);
-    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation]);
+    }, [bgImage, bgVideo, customText, theme, showSwipe, showArticleLink, top5Items, currentPreviewIndex, activeTab, rotation, themeColor, isVideoRecording, transitionProgress, showText, planningDate, planningItems, isRetouchMode, retouchPath, highlightsFestival, highlightsArtists, highlightsLocation, isTransparent]);
 
     // --- FONT LOADER ---
     useEffect(() => {
@@ -1084,7 +1122,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
         const mimeType = formats.find(f => MediaRecorder.isTypeSupported(f)) || 'video/webm';
 
-        const fps = isMobile ? 30 : 60;
+        const fps = 30; // 30 FPS ensures smoother recording on most hardware compared to 60
         const canvasStream = (canvas as any).captureStream ? (canvas as any).captureStream(fps) : (canvas as any).mozCaptureStream ? (canvas as any).mozCaptureStream(fps) : null;
 
         if (!canvasStream) {
@@ -1171,12 +1209,16 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 await ffmpeg.writeFile('input.webm', await fetchFile(initialBlob));
                 
-                // Optimized for Instagram: H.264 + AAC
+                // Optimized for Instagram & iPhone: H.264 High Profile + yuv420p + AAC
                 await ffmpeg.exec([
                     '-i', 'input.webm',
                     '-c:v', 'libx264',
-                    '-preset', 'ultrafast',
+                    '-preset', 'superfast', // Better balance than ultrafast
                     '-crf', '22',
+                    '-pix_fmt', 'yuv420p', // CRITICAL: Fix for iPhone saving issues
+                    '-profile:v', 'high',
+                    '-level', '4.1',
+                    '-tune', 'stillimage', // Optimized for text/static graphics
                     '-c:a', 'aac',
                     '-b:a', '128k',
                     'output.mp4'
@@ -1971,6 +2013,15 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                     <Video className="w-3.5 h-3.5" /> Relancer la prévisualisation
                                 </button>
                             )}
+                            {!(bgImage || bgVideo) && (
+                                <button 
+                                    onClick={() => setIsTransparent(!isTransparent)} 
+                                    className={`w-full py-2.5 border rounded-xl flex items-center justify-center gap-2 text-[9px] font-black uppercase transition-all ${isTransparent ? 'bg-white/20 border-white text-white shadow-[0_0_15px_rgba(255,255,255,0.2)]' : 'bg-white/5 border-white/10 text-gray-500 hover:text-white'}`}
+                                >
+                                    <Sparkles className={`w-3.5 h-3.5 ${isTransparent ? 'text-white' : 'text-gray-500'}`} />
+                                    FOND TRANSPARENT : {isTransparent ? 'OUI (PNG)' : 'NON'}
+                                </button>
+                            )}
                         </div>
 
                         {/* Content editor */}
@@ -2318,6 +2369,14 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                                                         <button onClick={applyMagicErase} className="flex-[2] py-3 bg-neon-cyan text-black rounded-xl text-[9px] font-black uppercase shadow-[0_0_15px_rgba(0,255,255,0.4)] hover:scale-[1.02] transition-all flex items-center justify-center gap-1.5"><Sparkles className="w-3.5 h-3.5" /> Appliquer</button>
                                                     </div>
                                                 </div>
+                                            )}
+                                            {!(bgImage || bgVideo) && (
+                                                <button 
+                                                    onClick={() => setIsTransparent(!isTransparent)} 
+                                                    className={`w-full py-4 border rounded-2xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${isTransparent ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/10 text-gray-400 hover:text-white'}`}
+                                                >
+                                                    <Sparkles className="w-4 h-4" /> FOND TRANSPARENT (PNG) : {isTransparent ? 'OUI' : 'NON'}
+                                                </button>
                                             )}
                                             <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*,video/*" />
                                         </div>
