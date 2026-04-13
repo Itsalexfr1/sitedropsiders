@@ -17,6 +17,8 @@
     "mail:once": "node tools/mail_bridge.js"
   },
   "dependencies": {
+    "@ffmpeg/ffmpeg": "^0.12.15",
+    "@ffmpeg/util": "^0.12.2",
     "@react-oauth/google": "^0.13.4",
     "@uiw/react-md-editor": "^4.0.11",
     "appwrite": "^23.0.0",
@@ -34,6 +36,7 @@
     "jspdf": "^4.2.0",
     "lucide-react": "^0.564.0",
     "mailparser": "^3.9.3",
+    "mp4-muxer": "^5.2.2",
     "nodemailer": "^8.0.1",
     "qr-code-styling": "^1.9.2",
     "react": "^19.2.0",
