@@ -263,17 +263,19 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
             const activeData = activeColor;
             // Shrunk gradient for Top 5 (Request 6), restored for others
-            const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
-                ? canvas.height * 0.8
-                : canvas.height * 0.4; // Remonté de 0.5 à 0.4 pour couvrir le texte plus haut
+            if (theme !== 'TRACKLIST') {
+                const gradStart = (theme === 'TOP 5 ARTISTE' || theme === 'TOP 5 STYLES')
+                    ? canvas.height * 0.8
+                    : canvas.height * 0.4; // Remonté de 0.5 à 0.4 pour couvrir le texte plus haut
 
-            const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
-            grad.addColorStop(0, 'rgba(0,0,0,0)');
-            grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
-            grad.addColorStop(0.8, `rgba(${activeData.grad}, 0.7)`);
-            grad.addColorStop(1, `rgba(${activeData.grad}, 1)`);
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
+                const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
+                grad.addColorStop(0, 'rgba(0,0,0,0)');
+                grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
+                grad.addColorStop(0.8, `rgba(${activeData.grad}, 0.7)`);
+                grad.addColorStop(1, `rgba(${activeData.grad}, 1)`);
+                ctx.fillStyle = grad;
+                ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
+            }
 
             ctx.fillStyle = 'rgba(0,0,0,0.1)';
             for (let i = 0; i < canvas.height; i += 6) ctx.fillRect(0, i, canvas.width, 2);
@@ -662,28 +664,22 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 }
 
             } else if (theme === 'TRACKLIST') {
-                // Top white banner
+                // Top black banner with opacity
                 ctx.save();
-                ctx.fillStyle = '#ffffff';
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.6)';
                 ctx.fillRect(0, 0, canvas.width, 180);
                 
-                // Draw Dropsiders White Logo (Inverted to black)
+                // Draw Dropsiders White Logo (Native)
                 if (logoRef.current) {
                     const logo = logoRef.current;
                     const lw = 500;
                     const lh = (logo.height * lw) / logo.width;
                     
-                    const tempCanvas = document.createElement('canvas');
-                    tempCanvas.width = lw;
-                    tempCanvas.height = lh;
-                    const tCtx = tempCanvas.getContext('2d');
-                    if (tCtx) {
-                        tCtx.drawImage(logo, 0, 0, lw, lh);
-                        tCtx.globalCompositeOperation = 'source-in';
-                        tCtx.fillStyle = '#0a0a0a';
-                        tCtx.fillRect(0, 0, lw, lh);
-                        ctx.drawImage(tempCanvas, (canvas.width - lw) / 2, 90 - lh / 2);
-                    }
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 10;
+                    ctx.drawImage(logo, (canvas.width - lw) / 2, 90 - lh / 2, lw, lh);
+                    ctx.restore();
                 }
                 ctx.restore();
 
