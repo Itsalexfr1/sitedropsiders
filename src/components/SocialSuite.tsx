@@ -39,7 +39,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -189,7 +189,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         'RECAP': { label: 'RÉCAP', grad: '189, 0, 255', color: '#bd00ff' },
         'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' },
         'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' },
-        'PLANNING': { label: 'PLANNING', grad: '255, 18, 65', color: '#ff1241' }
+        'PLANNING': { label: 'PLANNING', grad: '255, 18, 65', color: '#ff1241' },
+        'TRACKLIST': { label: 'TRACKLIST', grad: '255, 120, 0', color: '#ff7800' }
     };
 
     useEffect(() => {
@@ -660,6 +661,83 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     }
                 }
 
+            } else if (theme === 'TRACKLIST') {
+                // Sleek Top Gradient for logo readability
+                const topGrad = ctx.createLinearGradient(0, 0, 0, 350);
+                topGrad.addColorStop(0, 'rgba(0,0,0,0.8)');
+                topGrad.addColorStop(0.5, 'rgba(0,0,0,0.4)');
+                topGrad.addColorStop(1, 'rgba(0,0,0,0)');
+                ctx.fillStyle = topGrad;
+                ctx.fillRect(0, 0, canvas.width, 350);
+                
+                // Draw Dropsiders White Logo (Premium)
+                if (logoRef.current) {
+                    const logo = logoRef.current;
+                    const lw = 350; // Elegant size
+                    const lh = (logo.height * lw) / logo.width;
+                    
+                    ctx.save();
+                    ctx.shadowColor = 'rgba(0,0,0,0.6)';
+                    ctx.shadowBlur = 15;
+                    ctx.drawImage(logo, (canvas.width - lw) / 2, 70);
+                    
+                    // Add a subtle "TRACK ID" badge underneath
+                    ctx.textAlign = 'center';
+                    ctx.font = '900 22px "Orbitron", sans-serif';
+                    ctx.letterSpacing = "8px";
+                    ctx.fillStyle = activeData.color;
+                    ctx.fillText('TRACK ID', canvas.width / 2, 70 + lh + 45);
+                    ctx.restore();
+                }
+
+                if (customText) {
+                    const lines = customText.split('\n').filter(l => l.trim() !== '');
+                    
+                    const texts = [
+                        { text: (lines[0] || '').toUpperCase(), font: '900 95px "Montserrat", sans-serif', color: activeData.color },
+                        { text: (lines[1] || '').toUpperCase(), font: '900 65px "Montserrat", sans-serif', color: '#ffffff' },
+                        { text: (lines[2] || '').toUpperCase(), font: '900 italic 45px "Montserrat", sans-serif', color: 'rgba(255,255,255,0.7)' },
+                    ];
+
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    
+                    let currY = effectiveTab === 'PUBLICATION' ? canvas.height - 180 : safeBottom - 180;
+                    currY -= texts.length * 80; 
+                    
+                    const bgGrad = ctx.createLinearGradient(0, currY - 140, 0, canvas.height);
+                    bgGrad.addColorStop(0, 'rgba(0,0,0,0)');
+                    bgGrad.addColorStop(0.4, 'rgba(0,0,0,0.7)');
+                    bgGrad.addColorStop(1, 'rgba(0,0,0,0.95)');
+                    ctx.fillStyle = bgGrad;
+                    ctx.fillRect(0, currY - 140, canvas.width, canvas.height - (currY - 140));
+
+                    texts.forEach((item, i) => {
+                        ctx.font = item.font;
+                        ctx.fillStyle = item.color;
+                        ctx.shadowColor = 'rgba(0,0,0,0.9)';
+                        ctx.shadowBlur = 15;
+                        ctx.shadowOffsetY = 4;
+                        
+                        let yPos = currY + (i * 85);
+                        
+                        // Add a sleek line between the artist and festival
+                        if (i === 1 && lines[0] && lines[1]) {
+                            ctx.save();
+                            ctx.fillStyle = activeData.color;
+                            ctx.shadowColor = activeData.color;
+                            ctx.shadowBlur = 10;
+                            ctx.fillRect(canvas.width / 2 - 50, yPos - 55, 100, 4);
+                            ctx.restore();
+                        }
+                        
+                        if (i > 0) yPos += 20; 
+                        
+                        ctx.fillText(item.text, canvas.width / 2, yPos);
+                    });
+                    
+                    ctx.restore();
+                }
             } else {
                 const fontSize = 55; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
@@ -825,7 +903,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             }
 
             // --- FINAL OVERLAYS (Logo & Swipe) ---
-            if (logoRef.current) {
+            if (logoRef.current && theme !== 'TRACKLIST') {
                 const logo = logoRef.current;
                 const w = 320;
                 // Move left and down for video backgrounds to avoid cropping and match requested safety margins
@@ -1235,6 +1313,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             <button onClick={() => setTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
             <button onClick={() => setTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
             <button onClick={() => setTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400'}`}>PLANNING</button>
+            <button onClick={() => setTheme('TRACKLIST')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TRACKLIST' ? 'bg-orange-500/20 border-orange-500 text-orange-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TRACKLIST</button>
             
             {activeTab === 'REEL' && (
                 <>
