@@ -1792,21 +1792,21 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                         {/* Toggles + Export */}
                         <div className="space-y-4 mt-auto pb-8">
-                            <div className="flex gap-2">
-                                <div className="flex-1 p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowArticleLink(!showArticleLink)}>
-                                    <div className="flex items-center gap-2"><LinkIcon className="w-3.5 h-3.5 text-gray-500" /><span className="text-[9px] font-black text-white uppercase whitespace-nowrap">Lien Article</span></div>
+                            <div className="grid grid-cols-2 gap-2">
+                                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowArticleLink(!showArticleLink)}>
+                                    <div className="flex items-center gap-2 min-w-0"><LinkIcon className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" /><span className="text-[9px] font-black text-white uppercase truncate">Lien</span></div>
                                     <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showArticleLink ? 'bg-neon-cyan border-neon-cyan shadow-[0_0_10px_rgba(0,255,255,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
                                         {showArticleLink && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
                                     </div>
                                 </div>
-                                <div className="flex-1 p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowSwipe(!showSwipe)}>
-                                    <div className="flex items-center gap-2"><Layout className="w-3.5 h-3.5 text-gray-500" /><span className="text-[9px] font-black text-white uppercase">Swipe</span></div>
+                                <div className="p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowSwipe(!showSwipe)}>
+                                    <div className="flex items-center gap-2 min-w-0"><Layout className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" /><span className="text-[9px] font-black text-white uppercase truncate">Swipe</span></div>
                                     <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${showSwipe ? 'bg-neon-red border-neon-red shadow-[0_0_10px_rgba(255,18,65,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
                                         {showSwipe && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
                                     </div>
                                 </div>
-                                <div className="flex-1 p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowText(!showText)}>
-                                    <div className="flex items-center gap-2"><Eraser className="w-3.5 h-3.5 text-gray-500" /><span className="text-[9px] font-black text-white uppercase whitespace-nowrap">Gomme (Masquer)</span></div>
+                                <div className="col-span-2 p-3 bg-white/5 border border-white/10 rounded-2xl flex items-center justify-between cursor-pointer group" onClick={() => setShowText(!showText)}>
+                                    <div className="flex items-center gap-2"><Eraser className="w-3.5 h-3.5 flex-shrink-0 text-gray-500" /><span className="text-[9px] font-black text-white uppercase whitespace-nowrap">Gomme (Masquer le texte)</span></div>
                                     <div className={`w-4 h-4 rounded-md border-2 transition-all flex items-center justify-center flex-shrink-0 ${!showText ? 'bg-yellow-500 border-yellow-500 shadow-[0_0_100px_rgba(234,179,8,0.4)]' : 'bg-black/40 border-white/20 group-hover:border-white/40'}`}>
                                         {!showText && (<motion.svg initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={4}><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></motion.svg>)}
                                     </div>
