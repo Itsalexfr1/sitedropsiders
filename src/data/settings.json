@@ -33,43 +33,12 @@
     "auddToken": "0707d622c51645acc2e4fa26ed64538d",
     "streams": [
       {
-        "id": "vpk9ayvh0",
+        "id": "gtzq2mz48",
         "name": "MAINSTAGE",
-        "youtubeId": "xIiSaqq10Yw",
-        "overrideArtist": ""
-      },
-      {
-        "id": "szw0f45va",
-        "name": "QUASAR",
         "youtubeId": "xIiSaqq10Yw"
-      },
-      {
-        "id": "m86ei0637",
-        "name": "YUMA",
-        "youtubeId": "s5A5Y93nmPI"
-      },
-      {
-        "id": "g0bezm5z3",
-        "name": "MOJAVE",
-        "youtubeId": "cYT79Dp0Wuk"
-      },
-      {
-        "id": "5r9eavfl2",
-        "name": "SAHARA",
-        "youtubeId": "bkCTPTwU7ls"
-      },
-      {
-        "id": "3xchco5vz",
-        "name": "GOBI",
-        "youtubeId": "OMImphySFJs"
-      },
-      {
-        "id": "jlcjk46bh",
-        "name": "OUTDOOR THEATRE",
-        "youtubeId": "CzAJcgiywFo"
       }
     ],
-    "activeStreamId": "vpk9ayvh0",
+    "activeStreamId": "gtzq2mz48",
     "instagramLink": "",
     "tiktokLink": "",
     "youtubeLink": "",
