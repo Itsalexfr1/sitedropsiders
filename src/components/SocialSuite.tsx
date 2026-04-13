@@ -687,9 +687,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     const lines = customText.split('\n').filter(l => l.trim() !== '');
                     
                     const texts = [
-                        { text: (lines[0] || '').toUpperCase(), font: '900 95px "Montserrat", sans-serif', color: activeData.color },
-                        { text: (lines[1] || '').toUpperCase(), font: '900 65px "Montserrat", sans-serif', color: textColor === '#ffffff' ? '#00f0ff' : textColor },
-                        { text: (lines[2] || '').toUpperCase(), font: '900 italic 45px "Montserrat", sans-serif', color: '#ffffff' },
+                        { text: (lines[0] || '').toUpperCase(), font: '900 95px "Montserrat", sans-serif', color: '#ff0033' },
+                        { text: (lines[1] || '').toUpperCase(), font: '900 65px "Montserrat", sans-serif', color: '#ffffff' },
+                        { text: (lines[2] || '').toUpperCase(), font: '900 32px "Orbitron", sans-serif', color: '#ffffff' },
                     ];
 
                     ctx.save();
@@ -705,7 +705,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                         ctx.shadowColor = 'rgba(0,0,0,0.8)';
                         ctx.shadowBlur = 15;
                         ctx.shadowOffsetY = 4;
-                        ctx.fillText(item.text, canvas.width / 2, currY + (i * 85));
+                        if (i === 2) ctx.letterSpacing = '10px';
+                        else ctx.letterSpacing = '0px';
+                        
+                        let yPos = currY + (i * 85);
+                        if (i === 2) yPos -= 10; // Slightly nudge the third line closer because the font is smaller
+                        
+                        ctx.fillText(item.text, canvas.width / 2, yPos);
                     });
                     
                     ctx.restore();
