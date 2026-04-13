@@ -1806,7 +1806,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             <span className="text-[10px] font-black text-gray-500 uppercase">Lieu et Date</span>
             <input 
                 value={highlightsLocation} 
-                onChange={e => setHighlightsLocation(e.target.value)} 
+                onChange={e => {
+                    let val = e.target.value;
+                    if (val.endsWith(' ') && val.length > 1 && val[val.length - 2] !== ',' && !val.endsWith(', ')) {
+                        val = val.slice(0, -1).trim() + ', ';
+                    }
+                    setHighlightsLocation(val);
+                }} 
                 placeholder="LIEU, PAYS, ANNÉE (ex: PARIS, FRANCE, 2026)" 
                 className="w-full bg-white/5 border border-white/10 rounded-xl p-3 text-white text-xs font-bold uppercase focus:border-cyan-500 outline-none transition-all" 
             />
@@ -1865,9 +1871,13 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 <input 
                     value={customText.split('\n')[2] || ''} 
                     onChange={e => {
+                        let val = e.target.value;
+                        if (val.endsWith(' ') && val.length > 1 && val[val.length - 2] !== ',' && !val.endsWith(', ')) {
+                            val = val.slice(0, -1).trim() + ', ';
+                        }
                         const lines = customText.split('\n');
                         while (lines.length < 3) lines.push('');
-                        lines[2] = e.target.value;
+                        lines[2] = val;
                         setCustomText(lines.join('\n'));
                     }} 
                     placeholder="EX: SAN DIEGO, USA, 2026" 
