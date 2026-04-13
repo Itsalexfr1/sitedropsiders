@@ -1287,8 +1287,6 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 await ffmpeg.writeFile('input.webm', await fetchFile(initialBlob));
                 
-                const isTransparentMode = isTransparent && !(bgImage || bgVideo);
-                
                 // Optimized MOV export (H.264)
                 // Note: True transparency in MOV (ProRes/qtrle) is too heavy for browser WASM memory (hits 2GB limit).
                 // We use high-compatibility H.264 (.mov) for all exports.
