@@ -695,8 +695,9 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.save();
                     ctx.textAlign = 'center';
                     
-                    let currY = effectiveTab === 'PUBLICATION' ? canvas.height - 180 : safeBottom - 180;
-                    currY -= texts.length * 85; 
+                    // Center grid on 1080x1920 reel is between Y=420 and Y=1500.
+                    // Setting start Y to ~1250 ensures all 3 lines fit elegantly within the grid square without looking too low.
+                    let currY = 1250; 
 
                     texts.forEach((item, i) => {
                         ctx.font = item.font;
@@ -1284,10 +1285,10 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             <button onClick={() => setTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
             <button onClick={() => setTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
             <button onClick={() => setTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400'}`}>PLANNING</button>
-            <button onClick={() => setTheme('TRACKLIST')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TRACKLIST' ? 'bg-orange-500/20 border-orange-500 text-orange-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TRACKLIST</button>
             
             {activeTab === 'REEL' && (
                 <>
+                    <button onClick={() => setTheme('TRACKLIST')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TRACKLIST' ? 'bg-orange-500/20 border-orange-500 text-orange-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TRACKLIST</button>
                     <button onClick={() => setTheme('INTRO')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTRO' ? 'bg-blue-500/20 border-blue-500 text-blue-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTRO</button>
                     <button onClick={() => setTheme('TOP 5 ARTISTE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 ARTISTE' ? 'bg-yellow-500/20 border-yellow-500 text-yellow-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 ARTISTES</button>
                     <button onClick={() => setTheme('TOP 5 STYLES')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'TOP 5 STYLES' ? 'bg-neon-cyan/20 border-neon-cyan text-neon-cyan' : 'bg-white/5 border-white/5 text-gray-400'}`}>TOP 5 STYLES</button>
