@@ -1068,6 +1068,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
         const formats = [
             'video/mp4;codecs=h264',
+            'video/mp4',
+            'video/quicktime',
             'video/webm;codecs=h264',
             'video/webm;codecs=vp9',
             'video/webm'
@@ -2356,7 +2358,16 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                             </div>
 
                             <h2 className="text-2xl font-black text-white italic uppercase mb-2 text-center leading-none">VIDÉO PRÊTE !</h2>
-                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-8 text-center">Enregistrez-la pour vos réseaux</p>
+                            <p className="text-[10px] text-gray-500 font-black uppercase tracking-[0.2em] mb-4 text-center">Enregistrez-la pour vos réseaux</p>
+
+                            {readyVideoBlob && readyVideoBlob.type.includes('webm') && (
+                                <div className="mb-6 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-2xl">
+                                    <p className="text-[9px] text-yellow-500 font-black uppercase tracking-widest text-center leading-relaxed">
+                                        ⚠️ FORMAT WEBM (CHROME/ANDROID)<br/>
+                                        Instagram n'accepte que le MP4. Utilisez un iPhone/Safari ou convertissez ce fichier en MP4 avant de le poster.
+                                    </p>
+                                </div>
+                            )}
 
                             <div className="w-full aspect-[9/16] max-h-[300px] mb-8 rounded-2xl overflow-hidden bg-black border border-white/5 relative group">
                                 <video src={readyVideoUrl} className="w-full h-full object-cover" autoPlay loop muted playsInline controls />
