@@ -1145,7 +1145,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             totalDuration = 5 * (16800 + 1200); // 5 slides + transitions
         } else {
             totalDuration = (bgVideo && !isNaN(bgVideo.duration) && bgVideo.duration > 0) ? bgVideo.duration * 1000 : 15000;
-            if (totalDuration > 60000) totalDuration = 60000;
+            if (totalDuration > 180000) totalDuration = 180000; // Limit to 3 minutes
         }
 
         const startTime = Date.now();
