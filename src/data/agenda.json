@@ -1,23 +1,5 @@
 [
   {
-    "id": 4,
-    "title": "Coachella - Weekend 1",
-    "date": "2026-04-10",
-    "startDate": "2026-04-10",
-    "endDate": "2026-04-12",
-    "location": "Indio",
-    "type": "Festival",
-    "image": "https://www.dropsiders.fr/uploads/migrated/dropsiders/external/agenda/odjrq8ln0ssvmcxtfvi9.jpg",
-    "description": "Le festival iconique mêlant musique et art dans le désert californien.",
-    "url": "https://www.coachella.com",
-    "genre": "Hybride",
-    "country": "USA",
-    "month": "AVRIL",
-    "isWeekly": false,
-    "isSoldOut": false,
-    "isLiveDropsiders": true
-  },
-  {
     "id": 5,
     "title": "Coachella - Weekend 2",
     "date": "2026-04-17",
