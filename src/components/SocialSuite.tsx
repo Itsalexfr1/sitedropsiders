@@ -661,7 +661,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 }
 
             } else {
-                const fontSize = effectiveTab === 'PUBLICATION' ? 55 : 78; const lineHeight = fontSize * 1.15;
+                const fontSize = 55; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
                 
                 const textToRender = theme === 'HIGHLIGHTS' 
@@ -686,16 +686,16 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                 const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
                 const startY = labelY + 130;
                 const labelText = ('label' in activeData) ? (activeData as any).label : theme;
-                const labelW = ctx.measureText(labelText).width + (effectiveTab === 'PUBLICATION' ? 80 : 50);
+                const labelW = ctx.measureText(labelText).width + 80;
 
                 ctx.save();
                 ctx.globalAlpha = 0.9;
                 ctx.fillStyle = activeData.color;
                 const rectX = (canvas.width - labelW) / 2;
-                const rectY = labelY - (effectiveTab === 'PUBLICATION' ? 52 : 42);
+                const rectY = labelY - 52;
                 const rectW = labelW;
-                const rectH = effectiveTab === 'PUBLICATION' ? 80 : 65;
-                const radius = 20; // Slightly smaller radius for smaller box
+                const rectH = 80;
+                const radius = 20;
 
                 ctx.beginPath();
                 ctx.roundRect(rectX, rectY, rectW, rectH, radius);
@@ -703,7 +703,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
 
                 ctx.globalAlpha = 1;
                 ctx.fillStyle = labelText === 'MUSIQUE' ? '#000' : '#FFF';
-                const labelFontSize = effectiveTab === 'PUBLICATION' ? 42 : 35;
+                const labelFontSize = 42;
                 ctx.font = `900 italic ${labelFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 ctx.textBaseline = 'middle';
                 ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 4);
