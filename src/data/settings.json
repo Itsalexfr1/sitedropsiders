@@ -10,7 +10,7 @@
     "moderators": [],
     "lineup": "[]",
     "tickerType": "news",
-    "tickerText": "BIENVENUE SUR LE LIVE DROPSIDERS ! PROFITEZ DE LA MUSIQUE 24/7",
+    "tickerText": "",
     "tickerLink": "",
     "tickerBgColor": "#000000",
     "tickerTextColor": "#ffffff",
@@ -28,7 +28,7 @@
     "showInAgenda": true,
     "startDate": "",
     "endDate": "",
-    "status": "live",
+    "status": "edit",
     "isOnline": false,
     "auddToken": "0707d622c51645acc2e4fa26ed64538d",
     "streams": [
