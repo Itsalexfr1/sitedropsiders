@@ -31,6 +31,7 @@ interface LineupItem {
     image?: string;
 }
 
+interface StreamItem {
     id: string;
     name: string;
     youtubeId: string;
