@@ -963,7 +963,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                         body: JSON.stringify(currentSettings)
                     });
                     setSettings(currentSettings);
-                    showNotification(`${removedCount} artiste(s) terminé(s) supprimé(s) automatiquement.`, 'info');
+                    showNotification(`${removedCount} artiste(s) terminé(s) supprimé(s) automatiquement.`, 'success');
                 } catch (err) {
                     console.error("Auto-cleanup save failed", err);
                 }
