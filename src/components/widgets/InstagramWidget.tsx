@@ -13,6 +13,13 @@ export function InstagramWidget({ accentColor = 'pink', resolvedColor, username 
     const [isLoaded, setIsLoaded] = useState(false);
     const [isInView, setIsInView] = useState(false);
 
+    useEffect(() => {
+        if (isInView) {
+            const timer = setTimeout(() => setIsLoaded(true), 1500);
+            return () => clearTimeout(timer);
+        }
+    }, [isInView]);
+
     return (
         <div className="h-full flex flex-col">
             <div className="w-full flex justify-between items-center mb-6">
@@ -73,7 +80,6 @@ export function InstagramWidget({ accentColor = 'pink', resolvedColor, username 
                                     url={instagramUrl}
                                     width="100%"
                                     style={{ borderRadius: '12px' }}
-                                    afterRender={() => setIsLoaded(true)}
                                 />
                             )}
                         </div>

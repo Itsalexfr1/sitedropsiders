@@ -1,22 +1,20 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { ChevronLeft, Upload, Download, Image, Youtube, Instagram, Trash2, RefreshCw, Eye } from 'lucide-react';
+import { ChevronLeft, Upload, Download, Image, Youtube, Instagram, Trash2, RefreshCw, Eye, Scissors, Check, X } from 'lucide-react';
+import Cropper from 'react-easy-crop';
 import { isSuperAdmin } from '../utils/auth';
 
 /* ─────────────────────────────────────────
    Types
+   Update Instagram to 1080x1350 (Portrait)
 ───────────────────────────────────────── */
 type Format = 'youtube' | 'instagram';
 
 const FORMATS = {
     youtube:   { w: 1280, h: 720,  label: 'YouTube Thumbnail', ratio: '16:9', badge: 'YT', icon: Youtube },
-    instagram: { w: 1080, h: 1080, label: 'Instagram Post',    ratio: '1:1',  badge: 'IG', icon: Instagram },
+    instagram: { w: 1080, h: 1350, label: 'Instagram Portrait', ratio: '4:5',  badge: 'IG', icon: Instagram },
 };
-
-/* ─────────────────────────────────────────
-   Draw Helpers
-───────────────────────────────────────── */
 
 /* ─────────────────────────────────────────
    Main Component
@@ -39,6 +37,13 @@ export function InterviewVisualGenerator() {
     const [dropsidersLogo, setDropsidersLogo] = useState<HTMLImageElement | null>(null);
     const [visualMode, setVisualMode]     = useState<'interview' | 'recap'>('interview');
 
+    // Cropping state
+    const [showCropper, setShowCropper] = useState(false);
+    const [imageToCrop, setImageToCrop] = useState<string | null>(null);
+    const [crop, setCrop] = useState({ x: 0, y: 0 });
+    const [zoom, setZoom] = useState(1);
+    const [croppedAreaPixels, setCroppedAreaPixels] = useState<any>(null);
+
     const photoInputRef = useRef<HTMLInputElement>(null);
     const logoInputRef  = useRef<HTMLInputElement>(null);
     const festivalLogoRef = useRef<HTMLInputElement>(null);
@@ -54,11 +59,50 @@ export function InterviewVisualGenerator() {
     }, []);
 
     /* ─── Image File Handling ─── */
-    const handleFile = (file: File, setter: (url: string | null) => void) => {
+    const handleFile = (file: File, setter: (url: string | null) => void, shouldCrop = false) => {
         if (!file.type.startsWith('image/')) return;
         const reader = new FileReader();
-        reader.onload = (e) => setter(e.target?.result as string);
+        reader.onload = (e) => {
+            const url = e.target?.result as string;
+            if (shouldCrop) {
+                setImageToCrop(url);
+                setShowCropper(true);
+            } else {
+                setter(url);
+            }
+        };
         reader.readAsDataURL(file);
+    };
+
+    const onCropComplete = useCallback((_croppedArea: any, croppedAreaPixels: any) => {
+        setCroppedAreaPixels(croppedAreaPixels);
+    }, []);
+
+    const getCroppedImg = async () => {
+        if (!imageToCrop || !croppedAreaPixels) return;
+        const image = await loadImage(imageToCrop);
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d')!;
+
+        canvas.width = croppedAreaPixels.width;
+        canvas.height = croppedAreaPixels.height;
+
+        ctx.drawImage(
+            image,
+            croppedAreaPixels.x,
+            croppedAreaPixels.y,
+            croppedAreaPixels.width,
+            croppedAreaPixels.height,
+            0,
+            0,
+            croppedAreaPixels.width,
+            croppedAreaPixels.height
+        );
+
+        const base64Image = canvas.toDataURL('image/jpeg');
+        setArtistPhoto(base64Image);
+        setShowCropper(false);
+        setImageToCrop(null);
     };
 
     const loadImage = (src: string): Promise<HTMLImageElement> =>
@@ -74,6 +118,7 @@ export function InterviewVisualGenerator() {
        GENERATE CANVAS
     ───────────────────────────────────── */
     const generate = useCallback(async (fmt: Format) => {
+        // Updated logic: artistName is optional if artistLogo is present
         if (!artistPhoto || (!artistName.trim() && !artistLogo)) return;
         setIsGenerating(true);
 
@@ -136,21 +181,30 @@ export function InterviewVisualGenerator() {
                 ctx.fillStyle = fadeGrad;
                 ctx.fillRect(w * 0.35, 0, w * 0.2, h);
             } else {
-                // Instagram: bottom-center, large, faded at bottom
-                const ph = h * 0.85;
+                // Instagram Portrait: bottom-center, large, faded at bottom
+                const ph = h * 0.8;
                 const pw = ph * (photoImg.width / photoImg.height);
                 const px = (w - pw) / 2;
-                const py = h - ph + h * 0.05;
+                const py = h - ph + h * 0.02;
                 ctx.beginPath();
                 ctx.rect(0, 0, w, h);
                 ctx.clip();
                 ctx.drawImage(photoImg, px, py, pw, ph);
-                // Fade bottom
-                const fadeB = ctx.createLinearGradient(0, h * 0.5, 0, h);
+                
+                // Fade bottom - more aggressive for portrait
+                const fadeB = ctx.createLinearGradient(0, h * 0.6, 0, h);
                 fadeB.addColorStop(0, 'transparent');
                 fadeB.addColorStop(1, '#050505');
                 ctx.fillStyle = fadeB;
                 ctx.fillRect(0, 0, w, h);
+                
+                // Fade top slightly
+                const fadeT = ctx.createLinearGradient(0, 0, 0, h * 0.3);
+                fadeT.addColorStop(0, '#050505');
+                fadeT.addColorStop(1, 'transparent');
+                ctx.fillStyle = fadeT;
+                ctx.fillRect(0, 0, w, h);
+
                 // Fade left & right
                 const fadeL = ctx.createLinearGradient(0, 0, w * 0.2, 0);
                 fadeL.addColorStop(0, '#050505');
@@ -192,12 +246,12 @@ export function InterviewVisualGenerator() {
                     const logoImg = await loadImage(artistLogo);
                     const lw = blockW * 0.85;
                     const lh = lw * (logoImg.height / logoImg.width);
-                    const finalH = Math.min(lh, h * 0.35); // Réduit de 0.45 à 0.35
+                    const finalH = Math.min(lh, h * 0.35); 
                     const finalW = finalH * (logoImg.width / logoImg.height);
                     ctx.drawImage(logoImg, blockX, nameY, finalW, finalH);
                     ctx.fillStyle = '#ff0033';
                     ctx.fillRect(blockX, nameY + finalH + 15, finalW * 0.35, 6);
-                } catch (_) { /* fallback handled by logic below if needed */ }
+                } catch (_) { /* fallback */ }
             } else {
                 const nameFontSize = Math.round(h * 0.13);
                 ctx.font = `900 italic ${nameFontSize}px 'Arial Black', Arial, sans-serif`;
@@ -264,41 +318,41 @@ export function InterviewVisualGenerator() {
             }
 
         } else {
-            // ─── INSTAGRAM layout ───
+            // ─── INSTAGRAM PORTRAIT layout ───
             const cx   = w / 2;
-            const topY = h * 0.08;
+            const topY = h * 0.06;
 
             // Dropsiders logo centered top
             if (dropsidersLogo) {
-                const logoH = h * 0.07;
+                const logoH = h * 0.06;
                 const logoW = logoH * (dropsidersLogo.width / dropsidersLogo.height);
                 ctx.drawImage(dropsidersLogo, cx - logoW / 2, topY, logoW, logoH);
             }
 
             // "INTERVIEW" label
-            const labelFontSize = Math.round(h * 0.038);
+            const labelFontSize = Math.round(h * 0.032);
             ctx.font = `900 ${labelFontSize}px 'Arial Black', Arial, sans-serif`;
             ctx.fillStyle = '#ff0033';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'top';
-            ctx.fillText(visualMode === 'interview' ? '— INTERVIEW —' : '— RÉCAP VIDÉO —', cx, topY + h * 0.08);
+            ctx.fillText(visualMode === 'interview' ? '— INTERVIEW —' : '— RÉCAP VIDÉO —', cx, topY + h * 0.07);
 
-            const nameY = h * 0.78;
+            const nameY = h * 0.82;
             ctx.fillStyle = '#ffffff';
 
             if (artistLogo) {
                 try {
                     const logoImg = await loadImage(artistLogo);
-                    const lw = w * 0.60; // Réduit en largeur (de 0.75 à 0.60)
+                    const lw = w * 0.60;
                     const lh = lw * (logoImg.height / logoImg.width);
-                    const finalH = Math.min(lh, h * 0.12); // Réduit en hauteur max (de 0.16 à 0.12)
+                    const finalH = Math.min(lh, h * 0.10); 
                     const finalW = finalH * (logoImg.width / logoImg.height);
                     ctx.drawImage(logoImg, cx - finalW / 2, nameY, finalW, finalH);
                     ctx.fillStyle = '#ff0033';
                     ctx.fillRect(cx - 50, nameY + finalH + 12, 100, 5);
                 } catch (_) { /* fallback */ }
             } else {
-                const nameFontSize = Math.round(h * 0.11);
+                const nameFontSize = Math.round(h * 0.09);
                 ctx.font = `900 italic ${nameFontSize}px 'Arial Black', Arial, sans-serif`;
                 const nameUpper = artistName.toUpperCase();
                 const words = nameUpper.split(' ');
@@ -320,69 +374,61 @@ export function InterviewVisualGenerator() {
             // URL bottom
             ctx.textAlign = 'center';
             ctx.textBaseline = 'alphabetic';
-            ctx.font = `900 ${Math.round(h * 0.022)}px Arial, sans-serif`;
+            ctx.font = `900 ${Math.round(h * 0.018)}px Arial, sans-serif`;
             ctx.fillStyle = 'rgba(255,255,255,0.35)';
-            ctx.fillText('dropsiders.fr', cx, h - h * 0.04);
+            ctx.fillText('dropsiders.fr', cx, h - h * 0.03);
             ctx.textAlign = 'left';
 
             // ── Festival Info (Instagram Top Left) ──
             if (festivalName || festivalLogo) {
-                const festY = h * 0.05;
+                const festY = h * 0.04;
                 const festX = w * 0.05;
                 ctx.textAlign = 'left';
                 if (festivalLogo) {
                     try {
                         const fLogo = await loadImage(festivalLogo);
-                        const flh = h * 0.06;
+                        const flh = h * 0.05;
                         const flw = flh * (fLogo.width / fLogo.height);
                         ctx.drawImage(fLogo, festX, festY, flw, flh);
                     } catch(_) {}
                 } else {
-                    ctx.font = `900 ${h * 0.02}px Arial, sans-serif`;
+                    ctx.font = `900 ${h * 0.018}px Arial, sans-serif`;
                     ctx.fillStyle = 'rgba(255,255,255,0.5)';
                     ctx.fillText(festivalName.toUpperCase(), festX, festY + h * 0.02);
                 }
             }
         }
 
-        // ── 7. Corner logo (only if not used as hero) ──
-        // Removed to avoid clutter if using logo as main element
-
-
         // ── 8. Corner accent ──
         ctx.save();
         ctx.fillStyle = '#ff0033';
-        // Top-left corner bracket
         const cs = Math.round(w * 0.025);
         const cw = Math.round(w * 0.004);
-        ctx.fillRect(0, 0, cs, cw);
-        ctx.fillRect(0, 0, cw, cs);
-        // Bottom-right
-        ctx.fillRect(w - cs, h - cw, cs, cw);
-        ctx.fillRect(w - cw, h - cs, cw, cs);
+        ctx.fillRect(0, 0, cs, cw); ctx.fillRect(0, 0, cw, cs);
+        ctx.fillRect(w - cs, h - cw, cs, cw); ctx.fillRect(w - cw, h - cs, cw, cs);
         ctx.restore();
 
-        // ── 9. Export ──
         const url = canvas.toDataURL('image/png', 1.0);
         setPreviewUrl(url);
         setIsGenerating(false);
         return url;
-    }, [artistPhoto, artistName, artistLogo, dropsidersLogo, festivalName, festivalLogo]);
+    }, [artistPhoto, artistName, artistLogo, dropsidersLogo, festivalName, festivalLogo, visualMode]);
 
     const handleGenerate = () => { generate(activeFormat); };
 
     const handleDownload = async () => {
         const url = previewUrl ?? await generate(activeFormat);
         if (!url) return;
+        const name = artistName ? artistName.replace(/\s+/g, '_').toLowerCase() : 'dropsiders';
         const a = document.createElement('a');
         a.href = url;
-        a.download = `dropsiders_interview_${artistName.replace(/\s+/g, '_').toLowerCase()}_${activeFormat}.png`;
+        a.download = `dropsiders_${visualMode}_${name}_${activeFormat}.png`;
         a.click();
     };
 
-    // Auto-regenerate when format/data changes
+    // Auto-regenerate
     useEffect(() => {
-        if (artistPhoto && artistName.trim()) {
+        if (artistPhoto && (artistName.trim() || artistLogo)) {
             const t = setTimeout(() => generate(activeFormat), 300);
             return () => clearTimeout(t);
         }
@@ -402,9 +448,59 @@ export function InterviewVisualGenerator() {
     const fmt = FORMATS[activeFormat];
 
     return (
-        <div className="min-h-screen bg-[#050505]">
-            {/* Hidden canvas */}
+        <div className="min-h-screen bg-[#050505] text-white">
             <canvas ref={canvasRef} className="hidden" />
+
+            {/* Cropper Modal */}
+            <AnimatePresence>
+                {showCropper && imageToCrop && (
+                    <motion.div 
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        className="fixed inset-0 z-[100] bg-black/95 flex flex-col"
+                    >
+                        <div className="flex items-center justify-between p-6 border-b border-white/10">
+                            <h2 className="text-xl font-black uppercase italic tracking-tighter">Rogner la photo</h2>
+                            <button onClick={() => setShowCropper(false)} className="p-2 hover:bg-white/10 rounded-full transition-all"><X className="w-6 h-6" /></button>
+                        </div>
+                        
+                        <div className="flex-1 relative bg-black/50">
+                            <Cropper
+                                image={imageToCrop}
+                                crop={crop}
+                                zoom={zoom}
+                                aspect={activeFormat === 'youtube' ? 1 : 4/5}
+                                onCropChange={setCrop}
+                                onCropComplete={onCropComplete}
+                                onZoomChange={setZoom}
+                            />
+                        </div>
+
+                        <div className="p-8 bg-black/80 border-t border-white/10 flex flex-col gap-6">
+                            <div className="flex items-center gap-6">
+                                <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">Zoom</span>
+                                <input
+                                    type="range"
+                                    value={zoom}
+                                    min={1}
+                                    max={3}
+                                    step={0.1}
+                                    aria-labelledby="Zoom"
+                                    onChange={(e: any) => setZoom(e.target.value)}
+                                    className="flex-1 h-1 bg-white/10 rounded-full appearance-none accent-neon-red cursor-pointer"
+                                />
+                            </div>
+                            <div className="flex justify-end gap-4">
+                                <button onClick={() => setShowCropper(false)} className="px-8 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all">Annuler</button>
+                                <button onClick={getCroppedImg} className="px-10 py-4 bg-neon-red text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-red/80 transition-all flex items-center gap-2">
+                                    <Check className="w-4 h-4" /> Appliquer
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* Nav */}
             <div className="fixed top-4 left-4 z-50">
@@ -417,26 +513,21 @@ export function InterviewVisualGenerator() {
                 </button>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 py-20 lg:py-16 lg:pl-8 lg:pr-8">
-                {/* Header */}
+            <div className="max-w-7xl mx-auto px-4 py-20 lg:py-16">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="mb-10 text-center">
                     <div className="inline-flex items-center gap-3 px-5 py-2 bg-neon-red/10 border border-neon-red/20 rounded-full mb-6">
                         <Image className="w-4 h-4 text-neon-red" />
-                        <span className="text-neon-red font-black uppercase tracking-widest text-[10px]">Visual Generator</span>
+                        <span className="text-neon-red font-black uppercase tracking-widest text-[10px]">Visual Studio v2.0</span>
                     </div>
                     <h1 className="text-4xl md:text-5xl font-display font-black text-white uppercase italic tracking-tighter mb-3">
                         {visualMode === 'recap' ? 'Récap' : 'Interview'} <span className={visualMode === 'recap' ? 'text-neon-cyan' : 'text-neon-red'}>Visuals</span>
                     </h1>
-                    <p className="text-gray-500 text-sm font-bold uppercase tracking-widest">
-                        Génère tes miniatures YouTube & Instagram
-                    </p>
                 </motion.div>
 
-                <div className="grid lg:grid-cols-[420px_1fr] gap-8">
+                <div className="grid lg:grid-cols-[400px_1fr] gap-8">
                     {/* ─── LEFT : CONTROLS ─── */}
-                    <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-
-                        {/* Mode selector */}
+                    <div className="space-y-6">
+                        {/* Creation Type */}
                         <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-4">Type de création</label>
                             <div className="grid grid-cols-2 gap-3">
@@ -445,7 +536,7 @@ export function InterviewVisualGenerator() {
                             </div>
                         </div>
 
-                        {/* Format selector */}
+                        {/* Format */}
                         <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
                             <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-4">Format</label>
                             <div className="grid grid-cols-2 gap-3">
@@ -467,14 +558,15 @@ export function InterviewVisualGenerator() {
                             </div>
                         </div>
 
-                        {/* Artist Info Group */}
-                        {visualMode === 'interview' && (
-                            <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-3">
-                                Artiste <span className="text-neon-red">*</span>
-                            </label>
+                        {/* Artiste Input */}
+                        <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
+                            <div className="flex justify-between items-center mb-4">
+                                <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.25em]">
+                                    Artiste {!artistLogo && <span className="text-neon-red">*</span>}
+                                </label>
+                                {artistLogo && <span className="text-[8px] bg-green-500/10 text-green-500 px-2 py-0.5 rounded font-black uppercase">Nom Optionnel</span>}
+                            </div>
                             
-                            {/* Name Input */}
                             <input
                                 type="text"
                                 value={artistName}
@@ -483,7 +575,6 @@ export function InterviewVisualGenerator() {
                                 className="w-full bg-black/40 border border-white/10 rounded-2xl px-5 py-4 text-white text-lg font-black italic tracking-tight focus:outline-none focus:border-neon-red transition-all placeholder:text-gray-600 mb-4"
                             />
 
-                            {/* Logo Upload inside same block */}
                             <input
                                 ref={logoInputRef}
                                 type="file"
@@ -492,8 +583,10 @@ export function InterviewVisualGenerator() {
                                 onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0], setArtistLogo)}
                             />
                             {artistLogo ? (
-                                <div className="flex items-center gap-4 p-4 bg-black/30 rounded-2xl border border-white/5">
-                                    <img src={artistLogo} alt="Logo" className="h-10 w-10 object-contain" />
+                                <div className="flex items-center gap-4 p-4 bg-black/30 rounded-2xl border border-white/5 group">
+                                    <div className="w-10 h-10 bg-white/5 rounded-lg p-1 flex items-center justify-center">
+                                        <img src={artistLogo} alt="Logo" className="w-full h-full object-contain" />
+                                    </div>
                                     <p className="text-[10px] font-black uppercase text-gray-400 flex-1">Logo Artiste</p>
                                     <button onClick={() => setArtistLogo(null)} className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-all text-red-500"><Trash2 className="w-3 h-3" /></button>
                                 </div>
@@ -502,32 +595,41 @@ export function InterviewVisualGenerator() {
                                     onClick={() => logoInputRef.current?.click()}
                                     className="w-full py-3 rounded-xl border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-3 text-gray-500 text-[10px] uppercase font-black tracking-widest"
                                 >
-                                    <Upload className="w-4 h-4" />
-                                    Logo Artiste (Optionnel)
+                                    <Image className="w-4 h-4" /> Logo Artiste (Optionnel)
                                 </button>
                             )}
                         </div>
-                        )}
 
-                        {/* Person photo (keep separate as it's the main visual element) */}
+                        {/* Photo Upload & Crop */}
                         <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-3">
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-4">
                                 {visualMode === 'interview' ? "Photo de l'artiste" : "Photo de couverture"} <span className="text-neon-red">*</span>
                             </label>
+                            
                             <input
                                 ref={photoInputRef}
                                 type="file"
                                 accept="image/*"
                                 className="hidden"
-                                onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0], setArtistPhoto)}
+                                onChange={(e) => e.target.files?.[0] && handleFile(e.target.files[0], setArtistPhoto, true)}
                             />
+
                             {artistPhoto ? (
-                                <div className="relative group rounded-2xl overflow-hidden aspect-square">
-                                    <img src={artistPhoto} alt="Artist" className="w-full h-full object-cover" />
-                                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                                        <button onClick={() => photoInputRef.current?.click()} className="p-3 bg-white/20 rounded-2xl hover:bg-white/30 transition-all"><RefreshCw className="w-5 h-5 text-white" /></button>
-                                        <button onClick={() => setArtistPhoto(null)} className="p-3 bg-red-500/20 rounded-2xl hover:bg-red-500/40 transition-all"><Trash2 className="w-5 h-5 text-red-400" /></button>
+                                <div className="space-y-4">
+                                    <div className="relative group rounded-2xl overflow-hidden aspect-[4/3] bg-black/20">
+                                        <img src={artistPhoto} alt="Artist" className="w-full h-full object-contain" />
+                                        <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
+                                            <button onClick={() => { setImageToCrop(artistPhoto); setShowCropper(true); }} className="p-3 bg-white/20 rounded-2xl hover:bg-white/30 transition-all" title="Rogner"><Scissors className="w-5 h-5 text-white" /></button>
+                                            <button onClick={() => photoInputRef.current?.click()} className="p-3 bg-white/20 rounded-2xl hover:bg-white/30 transition-all" title="Remplacer"><RefreshCw className="w-5 h-5 text-white" /></button>
+                                            <button onClick={() => setArtistPhoto(null)} className="p-3 bg-red-500/20 rounded-2xl hover:bg-red-500/40 transition-all" title="Supprimer"><Trash2 className="w-5 h-5 text-red-400" /></button>
+                                        </div>
                                     </div>
+                                    <button 
+                                        onClick={() => { setImageToCrop(artistPhoto); setShowCropper(true); }}
+                                        className="w-full py-3 bg-white/5 border border-white/10 rounded-xl flex items-center justify-center gap-3 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 transition-all"
+                                    >
+                                        <Scissors className="w-4 h-4" /> Rogner la photo
+                                    </button>
                                 </div>
                             ) : (
                                 <button
@@ -541,11 +643,9 @@ export function InterviewVisualGenerator() {
                             )}
                         </div>
 
-                        {/* Festival info (new) */}
+                        {/* Festival */}
                         <div className="bg-white/[0.03] border border-white/8 rounded-3xl p-6 backdrop-blur-md">
-                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-3">
-                                Festival / Événement
-                            </label>
+                            <label className="block text-[10px] font-black text-gray-400 uppercase tracking-[0.25em] mb-4">Festival / Événement</label>
                             <input
                                 type="text"
                                 value={festivalName}
@@ -562,7 +662,7 @@ export function InterviewVisualGenerator() {
                             />
                             {festivalLogo ? (
                                 <div className="flex items-center gap-4 p-4 bg-black/30 rounded-2xl border border-white/5">
-                                    <img src={festivalLogo} alt="Festival Logo" className="h-10 w-10 object-contain" />
+                                    <img src={festivalLogo} alt="Logo" className="h-10 w-10 object-contain" />
                                     <p className="text-[9px] font-black uppercase text-gray-400 flex-1">Logo Festival</p>
                                     <button onClick={() => setFestivalLogo(null)} className="p-2 bg-red-500/10 rounded-lg hover:bg-red-500/20 transition-all"><Trash2 className="w-3 h-3 text-red-500" /></button>
                                 </div>
@@ -571,133 +671,106 @@ export function InterviewVisualGenerator() {
                                     onClick={() => festivalLogoRef.current?.click()}
                                     className="w-full py-3 rounded-xl border border-white/10 hover:border-white/20 transition-all flex items-center justify-center gap-3 text-gray-500 text-[10px] uppercase font-black tracking-widest"
                                 >
-                                    <Image className="w-4 h-4" />
-                                    Logo Festival (Optionnel)
+                                    <Upload className="w-4 h-4" /> Logo Festival (Optionnel)
                                 </button>
                             )}
                         </div>
 
                         {/* Actions */}
-                        <div className="grid grid-cols-2 gap-3">
-                            <button
+                        <div className="grid grid-cols-2 gap-3 pt-2">
+                             <button
                                 onClick={handleGenerate}
-                                disabled={!artistPhoto || (visualMode === 'interview' && !artistName.trim()) || isGenerating}
-                                className="flex items-center justify-center gap-2 py-4 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                                disabled={!artistPhoto || (!artistName.trim() && !artistLogo) || isGenerating}
+                                className="flex items-center justify-center gap-2 py-5 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white hover:bg-white/10 transition-all disabled:opacity-40"
                             >
-                                <Eye className="w-4 h-4" />
-                                Prévisualiser
+                                <Eye className="w-4 h-4" /> Prévisualiser
                             </button>
                             <button
                                 onClick={handleDownload}
-                                disabled={!artistPhoto || (visualMode === 'interview' && !artistName.trim()) || isGenerating}
-                                className="flex items-center justify-center gap-2 py-4 bg-neon-red text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-red/80 transition-all shadow-[0_0_20px_rgba(255,0,51,0.3)] disabled:opacity-40 disabled:cursor-not-allowed"
+                                disabled={!artistPhoto || (!artistName.trim() && !artistLogo) || isGenerating}
+                                className="flex items-center justify-center gap-2 py-5 bg-neon-red text-white rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-neon-red/80 transition-all shadow-[0_0_20px_rgba(255,0,51,0.3)] disabled:opacity-40"
                             >
-                                <Download className="w-4 h-4" />
-                                Télécharger
+                                <Download className="w-4 h-4" /> Télécharger
                             </button>
                         </div>
-
-                        {/* Both formats download */}
-                        {previewUrl && (
-                            <button
-                                onClick={async () => {
-                                    for (const fmt of Object.keys(FORMATS) as Format[]) {
-                                        setActiveFormat(fmt);
-                                        await new Promise(r => setTimeout(r, 500));
-                                        const url = await generate(fmt);
-                                        if (!url) continue;
-                                        const a = document.createElement('a');
-                                        a.href = url;
-                                        a.download = `dropsiders_interview_${artistName.replace(/\s+/g, '_').toLowerCase()}_${fmt}.png`;
-                                        a.click();
-                                        await new Promise(r => setTimeout(r, 300));
-                                    }
-                                }}
-                                className="w-full py-4 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-gray-100 transition-all flex items-center justify-center gap-2"
-                            >
-                                <Download className="w-4 h-4" />
-                                Télécharger les 2 formats
-                            </button>
-                        )}
-                    </motion.div>
+                    </div>
 
                     {/* ─── RIGHT : PREVIEW ─── */}
-                    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-4">
-                        {/* Format badge */}
-                        <div className="flex items-center gap-3">
-                            <div className="flex items-center gap-2">
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
                                 {(Object.keys(FORMATS) as Format[]).map(f => (
                                     <button
                                         key={f}
                                         onClick={() => setActiveFormat(f)}
-                                        className={`px-4 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest transition-all border ${activeFormat === f ? 'bg-neon-red border-neon-red text-white' : 'border-white/10 text-gray-500 hover:border-white/20 hover:text-white'}`}
+                                        className={`px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all border ${activeFormat === f ? 'bg-white border-white text-black' : 'border-white/10 text-gray-500 hover:border-white/20 hover:text-white'}`}
                                     >
                                         {FORMATS[f].badge} — {FORMATS[f].ratio}
                                     </button>
                                 ))}
                             </div>
-                            <span className="text-[9px] text-gray-600 font-black uppercase tracking-widest ml-auto">
-                                {fmt.w} × {fmt.h} px
-                            </span>
+                            <span className="text-[10px] text-gray-600 font-black uppercase tracking-[0.2em]">{fmt.w} × {fmt.h} px</span>
                         </div>
 
-                        {/* Preview area */}
                         <div
-                            className={`w-full bg-black/30 border border-white/8 rounded-3xl overflow-hidden flex items-center justify-center relative ${isGenerating ? 'opacity-60' : ''}`}
-                            style={{ aspectRatio: activeFormat === 'youtube' ? '16/9' : '1/1' }}
+                            className={`w-full bg-black/40 border border-white/10 rounded-[40px] overflow-hidden flex items-center justify-center relative shadow-2xl ${isGenerating ? 'opacity-60' : ''}`}
+                            style={{ aspectRatio: fmt.w / fmt.h }}
                         >
                             {isGenerating && (
-                                <div className="absolute inset-0 flex items-center justify-center z-10">
-                                    <div className="w-10 h-10 border-4 border-neon-red/20 border-t-neon-red rounded-full animate-spin" />
+                                <div className="absolute inset-0 flex items-center justify-center z-10 bg-black/40 backdrop-blur-sm">
+                                    <div className="w-12 h-12 border-4 border-neon-red/20 border-t-neon-red rounded-full animate-spin" />
                                 </div>
                             )}
                             {previewUrl ? (
-                                <img
-                                    src={previewUrl}
-                                    alt="Preview"
-                                    className="w-full h-full object-contain"
-                                    style={{ imageRendering: 'auto' }}
-                                />
+                                <img src={previewUrl} alt="Preview" className="w-full h-full object-contain" />
                             ) : (
-                                <div className="flex flex-col items-center gap-4 text-gray-600">
-                                    <Image className="w-12 h-12 opacity-30" />
-                                    <p className="text-[10px] font-black uppercase tracking-widest text-center">
-                                        {!artistPhoto
-                                            ? 'Importe une photo pour commencer'
-                                            : !artistName.trim()
-                                            ? 'Saisis le nom de l\'artiste'
-                                            : 'Clique sur Prévisualiser'
-                                        }
+                                <div className="flex flex-col items-center gap-6 text-gray-700">
+                                    <Image className="w-16 h-16 opacity-20" />
+                                    <p className="text-[11px] font-black uppercase tracking-[0.3em] text-center max-w-xs leading-relaxed">
+                                        {!artistPhoto ? 'Importe une photo pour commencer' : 'Génère l\'aperçu pour voir le résultat'}
                                     </p>
                                 </div>
                             )}
                         </div>
 
-                        {/* Info cards */}
-                        <div className="grid grid-cols-3 gap-3">
-                            {[
-                                { label: 'Format', value: activeFormat === 'youtube' ? 'YouTube' : 'Instagram' },
-                                { label: 'Résolution', value: `${fmt.w}×${fmt.h}` },
-                                { label: 'Export', value: 'PNG HD' },
-                            ].map(item => (
-                                <div key={item.label} className="bg-white/[0.03] border border-white/8 rounded-2xl p-4 text-center">
-                                    <p className="text-[9px] text-gray-500 font-black uppercase tracking-widest mb-1">{item.label}</p>
-                                    <p className="text-white font-black text-sm">{item.value}</p>
-                                </div>
-                            ))}
-                        </div>
+                        {/* Batch Export */}
+                        {previewUrl && (
+                            <button
+                                onClick={async () => {
+                                    for (const fmt of Object.keys(FORMATS) as Format[]) {
+                                        setActiveFormat(fmt);
+                                        await new Promise(r => setTimeout(r, 600));
+                                        const url = await generate(fmt);
+                                        if (!url) continue;
+                                        const name = artistName ? artistName.replace(/\s+/g, '_').toLowerCase() : 'dropsiders';
+                                        const a = document.createElement('a');
+                                        a.href = url;
+                                        a.download = `dropsiders_${visualMode}_${name}_${fmt}.png`;
+                                        a.click();
+                                        await new Promise(r => setTimeout(r, 300));
+                                    }
+                                }}
+                                className="w-full py-5 bg-white text-black rounded-[24px] text-[11px] font-black uppercase tracking-[0.2em] hover:bg-gray-100 transition-all flex items-center justify-center gap-3 shadow-xl"
+                            >
+                                <Download className="w-5 h-5" /> Télécharger TOUS LES FORMATS (PNG HD)
+                            </button>
+                        )}
 
                         {/* Tips */}
-                        <div className="bg-neon-red/5 border border-neon-red/20 rounded-2xl p-5">
-                            <p className="text-[9px] font-black text-neon-red uppercase tracking-widest mb-2">💡 Conseils</p>
-                            <ul className="space-y-1.5 text-[10px] text-gray-400">
-                                <li>• Préfère une photo en haute résolution (min. 1500px)</li>
-                                <li>• Le fond doit idéalement être sombre ou neutre</li>
-                                <li>• Le logo artiste sera placé en coin — PNG transparent recommandé</li>
-                                <li>• Le logo Dropsiders est ajouté automatiquement</li>
-                            </ul>
+                        <div className="bg-white/[0.02] border border-white/5 rounded-3xl p-8">
+                            <h4 className="text-[10px] font-black text-neon-red uppercase tracking-[0.3em] mb-4 italic">Social Media Studio v2.0 Tips</h4>
+                            <div className="grid md:grid-cols-2 gap-8">
+                                <ul className="space-y-3 text-[10px] text-gray-500 font-bold uppercase tracking-wide leading-relaxed">
+                                    <li className="flex items-start gap-2"><span className="text-neon-red italic">01.</span> Les visuels Instagram sont optimisés pour le mode Portrait (4:5) pour plus de visisbilité.</li>
+                                    <li className="flex items-start gap-2"><span className="text-neon-red italic">02.</span> Rogne tes photos directement ici pour un cadrage parfait.</li>
+                                </ul>
+                                <ul className="space-y-3 text-[10px] text-gray-500 font-bold uppercase tracking-wide leading-relaxed">
+                                    <li className="flex items-start gap-2"><span className="text-neon-red italic">03.</span> Le nom d'artiste disparait si le logo est présent pour éviter les doublons.</li>
+                                    <li className="flex items-start gap-2"><span className="text-neon-red italic">04.</span> PNG transparent recommandé pour les logos artistes.</li>
+                                </ul>
+                            </div>
                         </div>
-                    </motion.div>
+                    </div>
                 </div>
             </div>
         </div>
