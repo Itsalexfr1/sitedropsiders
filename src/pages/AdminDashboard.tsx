@@ -65,7 +65,6 @@ export function AdminDashboard() {
     const [isEditorsModalOpen, setIsEditorsModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
-    const [isTopDropsidersModalOpen, setIsTopDropsidersModalOpen] = useState(false);
     const [socialLinks, setSocialLinks] = useState({ instagram: '', tiktok: '' });
     const [newsTabs, setNewsTabs] = useState({ all: 'Toutes', news: 'News', musique: 'Musiques', focus: 'Focus de la semaine' });
     const [navLabels, setNavLabels] = useState({ 
@@ -93,8 +92,6 @@ export function AdminDashboard() {
     const [duplicateSets, setDuplicateSets] = useState<any[]>([]);
     const [isDownloaderOpen, setIsDownloaderOpen] = useState(false);
     const [pushSubscribersCount, setPushSubscribersCount] = useState<number | null>(null);
-    const [wikiTab, setWikiTab] = useState<'djs' | 'clubs' | 'festivals'>('djs');
-    const [isWikiExpanded, setIsWikiExpanded] = useState(false);
     const [socialRecentArticles, setSocialRecentArticles] = useState<any[]>([]);
     const [selectedSocialArticle, setSelectedSocialArticle] = useState<any | null>(null);
     const [selectedSocialTheme, setSelectedSocialTheme] = useState<string | undefined>(undefined);
@@ -542,6 +539,8 @@ export function AdminDashboard() {
     const [teamMembers, setTeamMembers] = useState<any[]>([]);
     const [editors, setEditors] = useState<any[]>([]);
     const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'WIKI' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM' | 'R2' | 'SOCIAL_STUDIO' | 'TOP_DROPSIDERS'>('ALL');
+    const [isWikiExpanded, setIsWikiExpanded] = useState(false);
+    const [wikiTab, setWikiTab] = useState<'djs' | 'clubs' | 'festivals'>('djs');
 
     const DASHBOARD_TABS = [
         { id: 'ALL', label: 'Tout' },
@@ -2774,8 +2773,9 @@ export function AdminDashboard() {
                                         );
                                     })()}
                                 </div>
+                            </div>
                         </div>
-                    ) : dashboardTab === 'TOP_DROPSIDERS' ? (
+                ) : dashboardTab === 'TOP_DROPSIDERS' ? (
                         <div className="space-y-12 pb-20">
                             <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-64 h-64 bg-neon-yellow/5 blur-[100px] pointer-events-none" />
@@ -8120,8 +8120,8 @@ export function AdminDashboard() {
                         </div>
                     )}
                 </AnimatePresence>
+                </div>
             </div>
-        </div>
         </div>
     );
 }
