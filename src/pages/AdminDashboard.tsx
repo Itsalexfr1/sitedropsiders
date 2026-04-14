@@ -3111,6 +3111,9 @@ export function AdminDashboard() {
                                                     } else if (action.title === 'Studio Création') {
                                                         e.preventDefault();
                                                         setIsCreatorStudioOpen(true);
+                                                    } else if (action.title === 'Top Dropsiders') {
+                                                        e.preventDefault();
+                                                        setDashboardTab('TOP_DROPSIDERS');
                                                     }
                                                 }}
                                                 className="block h-full p-6 rounded-3xl border backdrop-blur-sm transition-all duration-300 hover:transform hover:-translate-y-1 hover:shadow-2xl group relative overflow-hidden"
