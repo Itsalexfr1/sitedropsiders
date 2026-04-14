@@ -10,10 +10,10 @@ export function TopDropsiders() {
                 description="Découvrez les meilleurs DJs, Clubs et Festivals du monde selon la communauté Dropsiders."
             />
             
-            {/* Background elements */}
+            {/* Background elements - Optimized for performance */}
             <div className="fixed inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-neon-yellow/10 blur-[150px] rounded-full animate-pulse" />
-                <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-neon-cyan/5 blur-[150px] rounded-full animate-pulse" style={{ animationDelay: '2s' }} />
+                <div className="absolute top-1/4 left-1/4 w-[400px] h-[400px] bg-neon-yellow/5 blur-[80px] rounded-full will-change-transform" />
+                <div className="absolute bottom-1/4 right-1/4 w-[500px] h-[500px] bg-neon-cyan/5 blur-[80px] rounded-full will-change-transform" />
             </div>
 
             <div className="w-full px-4 md:px-12 xl:px-16 2xl:px-24 relative z-10">

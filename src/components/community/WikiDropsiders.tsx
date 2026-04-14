@@ -244,7 +244,7 @@ export function WikiDropsiders({
                                                      className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl p-3 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer group"
                                                  >
                                                      <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
-                                                         <img src={resolveImageUrl(dj.image)} alt={dj.name} className="w-full h-full object-cover" />
+                                                         <img src={resolveImageUrl(dj.image)} alt={dj.name} className="w-full h-full object-cover" loading="lazy" />
                                                      </div>
                                                      <div className="flex-1 min-w-0">
                                                          <div className="text-[11px] font-black text-white uppercase tracking-widest truncate">{dj.name}</div>
