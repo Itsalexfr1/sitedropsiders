@@ -13,12 +13,13 @@ interface UserAuthModalProps {
 }
 
 export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
-    const { user, isLoggedIn, login, logout, loginSocial } = useUser();
+    const { user, isLoggedIn, logout, loginSocial } = useUser();
     const [username, setUsername] = useState('');
     const [email, setEmail] = useState('');
     const [avatar, setAvatar] = useState<string | null>(null);
     const [isSocialLoading, setIsSocialLoading] = useState(false);
     const [discordLoading, setDiscordLoading] = useState(false);
+    const [isAuthLoading, setIsAuthLoading] = useState(false);
 
     const googleLogin = useGoogleLogin({
         onSuccess: async (tokenResponse) => {

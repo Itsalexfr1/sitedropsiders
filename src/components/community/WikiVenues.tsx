@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen, Upload, Image as ImageIcon, Pencil, Star } from 'lucide-react';
+import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen, Upload, Image as ImageIcon, Pencil, Star, Disc } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import { UserAuthModal } from '../auth/UserAuthModal';
 import { ImageUploadModal } from '../ImageUploadModal';
@@ -174,7 +174,7 @@ export function WikiVenues({
 
             if (res.ok) {
                 // Silently refresh data to get latest global counts
-                fetchLive();
+                fetchItems();
             }
         } catch (error) {
             console.error('Failed to sync vote with server', error);

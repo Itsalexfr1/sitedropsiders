@@ -9,7 +9,7 @@ import {
     Trophy, Stars, Heart, Timer, ShieldAlert, Calendar, Edit2, Edit3,
     Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
     Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Camera, Check, Coins, Shield,
-    Scan, Wand2, Globe, Volume2, VolumeX, Vote
+    Scan, Wand2, Globe, Volume2, VolumeX, Vote, Disc, Loader2
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { UserAuthModal } from '../components/auth/UserAuthModal';
@@ -127,15 +127,6 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [bannedPseudos, setBannedPseudos] = useState<string[]>([]);
     const [isBanned, setIsBanned] = useState(false);
 
-    const isMod = useMemo(() => {
-        const currentPs = (storedPseudo || '').toUpperCase();
-        return userRole !== 'user' || moderators.includes(currentPs);
-    }, [userRole, storedPseudo, moderators]);
-
-    const isUserBanned = useMemo(() => {
-        const currentPs = (storedPseudo || '').toUpperCase();
-        return isBanned || bannedPseudos.includes(currentPs);
-    }, [isBanned, storedPseudo, bannedPseudos]);
     const [showAdminPanel, setShowAdminPanel] = useState(false);
     const [activeChatTab, setActiveChatTab] = useState('chat');
     const [newMessage, setNewMessage] = useState('');
@@ -163,7 +154,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [loginPseudo, setLoginPseudo] = useState('');
     const [loginEmail, setLoginEmail] = useState('');
     const [loginCountry, setLoginCountry] = useState('FR');
-    const [subscribeNewsletter, setSubscribeNewsletter] = useState(false);
+    const [subscribeNewsletter] = useState(false);
 
     const countries = [
         { code: 'FR', name: 'France' },
@@ -186,17 +177,36 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [newSetArtist, setNewSetArtist] = useState('');
     const [newSetTime, setNewSetTime] = useState('');
     const [trackSuggestion, setTrackSuggestion] = useState('');
+    
+    // Auth & Voting States
+    const { isLoggedIn, user: authUser } = useUser();
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+    const [hasVotedToday, setHasVotedToday] = useState<Set<string>>(new Set());
+
     const [expandedSets, setExpandedSets] = useState<string[]>([]);
     // Chat State
     const [chatMessages, setChatMessages] = useState<any[]>([]);
     const [userCountry, setUserCountry] = useState('FR');
     const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
-    const [slowModeEnabled, setSlowModeEnabled] = useState(false);
+    const [avatar, setAvatar] = useState<string | null>(null);
+    const [isSocialLoading, setIsSocialLoading] = useState(false);
+    const [discordLoading, setDiscordLoading] = useState(false);
+    const [isAuthLoading, setIsAuthLoading] = useState(false);
     const [lastMessageTime, setLastMessageTime] = useState(0);
     const [activeQuiz, setActiveQuiz] = useState<any>(null);
     const [quizTimeLeft, setQuizTimeLeft] = useState<number | null>(null);
     const [userHasAnswered, setUserHasAnswered] = useState(false);
     const [predefinedQuizzes, setPredefinedQuizzes] = useState<any[]>([]);
+
+    const isMod = useMemo(() => {
+        const currentPs = (storedPseudo || '').toUpperCase();
+        return userRole !== 'user' || moderators.includes(currentPs);
+    }, [userRole, storedPseudo, moderators]);
+
+    const isUserBanned = useMemo(() => {
+        const currentPs = (storedPseudo || '').toUpperCase();
+        return isBanned || bannedPseudos.includes(currentPs);
+    }, [isBanned, storedPseudo, bannedPseudos]);
 
     useEffect(() => {
         if (quizTimeLeft === null || quizTimeLeft <= 0) return;
@@ -292,7 +302,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [activeHeist, setActiveHeist] = useState<{ participants: { pseudo: string, bet: number }[], timeLeft: number } | null>(null);
     const [activeBoss, setActiveBoss] = useState<{ hp: number, maxHp: number, name: string } | null>(null);
     const [captchaChallenge, setCaptchaChallenge] = useState<{ q: string, a: number } | null>(null);
-    const [captchaInput, setCaptchaInput] = useState('');
+    const [captchaInput] = useState('');
     const [userCity, setUserCity] = useState('ðŸ“ PARIS');
     const [hypeTrain, setHypeTrain] = useState({ active: false, level: 0, progress: 0 });
     const [isMuted, setIsMuted] = useState(false);
@@ -353,54 +363,11 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         }
     }, [isAdmin]);
 
-    // ✨ New State Features
-    const { isLoggedIn, user: authUser } = useUser();
-    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-    const [hasVotedToday, setHasVotedToday] = useState<Set<string>>(new Set());
-
-    const activeLiveItem = useMemo(() => {
-        const now = new Date();
-        return lineupItems.find(item => {
-            const [h, m] = (item.startTime || '00:00').replace('.', ':').replace('h', ':').split(':').map(Number);
-            const [eh, em] = (item.endTime || '00:00').replace('.', ':').replace('h', ':').split(':').map(Number);
-            const dateParts = item.day.split('-');
-            const start = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), h, m, 0);
-            const end = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), eh, em, 0);
-            if (eh < h) end.setDate(end.getDate() + 1);
-            return now >= start && now <= end;
-        });
-    }, [lineupItems, currentTime]);
-
-    const handleVoteFromLive = async (targetId: string, type: 'DJS' | 'FESTIVALS' | 'CLUBS', label: string) => {
-        if (!isLoggedIn) {
-            setIsAuthModalOpen(true);
-            return;
-        }
-        if (hasVotedToday.has(targetId)) return;
-
-        try {
-            const res = await fetch('/api/wiki/vote', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ artistId: targetId, userId: authUser?.id, type })
-            });
-            if (res.ok) {
-                setHasVotedToday(prev => new Set([...prev, targetId]));
-                showNotification(`VOTE ENREGISTRÉ POUR ${label} ! ❤️`, 'success');
-                triggerConfetti();
-            }
-        } catch (e) {
-            console.error("Vote failed", e);
-        }
-    };
 
     const [userInstagram, setUserInstagram] = useState(localStorage.getItem('user_instagram') || '');
     const [timeOnSite, setTimeOnSite] = useState(() => parseInt(localStorage.getItem('time_on_site') || '0'));
     const [showAchievementPopup, setShowAchievementPopup] = useState<string | null>(null);
 
-    const [loginInstagram, setLoginInstagram] = useState('');
-    const [loginPseudoColor, setLoginPseudoColor] = useState('#ffffff');
-    const [loginCountrySearch, setLoginCountrySearch] = useState('');
 
     // ðŸŽ RECOMPENSE QUOTIDIENNE (Paliers)
     useEffect(() => {
@@ -669,6 +636,42 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
             return JSON.parse(settings.lineup || '[]');
         } catch (e) { return []; }
     });
+
+    const activeLiveItem = useMemo(() => {
+        const now = new Date();
+        return lineupItems.find(item => {
+            const [h, m] = (item.startTime || '00:00').replace('.', ':').replace('h', ':').split(':').map(Number);
+            const [eh, em] = (item.endTime || '00:00').replace('.', ':').replace('h', ':').split(':').map(Number);
+            const dateParts = item.day.split('-');
+            const start = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), h, m, 0);
+            const end = new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), eh, em, 0);
+            if (eh < h) end.setDate(end.getDate() + 1);
+            return now >= start && now <= end;
+        });
+    }, [lineupItems, currentTime]);
+
+    const handleVoteFromLive = async (targetId: string, type: 'DJS' | 'FESTIVALS' | 'CLUBS', label: string) => {
+        if (!isLoggedIn) {
+            setIsAuthModalOpen(true);
+            return;
+        }
+        if (hasVotedToday.has(targetId)) return;
+
+        try {
+            const res = await fetch('/api/wiki/vote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ artistId: targetId, userId: authUser?.id, type })
+            });
+            if (res.ok) {
+                setHasVotedToday(prev => new Set([...prev, targetId]));
+                showNotification(`VOTE ENREGISTRÉ POUR ${label} ! ❤️`, 'success');
+                triggerConfetti();
+            }
+        } catch (e) {
+            console.error("Vote failed", e);
+        }
+    };
 
     const [userDrops, setUserDrops] = useState(() => {
         const saved = localStorage.getItem('user_drops');

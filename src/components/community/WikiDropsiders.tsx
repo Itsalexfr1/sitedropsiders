@@ -142,7 +142,7 @@ export function WikiDropsiders({
             });
             if (res.ok) {
                 // Silently refresh data to get latest global counts
-                fetchLive();
+                fetchItems();
             }
         } catch (error) {
             console.error('Failed to sync vote with server', error);
