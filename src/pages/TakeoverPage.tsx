@@ -1608,10 +1608,19 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
         } catch (e) { console.error("Error loading settings:", e); }
     };
 
-    const handleConnect = async (e: React.FormEvent) => {
-        e.preventDefault();
-        if (!loginPseudo.trim() || !loginEmail.trim() || !loginCountry.trim() || !captchaInput.trim()) {
-            showNotification('Veuillez remplir tous les champs', 'error');
+    const handleConnect = async (e?: React.FormEvent) => {
+        if (e) e.preventDefault();
+        
+        if (isLoggedIn && authUser) {
+            localStorage.setItem('chat_pseudo', authUser.username);
+            localStorage.setItem('chat_email', authUser.email);
+            if (authUser.avatar) localStorage.setItem('chat_avatar', authUser.avatar);
+            setIsConnected(true);
+            showNotification(`BIENVENUE ${authUser.username} ! 🔥`, 'success');
+            return;
+        }
+        if (!loginPseudo.trim()) {
+            showNotification('Veuillez choisir un pseudo', 'error');
             return;
         }
 
@@ -4191,97 +4200,56 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                             <p className="text-gray-500 text-xs font-black uppercase tracking-[0.3em]">Connectez-vous pour participer</p>
                                         </div>
 
-                                        <form onSubmit={handleConnect} className="space-y-4">
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pseudo</label>
-                                                    <input
-                                                        value={loginPseudo}
-                                                        onChange={e => setLoginPseudo(e.target.value)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-black uppercase outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
-                                                        placeholder="DX_RAVER"
-                                                    />
+                                        <div className="space-y-6">
+                                            {isLoggedIn ? (
+                                                <div className="p-8 bg-white/5 border border-white/10 rounded-3xl text-center space-y-6">
+                                                    <div className="flex items-center gap-4 justify-center">
+                                                        {authUser?.avatar ? (
+                                                            <img src={authUser.avatar} alt="" className="w-12 h-12 rounded-full border-2 border-neon-red shadow-lg" />
+                                                        ) : (
+                                                            <div className="w-12 h-12 bg-neon-red/20 rounded-full flex items-center justify-center border border-neon-red/40">
+                                                                <User className="w-6 h-6 text-neon-red" />
+                                                            </div>
+                                                        )}
+                                                        <div className="text-left">
+                                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest leading-none mb-1">Connecté en tant que</p>
+                                                            <p className="text-lg font-black text-white uppercase italic leading-none">{authUser?.username}</p>
+                                                        </div>
+                                                    </div>
+                                                    <button 
+                                                        onClick={() => handleConnect()}
+                                                        className="w-full bg-gradient-to-r from-neon-red to-pink-600 py-4 rounded-xl text-white font-black uppercase italic tracking-widest shadow-lg shadow-neon-red/20 hover:scale-[1.02] active:scale-95 transition-all"
+                                                    >
+                                                        Rejoindre maintenant
+                                                    </button>
                                                 </div>
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[11px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pseudo Color</label>
-                                                    <div className="flex gap-2 h-[58px]">
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    <button 
+                                                        onClick={() => setIsAuthModalOpen(true)}
+                                                        className="w-full flex items-center justify-center gap-3 bg-white text-black py-4 rounded-xl font-black uppercase italic tracking-widest hover:bg-neon-red hover:text-white transition-all shadow-xl"
+                                                    >
+                                                        <Disc className="w-5 h-5" /> 
+                                                        <span>Connexion Membre</span>
+                                                    </button>
+                                                    
+                                                    <div className="relative py-4">
+                                                        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/10"></div></div>
+                                                        <div className="relative flex justify-center text-[8px] font-black uppercase text-gray-600"><span className="bg-[#0a0a0a] px-4">Ou continuer en invité</span></div>
+                                                    </div>
+
+                                                    <form onSubmit={handleConnect} className="space-y-4">
                                                         <input
-                                                            type="color"
-                                                            value={loginPseudoColor}
-                                                            onChange={e => setLoginPseudoColor(e.target.value)}
-                                                            className="w-full h-full bg-white/5 border border-white/10 rounded-2xl p-1 cursor-pointer"
+                                                            value={loginPseudo}
+                                                            onChange={e => setLoginPseudo(e.target.value)}
+                                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-black uppercase outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700 text-xs"
+                                                            placeholder="Pseudo Invité"
                                                         />
-                                                    </div>
+                                                        <button type="submit" className="text-[10px] font-black text-gray-500 uppercase hover:text-white transition-colors w-full text-center">Rejoindre comme invité</button>
+                                                    </form>
                                                 </div>
-                                            </div>
-
-                                            <div className="space-y-1.5">
-                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Email (Newsletter)</label>
-                                                <input
-                                                    type="email"
-                                                    value={loginEmail}
-                                                    onChange={e => setLoginEmail(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
-                                                    placeholder="vibe@dropsiders.fr"
-                                                />
-                                            </div>
-
-                                            <div className="grid grid-cols-2 gap-4">
-                                                <div className="space-y-1.5 relative">
-                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Pays (Auto-Flag)</label>
-                                                    <input
-                                                        value={loginCountrySearch}
-                                                        onChange={e => {
-                                                            setLoginCountrySearch(e.target.value);
-                                                            const found = countries.find(c => c.name.toLowerCase().includes(e.target.value.toLowerCase()) || c.code.toLowerCase() === e.target.value.toLowerCase());
-                                                            if (found) setLoginCountry(found.code);
-                                                        }}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-black outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
-                                                        placeholder="France, Canada..."
-                                                    />
-                                                    <div className="absolute right-4 top-10">
-                                                        <FlagIcon location={loginCountry} className="w-6 h-4 rounded shadow-sm" />
-                                                    </div>
-                                                </div>
-                                                <div className="space-y-1.5">
-                                                    <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Instagram</label>
-                                                    <input
-                                                        value={loginInstagram}
-                                                        onChange={e => setLoginInstagram(e.target.value)}
-                                                        className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-bold outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
-                                                        placeholder="@user"
-                                                    />
-                                                </div>
-                                            </div>
-
-                                            <div className="space-y-1.5">
-                                                <label className="text-[9px] font-black text-gray-500 uppercase tracking-widest ml-4 italic">Captcha : {captchaChallenge?.q}</label>
-                                                <input
-                                                    value={captchaInput}
-                                                    onChange={e => setCaptchaInput(e.target.value)}
-                                                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white font-black outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700"
-                                                    placeholder="Résultat..."
-                                                />
-                                            </div>
-
-                                            {/* Newsletter Checkbox */}
-                                            <div 
-                                                onClick={() => setSubscribeNewsletter(!subscribeNewsletter)}
-                                                className="flex items-center gap-3 p-4 bg-white/5 border border-white/10 rounded-2xl cursor-pointer group hover:border-neon-red/30 transition-all"
-                                            >
-                                                <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${subscribeNewsletter ? 'bg-neon-red border-neon-red shadow-[0_0_15px_rgba(255,0,51,0.4)]' : 'border-white/20 group-hover:border-white/40'}`}>
-                                                    {subscribeNewsletter && <Check className="w-4 h-4 text-white" />}
-                                                </div>
-                                                <div className="flex-1">
-                                                    <p className="text-[10px] font-black text-white uppercase italic tracking-wider">S'inscrire à la Newsletter</p>
-                                                    <p className="text-[8px] text-gray-500 font-bold uppercase tracking-tight">Actu, Line-ups & Exclusivités</p>
-                                                </div>
-                                            </div>
-
-                                            <button type="submit" className="w-full bg-gradient-to-r from-neon-red to-pink-600 py-4 rounded-2xl text-white font-black uppercase italic tracking-widest shadow-lg shadow-neon-red/20 hover:scale-[1.02] active:scale-95 transition-all">
-                                                Rejoindre le live
-                                            </button>
-                                        </form>
+                                            )}
+                                        </div>
                                     </div>
                                 </motion.div>
                             ) : activeChatTab === 'chat' ? (
@@ -5425,9 +5393,14 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
                                 <button
                                     onClick={() => handleVoteFromLive(activeLiveItem.id, 'DJS', activeLiveItem.artist)}
-                                    className="w-full py-3 bg-[#ff0033] text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-[#ff0033]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-2"
+                                    disabled={hasVotedToday.has(activeLiveItem.id)}
+                                    className={`w-full py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all flex items-center justify-center gap-2 ${hasVotedToday.has(activeLiveItem.id) ? 'bg-white/10 text-gray-500 cursor-not-allowed border border-white/5' : 'bg-[#ff0033] text-white shadow-lg shadow-[#ff0033]/20 hover:scale-[1.02] active:scale-95'}`}
                                 >
-                                    <Vote className="w-3.5 h-3.5" /> Voter maintenant
+                                    {hasVotedToday.has(activeLiveItem.id) ? (
+                                        <><Check className="w-3.5 h-3.5" /> Déjà voté</>
+                                    ) : (
+                                        <><Vote className="w-3.5 h-3.5" /> Voter maintenant</>
+                                    )}
                                 </button>
                             </div>
                         </div>
