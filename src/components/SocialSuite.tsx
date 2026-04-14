@@ -909,7 +909,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
 
                 // Label "INTERVIEW" (Style from InterviewVisualGenerator)
-                const labelFontSize = 35;
                 const labelX = effectiveTab === 'PUBLICATION' ? 80 : 120;
                 const labelY = effectiveTab === 'PUBLICATION' ? 140 : 280;
                 
@@ -944,7 +943,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
                     ctx.fillText(name, centerX, centerY + 30);
 
                     // Red bar below name
-                    const nameW = ctx.measureText(name).width;
                     ctx.fillStyle = '#ff0033';
                     ctx.fillRect(centerX - 100, centerY + 65, 200, 8);
 
