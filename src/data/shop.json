@@ -1,4 +1,4 @@
-﻿{
+{
   "products": [
     {
       "name": "Jacket Dropsiders",
@@ -15,13 +15,15 @@
       "colorImages": {
         "#2b65ec": "https://www.dropsiders.fr/uploads/1772902944046-536dba21-989b-4052-83c0-3a324ca6e599.avif",
         "#F62B32": "https://www.dropsiders.fr/uploads/1772902965424-dc886740-ef1d-40ed-958c-19e62114c0a8.avif",
-        "#6b7280": "https://www.dropsiders.fr/uploads/1772902980492-31e9e7ef-d326-465c-997f-76e82181fb7b.avif"
+        "#6b7280": "https://www.dropsiders.fr/uploads/1772902980492-31e9e7ef-d326-465c-997f-76e82181fb7b.avif",
+        "#161712": "/uploads/uploads/f02dc6748f06ae48-38e0fa61_41ee_495d_a650_2cce34.webp"
       },
       "images": [],
       "category": "Vetements",
       "imageBack": "https://www.dropsiders.fr/uploads/1772902881119-23e33ab2-028e-43ae-9342-1d85e3d438c9.avif",
       "id": 26,
-      "createdAt": "2026-03-07T17:03:10.107Z"
+      "createdAt": "2026-03-07T17:03:10.107Z",
+      "updatedAt": "2026-04-14T18:31:12.555Z"
     },
     {
       "name": "Mug Dropsiders White x Couleurs",
@@ -507,4 +509,3 @@
     }
   ]
 }
-
