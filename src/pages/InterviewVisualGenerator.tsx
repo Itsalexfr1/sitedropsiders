@@ -765,9 +765,7 @@ export function InterviewVisualGenerator() {
                                 if (!isDragging || !dragStartRef.current || !previewRef.current) return;
                                 const rect = previewRef.current.getBoundingClientRect();
                                 const dx = ((e.clientX - dragStartRef.current.x) / rect.width) * 100;
-                                const dy = ((e.clientY - dragStartRef.current.y) / rect.height) * 100;
                                 setPhotoOffsetX(Math.max(-100, Math.min(100, dragStartRef.current.ox + dx * 1.5)));
-                                setPhotoOffsetY(Math.max(-100, Math.min(100, dragStartRef.current.oy + dy * 1.5)));
                             }}
                             onMouseUp={() => setIsDragging(false)}
                             onMouseLeave={() => setIsDragging(false)}
@@ -782,9 +780,7 @@ export function InterviewVisualGenerator() {
                                 const rect = previewRef.current.getBoundingClientRect();
                                 const t = e.touches[0];
                                 const dx = ((t.clientX - dragStartRef.current.x) / rect.width) * 100;
-                                const dy = ((t.clientY - dragStartRef.current.y) / rect.height) * 100;
                                 setPhotoOffsetX(Math.max(-100, Math.min(100, dragStartRef.current.ox + dx * 1.5)));
-                                setPhotoOffsetY(Math.max(-100, Math.min(100, dragStartRef.current.oy + dy * 1.5)));
                             }}
                             onTouchEnd={() => setIsDragging(false)}
                         >
