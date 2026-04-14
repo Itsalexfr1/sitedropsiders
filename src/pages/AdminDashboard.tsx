@@ -3108,7 +3108,7 @@ export function AdminDashboard() {
                                                                     ctx.fillStyle = rank === 1 ? 'rgba(255,215,0,0.3)' : rank === 2 ? 'rgba(192,192,192,0.3)' : rank === 3 ? 'rgba(205,127,50,0.3)' : 'rgba(255,0,51,0.3)'; ctx.fillRect(sepX, footerY+20, 2, footerH-40);
 
                                                                     // Footer Text & Logo
-                                                                    const logoW = isStory ? 180 : 150;
+                                                                    const logoW = isStory ? 450 : 380;
                                                                     const logoH = logoImg ? (logoImg.height * logoW) / logoImg.width : 0;
                                                                     const tx = sepX + (isStory ? 26 : 18);
                                                                     const textY = footerY + (footerH * 0.35);
