@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video, User, ShoppingBag } from 'lucide-react';
+import { X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video, User, ShoppingBag, Trophy as TopIcon } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useUser } from '../../context/UserContext';
@@ -98,10 +98,10 @@ export function Navbar() {
         { name: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'neon-purple' },
         { name: navLabels.agenda || t('nav.agenda'), path: '/agenda', color: 'neon-cyan' },
         { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-pink' },
-        { name: 'TOP DROPSIDERS', path: '/communaute?tab=GUIDE', color: 'neon-yellow' },
+        { name: 'TOP', path: '/communaute?tab=GUIDE', color: 'neon-yellow', suffix: 'DROPSIDERS', isPremium: true },
         { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'neon-blue' },
         { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-yellow' },
-        ...(shopEnabled && !shopPasswordProtected ? [{ name: '', path: '/shop', color: 'neon-red', icon: ShoppingBag }] : []),
+        ...(shopEnabled && !shopPasswordProtected ? [{ name: '', path: '/shop', color: 'neon-red', icon: ShoppingBag, isIconOnly: true }] : []),
         ...(((takeoverEnabled && (takeoverSettings as any)?.status === 'live')) && ((takeoverSettings as any)?.showInNavbar !== false) ? [{
             name: 'LIVE',
             path: '/live',
@@ -529,7 +529,17 @@ export function Navbar() {
 }
 
 interface NavItemProps {
-    item: { name: string; path: string; icon?: any; isLive?: boolean, color?: string };
+    item: { 
+        name: string; 
+        path: string; 
+        icon?: any; 
+        isLive?: boolean; 
+        color?: string; 
+        suffix?: string; 
+        isPremium?: boolean;
+        isIconOnly?: boolean;
+        onClick?: () => void;
+    };
     isActive: boolean;
 }
 
@@ -556,7 +566,8 @@ function NavItem({ item, isActive }: NavItemProps) {
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 }}
                 className={twMerge(
-                    "relative block px-2.5 xl:px-4 py-2 text-[11px] xl:text-sm font-bold tracking-wider transition-all duration-300",
+                    "relative block px-2.5 xl:px-4 py-2 text-[11px] xl:text-sm font-bold tracking-wider transition-all duration-300 rounded-xl",
+                    item.isPremium ? "border border-neon-yellow/20 bg-neon-yellow/5 shadow-[0_0_15px_rgba(255,240,31,0.05)]" : "",
                     isActive
                         ? (item.color === 'neon-green' ? "text-neon-green drop-shadow-[0_0_8px_rgba(57,255,20,0.5)]" :
                             item.color === 'neon-purple' ? "text-neon-purple drop-shadow-[0_0_8px_rgba(191,0,255,0.5)]" :
@@ -568,11 +579,18 @@ function NavItem({ item, isActive }: NavItemProps) {
                         : "text-gray-400 hover:text-white"
                 )}
             >
-                <span className="relative z-10 flex items-center gap-2">
+                <span className={twMerge(
+                    "relative z-10 flex items-center gap-2 whitespace-nowrap",
+                    item.isPremium ? "font-black" : ""
+                )}>
                     {item.icon ? (
-                        <div className="relative">
+                        <div className={twMerge(
+                            "relative flex items-center justify-center",
+                            item.isIconOnly ? "w-10 h-10 rounded-xl bg-white/5 border border-white/10 hover:bg-neon-red/10 hover:border-neon-red/20 transition-all" : ""
+                        )}>
                             <item.icon className={twMerge(
-                                "w-5 h-5 transition-transform duration-300",
+                                item.isIconOnly ? "w-5 h-5" : "w-5 h-5",
+                                "transition-transform duration-300",
                                 isHovered ? "scale-110" : "",
                                 item.isLive ? "text-neon-red drop-shadow-[0_0_8px_rgba(255,0,0,0.6)]" : ""
                             )} />
@@ -581,7 +599,11 @@ function NavItem({ item, isActive }: NavItemProps) {
                             )}
                         </div>
                     ) : (
-                        item.name
+                        <div className="flex items-center gap-1">
+                            {item.isPremium && <TopIcon className="w-3.5 h-3.5 text-neon-yellow" />}
+                            <span className={item.isPremium ? "text-neon-yellow" : ""}>{item.name}</span>
+                            {item.suffix && <span className="text-[10px] opacity-40 font-bold ml-0.5">{item.suffix}</span>}
+                        </div>
                     )}
                     {item.isLive && (
                         <span className="text-[10px] font-black tracking-tighter text-neon-red animate-pulse">
