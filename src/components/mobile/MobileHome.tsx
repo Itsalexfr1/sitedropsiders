@@ -270,12 +270,7 @@ export function MobileHome() {
                 </div>
             </section>
 
-            {/* WIKI WIDGET - PROMOTE TO HOMEPAGE */}
-            <section className="pt-8 border-t border-white/5">
-                <div className="mobile-safe-container mb-5">
-                    <WikiWidget />
-                </div>
-            </section>
+
 
             <section className="pt-8 border-t border-white/5">
                 <div className="mobile-safe-container mb-5 flex items-center justify-between">

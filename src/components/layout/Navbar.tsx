@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video, User } from 'lucide-react';
+import { X, Search, Sun, Moon, Filter, Shield, Instagram, Facebook, Video, User, ShoppingBag, Trophy as TopIcon } from 'lucide-react';
 import { twMerge } from 'tailwind-merge';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useUser } from '../../context/UserContext';
@@ -98,9 +98,10 @@ export function Navbar() {
         { name: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'neon-purple' },
         { name: navLabels.agenda || t('nav.agenda'), path: '/agenda', color: 'neon-cyan' },
         { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-pink' },
+        { name: 'TOP DROPSIDERS', path: '/communaute?tab=GUIDE', color: 'neon-yellow' },
         { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'neon-blue' },
         { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-yellow' },
-        ...(shopEnabled && !shopPasswordProtected ? [{ name: navLabels.shop || t('nav.shop'), path: '/shop', color: 'neon-red' }] : []),
+        ...(shopEnabled && !shopPasswordProtected ? [{ name: '', path: '/shop', color: 'neon-red', icon: ShoppingBag }] : []),
         ...(((takeoverEnabled && (takeoverSettings as any)?.status === 'live')) && ((takeoverSettings as any)?.showInNavbar !== false) ? [{
             name: 'LIVE',
             path: '/live',

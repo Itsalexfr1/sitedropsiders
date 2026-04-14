@@ -25,7 +25,7 @@
   },
   {
     "id": "wiki_widget",
-    "enabled": true,
+    "enabled": false,
     "accentColor": "cyan"
   },
   {

@@ -25,10 +25,10 @@ export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)' }: WikiWid
                 <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 blur-[60px] opacity-20 pointer-events-none" style={{ backgroundColor: resolvedColor }}></div>
                 <h2 className="text-3xl md:text-5xl font-display font-black text-white italic tracking-tighter uppercase relative z-10 flex items-center justify-center gap-3">
                     <Database className="w-8 h-8 md:w-10 md:h-10" style={{ color: resolvedColor }} />    
-                    L'ENCYCLOPÉDIE <span style={{ color: resolvedColor }} className="drop-shadow-[0_0_15px_rgba(currentColor,0.5)]">DROPSIDERS</span>
+                    TOP <span style={{ color: resolvedColor }} className="drop-shadow-[0_0_15px_rgba(currentColor,0.5)]">DROPSIDERS</span>
                 </h2>
                 <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] mt-2 max-w-lg mx-auto">
-                    Découvrez, votez et explorez la plus grande base de données des festivals, clubs et DJs du monde.
+                    Le classement ultime des festivals, clubs et DJs du monde entier.
                 </p>
             </div>
 
