@@ -43,11 +43,10 @@ interface SocialSuiteProps {
     onClose: () => void;
     initialTheme?: ThemeType;
     initialTab?: TabType;
-    top100Data?: {name: string, votes: number, rank?: number, image?: string, category?: string}[];
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'TOP 100' | 'TOP 1 ARTIST';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -70,9 +69,9 @@ const STYLE_PRESETS = [
     { name: 'DRUM N BASS', grad: '150, 0, 255', color: '#9600ff' }
 ];
 
-export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab, top100Data }: SocialSuiteProps) {
+export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>(initialTab || 'PUBLICATION');
-    const [theme, setTheme] = useState<ThemeType>(top100Data ? (top100Data.length === 1 ? 'TOP 1 ARTIST' : 'TOP 100') : (initialTheme || 'NEWS'));
+    const [theme, setTheme] = useState<ThemeType>(initialTheme || 'NEWS');
     const [showSwipe, setShowSwipe] = useState(false);
     const [showArticleLink, setShowArticleLink] = useState(false);
     const [customText, setCustomText] = useState(title || '');
@@ -140,13 +139,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
 
     // Detect mobile vs desktop (lg breakpoint = 1024px) — JS-based to avoid canvasRef conflict
     const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
-    const [top100Entries, setTop100Entries] = useState<{name: string, votes: number, rank?: number, image?: string}[]>(top100Data || []);
-
-    useEffect(() => {
-        if (top100Data) {
-            setTop100Entries(top100Data);
-        }
-    }, [top100Data]);
 
     useEffect(() => {
         const onResize = () => setIsMobile(window.innerWidth < 1024);
@@ -218,8 +210,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
         'PLANNING': { label: 'PLANNING', grad: '255, 18, 65', color: '#ff1241' },
         'TRACKLIST': { label: 'TRACKLIST', grad: '255, 120, 0', color: '#ff7800' },
         'INTERVIEW': { label: 'INTERVIEW', grad: '255, 0, 51', color: '#ff0033' },
-        'TOP 100': { label: 'TOP 100', grad: '255, 230, 0', color: '#ffe600' },
-        'TOP 1 ARTIST': { label: 'INDIVIDUEL', grad: '255, 0, 51', color: '#ff0033' }
     };
 
     useEffect(() => {
@@ -858,274 +848,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
                     
                     ctx.restore();
                 }
-            } else if (theme === 'TOP 100') {
-                const centerX = canvas.width / 2;
-                const topY = 250;
-                
-                // Title
-                ctx.save();
-                ctx.textAlign = 'center';
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '900 italic 100px "Orbitron", sans-serif';
-                ctx.letterSpacing = "10px";
-                ctx.shadowColor = `rgb(${activeData.grad})`;
-                ctx.shadowBlur = 30;
-                ctx.fillText('DROPSIDERS', centerX, topY);
-                ctx.font = '900 italic 80px "Montserrat", sans-serif';
-                ctx.fillStyle = activeData.color;
-                ctx.fillText('TOP 100', centerX, topY + 100);
-                
-                // Category Label (DJ/CLUB/FESTIVAL)
-                if (customText) {
-                    ctx.font = '900 30px "Montserrat", sans-serif';
-                    ctx.fillStyle = 'rgba(255,255,255,0.5)';
-                    ctx.fillText(customText.toUpperCase(), centerX, topY + 160);
-                }
-                ctx.restore();
-
-                // Multi-column list
-                const cols = effectiveTab === 'REEL' ? 2 : 4;
-                const rows = effectiveTab === 'REEL' ? 50 : 25;
-                const colWidth = effectiveTab === 'REEL' ? 440 : 240;
-                const rowHeight = effectiveTab === 'REEL' ? 28 : 40;
-                const startX = centerX - (colWidth * cols) / 2;
-                const listTop = effectiveTab === 'REEL' ? topY + 220 : topY + 220;
-
-                ctx.save();
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'middle';
-                
-                top100Entries.slice(0, 100).forEach((item, i) => {
-                    const colIdx = Math.floor(i / rows);
-                    const rowIdx = i % rows;
-                    const x = startX + colIdx * colWidth;
-                    const y = listTop + rowIdx * rowHeight;
-
-                    // Rank
-                    ctx.fillStyle = activeData.color;
-                    ctx.font = `900 ${effectiveTab === 'REEL' ? '14px' : '18px'} "Montserrat", sans-serif`;
-                    ctx.fillText(`#${item.rank || i + 1}`, x, y);
-
-                    // Name
-                    ctx.fillStyle = '#ffffff';
-                    ctx.font = `700 ${effectiveTab === 'REEL' ? '12px' : '16px'} "Montserrat", sans-serif`;
-                    const nameX = x + (effectiveTab === 'REEL' ? 35 : 50);
-                    const name = item.name.toUpperCase();
-                    const maxW = effectiveTab === 'REEL' ? 160 : 180;
-                    let truncatedName = name;
-                    if (ctx.measureText(name).width > maxW) {
-                        while (ctx.measureText(truncatedName + '...').width > maxW) {
-                            truncatedName = truncatedName.slice(0, -1);
-                        }
-                        truncatedName += '...';
-                    }
-                    ctx.fillText(truncatedName, nameX, y);
-                });
-                ctx.restore();
-
-                // Branding at bottom
-                if (logoRef.current) {
-                    const l = logoRef.current;
-                    const lw = 200;
-                    const lh = (l.height * lw) / l.width;
-                    ctx.drawImage(l, centerX - lw / 2, canvas.height - (effectiveTab === 'REEL' ? 150 : 100), lw, lh);
-                }
-            } else if (theme === 'TOP 1 ARTIST') {
-                const item = top100Entries[0] || { name: 'NOM ARTISTE', rank: 1 };
-                const W = canvas.width;
-                const H = canvas.height;
-                const isStory = effectiveTab === 'REEL';
-                const rank = item.rank || 1;
-                const category = (item as any).category || 'djs';
-                const categoryLabel = category === 'clubs' ? 'CLUBS' : category === 'festivals' ? 'FESTIVALS' : 'DJS';
-
-                // ── DROPSIDERS PALETTE (unique, not DJ Mag) ──
-                const C_LIME   = '#c8ff00';   // neon lime-yellow — signature Dropsiders
-                const C_WHITE  = '#ffffff';
-                const C_DARK   = '#080b10';   // near-black slate
-                const C_MID    = '#0f1620';   // dark blue-slate for panels
-                const C_STRIPE = '#1a2435';   // subtle stripe
-
-                // ── BACKGROUND ──
-                ctx.fillStyle = C_DARK;
-                ctx.fillRect(0, 0, W, H);
-
-                // Diagonal stripe texture
-                ctx.save();
-                for (let i = -H; i < W + H; i += 28) {
-                    ctx.fillStyle = C_STRIPE;
-                    ctx.beginPath();
-                    ctx.moveTo(i, 0); ctx.lineTo(i + 14, 0);
-                    ctx.lineTo(i + 14 + H, H); ctx.lineTo(i + H, H);
-                    ctx.closePath(); ctx.fill();
-                }
-                ctx.restore();
-
-                // Radial glow overlay (center focus)
-                const radGlow = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, H * 0.7);
-                radGlow.addColorStop(0, 'rgba(200,255,0,0.06)');
-                radGlow.addColorStop(1, 'rgba(0,0,0,0.5)');
-                ctx.fillStyle = radGlow;
-                ctx.fillRect(0, 0, W, H);
-
-                // ── SIDE ACCENT BARS (thin, vertical, lime) ──
-                ctx.fillStyle = C_LIME;
-                ctx.fillRect(0, 0, 8, H);
-                ctx.fillRect(W - 8, 0, 8, H);
-
-                // ── ARTIST PHOTO (full-bleed, clipped to inner area) ──
-                const padX = 30;
-                const nameBarH = isStory ? 200 : 160;
-                const footerH = isStory ? 170 : 140;
-                const photoY = nameBarH;
-                const photoH = H - nameBarH - footerH;
-                const photoW = W - padX * 2;
-
-                const photoSrc = resolveImageUrl(bgImage || item.image);
-                let photo: HTMLImageElement | null = null;
-                if (photoSrc) {
-                    if (imageCacheRef.current[photoSrc]) {
-                        photo = imageCacheRef.current[photoSrc];
-                    } else {
-                        const imgObj = new Image(); imgObj.crossOrigin = 'anonymous'; imgObj.src = photoSrc;
-                        imgObj.onload = () => { imageCacheRef.current[photoSrc] = imgObj; generateImage(); };
-                    }
-                }
-
-                // Photo placeholder / actual photo
-                ctx.save();
-                ctx.beginPath();
-                ctx.rect(padX, photoY, photoW, photoH);
-                ctx.clip();
-                if (photo) {
-                    const s = Math.max(photoW / photo.width, photoH / photo.height);
-                    const dx = padX + (photoW - photo.width * s) / 2;
-                    const dy = photoY + (photoH - photo.height * s) / 2;
-                    ctx.drawImage(photo, dx, dy, photo.width * s, photo.height * s);
-                    // Bottom gradient fade into footer
-                    const fadeGrad = ctx.createLinearGradient(0, photoY + photoH * 0.6, 0, photoY + photoH);
-                    fadeGrad.addColorStop(0, 'transparent');
-                    fadeGrad.addColorStop(1, 'rgba(8,11,16,0.85)');
-                    ctx.fillStyle = fadeGrad;
-                    ctx.fillRect(padX, photoY, photoW, photoH);
-                } else {
-                    ctx.fillStyle = C_MID;
-                    ctx.fillRect(padX, photoY, photoW, photoH);
-                }
-                ctx.restore();
-
-                // Photo frame — thin lime outline
-                ctx.save();
-                ctx.strokeStyle = C_LIME;
-                ctx.lineWidth = 3;
-                ctx.shadowColor = C_LIME;
-                ctx.shadowBlur = 15;
-                ctx.strokeRect(padX, photoY, photoW, photoH);
-                // Corner L-brackets
-                const cL = 40;
-                ctx.lineWidth = 6;
-                ctx.lineCap = 'square';
-                [[padX, photoY], [padX + photoW, photoY], [padX, photoY + photoH], [padX + photoW, photoY + photoH]].forEach(([cx, cy], ci) => {
-                    const sx = ci % 2 === 0 ? 1 : -1;
-                    const sy = ci < 2 ? 1 : -1;
-                    ctx.beginPath(); ctx.moveTo(cx + sx * cL, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy + sy * cL); ctx.stroke();
-                });
-                ctx.restore();
-
-                // ── NAME BAR (top, dark panel) ──
-                ctx.fillStyle = C_MID;
-                ctx.fillRect(0, 0, W, nameBarH);
-                // Lime bottom line of name bar
-                ctx.fillStyle = C_LIME;
-                ctx.fillRect(0, nameBarH - 4, W, 4);
-
-                // Artist name
-                ctx.save();
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'middle';
-                let nameFontSize = isStory ? 115 : 90;
-                ctx.font = `900 italic ${nameFontSize}px "Montserrat", sans-serif`;
-                while (ctx.measureText(item.name.toUpperCase()).width > W - (padX * 2 + 180) && nameFontSize > 50) {
-                    nameFontSize -= 4;
-                    ctx.font = `900 italic ${nameFontSize}px "Montserrat", sans-serif`;
-                }
-                ctx.fillStyle = C_WHITE;
-                ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                ctx.shadowBlur = 15;
-                ctx.fillText(item.name.toUpperCase(), padX + 12, nameBarH / 2);
-                ctx.restore();
-
-                // ── RANK BADGE (top-right of name bar) ──
-                const badgePad = 16;
-                const badgeH = nameBarH - badgePad * 2;
-                const badgeW = badgeH * 1.1;
-                const badgeX = W - padX - badgeW - 8;
-                const badgeY = badgePad;
-                ctx.save();
-                ctx.fillStyle = C_LIME;
-                ctx.shadowColor = C_LIME;
-                ctx.shadowBlur = 25;
-                ctx.beginPath();
-                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 10);
-                ctx.fill();
-                ctx.fillStyle = C_DARK;
-                ctx.font = `900 italic ${badgeH * 0.6}px "Montserrat", sans-serif`;
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.shadowBlur = 0;
-                ctx.fillText(`${rank}`, badgeX + badgeW / 2, badgeY + badgeH / 2 + 4);
-                ctx.restore();
-
-                // ── FOOTER BAR (dark panel with rank + label side by side) ──
-                const footerY = H - footerH;
-                ctx.fillStyle = C_MID;
-                ctx.fillRect(0, footerY, W, footerH);
-                ctx.fillStyle = C_LIME;
-                ctx.fillRect(0, footerY, W, 4);
-
-                // Big rank number (LEFT of footer)
-                const bigRankFs = isStory ? 140 : 110;
-                ctx.save();
-                ctx.font = `900 italic ${bigRankFs}px "Montserrat", sans-serif`;
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'middle';
-                ctx.fillStyle = C_LIME;
-                ctx.shadowColor = C_LIME;
-                ctx.shadowBlur = 30;
-                const rankStr = `${rank}`;
-                const rankW = ctx.measureText(rankStr).width;
-                ctx.fillText(rankStr, padX + 12, footerY + footerH / 2 + 6);
-                ctx.restore();
-
-                // Vertical separator
-                const sepX = padX + 12 + rankW + (isStory ? 30 : 20);
-                ctx.fillStyle = 'rgba(200,255,0,0.3)';
-                ctx.fillRect(sepX, footerY + 20, 2, footerH - 40);
-
-                // Category + Dropsiders text (right of separator)
-                const textX = sepX + (isStory ? 26 : 18);
-                ctx.save();
-                ctx.textAlign = 'left';
-                // "TOP 100 DJS" line
-                ctx.font = `900 ${isStory ? 42 : 32}px "Orbitron", sans-serif`;
-                ctx.fillStyle = C_WHITE;
-                ctx.textBaseline = 'middle';
-                ctx.letterSpacing = '3px';
-                ctx.fillText(`TOP 100 ${categoryLabel}`, textX, footerY + footerH / 2 - (isStory ? 28 : 22));
-                // "DROPSIDERS" sub-line
-                ctx.font = `700 ${isStory ? 28 : 22}px "Montserrat", sans-serif`;
-                ctx.fillStyle = C_LIME;
-                ctx.letterSpacing = '10px';
-                ctx.fillText('DROPSIDERS', textX, footerY + footerH / 2 + (isStory ? 28 : 22));
-                ctx.restore();
-
-                // Logo (far right of footer)
-                if (logoRef.current) {
-                    const l = logoRef.current;
-                    const lw = isStory ? 200 : 160;
-                    const lh = (l.height * lw) / l.width;
-                    ctx.drawImage(l, W - lw - padX, footerY + (footerH - lh) / 2, lw, lh);
-                }
             } else if (theme === 'HIGHLIGHTS') {
                 // Specialized high-end rendering for Highlights (similar to Tracklist but with Blue theme)
                 const lines = [highlightsArtists, highlightsFestival, highlightsLocation];
@@ -1460,7 +1182,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, initialTab
             }
 
             // --- FINAL OVERLAYS (Logo & Swipe) ---
-            if (logoRef.current && theme !== 'TRACKLIST') {
+            if (logoRef.current && theme !== 'TRACKLIST' && theme !== 'TOP 1 ARTIST' && theme !== 'TOP 100') {
                 const logo = logoRef.current;
                 const w = 320;
                 // Move left and down for video backgrounds to avoid cropping and match requested safety margins

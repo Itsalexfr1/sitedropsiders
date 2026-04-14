@@ -473,8 +473,6 @@ export function AdminDashboard() {
     const [isEditWikiModalOpen, setIsEditWikiModalOpen] = useState(false);
     const [editingWikiEntry, setEditingWikiEntry] = useState<any>(null);
     const [isSavingWiki, setIsSavingWiki] = useState(false);
-    const [top100DataToVisual, setTop100DataToVisual] = useState<any[] | null>(null);
-    const [top100InitialTab, setTop100InitialTab] = useState<'PUBLICATION' | 'REEL'>('PUBLICATION');
     const [artistPreview, setArtistPreview] = useState<{ item: any, idx: number, category: string, loading: boolean, postUrl?: string, storyUrl?: string } | null>(null);
 
     interface TakeoverState {
@@ -4225,18 +4223,15 @@ export function AdminDashboard() {
                 </AnimatePresence>
 
                 <AnimatePresence>
-                    {(selectedSocialArticle || top100DataToVisual) && (
+                    {selectedSocialArticle && (
                         <SocialSuite
-                            title={top100DataToVisual ? (wikiTab === 'djs' ? 'TOP 100 DJS' : wikiTab === 'clubs' ? 'TOP 100 CLUBS' : 'TOP 100 FESTIVALS') : (selectedSocialArticle?.title || '')}
-                            imageUrl={selectedSocialArticle?.image || ''}
-                            initialTheme={top100DataToVisual ? (top100DataToVisual.length === 1 ? 'TOP 1 ARTIST' : 'TOP 100') : (selectedSocialTheme as any)}
-                            initialTab={top100DataToVisual ? top100InitialTab : undefined}
+                            title={selectedSocialArticle.title || ''}
+                            imageUrl={selectedSocialArticle.image || ''}
+                            initialTheme={selectedSocialTheme as any}
                             onClose={() => {
                                 setSelectedSocialArticle(null);
                                 setSelectedSocialTheme(undefined);
-                                setTop100DataToVisual(null);
                             }}
-                            top100Data={top100DataToVisual || undefined}
                         />
                     )}
                 </AnimatePresence>
