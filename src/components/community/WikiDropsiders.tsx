@@ -135,11 +135,15 @@ export function WikiDropsiders({
 
         // API Call to record global vote
         try {
-            await fetch('/api/wiki/vote', {
+            const res = await fetch('/api/wiki/vote', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ artistId: id, userId: user?.id, type: 'DJS' })
             });
+            if (res.ok) {
+                // Silently refresh data to get latest global counts
+                fetchLive();
+            }
         } catch (error) {
             console.error('Failed to sync vote with server', error);
         }

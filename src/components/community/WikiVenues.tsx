@@ -166,11 +166,16 @@ export function WikiVenues({
         saveVotes(voteKey, n);
 
         try {
-            await fetch('/api/wiki/vote', {
+            const res = await fetch('/api/wiki/vote', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ artistId: id, userId: user?.id, type: mode === 'clubs' ? 'CLUBS' : 'FESTIVALS' })
             });
+
+            if (res.ok) {
+                // Silently refresh data to get latest global counts
+                fetchLive();
+            }
         } catch (error) {
             console.error('Failed to sync vote with server', error);
         }
