@@ -1,5 +1,5 @@
 
-import { Mail, Lock, Globe } from 'lucide-react';
+import { Mail, Lock, Globe, Instagram, Youtube, Facebook, Twitter, Music } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
@@ -62,11 +62,11 @@ export function Footer() {
     };
 
     const socialLinks = [
-        { name: 'Instagram', icon: <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: getSocialUrl(socials.instagram, 'instagram'), color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
-        { name: 'TikTok', icon: <img src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png" alt="TikTok" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: getSocialUrl(socials.tiktok, 'tiktok'), color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
-        { name: 'YouTube', icon: <img src="https://cdn-icons-png.flaticon.com/512/1384/1384060.png" alt="YouTube" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: `https://www.youtube.com/@dropsiders`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
-        { name: 'X', icon: <img src="https://cdn-icons-png.flaticon.com/512/5969/5969020.png" alt="X" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: `https://x.com/dropsidersfr`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' },
-        { name: 'Facebook', icon: <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="w-6 h-6 object-contain filter group-hover:brightness-0 group-hover:invert-[0.20] group-hover:sepia-[0.95] group-hover:saturate-[6000%] group-hover:hue-rotate-[350deg]" />, href: `https://www.facebook.com/dropsidersfr`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10' }
+        { name: 'Instagram', icon: <Instagram className="w-6 h-6" />, href: getSocialUrl(socials.instagram, 'instagram'), color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
+        { name: 'TikTok', icon: <Music className="w-6 h-6" />, href: getSocialUrl(socials.tiktok, 'tiktok'), color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
+        { name: 'YouTube', icon: <Youtube className="w-6 h-6" />, href: `https://www.youtube.com/@dropsiders`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
+        { name: 'X', icon: <Twitter className="w-6 h-6" />, href: `https://x.com/dropsidersfr`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
+        { name: 'Facebook', icon: <Facebook className="w-6 h-6" />, href: `https://www.facebook.com/dropsidersfr`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' }
     ];
 
     const navItems = [
@@ -141,7 +141,9 @@ export function Footer() {
                                         className={`group flex items-center justify-center aspect-square bg-white/5 border border-white/10 rounded-xl transition-all duration-300 ${social.color}`}
                                         title={social.name}
                                     >
-                                        {social.icon}
+                                        <div className="text-gray-400 transition-colors">
+                                            {social.icon}
+                                        </div>
                                     </motion.a>
                                 ))}
                             </div>
