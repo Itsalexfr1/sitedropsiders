@@ -44,6 +44,8 @@ export function InterviewVisualGenerator() {
     const [photoScale, setPhotoScale]     = useState(100); // 50 to 200 (%)
     const [invertArtistLogo, setInvertArtistLogo] = useState(false);
     const [invertFestivalLogo, setInvertFestivalLogo] = useState(false);
+    const [artistLogoScale, setArtistLogoScale] = useState(100);
+    const [festivalLogoScale, setFestivalLogoScale] = useState(100);
 
     // Cropping state
     const [showCropper, setShowCropper] = useState(false);
@@ -278,9 +280,9 @@ export function InterviewVisualGenerator() {
             if (artistLogo) {
                 try {
                     const logoImg = await loadImage(artistLogo);
-                    const lw = blockW * 0.85;
+                    const lw = blockW * 0.85 * (artistLogoScale / 100);
                     const lh = lw * (logoImg.height / logoImg.width);
-                    const finalH = Math.min(lh, h * 0.35); 
+                    const finalH = Math.min(lh, h * 0.45); 
                     const finalW = finalH * (logoImg.width / logoImg.height);
                     if (invertArtistLogo) ctx.filter = 'invert(1) brightness(10)';
                     ctx.drawImage(logoImg, blockX, nameY, finalW, finalH);
@@ -336,7 +338,7 @@ export function InterviewVisualGenerator() {
                 if (festivalLogo) {
                     try {
                         const fLogo = await loadImage(festivalLogo);
-                        const flh = h * 0.08;
+                        const flh = h * 0.08 * (festivalLogoScale / 100);
                         const flw = flh * (fLogo.width / fLogo.height);
                         if (invertFestivalLogo) ctx.filter = 'invert(1) brightness(10)';
                         ctx.drawImage(fLogo, festX - flw, festY, flw, flh);
@@ -381,9 +383,9 @@ export function InterviewVisualGenerator() {
             if (artistLogo) {
                 try {
                     const logoImg = await loadImage(artistLogo);
-                    const lw = w * 0.60;
+                    const lw = w * 0.60 * (artistLogoScale / 100);
                     const lh = lw * (logoImg.height / logoImg.width);
-                    const finalH = Math.min(lh, h * 0.10); 
+                    const finalH = Math.min(lh, h * 0.15); 
                     const finalW = finalH * (logoImg.width / logoImg.height);
                     if (invertArtistLogo) ctx.filter = 'invert(1) brightness(10)';
                     ctx.drawImage(logoImg, cx - finalW / 2, nameY, finalW, finalH);
@@ -429,7 +431,7 @@ export function InterviewVisualGenerator() {
                 if (festivalLogo) {
                     try {
                         const fLogo = await loadImage(festivalLogo);
-                        const flh = h * 0.05;
+                        const flh = h * 0.05 * (festivalLogoScale / 100);
                         const flw = flh * (fLogo.width / fLogo.height);
                         if (invertFestivalLogo) ctx.filter = 'invert(1) brightness(10)';
                         ctx.drawImage(fLogo, festX, festY, flw, flh);
@@ -642,6 +644,18 @@ export function InterviewVisualGenerator() {
                                         <RefreshCw className={`w-3 h-3 ${invertArtistLogo ? 'animate-spin-slow' : ''}`} />
                                         Mode Négatif (Blanc) : {invertArtistLogo ? 'ON' : 'OFF'}
                                     </button>
+                                    <div className="space-y-2 pt-2">
+                                        <div className="flex justify-between items-center px-1">
+                                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Taille Logo</span>
+                                            <span className="text-[10px] font-black text-white tabular-nums">{artistLogoScale}%</span>
+                                        </div>
+                                        <input
+                                            type="range" min={30} max={180} step={1}
+                                            value={artistLogoScale}
+                                            onChange={(e) => setArtistLogoScale(Number(e.target.value))}
+                                            className="w-full h-1 bg-white/10 rounded-full appearance-none accent-neon-red cursor-pointer"
+                                        />
+                                    </div>
                                 </div>
                             ) : (
                                 <button
@@ -763,6 +777,18 @@ export function InterviewVisualGenerator() {
                                         <RefreshCw className={`w-3 h-3 ${invertFestivalLogo ? 'animate-spin-slow' : ''}`} />
                                         Mode Négatif (Blanc) : {invertFestivalLogo ? 'ON' : 'OFF'}
                                     </button>
+                                    <div className="space-y-2 pt-2">
+                                        <div className="flex justify-between items-center px-1">
+                                            <span className="text-[9px] font-black text-gray-500 uppercase tracking-widest">Taille Logo Fest</span>
+                                            <span className="text-[10px] font-black text-white tabular-nums">{festivalLogoScale}%</span>
+                                        </div>
+                                        <input
+                                            type="range" min={30} max={180} step={1}
+                                            value={festivalLogoScale}
+                                            onChange={(e) => setFestivalLogoScale(Number(e.target.value))}
+                                            className="w-full h-1 bg-white/10 rounded-full appearance-none accent-neon-red cursor-pointer"
+                                        />
+                                    </div>
                                 </div>
                             ) : (
                                 <button
@@ -825,7 +851,9 @@ export function InterviewVisualGenerator() {
                                 if (!isDragging || !dragStartRef.current || !previewRef.current) return;
                                 const rect = previewRef.current.getBoundingClientRect();
                                 const dx = ((e.clientX - dragStartRef.current.x) / rect.width) * 100;
+                                const dy = ((e.clientY - dragStartRef.current.y) / rect.height) * 100;
                                 setPhotoOffsetX(Math.max(-100, Math.min(100, dragStartRef.current.ox + dx * 1.5)));
+                                setPhotoOffsetY(Math.max(-100, Math.min(100, dragStartRef.current.oy + dy * 1.5)));
                             }}
                             onMouseUp={() => setIsDragging(false)}
                             onMouseLeave={() => setIsDragging(false)}
@@ -840,7 +868,9 @@ export function InterviewVisualGenerator() {
                                 const rect = previewRef.current.getBoundingClientRect();
                                 const t = e.touches[0];
                                 const dx = ((t.clientX - dragStartRef.current.x) / rect.width) * 100;
+                                const dy = ((t.clientY - dragStartRef.current.y) / rect.height) * 100;
                                 setPhotoOffsetX(Math.max(-100, Math.min(100, dragStartRef.current.ox + dx * 1.5)));
+                                setPhotoOffsetY(Math.max(-100, Math.min(100, dragStartRef.current.oy + dy * 1.5)));
                             }}
                             onTouchEnd={() => setIsDragging(false)}
                         >
