@@ -2890,29 +2890,144 @@ export function AdminDashboard() {
                                             <WikiWidget showResults={true} hideTitle={true} />
                                         </div>
 
-                                        {/* EXPORT PANEL AT BOTTOM */}
+                                        {/* INLINE TOP 100 GENERATOR */}
                                         <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
-                                            <div className="absolute top-0 right-0 w-64 h-64 bg-neon-yellow/5 blur-[100px] pointer-events-none" />
-                                            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
-                                                <div className="flex items-center gap-6">
-                                                    <div className="p-4 bg-neon-yellow/10 rounded-[1.5rem] border border-neon-yellow/20">
-                                                        <Sparkles className="w-10 h-10 text-neon-yellow" />
+                                            <div className="absolute top-0 right-0 w-64 h-64 bg-[#c8ff00]/5 blur-[100px] pointer-events-none" />
+                                            <div className="relative z-10">
+                                                <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 mb-8">
+                                                    <div className="flex items-center gap-6">
+                                                        <div className="p-4 bg-[#c8ff00]/10 rounded-[1.5rem] border border-[#c8ff00]/30">
+                                                            <Sparkles className="w-10 h-10 text-[#c8ff00]" />
+                                                        </div>
+                                                        <div>
+                                                            <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">Générer Top 100</h3>
+                                                            <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">
+                                                                {wikiTab === 'djs' ? '🎧 DJs' : wikiTab === 'clubs' ? '🏛️ Clubs' : '🎪 Festivals'} — {allRanked.length} entrées
+                                                            </p>
+                                                        </div>
                                                     </div>
-                                                    <div>
-                                                        <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">Générer Classement Complet</h3>
-                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Format Story (2x50) ou Post (4x25)</p>
+                                                    <div className="flex gap-4 flex-wrap">
+                                                        <button
+                                                            onClick={async () => {
+                                                                const canvas = document.createElement('canvas');
+                                                                canvas.width = 1080; canvas.height = 1350;
+                                                                const ctx = canvas.getContext('2d')!;
+                                                                const label = wikiTab === 'clubs' ? 'CLUBS' : wikiTab === 'festivals' ? 'FESTIVALS' : 'DJS';
+                                                                // BG
+                                                                ctx.fillStyle = '#080b10'; ctx.fillRect(0, 0, 1080, 1350);
+                                                                const bg = ctx.createLinearGradient(0, 0, 1080, 1350);
+                                                                bg.addColorStop(0, 'rgba(20,30,10,0.9)'); bg.addColorStop(1, 'rgba(5,10,20,0.9)');
+                                                                ctx.fillStyle = bg; ctx.fillRect(0, 0, 1080, 1350);
+                                                                // Title
+                                                                ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
+                                                                ctx.font = '900 italic 80px "Orbitron", sans-serif';
+                                                                ctx.shadowColor = '#c8ff00'; ctx.shadowBlur = 20;
+                                                                ctx.fillText('DROPSIDERS', 540, 90);
+                                                                ctx.font = '900 italic 55px "Montserrat", sans-serif';
+                                                                ctx.fillStyle = '#c8ff00'; ctx.shadowBlur = 10;
+                                                                ctx.fillText(`TOP 100 ${label}`, 540, 160);
+                                                                ctx.shadowBlur = 0;
+                                                                // List — 4 cols x 25 rows
+                                                                const cols = 4, rows = 25, colW = 240, rowH = 43;
+                                                                const startX = 540 - (colW * cols) / 2;
+                                                                const listTop = 210;
+                                                                ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                                                                allRanked.slice(0, 100).forEach((item: any, i: number) => {
+                                                                    const col = Math.floor(i / rows), row = i % rows;
+                                                                    const x = startX + col * colW, y = listTop + row * rowH;
+                                                                    ctx.fillStyle = '#c8ff00'; ctx.font = '900 16px "Montserrat", sans-serif';
+                                                                    ctx.fillText(`#${i + 1}`, x, y);
+                                                                    ctx.fillStyle = '#ffffff'; ctx.font = '600 15px "Montserrat", sans-serif';
+                                                                    let name = (item.name || '').toUpperCase();
+                                                                    while (ctx.measureText(name).width > 185 && name.length > 3) name = name.slice(0, -1);
+                                                                    if (name !== (item.name || '').toUpperCase()) name += '…';
+                                                                    ctx.fillText(name, x + 42, y);
+                                                                });
+                                                                // Separator lines
+                                                                ctx.strokeStyle = 'rgba(200,255,0,0.15)'; ctx.lineWidth = 1;
+                                                                for (let c = 1; c < cols; c++) {
+                                                                    ctx.beginPath(); ctx.moveTo(startX + c * colW - 10, listTop - 10); ctx.lineTo(startX + c * colW - 10, listTop + rows * rowH + 10); ctx.stroke();
+                                                                }
+                                                                // Footer
+                                                                ctx.fillStyle = '#c8ff00'; ctx.fillRect(0, 1310, 1080, 3);
+                                                                ctx.fillStyle = 'rgba(15,22,32,0.95)'; ctx.fillRect(0, 1313, 1080, 37);
+                                                                ctx.fillStyle = '#ffffff'; ctx.font = '700 18px "Orbitron", sans-serif';
+                                                                ctx.textAlign = 'center'; ctx.letterSpacing = '6px';
+                                                                ctx.fillText('DROPSIDERS.EU', 540, 1335);
+                                                                // Download
+                                                                const a = document.createElement('a');
+                                                                a.href = canvas.toDataURL('image/png');
+                                                                a.download = `dropsiders-top100-${label.toLowerCase()}-post.png`;
+                                                                a.click();
+                                                            }}
+                                                            className="px-8 py-4 bg-[#c8ff00] text-black rounded-2xl text-[11px] font-black uppercase hover:scale-105 transition-all flex items-center gap-2 shadow-[0_0_20px_rgba(200,255,0,0.3)]"
+                                                        >
+                                                            <ImageIcon className="w-4 h-4" />
+                                                            ⬇ POST (1080×1350)
+                                                        </button>
+                                                        <button
+                                                            onClick={async () => {
+                                                                const canvas = document.createElement('canvas');
+                                                                canvas.width = 1080; canvas.height = 1920;
+                                                                const ctx = canvas.getContext('2d')!;
+                                                                const label = wikiTab === 'clubs' ? 'CLUBS' : wikiTab === 'festivals' ? 'FESTIVALS' : 'DJS';
+                                                                // BG
+                                                                ctx.fillStyle = '#080b10'; ctx.fillRect(0, 0, 1080, 1920);
+                                                                const bg = ctx.createLinearGradient(0, 0, 1080, 1920);
+                                                                bg.addColorStop(0, 'rgba(20,30,10,0.9)'); bg.addColorStop(1, 'rgba(5,10,20,0.9)');
+                                                                ctx.fillStyle = bg; ctx.fillRect(0, 0, 1080, 1920);
+                                                                // Title
+                                                                ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff';
+                                                                ctx.font = '900 italic 100px "Orbitron", sans-serif';
+                                                                ctx.shadowColor = '#c8ff00'; ctx.shadowBlur = 25;
+                                                                ctx.fillText('DROPSIDERS', 540, 120);
+                                                                ctx.font = '900 italic 70px "Montserrat", sans-serif';
+                                                                ctx.fillStyle = '#c8ff00'; ctx.shadowBlur = 12;
+                                                                ctx.fillText(`TOP 100 ${label}`, 540, 210);
+                                                                ctx.shadowBlur = 0;
+                                                                // List — 2 cols x 50 rows
+                                                                const cols = 2, rows = 50, colW = 490, rowH = 33;
+                                                                const startX = 540 - (colW * cols) / 2;
+                                                                const listTop = 270;
+                                                                ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+                                                                allRanked.slice(0, 100).forEach((item: any, i: number) => {
+                                                                    const col = Math.floor(i / rows), row = i % rows;
+                                                                    const x = startX + col * colW, y = listTop + row * rowH;
+                                                                    // Alternate row bg
+                                                                    if (row % 2 === 0) { ctx.fillStyle = 'rgba(200,255,0,0.03)'; ctx.fillRect(x - 5, y - rowH/2, colW - 10, rowH); }
+                                                                    ctx.fillStyle = '#c8ff00'; ctx.font = '900 15px "Montserrat", sans-serif';
+                                                                    ctx.fillText(`#${i + 1}`, x + 4, y);
+                                                                    ctx.fillStyle = '#ffffff'; ctx.font = '600 14px "Montserrat", sans-serif';
+                                                                    let name = (item.name || '').toUpperCase();
+                                                                    while (ctx.measureText(name).width > 380 && name.length > 3) name = name.slice(0, -1);
+                                                                    if (name !== (item.name || '').toUpperCase()) name += '…';
+                                                                    ctx.fillText(name, x + 46, y);
+                                                                });
+                                                                // Center separator
+                                                                ctx.strokeStyle = 'rgba(200,255,0,0.2)'; ctx.lineWidth = 1;
+                                                                ctx.beginPath(); ctx.moveTo(540, listTop - 10); ctx.lineTo(540, listTop + rows * rowH + 10); ctx.stroke();
+                                                                // Footer
+                                                                ctx.fillStyle = '#c8ff00'; ctx.fillRect(0, 1870, 1080, 3);
+                                                                ctx.fillStyle = 'rgba(15,22,32,0.95)'; ctx.fillRect(0, 1873, 1080, 47);
+                                                                ctx.fillStyle = '#ffffff'; ctx.font = '700 22px "Orbitron", sans-serif';
+                                                                ctx.textAlign = 'center'; ctx.letterSpacing = '6px';
+                                                                ctx.fillText('DROPSIDERS.EU', 540, 1900);
+                                                                // Download
+                                                                const a = document.createElement('a');
+                                                                a.href = canvas.toDataURL('image/png');
+                                                                a.download = `dropsiders-top100-${label.toLowerCase()}-story.png`;
+                                                                a.click();
+                                                            }}
+                                                            className="px-8 py-4 bg-white/10 border border-[#c8ff00]/40 text-[#c8ff00] rounded-2xl text-[11px] font-black uppercase hover:scale-105 hover:bg-[#c8ff00]/10 transition-all flex items-center gap-2"
+                                                        >
+                                                            <Smartphone className="w-4 h-4" />
+                                                            ⬇ STORY (1080×1920)
+                                                        </button>
                                                     </div>
                                                 </div>
-                                                <button
-                                                    onClick={() => {
-                                                        const data = allRanked.map((x: any, idx: number) => ({ name: x.name, votes: x.tv, rank: idx + 1 }));
-                                                        setTop100DataToVisual(data);
-                                                    }}
-                                                    className="px-12 py-5 bg-neon-yellow text-black rounded-2xl text-[12px] font-black uppercase hover:scale-105 transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(255,230,0,0.3)] group"
-                                                >
-                                                    <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                                                    Exporter Top 100 Social
-                                                </button>
+                                                <p className="text-[10px] text-gray-600 uppercase tracking-widest">
+                                                    ⚡ Génération directe en PNG — sans Social Studio — basé sur le classement actif ({wikiTab === 'djs' ? 'DJs' : wikiTab === 'clubs' ? 'Clubs' : 'Festivals'})
+                                                </p>
                                             </div>
                                         </div>
                                     </div>
