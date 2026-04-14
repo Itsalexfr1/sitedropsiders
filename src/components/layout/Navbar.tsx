@@ -176,7 +176,7 @@ export function Navbar() {
 
     return (
         <nav className="hidden lg:block fixed top-0 left-0 right-0 z-[100] bg-dark-bg/80 backdrop-blur-xl border-b border-white/10">
-            <div className="w-full px-4 md:px-12 xl:px-16 2xl:px-24">
+            <div className="w-full px-2 md:px-4 xl:px-6 2xl:px-8">
                 <div className="flex items-center justify-between h-20">
                     <div className="flex items-center gap-4 shrink-0">
                         {/* Logo */}
@@ -543,6 +543,32 @@ interface NavItemProps {
     isActive: boolean;
 }
 
+const getThemeColor = (colorClass: string) => {
+    switch (colorClass) {
+        case 'neon-red': return 'rgba(255, 18, 65, 0.15)';
+        case 'neon-green': return 'rgba(57, 255, 20, 0.15)';
+        case 'neon-purple': return 'rgba(191, 0, 255, 0.15)';
+        case 'neon-cyan': return 'rgba(34, 211, 238, 0.15)';
+        case 'neon-pink': return 'rgba(255, 0, 153, 0.15)';
+        case 'neon-blue': return 'rgba(0, 191, 255, 0.15)';
+        case 'neon-yellow': return 'rgba(255, 240, 31, 0.15)';
+        default: return 'rgba(255, 255, 255, 0.1)';
+    }
+};
+
+const getThemeBorder = (colorClass: string) => {
+    switch (colorClass) {
+        case 'neon-red': return 'rgba(255, 18, 65, 0.3)';
+        case 'neon-green': return 'rgba(57, 255, 20, 0.3)';
+        case 'neon-purple': return 'rgba(191, 0, 255, 0.3)';
+        case 'neon-cyan': return 'rgba(34, 211, 238, 0.3)';
+        case 'neon-pink': return 'rgba(255, 0, 153, 0.3)';
+        case 'neon-blue': return 'rgba(0, 191, 255, 0.3)';
+        case 'neon-yellow': return 'rgba(255, 240, 31, 0.3)';
+        default: return 'rgba(255, 255, 255, 0.2)';
+    }
+};
+
 function NavItem({ item, isActive }: NavItemProps) {
     const [isHovered, setIsHovered] = useState(false);
     const playHoverSound = useHoverSound();
@@ -611,26 +637,42 @@ function NavItem({ item, isActive }: NavItemProps) {
                         </span>
                     )}
                 </span>
+                {/* Sliding Glass Background - Hover & Active */}
+                {(isHovered || isActive) && (
+                    <motion.div
+                        layoutId="nav-sliding-glass"
+                        initial={false}
+                        animate={{
+                            backgroundColor: getThemeColor(item.color || ''),
+                            borderColor: getThemeBorder(item.color || ''),
+                            opacity: 1
+                        }}
+                        className={twMerge(
+                            "absolute inset-0 rounded-xl border backdrop-blur-md z-0 shadow-lg",
+                            isActive ? "shadow-[0_0_20px_rgba(0,0,0,0.2)]" : ""
+                        )}
+                        transition={{
+                            type: "spring",
+                            bounce: 0.2,
+                            duration: 0.6
+                        }}
+                    />
+                )}
 
-                {/* Hover Background Highlight */}
-                <AnimatePresence>
-                    {isHovered && (
-                        <motion.div
-                            layoutId="nav-hover"
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            className="absolute inset-0 bg-white/5 rounded-xl border border-white/10 z-0"
-                            transition={{ type: "spring", bounce: 0.3, duration: 0.6 }}
-                        />
-                    )}
-                </AnimatePresence>
-
-                {/* Active Indicator Underline */}
+                {/* Active Underline - Extra accent */}
                 {isActive && (
                     <motion.div
-                        layoutId="navbar-indicator"
-                        className="absolute -bottom-1 left-4 right-4 h-0.5 bg-neon-red shadow-[0_0_15px_#ff0033] z-10"
+                        layoutId="navbar-indicator-accent"
+                        className={twMerge(
+                            "absolute -bottom-1 left-4 right-4 h-0.5 z-10",
+                            item.color === 'neon-green' ? "bg-neon-green shadow-[0_0_15px_rgba(57,255,20,0.8)]" :
+                            item.color === 'neon-purple' ? "bg-neon-purple shadow-[0_0_15px_rgba(191,0,255,0.8)]" :
+                            item.color === 'neon-cyan' ? "bg-neon-cyan shadow-[0_0_15px_rgba(34,211,238,0.8)]" :
+                            item.color === 'neon-pink' ? "bg-neon-pink shadow-[0_0_15px_rgba(255,0,153,0.8)]" :
+                            item.color === 'neon-blue' ? "bg-neon-blue shadow-[0_0_15px_rgba(0,191,255,0.8)]" :
+                            item.color === 'neon-yellow' ? "bg-neon-yellow shadow-[0_0_15px_rgba(255,240,31,0.8)]" :
+                            "bg-neon-red shadow-[0_0_15px_rgba(255,18,65,0.8)]"
+                        )}
                         transition={{ type: "spring", stiffness: 380, damping: 30 }}
                     />
                 )}
