@@ -12,6 +12,7 @@ import { useTheme } from '../../context/ThemeContext';
 
 import { getArticleLink, getRecapLink, getAgendaLink, getGalleryLink } from '../../utils/slugify';
 import { FlagIcon } from '../ui/FlagIcon';
+import { resolveImageUrl } from '../../utils/image';
 import settings from '../../data/settings.json';
 
 export function Navbar() {
@@ -419,7 +420,7 @@ export function Navbar() {
                                                     <div className="flex items-start gap-4">
                                                         <div className="relative w-16 h-16 flex-shrink-0 group">
                                                             <img
-                                                                src={item.image}
+                                                                src={resolveImageUrl(item.image)}
                                                                 alt={item.title}
                                                                 className="w-full h-full object-cover rounded-lg"
                                                             />

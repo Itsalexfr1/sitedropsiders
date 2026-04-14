@@ -1,4 +1,4 @@
-﻿import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -17,6 +17,7 @@ import { Client, Databases, ID, Query } from 'appwrite';
 import { FlagIcon } from '../components/ui/FlagIcon';
 import { ModerationModal } from '../components/admin/ModerationModal';
 import { ImageCropper } from '../components/ImageCropper';
+import { resolveImageUrl } from '../utils/image';
 
 interface LineupItem {
     id: string;
@@ -3430,7 +3431,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     <div key={item.id || i} className="p-6 bg-white/5 border border-white/10 rounded-3xl flex items-center justify-between group hover:border-white/20 transition-all relative overflow-hidden">
                                                         {item.image && (
                                                             <>
-                                                                <img src={item.image} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 pointer-events-none" />
+                                                                <img src={resolveImageUrl(item.image)} alt="" className="absolute inset-0 w-full h-full object-cover opacity-10 pointer-events-none" />
                                                                 <div className="absolute inset-0 bg-gradient-to-r from-black via-black/50 to-transparent pointer-events-none" />
                                                             </>
                                                         )}
@@ -4586,7 +4587,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                 const progress = isNow ? Math.min(100, Math.max(0, ((now.getTime() - start.getTime()) / (end.getTime() - start.getTime())) * 100)) : 0;
                                                 return (
                                                     <div key={item.id} className={`p-4 border rounded-2xl space-y-3 transition-all relative overflow-hidden group ${isNow ? 'bg-neon-cyan/5 border-neon-cyan/30 shadow-[0_0_20px_rgba(0,255,255,0.05)]' : isPast ? 'opacity-40 grayscale-[0.5] bg-black/20 border-white/5' : 'bg-white/5 border-white/10'}`}>
-                                                        {item.image && (<img src={item.image} alt="" className={`absolute inset-0 w-full h-full object-cover object-center ${isPast ? 'opacity-10' : 'opacity-30'} group-hover:opacity-45 group-hover:scale-105 transition-all duration-700 pointer-events-none`} />)}
+                                                        {item.image && (<img src={resolveImageUrl(item.image)} alt="" className={`absolute inset-0 w-full h-full object-cover object-center ${isPast ? 'opacity-10' : 'opacity-30'} group-hover:opacity-45 group-hover:scale-105 transition-all duration-700 pointer-events-none`} />)}
                                                         <div className="flex items-center justify-between relative z-10">
                                                             <div className="flex items-center gap-2"><Calendar className="w-3 h-3 text-gray-500" /><span className={`text-[10px] font-black uppercase ${isNow ? 'text-neon-cyan' : 'text-gray-500'}`}>{item.stage}</span></div>
                                                             <div className="flex flex-col items-end">{!planMulti && <span className="text-[10px] font-mono text-white/80">{item.day}</span>}<span className="text-[10px] font-mono text-gray-500">{item.startTime} - {item.endTime}</span></div>
@@ -4627,7 +4628,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     {(items as any[]).map((item: any) => (
                                                         <div key={item.id} className="bg-white/5 border border-white/10 rounded-2xl p-3 flex flex-col group hover:border-neon-cyan/30 transition-all cursor-pointer shadow-xl relative overflow-hidden">
                                                             <div className="aspect-square rounded-xl bg-black/40 overflow-hidden mb-3 border border-white/10">
-                                                                <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                                                                <img src={resolveImageUrl(item.image)} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
                                                             </div>
                                                             <div className="flex-1 flex flex-col justify-between">
                                                                 <div>

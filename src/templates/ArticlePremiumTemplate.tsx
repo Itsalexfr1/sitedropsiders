@@ -244,16 +244,9 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         doc.querySelectorAll('img').forEach(img => {
             const src = img.getAttribute('src') || '';
             if (src) {
-                // If it's a dropsiders domain, remove it to make it relative
-                let cleanSrc = src.replace(/https?:\/\/(www\.)?dropsiders\.fr/, '');
-                
-                // If it starts with uploads/, add a leading slash
-                if (cleanSrc.startsWith('uploads/')) {
-                    cleanSrc = '/' + cleanSrc;
-                }
-                
-                // Update src
-                img.setAttribute('src', cleanSrc);
+                // Use the ultra-safe resolveImageUrl utility for all body images
+                const resolvedSrc = resolveImageUrl(src);
+                img.setAttribute('src', resolvedSrc);
                 
                 // Add styling and loading attributes
                 img.loading = 'lazy';

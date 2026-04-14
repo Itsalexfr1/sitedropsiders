@@ -43,7 +43,7 @@ interface SocialSuiteProps {
     initialTheme?: ThemeType;
 }
 
-type TabType = 'REEL' | 'PUBLICATION';
+type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
 type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW';
 
 interface Top5Item {

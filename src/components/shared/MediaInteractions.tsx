@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Heart, Share2, MessageSquare, X, Maximize2, Trash2, Instagram, Music } from 'lucide-react';
 import { getAuthHeaders } from '../../utils/auth';
+import { resolveImageUrl } from '../../utils/image';
 
 interface MediaStats {
     likes: number;
@@ -163,7 +164,7 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
             <div className="flex-1 relative flex items-center justify-center p-4 md:p-12 overflow-hidden h-[50vh] md:h-full">
                 {videoUrl ? (
                     <video
-                        src={videoUrl}
+                        src={resolveImageUrl(videoUrl)}
                         controls
                         autoPlay
                         className="max-w-full max-h-full object-contain shadow-2xl rounded-2xl border border-white/10"
@@ -173,7 +174,7 @@ export function MediaInteractions({ type, id, onClose, isAdmin, isModo, videoUrl
                     <motion.img
                         initial={{ scale: 0.9, opacity: 0 }}
                         animate={{ scale: 1, opacity: 1 }}
-                        src={imageUrl || id}
+                        src={resolveImageUrl(imageUrl || id)}
                         alt="Media content"
                         className="max-w-full max-h-full object-contain shadow-2xl rounded-2xl border border-white/10"
                         onClick={(e) => e.stopPropagation()}

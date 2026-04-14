@@ -4,6 +4,7 @@ import { ArrowUpRight, Mic2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useHoverSound } from '../../hooks/useHoverSound';
 import { useLanguage } from '../../context/LanguageContext';
+import { resolveImageUrl } from '../../utils/image';
 
 export function InterviewWidget({ accentColor = 'purple', resolvedColor, featuredInterviews }: { accentColor?: string, resolvedColor?: string, featuredInterviews?: string[] }) {
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
@@ -116,7 +117,7 @@ export function InterviewWidget({ accentColor = 'purple', resolvedColor, feature
                                     }}
                                 />
                                 <img
-                                    src={item.image}
+                                    src={resolveImageUrl(item.image)}
                                     alt={item.title}
                                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                                 />

@@ -12,6 +12,7 @@ import { FlagIcon } from '../components/ui/FlagIcon';
 import { Pagination } from '../components/ui/Pagination';
 import { translateText } from '../utils/translate';
 import { getAuthHeaders } from '../utils/auth';
+import { resolveImageUrl } from '../utils/image';
 
 type TabKey = 'all' | 'reportage';
 
@@ -349,7 +350,7 @@ export function Recap() {
                                                         <Link to={getRecapLink(item)} onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="absolute inset-0 md:static block w-full h-full">
                                                             {/* Mobile: full-cover card */}
                                                             <div className="absolute inset-0 md:hidden">
-                                                                <img src={item.coverImage || item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                                                <img src={resolveImageUrl(item.coverImage || item.image)} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                                                                 <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/60 to-transparent" />
                                                                 <div className="absolute inset-0 p-6 flex flex-col justify-end text-left z-10">
                                                                     <div className="flex items-center gap-2 mb-3">
@@ -364,7 +365,7 @@ export function Recap() {
                                                             {/* Desktop: standard card */}
                                                             <div className="hidden md:flex flex-col h-full overflow-hidden">
                                                                 <div className="h-64 overflow-hidden bg-black/40 flex items-center justify-center relative">
-                                                                    <img src={item.coverImage || item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
+                                                                    <img src={resolveImageUrl(item.coverImage || item.image)} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110" />
                                                                     <div className="absolute inset-0 bg-gradient-to-t from-dark-bg via-dark-bg/50 to-transparent" />
                                                                     {item.festival && <div className="absolute top-4 left-4 px-3 py-1 bg-neon-red/90 backdrop-blur-sm rounded-full"><span className="text-[10px] font-black tracking-widest text-white uppercase">{item.festival}</span></div>}
                                                                     {item.location && <div className="absolute top-4 right-4 px-3 py-1 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full flex items-center gap-2"><span className="text-[10px] font-bold tracking-wider text-white uppercase">{item.location}</span><FlagIcon location={item.location} className="w-3.5 h-2.5" /></div>}
@@ -390,7 +391,7 @@ export function Recap() {
                                                         <Link to={getGalleryLink(item)} className="block h-full group">
                                                             <div className="relative aspect-square overflow-hidden bg-white/5">
                                                                 <img
-                                                                    src={item.cover}
+                                                                    src={resolveImageUrl(item.cover)}
                                                                     alt={item.title}
                                                                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
                                                                 />

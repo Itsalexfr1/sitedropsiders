@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Calendar, MapPin, Maximize2, Filter, Image as ImageIcon } from 'lucide-react';
 import { MediaInteractions } from '../shared/MediaInteractions';
 import { useLanguage } from '../../context/LanguageContext';
+import { resolveImageUrl } from '../../utils/image';
 
 interface MemoryWallProps {
     galerieData: any[];
@@ -157,7 +158,7 @@ export function MemoryWall({ galerieData }: MemoryWallProps) {
                             >
                                 {pin.type === 'video' ? (
                                     <video
-                                        src={pin.url}
+                                        src={resolveImageUrl(pin.url)}
                                         className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity"
                                         autoPlay={window.innerWidth > 768}
                                         muted
@@ -166,7 +167,7 @@ export function MemoryWall({ galerieData }: MemoryWallProps) {
                                     />
                                 ) : (
                                     <img
-                                        src={pin.url}
+                                        src={resolveImageUrl(pin.url)}
                                         alt={pin.title}
                                         className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity transform group-hover:scale-110 duration-700"
                                         loading="lazy"
@@ -218,8 +219,8 @@ export function MemoryWall({ galerieData }: MemoryWallProps) {
                     <MediaInteractions
                         type={selectedMedia.type === 'video' ? 'clip' : 'photo'}
                         id={selectedMedia.url}
-                        videoUrl={selectedMedia.type === 'video' ? selectedMedia.url : undefined}
-                        imageUrl={selectedMedia.type === 'image' ? selectedMedia.url : undefined}
+                        videoUrl={selectedMedia.type === 'video' ? resolveImageUrl(selectedMedia.url) : undefined}
+                        imageUrl={selectedMedia.type === 'image' ? resolveImageUrl(selectedMedia.url) : undefined}
                         onClose={() => setSelectedMedia(null)}
                         isAdmin={false}
                     />
