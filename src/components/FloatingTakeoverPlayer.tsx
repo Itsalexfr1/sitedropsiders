@@ -86,11 +86,11 @@ export function FloatingTakeoverPlayer() {
                         return (
                             <iframe
                                 className="w-full h-full pointer-events-auto"
-                                src={`https://www.youtube.com/embed/${extractYoutubeId(videoId)}?autoplay=1&mute=0&rel=0&modestbranding=1&controls=1`}
+                                src={`https://www.youtube-nocookie.com/embed/${extractYoutubeId(videoId)}?autoplay=1&mute=0&rel=0&modestbranding=1&controls=1`}
                                 title="Live Takeover"
-                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                 allowFullScreen
-                                referrerPolicy="no-referrer"
+                                referrerPolicy="strict-origin-when-cross-origin"
                             ></iframe>
                         );
                     })()}

@@ -279,15 +279,15 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
 
                 if (videoId) {
                     iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}`;
-                    iframe.allow = "autoplay; encrypted-media; picture-in-picture";
+                    iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
                     iframe.id = `yt-player-${videoId}`;
                 }
             }
 
             // --- FIX CRITIQUE : ERR_BLOCKED_BY_RESPONSE ---
-            // On force la politique de referer à "no-referrer" pour tous les iframes.
-            iframe.setAttribute('referrerpolicy', 'no-referrer');
-            iframe.referrerPolicy = "no-referrer";
+            // On force la politique de referer à "strict-origin-when-cross-origin" pour tous les iframes.
+            iframe.setAttribute('referrerpolicy', 'strict-origin-when-cross-origin');
+            iframe.referrerPolicy = "strict-origin-when-cross-origin";
 
             const isInsidePremium =
                 iframe.closest('.youtube-player-wrapper') ||
@@ -840,9 +840,9 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                                 <iframe
                                                     src={`https://www.youtube-nocookie.com/embed/${extractId(article.youtubeId)}?enablejsapi=1&origin=${window.location.origin}`}
                                                     className="absolute top-0 left-0 w-full h-full"
-                                                    allow="autoplay; encrypted-media; picture-in-picture"
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                                     allowFullScreen
-                                                    referrerPolicy="no-referrer"
+                                                    referrerPolicy="strict-origin-when-cross-origin"
                                                     id={`yt-player-${extractId(article.youtubeId)}`}
                                                 />
                                             </div>

@@ -2629,10 +2629,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 return activeYtId ? (
                                     <iframe 
                                         className="w-full h-full border-none" 
-                                        src={`https://www.youtube.com/embed/${extractYoutubeId(activeYtId)}?autoplay=1&mute=0&rel=0&modestbranding=1`} 
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                                        src={`https://www.youtube-nocookie.com/embed/${extractYoutubeId(activeYtId)}?autoplay=1&mute=0&rel=0&modestbranding=1`} 
+                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
                                         allowFullScreen 
-                                        referrerPolicy="no-referrer"
+                                        referrerPolicy="strict-origin-when-cross-origin"
                                     />
                                 ) : (
                                     <div className="w-full h-full flex flex-col items-center justify-center bg-black gap-4">
@@ -2671,10 +2671,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     <>
                                                         <iframe
                                                             className="w-full h-full border-none"
-                                                            src={`https://www.youtube.com/embed/${extractYoutubeId(s.youtubeId)}?autoplay=${idx === activeAudioIdx ? 1 : 0}&mute=${idx === activeAudioIdx ? 0 : 1}&rel=0&modestbranding=1`}
-                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                            src={`https://www.youtube-nocookie.com/embed/${extractYoutubeId(s.youtubeId)}?autoplay=${idx === activeAudioIdx ? 1 : 0}&mute=${idx === activeAudioIdx ? 0 : 1}&rel=0&modestbranding=1`}
+                                                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
                                                             allowFullScreen
-                                                            referrerPolicy="no-referrer"
+                                                            referrerPolicy="strict-origin-when-cross-origin"
                                                         />
                                                         <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-md text-[8px] font-black text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
                                                             {s.name}
