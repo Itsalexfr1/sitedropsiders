@@ -3141,7 +3141,13 @@ export function AdminDashboard() {
                                                             title="Prévisualiser le post"
                                                         >
                                                             <Eye className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
-                                                                                   {artistPreview && (() => {
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+
+                                            {/* ARTIST PREVIEW MODAL */}
+                                            {artistPreview && (() => {
                                                 const [previewMode, setPreviewMode] = useState<'POST' | 'STORY'>('POST');
                                                 return (
                                                     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md" onClick={() => setArtistPreview(null)}>
@@ -3210,10 +3216,6 @@ export function AdminDashboard() {
                                                     </div>
                                                 );
                                             })()}
-                               )}
-                                                    </div>
-                                                </div>
-                                            )}
                                         </div>
 
                                         {/* WIKI WIDGET (EXPLORER) */}
