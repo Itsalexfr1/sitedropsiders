@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, User, Mail, Trophy, Music, LogOut, ChevronRight, Heart, Camera, Upload } from 'lucide-react';
+import { X, User, Mail, Trophy, Music, LogOut, ChevronRight, Heart, Camera, Upload, Loader2 } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import { useGoogleLogin } from '@react-oauth/google';
 import axios from 'axios';
@@ -93,15 +93,44 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
         }
     };
 
-    const handleAuth = (e: React.FormEvent) => {
+    const handleAuth = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (username && email) {
+        if (!username || !email) return;
+
+        setIsAuthLoading(true);
+        let finalAvatar = avatar;
+
+        try {
+            // If there's a new local avatar, upload it to R2 in 'membre' folder
+            if (avatar && avatar.startsWith('data:image')) {
+                const response = await fetch('/api/upload', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        filename: `avatar_${username.toLowerCase().replace(/[^a-z0-9]/g, '_')}.jpg`,
+                        content: avatar,
+                        type: 'image/jpeg',
+                        path: 'membre'
+                    })
+                });
+
+                const data = await response.json();
+                if (data.success && data.url) {
+                    finalAvatar = data.url;
+                }
+            }
+
             loginSocial({
                 username,
                 email,
-                avatar: avatar || undefined,
+                avatar: finalAvatar || undefined,
                 provider: 'email'
             });
+            onClose();
+        } catch (error) {
+            console.error('Auth/Upload failed', error);
+        } finally {
+            setIsAuthLoading(false);
         }
     };
 
@@ -321,9 +350,12 @@ export function UserAuthModal({ isOpen, onClose }: UserAuthModalProps) {
                                     <div className="pt-2">
                                         <button
                                             type="submit"
-                                            className="w-full py-5 bg-white text-black rounded-2xl font-display font-black text-[10px] uppercase tracking-[0.2em] hover:bg-neon-red hover:text-white transition-all shadow-xl shadow-white/5"
+                                            disabled={isAuthLoading}
+                                            className="w-full py-5 bg-white text-black rounded-2xl font-display font-black text-[10px] uppercase tracking-[0.2em] hover:bg-neon-red hover:text-white transition-all shadow-xl shadow-white/5 disabled:opacity-50 disabled:cursor-wait flex items-center justify-center gap-3"
                                         >
-                                            Créer mon compte
+                                            {isAuthLoading ? (
+                                                <><Loader2 className="w-4 h-4 animate-spin" /> Création...</>
+                                            ) : 'Créer mon compte'}
                                         </button>
                                         <p className="text-center text-[9px] text-gray-600 font-black uppercase tracking-widest mt-6">
                                             En créant un compte, vous acceptez nos <span className="text-gray-400 hover:text-white cursor-pointer transition-colors underline">CGU</span>
