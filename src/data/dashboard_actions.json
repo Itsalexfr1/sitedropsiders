@@ -1,17 +1,5 @@
 [
   {
-    "title": "Accueil",
-    "description": "Sections & Vues",
-    "icon": "LayoutDashboard",
-    "category": "ALL",
-    "link": "#",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "superadmin",
-    "baseColor": "#ff7300",
-    "columns": 1
-  },
-  {
     "title": "Contenu",
     "description": "News, Musique, Interviews...",
     "icon": "FileText",
@@ -33,6 +21,30 @@
     "bg": "bg-neon-pink/5",
     "permission": "all",
     "baseColor": "#ee00ff",
+    "columns": 1
+  },
+  {
+    "title": "Studio Création",
+    "description": "Générateurs Rapides",
+    "icon": "Sparkles",
+    "category": "STUDIO",
+    "link": "#",
+    "color": "border-neon-orange/20 hover:border-neon-orange",
+    "bg": "bg-neon-orange/5",
+    "permission": "news",
+    "baseColor": "#00fffb",
+    "columns": 1
+  },
+  {
+    "title": "Accueil",
+    "description": "Sections & Vues",
+    "icon": "LayoutDashboard",
+    "category": "ALL",
+    "link": "#",
+    "color": "border-neon-cyan/20 hover:border-neon-cyan",
+    "bg": "bg-neon-cyan/5",
+    "permission": "superadmin",
+    "baseColor": "#ff7300",
     "columns": 1
   },
   {
@@ -69,18 +81,6 @@
     "bg": "bg-neon-purple/5",
     "permission": "community_mod",
     "baseColor": "#0033ff",
-    "columns": 1
-  },
-  {
-    "title": "Studio Création",
-    "description": "Générateurs Rapides",
-    "icon": "Sparkles",
-    "category": "STUDIO",
-    "link": "#",
-    "color": "border-neon-orange/20 hover:border-neon-orange",
-    "bg": "bg-neon-orange/5",
-    "permission": "news",
-    "baseColor": "#00fffb",
     "columns": 1
   },
   {
@@ -142,18 +142,6 @@
     "permission": "shop",
     "baseColor": "#ffae00",
     "columns": 1
-  },
-  {
-    "title": "Downloader",
-    "description": "Outil Médias",
-    "icon": "Download",
-    "category": "STUDIO",
-    "link": "#",
-    "color": "border-neon-cyan/20 hover:border-neon-cyan",
-    "bg": "bg-neon-cyan/5",
-    "permission": "all",
-    "baseColor": "#ff7b00",
-    "columns": 2
   },
   {
     "title": "Vérifier Photos",
