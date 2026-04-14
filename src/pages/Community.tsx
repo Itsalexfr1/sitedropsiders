@@ -265,7 +265,7 @@ export function Community() {
     const navigate = useNavigate();
 
     // --- TAB TYPE UPDATE ---
-    type TabType = 'WALL' | 'UPLOADS' | 'CONCOURS' | 'GAME' | 'AVIS' | 'GUIDE' | 'COVOIT' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB';
+    type TabType = 'WALL' | 'UPLOADS' | 'CONCOURS' | 'GAME' | 'AVIS' | 'COVOIT' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB';
     const [activeTab, setActiveTab] = useState<TabType>('WALL');
     const location = useLocation();
 
@@ -273,7 +273,7 @@ export function Community() {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const tab = params.get('tab');
-        if (tab && ['WALL', 'UPLOADS', 'CONCOURS', 'GAME', 'AVIS', 'GUIDE', 'COVOIT', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB'].includes(tab)) {
+        if (tab && ['WALL', 'UPLOADS', 'CONCOURS', 'GAME', 'AVIS', 'COVOIT', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB'].includes(tab)) {
             setActiveTab(tab as TabType);
         }
     }, [location.search]);
@@ -930,7 +930,7 @@ export function Community() {
                                 { id: 'AVIS',          icon: MessageSquare,label: 'Avis & Votes',      multiline: false },
                                 { id: 'CONCOURS',      icon: Trophy,       label: 'Jeux Concours',     multiline: false, hidden: !isContestActive },
                                 { id: 'GAME',          icon: Sparkles,     label: 'PRODUCER',          multiline: false, iconClass: 'text-amber-400' },
-                                { id: 'GUIDE',         icon: Info,         label: 'Guide\nPratique',   multiline: true  },
+
                                 { id: 'TRACK_ID',      icon: Music,        label: 'TrackID',           multiline: false },
                                 { id: 'PLAYLISTS',     icon: Share2,       label: 'Mixs',              multiline: false },
                                 { id: 'LAB',           icon: Wand2,        label: 'Communaut\u00e9',       multiline: false },
@@ -2082,16 +2082,7 @@ export function Community() {
                             </motion.div>
                         )}
 
-                        {activeTab === 'GUIDE' && (
-                            <motion.div
-                                key="guide"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                            >
-                                <GuideSection />
-                            </motion.div>
-                        )}
+
 
                         {activeTab === 'COVOIT' && (
                             <motion.div

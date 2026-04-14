@@ -98,7 +98,7 @@ export function Navbar() {
         { name: navLabels.recaps || t('nav.recaps'), path: '/recaps', color: 'neon-purple' },
         { name: navLabels.agenda || t('nav.agenda'), path: '/agenda', color: 'neon-cyan' },
         { name: navLabels.communaute || t('nav.communaute'), path: '/communaute', color: 'neon-pink' },
-        { name: 'TOP', path: '/communaute?tab=GUIDE', color: 'neon-yellow', suffix: 'DROPSIDERS', isPremium: true },
+        { name: 'TOP', path: '/top-dropsiders', color: 'neon-yellow', suffix: 'DROPSIDERS', isPremium: true },
         { name: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'neon-blue' },
         { name: navLabels.team || t('nav.team'), path: '/team', color: 'neon-yellow' },
         ...(shopEnabled && !shopPasswordProtected ? [{ name: '', path: '/shop', color: 'neon-red', icon: ShoppingBag, isIconOnly: true }] : []),
