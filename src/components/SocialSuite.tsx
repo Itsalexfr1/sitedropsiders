@@ -1,22 +1,26 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { 
     X, 
     Download, 
-    Share2, 
-    RefreshCw, 
-    ImageIcon, 
-    Film, 
-    Clock, 
-    Check, 
-    Copy, 
-    Sparkles, 
-    Type, 
+    Upload, 
+    PlusCircle, 
+    Plus, 
+    Eraser,
+    Video, 
     Layout, 
+    Smartphone, 
+    Image as ImageIcon,
+    Home, 
+    Link as LinkIcon, 
     Palette, 
-    MessageSquare,
-    Link as LinkIcon,
-    AlertCircle,
+    Type, 
+    Film,
+    Check, 
+    Layers, 
+    Sparkles, 
+    Wand2, 
+    RotateCcw,
     Loader2
 } from 'lucide-react';
 import { fixEncoding } from '../utils/standardizer';
