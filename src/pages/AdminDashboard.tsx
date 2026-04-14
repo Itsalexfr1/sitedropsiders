@@ -2873,7 +2873,7 @@ export function AdminDashboard() {
                                                         </div>
                                                         <button 
                                                             onClick={() => {
-                                                                setTop100DataToVisual([{ name: item.name, votes: item.tv, rank: idx + 1, image: item.image }]);
+                                                                setTop100DataToVisual([{ name: item.name, votes: item.tv, rank: idx + 1, image: item.image, category: wikiTab }]);
                                                             }}
                                                             className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-400 hover:text-white transition-all group/btn"
                                                             title="Générer Post Individuel"

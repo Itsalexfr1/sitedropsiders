@@ -42,7 +42,7 @@ interface SocialSuiteProps {
     imageUrl: string;
     onClose: () => void;
     initialTheme?: ThemeType;
-    top100Data?: {name: string, votes: number}[];
+    top100Data?: {name: string, votes: number, rank?: number, image?: string, category?: string}[];
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
@@ -931,72 +931,223 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
                 }
             } else if (theme === 'TOP 1 ARTIST') {
                 const item = top100Entries[0] || { name: 'NOM ARTISTE', rank: 1 };
-                const centerX = canvas.width / 2;
-                const centerY = canvas.height / 2;
+                const W = canvas.width;
+                const H = canvas.height;
                 const isStory = effectiveTab === 'REEL';
+                const rank = item.rank || 1;
+                const category = (item as any).category || 'DJS';
+                const categoryLabel = category === 'clubs' ? 'CLUBS' : category === 'festivals' ? 'FESTIVALS' : 'DJS';
+                const accentColor = activeData.color || '#ff1a41';
+                const accentRGB = activeData.grad || '255,26,65';
 
-                // Full image background if exists
-                if (bgImage || item.image) {
-                    const src = resolveImageUrl(bgImage || item.image);
-                    let photo: HTMLImageElement | null = null;
-                    if (imageCacheRef.current[src]) {
-                        photo = imageCacheRef.current[src];
-                    } else {
-                        const imgObj = new Image(); imgObj.crossOrigin = "anonymous"; imgObj.src = src;
-                        imgObj.onload = () => { imageCacheRef.current[src] = imgObj; generateImage(); };
+                // ── BACKGROUND ──
+                ctx.fillStyle = '#080808';
+                ctx.fillRect(0, 0, W, H);
+
+                // Subtle gradient overlay
+                const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+                bgGrad.addColorStop(0, 'rgba(20,0,5,1)');
+                bgGrad.addColorStop(0.5, 'rgba(5,5,15,1)');
+                bgGrad.addColorStop(1, 'rgba(0,10,20,1)');
+                ctx.fillStyle = bgGrad;
+                ctx.fillRect(0, 0, W, H);
+
+                // Edge glow (left side)
+                const leftGlow = ctx.createLinearGradient(0, 0, 120, 0);
+                leftGlow.addColorStop(0, `rgba(${accentRGB},0.25)`);
+                leftGlow.addColorStop(1, 'transparent');
+                ctx.fillStyle = leftGlow;
+                ctx.fillRect(0, 0, 120, H);
+
+                // Edge glow (right side) - cyan
+                const rightGlow = ctx.createLinearGradient(W, 0, W - 120, 0);
+                rightGlow.addColorStop(0, 'rgba(0,200,255,0.15)');
+                rightGlow.addColorStop(1, 'transparent');
+                ctx.fillStyle = rightGlow;
+                ctx.fillRect(W - 120, 0, 120, H);
+
+                // ── PIXEL DECORATION STRIPS (left & right edges like DJ Mag) ──
+                const drawPixelStrip = (x: number, flip: boolean) => {
+                    const stripW = 28;
+                    const squareH = 14;
+                    const gap = 4;
+                    const count = Math.floor(H / (squareH + gap));
+                    for (let i = 0; i < count; i++) {
+                        const y = i * (squareH + gap);
+                        const col = i % 2 === 0 ? `rgba(${accentRGB},0.6)` : 'rgba(0,200,255,0.4)';
+                        ctx.fillStyle = col;
+                        const rx = flip ? x - stripW : x;
+                        ctx.beginPath();
+                        ctx.roundRect(rx + 2, y + 2, stripW - 4, squareH - 4, 3);
+                        ctx.fill();
                     }
-                    if (photo) {
-                        const s = Math.max(canvas.width / photo.width, canvas.height / photo.height);
-                        ctx.drawImage(photo, (canvas.width - photo.width * s) / 2, (canvas.height - photo.height * s) / 2, photo.width * s, photo.height * s);
-                        // Dark overlay
-                        ctx.fillStyle = 'rgba(0,0,0,0.55)';
-                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                };
+                drawPixelStrip(0, false);
+                drawPixelStrip(W, true);
+
+                // ── ARTIST PHOTO ──
+                const photoSrc = resolveImageUrl(bgImage || item.image);
+                let photo: HTMLImageElement | null = null;
+                if (photoSrc) {
+                    if (imageCacheRef.current[photoSrc]) {
+                        photo = imageCacheRef.current[photoSrc];
+                    } else {
+                        const imgObj = new Image(); imgObj.crossOrigin = 'anonymous'; imgObj.src = photoSrc;
+                        imgObj.onload = () => { imageCacheRef.current[photoSrc] = imgObj; generateImage(); };
                     }
                 }
 
-                // Rank Badge (BIG)
+                const photoX = 60;
+                const photoY = isStory ? 280 : 200;
+                const photoW = W - 120;
+                const photoH = isStory ? H - 580 : H - 420;
+
+                // Photo frame shadow
                 ctx.save();
-                const rankY = isStory ? centerY - 300 : centerY - 220;
-                ctx.translate(centerX, rankY);
-                // Glow
-                ctx.shadowColor = activeData.color;
-                ctx.shadowBlur = 60;
-                ctx.fillStyle = activeData.color;
-                ctx.font = '900 italic 380px "Montserrat", sans-serif';
+                ctx.shadowColor = `rgba(${accentRGB},0.6)`;
+                ctx.shadowBlur = 40;
+                ctx.fillStyle = '#111';
+                ctx.beginPath();
+                ctx.roundRect(photoX, photoY, photoW, photoH, 8);
+                ctx.fill();
+                ctx.restore();
+
+                // Draw photo
+                if (photo) {
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.roundRect(photoX, photoY, photoW, photoH, 8);
+                    ctx.clip();
+                    const s = Math.max(photoW / photo.width, photoH / photo.height);
+                    const dx = photoX + (photoW - photo.width * s) / 2;
+                    const dy = photoY + (photoH - photo.height * s) / 2;
+                    ctx.drawImage(photo, dx, dy, photo.width * s, photo.height * s);
+                    // Subtle dark vignette on photo
+                    const vignette = ctx.createRadialGradient(photoX + photoW/2, photoY + photoH/2, photoH*0.3, photoX + photoW/2, photoY + photoH/2, photoH*0.8);
+                    vignette.addColorStop(0, 'transparent');
+                    vignette.addColorStop(1, 'rgba(0,0,0,0.5)');
+                    ctx.fillStyle = vignette;
+                    ctx.fillRect(photoX, photoY, photoW, photoH);
+                    ctx.restore();
+                }
+
+                // Photo border frame
+                ctx.save();
+                ctx.strokeStyle = `rgba(${accentRGB},0.8)`;
+                ctx.lineWidth = 3;
+                ctx.beginPath();
+                ctx.roundRect(photoX, photoY, photoW, photoH, 8);
+                ctx.stroke();
+                // Corner accents
+                const cornerSize = 30;
+                ctx.strokeStyle = accentColor;
+                ctx.lineWidth = 5;
+                ctx.lineCap = 'square';
+                [[photoX, photoY], [photoX + photoW, photoY], [photoX, photoY + photoH], [photoX + photoW, photoY + photoH]].forEach(([cx, cy], ci) => {
+                    const sx = ci % 2 === 0 ? 1 : -1;
+                    const sy = ci < 2 ? 1 : -1;
+                    ctx.beginPath(); ctx.moveTo(cx, cy + sy * cornerSize); ctx.lineTo(cx, cy); ctx.lineTo(cx + sx * cornerSize, cy); ctx.stroke();
+                });
+                ctx.restore();
+
+                // ── ARTIST NAME (top-left, bold italic) ──
+                const nameAreaY = isStory ? 80 : 50;
+                ctx.save();
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+                // Shadow for depth
+                ctx.shadowColor = 'rgba(0,0,0,0.9)';
+                ctx.shadowBlur = 20;
+                
+                // Auto-size name
+                let nameFontSize = isStory ? 130 : 100;
+                ctx.font = `900 italic ${nameFontSize}px "Montserrat", sans-serif`;
+                while (ctx.measureText(item.name.toUpperCase()).width > W - 200 && nameFontSize > 60) {
+                    nameFontSize -= 5;
+                    ctx.font = `900 italic ${nameFontSize}px "Montserrat", sans-serif`;
+                }
+                
+                // Name in two lines if needed
+                const nameParts = item.name.toUpperCase().split(' ');
+                const midPoint = Math.ceil(nameParts.length / 2);
+                const line1 = nameParts.slice(0, midPoint).join(' ');
+                const line2 = nameParts.slice(midPoint).join(' ');
+                
+                ctx.fillStyle = '#ffffff';
+                ctx.fillText(line1, photoX + 10, nameAreaY);
+                if (line2) ctx.fillText(line2, photoX + 10, nameAreaY + nameFontSize + 5);
+                ctx.restore();
+
+                // ── RANK BADGE (top-right corner) ──
+                const badgeSize = isStory ? 120 : 100;
+                const badgeX = W - photoX - badgeSize + 5;
+                const badgeY = nameAreaY - 10;
+                ctx.save();
+                // Badge background
+                ctx.fillStyle = '#000';
+                ctx.strokeStyle = `rgba(0,220,255,0.9)`;
+                ctx.lineWidth = 3;
+                ctx.shadowColor = 'rgba(0,220,255,0.8)';
+                ctx.shadowBlur = 20;
+                ctx.beginPath();
+                ctx.roundRect(badgeX, badgeY, badgeSize, badgeSize, 12);
+                ctx.fill();
+                ctx.stroke();
+                // Rank number inside badge
+                ctx.shadowColor = 'rgba(0,220,255,1)';
+                ctx.shadowBlur = 30;
+                ctx.fillStyle = 'rgba(0,220,255,1)';
+                ctx.font = `900 italic ${badgeSize * 0.55}px "Montserrat", sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(`#${item.rank || 1}`, 0, 0);
+                ctx.fillText(`${rank}`, badgeX + badgeSize/2, badgeY + badgeSize/2 + 4);
                 ctx.restore();
 
-                // Artist Name
+                // ── LARGE RANK NUMBER (bottom-left) ──
+                const bigRankY = isStory ? H - 260 : H - 180;
                 ctx.save();
-                const nameY = isStory ? centerY + 250 : centerY + 180;
-                ctx.translate(centerX, nameY);
-                ctx.textAlign = 'center';
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '900 italic 120px "Orbitron", sans-serif';
-                ctx.shadowColor = 'rgba(0,0,0,1)';
-                ctx.shadowBlur = 30;
-                
-                // Truncate name if too long for the screen
-                let artistName = item.name.toUpperCase();
-                if (ctx.measureText(artistName).width > 1000) {
-                   ctx.font = '900 italic 90px "Orbitron", sans-serif';
-                }
-                ctx.fillText(artistName, 0, 0);
-                
-                ctx.font = '900 40px "Montserrat", sans-serif';
-                ctx.fillStyle = activeData.color;
-                ctx.letterSpacing = '15px';
-                ctx.fillText('DROPSIDERS TOP 100', 0, 110);
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'top';
+                ctx.shadowColor = accentColor;
+                ctx.shadowBlur = 40;
+                ctx.fillStyle = accentColor;
+                const bigRankSize = isStory ? 210 : 170;
+                ctx.font = `900 italic ${bigRankSize}px "Montserrat", sans-serif`;
+                ctx.fillText(`${rank}`, photoX + 10, bigRankY);
                 ctx.restore();
 
-                // Footer
+                // ── FOOTER BAR ──
+                const footerH = isStory ? 120 : 100;
+                const footerY = H - footerH;
+                ctx.fillStyle = 'rgba(0,0,0,0.85)';
+                ctx.fillRect(0, footerY, W, footerH);
+                // Accent line at top of footer
+                ctx.fillStyle = accentColor;
+                ctx.fillRect(0, footerY, W, 4);
+
+                // Footer text
+                ctx.save();
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                const footerTextY = footerY + footerH / 2;
+                // Category label
+                ctx.font = `900 ${isStory ? 38 : 30}px "Orbitron", sans-serif`;
+                ctx.fillStyle = '#ffffff';
+                ctx.letterSpacing = '4px';
+                ctx.fillText(`TOP 100 ${categoryLabel}`, photoX + 10, footerTextY - 6);
+                // Dropsiders sub-label
+                ctx.font = `700 ${isStory ? 26 : 20}px "Montserrat", sans-serif`;
+                ctx.fillStyle = accentColor;
+                ctx.letterSpacing = '8px';
+                ctx.fillText('DROPSIDERS', photoX + 10, footerTextY + (isStory ? 32 : 26));
+                ctx.restore();
+
+                // ── DROPSIDERS LOGO (footer right) ──
                 if (logoRef.current) {
                     const l = logoRef.current;
-                    const lw = 280;
+                    const lw = isStory ? 240 : 190;
                     const lh = (l.height * lw) / l.width;
-                    ctx.drawImage(l, centerX - lw / 2, canvas.height - (isStory ? 200 : 120), lw, lh);
+                    ctx.drawImage(l, W - lw - photoX, footerY + (footerH - lh) / 2, lw, lh);
                 }
             } else if (theme === 'HIGHLIGHTS') {
                 // Specialized high-end rendering for Highlights (similar to Tracklist but with Blue theme)
