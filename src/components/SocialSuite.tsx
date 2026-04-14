@@ -45,7 +45,7 @@ interface SocialSuiteProps {
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'TOP 100';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'TOP 100' | 'TOP 1 ARTIST';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -70,7 +70,7 @@ const STYLE_PRESETS = [
 
 export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>('PUBLICATION');
-    const [theme, setTheme] = useState<ThemeType>(top100Data ? 'TOP 100' : (initialTheme || 'NEWS'));
+    const [theme, setTheme] = useState<ThemeType>(top100Data ? (top100Data.length === 1 ? 'TOP 1 ARTIST' : 'TOP 100') : (initialTheme || 'NEWS'));
     const [showSwipe, setShowSwipe] = useState(false);
     const [showArticleLink, setShowArticleLink] = useState(false);
     const [customText, setCustomText] = useState(title || '');
@@ -138,7 +138,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
 
     // Detect mobile vs desktop (lg breakpoint = 1024px) — JS-based to avoid canvasRef conflict
     const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
-    const [top100Entries, setTop100Entries] = useState<{name: string, votes: number}[]>(top100Data || []);
+    const [top100Entries, setTop100Entries] = useState<{name: string, votes: number, rank?: number, image?: string}[]>(top100Data || []);
 
     useEffect(() => {
         if (top100Data) {
@@ -216,7 +216,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
         'PLANNING': { label: 'PLANNING', grad: '255, 18, 65', color: '#ff1241' },
         'TRACKLIST': { label: 'TRACKLIST', grad: '255, 120, 0', color: '#ff7800' },
         'INTERVIEW': { label: 'INTERVIEW', grad: '255, 0, 51', color: '#ff0033' },
-        'TOP 100': { label: 'TOP 100', grad: '255, 230, 0', color: '#ffe600' }
+        'TOP 100': { label: 'TOP 100', grad: '255, 230, 0', color: '#ffe600' },
+        'TOP 1 ARTIST': { label: 'INDIVIDUEL', grad: '255, 0, 51', color: '#ff0033' }
     };
 
     useEffect(() => {
@@ -881,12 +882,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
                 ctx.restore();
 
                 // Multi-column list
-                const cols = 4;
-                const rows = 25;
-                const colWidth = 240;
-                const rowHeight = 34;
+                const cols = effectiveTab === 'REEL' ? 2 : 4;
+                const rows = effectiveTab === 'REEL' ? 50 : 25;
+                const colWidth = effectiveTab === 'REEL' ? 440 : 240;
+                const rowHeight = effectiveTab === 'REEL' ? 28 : 40;
                 const startX = centerX - (colWidth * cols) / 2;
-                const listTop = topY + 220;
+                const listTop = effectiveTab === 'REEL' ? topY + 220 : topY + 220;
 
                 ctx.save();
                 ctx.textAlign = 'left';
@@ -900,17 +901,18 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
 
                     // Rank
                     ctx.fillStyle = activeData.color;
-                    ctx.font = '900 16px "Montserrat", sans-serif';
-                    ctx.fillText(`#${i + 1}`, x, y);
+                    ctx.font = `900 ${effectiveTab === 'REEL' ? '14px' : '18px'} "Montserrat", sans-serif`;
+                    ctx.fillText(`#${item.rank || i + 1}`, x, y);
 
                     // Name
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = '700 14px "Montserrat", sans-serif';
-                    const nameX = x + 40;
+                    ctx.font = `700 ${effectiveTab === 'REEL' ? '12px' : '16px'} "Montserrat", sans-serif`;
+                    const nameX = x + (effectiveTab === 'REEL' ? 35 : 50);
                     const name = item.name.toUpperCase();
+                    const maxW = effectiveTab === 'REEL' ? 160 : 180;
                     let truncatedName = name;
-                    if (ctx.measureText(name).width > 180) {
-                        while (ctx.measureText(truncatedName + '...').width > 180) {
+                    if (ctx.measureText(name).width > maxW) {
+                        while (ctx.measureText(truncatedName + '...').width > maxW) {
                             truncatedName = truncatedName.slice(0, -1);
                         }
                         truncatedName += '...';
@@ -924,7 +926,67 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
                     const l = logoRef.current;
                     const lw = 200;
                     const lh = (l.height * lw) / l.width;
-                    ctx.drawImage(l, centerX - lw / 2, canvas.height - 100, lw, lh);
+                    ctx.drawImage(l, centerX - lw / 2, canvas.height - (effectiveTab === 'REEL' ? 150 : 100), lw, lh);
+                }
+            } else if (theme === 'TOP 1 ARTIST') {
+                const item = top100Entries[0] || { name: 'NOM ARTISTE', rank: 1 };
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+
+                // Full image background if exists
+                if (bgImage || item.image) {
+                    const src = bgImage || item.image || '';
+                    let photo: HTMLImageElement | null = null;
+                    if (imageCacheRef.current[src]) {
+                        photo = imageCacheRef.current[src];
+                    } else {
+                        const imgObj = new Image(); imgObj.crossOrigin = "anonymous"; imgObj.src = src;
+                        imgObj.onload = () => { imageCacheRef.current[src] = imgObj; generateImage(); };
+                    }
+                    if (photo) {
+                        const s = Math.max(canvas.width / photo.width, canvas.height / photo.height);
+                        ctx.drawImage(photo, (canvas.width - photo.width * s) / 2, (canvas.height - photo.height * s) / 2, photo.width * s, photo.height * s);
+                        // Dark overlay
+                        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                        ctx.fillRect(0, 0, canvas.width, canvas.height);
+                    }
+                }
+
+                // Rank Badge (BIG)
+                ctx.save();
+                ctx.translate(centerX, centerY - 200);
+                // Glow
+                ctx.shadowColor = activeData.color;
+                ctx.shadowBlur = 50;
+                ctx.fillStyle = activeData.color;
+                ctx.font = '900 italic 350px "Montserrat", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(`#${item.rank || 1}`, 0, 0);
+                ctx.restore();
+
+                // Artist Name
+                ctx.save();
+                ctx.translate(centerX, centerY + 150);
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 italic 110px "Orbitron", sans-serif';
+                ctx.shadowColor = 'rgba(0,0,0,1)';
+                ctx.shadowBlur = 20;
+                ctx.fillText(item.name.toUpperCase(), 0, 0);
+                
+                ctx.font = '900 40px "Montserrat", sans-serif';
+                ctx.fillStyle = activeData.color;
+                ctx.letterSpacing = '15px';
+                ctx.fillText('DROPSIDERS TOP 100', 0, 100);
+                ctx.restore();
+
+                // Footer
+                if (logoRef.current) {
+                    const l = logoRef.current;
+                    const lw = 250;
+                    const lh = (l.height * lw) / l.width;
+                    ctx.drawImage(l, centerX - lw / 2, canvas.height - 150, lw, lh);
                 }
             } else if (theme === 'HIGHLIGHTS') {
                 // Specialized high-end rendering for Highlights (similar to Tracklist but with Blue theme)

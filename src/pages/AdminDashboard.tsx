@@ -2850,6 +2850,23 @@ export function AdminDashboard() {
                                     const medals = ['🥇', '🥈', '🥉'];
                                     return (
                                         <div className="bg-white/[0.03] border border-white/10 rounded-[3rem] p-10">
+                                            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12 bg-white/5 p-8 rounded-[2rem] border border-white/10">
+                                                <div className="flex flex-col gap-2">
+                                                    <h3 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Générer Classement Complet</h3>
+                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Format Story (2x50) ou Post (4x25)</p>
+                                                </div>
+                                                <button
+                                                    onClick={() => {
+                                                        const data = allRanked.map((x: any, idx: number) => ({ name: x.name, votes: x.tv, rank: idx + 1 }));
+                                                        setTop100DataToVisual(data);
+                                                    }}
+                                                    className="px-12 py-5 bg-neon-yellow text-black rounded-2xl text-[12px] font-black uppercase hover:scale-105 transition-all flex items-center gap-3 shadow-[0_0_30px_rgba(255,230,0,0.3)] group"
+                                                >
+                                                    <Sparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                                                    Exporter Top 100 Social
+                                                </button>
+                                            </div>
+
                                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
                                                 <div>
                                                     <div className="flex items-center gap-2 mb-1">
@@ -2867,16 +2884,6 @@ export function AdminDashboard() {
                                                             </button>
                                                         ))}
                                                     </div>
-                                                    <button
-                                                        onClick={() => {
-                                                            const data = allRanked.map((x: any) => ({ name: x.name, votes: x.tv }));
-                                                            setTop100DataToVisual(data);
-                                                        }}
-                                                        className="px-6 py-3 bg-neon-yellow/10 border border-neon-yellow/30 rounded-2xl text-[10px] font-black uppercase text-neon-yellow hover:bg-neon-yellow hover:text-black transition-all flex items-center gap-2 shadow-lg shadow-neon-yellow/10"
-                                                    >
-                                                        <Sparkles className="w-4 h-4" />
-                                                        Générer Visuel Top 100
-                                                    </button>
                                                     <button
                                                         onClick={() => setIsWikiExpanded(!isWikiExpanded)}
                                                         className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center gap-2"
@@ -2902,6 +2909,15 @@ export function AdminDashboard() {
                                                                 <span className="text-xs font-display font-black text-neon-red italic tracking-tighter">{item.tv} <span className="text-[8px] font-bold text-gray-600 uppercase italic">votes</span></span>
                                                             </div>
                                                         </div>
+                                                        <button 
+                                                            onClick={() => {
+                                                                setTop100DataToVisual([{ name: item.name, votes: item.tv, rank: idx + 1, image: item.image }]);
+                                                            }}
+                                                            className="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-gray-400 hover:text-white transition-all group/btn"
+                                                            title="Générer Post Individuel"
+                                                        >
+                                                            <ImageIcon className="w-4 h-4 group-hover/btn:scale-110 transition-transform" />
+                                                        </button>
                                                     </div>
                                                 ))}
                                             </div>
