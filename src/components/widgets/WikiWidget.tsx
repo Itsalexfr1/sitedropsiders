@@ -6,11 +6,10 @@ import { WikiVenues } from '../community/WikiVenues';
 import { twMerge } from 'tailwind-merge';
 
 interface WikiWidgetProps {
-    accentColor?: string;
     resolvedColor?: string;
 }
 
-export function WikiWidget({ accentColor = 'cyan', resolvedColor = 'var(--color-neon-cyan)' }: WikiWidgetProps) {
+export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)' }: WikiWidgetProps) {
     const [activeTab, setActiveTab] = useState<'DJS' | 'CLUBS' | 'FESTIVALS'>('DJS');
 
     const tabs = [

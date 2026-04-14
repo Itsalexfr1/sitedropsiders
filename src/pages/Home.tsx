@@ -12,7 +12,7 @@ import { MobileHome } from '../components/mobile/MobileHome';
 import layoutData from '../data/home_layout.json';
 import { SEO } from '../components/utils/SEO';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
-import { LayoutDashboard, FileText, Calendar, Database } from 'lucide-react';
+import { LayoutDashboard, FileText, Calendar } from 'lucide-react';
 import { WikiWidget } from '../components/widgets/WikiWidget';
 
 export function Home() {
