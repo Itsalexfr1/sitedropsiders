@@ -127,9 +127,9 @@ export function AdminDashboard() {
         const fetchWikiData = async () => {
             try {
                 const [djs, clubs, fests] = await Promise.all([
-                    fetch('/api/wiki/list?type=DJS'),
-                    fetch('/api/wiki/list?type=CLUBS'),
-                    fetch('/api/wiki/list?type=FESTIVALS')
+                    apiFetch('/api/wiki/list?type=DJS', { headers: getAuthHeaders() }),
+                    apiFetch('/api/wiki/list?type=CLUBS', { headers: getAuthHeaders() }),
+                    apiFetch('/api/wiki/list?type=FESTIVALS', { headers: getAuthHeaders() })
                 ]);
                 if (djs.ok) setWikiDjs(await djs.json());
                 if (clubs.ok) setWikiClubs(await clubs.json());
@@ -2805,7 +2805,7 @@ export function AdminDashboard() {
                                     const djVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_djs') || '[]'); } catch { return []; } })());
                                     const clubVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_clubs') || '[]'); } catch { return []; } })());
                                     const festVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_festivals') || '[]'); } catch { return []; } })());
-                                    const djR = [...(wikiDjs as any[])].map(d => ({ ...d, tv: djVotes.has(d.id) ? 1 : 0 })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
+                                    const djR = [...(wikiDjs as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (djVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
                                     const clubR = [...(wikiClubs as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (clubVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
                                     const festR = [...(wikiFestivals as any[])].map(d => ({ ...d, tv: (d.votes || 0) + (festVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
                                     const allRanked = wikiTab === 'djs' ? djR : wikiTab === 'clubs' ? clubR : festR;
