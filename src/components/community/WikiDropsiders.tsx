@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, X, Youtube, Heart } from 'lucide-react';
+import { useUser } from '../../context/UserContext';
+import { UserAuthModal } from '../auth/UserAuthModal';
 import { apiFetch, getAuthHeaders } from '../../utils/auth';
 import { useLanguage } from '../../context/LanguageContext';
 import { ImageUploadModal } from '../ImageUploadModal';
@@ -43,9 +45,11 @@ export function WikiDropsiders({
     viewMode?: 'grid' | 'list';
 }) {
     const { t, language } = useLanguage();
+    const { isLoggedIn, user } = useUser();
     const [search, setSearch] = useState('');
     const [djData, setDjData] = useState<DjEntry[]>([]);
     const [isLoading, setIsLoading] = useState(true);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchLive = async () => {
@@ -112,11 +116,33 @@ export function WikiDropsiders({
     });
     const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-    const toggleVote = (id: string, e?: React.MouseEvent) => {
+    const toggleVote = async (id: string, e?: React.MouseEvent) => {
         e?.stopPropagation();
+        
+        if (!isLoggedIn) {
+            setIsAuthModalOpen(true);
+            return;
+        }
+
         const n = new Set(votes);
-        n.has(id) ? n.delete(id) : n.add(id);
-        setVotes(n); saveVotes(n);
+        if (n.has(id)) {
+            n.delete(id);
+        } else {
+            n.add(id);
+        }
+        setVotes(n);
+        saveVotes(n);
+
+        // API Call to record global vote
+        try {
+            await fetch('/api/wiki/vote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ artistId: id, userId: user?.id, type: 'DJS' })
+            });
+        } catch (error) {
+            console.error('Failed to sync vote with server', error);
+        }
     };
 
     const handleSelectDj = (dj: DjEntry) => {
@@ -483,6 +509,8 @@ export function WikiDropsiders({
                 accentColor="neon-red"
                 aspect={4/5}
             />
+            {/* Auth Modal for voting */}
+            <UserAuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
         </div>
     );
 }

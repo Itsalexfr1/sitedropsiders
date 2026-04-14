@@ -1,6 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen, Upload, Image as ImageIcon, Pencil, Star } from 'lucide-react';
+import { useUser } from '../../context/UserContext';
+import { UserAuthModal } from '../auth/UserAuthModal';
 import { ImageUploadModal } from '../ImageUploadModal';
 import { useLanguage } from '../../context/LanguageContext';
 import { getAuthHeaders } from '../../utils/auth';
@@ -62,10 +64,12 @@ export function WikiVenues({
     viewMode?: 'grid' | 'list';
 }) {
     const { t, language } = useLanguage();
+    const { isLoggedIn, user } = useUser();
     const [mode] = useState<Mode>(initialMode);
     const [search, setSearch] = useState('');
     const [selected, setSelected] = useState<Venue | null>(null);
     const [showAdd, setShowAdd] = useState(false);
+    const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
     const [clubVotes, setClubVotes] = useState<Set<string>>(() => loadVotes(VOTE_KEY_CLUBS));
     const [festVotes, setFestVotes] = useState<Set<string>>(() => loadVotes(VOTE_KEY_FESTIVALS));
@@ -144,10 +148,32 @@ export function WikiVenues({
     });
     const allLetters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
-    const toggleVote = (id: string) => {
+    const toggleVote = async (id: string, e?: React.MouseEvent) => {
+        e?.stopPropagation();
+        
+        if (!isLoggedIn) {
+            setIsAuthModalOpen(true);
+            return;
+        }
+
         const n = new Set(votes);
-        n.has(id) ? n.delete(id) : n.add(id);
-        setVotes(n); saveVotes(voteKey, n);
+        if (n.has(id)) {
+            n.delete(id);
+        } else {
+            n.add(id);
+        }
+        setVotes(n);
+        saveVotes(voteKey, n);
+
+        try {
+            await fetch('/api/wiki/vote', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ artistId: id, userId: user?.id, type: mode === 'clubs' ? 'CLUBS' : 'FESTIVALS' })
+            });
+        } catch (error) {
+            console.error('Failed to sync vote with server', error);
+        }
     };
 
     const getVoteCount = (v: Venue) => (v.votes || 0) + (votes.has(v.id) ? 1 : 0);
@@ -548,6 +574,8 @@ export function WikiVenues({
                 accentColor="neon-red"
                 aspect={mode === 'clubs' ? 4/5 : 16/9}
             />
+            {/* Auth Modal for voting */}
+            <UserAuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
         </div>
     );
 }
