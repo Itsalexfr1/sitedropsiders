@@ -6,6 +6,7 @@ import { useLanguage } from '../../context/LanguageContext';
 import { translateText } from '../../utils/translate';
 import { standardizeContent } from '../../utils/standardizer';
 import { useMemo, useState, useEffect } from 'react';
+import { WikiWidget } from '../widgets/WikiWidget';
 
 export function MobileHome() {
     const { t, language } = useLanguage();
@@ -266,6 +267,13 @@ export function MobileHome() {
                         </Link>
                     ))}
                     <div className="min-w-[20px] shrink-0" />
+                </div>
+            </section>
+
+            {/* WIKI WIDGET - PROMOTE TO HOMEPAGE */}
+            <section className="pt-8 border-t border-white/5">
+                <div className="mobile-safe-container mb-5">
+                    <WikiWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" />
                 </div>
             </section>
 

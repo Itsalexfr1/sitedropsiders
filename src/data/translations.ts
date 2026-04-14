@@ -61,7 +61,7 @@ export const translations: Record<TranslationKey, { fr: string, en: string }> = 
     'article_detail.next': { fr: 'Suivant', en: 'Next' },
     'nav.news': { fr: 'News', en: 'News' },
     'nav.recaps': { fr: 'R\u00e9caps', en: 'Recaps' },
-    'nav.communaute': { fr: 'Communaut\u00e9', en: 'Community' },
+    'nav.communaute': { fr: 'COMMUNAUT\u00c9', en: 'COMMUNITY' },
     'nav.voyage': { fr: 'Voyage', en: 'Travel' },
     'nav.vols': { fr: 'Vols', en: 'Flights' },
     'nav.bus': { fr: 'Bus', en: 'Bus' },

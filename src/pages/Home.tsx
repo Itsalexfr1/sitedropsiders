@@ -12,7 +12,8 @@ import { MobileHome } from '../components/mobile/MobileHome';
 import layoutData from '../data/home_layout.json';
 import { SEO } from '../components/utils/SEO';
 import { AdminEditBar } from '../components/admin/AdminEditBar';
-import { LayoutDashboard, FileText, Calendar } from 'lucide-react';
+import { LayoutDashboard, FileText, Calendar, Database } from 'lucide-react';
+import { WikiWidget } from '../components/widgets/WikiWidget';
 
 export function Home() {
     const [layout, setLayout] = useState(layoutData);
@@ -140,6 +141,12 @@ export function Home() {
                         <div className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24">
                             <SpotifyWidget accentColor={accentColor} resolvedColor={color} />
                         </div>
+                    </section>
+                );
+            case 'wiki_widget':
+                return (
+                    <section key="wiki_widget" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12">
+                        <WikiWidget accentColor={accentColor} resolvedColor={color} />
                     </section>
                 );
             default:

@@ -24,6 +24,11 @@
     "featuredInterviews": []
   },
   {
+    "id": "wiki_widget",
+    "enabled": true,
+    "accentColor": "cyan"
+  },
+  {
     "id": "social_grid",
     "enabled": true,
     "accentColor": "pink",

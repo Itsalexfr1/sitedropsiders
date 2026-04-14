@@ -897,13 +897,9 @@ export function Community() {
                     >
                         <div>
                             <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
-                                <div className="p-2 bg-neon-red/10 rounded-xl border border-neon-red/20 shadow-[0_0_15px_rgba(255,0,51,0.1)]">
-                                    <Users className="w-5 h-5 text-neon-red" />
-                                </div>
-                                <span className="text-neon-red font-black tracking-[0.3em] text-[10px] uppercase">Espace Communauté</span>
                             </div>
                             <h1 className="text-4xl md:text-6xl font-display font-black text-white mb-6 uppercase italic tracking-tighter leading-none">
-                                DROPSIDERS <span className="text-neon-red drop-shadow-[0_0_20px_rgba(255,0,51,0.5)]">LAB</span>
+                                LA <span className="text-neon-red drop-shadow-[0_0_20px_rgba(255,0,51,0.5)]">COMMUNAUTÉ</span>
                             </h1>
                             <p className="text-gray-400 max-w-2xl text-base md:text-lg font-medium leading-relaxed mx-auto sm:mx-0">
                                 Connectez-vous avec la scène, partagez vos récaps, et créez vos propres expériences. Le futur des festivals s'écrit ici.
@@ -937,7 +933,7 @@ export function Community() {
                                 { id: 'GUIDE',         icon: Info,         label: 'Guide\nPratique',   multiline: true  },
                                 { id: 'TRACK_ID',      icon: Music,        label: 'TrackID',           multiline: false },
                                 { id: 'PLAYLISTS',     icon: Share2,       label: 'Mixs',              multiline: false },
-                                { id: 'LAB',           icon: Wand2,        label: 'Lab',               multiline: false },
+                                { id: 'LAB',           icon: Wand2,        label: 'Communaut\u00e9',       multiline: false },
                             ] as any[]).filter(tab => !tab.hidden).map((tab) => (
                                 <button
                                     key={tab.id}
@@ -1908,7 +1904,7 @@ export function Community() {
                                                                 posterStyle === 'ULTRA' ? "border-black/5" : "border-white/10"
                                                             )}>
                                                                 <div className="flex justify-between items-center px-2">
-                                                                    <div className={twMerge("text-[8px] font-black uppercase tracking-widest", posterStyle === 'ULTRA' ? "text-black/20" : "text-white/20")}>Dropsiders Lab</div>
+                                                                    <div className={twMerge("text-[8px] font-black uppercase tracking-widest", posterStyle === 'ULTRA' ? "text-black/20" : "text-white/20")}>Communaut&eacute;</div>
                                                                     <div className={twMerge("text-[8px] font-black uppercase tracking-widest", posterStyle === 'ULTRA' ? "text-black/20" : "text-white/20")}>#FESTIVALPRODUCER</div>
                                                                 </div>
                                                             </div>
