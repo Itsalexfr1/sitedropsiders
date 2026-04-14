@@ -934,6 +934,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
                 const item = top100Entries[0] || { name: 'NOM ARTISTE', rank: 1 };
                 const centerX = canvas.width / 2;
                 const centerY = canvas.height / 2;
+                const isStory = effectiveTab === 'REEL';
 
                 // Full image background if exists
                 if (bgImage || item.image) {
@@ -949,19 +950,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
                         const s = Math.max(canvas.width / photo.width, canvas.height / photo.height);
                         ctx.drawImage(photo, (canvas.width - photo.width * s) / 2, (canvas.height - photo.height * s) / 2, photo.width * s, photo.height * s);
                         // Dark overlay
-                        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+                        ctx.fillStyle = 'rgba(0,0,0,0.55)';
                         ctx.fillRect(0, 0, canvas.width, canvas.height);
                     }
                 }
 
                 // Rank Badge (BIG)
                 ctx.save();
-                ctx.translate(centerX, centerY - 200);
+                const rankY = isStory ? centerY - 300 : centerY - 220;
+                ctx.translate(centerX, rankY);
                 // Glow
                 ctx.shadowColor = activeData.color;
-                ctx.shadowBlur = 50;
+                ctx.shadowBlur = 60;
                 ctx.fillStyle = activeData.color;
-                ctx.font = '900 italic 350px "Montserrat", sans-serif';
+                ctx.font = '900 italic 380px "Montserrat", sans-serif';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(`#${item.rank || 1}`, 0, 0);
@@ -969,26 +971,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
 
                 // Artist Name
                 ctx.save();
-                ctx.translate(centerX, centerY + 150);
+                const nameY = isStory ? centerY + 250 : centerY + 180;
+                ctx.translate(centerX, nameY);
                 ctx.textAlign = 'center';
                 ctx.fillStyle = '#ffffff';
-                ctx.font = '900 italic 110px "Orbitron", sans-serif';
+                ctx.font = '900 italic 120px "Orbitron", sans-serif';
                 ctx.shadowColor = 'rgba(0,0,0,1)';
-                ctx.shadowBlur = 20;
-                ctx.fillText(item.name.toUpperCase(), 0, 0);
+                ctx.shadowBlur = 30;
+                
+                // Truncate name if too long for the screen
+                let artistName = item.name.toUpperCase();
+                if (ctx.measureText(artistName).width > 1000) {
+                   ctx.font = '900 italic 90px "Orbitron", sans-serif';
+                }
+                ctx.fillText(artistName, 0, 0);
                 
                 ctx.font = '900 40px "Montserrat", sans-serif';
                 ctx.fillStyle = activeData.color;
                 ctx.letterSpacing = '15px';
-                ctx.fillText('DROPSIDERS TOP 100', 0, 100);
+                ctx.fillText('DROPSIDERS TOP 100', 0, 110);
                 ctx.restore();
 
                 // Footer
                 if (logoRef.current) {
                     const l = logoRef.current;
-                    const lw = 250;
+                    const lw = 280;
                     const lh = (l.height * lw) / l.width;
-                    ctx.drawImage(l, centerX - lw / 2, canvas.height - 150, lw, lh);
+                    ctx.drawImage(l, centerX - lw / 2, canvas.height - (isStory ? 200 : 120), lw, lh);
                 }
             } else if (theme === 'HIGHLIGHTS') {
                 // Specialized high-end rendering for Highlights (similar to Tracklist but with Blue theme)
