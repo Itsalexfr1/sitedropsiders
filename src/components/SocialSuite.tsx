@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useDragControls } from 'framer-motion';
 import { 
     X, 
@@ -20,8 +20,7 @@ import {
     Layers, 
     Sparkles, 
     Wand2, 
-    RotateCcw,
-    Loader2
+    RotateCcw
 } from 'lucide-react';
 import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
