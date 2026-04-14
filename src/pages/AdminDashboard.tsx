@@ -85,6 +85,7 @@ export function AdminDashboard() {
     const [isThemesModalOpen, setIsThemesModalOpen] = useState(false);
     const [isModerationModalOpen, setIsModerationModalOpen] = useState(false);
     const [moderationTab, setModerationTab] = useState<'photos' | 'wiki'>('photos');
+    const [previewMode, setPreviewMode] = useState<'POST' | 'STORY'>('POST');
     const [isPubliModalOpen, setIsPubliModalOpen] = useState(false);
     const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
     const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
@@ -3147,75 +3148,72 @@ export function AdminDashboard() {
                                             </div>
 
                                             {/* ARTIST PREVIEW MODAL */}
-                                            {artistPreview && (() => {
-                                                const [previewMode, setPreviewMode] = useState<'POST' | 'STORY'>('POST');
-                                                return (
-                                                    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md" onClick={() => setArtistPreview(null)}>
-                                                        <div className="bg-[#080b10] border border-white/10 rounded-[2.5rem] p-0 max-w-4xl w-full mx-4 relative overflow-hidden flex flex-col md:flex-row h-[90vh] md:h-auto" onClick={e => e.stopPropagation()}>
-                                                            <button onClick={() => setArtistPreview(null)} className="absolute top-6 right-6 z-50 p-2 bg-black/50 rounded-full text-gray-400 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
-                                                            
-                                                            {/* Sidebar / Info */}
-                                                            <div className="w-full md:w-80 bg-white/[0.02] border-r border-white/5 p-8 flex flex-col">
-                                                                <div className="flex items-center gap-3 mb-8">
-                                                                    <div className={`w-3 h-3 rounded-full ${artistPreview.idx < 1 ? 'bg-[#ffd700]' : 'bg-[#ff1272]'}`} />
-                                                                    <h3 className="text-white font-black uppercase tracking-widest text-sm">{artistPreview.item.name}</h3>
-                                                                </div>
-
-                                                                <div className="space-y-1 mb-8">
-                                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Classement actuel</p>
-                                                                    <p className="text-2xl font-display font-black text-white italic">#{artistPreview.idx + 1}</p>
-                                                                </div>
-
-                                                                <div className="flex flex-col gap-2 mb-auto">
-                                                                    <button 
-                                                                        onClick={() => setPreviewMode('POST')}
-                                                                        className={`flex items-center gap-3 p-4 rounded-2xl transition-all border ${previewMode === 'POST' ? 'bg-neon-red/10 border-neon-red/40 text-white' : 'border-white/5 text-gray-500 hover:bg-white/5'}`}
-                                                                    >
-                                                                        <ImageIcon className="w-4 h-4" />
-                                                                        <div className="text-left"><p className="text-[10px] font-black uppercase tracking-widest">Format POST</p><p className="text-[9px] opacity-50">1080 × 1350 (4:5)</p></div>
-                                                                    </button>
-                                                                    <button 
-                                                                        onClick={() => setPreviewMode('STORY')}
-                                                                        className={`flex items-center gap-3 p-4 rounded-2xl transition-all border ${previewMode === 'STORY' ? 'bg-neon-red/10 border-neon-red/40 text-white' : 'border-white/5 text-gray-500 hover:bg-white/5'}`}
-                                                                    >
-                                                                        <Smartphone className="w-4 h-4" />
-                                                                        <div className="text-left"><p className="text-[10px] font-black uppercase tracking-widest">Format STORY</p><p className="text-[9px] opacity-50">1080 × 1920 (9:16)</p></div>
-                                                                    </button>
-                                                                </div>
-
-                                                                <div className="mt-8">
-                                                                    <a
-                                                                        href={previewMode === 'POST' ? artistPreview.postUrl : artistPreview.storyUrl}
-                                                                        download={`dropsiders-${artistPreview.item.name.toLowerCase().replace(/\s+/g, '-')}-${previewMode.toLowerCase()}.png`}
-                                                                        className="w-full flex items-center justify-center gap-3 py-5 bg-gradient-to-r from-neon-red to-[#ff3b8d] text-white rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-neon-red/20"
-                                                                    >
-                                                                        <Download className="w-4 h-4" /> Télécharger PNG
-                                                                    </a>
-                                                                </div>
+                                            {artistPreview && (
+                                                <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/90 backdrop-blur-md" onClick={() => setArtistPreview(null)}>
+                                                    <div className="bg-[#080b10] border border-white/10 rounded-[2.5rem] p-0 max-w-4xl w-full mx-4 relative overflow-hidden flex flex-col md:flex-row h-[90vh] md:h-auto" onClick={e => e.stopPropagation()}>
+                                                        <button onClick={() => setArtistPreview(null)} className="absolute top-6 right-6 z-50 p-2 bg-black/50 rounded-full text-gray-400 hover:text-white transition-colors"><X className="w-5 h-5" /></button>
+                                                        
+                                                        {/* Sidebar / Info */}
+                                                        <div className="w-full md:w-80 bg-white/[0.02] border-r border-white/5 p-8 flex flex-col">
+                                                            <div className="flex items-center gap-3 mb-8">
+                                                                <div className={`w-3 h-3 rounded-full ${artistPreview.idx < 1 ? 'bg-[#ffd700]' : 'bg-[#ff1272]'}`} />
+                                                                <h3 className="text-white font-black uppercase tracking-widest text-sm">{artistPreview.item.name}</h3>
                                                             </div>
 
-                                                            {/* Preview Stage */}
-                                                            <div className="flex-1 bg-black/40 p-8 flex items-center justify-center overflow-hidden">
-                                                                {artistPreview.loading ? (
-                                                                    <div className="flex flex-col items-center gap-4">
-                                                                        <Loader2 className="w-12 h-12 text-neon-red animate-spin" />
-                                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Génération des visuels...</p>
-                                                                    </div>
-                                                                ) : (
-                                                                    <motion.div 
-                                                                        key={previewMode}
-                                                                        initial={{ opacity: 0, scale: 0.95 }}
-                                                                        animate={{ opacity: 1, scale: 1 }}
-                                                                        className={`relative shadow-2xl rounded-lg overflow-hidden border border-white/10 ${previewMode === 'POST' ? 'aspect-[4/5] h-full max-h-[600px]' : 'aspect-[9/16] h-full max-h-[650px]'}`}
-                                                                    >
-                                                                        <img src={previewMode === 'POST' ? artistPreview.postUrl : artistPreview.storyUrl} alt="Preview" className="w-full h-full object-contain bg-black" />
-                                                                    </motion.div>
-                                                                )}
+                                                            <div className="space-y-1 mb-8">
+                                                                <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Classement actuel</p>
+                                                                <p className="text-2xl font-display font-black text-white italic">#{artistPreview.idx + 1}</p>
+                                                            </div>
+
+                                                            <div className="flex flex-col gap-2 mb-auto">
+                                                                <button 
+                                                                    onClick={() => setPreviewMode('POST')}
+                                                                    className={`flex items-center gap-3 p-4 rounded-2xl transition-all border ${previewMode === 'POST' ? 'bg-neon-red/10 border-neon-red/40 text-white' : 'border-white/5 text-gray-500 hover:bg-white/5'}`}
+                                                                >
+                                                                    <ImageIcon className="w-4 h-4" />
+                                                                    <div className="text-left"><p className="text-[10px] font-black uppercase tracking-widest">Format POST</p><p className="text-[9px] opacity-50">1080 × 1350 (4:5)</p></div>
+                                                                </button>
+                                                                <button 
+                                                                    onClick={() => setPreviewMode('STORY')}
+                                                                    className={`flex items-center gap-3 p-4 rounded-2xl transition-all border ${previewMode === 'STORY' ? 'bg-neon-red/10 border-neon-red/40 text-white' : 'border-white/5 text-gray-500 hover:bg-white/5'}`}
+                                                                >
+                                                                    <Smartphone className="w-4 h-4" />
+                                                                    <div className="text-left"><p className="text-[10px] font-black uppercase tracking-widest">Format STORY</p><p className="text-[9px] opacity-50">1080 × 1920 (9:16)</p></div>
+                                                                </button>
+                                                            </div>
+
+                                                            <div className="mt-8">
+                                                                <a
+                                                                    href={previewMode === 'POST' ? artistPreview.postUrl : artistPreview.storyUrl}
+                                                                    download={`dropsiders-${artistPreview.item.name.toLowerCase().replace(/\s+/g, '-')}-${previewMode.toLowerCase()}.png`}
+                                                                    className="w-full flex items-center justify-center gap-3 py-5 bg-gradient-to-r from-neon-red to-[#ff3b8d] text-white rounded-[1.5rem] text-[11px] font-black uppercase tracking-widest hover:scale-[1.02] active:scale-95 transition-all shadow-xl shadow-neon-red/20"
+                                                                >
+                                                                    <Download className="w-4 h-4" /> Télécharger PNG
+                                                                </a>
                                                             </div>
                                                         </div>
+
+                                                        {/* Preview Stage */}
+                                                        <div className="flex-1 bg-black/40 p-8 flex items-center justify-center overflow-hidden">
+                                                            {artistPreview.loading ? (
+                                                                <div className="flex flex-col items-center gap-4">
+                                                                    <Loader2 className="w-12 h-12 text-neon-red animate-spin" />
+                                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Génération des visuels...</p>
+                                                                </div>
+                                                            ) : (
+                                                                <motion.div 
+                                                                    key={previewMode}
+                                                                    initial={{ opacity: 0, scale: 0.95 }}
+                                                                    animate={{ opacity: 1, scale: 1 }}
+                                                                    className={`relative shadow-2xl rounded-lg overflow-hidden border border-white/10 ${previewMode === 'POST' ? 'aspect-[4/5] h-full max-h-[600px]' : 'aspect-[9/16] h-full max-h-[650px]'}`}
+                                                                >
+                                                                    <img src={previewMode === 'POST' ? artistPreview.postUrl : artistPreview.storyUrl} alt="Preview" className="w-full h-full object-contain bg-black" />
+                                                                </motion.div>
+                                                            )}
+                                                        </div>
                                                     </div>
-                                                );
-                                            })()}
+                                                </div>
+                                            )}
                                         </div>
 
                                         {/* WIKI WIDGET (EXPLORER) */}
