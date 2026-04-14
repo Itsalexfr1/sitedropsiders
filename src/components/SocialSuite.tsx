@@ -105,6 +105,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
     const [conversionProgress, setConversionProgress] = useState(0);
     const [isTransparent, setIsTransparent] = useState(true);
     const [showBottomLogo, setShowBottomLogo] = useState(false);
+    const [artistLogo, setArtistLogo] = useState<string>(''); // NEW
+    const artistLogoRef = useRef<HTMLImageElement | null>(null); // NEW
     const recordingStartTimeRef = useRef<number>(0);
     const ffmpegRef = useRef<any>(null);
 
@@ -219,6 +221,20 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
         setThemeColor(null);
     }, [activeTab]);
 
+    const handleArtistLogoChange = (e: any) => {
+        const file = e.target?.files?.[0];
+        if (!file) return;
+        const url = URL.createObjectURL(file);
+        const imgObj = new Image();
+        imgObj.crossOrigin = "anonymous";
+        imgObj.src = url;
+        imgObj.onload = () => {
+            artistLogoRef.current = imgObj;
+            setArtistLogo(url);
+            generateImage();
+        };
+    };
+
     const activeColor = themeColor || baseThemeData[theme];
 
     // Rotation Animation
@@ -302,9 +318,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
 
                 const grad = ctx.createLinearGradient(0, gradStart, 0, canvas.height);
                 grad.addColorStop(0, 'rgba(0,0,0,0)');
-                grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
-                grad.addColorStop(0.8, `rgba(${activeData.grad}, 0.7)`);
-                grad.addColorStop(1, `rgba(${activeData.grad}, 1)`);
+                if (theme === 'INTERVIEW') {
+                    grad.addColorStop(0.3, 'rgba(255,255,255,0.2)');
+                    grad.addColorStop(0.8, 'rgba(255,255,255,0.8)');
+                    grad.addColorStop(1, '#ffffff');
+                } else {
+                    grad.addColorStop(0.3, 'rgba(0,0,0,0.2)');
+                    grad.addColorStop(0.8, `rgba(${activeData.grad}, 0.7)`);
+                    grad.addColorStop(1, `rgba(${activeData.grad}, 1)`);
+                }
                 ctx.fillStyle = grad;
                 ctx.fillRect(0, gradStart, canvas.width, canvas.height - gradStart);
             }
@@ -902,32 +924,52 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
                 ctx.restore();
             } else if (theme === 'INTERVIEW') {
                 const centerX = canvas.width / 2;
-                const centerY = (canvas.height / 2);
 
-                // Elegant dark overlay for contrast
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-                // Label "INTERVIEW" (Style from InterviewVisualGenerator)
-                const labelX = effectiveTab === 'PUBLICATION' ? 80 : 120;
-                const labelY = effectiveTab === 'PUBLICATION' ? 140 : 280;
+                const labelY = effectiveTab === 'PUBLICATION' ? 880 : safeBottom - 450;
                 
+                // Capsule INTERVIEW (Like NEWS)
+                const labelText = "INTERVIEW";
+                const labelW = ctx.measureText(labelText).width + 80;
+
                 ctx.save();
-                ctx.textAlign = 'left';
-                
-                // Red bar
-                ctx.fillStyle = '#ff0033';
-                ctx.fillRect(labelX, labelY - 30, 15, 45);
+                ctx.globalAlpha = 0.9;
+                ctx.fillStyle = '#ff0033'; // Red capsule 
+                const rectX = (canvas.width - labelW) / 2;
+                const rectY = labelY - 52;
+                const rectW = labelW;
+                const rectH = 80;
+                const radius = 20;
 
-                // Text
-                ctx.fillStyle = '#ffffff';
-                ctx.font = '900 italic 35px "Montserrat", sans-serif';
-                ctx.letterSpacing = "8px";
-                ctx.fillText('INTERVIEW', labelX + 35, labelY + 6);
+                ctx.beginPath();
+                ctx.roundRect(rectX, rectY, rectW, rectH, radius);
+                ctx.fill();
+
+                ctx.globalAlpha = 1;
+                ctx.fillStyle = '#FFF';
+                const labelFontSize = 42;
+                ctx.font = `900 italic ${labelFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                ctx.textBaseline = 'middle';
+                ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 4);
                 ctx.restore();
 
-                // Main Content
-                if (customText) {
+                // Text Custom
+                const contentY = labelY + 90;
+
+                if (artistLogoRef.current) {
+                    ctx.save();
+                    const logo = artistLogoRef.current;
+                    const maxW = 800;
+                    const maxH = 200;
+                    let lw = logo.width;
+                    let lh = logo.height;
+                    const ratio = Math.min(maxW / lw, maxH / lh);
+                    if (ratio < 1) { lw *= ratio; lh *= ratio; }
+                    
+                    ctx.shadowColor = 'rgba(255,255,255,0.3)';
+                    ctx.shadowBlur = 10;
+                    ctx.drawImage(logo, centerX - (lw / 2), contentY, lw, lh);
+                    ctx.restore();
+                } else if (customText) {
                     const lines = customText.split('\n');
                     const name = lines[0]?.toUpperCase() || '';
                     const desc = lines[1]?.toUpperCase() || '';
@@ -935,55 +977,28 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
                     ctx.save();
                     ctx.textAlign = 'center';
                     
-                    // Name (Big & Bold - White)
-                    ctx.fillStyle = '#fff';
-                    ctx.font = '900 italic 110px "Montserrat", sans-serif';
-                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
-                    ctx.shadowBlur = 40;
-                    ctx.fillText(name, centerX, centerY + 30);
+                    // Name (Black because of white gradient)
+                    ctx.fillStyle = '#000';
+                    ctx.font = '900 italic 85px "Montserrat", sans-serif';
+                    ctx.shadowColor = 'rgba(255,255,255,0.8)';
+                    ctx.shadowBlur = 10;
+                    ctx.fillText(name, centerX, contentY + 20);
 
-                    // Red bar below name
-                    ctx.fillStyle = '#ff0033';
-                    ctx.fillRect(centerX - 100, centerY + 65, 200, 8);
-
-                    // Description (Sub-header)
+                    // Desc (Red)
                     if (desc) {
-                        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                        ctx.fillStyle = '#ff0033';
                         ctx.font = '700 italic 32px "Montserrat", sans-serif';
-                        ctx.letterSpacing = "6px";
-                        ctx.fillText(desc, centerX, centerY + 130);
+                        ctx.fillText(desc, centerX, contentY + 90);
                     }
                     ctx.restore();
                 }
-
-                // Decorative "Play" Icon
-                ctx.save();
-                ctx.translate(centerX, centerY - 180);
-                // Outer circle
-                ctx.beginPath();
-                ctx.arc(0, 0, 65, 0, Math.PI * 2);
-                ctx.strokeStyle = '#ff0033';
-                ctx.lineWidth = 6;
-                ctx.stroke();
-                // Inner glow
-                ctx.shadowColor = '#ff0033';
-                ctx.shadowBlur = 20;
-                // Play triangle
-                ctx.beginPath();
-                ctx.moveTo(20, 0);
-                ctx.lineTo(-15, 22);
-                ctx.lineTo(-15, -22);
-                ctx.closePath();
-                ctx.fillStyle = '#fff';
-                ctx.fill();
-                ctx.restore();
 
                 // Bottom Link
                 ctx.save();
                 ctx.font = '900 24px "Montserrat", sans-serif';
                 ctx.letterSpacing = "6px";
                 ctx.textAlign = 'center';
-                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                ctx.fillStyle = 'rgba(0,0,0,0.5)';
                 ctx.fillText('DROPSIDERS.FR', centerX, canvas.height - 100);
                 ctx.restore();
 
@@ -1784,6 +1799,33 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
         setTakeoverData(null);
     };
 
+    const interviewEditor = (
+        <div className="space-y-3">
+            <textarea 
+                value={customText} 
+                onChange={e => setCustomText(e.target.value)} 
+                placeholder={`[NOM DE L'ARTISTE]\n[SOUS TITRE / DESCRIPTION]`} 
+                className="w-full h-24 bg-white/10 border border-white/20 rounded-xl p-3 text-white font-black italic uppercase text-xs mb-2 transition-all focus:border-neon-cyan focus:bg-white/[0.15]" 
+            />
+            <div className="flex gap-2">
+                <button onClick={() => {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'image/png';
+                    input.onchange = (e: any) => handleArtistLogoChange(e);
+                    input.click();
+                }} className="flex-1 py-2 bg-white/5 border border-white/10 rounded-lg text-[10px] font-black uppercase hover:bg-white/10 transition-all flex items-center justify-center gap-2">
+                    <ImageIcon className="w-4 h-4" /> {artistLogo ? 'Modifier Logo Artiste (PNG)' : 'Ajouter Logo Artiste (PNG)'}
+                </button>
+                {artistLogo && (
+                    <button onClick={() => { setArtistLogo(''); artistLogoRef.current = null; generateImage(); }} className="px-4 py-2 bg-red-500/10 text-red-500 rounded-lg hover:bg-red-500 hover:text-white transition-all">
+                        <X className="w-4 h-4" />
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+
     const planningEditor = (
         <div className="space-y-3">
             <input 
@@ -2247,6 +2289,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
                                 <>{highlightsEditor}</>
                             ) : theme === 'TRACKLIST' ? (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Détails Tracklist</span>{tracklistEditor}</>
+                            ) : theme === 'INTERVIEW' ? (
+                                <><span className="text-[10px] font-black text-gray-500 uppercase">Infos Interview & Logo</span>{interviewEditor}</>
                             ) : (
                                 <><span className="text-[10px] font-black text-gray-500 uppercase">Contenu Texte</span>{textEditor}</>
                             )}
@@ -2547,7 +2591,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
                                 {activePanel === 'texte' && (
                                     <div className="px-6 pb-8">
                                         <p className="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-4">Contenu</p>
-                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : textEditor}
+                                        {theme === 'PLANNING' ? planningEditor : theme.startsWith('TOP 5') ? top5Editor : theme === 'HIGHLIGHTS' ? highlightsEditor : theme === 'TRACKLIST' ? tracklistEditor : theme === 'INTERVIEW' ? interviewEditor : textEditor}
                                     </div>
                                 )}
 
