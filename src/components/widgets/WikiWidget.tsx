@@ -113,20 +113,11 @@ export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)', showResul
                 <div className="absolute top-0 right-0 w-64 h-64 blur-[100px] opacity-10 pointer-events-none" style={{ backgroundColor: resolvedColor }}></div>
                 <div className="absolute bottom-0 left-0 w-64 h-64 blur-[100px] opacity-10 pointer-events-none" style={{ backgroundColor: resolvedColor }}></div>
 
-                <AnimatePresence mode="wait">
-                    <motion.div
-                        key={activeTab + viewMode}
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -10 }}
-                        transition={{ duration: 0.3 }}
-                        className="relative z-10"
-                    >
-                        {activeTab === 'DJS' && <WikiDropsiders showResults={showResults} sortMode={sortMode} viewMode={viewMode} />}
-                        {activeTab === 'CLUBS' && <WikiVenues initialMode="clubs" showResults={showResults} sortMode={sortMode} viewMode={viewMode} />}
-                        {activeTab === 'FESTIVALS' && <WikiVenues initialMode="festivals" showResults={showResults} sortMode={sortMode} viewMode={viewMode} />}
-                    </motion.div>
-                </AnimatePresence>
+                <div className="relative z-10">
+                    {activeTab === 'DJS' && <WikiDropsiders showResults={showResults} sortMode={sortMode} viewMode={viewMode} />}
+                    {activeTab === 'CLUBS' && <WikiVenues initialMode="clubs" showResults={showResults} sortMode={sortMode} viewMode={viewMode} />}
+                    {activeTab === 'FESTIVALS' && <WikiVenues initialMode="festivals" showResults={showResults} sortMode={sortMode} viewMode={viewMode} />}
+                </div>
             </div>
         </div>
     );

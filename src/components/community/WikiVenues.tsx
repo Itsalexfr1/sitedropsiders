@@ -400,6 +400,8 @@ export function WikiVenues({
                                             <img 
                                                 src={resolveImageUrl(v.image)} 
                                                 alt={v.name}
+                                                loading="lazy"
+                                                decoding="async"
                                                 onError={(e) => {
                                                     const target = e.target as HTMLImageElement;
                                                     if (!brokenImages.has(v.id)) {

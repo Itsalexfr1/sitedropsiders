@@ -275,6 +275,8 @@ export function WikiDropsiders({
                                                     <img
                                                         src={resolveImageUrl(dj.image)}
                                                         alt={dj.name}
+                                                        loading="lazy"
+                                                        decoding="async"
                                                         onError={(e) => {
                                                             setBrokenImages(prev => new Set([...prev, dj.id]));
                                                             reportBrokenImage(dj.id);
