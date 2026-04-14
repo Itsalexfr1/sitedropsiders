@@ -137,6 +137,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
     const [takeoverData, setTakeoverData] = useState<{ lineup: any[], streams: any[] } | null>(null);
 
     // Detect mobile vs desktop (lg breakpoint = 1024px) — JS-based to avoid canvasRef conflict
+    const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
     const [top100Entries, setTop100Entries] = useState<{name: string, votes: number}[]>(top100Data || []);
 
     useEffect(() => {
@@ -144,6 +145,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
             setTop100Entries(top100Data);
         }
     }, [top100Data]);
+
+    useEffect(() => {
         const onResize = () => setIsMobile(window.innerWidth < 1024);
         window.addEventListener('resize', onResize);
         return () => window.removeEventListener('resize', onResize);
@@ -851,6 +854,77 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
                     }
                     
                     ctx.restore();
+                }
+            } else if (theme === 'TOP 100') {
+                const centerX = canvas.width / 2;
+                const topY = 250;
+                
+                // Title
+                ctx.save();
+                ctx.textAlign = 'center';
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 italic 100px "Orbitron", sans-serif';
+                ctx.letterSpacing = "10px";
+                ctx.shadowColor = `rgb(${activeData.grad})`;
+                ctx.shadowBlur = 30;
+                ctx.fillText('DROPSIDERS', centerX, topY);
+                ctx.font = '900 italic 80px "Montserrat", sans-serif';
+                ctx.fillStyle = activeData.color;
+                ctx.fillText('TOP 100', centerX, topY + 100);
+                
+                // Category Label (DJ/CLUB/FESTIVAL)
+                if (customText) {
+                    ctx.font = '900 30px "Montserrat", sans-serif';
+                    ctx.fillStyle = 'rgba(255,255,255,0.5)';
+                    ctx.fillText(customText.toUpperCase(), centerX, topY + 160);
+                }
+                ctx.restore();
+
+                // Multi-column list
+                const cols = 4;
+                const rows = 25;
+                const colWidth = 240;
+                const rowHeight = 34;
+                const startX = centerX - (colWidth * cols) / 2;
+                const listTop = topY + 220;
+
+                ctx.save();
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                
+                top100Entries.slice(0, 100).forEach((item, i) => {
+                    const colIdx = Math.floor(i / rows);
+                    const rowIdx = i % rows;
+                    const x = startX + colIdx * colWidth;
+                    const y = listTop + rowIdx * rowHeight;
+
+                    // Rank
+                    ctx.fillStyle = activeData.color;
+                    ctx.font = '900 16px "Montserrat", sans-serif';
+                    ctx.fillText(`#${i + 1}`, x, y);
+
+                    // Name
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = '700 14px "Montserrat", sans-serif';
+                    const nameX = x + 40;
+                    const name = item.name.toUpperCase();
+                    let truncatedName = name;
+                    if (ctx.measureText(name).width > 180) {
+                        while (ctx.measureText(truncatedName + '...').width > 180) {
+                            truncatedName = truncatedName.slice(0, -1);
+                        }
+                        truncatedName += '...';
+                    }
+                    ctx.fillText(truncatedName, nameX, y);
+                });
+                ctx.restore();
+
+                // Branding at bottom
+                if (logoRef.current) {
+                    const l = logoRef.current;
+                    const lw = 200;
+                    const lh = (l.height * lw) / l.width;
+                    ctx.drawImage(l, centerX - lw / 2, canvas.height - 100, lw, lh);
                 }
             } else if (theme === 'HIGHLIGHTS') {
                 // Specialized high-end rendering for Highlights (similar to Tracklist but with Blue theme)
