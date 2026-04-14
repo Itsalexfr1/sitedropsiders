@@ -3,6 +3,34 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '../../context/LanguageContext';
 import spotifyData from '../../data/spotify.json';
 
+/**
+ * Converts any Spotify URL to a valid embed URL.
+ * Handles: direct links, intl links, tracking params, already-embed URLs.
+ */
+function toEmbedUrl(url: string): string {
+    if (!url) return '';
+    try {
+        // Already an embed URL → return as-is
+        if (url.includes('/embed/')) return url;
+
+        const parsed = new URL(url);
+        // Extract pathname, strip leading slash and intl segment if present
+        // e.g. /intl-fr/track/xxx or /track/xxx or /playlist/xxx
+        const parts = parsed.pathname.split('/').filter(Boolean);
+        // Remove intl-xx prefix if present
+        const filtered = parts.filter(p => !p.startsWith('intl-'));
+        // filtered is now like ['track', 'id'] or ['playlist', 'id'] or ['album', 'id']
+        if (filtered.length >= 2) {
+            const type = filtered[0]; // 'track' | 'playlist' | 'album'
+            const id = filtered[1].split('?')[0]; // strip any inline query
+            return `https://open.spotify.com/embed/${type}/${id}?utm_source=generator&theme=0`;
+        }
+        return url;
+    } catch {
+        return url;
+    }
+}
+
 export function SpotifyWidget({
     accentColor = 'green',
     resolvedColor,
@@ -19,10 +47,8 @@ export function SpotifyWidget({
     const color = resolvedColor || `var(--color-neon-${accentColor})`;
     const { t } = useLanguage();
     const [playlists, setPlaylists] = useState<any[]>([]);
-    // null = no active, number = playlist id that is currently playing
     const [playingWidget, setPlayingWidget] = useState<number | null>(null);
     const hoveredRef = useRef<number | null>(null);
-    // Cooldown to avoid flicker when switching tabs
     const cooldownRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     useEffect(() => {
@@ -33,14 +59,13 @@ export function SpotifyWidget({
                     const data = await response.json();
                     setPlaylists(data);
                 } else {
-                    setPlaylists(spotifyData); // Fallback
+                    setPlaylists(spotifyData);
                 }
             } catch (error: any) {
                 console.error('Error fetching playlists:', error);
-                setPlaylists(spotifyData); // Fallback
+                setPlaylists(spotifyData);
             }
         };
-
         fetchPlaylists();
     }, []);
 
@@ -57,7 +82,6 @@ export function SpotifyWidget({
         };
 
         const handleWindowBlur = () => {
-            // Demarre la vérification quand on perd le focus (clic sur un iframe)
             setTimeout(() => {
                 checkActiveIframe();
                 pollInterval = setInterval(checkActiveIframe, 400);
@@ -84,7 +108,11 @@ export function SpotifyWidget({
         };
     }, []);
 
-    const activePlaylists = playlists.filter(p => p.url);
+    // Convert all URLs to valid embed URLs before rendering
+    const activePlaylists = playlists
+        .filter(p => p.url)
+        .map(p => ({ ...p, url: toEmbedUrl(p.url) }))
+        .filter(p => p.url);
 
     if (activePlaylists.length === 0) return null;
 
@@ -126,7 +154,7 @@ export function SpotifyWidget({
                                 boxShadow: isPlaying ? `0 0 40px ${playlist.color}40, inset 0 0 20px ${playlist.color}20` : 'none'
                             }}
                         >
-                            {/* Lueur de fond spécifique à la playlist (Extérieure) */}
+                            {/* Glow exterior */}
                             <div
                                 className="absolute -inset-10 opacity-0 group-hover:opacity-30 blur-[60px] transition-all duration-700 pointer-events-none rounded-[32px]"
                                 style={{
@@ -134,8 +162,7 @@ export function SpotifyWidget({
                                     zIndex: 0
                                 }}
                             />
-
-                            {/* Lueur de fond spécifique à la playlist (Intérieure) */}
+                            {/* Glow interior */}
                             <div
                                 className="absolute inset-0 opacity-0 group-hover:opacity-20 blur-[30px] transition-all duration-700 pointer-events-none rounded-[32px]"
                                 style={{
@@ -153,7 +180,7 @@ export function SpotifyWidget({
                                     height={height}
                                     frameBorder="0"
                                     allowFullScreen
-                                    allow="autoplay; clipboard-write; encrypted-media; fullscreen"
+                                    allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
                                     loading="lazy"
                                     className={`w-full transition-all duration-500 shadow-2xl ${isPlaying
                                         ? 'grayscale-0 opacity-100'
