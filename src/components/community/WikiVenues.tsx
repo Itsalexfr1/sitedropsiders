@@ -402,9 +402,9 @@ export function WikiVenues({
                                                 alt={v.name}
                                                 onError={(e) => {
                                                     const target = e.target as HTMLImageElement;
-                                                    if (!brokenImages.has(venue.id)) {
-                                                        setBrokenImages(prev => new Set([...prev, venue.id]));
-                                                        reportBrokenImage(venue.id);
+                                                    if (!brokenImages.has(v.id)) {
+                                                        setBrokenImages(prev => new Set([...prev, v.id]));
+                                                        reportBrokenImage(v.id);
                                                     }
                                                     target.src = 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=2070&auto=format&fit=crop';
                                                 }}
@@ -413,18 +413,18 @@ export function WikiVenues({
                                             {/* Fondu premium réduit pour le format carré */}
                                             <div className="absolute bottom-0 left-0 right-0 h-1/2 bg-gradient-to-t from-black via-black/80 to-transparent pointer-events-none" />
                                             {/* Custom badge */}
-                                            {venue.custom && <div className="absolute top-2 left-2 bg-white/20 backdrop-blur text-white text-[7px] font-black px-1.5 py-0.5 rounded-full">📍</div>}
+                                            {(v as any).custom && <div className="absolute top-2 left-2 bg-white/20 backdrop-blur text-white text-[7px] font-black px-1.5 py-0.5 rounded-full">📍</div>}
                                             {/* Info on gradient */}
                                             <div className="absolute bottom-0 left-0 right-0 p-2.5">
-                                                <div className="text-[9px] font-black text-white uppercase tracking-widest leading-tight line-clamp-1">{venue.name}</div>
+                                                <div className="text-[9px] font-black text-white uppercase tracking-widest leading-tight line-clamp-1">{v.name}</div>
                                                 <div className="text-[7px] text-gray-300 font-bold uppercase mt-0.5 flex items-center gap-1">
-                                                    <span>{FLAG[venue.country] || '🌍'}</span><span>{venue.city}</span>
+                                                    <span>{FLAG[v.country] || '🌍'}</span><span>{v.city}</span>
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* Vote button */}
-                                        <button onClick={e => { e.stopPropagation(); toggleVote(venue.id); }}
+                                        <button onClick={e => { e.stopPropagation(); toggleVote(v.id); }}
                                             className={`w-full flex items-center justify-center gap-1.5 py-2 text-[8px] font-black uppercase tracking-widest transition-all border-t ${hasVoted ? 'bg-neon-red/15 border-neon-red/30 text-neon-red' : 'bg-black border-white/10 text-gray-500 hover:text-neon-red/70'}`}>
                                             <Heart className={`w-3 h-3 ${hasVoted ? 'fill-current' : ''}`} />
                                             {showResults && voteCount > 0 ? voteCount : ''} {hasVoted ? t('voted') : t('vote')}

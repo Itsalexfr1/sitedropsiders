@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, X, Youtube, Heart } from 'lucide-react';
 import { apiFetch, getAuthHeaders } from '../../utils/auth';
@@ -99,8 +99,8 @@ export function WikiDropsiders({
         });
     }, [djData, sortMode, votes]);
 
-    const filtered = (search ? sortedData.filter(dj => dj.name.toLowerCase().includes(search.toLowerCase())) : sortedData)
-        .filter(dj => !brokenImages.has(dj.id));
+    const filtered = (search ? sortedData.filter((dj: DjEntry) => dj.name.toLowerCase().includes(search.toLowerCase())) : sortedData)
+        .filter((dj: DjEntry) => !brokenImages.has(dj.id));
 
     const grouped: Record<string, DjEntry[]> = sortMode === 'votes' 
         ? (filtered.length > 0 ? { 'TOP DROPSIDERS': filtered } : {})
