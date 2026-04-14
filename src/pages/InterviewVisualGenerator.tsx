@@ -79,8 +79,8 @@ export function InterviewVisualGenerator() {
             if (isArtistPhoto) {
                 const img = new window.Image();
                 img.onload = () => {
-                    if (img.width < 1200) {
-                        setError("La photo est trop petite (min. 1200px de large) pour un rendu premium.");
+                    if (img.width < 800) {
+                        setError("La photo est trop petite (min. 800px de large) pour un rendu premium.");
                         setArtistPhoto(null);
                     } else {
                         setError(null);
