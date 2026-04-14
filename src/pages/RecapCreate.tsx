@@ -1007,7 +1007,7 @@ export function RecapCreate() {
                 id = url.split('embed/')[1].split('?')[0];
             }
             content = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">
-    <iframe src="https://www.youtube.com/embed/${id}" class="absolute inset-0 w-full h-full" allowfullscreen></iframe>
+    <iframe src="https://www.youtube-nocookie.com/embed/${id}?enablejsapi=1&origin=\${window.location.origin}" class="absolute inset-0 w-full h-full" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen referrerPolicy="no-referrer" id="yt-player-${id}"></iframe>
 </div>`;
         } else if (type === 'gallery' && urls) {
             const urlList = urls.split('\n').map(u => u.trim()).filter(u => u);
@@ -2074,7 +2074,7 @@ export function RecapCreate() {
                                                                 } else if (val.includes('youtu.be/')) {
                                                                     id = val.split('youtu.be/')[1];
                                                                 }
-                                                                const videoWidget = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">\n  <iframe src="https://www.youtube.com/embed/${id}" className="absolute inset-0 w-full h-full" allowFullScreen referrerPolicy="no-referrer"></iframe>\n</div>`;
+                                                                const videoWidget = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">\n  <iframe src="https://www.youtube-nocookie.com/embed/${id}?enablejsapi=1&origin=\${window.location.origin}" className="absolute inset-0 w-full h-full" allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen referrerPolicy="no-referrer" id="yt-player-${id}"></iframe>\n</div>`;
                                                                 updateWidget(widget.id, videoWidget);
                                                             } else if (widget.content.includes('image-premium-wrapper')) {
                                                                 const { url, ratio } = extractSingleImageUrlAndRatio(widget.content);
@@ -2299,11 +2299,12 @@ export function RecapCreate() {
                                         </h3>
                                         <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
                                             <iframe
-                                                src={`https://www.youtube.com/embed/${youtubeId}`}
+                                                src={`https://www.youtube-nocookie.com/embed/${youtubeId}?enablejsapi=1&origin=${window.location.origin}`}
                                                 className="absolute top-0 left-0 w-full h-full"
-                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allow="autoplay; encrypted-media; picture-in-picture"
                                                 allowFullScreen
                                                 referrerPolicy="no-referrer"
+                                                id={`yt-player-${youtubeId}`}
                                             />
                                         </div>
                                     </div>
@@ -2868,12 +2869,12 @@ export function RecapCreate() {
                                                 } else if (val.includes('youtube.com/embed/')) {
                                                     id = val.split('youtube.com/embed/')[1].split('?')[0];
                                                 }
-                                                return `https://www.youtube.com/embed/${id}`;
+                                                return { url: `https://www.youtube-nocookie.com/embed/${id}?enablejsapi=1&origin=\${window.location.origin}`, id };
                                             });
 
-                                            const videoItems = processedUrls.map(url => `
+                                            const videoItems = processedUrls.map(({url, id}) => `
     <div className="video-wrapper flex-1 relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 group">
-      <iframe src="${url}" className="absolute inset-0 w-full h-full" allowFullScreen></iframe>
+      <iframe src="${url}" className="absolute inset-0 w-full h-full" allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen referrerPolicy="no-referrer" id="yt-player-${id}"></iframe>
     </div>`).join('');
 
                                             const videoWidget = `<div class="video-group-premium flex flex-col md:flex-row gap-4 my-12">\n${videoItems}\n</div>`;

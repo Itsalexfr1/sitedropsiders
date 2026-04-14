@@ -1185,7 +1185,7 @@ export function NewsCreate() {
             } else if (url.match(/^[a-zA-Z0-9_-]{11}$/)) {
                 videoId = url;
             }
-            return `<div class="aspect-video h-full w-full"><iframe src="https://www.youtube.com/embed/${videoId}" class="w-full h-full" allowfullscreen allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" referrerPolicy="no-referrer"></iframe></div>`;
+            return `<div class="aspect-video h-full w-full"><iframe src="https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}" class="w-full h-full" allowfullscreen allow="autoplay; encrypted-media; picture-in-picture" referrerPolicy="no-referrer" id="yt-player-${videoId}"></iframe></div>`;
         }
 
         // 3. Beatport
@@ -2512,7 +2512,7 @@ ${generateSocialsHtml()}
                                                                         id = val.split('youtu.be/')[1];
                                                                     }
                                                                      const titleHtml = title?.trim() ? `<div class="text-gray-400 text-[10px] font-black uppercase mb-3 tracking-[0.2em]">${title.toUpperCase()}</div>` : '';
-                                                                     const videoWidget = `<div class="youtube-player-widget w-full my-12">\n  ${titleHtml}\n  <div class="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5">\n    <iframe src="https://www.youtube.com/embed/${id}" className="absolute inset-0 w-full h-full" allowFullScreen referrerPolicy="no-referrer"></iframe>\n  </div>\n</div>`;
+                                                                     const videoWidget = `<div class="youtube-player-widget w-full my-12">\n  ${titleHtml}\n  <div class="relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5">\n    <iframe src="https://www.youtube-nocookie.com/embed/${id}?enablejsapi=1&origin=${window.location.origin}" className="absolute inset-0 w-full h-full" allow="autoplay; encrypted-media; picture-in-picture" allowFullScreen referrerPolicy="no-referrer" id="yt-player-${id}"></iframe>\n  </div>\n</div>`;
                                                                     updateWidget(widget.id, videoWidget);
                                                                 } else if (widget.content.includes('image-premium-wrapper')) {
                                                                     const { url, ratio, alignment, width } = extractSingleImageUrlAndRatio(widget.content);

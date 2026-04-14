@@ -264,20 +264,28 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
         // OR if they are from a trusted source (YouTube, Spotify, Beatport)
         doc.querySelectorAll('iframe').forEach(iframe => {
             let src = iframe.src || '';
-            
-            // Anti-blocage : On remplace le domaine No-Cookie par le domaine standard
-            // car No-Cookie est souvent bloqué par les politiques CSP/Referer strictes de YouTube
-            if (src.includes('youtube-nocookie.com')) {
-                src = src.replace('youtube-nocookie.com', 'youtube.com');
-                iframe.src = src;
-            }
+            const isYouTube = src.includes('youtube.com') || src.includes('youtu.be') || src.includes('youtube-nocookie.com');
 
-            const isYouTube = src.includes('youtube.com') || src.includes('youtu.be');
+            if (isYouTube) {
+                // Force youtube-nocookie.com and add required parameters for Error 153 fix
+                let videoId = '';
+                if (src.includes('embed/')) {
+                    videoId = src.split('embed/')[1].split('?')[0];
+                } else if (src.includes('youtu.be/')) {
+                    videoId = src.split('youtu.be/')[1].split('?')[0];
+                } else if (src.includes('watch?v=')) {
+                    videoId = src.split('v=')[1].split('&')[0];
+                }
+
+                if (videoId) {
+                    iframe.src = `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}`;
+                    iframe.allow = "autoplay; encrypted-media; picture-in-picture";
+                    iframe.id = `yt-player-${videoId}`;
+                }
+            }
 
             // --- FIX CRITIQUE : ERR_BLOCKED_BY_RESPONSE ---
             // On force la politique de referer à "no-referrer" pour tous les iframes.
-            // Cela empêche le navigateur d'envoyer l'URL du site à YouTube/Beatport, 
-            // ce qui évite les blocages de sécurité (frame-ancestors) sur les morceaux restreints.
             iframe.setAttribute('referrerpolicy', 'no-referrer');
             iframe.referrerPolicy = "no-referrer";
 
@@ -830,11 +838,12 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                             </h3>
                                             <div className="relative aspect-video rounded-[2.5rem] overflow-hidden border border-white/10 shadow-[0_0_50px_rgba(255,0,51,0.15)] group">
                                                 <iframe
-                                                    src={`https://www.youtube.com/embed/${extractId(article.youtubeId)}`}
+                                                    src={`https://www.youtube-nocookie.com/embed/${extractId(article.youtubeId)}?enablejsapi=1&origin=${window.location.origin}`}
                                                     className="absolute top-0 left-0 w-full h-full"
-                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allow="autoplay; encrypted-media; picture-in-picture"
                                                     allowFullScreen
                                                     referrerPolicy="no-referrer"
+                                                    id={`yt-player-${extractId(article.youtubeId)}`}
                                                 />
                                             </div>
                                         </div>
