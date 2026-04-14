@@ -3106,29 +3106,30 @@ export function AdminDashboard() {
                                                                     ctx.fillText(rankStr, padX+12, footerY+footerH/2+6); ctx.restore();
                                                                     const sepX = padX+12+rkW+(isStory?30:20);
                                                                     ctx.fillStyle = rank === 1 ? 'rgba(255,215,0,0.3)' : rank === 2 ? 'rgba(192,192,192,0.3)' : rank === 3 ? 'rgba(205,127,50,0.3)' : 'rgba(255,18,114,0.3)'; ctx.fillRect(sepX, footerY+20, 2, footerH-40);
-                                                                    const tx = sepX+(isStory?26:18);
+
+                                                                    // Footer Text & Logo
+                                                                    const logoW = isStory ? 180 : 150;
+                                                                    const logoH = logoImg ? (logoImg.height * logoW) / logoImg.width : 0;
+                                                                    const tx = sepX + (isStory ? 26 : 18);
+                                                                    const textY = footerY + (footerH * 0.35);
+
                                                                     ctx.save(); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
                                                                     ctx.font = `900 ${isStory?42:32}px "Orbitron", sans-serif`; ctx.fillStyle = '#fff'; ctx.letterSpacing = '3px';
-                                                                    ctx.fillText(`TOP 100 ${label}`, tx, footerY+footerH/2); ctx.restore();
-
-                                                                    // Actual Logo Drawing
+                                                                    ctx.fillText(`TOP 100 ${label}`, tx, textY); 
+                                                                    
                                                                     if (logoImg) {
-                                                                        const lw = isStory ? 220 : 180;
-                                                                        const lh = (logoImg.height * lw) / logoImg.width;
-                                                                        if (isStory) {
-                                                                            // Story: Bottom Right
-                                                                            ctx.drawImage(logoImg, W - lw - padX, H - lh - 40, lw, lh);
-                                                                        } else {
-                                                                            // Post: Center Right in footer
-                                                                            ctx.drawImage(logoImg, W - lw - padX, footerY + (footerH - lh) / 2, lw, lh);
-                                                                        }
-                                                                        
-                                                                        // Add dropsiders.fr text centered below logo
-                                                                        ctx.font = `800 ${isStory?18:14}px "Montserrat", sans-serif`;
-                                                                        ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center';
-                                                                        const logoCenterX = W - lw - padX + (lw / 2);
-                                                                        ctx.fillText('DROPSIDERS.FR', logoCenterX, H - (isStory?25:20));
+                                                                        ctx.drawImage(logoImg, tx, textY + (isStory ? 45 : 35), logoW, logoH);
                                                                     }
+                                                                    ctx.restore();
+
+                                                                    // Right Side: Domain
+                                                                    ctx.save();
+                                                                    ctx.font = `800 ${isStory?22:18}px "Montserrat", sans-serif`;
+                                                                    ctx.fillStyle = '#ffffff'; ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+                                                                    ctx.letterSpacing = '2px';
+                                                                    ctx.fillText('DROPSIDERS.FR', W - padX - 12, textY);
+                                                                    ctx.restore();
+                                                                }
 
                                                                     return canvas.toDataURL('image/png');
                                                                 };
