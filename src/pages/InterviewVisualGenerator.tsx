@@ -217,7 +217,7 @@ export function InterviewVisualGenerator() {
             } else {
                 // Instagram: Bottom-center, large
                 const basePx = (w - pw) / 2;
-                const basePy = h - ph + h * 0.08;
+                const basePy = h - ph + h * 0.02;
                 const px = basePx + (photoOffsetX / 100) * h;
                 const py = basePy + (photoOffsetY / 100) * h * 0.4;
                 
@@ -414,10 +414,12 @@ export function InterviewVisualGenerator() {
             // URL bottom
             ctx.textAlign = 'center';
             ctx.textBaseline = 'alphabetic';
-            ctx.font = `900 ${Math.round(h * 0.018)}px Arial, sans-serif`;
-            ctx.fillStyle = 'rgba(255,255,255,0.35)';
-            ctx.fillText('dropsiders.fr', cx, h - h * 0.03);
+            ctx.font = `900 ${Math.round(h * 0.022)}px Arial, sans-serif`;
+            ctx.fillStyle = 'rgba(255,255,255,0.6)'; // Brighter
+            ctx.letterSpacing = '2px';
+            ctx.fillText('dropsiders.fr', cx, h - h * 0.035);
             ctx.textAlign = 'left';
+            ctx.letterSpacing = '0px';
 
             // ── Festival Info (Instagram Top Left) ──
             if (festivalName || festivalLogo) {
