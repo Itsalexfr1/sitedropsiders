@@ -2800,60 +2800,45 @@ export function AdminDashboard() {
                         </div>
                 ) : dashboardTab === 'TOP_DROPSIDERS' ? (
                         <div className="space-y-12 pb-20">
-                            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
-                                <div className="absolute top-0 right-0 w-64 h-64 bg-neon-yellow/5 blur-[100px] pointer-events-none" />
-                                <div className="relative z-10">
-                                    <div className="flex items-center gap-4 mb-4">
-                                        <div className="p-3 bg-neon-yellow/10 rounded-2xl border border-neon-yellow/20">
-                                            <Star className="w-8 h-8 text-neon-yellow" />
-                                        </div>
-                                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
-                                            Résultats <span className="text-neon-yellow">VOTES & TOPS</span>
-                                        </h2>
-                                    </div>
-                                    <p className="text-gray-500 font-bold uppercase tracking-widest text-xs max-w-2xl">
-                                        Consultez ici les résultats détaillés des votes de la communauté. 
-                                        Ces données sont masquées pour les visiteurs et ne sont visibles que depuis ce tableau de bord administrateur.
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden">
-                                <WikiWidget showResults={true} />
-                            </div>
-
-                            {/* WIKI VOTES SUMMARY */}
-                            <div className="mt-12">
-                                {(() => {
-                                    const djVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_djs') || '[]'); } catch { return []; } })());
-                                    const clubVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_clubs') || '[]'); } catch { return []; } })());
-                                    const festVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_festivals') || '[]'); } catch { return []; } })());
-                                    const djR = [...(wikiDjs as any[])].map(d => ({ ...d, tv: Number(d.votes || d.rating || 0) + (djVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
-                                    const clubR = [...(wikiClubs as any[])].map(d => ({ ...d, tv: Number(d.votes || 0) + (clubVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
-                                    const festR = [...(wikiFestivals as any[])].map(d => ({ ...d, tv: Number(d.votes || 0) + (festVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 50);
-                                    const allRanked = wikiTab === 'djs' ? djR : wikiTab === 'clubs' ? clubR : festR;
-                                    
-                                    if (wikiDjs.length === 0 && wikiClubs.length === 0 && wikiFestivals.length === 0) {
-                                        return (
-                                            <div className="flex flex-col items-center justify-center p-20 bg-white/[0.02] shadow-xl rounded-2xl border border-white/10">
-                                                <Database className="w-12 h-12 text-gray-600 mb-4 animate-pulse" />
-                                                <p className="text-gray-400 font-bold uppercase tracking-widest text-sm text-center">
-                                                    Aucune donnée synchronisée.<br/>
-                                                    <button onClick={() => window.location.reload()} className="mt-4 text-neon-red hover:underline underline-offset-4">Recharger la page</button>
-                                                </p>
-                                            </div>
-                                        );
-                                    }
-
-                                    const ranked = isWikiExpanded ? allRanked : allRanked.slice(0, 5);
-
-                                    const medals = ['🥇', '🥈', '🥉'];
+                            {/* WIKI VOTES SUMMARY & GENERATION AT TOP */}
+                            {(() => {
+                                const djVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_djs') || '[]'); } catch { return []; } })());
+                                const clubVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_clubs') || '[]'); } catch { return []; } })());
+                                const festVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_festivals') || '[]'); } catch { return []; } })());
+                                const djR = [...(wikiDjs as any[])].map(d => ({ ...d, tv: Number(d.votes || d.rating || 0) + (djVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 100);
+                                const clubR = [...(wikiClubs as any[])].map(d => ({ ...d, tv: Number(d.votes || 0) + (clubVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 100);
+                                const festR = [...(wikiFestivals as any[])].map(d => ({ ...d, tv: Number(d.votes || 0) + (festVotes.has(d.id) ? 1 : 0) })).sort((a, b) => b.tv - a.tv || a.name.localeCompare(b.name)).slice(0, 100);
+                                const allRanked = wikiTab === 'djs' ? djR : wikiTab === 'clubs' ? clubR : festR;
+                                
+                                if (wikiDjs.length === 0 && wikiClubs.length === 0 && wikiFestivals.length === 0) {
                                     return (
-                                        <div className="bg-white/[0.03] border border-white/10 rounded-[3rem] p-10">
-                                            <div className="flex flex-col md:flex-row items-center justify-between gap-6 mb-12 bg-white/5 p-8 rounded-[2rem] border border-white/10">
-                                                <div className="flex flex-col gap-2">
-                                                    <h3 className="text-2xl font-display font-black text-white italic uppercase tracking-tighter">Générer Classement Complet</h3>
-                                                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Format Story (2x50) ou Post (4x25)</p>
+                                        <div className="flex flex-col items-center justify-center p-20 bg-white/[0.02] shadow-xl rounded-2xl border border-white/10">
+                                            <Database className="w-12 h-12 text-gray-600 mb-4 animate-pulse" />
+                                            <p className="text-gray-400 font-bold uppercase tracking-widest text-sm text-center">
+                                                Aucune donnée synchronisée.<br/>
+                                                <button onClick={() => window.location.reload()} className="mt-4 text-neon-red hover:underline underline-offset-4">Recharger la page</button>
+                                            </p>
+                                        </div>
+                                    );
+                                }
+
+                                const ranked = isWikiExpanded ? allRanked : allRanked.slice(0, 5);
+                                const medals = ['🥇', '🥈', '🥉'];
+
+                                return (
+                                    <div className="space-y-12">
+                                        {/* EXPORT PANEL AT TOP */}
+                                        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
+                                            <div className="absolute top-0 right-0 w-64 h-64 bg-neon-yellow/5 blur-[100px] pointer-events-none" />
+                                            <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-8">
+                                                <div className="flex items-center gap-6">
+                                                    <div className="p-4 bg-neon-yellow/10 rounded-[1.5rem] border border-neon-yellow/20">
+                                                        <Sparkles className="w-10 h-10 text-neon-yellow" />
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter">Générer Classement Complet</h3>
+                                                        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-1">Format Story (2x50) ou Post (4x25)</p>
+                                                    </div>
                                                 </div>
                                                 <button
                                                     onClick={() => {
@@ -2866,7 +2851,15 @@ export function AdminDashboard() {
                                                     Exporter Top 100 Social
                                                 </button>
                                             </div>
+                                        </div>
 
+                                        {/* WIKI WIDGET (EXPLORER) */}
+                                        <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-4">
+                                            <WikiWidget showResults={true} hideTitle={true} />
+                                        </div>
+
+                                        {/* DETAILED RANKING SUMMARY */}
+                                        <div className="bg-white/[0.03] border border-white/10 rounded-[3rem] p-10">
                                             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 mb-10">
                                                 <div>
                                                     <div className="flex items-center gap-2 mb-1">

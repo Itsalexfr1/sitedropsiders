@@ -8,9 +8,10 @@ import { twMerge } from 'tailwind-merge';
 interface WikiWidgetProps {
     resolvedColor?: string;
     showResults?: boolean;
+    hideTitle?: boolean;
 }
 
-export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)', showResults = false }: WikiWidgetProps) {
+export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)', showResults = false, hideTitle = false }: WikiWidgetProps) {
     const [activeTab, setActiveTab] = useState<'DJS' | 'CLUBS' | 'FESTIVALS'>('DJS');
     const [sortMode, setSortMode] = useState<'alpha' | 'votes'>('alpha');
     const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -24,16 +25,18 @@ export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)', showResul
     return (
         <div className="w-full relative z-10 flex flex-col items-center">
             {/* Header / Title */}
-            <div className="text-center mb-8 relative">
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 blur-[60px] opacity-20 pointer-events-none" style={{ backgroundColor: resolvedColor }}></div>
-                <h2 className="text-3xl md:text-5xl font-display font-black text-white italic tracking-tighter uppercase relative z-10 flex items-center justify-center gap-3">
-                    <Database className="w-8 h-8 md:w-10 md:h-10" style={{ color: resolvedColor }} />    
-                    TOP <span style={{ color: resolvedColor }} className="drop-shadow-[0_0_15px_rgba(currentColor,0.5)]">DROPSIDERS</span>
-                </h2>
-                <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] mt-2 max-w-lg mx-auto">
-                    Le classement ultime des festivals, clubs et DJs du monde entier.
-                </p>
-            </div>
+            {!hideTitle && (
+                <div className="text-center mb-8 relative">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 blur-[60px] opacity-20 pointer-events-none" style={{ backgroundColor: resolvedColor }}></div>
+                    <h2 className="text-3xl md:text-5xl font-display font-black text-white italic tracking-tighter uppercase relative z-10 flex items-center justify-center gap-3">
+                        <Database className="w-8 h-8 md:w-10 md:h-10" style={{ color: resolvedColor }} />    
+                        TOP <span style={{ color: resolvedColor }} className="drop-shadow-[0_0_15px_rgba(currentColor,0.5)]">DROPSIDERS</span>
+                    </h2>
+                    <p className="text-gray-400 font-bold uppercase tracking-widest text-[10px] mt-2 max-w-lg mx-auto">
+                        Le classement ultime des festivals, clubs et DJs du monde entier.
+                    </p>
+                </div>
+            )}
 
             {/* Navigation Tabs & Sort Controls */}
             <div className="flex flex-col md:flex-row items-center gap-6 mb-8 relative z-10 mx-auto w-full max-w-4xl">
