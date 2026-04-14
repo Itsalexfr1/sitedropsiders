@@ -88,15 +88,16 @@ export function WikiDropsiders({
         }
     };
 
-    const sortedData = [...djData].sort((a, b) => {
-        if (sortMode === 'votes') {
-            const vA = (a as any).votes || Number(a.rating || 0);
-            const vB = (b as any).votes || Number(b.rating || 0);
-            if (vB !== vA) return vB - vA;
+    const sortedData = useMemo(() => {
+        return [...djData].sort((a, b) => {
+            if (sortMode === 'votes') {
+                const vA = Number((a as any).votes || a.rating || 0) + (votes.has(a.id) ? 1 : 0);
+                const vB = Number((b as any).votes || b.rating || 0) + (votes.has(b.id) ? 1 : 0);
+                if (vB !== vA) return vB - vA;
+            }
             return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
-        }
-        return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
-    });
+        });
+    }, [djData, sortMode, votes]);
 
     const filtered = (search ? sortedData.filter(dj => dj.name.toLowerCase().includes(search.toLowerCase())) : sortedData)
         .filter(dj => !brokenImages.has(dj.id));

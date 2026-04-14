@@ -2430,8 +2430,8 @@ export function AdminDashboard() {
                                         .filter(entry => !wikiSearch || entry.name.toLowerCase().includes(wikiSearch.toLowerCase()))
                                         .sort((a, b) => {
                                             if (wikiSortMode === 'votes') {
-                                                const vA = (a as any).votes || Number(a.rating || 0);
-                                                const vB = (b as any).votes || Number(b.rating || 0);
+                                                const vA = Number((a as any).votes || a.rating || 0);
+                                                const vB = Number((b as any).votes || b.rating || 0);
                                                 if (vB !== vA) return vB - vA;
                                             }
                                             return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });

@@ -120,8 +120,8 @@ export function WikiVenues({
         const combined = [...baseData, ...customData];
         return combined.sort((a, b) => {
             if (sortMode === 'votes') {
-                const countA = (a.votes || 0) + (votes.has(a.id) ? 1 : 0);
-                const countB = (b.votes || 0) + (votes.has(b.id) ? 1 : 0);
+                const countA = Number(a.votes || 0) + (votes.has(a.id) ? 1 : 0);
+                const countB = Number(b.votes || 0) + (votes.has(b.id) ? 1 : 0);
                 if (countB !== countA) return countB - countA;
             }
             return a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' });
