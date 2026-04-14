@@ -2919,7 +2919,7 @@ export function AdminDashboard() {
                                                                 ctx.fillText('DROPSIDERS', 540, 120);
                                                                 ctx.font = '900 italic 70px "Montserrat", sans-serif';
                                                                 const grad = ctx.createLinearGradient(300, 180, 700, 180);
-                                                                grad.addColorStop(0, '#ffd700'); grad.addColorStop(0.5, '#fff1a8'); grad.addColorStop(1, '#ffd700');
+                                                                grad.addColorStop(0, '#ffd700'); grad.addColorStop(0.5, '#ffffff'); grad.addColorStop(1, '#ffd700');
                                                                 ctx.fillStyle = grad; ctx.shadowBlur = 12;
                                                                 ctx.fillText(`TOP 100 ${label}`, 540, 210);
                                                                 ctx.shadowBlur = 0;
@@ -2930,7 +2930,7 @@ export function AdminDashboard() {
                                                                 allRanked.slice(0, 100).forEach((item: any, i: number) => {
                                                                     const col = Math.floor(i / rows), row = i % rows;
                                                                     const x = startX + col * colW, y = listTop + row * rowH;
-                                                                    ctx.fillStyle = i < 3 ? '#ffd700' : '#ff1272'; ctx.font = '900 15px "Montserrat", sans-serif';
+                                                                    ctx.fillStyle = i === 0 ? '#ffd700' : i === 1 ? '#c0c0c0' : i === 2 ? '#cd7f32' : '#ff1272'; ctx.font = '900 15px "Montserrat", sans-serif';
                                                                     ctx.fillText(`#${i + 1}`, x + 4, y);
                                                                     ctx.fillStyle = '#ffffff'; ctx.font = '600 14px "Montserrat", sans-serif';
                                                                     let name = (item.name || '').toUpperCase();
@@ -3021,8 +3021,8 @@ export function AdminDashboard() {
                                                                     const rank = artIdx + 1;
                                                                     const label = cat === 'clubs' ? 'CLUBS' : cat === 'festivals' ? 'FESTIVALS' : 'DJS';
                                                                     const C_RED = '#ff1272', C_DARK = '#080b10', C_MID = '#0f1620', C_STRIPE = '#1a0a10';
-                                                                    const C_GOLD = '#ffd700', C_SILVER = '#c0c0c0';
-                                                                    const mainColor = rank === 1 ? C_GOLD : rank <= 3 ? C_SILVER : C_RED;
+                                                                    const C_GOLD = '#ffd700', C_SILVER = '#c0c0c0', C_BRONZE = '#cd7f32';
+                                                                    const mainColor = rank === 1 ? C_GOLD : rank === 2 ? C_SILVER : rank === 3 ? C_BRONZE : C_RED;
 
                                                                     // Load Logo
                                                                     const logoImg = await new Promise<HTMLImageElement | null>(res => {
@@ -3041,7 +3041,7 @@ export function AdminDashboard() {
                                                                     ctx.restore();
                                                                     const radH = isStory ? H * 0.8 : H * 0.7;
                                                                     const radG = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, radH);
-                                                                    radG.addColorStop(0, rank <= 3 ? 'rgba(255,215,0,0.08)' : 'rgba(255,18,114,0.08)'); radG.addColorStop(1, 'rgba(0,0,0,0.6)');
+                                                                    radG.addColorStop(0, rank === 1 ? 'rgba(255,215,0,0.08)' : rank === 2 ? 'rgba(192,192,192,0.08)' : rank === 3 ? 'rgba(205,127,50,0.08)' : 'rgba(255,18,114,0.08)'); radG.addColorStop(1, 'rgba(0,0,0,0.6)');
                                                                     ctx.fillStyle = radG; ctx.fillRect(0, 0, W, H);
                                                                     ctx.fillStyle = mainColor; ctx.fillRect(0, 0, 8, H); ctx.fillRect(W - 8, 0, 8, H);
 
@@ -3105,7 +3105,7 @@ export function AdminDashboard() {
                                                                     const rankStr = `${rank}`, rkW = ctx.measureText(rankStr).width;
                                                                     ctx.fillText(rankStr, padX+12, footerY+footerH/2+6); ctx.restore();
                                                                     const sepX = padX+12+rkW+(isStory?30:20);
-                                                                    ctx.fillStyle = rank <= 3 ? 'rgba(255,215,0,0.3)' : 'rgba(255,18,114,0.3)'; ctx.fillRect(sepX, footerY+20, 2, footerH-40);
+                                                                    ctx.fillStyle = rank === 1 ? 'rgba(255,215,0,0.3)' : rank === 2 ? 'rgba(192,192,192,0.3)' : rank === 3 ? 'rgba(205,127,50,0.3)' : 'rgba(255,18,114,0.3)'; ctx.fillRect(sepX, footerY+20, 2, footerH-40);
                                                                     const tx = sepX+(isStory?26:18);
                                                                     ctx.save(); ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
                                                                     ctx.font = `900 ${isStory?42:32}px "Orbitron", sans-serif`; ctx.fillStyle = '#fff'; ctx.letterSpacing = '3px';
@@ -3123,10 +3123,11 @@ export function AdminDashboard() {
                                                                             ctx.drawImage(logoImg, W - lw - padX, footerY + (footerH - lh) / 2, lw, lh);
                                                                         }
                                                                         
-                                                                        // Add dropsiders.fr text beside logo if space
-                                                                        ctx.font = `700 ${isStory?18:14}px "Montserrat", sans-serif`;
-                                                                        ctx.fillStyle = 'rgba(255,255,255,0.4)'; ctx.textAlign = 'right';
-                                                                        ctx.fillText('DROPSIDERS.FR', W - padX, H - (isStory?20:15));
+                                                                        // Add dropsiders.fr text centered below logo
+                                                                        ctx.font = `800 ${isStory?18:14}px "Montserrat", sans-serif`;
+                                                                        ctx.fillStyle = '#ffffff'; ctx.textAlign = 'center';
+                                                                        const logoCenterX = W - lw - padX + (lw / 2);
+                                                                        ctx.fillText('DROPSIDERS.FR', logoCenterX, H - (isStory?25:20));
                                                                     }
 
                                                                     return canvas.toDataURL('image/png');
