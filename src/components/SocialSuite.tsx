@@ -933,7 +933,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
 
                 ctx.save();
                 ctx.globalAlpha = 0.9;
-                ctx.fillStyle = '#ff0033'; // Red capsule 
+                ctx.fillStyle = '#ffffff'; // Blanc pour matcher le dégradé 
                 const rectX = (canvas.width - labelW) / 2;
                 const rectY = labelY - 52;
                 const rectW = labelW;
@@ -945,7 +945,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
                 ctx.fill();
 
                 ctx.globalAlpha = 1;
-                ctx.fillStyle = '#FFF';
+                ctx.fillStyle = '#000000';
                 const labelFontSize = 42;
                 ctx.font = `900 italic ${labelFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 ctx.textBaseline = 'middle';
