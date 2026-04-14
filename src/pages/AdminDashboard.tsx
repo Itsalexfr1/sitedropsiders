@@ -31,6 +31,7 @@ import { R2Explorer } from '../components/admin/R2Explorer';
 import { CreatorStudioMenuModal } from '../components/admin/modals/CreatorStudioMenuModal';
 import { Downloader } from './Downloader';
 import { WikiWidget } from '../components/widgets/WikiWidget';
+import { resolveImageUrl } from '../utils/image';
 
 
 
@@ -2911,10 +2912,12 @@ export function AdminDashboard() {
                                                                     const photoY = nameBarH, photoH = H - nameBarH - footerH, photoW = W - padX * 2;
 
                                                                     // Try to load photo
-                                                                    if (artItem.image) {
+                                                                    const resolvedImgUrl = resolveImageUrl(artItem.image);
+                                                                    if (resolvedImgUrl) {
                                                                         await new Promise<void>(res => {
-                                                                            const img = new Image(); img.crossOrigin = 'anonymous';
-                                                                            img.src = artItem.image;
+                                                                            const img = new Image();
+                                                                            if (resolvedImgUrl.startsWith('http')) img.crossOrigin = 'anonymous';
+                                                                            img.src = resolvedImgUrl;
                                                                             img.onload = () => {
                                                                                 ctx.save(); ctx.beginPath(); ctx.rect(padX, photoY, photoW, photoH); ctx.clip();
                                                                                 const s = Math.max(photoW / img.width, photoH / img.height);
