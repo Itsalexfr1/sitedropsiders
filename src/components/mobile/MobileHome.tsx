@@ -18,14 +18,21 @@ export function MobileHome() {
     useEffect(() => {
         const fetchAll = async () => {
             try {
-                const [newsRes, agendaRes, recapsRes, galerieRes] = await Promise.all([
+                const [newsRes, agendaRes, recapsRes, galerieRes, interviewsRes] = await Promise.all([
                     fetch('/api/news'),
                     fetch('/api/agenda'),
                     fetch('/api/recaps'),
-                    fetch('/api/galerie')
+                    fetch('/api/galerie'),
+                    fetch('/api/interviews')
                 ]);
 
-                if (newsRes.ok) setNewsData(await newsRes.json());
+                let combinedNews: any[] = [];
+                if (newsRes.ok) combinedNews = await newsRes.json();
+                if (interviewsRes.ok) {
+                    const intDatas = await interviewsRes.json();
+                    combinedNews = [...combinedNews, ...intDatas.map(i => ({...i, category: 'INTERVIEW'}))];
+                }
+                setNewsData(combinedNews);
                 if (agendaRes.ok) setAgendaData(await agendaRes.json());
                 if (recapsRes.ok) setRecapsData(await recapsRes.json());
                 if (galerieRes.ok) setGalerieData(await galerieRes.json());

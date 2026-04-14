@@ -17,9 +17,10 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [news, recaps] = await Promise.all([
+                const [news, recaps, interviews] = await Promise.all([
                     fetchWithFallback('/api/news'),
-                    fetchWithFallback('/api/recaps')
+                    fetchWithFallback('/api/recaps'),
+                    fetchWithFallback('/api/interviews')
                 ]);
 
                 let combinedData: any[] = [];
@@ -40,6 +41,11 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
                             return { ...r, title: title.toUpperCase() };
                         });
                     combinedData = [...combinedData, ...writtenRecaps];
+                }
+
+                if (Array.isArray(interviews)) {
+                    const mappedInterviews = interviews.map(i => ({ ...i, category: 'INTERVIEW' }));
+                    combinedData = [...combinedData, ...mappedInterviews];
                 }
 
                 setNewsData(combinedData);
@@ -69,6 +75,7 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
                    cat.includes('festival') || 
                    cat.includes('artist') ||
                    cat.includes('recap') ||
+                   cat.includes('interview') ||
                    item.isFocus || 
                    cat.includes('focus');
         });
@@ -174,7 +181,7 @@ export function FeaturedNews({ accentColor = 'red', resolvedColor }: { accentCol
                                 boxShadow: `0 0 15px ${color}4D`
                             }}
                         >
-                            {t('home.hot')}
+                            {heroNews.isFocus ? 'FOCUS' : (heroNews.category || 'NEWS').toUpperCase()}
                         </span>
                     </div>
                 </motion.div>

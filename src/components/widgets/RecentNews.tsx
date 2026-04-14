@@ -18,9 +18,10 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
     useEffect(() => {
         const fetchData = async () => {
             try {
-                const [news, recaps] = await Promise.all([
+                const [news, recaps, interviews] = await Promise.all([
                     fetchWithFallback('/api/news'),
-                    fetchWithFallback('/api/recaps')
+                    fetchWithFallback('/api/recaps'),
+                    fetchWithFallback('/api/interviews')
                 ]);
 
                 let combinedData: any[] = [];
@@ -38,6 +39,11 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                             return { ...r, title: title.toUpperCase() };
                         });
                     combinedData = [...combinedData, ...writtenRecaps];
+                }
+
+                if (Array.isArray(interviews)) {
+                    const mappedInterviews = interviews.map(i => ({ ...i, category: 'INTERVIEW' }));
+                    combinedData = [...combinedData, ...mappedInterviews];
                 }
 
                 setNewsData(combinedData);
@@ -59,7 +65,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
         // Logical fallback to identify which one is in the Hero slot
         const heroItem = featured || all.filter((item: any) => {
             const cat = (item.category || '').toLowerCase();
-            return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('focus') || cat.includes('recap');
+            return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('focus') || cat.includes('recap') || cat.includes('interview');
         })[0];
 
         return all
@@ -68,7 +74,7 @@ export function RecentNews({ accentColor = 'blue', resolvedColor }: { accentColo
                 if (heroItem && item.id === heroItem.id) return false;
 
                 const cat = (item.category || '').toLowerCase();
-                return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('focus') || cat.includes('recap');
+                return cat.includes('news') || cat.includes('musique') || cat.includes('music') || cat.includes('focus') || cat.includes('recap') || cat.includes('interview');
             })
             .slice(0, 8);
     }, [newsData]);
