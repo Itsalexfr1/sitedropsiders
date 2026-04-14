@@ -40,10 +40,11 @@ interface SocialSuiteProps {
     title: string;
     imageUrl: string;
     onClose: () => void;
+    initialTheme?: ThemeType;
 }
 
 type TabType = 'REEL' | 'PUBLICATION';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -66,9 +67,9 @@ const STYLE_PRESETS = [
     { name: 'DRUM N BASS', grad: '150, 0, 255', color: '#9600ff' }
 ];
 
-export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
+export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>('PUBLICATION');
-    const [theme, setTheme] = useState<ThemeType>('NEWS');
+    const [theme, setTheme] = useState<ThemeType>(initialTheme || 'NEWS');
     const [showSwipe, setShowSwipe] = useState(false);
     const [showArticleLink, setShowArticleLink] = useState(false);
     const [customText, setCustomText] = useState(title || '');
@@ -202,7 +203,8 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
         'INTRO': { label: 'INTRO', grad: '0, 50, 255', color: '#0032ff' },
         'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' },
         'PLANNING': { label: 'PLANNING', grad: '255, 18, 65', color: '#ff1241' },
-        'TRACKLIST': { label: 'TRACKLIST', grad: '255, 120, 0', color: '#ff7800' }
+        'TRACKLIST': { label: 'TRACKLIST', grad: '255, 120, 0', color: '#ff7800' },
+        'INTERVIEW': { label: 'INTERVIEW', grad: '255, 0, 51', color: '#ff0033' }
     };
 
     useEffect(() => {
@@ -896,8 +898,97 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
                     ctx.drawImage(logoRef.current, (canvas.width / 2) - (logoW / 2), logoY, logoW, logoH);
                     ctx.restore();
                 }
-                
+                                
                 ctx.restore();
+            } else if (theme === 'INTERVIEW') {
+                const centerX = canvas.width / 2;
+                const centerY = (canvas.height / 2);
+
+                // Elegant dark overlay for contrast
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Label "INTERVIEW" (Style from InterviewVisualGenerator)
+                const labelFontSize = 35;
+                const labelX = effectiveTab === 'PUBLICATION' ? 80 : 120;
+                const labelY = effectiveTab === 'PUBLICATION' ? 140 : 280;
+                
+                ctx.save();
+                ctx.textAlign = 'left';
+                
+                // Red bar
+                ctx.fillStyle = '#ff0033';
+                ctx.fillRect(labelX, labelY - 30, 15, 45);
+
+                // Text
+                ctx.fillStyle = '#ffffff';
+                ctx.font = '900 italic 35px "Montserrat", sans-serif';
+                ctx.letterSpacing = "8px";
+                ctx.fillText('INTERVIEW', labelX + 35, labelY + 6);
+                ctx.restore();
+
+                // Main Content
+                if (customText) {
+                    const lines = customText.split('\n');
+                    const name = lines[0]?.toUpperCase() || '';
+                    const desc = lines[1]?.toUpperCase() || '';
+
+                    ctx.save();
+                    ctx.textAlign = 'center';
+                    
+                    // Name (Big & Bold - White)
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '900 italic 110px "Montserrat", sans-serif';
+                    ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                    ctx.shadowBlur = 40;
+                    ctx.fillText(name, centerX, centerY + 30);
+
+                    // Red bar below name
+                    const nameW = ctx.measureText(name).width;
+                    ctx.fillStyle = '#ff0033';
+                    ctx.fillRect(centerX - 100, centerY + 65, 200, 8);
+
+                    // Description (Sub-header)
+                    if (desc) {
+                        ctx.fillStyle = 'rgba(255,255,255,0.7)';
+                        ctx.font = '700 italic 32px "Montserrat", sans-serif';
+                        ctx.letterSpacing = "6px";
+                        ctx.fillText(desc, centerX, centerY + 130);
+                    }
+                    ctx.restore();
+                }
+
+                // Decorative "Play" Icon
+                ctx.save();
+                ctx.translate(centerX, centerY - 180);
+                // Outer circle
+                ctx.beginPath();
+                ctx.arc(0, 0, 65, 0, Math.PI * 2);
+                ctx.strokeStyle = '#ff0033';
+                ctx.lineWidth = 6;
+                ctx.stroke();
+                // Inner glow
+                ctx.shadowColor = '#ff0033';
+                ctx.shadowBlur = 20;
+                // Play triangle
+                ctx.beginPath();
+                ctx.moveTo(20, 0);
+                ctx.lineTo(-15, 22);
+                ctx.lineTo(-15, -22);
+                ctx.closePath();
+                ctx.fillStyle = '#fff';
+                ctx.fill();
+                ctx.restore();
+
+                // Bottom Link
+                ctx.save();
+                ctx.font = '900 24px "Montserrat", sans-serif';
+                ctx.letterSpacing = "6px";
+                ctx.textAlign = 'center';
+                ctx.fillStyle = 'rgba(255,255,255,0.4)';
+                ctx.fillText('DROPSIDERS.FR', centerX, canvas.height - 100);
+                ctx.restore();
+
             } else {
                 const fontSize = 55; const lineHeight = fontSize * 1.15;
                 ctx.textAlign = 'center';
@@ -1537,6 +1628,7 @@ export function SocialSuite({ title, imageUrl, onClose }: SocialSuiteProps) {
             <button onClick={() => setTheme('MUSIQUE')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'MUSIQUE' ? 'bg-neon-green/20 border-neon-green text-neon-green' : 'bg-white/5 border-white/5 text-gray-400'}`}>MUSIQUE</button>
             <button onClick={() => setTheme('RECAP')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'RECAP' ? 'bg-neon-purple/20 border-neon-purple text-neon-purple' : 'bg-white/5 border-white/5 text-gray-400'}`}>RÉCAP</button>
             <button onClick={() => setTheme('LIVESTREAM')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'LIVESTREAM' ? 'bg-pink-500/20 border-pink-500 text-pink-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>DIRECT</button>
+            <button onClick={() => setTheme('INTERVIEW')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'INTERVIEW' ? 'bg-red-500/20 border-red-500 text-red-500' : 'bg-white/5 border-white/5 text-gray-400'}`}>INTERVIEW</button>
             <button onClick={() => setTheme('PLANNING')} className={`py-2 rounded-xl text-[8px] font-black uppercase border transition-all ${theme === 'PLANNING' ? 'bg-white/20 border-white text-white' : 'bg-white/5 border-white/5 text-gray-400'}`}>PLANNING</button>
             
             {activeTab === 'REEL' && (

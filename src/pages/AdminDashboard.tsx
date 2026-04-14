@@ -95,6 +95,7 @@ export function AdminDashboard() {
     const [isWikiExpanded, setIsWikiExpanded] = useState(false);
     const [socialRecentArticles, setSocialRecentArticles] = useState<any[]>([]);
     const [selectedSocialArticle, setSelectedSocialArticle] = useState<any | null>(null);
+    const [selectedSocialTheme, setSelectedSocialTheme] = useState<string | undefined>(undefined);
     const [isQuickWizardOpen, setIsQuickWizardOpen] = useState(false);
     const [isLoadingSocial, setIsLoadingSocial] = useState(false);
     const [bannerState, setBannerState] = useState({
@@ -3844,18 +3845,37 @@ export function AdminDashboard() {
                                         <button
                                             onClick={() => {
                                                 setSelectedSocialArticle({ title: '', image: '' });
+                                                setSelectedSocialTheme(undefined);
                                                 setIsSocialModalOpen(false);
                                             }}
-                                            className="w-full p-6 bg-neon-pink/10 border border-neon-pink/30 rounded-3xl flex items-center gap-6 hover:bg-neon-pink/20 transition-all group text-left"
+                                            className="w-full p-6 bg-white/5 border border-white/5 rounded-3xl flex items-center gap-6 hover:bg-white/10 transition-all group text-left"
                                         >
                                             <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                                                <Plus className="w-8 h-8 text-neon-pink" />
+                                                <Plus className="w-8 h-8 text-neon-blue" />
                                             </div>
                                             <div className="flex-1">
                                                 <h3 className="font-black text-white uppercase italic text-lg tracking-tighter">Visuel Vide / Manuel</h3>
-                                                <p className="text-[10px] text-neon-pink/60 font-black uppercase tracking-widest">émarrer sans article</p>
+                                                <p className="text-[10px] text-gray-500 font-black uppercase tracking-widest">Démarrer sans article</p>
                                             </div>
-                                            <ArrowRight className="w-6 h-6 text-neon-pink" />
+                                            <ArrowRight className="w-6 h-6 text-white/20" />
+                                        </button>
+
+                                        <button
+                                            onClick={() => {
+                                                setSelectedSocialArticle({ title: 'ARTISTE\nINTERVIEW VIDÉO', image: '' });
+                                                setSelectedSocialTheme('INTERVIEW');
+                                                setIsSocialModalOpen(false);
+                                            }}
+                                            className="w-full p-6 bg-neon-red/10 border border-neon-red/30 rounded-3xl flex items-center gap-6 hover:bg-neon-red/20 transition-all group text-left"
+                                        >
+                                            <div className="w-14 h-14 rounded-2xl bg-black/40 border border-white/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
+                                                <Mic className="w-8 h-8 text-neon-red" />
+                                            </div>
+                                            <div className="flex-1">
+                                                <h3 className="font-black text-white uppercase italic text-lg tracking-tighter">Visuel Interview</h3>
+                                                <p className="text-[10px] text-neon-red/60 font-black uppercase tracking-widest">Format spécial interview</p>
+                                            </div>
+                                            <ArrowRight className="w-6 h-6 text-neon-red" />
                                         </button>
 
                                         {isLoadingSocial ? (
@@ -3868,6 +3888,7 @@ export function AdminDashboard() {
                                                     key={article.id}
                                                     onClick={() => {
                                                         setSelectedSocialArticle(article);
+                                                        setSelectedSocialTheme(undefined);
                                                         setIsSocialModalOpen(false);
                                                     }}
                                                     className="w-full p-4 bg-white/5 border border-white/5 rounded-2xl flex items-center gap-4 hover:bg-white/10 hover:border-white/20 transition-all group text-left"
@@ -3905,7 +3926,11 @@ export function AdminDashboard() {
                         <SocialSuite
                             title={selectedSocialArticle.title}
                             imageUrl={selectedSocialArticle.image}
-                            onClose={() => setSelectedSocialArticle(null)}
+                            initialTheme={selectedSocialTheme as any}
+                            onClose={() => {
+                                setSelectedSocialArticle(null);
+                                setSelectedSocialTheme(undefined);
+                            }}
                         />
                     )}
                 </AnimatePresence>
