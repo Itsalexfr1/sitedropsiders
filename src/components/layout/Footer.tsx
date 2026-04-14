@@ -1,3 +1,4 @@
+import { Mail, Lock, Globe, Instagram, Youtube, Facebook, Trash2, Twitter } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useLanguage } from '../../context/LanguageContext';
