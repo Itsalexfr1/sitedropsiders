@@ -935,57 +935,51 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
                 const H = canvas.height;
                 const isStory = effectiveTab === 'REEL';
                 const rank = item.rank || 1;
-                const category = (item as any).category || 'DJS';
+                const category = (item as any).category || 'djs';
                 const categoryLabel = category === 'clubs' ? 'CLUBS' : category === 'festivals' ? 'FESTIVALS' : 'DJS';
-                const accentColor = activeData.color || '#ff1a41';
-                const accentRGB = activeData.grad || '255,26,65';
+
+                // ── DROPSIDERS PALETTE (unique, not DJ Mag) ──
+                const C_LIME   = '#c8ff00';   // neon lime-yellow — signature Dropsiders
+                const C_WHITE  = '#ffffff';
+                const C_DARK   = '#080b10';   // near-black slate
+                const C_MID    = '#0f1620';   // dark blue-slate for panels
+                const C_STRIPE = '#1a2435';   // subtle stripe
 
                 // ── BACKGROUND ──
-                ctx.fillStyle = '#080808';
+                ctx.fillStyle = C_DARK;
                 ctx.fillRect(0, 0, W, H);
 
-                // Subtle gradient overlay
-                const bgGrad = ctx.createLinearGradient(0, 0, W, H);
-                bgGrad.addColorStop(0, 'rgba(20,0,5,1)');
-                bgGrad.addColorStop(0.5, 'rgba(5,5,15,1)');
-                bgGrad.addColorStop(1, 'rgba(0,10,20,1)');
-                ctx.fillStyle = bgGrad;
+                // Diagonal stripe texture
+                ctx.save();
+                for (let i = -H; i < W + H; i += 28) {
+                    ctx.fillStyle = C_STRIPE;
+                    ctx.beginPath();
+                    ctx.moveTo(i, 0); ctx.lineTo(i + 14, 0);
+                    ctx.lineTo(i + 14 + H, H); ctx.lineTo(i + H, H);
+                    ctx.closePath(); ctx.fill();
+                }
+                ctx.restore();
+
+                // Radial glow overlay (center focus)
+                const radGlow = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, H * 0.7);
+                radGlow.addColorStop(0, 'rgba(200,255,0,0.06)');
+                radGlow.addColorStop(1, 'rgba(0,0,0,0.5)');
+                ctx.fillStyle = radGlow;
                 ctx.fillRect(0, 0, W, H);
 
-                // Edge glow (left side)
-                const leftGlow = ctx.createLinearGradient(0, 0, 120, 0);
-                leftGlow.addColorStop(0, `rgba(${accentRGB},0.25)`);
-                leftGlow.addColorStop(1, 'transparent');
-                ctx.fillStyle = leftGlow;
-                ctx.fillRect(0, 0, 120, H);
+                // ── SIDE ACCENT BARS (thin, vertical, lime) ──
+                ctx.fillStyle = C_LIME;
+                ctx.fillRect(0, 0, 8, H);
+                ctx.fillRect(W - 8, 0, 8, H);
 
-                // Edge glow (right side) - cyan
-                const rightGlow = ctx.createLinearGradient(W, 0, W - 120, 0);
-                rightGlow.addColorStop(0, 'rgba(0,200,255,0.15)');
-                rightGlow.addColorStop(1, 'transparent');
-                ctx.fillStyle = rightGlow;
-                ctx.fillRect(W - 120, 0, 120, H);
+                // ── ARTIST PHOTO (full-bleed, clipped to inner area) ──
+                const padX = 30;
+                const nameBarH = isStory ? 200 : 160;
+                const footerH = isStory ? 170 : 140;
+                const photoY = nameBarH;
+                const photoH = H - nameBarH - footerH;
+                const photoW = W - padX * 2;
 
-                // ── PIXEL DECORATION STRIPS (left & right edges like DJ Mag) ──
-                const drawPixelStrip = (x: number, flip: boolean) => {
-                    const stripW = 28;
-                    const squareH = 14;
-                    const gap = 4;
-                    const count = Math.floor(H / (squareH + gap));
-                    for (let i = 0; i < count; i++) {
-                        const y = i * (squareH + gap);
-                        const col = i % 2 === 0 ? `rgba(${accentRGB},0.6)` : 'rgba(0,200,255,0.4)';
-                        ctx.fillStyle = col;
-                        const rx = flip ? x - stripW : x;
-                        ctx.beginPath();
-                        ctx.roundRect(rx + 2, y + 2, stripW - 4, squareH - 4, 3);
-                        ctx.fill();
-                    }
-                };
-                drawPixelStrip(0, false);
-                drawPixelStrip(W, true);
-
-                // ── ARTIST PHOTO ──
                 const photoSrc = resolveImageUrl(bgImage || item.image);
                 let photo: HTMLImageElement | null = null;
                 if (photoSrc) {
@@ -997,157 +991,139 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
                     }
                 }
 
-                const photoX = 60;
-                const photoY = isStory ? 280 : 200;
-                const photoW = W - 120;
-                const photoH = isStory ? H - 580 : H - 420;
-
-                // Photo frame shadow
+                // Photo placeholder / actual photo
                 ctx.save();
-                ctx.shadowColor = `rgba(${accentRGB},0.6)`;
-                ctx.shadowBlur = 40;
-                ctx.fillStyle = '#111';
                 ctx.beginPath();
-                ctx.roundRect(photoX, photoY, photoW, photoH, 8);
-                ctx.fill();
-                ctx.restore();
-
-                // Draw photo
+                ctx.rect(padX, photoY, photoW, photoH);
+                ctx.clip();
                 if (photo) {
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.roundRect(photoX, photoY, photoW, photoH, 8);
-                    ctx.clip();
                     const s = Math.max(photoW / photo.width, photoH / photo.height);
-                    const dx = photoX + (photoW - photo.width * s) / 2;
+                    const dx = padX + (photoW - photo.width * s) / 2;
                     const dy = photoY + (photoH - photo.height * s) / 2;
                     ctx.drawImage(photo, dx, dy, photo.width * s, photo.height * s);
-                    // Subtle dark vignette on photo
-                    const vignette = ctx.createRadialGradient(photoX + photoW/2, photoY + photoH/2, photoH*0.3, photoX + photoW/2, photoY + photoH/2, photoH*0.8);
-                    vignette.addColorStop(0, 'transparent');
-                    vignette.addColorStop(1, 'rgba(0,0,0,0.5)');
-                    ctx.fillStyle = vignette;
-                    ctx.fillRect(photoX, photoY, photoW, photoH);
-                    ctx.restore();
+                    // Bottom gradient fade into footer
+                    const fadeGrad = ctx.createLinearGradient(0, photoY + photoH * 0.6, 0, photoY + photoH);
+                    fadeGrad.addColorStop(0, 'transparent');
+                    fadeGrad.addColorStop(1, 'rgba(8,11,16,0.85)');
+                    ctx.fillStyle = fadeGrad;
+                    ctx.fillRect(padX, photoY, photoW, photoH);
+                } else {
+                    ctx.fillStyle = C_MID;
+                    ctx.fillRect(padX, photoY, photoW, photoH);
                 }
+                ctx.restore();
 
-                // Photo border frame
+                // Photo frame — thin lime outline
                 ctx.save();
-                ctx.strokeStyle = `rgba(${accentRGB},0.8)`;
+                ctx.strokeStyle = C_LIME;
                 ctx.lineWidth = 3;
-                ctx.beginPath();
-                ctx.roundRect(photoX, photoY, photoW, photoH, 8);
-                ctx.stroke();
-                // Corner accents
-                const cornerSize = 30;
-                ctx.strokeStyle = accentColor;
-                ctx.lineWidth = 5;
+                ctx.shadowColor = C_LIME;
+                ctx.shadowBlur = 15;
+                ctx.strokeRect(padX, photoY, photoW, photoH);
+                // Corner L-brackets
+                const cL = 40;
+                ctx.lineWidth = 6;
                 ctx.lineCap = 'square';
-                [[photoX, photoY], [photoX + photoW, photoY], [photoX, photoY + photoH], [photoX + photoW, photoY + photoH]].forEach(([cx, cy], ci) => {
+                [[padX, photoY], [padX + photoW, photoY], [padX, photoY + photoH], [padX + photoW, photoY + photoH]].forEach(([cx, cy], ci) => {
                     const sx = ci % 2 === 0 ? 1 : -1;
                     const sy = ci < 2 ? 1 : -1;
-                    ctx.beginPath(); ctx.moveTo(cx, cy + sy * cornerSize); ctx.lineTo(cx, cy); ctx.lineTo(cx + sx * cornerSize, cy); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(cx + sx * cL, cy); ctx.lineTo(cx, cy); ctx.lineTo(cx, cy + sy * cL); ctx.stroke();
                 });
                 ctx.restore();
 
-                // ── ARTIST NAME (top-left, bold italic) ──
-                const nameAreaY = isStory ? 80 : 50;
+                // ── NAME BAR (top, dark panel) ──
+                ctx.fillStyle = C_MID;
+                ctx.fillRect(0, 0, W, nameBarH);
+                // Lime bottom line of name bar
+                ctx.fillStyle = C_LIME;
+                ctx.fillRect(0, nameBarH - 4, W, 4);
+
+                // Artist name
                 ctx.save();
                 ctx.textAlign = 'left';
-                ctx.textBaseline = 'top';
-                // Shadow for depth
-                ctx.shadowColor = 'rgba(0,0,0,0.9)';
-                ctx.shadowBlur = 20;
-                
-                // Auto-size name
-                let nameFontSize = isStory ? 130 : 100;
+                ctx.textBaseline = 'middle';
+                let nameFontSize = isStory ? 115 : 90;
                 ctx.font = `900 italic ${nameFontSize}px "Montserrat", sans-serif`;
-                while (ctx.measureText(item.name.toUpperCase()).width > W - 200 && nameFontSize > 60) {
-                    nameFontSize -= 5;
+                while (ctx.measureText(item.name.toUpperCase()).width > W - (padX * 2 + 180) && nameFontSize > 50) {
+                    nameFontSize -= 4;
                     ctx.font = `900 italic ${nameFontSize}px "Montserrat", sans-serif`;
                 }
-                
-                // Name in two lines if needed
-                const nameParts = item.name.toUpperCase().split(' ');
-                const midPoint = Math.ceil(nameParts.length / 2);
-                const line1 = nameParts.slice(0, midPoint).join(' ');
-                const line2 = nameParts.slice(midPoint).join(' ');
-                
-                ctx.fillStyle = '#ffffff';
-                ctx.fillText(line1, photoX + 10, nameAreaY);
-                if (line2) ctx.fillText(line2, photoX + 10, nameAreaY + nameFontSize + 5);
+                ctx.fillStyle = C_WHITE;
+                ctx.shadowColor = 'rgba(0,0,0,0.8)';
+                ctx.shadowBlur = 15;
+                ctx.fillText(item.name.toUpperCase(), padX + 12, nameBarH / 2);
                 ctx.restore();
 
-                // ── RANK BADGE (top-right corner) ──
-                const badgeSize = isStory ? 120 : 100;
-                const badgeX = W - photoX - badgeSize + 5;
-                const badgeY = nameAreaY - 10;
+                // ── RANK BADGE (top-right of name bar) ──
+                const badgePad = 16;
+                const badgeH = nameBarH - badgePad * 2;
+                const badgeW = badgeH * 1.1;
+                const badgeX = W - padX - badgeW - 8;
+                const badgeY = badgePad;
                 ctx.save();
-                // Badge background
-                ctx.fillStyle = '#000';
-                ctx.strokeStyle = `rgba(0,220,255,0.9)`;
-                ctx.lineWidth = 3;
-                ctx.shadowColor = 'rgba(0,220,255,0.8)';
-                ctx.shadowBlur = 20;
+                ctx.fillStyle = C_LIME;
+                ctx.shadowColor = C_LIME;
+                ctx.shadowBlur = 25;
                 ctx.beginPath();
-                ctx.roundRect(badgeX, badgeY, badgeSize, badgeSize, 12);
+                ctx.roundRect(badgeX, badgeY, badgeW, badgeH, 10);
                 ctx.fill();
-                ctx.stroke();
-                // Rank number inside badge
-                ctx.shadowColor = 'rgba(0,220,255,1)';
-                ctx.shadowBlur = 30;
-                ctx.fillStyle = 'rgba(0,220,255,1)';
-                ctx.font = `900 italic ${badgeSize * 0.55}px "Montserrat", sans-serif`;
+                ctx.fillStyle = C_DARK;
+                ctx.font = `900 italic ${badgeH * 0.6}px "Montserrat", sans-serif`;
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(`${rank}`, badgeX + badgeSize/2, badgeY + badgeSize/2 + 4);
+                ctx.shadowBlur = 0;
+                ctx.fillText(`${rank}`, badgeX + badgeW / 2, badgeY + badgeH / 2 + 4);
                 ctx.restore();
 
-                // ── LARGE RANK NUMBER (bottom-left) ──
-                const bigRankY = isStory ? H - 260 : H - 180;
-                ctx.save();
-                ctx.textAlign = 'left';
-                ctx.textBaseline = 'top';
-                ctx.shadowColor = accentColor;
-                ctx.shadowBlur = 40;
-                ctx.fillStyle = accentColor;
-                const bigRankSize = isStory ? 210 : 170;
-                ctx.font = `900 italic ${bigRankSize}px "Montserrat", sans-serif`;
-                ctx.fillText(`${rank}`, photoX + 10, bigRankY);
-                ctx.restore();
-
-                // ── FOOTER BAR ──
-                const footerH = isStory ? 120 : 100;
+                // ── FOOTER BAR (dark panel with rank + label side by side) ──
                 const footerY = H - footerH;
-                ctx.fillStyle = 'rgba(0,0,0,0.85)';
+                ctx.fillStyle = C_MID;
                 ctx.fillRect(0, footerY, W, footerH);
-                // Accent line at top of footer
-                ctx.fillStyle = accentColor;
+                ctx.fillStyle = C_LIME;
                 ctx.fillRect(0, footerY, W, 4);
 
-                // Footer text
+                // Big rank number (LEFT of footer)
+                const bigRankFs = isStory ? 140 : 110;
                 ctx.save();
+                ctx.font = `900 italic ${bigRankFs}px "Montserrat", sans-serif`;
                 ctx.textAlign = 'left';
                 ctx.textBaseline = 'middle';
-                const footerTextY = footerY + footerH / 2;
-                // Category label
-                ctx.font = `900 ${isStory ? 38 : 30}px "Orbitron", sans-serif`;
-                ctx.fillStyle = '#ffffff';
-                ctx.letterSpacing = '4px';
-                ctx.fillText(`TOP 100 ${categoryLabel}`, photoX + 10, footerTextY - 6);
-                // Dropsiders sub-label
-                ctx.font = `700 ${isStory ? 26 : 20}px "Montserrat", sans-serif`;
-                ctx.fillStyle = accentColor;
-                ctx.letterSpacing = '8px';
-                ctx.fillText('DROPSIDERS', photoX + 10, footerTextY + (isStory ? 32 : 26));
+                ctx.fillStyle = C_LIME;
+                ctx.shadowColor = C_LIME;
+                ctx.shadowBlur = 30;
+                const rankStr = `${rank}`;
+                const rankW = ctx.measureText(rankStr).width;
+                ctx.fillText(rankStr, padX + 12, footerY + footerH / 2 + 6);
                 ctx.restore();
 
-                // ── DROPSIDERS LOGO (footer right) ──
+                // Vertical separator
+                const sepX = padX + 12 + rankW + (isStory ? 30 : 20);
+                ctx.fillStyle = 'rgba(200,255,0,0.3)';
+                ctx.fillRect(sepX, footerY + 20, 2, footerH - 40);
+
+                // Category + Dropsiders text (right of separator)
+                const textX = sepX + (isStory ? 26 : 18);
+                ctx.save();
+                ctx.textAlign = 'left';
+                // "TOP 100 DJS" line
+                ctx.font = `900 ${isStory ? 42 : 32}px "Orbitron", sans-serif`;
+                ctx.fillStyle = C_WHITE;
+                ctx.textBaseline = 'middle';
+                ctx.letterSpacing = '3px';
+                ctx.fillText(`TOP 100 ${categoryLabel}`, textX, footerY + footerH / 2 - (isStory ? 28 : 22));
+                // "DROPSIDERS" sub-line
+                ctx.font = `700 ${isStory ? 28 : 22}px "Montserrat", sans-serif`;
+                ctx.fillStyle = C_LIME;
+                ctx.letterSpacing = '10px';
+                ctx.fillText('DROPSIDERS', textX, footerY + footerH / 2 + (isStory ? 28 : 22));
+                ctx.restore();
+
+                // Logo (far right of footer)
                 if (logoRef.current) {
                     const l = logoRef.current;
-                    const lw = isStory ? 240 : 190;
+                    const lw = isStory ? 200 : 160;
                     const lh = (l.height * lw) / l.width;
-                    ctx.drawImage(l, W - lw - photoX, footerY + (footerH - lh) / 2, lw, lh);
+                    ctx.drawImage(l, W - lw - padX, footerY + (footerH - lh) / 2, lw, lh);
                 }
             } else if (theme === 'HIGHLIGHTS') {
                 // Specialized high-end rendering for Highlights (similar to Tracklist but with Blue theme)
