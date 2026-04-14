@@ -35,10 +35,12 @@ function groupByLetter(data: DjEntry[]): Record<string, DjEntry[]> {
 
 export function WikiDropsiders({ 
     showResults = false,
-    sortMode = 'alpha'
+    sortMode = 'alpha',
+    viewMode = 'grid'
 }: { 
     showResults?: boolean;
     sortMode?: 'alpha' | 'votes';
+    viewMode?: 'grid' | 'list';
 }) {
     const { t, language } = useLanguage();
     const [search, setSearch] = useState('');
@@ -223,10 +225,47 @@ export function WikiDropsiders({
                                     <span className="text-[9px] font-black text-gray-600 uppercase tracking-widest">{grouped[letter].length} artiste{grouped[letter].length > 1 ? 's' : ''}</span>
                                 </div>
 
-                                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-                                    {grouped[letter].map(dj => {
-                                        const hasVoted = votes.has(dj.id);
-                                        return (
+                                <div className={viewMode === 'grid' 
+                                    ? "grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4"
+                                    : "flex flex-col gap-2"
+                                }>
+                                    {grouped[letter].map((dj, idx) => {
+                                         const hasVoted = votes.has(dj.id);
+
+                                         if (viewMode === 'list') {
+                                             return (
+                                                 <motion.div 
+                                                     key={dj.id}
+                                                     onClick={() => handleSelectDj(dj)}
+                                                     initial={{ opacity: 0, x: -10 }}
+                                                     animate={{ opacity: 1, x: 0 }}
+                                                     transition={{ delay: idx * 0.02 }}
+                                                     className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl p-3 hover:bg-white/10 hover:border-white/20 transition-all cursor-pointer group"
+                                                 >
+                                                     <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0 border border-white/10">
+                                                         <img src={resolveImageUrl(dj.image)} alt={dj.name} className="w-full h-full object-cover" />
+                                                     </div>
+                                                     <div className="flex-1 min-w-0">
+                                                         <div className="text-[11px] font-black text-white uppercase tracking-widest truncate">{dj.name}</div>
+                                                         <div className="text-[8px] text-gray-500 font-bold uppercase tracking-widest">{dj.country}</div>
+                                                     </div>
+                                                     {showResults && (
+                                                         <div className="flex items-center gap-2 bg-black/40 px-3 py-1 rounded-full border border-white/10">
+                                                             <Heart className="w-3 h-3 text-red-500 fill-red-500" />
+                                                             <span className="text-[10px] font-black text-white">{(dj as any).votes || Number(dj.rating || 0)}</span>
+                                                         </div>
+                                                     )}
+                                                     <button 
+                                                        onClick={(e) => { e.stopPropagation(); toggleVote(dj.id); }}
+                                                        className={`p-2 rounded-lg transition-all ${hasVoted ? 'text-red-500' : 'text-gray-600 hover:text-white'}`}
+                                                     >
+                                                        <Heart className={`w-4 h-4 ${hasVoted ? 'fill-current' : ''}`} />
+                                                     </button>
+                                                 </motion.div>
+                                             );
+                                         }
+
+                                         return (
                                             <motion.div key={dj.id} whileHover={{ y: -4, scale: 1.02 }}
                                                 className={`group relative rounded-2xl overflow-hidden border transition-all duration-300 cursor-pointer ${selectedDj?.id === dj.id ? 'border-neon-red shadow-[0_0_20px_rgba(255,0,0,0.3)]' : 'border-white/10 hover:border-white/30'}`}>
 

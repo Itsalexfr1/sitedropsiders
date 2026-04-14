@@ -473,6 +473,7 @@ export function AdminDashboard() {
     const [isEditWikiModalOpen, setIsEditWikiModalOpen] = useState(false);
     const [editingWikiEntry, setEditingWikiEntry] = useState<any>(null);
     const [isSavingWiki, setIsSavingWiki] = useState(false);
+    const [top100DataToVisual, setTop100DataToVisual] = useState<any[] | null>(null);
 
     interface TakeoverState {
         enabled: boolean;
@@ -2867,6 +2868,16 @@ export function AdminDashboard() {
                                                         ))}
                                                     </div>
                                                     <button
+                                                        onClick={() => {
+                                                            const data = allRanked.map((x: any) => ({ name: x.name, votes: x.tv }));
+                                                            setTop100DataToVisual(data);
+                                                        }}
+                                                        className="px-6 py-3 bg-neon-yellow/10 border border-neon-yellow/30 rounded-2xl text-[10px] font-black uppercase text-neon-yellow hover:bg-neon-yellow hover:text-black transition-all flex items-center gap-2 shadow-lg shadow-neon-yellow/10"
+                                                    >
+                                                        <Sparkles className="w-4 h-4" />
+                                                        Générer Visuel Top 100
+                                                    </button>
+                                                    <button
                                                         onClick={() => setIsWikiExpanded(!isWikiExpanded)}
                                                         className="px-6 py-3 bg-white/5 border border-white/10 rounded-2xl text-[10px] font-black uppercase text-gray-400 hover:text-white transition-all flex items-center gap-2"
                                                     >
@@ -3987,15 +3998,17 @@ export function AdminDashboard() {
                 </AnimatePresence>
 
                 <AnimatePresence>
-                    {selectedSocialArticle && (
+                    {(selectedSocialArticle || top100DataToVisual) && (
                         <SocialSuite
-                            title={selectedSocialArticle.title}
-                            imageUrl={selectedSocialArticle.image}
-                            initialTheme={selectedSocialTheme as any}
+                            title={top100DataToVisual ? (wikiTab === 'djs' ? 'TOP 100 DJS' : wikiTab === 'clubs' ? 'TOP 100 CLUBS' : 'TOP 100 FESTIVALS') : (selectedSocialArticle?.title || '')}
+                            imageUrl={selectedSocialArticle?.image || ''}
+                            initialTheme={top100DataToVisual ? 'TOP 100' : (selectedSocialTheme as any)}
                             onClose={() => {
                                 setSelectedSocialArticle(null);
                                 setSelectedSocialTheme(undefined);
+                                setTop100DataToVisual(null);
                             }}
+                            top100Data={top100DataToVisual || undefined}
                         />
                     )}
                 </AnimatePresence>

@@ -41,10 +41,11 @@ interface SocialSuiteProps {
     imageUrl: string;
     onClose: () => void;
     initialTheme?: ThemeType;
+    top100Data?: {name: string, votes: number}[];
 }
 
 type TabType = 'REEL' | 'PUBLICATION' | 'YOUTUBE';
-type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW';
+type ThemeType = 'TOP 5 ARTISTE' | 'TOP 5 STYLES' | 'INTRO' | 'NEWS' | 'FOCUS' | 'MUSIQUE' | 'RECAP' | 'LIVESTREAM' | 'HIGHLIGHTS' | 'PLANNING' | 'TRACKLIST' | 'INTERVIEW' | 'TOP 100';
 
 interface Top5Item {
     main: string; // Artist or Genre
@@ -67,9 +68,9 @@ const STYLE_PRESETS = [
     { name: 'DRUM N BASS', grad: '150, 0, 255', color: '#9600ff' }
 ];
 
-export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSuiteProps) {
+export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data }: SocialSuiteProps) {
     const [activeTab, setActiveTab] = useState<TabType>('PUBLICATION');
-    const [theme, setTheme] = useState<ThemeType>(initialTheme || 'NEWS');
+    const [theme, setTheme] = useState<ThemeType>(top100Data ? 'TOP 100' : (initialTheme || 'NEWS'));
     const [showSwipe, setShowSwipe] = useState(false);
     const [showArticleLink, setShowArticleLink] = useState(false);
     const [customText, setCustomText] = useState(title || '');
@@ -136,8 +137,13 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
     const [takeoverData, setTakeoverData] = useState<{ lineup: any[], streams: any[] } | null>(null);
 
     // Detect mobile vs desktop (lg breakpoint = 1024px) — JS-based to avoid canvasRef conflict
-    const [isMobile, setIsMobile] = useState(() => window.innerWidth < 1024);
+    const [top100Entries, setTop100Entries] = useState<{name: string, votes: number}[]>(top100Data || []);
+
     useEffect(() => {
+        if (top100Data) {
+            setTop100Entries(top100Data);
+        }
+    }, [top100Data]);
         const onResize = () => setIsMobile(window.innerWidth < 1024);
         window.addEventListener('resize', onResize);
         return () => window.removeEventListener('resize', onResize);
@@ -206,7 +212,8 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
         'LIVESTREAM': { label: 'DIRECT', grad: '255, 18, 65', color: '#ff1241' },
         'PLANNING': { label: 'PLANNING', grad: '255, 18, 65', color: '#ff1241' },
         'TRACKLIST': { label: 'TRACKLIST', grad: '255, 120, 0', color: '#ff7800' },
-        'INTERVIEW': { label: 'INTERVIEW', grad: '255, 0, 51', color: '#ff0033' }
+        'INTERVIEW': { label: 'INTERVIEW', grad: '255, 0, 51', color: '#ff0033' },
+        'TOP 100': { label: 'TOP 100', grad: '255, 230, 0', color: '#ffe600' }
     };
 
     useEffect(() => {

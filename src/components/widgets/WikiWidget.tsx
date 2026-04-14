@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Database, Disc, MapPin, Tent } from 'lucide-react';
+import { Database, Disc, MapPin, Tent, LayoutGrid, List } from 'lucide-react';
 import { WikiDropsiders } from '../community/WikiDropsiders';
 import { WikiVenues } from '../community/WikiVenues';
 import { twMerge } from 'tailwind-merge';
@@ -13,6 +13,7 @@ interface WikiWidgetProps {
 export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)', showResults = false }: WikiWidgetProps) {
     const [activeTab, setActiveTab] = useState<'DJS' | 'CLUBS' | 'FESTIVALS'>('DJS');
     const [sortMode, setSortMode] = useState<'alpha' | 'votes'>('alpha');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
 
     const tabs = [
         { id: 'DJS', label: 'Wiki DJs', icon: Disc },
@@ -80,6 +81,28 @@ export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)', showResul
                         Trier par Votes
                     </button>
                 </div>
+                <div className="flex items-center gap-2 bg-black/40 border border-white/10 rounded-2xl p-1.5 ml-4">
+                    <button 
+                        onClick={() => setViewMode('grid')}
+                        className={twMerge(
+                            "p-2 rounded-xl transition-all",
+                            viewMode === 'grid' ? "bg-white/10 text-white" : "text-gray-500 hover:text-gray-300"
+                        )}
+                        title="Vue Grille"
+                    >
+                        <LayoutGrid className="w-4 h-4" />
+                    </button>
+                    <button 
+                        onClick={() => setViewMode('list')}
+                        className={twMerge(
+                            "p-2 rounded-xl transition-all",
+                            viewMode === 'list' ? "bg-white/10 text-white" : "text-gray-500 hover:text-gray-300"
+                        )}
+                        title="Vue Liste"
+                    >
+                        <List className="w-4 h-4" />
+                    </button>
+                </div>
             </div>
 
             {/* Content Area */}
@@ -89,16 +112,16 @@ export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)', showResul
 
                 <AnimatePresence mode="wait">
                     <motion.div
-                        key={activeTab}
+                        key={activeTab + viewMode}
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0, y: -10 }}
                         transition={{ duration: 0.3 }}
                         className="relative z-10"
                     >
-                        {activeTab === 'DJS' && <WikiDropsiders showResults={showResults} sortMode={sortMode} />}
-                        {activeTab === 'CLUBS' && <WikiVenues initialMode="clubs" showResults={showResults} sortMode={sortMode} />}
-                        {activeTab === 'FESTIVALS' && <WikiVenues initialMode="festivals" showResults={showResults} sortMode={sortMode} />}
+                        {activeTab === 'DJS' && <WikiDropsiders showResults={showResults} sortMode={sortMode} viewMode={viewMode} />}
+                        {activeTab === 'CLUBS' && <WikiVenues initialMode="clubs" showResults={showResults} sortMode={sortMode} viewMode={viewMode} />}
+                        {activeTab === 'FESTIVALS' && <WikiVenues initialMode="festivals" showResults={showResults} sortMode={sortMode} viewMode={viewMode} />}
                     </motion.div>
                 </AnimatePresence>
             </div>
