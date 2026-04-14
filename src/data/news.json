@@ -580,16 +580,18 @@
   {
     "id": 213,
     "title": "INTERVIEW : Morten (EDC LAS VEGAS 2025)",
-    "date": "2026-02-25",
-    "summary": "SUIVEZ MORTEN website instagram tiktok youtube facebook x spotify soundcloud beatport SUIVEZ EDC LAS VEGAS website instagram tiktok youtube facebook x",
-    "image": "https://www.dropsiders.fr/uploads/migrated/dropsiders/nlq4qi2wejvkvgdvppbw.jpg",
+    "date": "2026-02-25T12:00",
+    "summary": "TITRE DE L'ARTICLE",
+    "image": "/uploads/e6b10b1c908a38c1-0__3_.png",
     "images": [],
     "youtubeId": "kKmjrqHS840",
     "category": "Interview Video",
     "isFeatured": false,
     "isFocus": false,
     "link": "https://dropsiders.fr/news/213_interview-morten-edc-las-vegas-2025-",
-    "content": ""
+    "content": "",
+    "showVideo": true,
+    "author": "Alex"
   },
   {
     "id": 214,
