@@ -2915,9 +2915,9 @@ export function AdminDashboard() {
                                                 ))}
                                             </div>
                                         </div>
-                                    );
-                                })()}
-                            </div>
+                                    </div>
+                                );
+                            })()}
                         </div>
                     ) : (
                         <div className="space-y-12">
