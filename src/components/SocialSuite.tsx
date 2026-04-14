@@ -929,9 +929,12 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
                 
                 // Capsule INTERVIEW (Like NEWS)
                 const labelText = "INTERVIEW";
+                
+                ctx.save();
+                const labelFontSize = 42;
+                ctx.font = `900 italic ${labelFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 const labelW = ctx.measureText(labelText).width + 80;
 
-                ctx.save();
                 ctx.globalAlpha = 0.9;
                 ctx.fillStyle = '#ffffff'; // Blanc pour matcher le dégradé 
                 const rectX = (canvas.width - labelW) / 2;
@@ -946,8 +949,6 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
 
                 ctx.globalAlpha = 1;
                 ctx.fillStyle = '#000000';
-                const labelFontSize = 42;
-                ctx.font = `900 italic ${labelFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
                 ctx.textBaseline = 'middle';
                 ctx.fillText(labelText, canvas.width / 2, rectY + (rectH / 2) + 4);
                 ctx.restore();
@@ -965,8 +966,15 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
                     const ratio = Math.min(maxW / lw, maxH / lh);
                     if (ratio < 1) { lw *= ratio; lh *= ratio; }
                     
-                    ctx.shadowColor = 'rgba(255,255,255,0.3)';
-                    ctx.shadowBlur = 10;
+                    // Système de lueur sombre forte pour faire ressortir un logo clair
+                    ctx.shadowColor = 'rgba(0,0,0,0.85)';
+                    ctx.shadowBlur = 25;
+                    ctx.shadowOffsetY = 4;
+                    // Double tracé pour accentuer le contour sombre autour du logo
+                    ctx.drawImage(logo, centerX - (lw / 2), contentY, lw, lh);
+                    ctx.drawImage(logo, centerX - (lw / 2), contentY, lw, lh);
+                    // L'image au naturel par dessus
+                    ctx.shadowColor = 'transparent';
                     ctx.drawImage(logo, centerX - (lw / 2), contentY, lw, lh);
                     ctx.restore();
                 } else if (customText) {
