@@ -273,7 +273,7 @@ export function MobileHome() {
             {/* WIKI WIDGET - PROMOTE TO HOMEPAGE */}
             <section className="pt-8 border-t border-white/5">
                 <div className="mobile-safe-container mb-5">
-                    <WikiWidget accentColor="cyan" resolvedColor="var(--color-neon-cyan)" />
+                    <WikiWidget />
                 </div>
             </section>
 

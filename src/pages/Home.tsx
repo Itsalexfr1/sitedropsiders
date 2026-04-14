@@ -146,7 +146,7 @@ export function Home() {
             case 'wiki_widget':
                 return (
                     <section key="wiki_widget" className="w-full px-4 sm:px-6 lg:px-12 xl:px-16 2xl:px-24 py-12">
-                        <WikiWidget accentColor={accentColor} resolvedColor={color} />
+                        <WikiWidget resolvedColor={color} />
                     </section>
                 );
             default:
