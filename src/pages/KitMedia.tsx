@@ -542,7 +542,7 @@ const KitMedia = () => {
                                     { title: language === 'fr' ? "Avis & Notes" : "Reviews & Ratings", desc: language === 'fr' ? "Les utilisateurs notent l'organisation, le son et la nourriture des festivals." : "Users rate festival organization, sound, and food." },
                                     { title: language === 'fr' ? "Covoiturage" : "Carpooling", desc: language === 'fr' ? "Un outil direct pour organiser ses trajets vers les plus grands événements." : "A direct tool to organize trips to the biggest events." },
                                     { title: language === 'fr' ? "Alertes Line-up" : "Line-up Alerts", desc: language === 'fr' ? "Notification instantanée dès qu'une tête d'affiche est annoncée." : "Instant notification as soon as a headliner is announced." },
-                                    { title: language === 'fr' ? "Social Studio" : "Social Studio", desc: language === 'fr' ? "Notre outil interne devenu une application publique pour créer des visuels premium." : "Our internal tool turned public app for creating premium visuals." }
+
                                 ].map((feature, i) => (
                                     <div key={i} className="flex gap-4 group">
                                         <div className="w-1.5 h-1.5 bg-neon-red rounded-full mt-2 group-hover:scale-150 transition-transform"></div>

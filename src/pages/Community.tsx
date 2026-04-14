@@ -848,7 +848,7 @@ export function Community() {
                 description="Rejoignez la communauté Dropsiders. Jouez au Festival Producer, consultez le Wiki, partagez vos playlists et profitez de l'entraide entre festivaliers."
             />
             <div className={twMerge(
-                "min-h-screen transition-colors duration-1000 pb-32 pt-24",
+                "min-h-screen transition-colors duration-1000 pb-20 pt-16",
                 "bg-dark-bg",
                 "text-white"
             )}>
@@ -891,7 +891,7 @@ export function Community() {
                     <motion.div
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="mb-12 text-center sm:text-left flex flex-col sm:flex-row sm:items-end justify-between gap-8"
+                        className="mb-8 text-center sm:text-left flex flex-col sm:flex-row sm:items-end justify-between gap-8"
                     >
                         <div>
                             <div className="flex items-center justify-center sm:justify-start gap-3 mb-4">
@@ -920,7 +920,7 @@ export function Community() {
                     </motion.div>
 
                     {/* Enhanced Tabs */}
-                    <div className="mb-16 w-full overflow-x-auto no-scrollbar">
+                    <div className="mb-8 w-full overflow-x-auto no-scrollbar">
                         <div className="inline-flex items-center gap-1 p-1.5 bg-white/5 backdrop-blur-3xl rounded-3xl border border-white/10">
                             {([
                                 { id: 'WALL',          icon: Star,         label: 'Souvenirs',         multiline: false },
@@ -2069,16 +2069,7 @@ export function Community() {
                             </motion.div>
                         )}
 
-                        {activeTab === 'AVIS' && (
-                            <motion.div
-                                key="avis"
-                                initial={{ opacity: 0, y: 20 }}
-                                animate={{ opacity: 1, y: 0 }}
-                                exit={{ opacity: 0, y: -20 }}
-                            >
-                                <AvisSection />
-                            </motion.div>
-                        )}
+
 
 
 

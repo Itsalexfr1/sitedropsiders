@@ -500,7 +500,7 @@ function ProductCard({ product, onBuy, isMini = false }: { product: any, onBuy: 
                     )}
 
                     <div className="flex flex-col items-end flex-shrink-0">
-                        <span className={`text-neon-red font-display font-black italic ${isMini ? 'text-sm md:text-lg' : 'text-base md:text-2xl'}`}>{product.price}\u20AC</span>
+                        <span className={`text-neon-red font-display font-black italic ${isMini ? 'text-sm md:text-lg' : 'text-base md:text-2xl'}`}>{product.price}€</span>
                         {!isMini && <span className="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">+ frais de port</span>}
                     </div>
                 </div>
