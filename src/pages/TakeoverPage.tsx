@@ -9,7 +9,7 @@ import {
     Trophy, Stars, Heart, Timer, ShieldAlert, Calendar, Edit2, Edit3,
     Languages, Instagram, MapPin, ShoppingBag, Square, Sparkles,
     Search, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Camera, Check, Coins, Shield,
-    Scan, Wand2, Globe, Volume2, VolumeX, Vote, Disc, Loader2
+    Scan, Wand2, Globe, Volume2, VolumeX, Vote, Disc
 } from 'lucide-react';
 import { useUser } from '../context/UserContext';
 import { UserAuthModal } from '../components/auth/UserAuthModal';
@@ -188,11 +188,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [chatMessages, setChatMessages] = useState<any[]>([]);
     const [userCountry, setUserCountry] = useState('FR');
     const [hoveredMessageId, setHoveredMessageId] = useState<string | null>(null);
-    const [avatar, setAvatar] = useState<string | null>(null);
-    const [isSocialLoading, setIsSocialLoading] = useState(false);
-    const [discordLoading, setDiscordLoading] = useState(false);
-    const [isAuthLoading, setIsAuthLoading] = useState(false);
     const [lastMessageTime, setLastMessageTime] = useState(0);
+    const [slowModeEnabled, setSlowModeEnabled] = useState(false);
+    const [loginInstagram, setLoginInstagram] = useState('');
+    const [loginPseudoColor, setLoginPseudoColor] = useState('#ffffff');
     const [activeQuiz, setActiveQuiz] = useState<any>(null);
     const [quizTimeLeft, setQuizTimeLeft] = useState<number | null>(null);
     const [userHasAnswered, setUserHasAnswered] = useState(false);
@@ -302,7 +301,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
     const [activeHeist, setActiveHeist] = useState<{ participants: { pseudo: string, bet: number }[], timeLeft: number } | null>(null);
     const [activeBoss, setActiveBoss] = useState<{ hp: number, maxHp: number, name: string } | null>(null);
     const [captchaChallenge, setCaptchaChallenge] = useState<{ q: string, a: number } | null>(null);
-    const [captchaInput] = useState('');
+    const [captchaInput, setCaptchaInput] = useState('');
     const [userCity, setUserCity] = useState('ðŸ“ PARIS');
     const [hypeTrain, setHypeTrain] = useState({ active: false, level: 0, progress: 0 });
     const [isMuted, setIsMuted] = useState(false);
@@ -4242,13 +4241,54 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     </div>
 
                                                     <form onSubmit={handleConnect} className="space-y-4">
-                                                        <input
-                                                            value={loginPseudo}
-                                                            onChange={e => setLoginPseudo(e.target.value)}
-                                                            className="w-full bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-black uppercase outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700 text-xs"
-                                                            placeholder="Pseudo Invité"
-                                                        />
-                                                        <button type="submit" className="text-[10px] font-black text-gray-500 uppercase hover:text-white transition-colors w-full text-center">Rejoindre comme invité</button>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <input
+                                                                value={loginPseudo}
+                                                                onChange={e => setLoginPseudo(e.target.value)}
+                                                                className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-black uppercase outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700 text-xs"
+                                                                placeholder="Pseudo Invité"
+                                                            />
+                                                            <input
+                                                                value={loginInstagram}
+                                                                onChange={e => setLoginInstagram(e.target.value)}
+                                                                className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-black uppercase outline-none focus:border-neon-red/50 transition-all placeholder:text-gray-700 text-xs"
+                                                                placeholder="@Instagram (Optionnel)"
+                                                            />
+                                                        </div>
+                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                            <div className="bg-white/5 border border-white/10 rounded-xl px-5 py-3 flex items-center justify-between">
+                                                                <span className="text-[10px] font-black text-gray-500 uppercase">Couleur Pseudo</span>
+                                                                <input
+                                                                    type="color"
+                                                                    value={loginPseudoColor}
+                                                                    onChange={e => setLoginPseudoColor(e.target.value)}
+                                                                    className="w-8 h-8 rounded-full border-none p-0 cursor-pointer bg-transparent"
+                                                                />
+                                                            </div>
+                                                            <select
+                                                                value={loginCountry}
+                                                                onChange={e => setLoginCountry(e.target.value)}
+                                                                className="bg-white/5 border border-white/10 rounded-xl px-5 py-4 text-white font-black uppercase outline-none focus:border-neon-red/50 transition-all text-xs"
+                                                            >
+                                                                {countries.map(c => (
+                                                                    <option key={c.code} value={c.code} className="bg-black">{c.name}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+
+                                                        {captchaChallenge && (
+                                                            <div className="p-4 bg-neon-red/10 border border-neon-red/20 rounded-xl space-y-3">
+                                                                <p className="text-[10px] font-black text-neon-red uppercase tracking-widest text-center">VÉRIFICATION BOT : {captchaChallenge.q}</p>
+                                                                <input
+                                                                    value={captchaInput}
+                                                                    onChange={e => setCaptchaInput(e.target.value)}
+                                                                    className="w-full bg-black/40 border border-white/10 rounded-lg px-4 py-2 text-center text-white font-black outline-none focus:border-neon-red"
+                                                                    placeholder="RÉPONSE"
+                                                                />
+                                                            </div>
+                                                        )}
+
+                                                        <button type="submit" className="w-full py-4 bg-white/5 border border-white/10 text-white font-black uppercase rounded-xl hover:bg-white/10 transition-all">Rejoindre comme invité</button>
                                                     </form>
                                                 </div>
                                             )}

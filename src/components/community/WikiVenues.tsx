@@ -1,6 +1,6 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen, Upload, Image as ImageIcon, Pencil, Star, Disc } from 'lucide-react';
+import { Search, Heart, X, Globe, Instagram, Plus, Save, BookOpen, Upload, Image as ImageIcon, Pencil, Star } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
 import { UserAuthModal } from '../auth/UserAuthModal';
 import { ImageUploadModal } from '../ImageUploadModal';
@@ -85,21 +85,22 @@ export function WikiVenues({
     const [brokenImages, setBrokenImages] = useState<Set<string>>(new Set());
     const [liveBaseData, setLiveBaseData] = useState<any[]>([]);
 
-    useEffect(() => {
-        const fetchLive = async () => {
-            try {
-                const type = mode === 'clubs' ? 'CLUBS' : 'FESTIVALS';
-                const res = await fetch(`/api/wiki/list?type=${type}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    setLiveBaseData(data.filter((v: any) => v.status !== 'waiting'));
-                }
-            } catch (error) {
-                console.error('Failed to fetch live wiki data:', error);
+    const fetchData = useCallback(async () => {
+        try {
+            const type = mode === 'clubs' ? 'CLUBS' : 'FESTIVALS';
+            const res = await fetch(`/api/wiki/list?type=${type}`);
+            if (res.ok) {
+                const data = await res.json();
+                setLiveBaseData(data.filter((v: any) => v.status !== 'waiting'));
             }
-        };
-        fetchLive();
+        } catch (error) {
+            console.error('Failed to fetch live wiki data:', error);
+        }
     }, [mode]);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
 
     const reportBrokenImage = async (id: string) => {
         try {
@@ -174,7 +175,7 @@ export function WikiVenues({
 
             if (res.ok) {
                 // Silently refresh data to get latest global counts
-                fetchItems();
+                fetchData();
             }
         } catch (error) {
             console.error('Failed to sync vote with server', error);

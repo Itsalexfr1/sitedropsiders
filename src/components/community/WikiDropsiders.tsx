@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, X, Youtube, Heart } from 'lucide-react';
 import { useUser } from '../../context/UserContext';
@@ -7,6 +7,7 @@ import { apiFetch, getAuthHeaders } from '../../utils/auth';
 import { useLanguage } from '../../context/LanguageContext';
 import { ImageUploadModal } from '../ImageUploadModal';
 import { resolveImageUrl } from '../../utils/image';
+import React from 'react';
 
 type DjEntry = {
     id: string;
@@ -51,25 +52,26 @@ export function WikiDropsiders({
     const [isLoading, setIsLoading] = useState(true);
     const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-    useEffect(() => {
-        const fetchLive = async () => {
-            try {
-                const res = await fetch('/api/wiki/list?type=DJS');
-                if (res.ok) {
-                    const data: DjEntry[] = await res.json();
-                    setDjData(data
-                        .filter(dj => dj.status !== 'waiting')
-                        .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }))
-                    );
-                }
-            } catch (error) {
-                console.error('Failed to fetch live wiki data:', error);
-            } finally {
-                setIsLoading(false);
+    const fetchData = useCallback(async () => {
+        try {
+            const res = await fetch('/api/wiki/list?type=DJS');
+            if (res.ok) {
+                const data: DjEntry[] = await res.json();
+                setDjData(data
+                    .filter(dj => dj.status !== 'waiting')
+                    .sort((a, b) => a.name.localeCompare(b.name, 'fr', { sensitivity: 'base' }))
+                );
             }
-        };
-        fetchLive();
+        } catch (error) {
+            console.error('Failed to fetch live wiki data:', error);
+        } finally {
+            setIsLoading(false);
+        }
     }, []);
+
+    useEffect(() => {
+        fetchData();
+    }, [fetchData]);
     const [selectedDj, setSelectedDj] = useState<DjEntry | null>(null);
     const [votes, setVotes] = useState<Set<string>>(() => loadVotes());
     const isAdmin = localStorage.getItem('admin_auth') === 'true';
@@ -142,7 +144,7 @@ export function WikiDropsiders({
             });
             if (res.ok) {
                 // Silently refresh data to get latest global counts
-                fetchItems();
+                fetchData();
             }
         } catch (error) {
             console.error('Failed to sync vote with server', error);
