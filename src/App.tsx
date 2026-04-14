@@ -60,6 +60,7 @@ const QrCodePage = lazyRetry(() => import('./pages/QrCodePage').then(m => m.QrCo
 const InterviewVisualGenerator = lazyRetry(() => import('./pages/InterviewVisualGenerator').then(m => m.InterviewVisualGenerator));
 const VideoStudioGenerator = lazyRetry(() => import('./pages/AftermovieGenerator').then(m => m.VideoStudioGenerator));
 const TopDropsiders = lazyRetry(() => import('./pages/TopDropsiders').then(m => m.TopDropsiders));
+const Profile = lazyRetry(() => import('./pages/Profile').then(m => m.Profile));
 
 function ErrorFallback() {
   return (
@@ -154,6 +155,7 @@ const router = createBrowserRouter([
       { path: "galerie", element: <Galerie /> },
       { path: "communaute", element: <Community /> },
       { path: "top-dropsiders", element: <TopDropsiders /> },
+      { path: "profil", element: <Profile /> },
       { path: "communaute/partager", element: <PhotoSubmission /> },
       { path: "galerie/:id", element: <AlbumDetail /> },
       { path: "communaute/:id", element: <AlbumDetail /> },

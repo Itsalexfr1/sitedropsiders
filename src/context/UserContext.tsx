@@ -20,6 +20,7 @@ interface UserContextType {
     logout: () => void;
     updateScore: (gameId: string, score: number) => void;
     toggleTrackId: (trackId: string) => void;
+    updateUser: (updates: Partial<UserProfile>) => void;
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -117,6 +118,13 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
         setUser({ ...user, trackIds: newTrackIds });
     };
 
+    const updateUser = (updates: Partial<UserProfile>) => {
+        if (!user) return;
+        const updatedUser = { ...user, ...updates };
+        setUser(updatedUser);
+        saveToRegisteredUsers(updatedUser);
+    };
+
     return (
         <UserContext.Provider value={{
             user,
@@ -125,7 +133,8 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
             loginSocial,
             logout,
             updateScore,
-            toggleTrackId
+            toggleTrackId,
+            updateUser
         }}>
             {children}
         </UserContext.Provider>

@@ -289,7 +289,7 @@ export function Navbar() {
                                 whileHover={{ scale: 1.05 }}
                                 whileTap={{ scale: 0.95 }}
                                 onMouseEnter={playHoverSound}
-                                onClick={() => setIsUserModalOpen(true)}
+                                onClick={() => isLoggedIn ? navigate('/profil') : setIsUserModalOpen(true)}
                                 className={twMerge(
                                     "px-4 py-2.5 transition-all rounded-xl flex items-center gap-2 group",
                                     isLoggedIn ? "bg-neon-red text-white shadow-[0_0_20px_rgba(255,18,65,0.3)]" : "text-gray-400 hover:text-white hover:bg-white/10"
@@ -297,7 +297,11 @@ export function Navbar() {
                                 title={isLoggedIn ? `Compte (${user?.username})` : "Connexion"}
                             >
                                 <div className="relative">
-                                    <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                    {isLoggedIn && user?.avatar ? (
+                                        <img src={user.avatar} className="w-5 h-5 rounded-full object-cover border border-white/20 group-hover:scale-110 transition-transform" />
+                                    ) : (
+                                        <User className="w-5 h-5 group-hover:scale-110 transition-transform" />
+                                    )}
                                     {isLoggedIn && (
                                         <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-white rounded-full shadow-[0_0_10px_rgba(255,255,255,0.8)]" />
                                     )}

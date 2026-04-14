@@ -60,6 +60,8 @@ export function MobileNavbar() {
         }
     ];
 
+    const navigate = useNavigate();
+
     const menuItems = [
         // Live moved to center if active
         { icon: Newspaper, label: navLabels.news || 'News', path: '/news', color: 'text-neon-cyan' },
@@ -68,7 +70,13 @@ export function MobileNavbar() {
         { icon: Info, label: navLabels.interviews || t('nav.interviews'), path: '/interviews', color: 'text-neon-blue' },
         { icon: Users, label: navLabels.team || t('nav.team'), path: '/team', color: 'text-neon-yellow' },
         { icon: ShoppingBag, label: navLabels.shop || t('nav.shop'), path: '/shop', color: 'text-neon-red' },
-        { icon: User, label: isLoggedIn ? (user?.username || 'Compte') : 'Compte', path: '#', onClick: () => setIsUserModalOpen(true), color: isLoggedIn ? 'text-neon-red shadow-[0_0_15px_rgba(255,0,51,0.4)]' : 'text-gray-400' },
+        { 
+            icon: User, 
+            label: isLoggedIn ? (user?.username || 'Compte') : 'Compte', 
+            path: isLoggedIn ? '/profil' : '#', 
+            onClick: isLoggedIn ? () => setIsMenuOpen(false) : () => setIsUserModalOpen(true), 
+            color: isLoggedIn ? 'text-neon-red shadow-[0_0_15px_rgba(255,0,51,0.4)]' : 'text-gray-400' 
+        },
         ...(isAdmin ? [{ icon: Shield, label: 'Admin', path: '/admin', color: 'text-white' }] : [])
     ];
 

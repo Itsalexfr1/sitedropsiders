@@ -137,6 +137,16 @@ export function ImageUploadModal({
         }
     }, [sortBy]);
 
+    const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10MB
+    const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
+
+    const sanitizeFilename = (name: string) => {
+        const parts = name.split('.');
+        const ext = parts.pop();
+        const base = parts.join('.');
+        return base.replace(/[^a-z0-9]/gi, '_').toLowerCase() + (ext ? `.${ext.toLowerCase()}` : '');
+    };
+
     const handleR2LoadMore = () => {
         if (r2Cursor && !r2Loading) {
             fetchR2Photos(r2Cursor);
@@ -149,28 +159,60 @@ export function ImageUploadModal({
 
         const newImages: {file: File, preview: string}[] = [];
         let processedCount = 0;
+        let errors: string[] = [];
 
         files.forEach(file => {
-            if (file.type.startsWith('image/')) {
+            const isImage = file.type.startsWith('image/');
+            const isVideo = file.type.startsWith('video/');
+            const maxSize = isImage ? MAX_IMAGE_SIZE : MAX_VIDEO_SIZE;
+
+            if (!isImage && !isVideo) {
+                errors.push(`${file.name}: Type non supporté.`);
+                processedCount++;
+                if (processedCount === files.length) {
+                    finalizeFileChange(newImages, errors);
+                }
+                return;
+            }
+
+            if (file.size > maxSize) {
+                errors.push(`${file.name}: Trop volumineux (Max ${isImage ? '10' : '50'}MB).`);
+                processedCount++;
+                if (processedCount === files.length) {
+                    finalizeFileChange(newImages, errors);
+                }
+                return;
+            }
+
+            if (isImage) {
                 const reader = new FileReader();
                 reader.onload = () => {
                     newImages.push({ file, preview: reader.result as string });
                     processedCount++;
                     if (processedCount === files.length) {
-                        setSelectedImages(newImages);
-                        setStep('preview');
+                        finalizeFileChange(newImages, errors);
                     }
                 };
                 reader.readAsDataURL(file);
-            } else if (file.type.startsWith('video/')) {
+            } else if (isVideo) {
                 newImages.push({ file, preview: URL.createObjectURL(file) });
                 processedCount++;
                 if (processedCount === files.length) {
-                    setSelectedImages(newImages);
-                    setStep('preview');
+                    finalizeFileChange(newImages, errors);
                 }
             }
         });
+    };
+
+    const finalizeFileChange = (images: {file: File | null, preview: string}[], errors: string[]) => {
+        if (errors.length > 0) {
+            setStatus('error');
+            setMessage(errors.join(' '));
+        }
+        if (images.length > 0) {
+            setSelectedImages(images);
+            setStep('preview');
+        }
     };
 
     const processImage = async (dataUrl: string): Promise<string> => {
@@ -231,7 +273,7 @@ export function ImageUploadModal({
                 }
 
                 if (item.file) {
-                    const filename = forceFilename || item.file.name;
+                    const filename = forceFilename || sanitizeFilename(item.file.name);
                     let fileType = item.file.type;
                     let base64 = item.preview;
                     
