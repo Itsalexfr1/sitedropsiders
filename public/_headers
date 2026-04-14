@@ -1,3 +1,4 @@
 /*
-  Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Embedder-Policy: require-corp
+  Cross-Origin-Opener-Policy: same-origin-allow-popups
+  Cross-Origin-Embedder-Policy: unsafe-none
+  Content-Security-Policy: default-src * 'unsafe-inline' 'unsafe-eval' data: blob:; img-src * data: blob: *.instagram.com *.facebook.com *.cdninstagram.com *.spotify.com *.scdn.co *.tiktok.com *.byteoversea.com *.beatport.com *.youtube.com *.youtube-nocookie.com *.googlevideo.com; frame-src * data: blob: *.instagram.com *.facebook.com *.spotify.com *.scdn.co *.tiktok.com *.byteoversea.com *.beatport.com *.youtube.com *.youtube-nocookie.com *.googlevideo.com; script-src * 'unsafe-inline' 'unsafe-eval' *.instagram.com *.facebook.com *.cdninstagram.com *.spotify.com *.scdn.co *.tiktok.com *.byteoversea.com *.beatport.com *.youtube.com *.youtube-nocookie.com *.googlevideo.com;

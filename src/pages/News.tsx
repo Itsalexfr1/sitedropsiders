@@ -42,7 +42,7 @@ export function News() {
 
         const fetchNews = async () => {
             try {
-                const data = await fetchWithFallback('/api/news');
+                const data = await fetchWithFallback('/api/news', { headers: getAuthHeaders() });
                 if (data) {
                     setNewsData(data);
                 }
@@ -56,7 +56,7 @@ export function News() {
 
         const fetchSettings = async () => {
             try {
-                const data = await fetchWithFallback('/api/settings');
+                const data = await fetchWithFallback('/api/settings', { headers: getAuthHeaders() });
                 if (data && data.news_tabs) {
                     setTabs(prev => prev.map(tab => ({
                         ...tab,
@@ -71,7 +71,7 @@ export function News() {
 
         const fetchAgenda = async () => {
             try {
-                const data = await fetchWithFallback('/api/agenda');
+                const data = await fetchWithFallback('/api/agenda', { headers: getAuthHeaders() });
                 if (data) {
                     const now = new Date();
                     const upcoming = (Array.isArray(data) ? data : [])
@@ -86,7 +86,7 @@ export function News() {
 
         const fetchRecaps = async () => {
             try {
-                const data = await fetchWithFallback('/api/recaps');
+                const data = await fetchWithFallback('/api/recaps', { headers: getAuthHeaders() });
                 if (data) {
                     setRecapsData((Array.isArray(data) ? data : []).slice(0, 3));
                 }

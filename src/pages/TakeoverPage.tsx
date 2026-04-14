@@ -979,8 +979,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
 
     const extractYoutubeId = (url: string) => {
         if (!url) return '';
-        const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([\w-]{11})/);
-        return match ? match[1] : url.trim();
+        const match = url.match(/(?:https?:)?\/\/(?:www\.|m\.)?(?:youtube\.com|youtu\.be)\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/)?([\w-]{11})/);
+        if (match) return match[1];
+        const trimmed = url.trim();
+        return (trimmed.length === 11) ? trimmed : trimmed;
     };
     const [toast, setToast] = useState<{ show: boolean, message: string, type: 'success' | 'error' }>({
         show: false, message: '', type: 'success'
@@ -2627,9 +2629,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                 return activeYtId ? (
                                     <iframe 
                                         className="w-full h-full border-none" 
-                                        src={`https://www.youtube-nocookie.com/embed/${extractYoutubeId(activeYtId)}?autoplay=1&mute=0&rel=0&modestbranding=1`} 
+                                        src={`https://www.youtube.com/embed/${extractYoutubeId(activeYtId)}?autoplay=1&mute=0&rel=0&modestbranding=1`} 
                                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                                         allowFullScreen 
+                                        referrerPolicy="no-referrer"
                                     />
                                 ) : (
                                     <div className="w-full h-full flex flex-col items-center justify-center bg-black gap-4">
@@ -2668,9 +2671,10 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                                     <>
                                                         <iframe
                                                             className="w-full h-full border-none"
-                                                            src={`https://www.youtube-nocookie.com/embed/${extractYoutubeId(s.youtubeId)}?autoplay=${idx === activeAudioIdx ? 1 : 0}&mute=${idx === activeAudioIdx ? 0 : 1}&rel=0&modestbranding=1`}
+                                                            src={`https://www.youtube.com/embed/${extractYoutubeId(s.youtubeId)}?autoplay=${idx === activeAudioIdx ? 1 : 0}&mute=${idx === activeAudioIdx ? 0 : 1}&rel=0&modestbranding=1`}
                                                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                             allowFullScreen
+                                                            referrerPolicy="no-referrer"
                                                         />
                                                         <div className="absolute top-2 left-2 px-2 py-0.5 bg-black/60 backdrop-blur-md border border-white/10 rounded-md text-[8px] font-black text-white uppercase tracking-widest opacity-0 group-hover:opacity-100 transition-all">
                                                             {s.name}
@@ -4800,7 +4804,7 @@ export const TakeoverPage = ({ initialSettings }: { initialSettings?: any }) => 
                                     <button onClick={() => setIsHighlightChecked(!isHighlightChecked)} className={`p-2 rounded-lg transition-all ${isHighlightChecked ? 'bg-amber-500 text-black shadow-[0_0_10px_rgba(245,158,11,0.4)]' : 'text-gray-500 hover:text-white hover:bg-white/5'}`}>
                                         <Zap className="w-4 h-4" />
                                     </button>
-                                    <button onClick={() => window.open(window.location.href, 'Chat', 'width=400,height=800')} className="p-2 text-gray-500 hover:text-white transition-all" title="DÃ©tacher le chat">
+                                    <button onClick={() => window.open(window.location.href + (window.location.href.includes('?') ? '&' : '?') + 'popout=true', 'Chat', 'width=400,height=800')} className="p-2 text-gray-500 hover:text-white transition-all" title="Détacher le chat">
                                         <Maximize2 className="w-4 h-4" />
                                     </button>
                                     <button onClick={() => handleSendMessage(newMessage)} className="p-2 text-white rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all" style={{ backgroundColor: accentColor }}>

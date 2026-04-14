@@ -77,13 +77,20 @@ export function FloatingTakeoverPlayer() {
                             videoId = firstChannel?.split(':')[0]?.trim();
                         }
 
+                        const extractYoutubeId = (url: string) => {
+                            if (!url) return '';
+                            const match = url.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/|live\/))([\w-]{11})/);
+                            return match ? match[1] : url.trim();
+                        };
+
                         return (
                             <iframe
                                 className="w-full h-full pointer-events-auto"
-                                src={`https://www.youtube.com/embed/${videoId}?autoplay=1&mute=0&rel=0&modestbranding=1&controls=1&origin=${window.location.origin}`}
+                                src={`https://www.youtube.com/embed/${extractYoutubeId(videoId)}?autoplay=1&mute=0&rel=0&modestbranding=1&controls=1`}
                                 title="Live Takeover"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowFullScreen
+                                referrerPolicy="no-referrer"
                             ></iframe>
                         );
                     })()}

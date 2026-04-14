@@ -82,7 +82,7 @@ const getAuthorTextStyle = (username: string) => {
 async function fetchJson(file: string): Promise<any[]> {
     try {
         const endpoint = `/api/${file.replace('.json', '')}`;
-        const data = await fetchWithFallback(endpoint);
+        const data = await fetchWithFallback(endpoint, { headers: getAuthHeaders() });
         if (data) return Array.isArray(data) ? data : [];
     } catch (error: any) {
         console.error(`API fetch failed for ${file}:`, error);

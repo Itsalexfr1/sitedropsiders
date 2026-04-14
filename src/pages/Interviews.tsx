@@ -40,7 +40,7 @@ export function Interviews() {
         
         const fetchNews = async () => {
             try {
-                const data = await fetchWithFallback('/api/news');
+                const data = await fetchWithFallback('/api/news', { headers: getAuthHeaders() });
                 if (data) {
                     setNewsData(data);
                 }

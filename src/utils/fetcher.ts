@@ -6,9 +6,9 @@ import galerieFallback from '../data/galerie.json';
 /**
  * Robust fetcher that returns static fallback data if the API fails or returns empty.
  */
-export async function fetchWithFallback(url: string) {
+export async function fetchWithFallback(url: string, options: RequestInit = {}) {
     try {
-        const res = await fetch(url);
+        const res = await fetch(url, options);
         if (res.ok) {
             const data = await res.json();
             if (Array.isArray(data) && data.length > 0) {

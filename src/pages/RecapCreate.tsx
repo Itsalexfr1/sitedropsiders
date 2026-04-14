@@ -2074,7 +2074,7 @@ export function RecapCreate() {
                                                                 } else if (val.includes('youtu.be/')) {
                                                                     id = val.split('youtu.be/')[1];
                                                                 }
-                                                                const videoWidget = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">\n  <iframe src="https://www.youtube.com/embed/${id}" className="absolute inset-0 w-full h-full" allowFullScreen></iframe>\n</div>`;
+                                                                const videoWidget = `<div class="youtube-player-widget w-full relative aspect-video rounded-3xl overflow-hidden shadow-2xl border border-white/5 my-12">\n  <iframe src="https://www.youtube.com/embed/${id}" className="absolute inset-0 w-full h-full" allowFullScreen referrerPolicy="no-referrer"></iframe>\n</div>`;
                                                                 updateWidget(widget.id, videoWidget);
                                                             } else if (widget.content.includes('image-premium-wrapper')) {
                                                                 const { url, ratio } = extractSingleImageUrlAndRatio(widget.content);
@@ -2303,6 +2303,7 @@ export function RecapCreate() {
                                                 className="absolute top-0 left-0 w-full h-full"
                                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                                 allowFullScreen
+                                                referrerPolicy="no-referrer"
                                             />
                                         </div>
                                     </div>
