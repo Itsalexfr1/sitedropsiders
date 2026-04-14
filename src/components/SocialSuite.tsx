@@ -4,8 +4,10 @@ import {
     X, Download, Upload, PlusCircle, Plus, Eraser,
     Video, Layout, Smartphone, Image as ImageIcon,
     Home, Link as LinkIcon, Palette, Type, Film,
-    Check, Layers, Sparkles, Wand2, RotateCcw
+    Check, Layers, Sparkles, Wand2, RotateCcw,
+    Heart, Search, BookOpen, Star, Instagram, Music2, Headphones, Pencil, Save, Youtube, LayoutGrid, List
 } from 'lucide-react';
+import { resolveImageUrl } from '../utils/image';
 import { fixEncoding } from '../utils/standardizer';
 import { Downloader } from '../pages/Downloader';
 import recapsData from '../data/recaps.json';
@@ -935,7 +937,7 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme, top100Data
 
                 // Full image background if exists
                 if (bgImage || item.image) {
-                    const src = bgImage || item.image || '';
+                    const src = resolveImageUrl(bgImage || item.image);
                     let photo: HTMLImageElement | null = null;
                     if (imageCacheRef.current[src]) {
                         photo = imageCacheRef.current[src];
