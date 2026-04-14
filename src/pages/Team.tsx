@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useLanguage } from '../context/LanguageContext';
 import { TeamContactModal } from '../components/widgets/TeamContactModal';
 import { resolveImageUrl } from '../utils/image';
+import { Instagram, Music } from 'lucide-react';
 
 export function Team() {
     const { t } = useLanguage();
@@ -52,11 +53,7 @@ export function Team() {
                                     rel="noopener noreferrer"
                                     className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-neon-red/20 hover:border-neon-red/50 hover:scale-110 transition-all duration-300 backdrop-blur-xl group/social"
                                 >
-                                    <img
-                                        src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png"
-                                        alt="Instagram"
-                                        className="w-6 h-6 object-contain invert opacity-80 group-hover/social:opacity-100 group-hover/social:brightness-0 group-hover/social:invert-[0.20] group-hover/social:sepia-[0.95] group-hover/social:saturate-[6000%] group-hover/social:hue-rotate-[350deg] transition-all duration-300"
-                                    />
+                                    <Instagram className="w-6 h-6 text-white opacity-80 group-hover/social:opacity-100 group-hover/social:text-neon-red transition-all duration-300" />
                                 </a>
                                 {member.socials.tiktok && member.socials.tiktok !== '#' && (
                                     <a
@@ -65,11 +62,7 @@ export function Team() {
                                         rel="noopener noreferrer"
                                         className="w-12 h-12 rounded-full bg-white/10 border border-white/20 flex items-center justify-center hover:bg-neon-red/20 hover:border-neon-red/50 hover:scale-110 transition-all duration-300 backdrop-blur-xl group/social"
                                     >
-                                        <img
-                                            src="https://cdn-icons-png.flaticon.com/512/3046/3046121.png"
-                                            alt="TikTok"
-                                            className="w-6 h-6 object-contain filter group-hover/social:brightness-0 group-hover/social:invert-[0.20] group-hover/social:sepia-[0.95] group-hover/social:saturate-[6000%] group-hover/social:hue-rotate-[350deg] transition-all duration-300"
-                                        />
+                                        <Music className="w-5 h-5 text-white opacity-80 group-hover/social:opacity-100 group-hover/social:text-neon-red transition-all duration-300" />
                                     </a>
                                 )}
                             </div>

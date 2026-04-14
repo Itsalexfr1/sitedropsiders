@@ -622,14 +622,6 @@ export function Voyage() {
                                     >
                                         <div className="p-8 md:p-10 flex flex-col lg:flex-row justify-between items-center gap-10">
                                             <div className="flex items-center gap-8 w-full lg:w-auto">
-                                                <div className="w-20 h-20 bg-white/5 rounded-3xl flex items-center justify-center border border-white/5 shrink-0 relative order-1 lg:order-none">
-                                                    <img 
-                                                        src={`https://logos.skyscnr.com/images/airlines/favicon/${r.iata}.png`} 
-                                                        alt={r.company}
-                                                        onError={(e: any) => e.target.src = 'https://cdn-icons-png.flaticon.com/512/780/780614.png'} 
-                                                        className="w-12 h-12 object-contain brightness-150"
-                                                    />
-                                                </div>
                                                 
                                                 <div className="flex-1 space-y-6">
                                                     <div className="flex items-center gap-4">

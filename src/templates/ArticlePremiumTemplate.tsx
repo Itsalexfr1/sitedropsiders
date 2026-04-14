@@ -574,7 +574,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all group"
                                     title="Partager sur Facebook"
                                 >
-                                    <img src="https://cdn-icons-png.flaticon.com/512/733/733547.png" alt="Facebook" className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+                                    <Facebook className="w-4 h-4 text-white group-hover:text-blue-500 transition-colors" />
                                 </a>
 
                                 {/* Instagram */}
@@ -583,7 +583,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all group"
                                     title="Partager en Story ou Publication Instagram"
                                 >
-                                    <img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram" className="w-4 h-4 opacity-70 group-hover:opacity-100 transition-opacity" />
+                                    <Instagram className="w-4 h-4 text-white group-hover:text-pink-500 transition-colors" />
                                 </button>
 
                                 {/* X (Twitter) */}
@@ -594,7 +594,7 @@ const ArticlePremiumTemplate: React.FC<ArticlePremiumTemplateProps> = ({ article
                                     className="w-10 h-10 flex items-center justify-center rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 transition-all group"
                                     title="Partager sur X"
                                 >
-                                    <img src="https://cdn-icons-png.flaticon.com/512/5969/5969020.png" alt="X" className="w-4 h-4 invert opacity-70 group-hover:opacity-100 transition-opacity" />
+                                    <XIcon className="w-4 h-4 text-white group-hover:text-gray-400 transition-colors" />
                                 </a>
 
                                 <div className="w-[1px] h-6 bg-white/10 mx-1" />

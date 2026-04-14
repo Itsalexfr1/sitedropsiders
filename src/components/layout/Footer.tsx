@@ -1,4 +1,3 @@
-
 import { Mail, Lock, Globe, Instagram, Youtube, Facebook, Twitter, Music } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
@@ -6,6 +5,18 @@ import { useLanguage } from '../../context/LanguageContext';
 import { useState, useEffect } from 'react';
 import settings from '../../data/settings.json';
 import { NewsletterForm } from '../widgets/NewsletterForm';
+
+const TiktokIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-5.2 1.74 2.89 2.89 0 0 1 2.31-4.64 2.93 2.93 0 0 1 .88.13V9.4a6.84 6.84 0 0 0-1-.05A6.33 6.33 0 0 0 5 20.1a6.34 6.34 0 0 0 10.86-4.43V7.82a8.16 8.16 0 0 0 4.77 1.52v-3.4a4.85 4.85 0 0 1-1.04-.25z" />
+    </svg>
+);
+
+const SpotifyIcon = (props: any) => (
+    <svg viewBox="0 0 24 24" fill="currentColor" {...props}>
+        <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.5 17.3c-.2.3-.6.4-.9.2-2.8-1.7-6.4-2.1-10.6-1.1-.3.1-.7-.1-.8-.4-.1-.3.1-.7.4-.8 4.7-1.1 8.7-.6 11.8 1.3.2.2.3.5.1.8zm1.5-3.3c-.3.4-.8.5-1.2.3-3.2-2-8.2-2.6-12-1.4-.4.1-.9-.1-1-.5-.1-.4.1-.9.5-1 4.4-1.3 9.9-.7 13.6 1.6.3.3.4.8.1 1zM19.2 10.6c-3.9-2.3-10.3-2.5-14.1-1.4-.6.2-1.2-.2-1.4-.8-.2-.6.2-1.2.8-1.4 4.3-1.3 11.4-1.1 16 1.6.5.3.7 1 .4 1.5-.3.5-1 .7-1.5.4v.1z" />
+    </svg>
+);
 
 export function Footer() {
     const { t } = useLanguage();
@@ -63,7 +74,8 @@ export function Footer() {
 
     const socialLinks = [
         { name: 'Instagram', icon: <Instagram className="w-6 h-6" />, href: getSocialUrl(socials.instagram, 'instagram'), color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
-        { name: 'TikTok', icon: <Music className="w-6 h-6" />, href: getSocialUrl(socials.tiktok, 'tiktok'), color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
+        { name: 'TikTok', icon: <TiktokIcon className="w-5 h-5 fill-current" />, href: getSocialUrl(socials.tiktok, 'tiktok'), color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
+        { name: 'Spotify', icon: <SpotifyIcon className="w-5 h-5 fill-current" />, href: `https://open.spotify.com/user/dropsiders`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
         { name: 'YouTube', icon: <Youtube className="w-6 h-6" />, href: `https://www.youtube.com/@dropsiders`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
         { name: 'X', icon: <Twitter className="w-6 h-6" />, href: `https://x.com/dropsidersfr`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' },
         { name: 'Facebook', icon: <Facebook className="w-6 h-6" />, href: `https://www.facebook.com/dropsidersfr`, color: 'group-hover:border-neon-red group-hover:bg-neon-red/10 group-hover:text-neon-red' }
@@ -130,7 +142,7 @@ export function Footer() {
                             <h3 className="text-xl font-display font-black text-white uppercase italic tracking-tight">
                                 <ZoomText text={t('footer.join').replace(/<[^>]*>/g, '')} />
                             </h3>
-                            <div className="grid grid-cols-5 gap-3 max-w-[250px] mx-auto lg:mx-0">
+                            <div className="grid grid-cols-6 gap-2 max-w-[300px] mx-auto lg:mx-0">
                                 {socialLinks.map((social) => (
                                     <motion.a
                                         key={social.name}

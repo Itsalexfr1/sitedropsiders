@@ -28,8 +28,16 @@ function saveLiked(s: Set<string>) { localStorage.setItem(LIKES_KEY, JSON.string
 
 function toEmbedUrl(url: string, type: string): string {
     if (type === 'Spotify') {
-        // https://open.spotify.com/playlist/ID → https://open.spotify.com/embed/playlist/ID
-        return url.replace('open.spotify.com/', 'open.spotify.com/embed/');
+        // Handle https://open.spotify.com/playlist/ID?si=... -> https://open.spotify.com/embed/playlist/ID
+        // Also handle international codes like open.spotify.com/intl-fr/playlist/ID
+        let cleanUrl = url.split('?')[0];
+        if (cleanUrl.includes('open.spotify.com/')) {
+            const parts = cleanUrl.split('open.spotify.com/')[1].split('/');
+            const id = parts[parts.length - 1];
+            const itemType = parts.includes('album') ? 'album' : parts.includes('track') ? 'track' : 'playlist';
+            return `https://open.spotify.com/embed/${itemType}/${id}`;
+        }
+        return url;
     }
     if (type === 'SoundCloud') {
         return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&color=%23ff0033&auto_play=false&visual=true`;
