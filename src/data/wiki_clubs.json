@@ -883,7 +883,8 @@
     "website": "https://www.luxfragil.com",
     "instagram": "https://instagram.com/luxfragil",
     "votes": 0,
-    "description_en": "Le club le plus iconique du Portugal, avec une vue imprenable sur le Tage et une programmation toujours à la pointe."
+    "description_en": "Le club le plus iconique du Portugal, avec une vue imprenable sur le Tage et une programmation toujours à la pointe.",
+    "status": "waiting"
   },
   {
     "id": "c99",
