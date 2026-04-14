@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Database, Disc, MapPin, Tent, LayoutGrid, List } from 'lucide-react';
 import { WikiDropsiders } from '../community/WikiDropsiders';
 import { WikiVenues } from '../community/WikiVenues';
