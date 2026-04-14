@@ -3129,7 +3129,6 @@ export function AdminDashboard() {
                                                                     ctx.letterSpacing = '2px';
                                                                     ctx.fillText('DROPSIDERS.FR', W - padX - 12, textY);
                                                                     ctx.restore();
-                                                                }
 
                                                                     return canvas.toDataURL('image/png');
                                                                 };
