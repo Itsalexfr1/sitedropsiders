@@ -933,6 +933,10 @@ export function SocialSuite({ title, imageUrl, onClose, initialTheme }: SocialSu
                 ctx.save();
                 const labelFontSize = 42;
                 ctx.font = `900 italic ${labelFontSize}px "Montserrat", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", sans-serif`;
+                
+                // IMPORTANT: Reset textAlign to center for proper alignment!
+                ctx.textAlign = 'center';
+                
                 const labelW = ctx.measureText(labelText).width + 80;
 
                 ctx.globalAlpha = 0.9;
