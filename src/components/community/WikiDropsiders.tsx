@@ -33,7 +33,7 @@ function groupByLetter(data: DjEntry[]): Record<string, DjEntry[]> {
     }, {} as Record<string, DjEntry[]>);
 }
 
-export function WikiDropsiders() {
+export function WikiDropsiders({ showResults = false }: { showResults?: boolean }) {
     const { t, language } = useLanguage();
     const [search, setSearch] = useState('');
     const [djData, setDjData] = useState<DjEntry[]>([]);
@@ -226,10 +226,12 @@ export function WikiDropsiders() {
                                                         <div className="text-[9px] font-black text-white uppercase tracking-widest leading-tight line-clamp-1">{dj.name}</div>
                                                     </div>
                                                     {/* Rating */}
-                                                    <div className="absolute top-2 right-2 flex items-center gap-0.5 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5">
-                                                        <Star className="w-2.5 h-2.5 text-neon-red fill-current" />
-                                                        <span className="text-[8px] font-black text-white">{dj.rating}</span>
-                                                    </div>
+                                                    {showResults && (
+                                                        <div className="absolute top-2 right-2 flex items-center gap-0.5 bg-black/60 backdrop-blur-sm rounded-full px-1.5 py-0.5">
+                                                            <Star className="w-2.5 h-2.5 text-neon-red fill-current" />
+                                                            <span className="text-[8px] font-black text-white">{dj.rating}</span>
+                                                        </div>
+                                                    )}
                                                 </div>
 
                                                 {/* Vote button */}
@@ -279,13 +281,15 @@ export function WikiDropsiders() {
                                     </div>
                                     <div className="flex items-center justify-between gap-4">
                                         <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter drop-shadow-lg">{selectedDj.name}</h3>
-                                        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl px-3 py-2 shrink-0">
-                                            <Star className="w-4 h-4 text-neon-red fill-current" />
-                                            <div className="flex flex-col">
-                                                <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">{t('fan_rating')}</span>
-                                                <span className="text-sm font-black text-white leading-none tracking-tighter">{selectedDj.rating} <span className="text-gray-500 text-[10px]">/ 5.0</span></span>
+                                        {showResults && (
+                                            <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl px-3 py-2 shrink-0">
+                                                <Star className="w-4 h-4 text-neon-red fill-current" />
+                                                <div className="flex flex-col">
+                                                    <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">{t('fan_rating')}</span>
+                                                    <span className="text-sm font-black text-white leading-none tracking-tighter">{selectedDj.rating} <span className="text-gray-500 text-[10px]">/ 5.0</span></span>
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
                                 {/* Close button */}

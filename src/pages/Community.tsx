@@ -13,8 +13,6 @@ import { twMerge } from 'tailwind-merge';
 import { MemoryWall } from '../components/community/MemoryWall';
 import { QuizSection } from '../components/community/QuizSection';
 import { AvisSection } from '../components/community/AvisSection';
-import { GuideSection } from '../components/community/GuideSection';
-import { CovoitSection } from '../components/community/CovoitSection';
 import { DjNameGenerator } from '../components/community/DjNameGenerator';
 import { PlaylistSharing } from '../components/community/PlaylistSharing';
 import { TrackIdForum } from '../components/community/TrackIdForum';
@@ -265,7 +263,7 @@ export function Community() {
     const navigate = useNavigate();
 
     // --- TAB TYPE UPDATE ---
-    type TabType = 'WALL' | 'UPLOADS' | 'CONCOURS' | 'GAME' | 'AVIS' | 'COVOIT' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB';
+    type TabType = 'WALL' | 'UPLOADS' | 'CONCOURS' | 'GAME' | 'AVIS' | 'PLAYLISTS' | 'TRACK_ID' | 'CALENDAR' | 'LAB';
     const [activeTab, setActiveTab] = useState<TabType>('WALL');
     const location = useLocation();
 
@@ -273,7 +271,7 @@ export function Community() {
     useEffect(() => {
         const params = new URLSearchParams(location.search);
         const tab = params.get('tab');
-        if (tab && ['WALL', 'UPLOADS', 'CONCOURS', 'GAME', 'AVIS', 'COVOIT', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB'].includes(tab)) {
+        if (tab && ['WALL', 'UPLOADS', 'CONCOURS', 'GAME', 'AVIS', 'PLAYLISTS', 'TRACK_ID', 'CALENDAR', 'LAB'].includes(tab)) {
             setActiveTab(tab as TabType);
         }
     }, [location.search]);
@@ -2084,16 +2082,7 @@ export function Community() {
 
 
 
-                        {activeTab === 'COVOIT' && (
-                            <motion.div
-                                key="covoit"
-                                initial={{ opacity: 0 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
-                            >
-                                <CovoitSection />
-                            </motion.div>
-                        )}
+
 
 
 

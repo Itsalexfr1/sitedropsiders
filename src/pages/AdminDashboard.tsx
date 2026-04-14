@@ -30,6 +30,7 @@ import { R2PhotosMenuModal } from '../components/admin/modals/R2PhotosMenuModal'
 import { R2Explorer } from '../components/admin/R2Explorer';
 import { CreatorStudioMenuModal } from '../components/admin/modals/CreatorStudioMenuModal';
 import { Downloader } from './Downloader';
+import { WikiWidget } from '../components/widgets/WikiWidget';
 
 
 
@@ -64,6 +65,7 @@ export function AdminDashboard() {
     const [isEditorsModalOpen, setIsEditorsModalOpen] = useState(false);
     const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
     const [isSocialModalOpen, setIsSocialModalOpen] = useState(false);
+    const [isTopDropsidersModalOpen, setIsTopDropsidersModalOpen] = useState(false);
     const [socialLinks, setSocialLinks] = useState({ instagram: '', tiktok: '' });
     const [newsTabs, setNewsTabs] = useState({ all: 'Toutes', news: 'News', musique: 'Musiques', focus: 'Focus de la semaine' });
     const [navLabels, setNavLabels] = useState({ 
@@ -539,10 +541,11 @@ export function AdminDashboard() {
     // GESTION TEAM STATES
     const [teamMembers, setTeamMembers] = useState<any[]>([]);
     const [editors, setEditors] = useState<any[]>([]);
-    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'WIKI' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM' | 'R2' | 'SOCIAL_STUDIO'>('ALL');
+    const [dashboardTab, setDashboardTab] = useState<'ALL' | 'NEWS' | 'WIKI' | 'STUDIO' | 'COMMUNAUTÉ' | 'SHOP' | 'TEAM' | 'R2' | 'SOCIAL_STUDIO' | 'TOP_DROPSIDERS'>('ALL');
 
     const DASHBOARD_TABS = [
         { id: 'ALL', label: 'Tout' },
+        { id: 'TOP_DROPSIDERS', label: 'Top Dropsiders' },
         { id: 'NEWS', label: 'Actualités' },
         { id: 'COMMUNAUTÉ', label: 'Communauté' },
         { id: 'SOCIAL_STUDIO', label: 'Social Studio' },
@@ -1533,6 +1536,7 @@ export function AdminDashboard() {
         
         // MODÉRATION WIKI (Isolée)
         { title: "Vérifier Photos", description: "Modération Wiki Photos", icon: "Camera", category: "WIKI", link: "#", color: "border-neon-cyan/20 hover:border-neon-cyan", bg: "bg-neon-cyan/5", permission: "community_mod", baseColor: "cyan", columns: 2 },
+        { title: "Top Dropsiders", description: "Résultats des votes", icon: "Star", category: "WIKI", link: "#", color: "border-neon-yellow/20 hover:border-neon-yellow", bg: "bg-neon-yellow/5", permission: "community_mod", baseColor: "yellow", columns: 2 },
     ];
 
 
@@ -2770,9 +2774,32 @@ export function AdminDashboard() {
                                         );
                                     })()}
                                 </div>
+                        </div>
+                    ) : dashboardTab === 'TOP_DROPSIDERS' ? (
+                        <div className="space-y-12 pb-20">
+                            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] p-10 relative overflow-hidden">
+                                <div className="absolute top-0 right-0 w-64 h-64 bg-neon-yellow/5 blur-[100px] pointer-events-none" />
+                                <div className="relative z-10">
+                                    <div className="flex items-center gap-4 mb-4">
+                                        <div className="p-3 bg-neon-yellow/10 rounded-2xl border border-neon-yellow/20">
+                                            <Star className="w-8 h-8 text-neon-yellow" />
+                                        </div>
+                                        <h2 className="text-4xl font-display font-black text-white uppercase italic tracking-tighter">
+                                            Résultats <span className="text-neon-yellow">VOTES & TOPS</span>
+                                        </h2>
+                                    </div>
+                                    <p className="text-gray-500 font-bold uppercase tracking-widest text-xs max-w-2xl">
+                                        Consultez ici les résultats détaillés des votes de la communauté. 
+                                        Ces données sont masquées pour les visiteurs et ne sont visibles que depuis ce tableau de bord administrateur.
+                                    </p>
+                                </div>
                             </div>
-                            
-                            {/* WIKI VOTES (Moved from Main) */}
+
+                            <div className="bg-white/5 border border-white/10 rounded-[2.5rem] overflow-hidden">
+                                <WikiWidget showResults={true} />
+                            </div>
+
+                            {/* WIKI VOTES SUMMARY */}
                             <div className="mt-12">
                                 {(() => {
                                     const djVotes = new Set<string>((() => { try { return JSON.parse(localStorage.getItem('dropsiders_votes_djs') || '[]'); } catch { return []; } })());

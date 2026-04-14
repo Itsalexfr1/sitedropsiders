@@ -7,9 +7,10 @@ import { twMerge } from 'tailwind-merge';
 
 interface WikiWidgetProps {
     resolvedColor?: string;
+    showResults?: boolean;
 }
 
-export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)' }: WikiWidgetProps) {
+export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)', showResults = false }: WikiWidgetProps) {
     const [activeTab, setActiveTab] = useState<'DJS' | 'CLUBS' | 'FESTIVALS'>('DJS');
 
     const tabs = [
@@ -71,9 +72,9 @@ export function WikiWidget({ resolvedColor = 'var(--color-neon-cyan)' }: WikiWid
                         transition={{ duration: 0.3 }}
                         className="relative z-10"
                     >
-                        {activeTab === 'DJS' && <WikiDropsiders />}
-                        {activeTab === 'CLUBS' && <WikiVenues initialMode="clubs" />}
-                        {activeTab === 'FESTIVALS' && <WikiVenues initialMode="festivals" />}
+                        {activeTab === 'DJS' && <WikiDropsiders showResults={showResults} />}
+                        {activeTab === 'CLUBS' && <WikiVenues initialMode="clubs" showResults={showResults} />}
+                        {activeTab === 'FESTIVALS' && <WikiVenues initialMode="festivals" showResults={showResults} />}
                     </motion.div>
                 </AnimatePresence>
             </div>

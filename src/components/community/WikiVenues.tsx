@@ -50,7 +50,7 @@ function groupByLetter(data: Venue[]): Record<string, Venue[]> {
     }, {} as Record<string, Venue[]>);
 }
 
-export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
+export function WikiVenues({ initialMode = 'clubs', showResults = false }: { initialMode?: Mode; showResults?: boolean }) {
     const { t, language } = useLanguage();
     const [mode] = useState<Mode>(initialMode);
     const [search, setSearch] = useState('');
@@ -367,7 +367,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                         <button onClick={e => { e.stopPropagation(); toggleVote(venue.id); }}
                                             className={`w-full flex items-center justify-center gap-1.5 py-2 text-[8px] font-black uppercase tracking-widest transition-all border-t ${hasVoted ? 'bg-neon-red/15 border-neon-red/30 text-neon-red' : 'bg-black border-white/10 text-gray-500 hover:text-neon-red/70'}`}>
                                             <Heart className={`w-3 h-3 ${hasVoted ? 'fill-current' : ''}`} />
-                                            {voteCount > 0 ? voteCount : ''} {hasVoted ? t('voted') : t('vote')}
+                                            {showResults && voteCount > 0 ? voteCount : ''} {hasVoted ? t('voted') : t('vote')}
                                         </button>
                                     </motion.div>
                                 );
@@ -409,13 +409,15 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                     </div>
                                     <div className="flex items-center justify-between gap-4">
                                         <h3 className="text-3xl font-display font-black text-white italic uppercase tracking-tighter drop-shadow-lg">{selected.name}</h3>
-                                        <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl px-3 py-2 shrink-0">
-                                            <Star className="w-4 h-4 text-neon-red fill-current" />
-                                            <div className="flex flex-col">
-                                                <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">{t('fan_rating')}</span>
-                                                <span className="text-sm font-black text-white leading-none tracking-tighter">{(selected as any).rating || '0.0'} <span className="text-gray-500 text-[10px]">/ 5.0</span></span>
+                                        {showResults && (
+                                            <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md border border-white/10 rounded-2xl px-3 py-2 shrink-0">
+                                                <Star className="w-4 h-4 text-neon-red fill-current" />
+                                                <div className="flex flex-col">
+                                                    <span className="text-[7px] font-black text-gray-500 uppercase tracking-widest leading-none mb-1">{t('fan_rating')}</span>
+                                                    <span className="text-sm font-black text-white leading-none tracking-tighter">{(selected as any).rating || '0.0'} <span className="text-gray-500 text-[10px]">/ 5.0</span></span>
+                                                </div>
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
                                 {/* Close */}
@@ -443,7 +445,7 @@ export function WikiVenues({ initialMode = 'clubs' }: { initialMode?: Mode }) {
                                     className={`w-full flex items-center justify-center gap-3 py-4 rounded-2xl font-black uppercase tracking-widest transition-all ${votes.has(selected.id) ? 'bg-neon-red text-white shadow-[0_0_30px_rgba(255,0,0,0.3)]' : 'bg-white/5 border border-white/10 text-gray-300 hover:border-neon-red/50 hover:text-neon-red'}`}>
                                     <Heart className={`w-5 h-5 ${votes.has(selected.id) ? 'fill-current' : ''}`} />
                                     {votes.has(selected.id) ? t('voted_for_venue') : t('vote_for_venue')}
-                                    <span className="text-sm opacity-70">· {getVoteCount(selected)} votes</span>
+                                    {showResults && <span className="text-sm opacity-70">· {getVoteCount(selected)} votes</span>}
                                 </button>
 
                                 {/* Links */}
